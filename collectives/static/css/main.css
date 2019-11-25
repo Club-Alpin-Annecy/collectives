@@ -71,6 +71,8 @@ body{
 .panel{
 	width: 65vw;
 	margin-left: 35vw;
+	height: calc(100vh - 60px);
+	overflow-y: auto;
 }
 
 /* LOGIN PLACE */
@@ -213,6 +215,7 @@ body{
 /* HEADER */
 #header{
 	background-color: #69747c;
+	height: 60px;
 }
 h2 img{
 	height:1em;

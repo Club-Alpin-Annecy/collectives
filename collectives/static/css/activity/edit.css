@@ -1,7 +1,5 @@
 #activityedit{
   background-color: white;
-  height: 100vh;
-  overflow-y: scroll;
 }
 
 
@@ -62,4 +60,8 @@
 #activityedit #editor, #activityedit .ql-toolbar{
   width: 80%;
   margin:auto;
+}
+
+#activityedit #editor{
+  height: 20em;
 }

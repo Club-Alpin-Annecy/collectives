@@ -13,32 +13,32 @@
 {% block content %}
 
 <div id="activitylist" class="panel">
-  <p><a href="{{url_for('add_activity')}}"><input type="button" value="Ajouter une activité"/></a></p>
 
+  <p class="action"><a href="{{url_for('add_activity')}}"><input type="button" value="Ajouter une activité"/></a></p>
+
+{% for activity in activities %}
   <div class="activity">
+    <img class="photo" src="{{ url_for('static', filename='img/icon/ionicon/md-images.svg') }}"/>
 
 
+    <h3>{{ activity.title}}</h3>
+    <h4> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+      {{ activity.start}}
+      {% if activity.start != activity.end %}
+          - {{activity.end }}
+      {% endif %}
+    </h4>
+    <div class="slots">
+      {% for i in range(0, activity.nbslots) %}
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
+      {% endfor %}
+    </div>
+
+    <div>
+
+    </div>
   </div>
-  <div class="activity">
-
-
-  </div>
-  <div class="activity">
-
-
-  </div>
-  <div class="activity">
-
-
-  </div>
-  <div class="activity">
-
-
-  </div>
-  <div class="activity">
-
-
-  </div>
+{% endfor %}
 
 </div>
 {% endblock %}

@@ -1,12 +1,59 @@
 #activitylist{
 }
 
+#activitylist .action{
+  text-align: right;
+  padding: 0 40px;
+}
+#activitylist .action input{
+  background-color: white;
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 1em;
+  border: none;
+  font-size: 1em;
+
+  border-radius: 5px;
+  color: black;
+}
+
 
 #activitylist .activity{
-  width: 30%;
+  width: 47%;
   margin: 1%;
-  min-height: 100px;
+  height: 200px;
   float: left;
-  border: 1px solid #666666;
+  border: 2px solid #666666;
   background: rgba(255, 255, 255, 0.9);
+}
+
+#activitylist .activity .photo{
+  height: 200px;
+  width: 200px;
+  float: left;
+  object-fit: cover;
+  background-color: white;
+}
+
+#activitylist .activity h3{
+  text-align: center;
+  background-color: #00a6d0;
+  margin: 0;
+}
+#activitylist .activity h4{
+  text-align: right;
+  padding: 0 5  px;
+  margin: 0.1em;
+}
+#activitylist .icon{
+  height: 1.2em;
+  position: relative;
+  top: .2em;
+}
+#activitylist .slots{
+  text-align: right;
+  padding-right: 5px;
+}
+#activitylist .slots .freeslot{
+  opacity: .5;
 }

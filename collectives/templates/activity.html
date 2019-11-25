@@ -29,7 +29,7 @@
      <label for="title">Nombre de participants : </label> {{ form.nbslots(size=4) }}<br/>
     <div class="dates">
       <h4>Dates</h4>
-      <span class="datetimepicker" id="datetimepickerstart"><label for="start" >Date et heure de rendez-vous : </label>{{ form.start }}</span>
+      <span class="datetimepicker" id="datetimepickerstart"><label for="start" >Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate()")}}</span>
       <span class="datetimepicker" id="datetimepickerend" style="display:none"><label for="end" >Date de fin : </label>{{ form.end }}</span>
       <br/><label for="several">Plusieurs jours : </label><input name="several" type="checkbox" onchange="severalDays(this);"/>
     </div>

@@ -12,7 +12,8 @@ import sys
 @app.route('/list')
 @login_required
 def index():
-    return  render_template('index.html', conf=app.config)
+    activities = Activity.query.all()
+    return  render_template('index.html', conf=app.config, activities=activities)
 
 @app.route('/login',  methods=['GET', 'POST'])
 def login():
@@ -55,4 +56,5 @@ def add_activity():
     form.populate_obj(activity)
     db.session.add(activity)
     db.session.commit()
-    return "Saved!"
+    flash('Nouvelle activité créée', 'information')
+    return redirect('/')
