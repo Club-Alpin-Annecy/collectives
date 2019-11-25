@@ -1,0 +1,22 @@
+
+{% extends 'base.html' %}
+
+
+{% block header %}
+  <h1>{% block title %}Login{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<!-- Logging Windows -->
+<div id="logger">
+  <form method="POST" action="{{ url_for('login') }}">
+    {{ form.hidden_tag() }}
+    <h3><img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="head"/></h3>
+
+       {{ form.mail.label }} <br/> {{ form.mail(size=150) }}
+    <br/><br/>{{ form.password.label }} <br/> {{ form.password(size=256) }}
+    <br/><br/>{{ form.remember_me() }} {{ form.remember_me.label }}
+    <br/>{{ form.submit() }}
+  </form>
+</div>
+{% endblock %}

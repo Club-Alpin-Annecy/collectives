@@ -1,0 +1,44 @@
+
+{% extends 'base.html' %}
+
+
+{% block header %}
+  {% block title %}Liste{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/activitylist.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div id="activitylist" class="panel">
+  <p><a href="{{url_for('add_activity')}}"><input type="button" value="Ajouter une activité"/></a></p>
+
+  <div class="activity">
+
+
+  </div>
+  <div class="activity">
+
+
+  </div>
+  <div class="activity">
+
+
+  </div>
+  <div class="activity">
+
+
+  </div>
+  <div class="activity">
+
+
+  </div>
+  <div class="activity">
+
+
+  </div>
+
+</div>
+{% endblock %}

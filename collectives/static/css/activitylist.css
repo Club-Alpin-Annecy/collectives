@@ -1,0 +1,12 @@
+#activitylist{
+}
+
+
+#activitylist .activity{
+  width: 30%;
+  margin: 1%;
+  min-height: 100px;
+  float: left;
+  border: 1px solid #666666;
+  background: rgba(255, 255, 255, 0.9);
+}

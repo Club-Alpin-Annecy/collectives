@@ -1,0 +1,65 @@
+#activityedit{
+  background-color: white;
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+
+#activityedit h3{
+  text-align: center;
+  background-color: #00a6d0;
+  margin-top:0;
+  padding: .5em;
+  font-size: 2em;
+}
+
+#activityedit h4{
+  text-align: left;
+  font-size: 1.5em;
+  max-width: 600px;
+  margin:auto;
+  margin-top: 2em;
+}
+
+#activityedit form{
+  padding: 10px 20px;
+  text-align: center;
+}
+
+#activityedit label{
+  font-weight: bold;
+  display: inline-block;
+  width : 30%;
+  text-align: right;
+  padding-right: 5px;
+  margin-bottom: 1em;
+}
+#activityedit input{
+  display: inline-block;
+  width : 40%;
+  margin-bottom: 1em;
+  text-align: left;
+}
+
+
+#activityedit input[type=submit] {
+	background-color: #00a6cf;
+	box-sizing: border-box;
+	margin: 8px 0;
+	padding: 1em;
+	border: none;
+	font-size: 1em;
+	width: 50%;
+  text-align: center;
+  font-weight: bold;
+
+	border-radius: 5px;
+	color: white;
+
+}
+
+
+#activityedit #editor, #activityedit .ql-toolbar{
+  width: 80%;
+  margin:auto;
+}

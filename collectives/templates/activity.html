@@ -1,0 +1,50 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/activity/edit.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/activity/edit.css') }}">
+
+  {# DateTime picker#}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+
+  {# Wysiwyg Editor #}
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Rédaction d'activité{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="activityedit">
+  <!-- Logging Windows -->
+  <h3>Rédaction d'activité</h3>
+  <form action="" method="POST" onsubmit="document.querySelector('textarea[name=description]').value=quill.getContents()">
+    <h4>Informations</h4>
+     <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
+     <label for="title">Nombre de participants : </label> {{ form.nbslots(size=4) }}<br/>
+    <div class="dates">
+      <h4>Dates</h4>
+      <span class="datetimepicker" id="datetimepickerstart"><label for="start" >Date et heure de rendez-vous : </label>{{ form.start }}</span>
+      <span class="datetimepicker" id="datetimepickerend" style="display:none"><label for="end" >Date de fin : </label>{{ form.end }}</span>
+      <br/><label for="several">Plusieurs jours : </label><input name="several" type="checkbox" onchange="severalDays(this);"/>
+    </div>
+    <h4>Description</h4>
+    <div id="editor"></div>
+    {{ form.description(style="display:none;", required=false) }}<br/>
+    {{ form.hidden_tag() }}
+     <br/><input type="submit" value="Enregistrer"  />
+  </form>
+</div>
+<script>
+tail.DateTime("input[type=datetime]");
+var quill = new Quill('#editor', {
+  theme: 'snow'
+});
+</script>
+
+{% endblock %}

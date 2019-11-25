@@ -1,0 +1,5 @@
+flask
+flask-login
+flask_sqlalchemy
+flask-wtf
+WTForms-Alchemy
