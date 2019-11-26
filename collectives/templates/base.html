@@ -41,22 +41,23 @@ dealings in this Software without prior written authorization from @jnguiot.
 		<div id="menu" class="item">
 			<img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
 			<div class="content">
-				<a href="{{ url_for('index')}}">Liste des collectives</a>
-				<a href="">Administration</a>
+				<a href="{{ url_for('index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
+				<a href="{{ url_for('add_activity')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter une activité</a>
+				<a href=""><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
 			</div>
-		</div>
-	{% endif %}
+		</div><!-- To have no space between menu item
+	 -->{% endif %}<!--
 
 
-	{% if current_user.is_authenticated %}
-	<div id="identity" class="item">
+	 -->{% if current_user.is_authenticated %}<!--
+	 --><div id="identity" class="item">
 		<img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/>  {{ current_user.mail }}
 	</div>
 	<div class="item" id ="logout">
 		<a href="{{ url_for('logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
 	</div>
-	{% else %}
-	<div id="identity" class="item">
+	{% else %}<!--
+	--><div id="identity" class="item">
 		<a href="{{ url_for('login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
 	</div>
   {% endif %}

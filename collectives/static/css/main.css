@@ -79,7 +79,13 @@ a{
 	height: calc(100vh - 60px);
 	overflow-y: auto;
 }
-
+@media only screen and (max-width:1000px) {
+	.panel{
+		width: 95vw;
+		margin: auto;
+		margin-right: 0;
+	}
+}
 /* LOGIN PLACE */
 #logger{
 
@@ -251,6 +257,11 @@ a{
 }
 #header #menu:hover .content{
 	display: block;
+}
+#header #menu:hover .content img{
+	height: 1em;
+	position: relative;
+	top: -.1em;
 }
 #header #menu .content a{
 	color: black;
