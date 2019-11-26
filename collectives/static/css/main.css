@@ -40,6 +40,11 @@ body{
   background-size: cover;
 }
 
+a{
+	text-decoration: none;
+	color: black;
+}
+
 #playground{
 	height:100vh;
 	width: 100vw;
@@ -189,47 +194,82 @@ body{
 }
 
 
-/* Identity space (top left user space) */
-#identity{
-	float: left;
-	font-size: 1.2em;
-	padding-left: 20px;
-	padding-top: .9em;
-}
-#identity img{
-	height:1em;
-	position: relative;
-	top: .2em;
-	background-color: white;
-	border-radius: .1em;
-}
-#identity a {
-	text-decoration: none;
-	background-color: #00a6cf;
-	box-sizing: border-box;
-	padding: 0px 5px;
-	border-radius: 5px;
-	color: white;
-}
+
 
 /* HEADER */
 #header{
 	background-color: #69747c;
 	height: 60px;
 }
-h2 img{
+#header h2 img{
 	height:1em;
 	position: relative;
 	top: .2em;
 }
 
-h2{
+#header h2{
+	float:	right;
 	text-align: right;
 	margin: 0;
 	padding: .5em;
-	color: white;
 	font-family: 'Nunito Sans', sans-serif;
 	vertical-align: middle;
+}
+#header h2 a{
+	color: white !important;
+}
+#header .item{
+	height: 60px;
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+	line-height: 60px;
+	white-space: nowrap;
+	vertical-align: middle;
+	font-size: 2em;
+	padding: 0 5px;
+}
+#header .item:hover{
+	background-color: rgba(0,0,10,.1);
+}
+#header .item img{
+	height: 50%;
+	vertical-align: middle;
+}
+
+#header #menu{
+	position: relative;
+	background-color: #bbbbbb	;
+}
+#header #menu .content{
+	display: none;
+	position: absolute;
+	background-color: #f1f1f1;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+}
+#header #menu:hover .content{
+	display: block;
+}
+#header #menu .content a{
+	color: black;
+	padding: 12px 16px;
+	display: block;
+}
+#header #menu .content a:hover{
+	background-color: #00a6d0;
+}
+#header .menubutton{
+	height: 100% !important;
+	cursor: pointer;
+}
+
+/* Identity space (top left user space) */
+
+#header #logout{
+	width: 60px;
+	text-align: center;
 }
 
 .user{

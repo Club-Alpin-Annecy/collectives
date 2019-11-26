@@ -35,13 +35,32 @@ dealings in this Software without prior written authorization from @jnguiot.
 </head>
 <body>
 <div id="header">
+	<h2><a href="{{ url_for('index')}}"><img src="{{ url_for('static', filename=conf['LOGO']) }}"/>{{ conf['TITLE'] }}</a></h2>
+
 	{% if current_user.is_authenticated %}
-		<div id="identity"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/>  {{ current_user.mail }} <a href="{{ url_for('logout') }}" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}"/> </a></div>
+		<div id="menu" class="item">
+			<img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
+			<div class="content">
+				<a href="{{ url_for('index')}}">Liste des collectives</a>
+				<a href="">Administration</a>
+			</div>
+		</div>
+	{% endif %}
+
+
+	{% if current_user.is_authenticated %}
+	<div id="identity" class="item">
+		<img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/>  {{ current_user.mail }}
+	</div>
+	<div class="item" id ="logout">
+		<a href="{{ url_for('logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
+	</div>
 	{% else %}
-		<div id="identity"><a href="{{ url_for('login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a></div>
+	<div id="identity" class="item">
+		<a href="{{ url_for('login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+	</div>
   {% endif %}
 
-	<h2><span><img src="{{ url_for('static', filename=conf['LOGO']) }}"/>{{ conf['TITLE'] }}</span></h2>
 
 	<!--h3>{% block header %}{% endblock %}</h3-->
 
