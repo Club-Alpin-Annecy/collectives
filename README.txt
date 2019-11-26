@@ -27,3 +27,8 @@ It used flask design:
   - auth.py:         Everything related with Authentification
   - models.py:       Model part of the MVC. Contains all object and the DB access PARTICULAR
   - views.py:        View part of the MVC. Contains routes.
+
+4. Access
+=========
+Default account is admin
+Default password is foobar2 (can be change in config.py)
