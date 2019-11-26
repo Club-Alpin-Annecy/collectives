@@ -32,3 +32,7 @@ It used flask design:
 =========
 Default account is admin
 Default password is foobar2 (can be change in config.py)
+
+5. Demonstration
+================
+A demonstration website can be found https://demo.jnguiot.fr
