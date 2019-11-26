@@ -1,10 +1,12 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from collectives import app
-from .forms import LoginForm, ActivityForm
+from .forms import LoginForm, ActivityForm, photos
 from .models import User, Activity, db
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import CombinedMultiDict
 import sys
-
+import os
 
 
 @app.route('/')
@@ -47,14 +49,26 @@ def logout():
 @app.route('/activity/add',  methods=['GET', 'POST'])
 @login_required
 def add_activity():
-    form = ActivityForm(request.form)
+    form = ActivityForm(CombinedMultiDict((request.files, request.form)))
     if not form.is_submitted():
         form = ActivityForm()
         return render_template('activity.html', conf=app.config, form=form)
 
     activity = Activity();
-    form.populate_obj(activity)
+    ActivityForm(request.form).populate_obj(activity)
     db.session.add(activity)
     db.session.commit()
+
+    if form.photo.data != None:
+        filename = photos.save(form.photo.data, name='activity-'+str(activity.id)+'.')
+        file_url = photos.url(filename)
+        activity.photo = file_url;
+        db.session.add(activity)
+        db.session.commit()
+
     flash('Nouvelle activité créée', 'information')
     return redirect('/')
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']

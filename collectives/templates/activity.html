@@ -23,10 +23,15 @@
 <div class="panel" id="activityedit">
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
-  <form action="" method="POST" onsubmit="document.querySelector('textarea[name=description]').value=quill.getContents()">
+  <form
+        action=""
+        method="POST"
+        onsubmit="document.querySelector('textarea[name=description]').value=quill.getContents()"
+        enctype="multipart/form-data"
+  >
     <h4>Informations</h4>
      <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
-     <label for="title">Nombre de participants : </label> {{ form.nbslots(size=4) }}<br/>
+     <label for="nbslots">Nombre de participants : </label> {{ form.nbslots(size=4) }}<br/>
     <div class="dates">
       <h4>Dates</h4>
       <span class="datetimepicker" id="datetimepickerstart"><label for="start" >Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate()")}}</span>
@@ -36,6 +41,8 @@
     <h4>Description</h4>
     <div id="editor"></div>
     {{ form.description(style="display:none;", required=false) }}<br/>
+    <label for="photo">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo }} <br/>
+    <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />
   </form>

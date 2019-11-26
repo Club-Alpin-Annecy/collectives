@@ -19,3 +19,7 @@ FAVICON= "caf/favicon.ico"
 
 # Password for admin account
 ADMINPWD="foobar2"
+
+# Technical stuff
+UPLOADED_PHOTOS_DEST= os.path.join(basedir, "collectives/static/uploads")
+ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'gif'}

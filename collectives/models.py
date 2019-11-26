@@ -36,6 +36,7 @@ class Activity(db.Model):
     type            = db.Column(db.String(100), nullable=False)
     description     = db.Column(db.Text(), nullable=False)
     nbslots         = db.Column(db.Integer, nullable=False)
+    photo           = db.Column(db.String(100), nullable=True)
 
     def __init__(self):
         a=1

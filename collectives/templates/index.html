@@ -18,7 +18,7 @@
 
 {% for activity in activities %}
   <div class="activity">
-    <img class="photo" src="{{ url_for('static', filename='img/icon/ionicon/md-images.svg') }}"/>
+    <img class="photo" src="{{  activity.photo }}"/>
 
 
     <h3>{{ activity.title}}</h3>

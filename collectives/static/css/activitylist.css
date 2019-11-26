@@ -15,6 +15,8 @@
 
   border-radius: 5px;
   color: black;
+
+  cursor: pointer;
 }
 
 
@@ -26,12 +28,19 @@
   border: 2px solid #666666;
   background: rgba(255, 255, 255, 0.9);
 }
+/* Mobile Adjustment :less activity on same line*/
+@media only screen and (max-width:1000px) {
+	#activitylist .activity{
+		width: 95%;
+	}
+}
 
 #activitylist .activity .photo{
   height: 200px;
   width: 200px;
   float: left;
   object-fit: cover;
+  background: url("../img/icon/ionicon/md-images.svg");
   background-color: white;
 }
 

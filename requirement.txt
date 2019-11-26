@@ -3,3 +3,5 @@ flask-login
 flask_sqlalchemy
 flask-wtf
 WTForms-Alchemy
+flask_uploads
+flask-migrate
