@@ -15,7 +15,7 @@ import os
 @login_required
 def index():
     activities = Activity.query.all()
-    return  render_template('index.html', conf=app.config, activities=activities)
+    return  render_template('index.html', conf=app.config, activities=activities, photos=photos)
 
 @app.route('/login',  methods=['GET', 'POST'])
 def login():
@@ -61,8 +61,7 @@ def add_activity():
 
     if form.photo.data != None:
         filename = photos.save(form.photo.data, name='activity-'+str(activity.id)+'.')
-        file_url = photos.url(filename)
-        activity.photo = file_url;
+        activity.photo = filename;
         db.session.add(activity)
         db.session.commit()
 
