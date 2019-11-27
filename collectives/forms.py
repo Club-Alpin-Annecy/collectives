@@ -4,7 +4,7 @@ from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from .models import Activity
+from .models import Activity, User
 from collectives import app
 
 
@@ -25,3 +25,8 @@ class ActivityForm(ModelForm, FlaskForm ):
     class Meta:
         model = Activity
     photo = FileField(validators=[FileAllowed(photos, 'Image only!')])
+
+
+class UserForm(ModelForm, FlaskForm ):
+    class Meta:
+        model = User

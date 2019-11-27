@@ -18,7 +18,7 @@
 
 {% for activity in activities %}
   <div class="activity">
-    <img class="photo" src="{{ url_for('_uploads.uploaded_file', setname='photos', filename=activity.photo) }}"/>
+    <img class="photo" src="{% if activity.photo %}{{ url_for('_uploads.uploaded_file', setname='photos', filename=activity.photo) }}{% endif %}"/>
 
 
     <h3>{{ activity.title}}</h3>

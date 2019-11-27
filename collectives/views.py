@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from collectives import app
-from .forms import LoginForm, ActivityForm, photos
+from .forms import LoginForm, ActivityForm, UserForm, photos
 from .models import User, Activity, db
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -65,9 +65,23 @@ def add_activity():
         db.session.add(activity)
         db.session.commit()
 
-    flash('Nouvelle activité créée', 'information')
+    flash('Nouvelle activite creee', 'information')
     return redirect('/')
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/users/add',  methods=['GET', 'POST'])
+@login_required
+def add_user():
+    form = UserForm()
+    if not form.is_submitted():
+        form = UserForm()
+        return render_template('manageuser.html', conf=app.config, form=form)
+
+    user = User();
+    UserForm(request.form).populate_obj(user)
+    user.set_password(request.form['password']);
+    db.session.add(user)
+    db.session.commit()
+
+    flash('Nouveau user cree;', 'information')
+    return redirect(url_for('add_user'))

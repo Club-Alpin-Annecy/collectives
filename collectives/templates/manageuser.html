@@ -1,0 +1,30 @@
+
+{% extends 'base.html' %}
+
+
+
+{% block header %}
+  <h1>{% block title %}Gestion utilisateur{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="useredit">
+  <!-- Logging Windows -->
+  <h3>Ajout d'utilisateur</h3>
+  <form action="" method="POST"   >
+      {% for field in form %}
+          {{ field.label }}
+          {{ field }}<br/>
+    {% endfor %}
+    {{ form.hidden_tag() }}
+     <br/><input type="submit" value="Enregistrer"  />
+  </form>
+</div>
+<script>
+tail.DateTime("input[type=datetime]");
+var quill = new Quill('#editor', {
+  theme: 'snow'
+});
+</script>
+
+{% endblock %}

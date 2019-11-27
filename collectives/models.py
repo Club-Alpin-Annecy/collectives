@@ -17,9 +17,8 @@ class User(db.Model, UserMixin):
     password        = db.Column(db.String(150), nullable=False)
     isadmin         = db.Column(db.Boolean, default=False)
 
-    def __init__(self, mail):
-        self.mail = mail
-
+    def __init__(self):
+        pass 
     def set_password(self, password):
         """Create hashed password."""
         self.password = generate_password_hash(password)
