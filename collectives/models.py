@@ -16,9 +16,10 @@ class User(db.Model, UserMixin):
     mail            = db.Column(db.String(100), nullable=False)
     password        = db.Column(db.String(150), nullable=False)
     isadmin         = db.Column(db.Boolean, default=False)
+    enabled          = db.Column(db.Boolean, default=True)
 
     def __init__(self):
-        pass 
+        pass
     def set_password(self, password):
         """Create hashed password."""
         self.password = generate_password_hash(password)
@@ -41,7 +42,7 @@ class Activity(db.Model):
     def __init__(self):
         a=1
 
-db.create_all()
+#db.create_all()
 
 # Connect sqlalchemy to app
 db.init_app(app)

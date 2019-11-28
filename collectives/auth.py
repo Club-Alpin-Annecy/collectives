@@ -1,5 +1,7 @@
 from flask_login import LoginManager
 from collectives import app
+import sqlite3
+import sqlalchemy.exc
 
 
 login = LoginManager()
@@ -14,14 +16,20 @@ from .models import User, db
 def load_user(id):
     return User.query.get(int(id))
 
-# Setup admin
-user = User.query.filter_by(mail="admin").first()
-if user is None:
-    user = User(mail='admin')
-    user.isadmin = True
-    user.set_password(app.config['ADMINPWD'])
-    db.session.add(user)
-    db.session.commit()
-if not user.check_password(app.config['ADMINPWD']):
-    user.set_password(app.config['ADMINPWD'])
-    db.session.commit()
+# Setup admin (if db is ready)
+try:
+    user = User.query.filter_by(mail="admin").first()
+    if user is None:
+        user = User()
+        user.mail='admin'
+        user.isadmin = True
+        user.set_password(app.config['ADMINPWD'])
+        db.session.add(user)
+        db.session.commit()
+    if not user.check_password(app.config['ADMINPWD']):
+        user.set_password(app.config['ADMINPWD'])
+        db.session.commit()
+except sqlite3.OperationalError:
+    print("WARN: Cannot configure admin: db is not available")
+except sqlalchemy.exc.OperationalError:
+    print("WARN: Cannot configure admin: db is not available")

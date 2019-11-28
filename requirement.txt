@@ -5,3 +5,5 @@ flask-wtf
 WTForms-Alchemy
 flask_uploads
 flask-migrate
+flask-marshmallow
+marshmallow-sqlalchemy
