@@ -1,11 +1,22 @@
+#administration #users-table{
+  max-width: 600px;
+  margin: auto;
+}
+
+#administration .action{
+  max-width: 600px;
+  margin: auto;
+  text-align: right;
+}
 
 
-#activityedit form{
+
+#administration form{
   padding: 10px 20px;
   text-align: center;
 }
 
-#activityedit label{
+#administration label{
   font-weight: bold;
   display: inline-block;
   width : 30%;
@@ -13,7 +24,7 @@
   padding-right: 5px;
   margin-bottom: 1em;
 }
-#activityedit input{
+#administration input{
   display: inline-block;
   width : 40%;
   margin-bottom: 1em;
@@ -22,7 +33,7 @@
 }
 
 
-#activityedit input[type=submit] {
+#administration input[type=submit] {
 	background-color: #00a6cf;
 	box-sizing: border-box;
 	margin: 8px 0;
@@ -36,14 +47,4 @@
 	border-radius: 5px;
 	color: white;
 
-}
-
-
-#activityedit #editor, #activityedit .ql-toolbar{
-  width: 80%;
-  margin:auto;
-}
-
-#activityedit #editor{
-  height: 20em;
 }

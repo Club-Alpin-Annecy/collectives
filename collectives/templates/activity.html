@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel" id="activityedit">
+<div class="panel solidpanel" id="activityedit">
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
   <form
@@ -41,7 +41,7 @@
     <h4>Description</h4>
     <div id="editor"></div>
     {{ form.description(style="display:none;", required=false) }}<br/>
-    <label for="photo">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo }} <br/> 
+    <label for="photo">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo }} <br/>
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />

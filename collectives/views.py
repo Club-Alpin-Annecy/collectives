@@ -31,6 +31,10 @@ def login():
         flash('Invalid username or password', 'error')
         return redirect(url_for('login'))
 
+    if not user.enabled:
+        flash('Disable account', 'error')
+        return redirect(url_for('login'))
+
     login_user(user, remember=form.remember_me.data)
 
     # Redirection to the page required by user before login
@@ -72,6 +76,10 @@ def add_activity():
 @app.route('/users/add',  methods=['GET', 'POST'])
 @login_required
 def add_user():
+    if not current_user.isadmin:
+        flash('Unauthorized')
+        return redirect(url_for('index'))
+        
     form = UserForm()
     if not form.is_submitted():
         form = UserForm()
@@ -85,3 +93,14 @@ def add_user():
 
     flash('Nouveau user cree;', 'information')
     return redirect(url_for('add_user'))
+
+@app.route('/administration',  methods=['GET', 'POST'])
+@login_required
+def administration():
+    if not current_user.isadmin:
+        flash('Unauthorized')
+        return redirect(url_for('index'))
+
+    users= User.query.all()
+
+    return render_template('administration.html', conf=app.config, users=users)

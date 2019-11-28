@@ -43,8 +43,9 @@ dealings in this Software without prior written authorization from @jnguiot.
 			<div class="content">
 				<a href="{{ url_for('index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
 				<a href="{{ url_for('add_activity')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter une activité</a>
-				<a href="{{ url_for('add_user')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Ajout utilisateur</a>
-				<a href=""><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
+				{% if current_user.isadmin %}
+					<a href="{{ url_for('administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
+				{% endif %}
 			</div>
 		</div><!-- To have no space between menu item
 	 -->{% endif %}<!--

@@ -79,6 +79,28 @@ a{
 	height: calc(100vh - 60px);
 	overflow-y: auto;
 }
+
+.solidpanel{
+  background-color: white;
+}
+
+
+.solidpanel h3{
+  text-align: center;
+  background-color: #00a6d0;
+  margin-top:0;
+  padding: .5em;
+  font-size: 2em;
+}
+
+.solidpanel h4{
+  text-align: left;
+  font-size: 1.5em;
+  max-width: 600px;
+  margin:auto;
+  margin-top: 2em;
+}
+
 @media only screen and (max-width:1000px) {
 	.panel{
 		width: 95vw;
@@ -299,6 +321,14 @@ a{
 	background-size: cover;
 	border-radius: 5px;
 	background-color: white;
+}
+
+a.button{
+	border-radius: 5px;
+	background-color: #eeeeee;
+	cursor: pointer;
+	display: inline-block;
+	padding: 8px 10px;
 }
 
 /* UTILS */

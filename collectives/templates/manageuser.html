@@ -1,14 +1,16 @@
 
 {% extends 'base.html' %}
 
-
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+{% endblock %}
 
 {% block header %}
   <h1>{% block title %}Gestion utilisateur{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<div class="panel" id="useredit">
+<div class="panel solidpanel" id="administration">
   <!-- Logging Windows -->
   <h3>Ajout d'utilisateur</h3>
   <form action="" method="POST"   >
@@ -20,11 +22,6 @@
      <br/><input type="submit" value="Enregistrer"  />
   </form>
 </div>
-<script>
-tail.DateTime("input[type=datetime]");
-var quill = new Quill('#editor', {
-  theme: 'snow'
-});
-</script>
+
 
 {% endblock %}

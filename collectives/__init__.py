@@ -11,7 +11,7 @@ app.config.from_object('config')
 
 
 #from .auth import login
-from . import models, views, auth
+from . import models, views, auth, api
 
 
 
