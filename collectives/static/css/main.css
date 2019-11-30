@@ -331,6 +331,11 @@ a.button{
 	padding: 8px 10px;
 }
 
+.avatar{
+	border-radius: 5px;
+	background-color: white;
+}
+
 /* UTILS */
 .breaker{
 	clear: both;
