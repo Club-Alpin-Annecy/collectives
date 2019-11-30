@@ -52,9 +52,9 @@ dealings in this Software without prior written authorization from @jnguiot.
 
 
 	 -->{% if current_user.is_authenticated %}<!--
-	 --><div id="identity" class="item">
+--><a href="{{ url_for('update_user')}}"><div id="identity" class="item">
 		<img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/>  {{ current_user.mail }}
-	</div>
+	</div></a>
 	<div class="item" id ="logout">
 		<a href="{{ url_for('logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
 	</div>

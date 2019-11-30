@@ -1,6 +1,8 @@
 flask
 flask-login
 flask_sqlalchemy
+sqlalchemy-utils
+passlib
 flask-wtf
 WTForms-Alchemy
 flask_uploads

@@ -2,6 +2,7 @@ from flask_login import LoginManager
 from collectives import app
 import sqlite3
 import sqlalchemy.exc
+import sqlalchemy_utils
 
 
 login = LoginManager()
@@ -23,11 +24,11 @@ try:
         user = User()
         user.mail='admin'
         user.isadmin = True
-        user.set_password(app.config['ADMINPWD'])
+        user.password=app.config['ADMINPWD']
         db.session.add(user)
         db.session.commit()
-    if not user.check_password(app.config['ADMINPWD']):
-        user.set_password(app.config['ADMINPWD'])
+    if not user.password==app.config['ADMINPWD']:
+        user.password=app.config['ADMINPWD']
         db.session.commit()
 except sqlite3.OperationalError:
     print("WARN: Cannot configure admin: db is not available")

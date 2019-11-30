@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from collectives import app
-from .forms import LoginForm, ActivityForm, UserForm, photos
+from .forms import LoginForm, ActivityForm, UserForm, AdminUserForm, photos
 from .models import User, Activity, db
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -27,7 +27,7 @@ def login():
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
-    if user is None or not user.check_password(form.password.data):
+    if user is None or not user.password==form.password.data:
         flash('Invalid username or password', 'error')
         return redirect(url_for('login'))
 
@@ -60,39 +60,54 @@ def add_activity():
 
     activity = Activity();
     ActivityForm(request.form).populate_obj(activity)
+
+    # We have to save new activity before add the photo, or id is not defined
     db.session.add(activity)
     db.session.commit()
-
-    if form.photo.data != None:
-        filename = photos.save(form.photo.data, name='activity-'+str(activity.id)+'.')
-        activity.photo = filename;
-        db.session.add(activity)
-        db.session.commit()
+    activity.save_photo(form.photo.data)
+    db.session.add(activity)
+    db.session.commit()
 
     flash('Nouvelle activite creee', 'information')
     return redirect('/')
 
 
-@app.route('/users/add',  methods=['GET', 'POST'])
+
+@app.route('/user',  methods=['GET', 'POST'])
 @login_required
-def add_user():
-    if not current_user.isadmin:
-        flash('Unauthorized')
-        return redirect(url_for('index'))
-        
+def update_user():
+
     form = UserForm()
     if not form.is_submitted():
-        form = UserForm()
-        return render_template('manageuser.html', conf=app.config, form=form)
+        form = UserForm(obj=current_user)
+        form.password.data = "**********"
+        return render_template('basicform.html', conf=app.config, form=form, title="Profil utilisateur")
 
-    user = User();
-    UserForm(request.form).populate_obj(user)
-    user.set_password(request.form['password']);
+    if not form.validate():
+        flash('Erreur dans le formulaire', 'error')
+        return redirect(url_for('update_user'))
+
+    user = current_user;
+    form = UserForm(request.form)
+
+    # Do not touch password if user don't want to change it
+    if form.password.data == '':  del form.password
+    # Idem for the avatars
+    if form.avatar.data == None:  del form.avatar
+
+    form.populate_obj(user)
+
+    # Save avatar into ight UploadSet
+    user.save_avatar(UserForm().avatar.data)
     db.session.add(user)
     db.session.commit()
 
-    flash('Nouveau user cree;', 'information')
-    return redirect(url_for('add_user'))
+    flash('Profil editee', 'information')
+    return redirect(url_for('update_user'))
+
+################################################################
+# ADMINISTRATION
+################################################################
 
 @app.route('/administration',  methods=['GET', 'POST'])
 @login_required
@@ -104,3 +119,36 @@ def administration():
     users= User.query.all()
 
     return render_template('administration.html', conf=app.config, users=users)
+
+
+@app.route('/administration/users/add',  methods=['GET', 'POST'])
+@login_required
+def add_user():
+    # Reject non admin
+    if not current_user.isadmin:
+        flash('Unauthorized')
+        return redirect(url_for('index'))
+
+    form = AdminUserForm()
+    if not form.is_submitted():
+        return render_template('basicform.html', conf=app.config, form=form, title="Ajout d'utilisateur")
+
+    if not form.validate():
+        flash('Erreur dans le formulaire', 'error')
+        return redirect(url_for('update_user'))
+
+    # Idem for the avatars
+    if form.avatar.data == None:  del form.avatar
+
+    user = User();
+    AdminUserForm(request.form).populate_obj(user)
+    db.session.add(user)
+    db.session.commit()
+    # Save avatar into ight UploadSet
+    user.save_avatar(UserForm().avatar.data)
+    db.session.add(user)
+    db.session.commit()
+
+
+    flash('Nouveau user cree;', 'information')
+    return redirect(url_for('administration'))

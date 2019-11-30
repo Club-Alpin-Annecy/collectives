@@ -6,22 +6,22 @@
 {% endblock %}
 
 {% block header %}
-  <h1>{% block title %}Gestion utilisateur{% endblock %}</h1>
+  <h1>{% block title %}{{ title }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 <div class="panel solidpanel" id="administration">
   <!-- Logging Windows -->
-  <h3>Ajout d'utilisateur</h3>
-  <form action="" method="POST"   >
-      {% for field in form %}
+  <h3>{{ title }}</h3>
+  <form action="" method="POST"  enctype="multipart/form-data"  >
+    {% for field in form %}
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
           {{ field.label }}
           {{ field }}<br/>
+        {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
-     <br/><input type="submit" value="Enregistrer"  />
+     <br/>{{ form.submit() }}
   </form>
 </div>
-
-
 {% endblock %}
