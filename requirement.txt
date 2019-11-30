@@ -9,3 +9,4 @@ flask_uploads
 flask-migrate
 flask-marshmallow
 marshmallow-sqlalchemy
+Flask-Images

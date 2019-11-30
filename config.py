@@ -26,3 +26,6 @@ UPLOADED_AVATARS_DEST= os.path.join(basedir, "collectives/static/uploads/avatars
 
 ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'gif'}
 SQLALCHEMY_TRACK_MODIFICATIONS=False
+
+IMAGES_CACHE=os.path.join(basedir, "collectives/static/uploads/cache")
+IMAGES_PATH=["static/uploads"]

@@ -3,10 +3,14 @@ from flask_login import current_user, login_user, logout_user, login_required
 from collectives import app
 from .forms import LoginForm, ActivityForm, UserForm, AdminUserForm, photos
 from .models import User, Activity, db
+from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
 import sys
 import os
+
+
+images = Images(app)
 
 
 @app.route('/')
