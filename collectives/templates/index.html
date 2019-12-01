@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block additionalhead %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/activitylist.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/activity/activity.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -17,6 +17,7 @@
   <p class="action"><a href="{{url_for('add_activity')}}" class="button">Ajouter une activité</a></p>
 
 {% for activity in activities %}
+<a href="{{url_for('view_activity', id=activity.id)}}">
   <div class="activity">
     <img class="photo" src="{% if activity.photo %}{{ url_for('images.crop', filename=activity.photo, width=200, height=200 ) }}{% endif %}"/>
 
@@ -45,7 +46,7 @@
     </div>
 
 
-  </div>
+  </div></a>
 {% endfor %}
 
 </div>

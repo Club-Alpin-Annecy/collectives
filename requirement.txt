@@ -10,3 +10,4 @@ flask-migrate
 flask-marshmallow
 marshmallow-sqlalchemy
 Flask-Images
+quill-delta[html]

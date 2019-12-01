@@ -8,6 +8,8 @@ from sqlalchemy_utils import PasswordType, force_auto_coercion
 from datetime import datetime
 from flask_migrate import Migrate
 from flask_uploads import UploadSet, IMAGES
+from delta import html
+import json
 
 # Create database connection object
 db = SQLAlchemy(app)
@@ -49,6 +51,7 @@ class Activity(db.Model):
     title           = db.Column(db.String(100), nullable=False)
     type            = db.Column(db.Integer, nullable=False, default=0)
     description     = db.Column(db.Text(), nullable=False, default="")
+    rendered_description =  db.Column(db.Text(), nullable=True, default="")
     shortdescription= db.Column(db.String(100), nullable=True, default="")
     nbslots         = db.Column(db.Integer, nullable=False)
     photo           = db.Column(db.String(100), nullable=True)
@@ -60,6 +63,10 @@ class Activity(db.Model):
         if file != None:
             filename = photos.save(file, name='activity-'+str(self.id)+'.')
             self.photo = filename;
+
+    def set_rendered_description(self, description):
+        self.rendered_description=html.render(json.loads(description)['ops'])
+        return self.rendered_description
 
 
 # Connect sqlalchemy to app

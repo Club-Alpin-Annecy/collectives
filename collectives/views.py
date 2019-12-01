@@ -10,18 +10,12 @@ from wtforms import SelectField
 import sys
 import os
 
-
 images = Images(app)
 
 
-@app.route('/')
-@app.route('/index')
-@app.route('/list')
-@login_required
-def index():
-    activities = Activity.query.all()
-    return  render_template('index.html', conf=app.config, activities=activities, photos=photos)
-
+##########################################################################
+#   LOGIN
+##########################################################################
 @app.route('/login',  methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -55,16 +49,37 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+##################################################################################
+# Activity management
+##################################################################################
+@app.route('/')
+@app.route('/index')
+@app.route('/list')
+@login_required
+def index():
+    activities = Activity.query.all()
+    return  render_template('index.html', conf=app.config, activities=activities, photos=photos)
+
+@app.route('/activity/<id>')
+@login_required
+def view_activity(id):
+    activity =  Activity.query.filter_by(id=id).first()
+    return  render_template('activity.html', conf=app.config, activity=activity, photos=photos)
+
+
+
 @app.route('/activity/add',  methods=['GET', 'POST'])
 @login_required
 def add_activity():
     form = ActivityForm(CombinedMultiDict((request.files, request.form)))
     if not form.is_submitted():
         form = ActivityForm()
-        return render_template('activity.html', conf=app.config, form=form)
+        return render_template('editactivity.html', conf=app.config, form=form)
 
     activity = Activity();
+    form2=ActivityForm(request.form)
     ActivityForm(request.form).populate_obj(activity)
+    activity.set_rendered_description(activity.description)
 
     # We have to save new activity before add the photo, or id is not defined
     db.session.add(activity)
