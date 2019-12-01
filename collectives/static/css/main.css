@@ -334,6 +334,8 @@ a.button{
 .avatar{
 	border-radius: 5px;
 	background-color: white;
+	height: 30px;
+	width: 30px;
 }
 
 /* UTILS */

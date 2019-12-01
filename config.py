@@ -28,4 +28,4 @@ ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'gif'}
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 IMAGES_CACHE=os.path.join(basedir, "collectives/static/uploads/cache")
-IMAGES_PATH=["static/uploads"]
+IMAGES_PATH=["static/uploads", "static/uploads/avatars"]

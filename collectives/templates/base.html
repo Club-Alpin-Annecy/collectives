@@ -56,7 +56,7 @@ dealings in this Software without prior written authorization from @jnguiot.
 	 -->{% if current_user.is_authenticated %}<!--
 --><a href="{{ url_for('update_user')}}"><div id="identity" class="item">
 		<img src="{% if current_user.avatar
-												%}{{ url_for('_uploads.uploaded_file', setname='avatars', filename=current_user.avatar) }}{%
+												%}{{ url_for('images.crop', filename=current_user.avatar, width=30, height=30) }}{%
 									else
 												%}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
 									endif %}" class="avatar"/>  {{ current_user.mail }}
