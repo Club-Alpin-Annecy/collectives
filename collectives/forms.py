@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
@@ -28,7 +28,7 @@ class ActivityForm(ModelForm, FlaskForm ):
     class Meta:
         model = Activity
     photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
-
+    type        = SelectField('Type', choices=[(id, activity["name"]) for id,activity in app.config["TYPES"].items()])
 
 class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:

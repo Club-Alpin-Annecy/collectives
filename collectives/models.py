@@ -47,8 +47,9 @@ class Activity(db.Model):
     start           = db.Column(db.DateTime, nullable=False)
     end             = db.Column(db.DateTime, nullable=False)
     title           = db.Column(db.String(100), nullable=False)
-    type            = db.Column(db.String(100), nullable=False)
-    description     = db.Column(db.Text(), nullable=False)
+    type            = db.Column(db.Integer, nullable=False, default=0)
+    description     = db.Column(db.Text(), nullable=False, default="")
+    shortdescription= db.Column(db.String(100), nullable=True, default="")
     nbslots         = db.Column(db.Integer, nullable=False)
     photo           = db.Column(db.String(100), nullable=True)
 
@@ -60,7 +61,6 @@ class Activity(db.Model):
             filename = photos.save(file, name='activity-'+str(self.id)+'.')
             self.photo = filename;
 
-#db.create_all()
 
 # Connect sqlalchemy to app
 db.init_app(app)

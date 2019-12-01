@@ -17,6 +17,19 @@ LOGO= "caf/caf-gris.png"
 #FAVICON= "img/icon/favicon.ico"
 FAVICON= "caf/favicon.ico"
 
+#Activity type:
+TYPES= {
+    0 : { "short" : "none",             "name" : "Non classé"},
+    1 : { "short" : "ski_alpin",        "name" : "Ski alpin"},
+    2 : { "short" : "escalade",         "name" : "Escalade"},
+    3 : { "short" : "ski_rando",        "name" : "Ski de randonnée"},
+    4 : { "short" : "trail",            "name" : "Trail"},
+    5 : { "short" : "canyon",           "name" : "Canyoning"},
+    6 : { "short" : "raquette",         "name" : "Raquette"},
+    7 : { "short" : "snow_rando",       "name" : "Snow de randonnée"},
+    8 : { "short" : "cascade_glace",    "name" : "Cascade de glace"},
+}
+
 # Password for admin account
 ADMINPWD="foobar2"
 

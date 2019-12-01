@@ -31,7 +31,10 @@
   >
     <h4>Informations</h4>
      <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
+     <label for="title">Type : </label> {{ form.type }}<br/>
      <label for="nbslots">Nombre de participants : </label> {{ form.nbslots(size=4) }}<br/>
+     <label for="title">Dénivelé, difficulté, cotation : </label> {{ form.shortdescription(size=99) }}<br/>
+
     <div class="dates">
       <h4>Dates</h4>
       <span class="datetimepicker" id="datetimepickerstart"><label for="start" >Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate()")}}</span>

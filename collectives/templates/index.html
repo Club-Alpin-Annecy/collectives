@@ -21,7 +21,14 @@
     <img class="photo" src="{% if activity.photo %}{{ url_for('images.crop', filename=activity.photo, width=200, height=200 ) }}{% endif %}"/>
 
 
-    <h3>{{ activity.title}}</h3>
+    <h3>
+      {% if activity.type != ''  %}
+        <img src="{{ url_for('static', filename= "caf/icon/"+ conf["TYPES"][activity.type]["short"] + '_60x60.png') }}" class="type" alt="[{{ conf["TYPES"][activity.type]["name"] }}]"/>
+      {% endif %}
+      {{ activity.title}}
+    </h3>
+
+
     <h4> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
       {{ activity.start}}
       {% if activity.start != activity.end %}
@@ -33,10 +40,11 @@
           <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
       {% endfor %}
     </div>
-
-    <div>
-
+    <div class="">
+      {{activity.shortdescription}}
     </div>
+
+
   </div>
 {% endfor %}
 

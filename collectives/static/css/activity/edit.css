@@ -13,7 +13,7 @@
   padding-right: 5px;
   margin-bottom: 1em;
 }
-#activityedit input{
+#activityedit input, #activityedit select{
   display: inline-block;
   width : 40%;
   margin-bottom: 1em;

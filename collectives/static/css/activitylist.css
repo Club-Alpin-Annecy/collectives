@@ -48,7 +48,14 @@
   text-align: center;
   background-color: #00a6d0;
   margin: 0;
+  font-size: 2em;
 }
+#activitylist .activity h3 img{
+  height: 1em;
+  position: relative;
+  top: .15em;
+}
+
 #activitylist .activity h4{
   text-align: right;
   padding: 0 5  px;

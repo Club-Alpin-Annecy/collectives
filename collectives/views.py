@@ -6,6 +6,7 @@ from .models import User, Activity, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
+from wtforms import SelectField
 import sys
 import os
 
