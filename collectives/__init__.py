@@ -3,11 +3,11 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 
 
-def create_app(config_filename):
+def create_app(config_filename = 'config'):
     app = Flask(__name__)
 
     # Config options - Make sure you created a 'config.py' file.
-    app.config.from_object('config')
+    app.config.from_object(config_filename)
     # To get one variable, tape app.config['MY_VARIABLE']
 
     #from .auth import login
