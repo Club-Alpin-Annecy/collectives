@@ -26,9 +26,11 @@ def init_admin(app):
             user.password=app.config['ADMINPWD']
             db.session.add(user)
             db.session.commit()
-        if not user.password==app.config['ADMINPWD']:
+            print("WARN: create admin user")
+        if not user.password == app.config['ADMINPWD']:
             user.password=app.config['ADMINPWD']
             db.session.commit()
+            print("WARN: Reset admin password")
     except sqlite3.OperationalError:
         print("WARN: Cannot configure admin: db is not available")
     except sqlalchemy.exc.OperationalError:

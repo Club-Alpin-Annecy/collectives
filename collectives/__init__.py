@@ -26,8 +26,8 @@ def create_app(config_filename = 'config'):
     api.marshmallow.init_app(app)
 
     views.images.init_app(app)
-
-    # auth.init_admin(app).
+    app.app_context().push()
+    auth.init_admin(app)
 
     return app
 
