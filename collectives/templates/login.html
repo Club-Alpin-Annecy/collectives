@@ -9,7 +9,7 @@
 {% block content %}
 <!-- Logging Windows -->
 <div id="logger">
-  <form method="POST" action="{{ url_for('login') }}">
+  <form method="POST" action="{{ url_for('root.login') }}">
     {{ form.hidden_tag() }}
     <h3><img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="head"/></h3>
 

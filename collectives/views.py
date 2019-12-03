@@ -1,6 +1,5 @@
-from flask import Flask, flash, render_template, redirect, url_for, request
+from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from collectives import app
 from .forms import LoginForm, ActivityForm, UserForm, AdminUserForm, photos
 from .models import User, Activity, db
 from flask_images import Images
@@ -10,29 +9,30 @@ from wtforms import SelectField
 import sys
 import os
 
-images = Images(app)
+images = Images()
 
+root = Blueprint('root', __name__)
 
 ##########################################################################
 #   LOGIN
 ##########################################################################
-@app.route('/login',  methods=['GET', 'POST'])
+@root.route('/login',  methods=['GET', 'POST'])
 def login():
     form = LoginForm()
 
     # If no login is provided, display regular login interface
     if not form.validate_on_submit():
-        return  render_template('login.html', conf=app.config, form=form)
+        return  render_template('login.html', conf=current_app.config, form=form)
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
     if user is None or not user.password==form.password.data:
         flash('Invalid username or password', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('root.login'))
 
     if not user.enabled:
         flash('Disable account', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('root.login'))
 
     login_user(user, remember=form.remember_me.data)
 
@@ -43,38 +43,38 @@ def login():
     return redirect(next_page)
 
 
-@app.route('/logout')
+@root.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('root.login'))
 
 ##################################################################################
 # Activity management
 ##################################################################################
-@app.route('/')
-@app.route('/index')
-@app.route('/list')
+@root.route('/')
+@root.route('/index')
+@root.route('/list')
 @login_required
 def index():
     activities = Activity.query.all()
-    return  render_template('index.html', conf=app.config, activities=activities, photos=photos)
+    return  render_template('index.html', conf=current_app.config, activities=activities, photos=photos)
 
-@app.route('/activity/<id>')
+@root.route('/activity/<id>')
 @login_required
 def view_activity(id):
     activity =  Activity.query.filter_by(id=id).first()
-    return  render_template('activity.html', conf=app.config, activity=activity, photos=photos)
+    return  render_template('activity.html', conf=current_app.config, activity=activity, photos=photos)
 
 
 
-@app.route('/activity/add',  methods=['GET', 'POST'])
+@root.route('/activity/add',  methods=['GET', 'POST'])
 @login_required
 def add_activity():
     form = ActivityForm(CombinedMultiDict((request.files, request.form)))
     if not form.is_submitted():
         form = ActivityForm()
-        return render_template('editactivity.html', conf=app.config, form=form)
+        return render_template('editactivity.html', conf=current_app.config, form=form)
 
     activity = Activity();
     form2=ActivityForm(request.form)
@@ -93,7 +93,7 @@ def add_activity():
 
 
 
-@app.route('/user',  methods=['GET', 'POST'])
+@root.route('/user',  methods=['GET', 'POST'])
 @login_required
 def update_user():
 
@@ -101,11 +101,11 @@ def update_user():
     if not form.is_submitted():
         form = UserForm(obj=current_user)
         form.password.data = "**********"
-        return render_template('basicform.html', conf=app.config, form=form, title="Profil utilisateur")
+        return render_template('basicform.html', conf=current_app.config, form=form, title="Profil utilisateur")
 
     if not form.validate():
         flash('Erreur dans le formulaire', 'error')
-        return redirect(url_for('update_user'))
+        return redirect(url_for('root.update_user'))
 
     user = current_user;
     form = UserForm(request.form)
@@ -123,13 +123,13 @@ def update_user():
     db.session.commit()
 
     flash('Profil editee', 'information')
-    return redirect(url_for('update_user'))
+    return redirect(url_for('root.update_user'))
 
 ################################################################
 # ADMINISTRATION
 ################################################################
 
-@app.route('/administration',  methods=['GET', 'POST'])
+@root.route('/administration',  methods=['GET', 'POST'])
 @login_required
 def administration():
     if not current_user.isadmin:
@@ -138,10 +138,10 @@ def administration():
 
     users= User.query.all()
 
-    return render_template('administration.html', conf=app.config, users=users)
+    return render_template('administration.html', conf=current_app.config, users=users)
 
 
-@app.route('/administration/users/add',  methods=['GET', 'POST'])
+@root.route('/administration/users/add',  methods=['GET', 'POST'])
 @login_required
 def add_user():
     # Reject non admin
@@ -151,7 +151,7 @@ def add_user():
 
     form = AdminUserForm()
     if not form.is_submitted():
-        return render_template('basicform.html', conf=app.config, form=form, title="Ajout d'utilisateur")
+        return render_template('basicform.html', conf=current_app.config, form=form, title="Ajout d'utilisateur")
 
     if not form.validate():
         flash('Erreur dans le formulaire', 'error')

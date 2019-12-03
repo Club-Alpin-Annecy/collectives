@@ -2,18 +2,15 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from collectives import app
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType, force_auto_coercion
 from datetime import datetime
-from flask_migrate import Migrate
 from flask_uploads import UploadSet, IMAGES
 from delta import html
 import json
 
 # Create database connection object
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+db = SQLAlchemy()
 force_auto_coercion()
 
 # Upload
@@ -67,7 +64,3 @@ class Activity(db.Model):
     def set_rendered_description(self, description):
         self.rendered_description=html.render(json.loads(description)['ops'])
         return self.rendered_description
-
-
-# Connect sqlalchemy to app
-db.init_app(app)

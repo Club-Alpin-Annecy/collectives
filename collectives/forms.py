@@ -6,15 +6,14 @@ from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 from .models import Activity, User, photos, avatars
-from collectives import app
+from flask import current_app
 
 
+def configure_forms(app):
+    configure_uploads(app, photos)
+    configure_uploads(app, avatars)
 
-
-configure_uploads(app, photos)
-configure_uploads(app, avatars)
-
-patch_request_class(app, 3 * 1024 * 1024)  # set maximum file size, default is 3MB
+    patch_request_class(app, 3 * 1024 * 1024)  # set maximum file size, default is 3MB
 
 
 class LoginForm(FlaskForm):
@@ -28,7 +27,8 @@ class ActivityForm(ModelForm, FlaskForm ):
     class Meta:
         model = Activity
     photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    type        = SelectField('Type', choices=[(id, activity["name"]) for id,activity in app.config["TYPES"].items()])
+    def __init__(self):
+        self.type        = SelectField('Type', choices=[(id, activity["name"]) for id,activity in current_app.config["TYPES"].items()])
 
 class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:

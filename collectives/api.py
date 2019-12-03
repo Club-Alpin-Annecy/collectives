@@ -1,11 +1,13 @@
-from flask import Flask, flash, render_template, redirect, url_for, request, Response
+from flask import Flask, flash, render_template, redirect, url_for, request, Response, current_app, Blueprint
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
-from collectives import app
 from .models import User, Activity
+from .views import root
 import json
 
-marshmallow = Marshmallow(app)
+marshmallow = Marshmallow()
+blueprint = Blueprint('api', __name__,  url_prefix='/api')
+
 
 class UserSchema(marshmallow.Schema):
     class Meta:
@@ -13,7 +15,7 @@ class UserSchema(marshmallow.Schema):
         fields = ("id", "mail", "isadmin", "enabled")
 
 
-@app.route("/api/users/")
+@blueprint.route("/users/")
 @login_required
 def users():
     all_users = User.query.all()

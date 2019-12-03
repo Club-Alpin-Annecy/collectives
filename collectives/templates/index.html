@@ -14,10 +14,10 @@
 
 <div id="activitylist" class="panel">
 
-  <p class="action"><a href="{{url_for('add_activity')}}" class="button">Ajouter une activité</a></p>
+  <p class="action"><a href="{{url_for('root.add_activity')}}" class="button">Ajouter une activité</a></p>
 
 {% for activity in activities %}
-<a href="{{url_for('view_activity', id=activity.id)}}">
+<a href="{{url_for('root.view_activity', id=activity.id)}}">
   <div class="activity">
     <img class="photo" src="{% if activity.photo %}{{ url_for('images.crop', filename=activity.photo, width=200, height=200 ) }}{% endif %}"/>
 
