@@ -5,7 +5,7 @@ import sqlalchemy_utils
 
 
 login = LoginManager()
-login.login_view = 'login'
+login.login_view = 'root.login'
 
 from .models import User, db
 
