@@ -55,7 +55,6 @@ def logout():
 @root.route('/')
 @root.route('/index')
 @root.route('/list')
-@login_required
 def index():
     activities = Activity.query.all()
     return  render_template('index.html', conf=current_app.config, activities=activities, photos=photos)
@@ -88,7 +87,6 @@ def add_activity():
     db.session.add(activity)
     db.session.commit()
 
-    flash('Nouvelle activite creee', 'information')
     return redirect('/')
 
 
@@ -122,7 +120,6 @@ def update_user():
     db.session.add(user)
     db.session.commit()
 
-    flash('Profil editee', 'information')
     return redirect(url_for('root.update_user'))
 
 ################################################################
@@ -170,5 +167,4 @@ def add_user():
     db.session.commit()
 
 
-    flash('Nouveau user cree;', 'information')
     return redirect(url_for('administration'))

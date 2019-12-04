@@ -13,9 +13,9 @@
 {% block content %}
 
 <div id="activitylist" class="panel">
-
-  <p class="action"><a href="{{url_for('root.add_activity')}}" class="button">Ajouter une activité</a></p>
-
+  {% if current_user.is_authenticated %}
+    <p class="action"><a href="{{url_for('root.add_activity')}}" class="button">Ajouter une activité</a></p>
+  {% endif %}
 {% for activity in activities %}
 <a href="{{url_for('root.view_activity', id=activity.id)}}">
   <div class="activity">
