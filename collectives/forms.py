@@ -27,8 +27,11 @@ class ActivityForm(ModelForm, FlaskForm ):
     class Meta:
         model = Activity
     photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    def __init__(self):
-        self.type        = SelectField('Type', choices=[(id, activity["name"]) for id,activity in current_app.config["TYPES"].items()])
+    type        = SelectField('Type', choices=[])
+    def __init__(self, formdata=None, obj=None, prefix='', data=None, meta=None, **kargs):
+        super().__init__(formdata=None, obj=None, prefix='', data=None, meta=None,  **kargs)
+        self.type.choices=[(id, activity["name"]) for id,activity in current_app.config["TYPES"].items()]
+
 
 class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:
