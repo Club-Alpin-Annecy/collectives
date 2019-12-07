@@ -41,7 +41,7 @@ class User(db.Model, UserMixin):
             filename = avatars.save(file, name='user-'+str(self.id)+'.')
             self.avatar = filename;
 
-class Activity(db.Model):
+class Event(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     start           = db.Column(db.DateTime, nullable=False)
     end             = db.Column(db.DateTime, nullable=False)
@@ -58,7 +58,7 @@ class Activity(db.Model):
 
     def save_photo(self, file):
         if file != None:
-            filename = photos.save(file, name='activity-'+str(self.id)+'.')
+            filename = photos.save(file, name='event-'+str(self.id)+'.')
             self.photo = filename;
 
     def set_rendered_description(self, description):

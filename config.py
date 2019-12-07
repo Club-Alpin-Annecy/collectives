@@ -17,7 +17,7 @@ LOGO= "caf/caf-gris.png"
 #FAVICON= "img/icon/favicon.ico"
 FAVICON= "caf/favicon.ico"
 
-#Activity type:
+#Event type:
 TYPES= {
     0 : { "short" : "none",             "name" : "Non classé"},
     1 : { "short" : "ski_alpin",        "name" : "Ski alpin"},

@@ -1,0 +1,43 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
+
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %} {{event.title}} {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel solidpanel" id="eventdetail">
+  <h3>{{event.title}}</h3>
+    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
+    <img src="{{ url_for('static', filename= "caf/icon/"+ conf["TYPES"][event.type]["short"] + '_60x60.png') }}" class="type" alt="[{{ conf["TYPES"][event.type]["name"] }}]"/>
+
+    <h5 class="slots">
+      Places:
+      {% for i in range(0, event.nbslots) %}
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
+      {% endfor %}
+    </h5>
+    <h5 class="">
+      <b>Dénivelé, difficulté, cotation :</b>  {{event.shortdescription}}
+    </h5>
+    <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+      {{ event.start}}
+      {% if event.start != event.end %}
+          - {{event.end }}
+      {% endif %}
+    </h5>
+
+
+    <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
+
+</div>
+
+
+{% endblock %}

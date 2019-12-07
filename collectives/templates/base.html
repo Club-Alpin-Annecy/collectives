@@ -42,7 +42,7 @@ dealings in this Software without prior written authorization from @jnguiot.
 			<img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
 			<div class="content">
 				<a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
-				<a href="{{ url_for('event.add_activity')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter une activité</a>
+				<a href="{{ url_for('event.add_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
 				<a href="{{ url_for('root.update_user')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
 
 				{% if current_user.isadmin %}

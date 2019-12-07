@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
 from .forms import AdminUserForm
-from .models import User, Activity, db
+from .models import User, Event, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
