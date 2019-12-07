@@ -36,3 +36,8 @@ Default password is foobar2 (can be change in config.py)
 5. Demonstration
 ================
 A demonstration website can be found https://demo.jnguiot.fr
+
+6. Production
+=============
+For development, you can run ./run.py. However, it is not the recommended method for production environment.
+You can choose any production method you like, howver, we use waitress behind an nginx for SSL offloading. Waitress can be install with a pip `pip install waitress`, and a systemd service be created easily by adding deployment/systemd/collectives.service into /etc/systemd//system. In this case, please edit the file to update user and directory.

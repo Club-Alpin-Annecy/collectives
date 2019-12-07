@@ -1,0 +1,17 @@
+[Unit]
+Description=Collectives website with waitress
+After=network.target
+
+[Service]
+User=flask
+WorkingDirectory=/home/flask/collectives-flask2
+
+
+Environment=FLASK_APP="collectives:create_app"
+ExecStartPre=/usr/local/bin/flask db upgrade
+
+ExecStart=/usr/local/bin/waitress-serve --listen=127.0.0.1:5000 --call 'collectives:create_app'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
