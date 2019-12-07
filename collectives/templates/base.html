@@ -42,11 +42,11 @@ dealings in this Software without prior written authorization from @jnguiot.
 			<img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
 			<div class="content">
 				<a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
-				<a href="{{ url_for('root.add_activity')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter une activité</a>
+				<a href="{{ url_for('event.add_activity')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter une activité</a>
 				<a href="{{ url_for('root.update_user')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
 
 				{% if current_user.isadmin %}
-					<a href="{{ url_for('root.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
+					<a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
 				{% endif %}
 			</div>
 		</div><!-- To have no space between menu item
@@ -62,11 +62,11 @@ dealings in this Software without prior written authorization from @jnguiot.
 									endif %}" class="avatar"/>  {{ current_user.mail }}
 	</div></a>
 	<div class="item" id ="logout">
-		<a href="{{ url_for('root.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
+		<a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
 	</div>
 	{% else %}<!--
 	--><div id="identity" class="item">
-		<a href="{{ url_for('root.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+		<a href="{{ url_for('auth.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
 	</div>
   {% endif %}
 

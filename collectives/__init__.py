@@ -11,17 +11,25 @@ def create_app(config_filename = 'config'):
     # To get one variable, tape app.config['MY_VARIABLE']
 
     #from .auth import login
-    from . import models, views, auth, api
+    from . import models, views, auth, api, administration, event
 
+
+    # Blueprint registration
     app.register_blueprint(views.root)
     app.register_blueprint(api.blueprint)
+    app.register_blueprint(administration.blueprint)
+    app.register_blueprint(auth.blueprint)
+    app.register_blueprint(event.blueprint)
     print(  app.url_map)
+
+
+    # DB stratup
     models.db.init_app(app)
     migrate = Migrate(app, models.db)
 
-    forms.configure_forms(app)
 
-    auth.login.init_app(app) # app is a Flask object
+    forms.configure_forms(app)
+    auth.login_manager.init_app(app) # app is a Flask object
 
     api.marshmallow.init_app(app)
 
