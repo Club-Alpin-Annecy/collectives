@@ -6,6 +6,7 @@ from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
 from wtforms import SelectField
+from functools import wraps
 import sys
 import os
 
@@ -13,11 +14,25 @@ import os
 blueprint = Blueprint('administration', __name__,  url_prefix='/administration')
 
 ################################################################
+# Decorator
+################################################################
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.isadmin:
+            flash("Unauthorized", 'error')
+            return  redirect(url_for('event.index'))
+        return func(*args, **kwargs)
+    return decorated_view
+
+
+################################################################
 # ADMINISTRATION
 ################################################################
 
 @blueprint.route('/',  methods=['GET', 'POST'])
 @login_required
+@admin_required
 def administration():
     if not current_user.isadmin:
         flash('Unauthorized')
@@ -30,6 +45,7 @@ def administration():
 
 @blueprint.route('/users/add',  methods=['GET', 'POST'])
 @login_required
+@admin_required
 def add_user():
     # Reject non admin
     if not current_user.isadmin:

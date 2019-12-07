@@ -36,8 +36,8 @@ def login():
         flash('Invalid username or password', 'error')
         return redirect(url_for('auth.login'))
 
-    if not user.enabled:
-        flash('Disable account', 'error')
+    if not user.is_active():
+        flash('Disabled account', 'error')
         return redirect(url_for('auth.login'))
 
     login_user(user, remember=form.remember_me.data)

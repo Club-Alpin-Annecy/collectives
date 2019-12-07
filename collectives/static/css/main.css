@@ -207,6 +207,7 @@ a{
 	background-color: white;
 	border-radius: 20px;
 	padding: 50px 30px;
+	min-width: 600px;
 }
 #messages h3{
 	font-size: 30px;

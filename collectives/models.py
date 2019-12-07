@@ -41,6 +41,9 @@ class User(db.Model, UserMixin):
             filename = avatars.save(file, name='user-'+str(self.id)+'.')
             self.avatar = filename;
 
+    def is_active(self):
+        return self.enabled
+
 class Event(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     start           = db.Column(db.DateTime, nullable=False)
