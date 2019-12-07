@@ -4,10 +4,11 @@ from flask_migrate import Migrate
 
 
 def create_app(config_filename = 'config'):
-    app = Flask(__name__)
+    app = Flask(__name__,  instance_relative_config=True)
 
     # Config options - Make sure you created a 'config.py' file.
     app.config.from_object(config_filename)
+    app.config.from_pyfile('config.py')
     # To get one variable, tape app.config['MY_VARIABLE']
 
     #from .auth import login
