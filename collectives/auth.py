@@ -7,7 +7,7 @@ import sqlalchemy_utils
 login = LoginManager()
 login.login_view = 'root.login'
 
-from .models import User, db
+from .models import User, db, Role, RoleIds
 
 
 
@@ -22,8 +22,9 @@ def init_admin(app):
         if user is None:
             user = User()
             user.mail='admin'
-            user.isadmin = True
             user.password=app.config['ADMINPWD']
+            admin_role = Role(user = user, role_id = int(RoleIds.Administrator))
+            user.roles.append(admin_role)
             db.session.add(user)
             db.session.commit()
             print("WARN: create admin user")
