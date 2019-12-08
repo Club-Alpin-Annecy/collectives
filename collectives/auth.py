@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from .forms import LoginForm
-from .models import User, db
+from .models import User, Role, RoleIds, db
 
 import sqlite3
 import sqlalchemy.exc

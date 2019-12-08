@@ -35,7 +35,7 @@ def create_app(config_filename = 'config'):
         forms.configure_forms(app)
 
         # Initialize DB
-        models.db.create_all()
+        # models.db.create_all()
 
         # Create admin user
         auth.init_admin(app)

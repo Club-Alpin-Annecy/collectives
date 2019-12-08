@@ -12,7 +12,7 @@ blueprint = Blueprint('api', __name__,  url_prefix='/api')
 class UserSchema(marshmallow.Schema):
     class Meta:
         # Fields to expose
-        fields = ("id", "mail", "isadmin", "enabled")
+        fields = ("id", "mail", "roles", "enabled")
 
 
 @blueprint.route("/users/")
