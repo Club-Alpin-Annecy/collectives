@@ -17,6 +17,8 @@
   <h3>{{event.title}}</h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
     
+    Encadrement par {{ ", ".join(event.leader_names()) }}.
+    
     {% for atype in event.activity_types %}
       <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
     {% endfor %}

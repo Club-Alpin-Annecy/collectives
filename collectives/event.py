@@ -51,6 +51,12 @@ def add_event():
     activity_type = ActivityType.query.filter_by(id=event.type).first()
     event.activity_types.append(activity_type)
 
+    event.leaders.append(current_user)
+    # TODO once roles mgmt implemented
+    #if not event.has_valid_leaders():
+    #    flash("Vous n'êtes pas capable d'encadrer cette activité")
+    #    return render_template('editevent.html', conf=current_app.config, form=form)
+
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
     db.session.commit()

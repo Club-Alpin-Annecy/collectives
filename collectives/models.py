@@ -221,6 +221,9 @@ class Event(db.Model):
         # Otherwise proceed has usual
         return self.has_free_slots() and self.is_registration_open_at_time(time)
 
+    def leader_names(self):
+        return [u.full_name() for u in self.leaders]
+
 class Role(db.Model):
     """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable activité... """
 
