@@ -5,7 +5,7 @@ from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from .models import Activity, User, photos, avatars
+from .models import Event, User, photos, avatars
 from flask import current_app
 
 
@@ -23,9 +23,9 @@ class LoginForm(FlaskForm):
     submit      = SubmitField('Login')
 
 
-class ActivityForm(ModelForm, FlaskForm ):
+class EventForm(ModelForm, FlaskForm ):
     class Meta:
-        model = Activity
+        model = Event
     photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type        = SelectField('Type', choices=[])
     def __init__(self, formdata=None, obj=None, prefix='', data=None, meta=None, **kargs):

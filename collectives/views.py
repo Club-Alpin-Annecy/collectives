@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from .forms import LoginForm, ActivityForm, UserForm, AdminUserForm, photos
-from .models import User, Activity, db
+from .forms import LoginForm, EventForm, UserForm, AdminUserForm, photos
+from .models import User, Event, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -50,19 +50,19 @@ def logout():
     return redirect(url_for('root.login'))
 
 ##################################################################################
-# Activity management
+# Event management
 ##################################################################################
 @root.route('/')
 @root.route('/index')
 @root.route('/list')
 def index():
-    activities = Activity.query.all()
+    activities = Event.query.all()
     return  render_template('index.html', conf=current_app.config, activities=activities, photos=photos)
 
 @root.route('/activity/<id>')
 @login_required
 def view_activity(id):
-    activity =  Activity.query.filter_by(id=id).first()
+    activity =  Event.query.filter_by(id=id).first()
     return  render_template('activity.html', conf=current_app.config, activity=activity, photos=photos)
 
 
@@ -70,14 +70,14 @@ def view_activity(id):
 @root.route('/activity/add',  methods=['GET', 'POST'])
 @login_required
 def add_activity():
-    form = ActivityForm(CombinedMultiDict((request.files, request.form)))
+    form = EventForm(CombinedMultiDict((request.files, request.form)))
     if not form.is_submitted():
-        form = ActivityForm()
+        form = EventForm()
         return render_template('editactivity.html', conf=current_app.config, form=form)
 
-    activity = Activity();
-    form2=ActivityForm(request.form)
-    ActivityForm(request.form).populate_obj(activity)
+    activity = Event();
+    form2=EventForm(request.form)
+    EventForm(request.form).populate_obj(activity)
     activity.set_rendered_description(activity.description)
 
     # We have to save new activity before add the photo, or id is not defined

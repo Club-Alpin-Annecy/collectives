@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, Response, current_app, Blueprint
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
-from .models import User, Activity
+from .models import User, Event
 from .views import root
 import json
 
