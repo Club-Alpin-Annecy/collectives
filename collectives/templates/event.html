@@ -35,9 +35,28 @@
           - {{event.end }}
       {% endif %}
     </h5>
-
-
     <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
+
+    <div>
+      <h5> Liste des inscrits</h5>
+      <ul>
+      {% for registration in event.active_registrations() %}
+        <li>{{registration.user.abbrev_name()}}</li>
+      {% endfor %}
+      </ul>
+      
+      {% if can_self_register %}
+        <form action="{{url_for('event.self_register', id=event.id)}}" method="post">
+          <input type="submit" value="S'inscrire" >
+        </form>
+      {% elif event.is_registered(current_user) %}
+        <form action="{{url_for('event.self_unregister', id=event.id)}}" method="post">
+          <input type="submit" value="Se désinsicrire" >
+        </form>
+      {% endif %}
+
+    </div>
+
 
 </div>
 

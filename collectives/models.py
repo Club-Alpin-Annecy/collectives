@@ -35,8 +35,7 @@ class RegistrationLevels(enum.IntEnum):
 
 class RegistrationStatus(enum.IntEnum):
     Active = 0,
-    Inactive = 1,
-    Rejected = 2
+    Rejected = 1
 
 # Utility tables
 
@@ -100,8 +99,19 @@ class User(db.Model, UserMixin):
     def is_moderator(self):
         return self.has_role([RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]) 
     
+    def can_create_events(self):
+        return self.has_role([RoleIds.EventLeader, RoleIds.ActivitySupervisor, RoleIds.President, RoleIds.Administrator]) 
+
     def can_lead_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id) 
+
+    # Format
+
+    def full_name(self):
+        return '{} {}'.format(self.first_name, self.last_name.upper())
+
+    def abbrev_name(self):
+        return '{} {}'.format(self.first_name, self.last_name[0].upper())
 
     def is_active(self):
         return self.enabled
@@ -186,7 +196,17 @@ class Event(db.Model):
     def has_free_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
+    def is_registered(self, user):
+        existing_registrations = [registration for registration in self.active_registrations() if registration.user_id == user.id]
+        return any(existing_registrations)
+
+    def is_leader(self, user):
+        return user in self.leaders
+
     def can_self_register(self, user, time):
+        if self.is_leader(user):
+            return False
+
         # Check if the user has already registered
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         if not any(existing_registrations):
