@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_required
 from .forms import EventForm, photos
-from .models import Event, db
+from .models import Event, ActivityType, db
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime
 import json
@@ -43,6 +43,9 @@ def add_event():
     event.num_online_slots = event.num_slots
     event.registration_open_time = datetime.now()
     event.registration_close_time = datetime.combine(event.end, datetime.min.time())
+
+    activity_type = ActivityType.query.filter_by(id=event.type).first()
+    event.activity_types.append(activity_type)
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)

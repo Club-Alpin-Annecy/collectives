@@ -39,6 +39,7 @@ def create_app(config_filename = 'config'):
 
         # Create admin user
         auth.init_admin(app)
+        administration.init_activity_types(app)
 
         return app
 

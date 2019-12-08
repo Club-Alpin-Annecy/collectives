@@ -5,7 +5,7 @@ from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from .models import Event, User, photos, avatars
+from .models import Event, User, photos, avatars, ActivityType
 from flask import current_app
 import sys
 
@@ -30,7 +30,7 @@ class EventForm(ModelForm, FlaskForm ):
     type        = SelectField('Type', choices=[])
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__( *args, **kwargs)
-        self.type.choices=[(id, event["name"]) for id,event in current_app.config["TYPES"].items()]
+        self.type.choices=[(a.id, a.name) for a in ActivityType.query.all()]
 
 
 class AdminUserForm(ModelForm, FlaskForm ):
