@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 from .models import Event, User, photos, avatars
 from flask import current_app
-
+import sys
 
 def configure_forms(app):
     configure_uploads(app, photos)
@@ -28,15 +28,15 @@ class EventForm(ModelForm, FlaskForm ):
         model = Event
     photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type        = SelectField('Type', choices=[])
-    def __init__(self, formdata=None, obj=None, prefix='', data=None, meta=None, **kargs):
-        super().__init__(formdata=None, obj=None, prefix='', data=None, meta=None,  **kargs)
-        self.type.choices=[(id, activity["name"]) for id,activity in current_app.config["TYPES"].items()]
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__( *args, **kwargs)
+        self.type.choices=[(id, event["name"]) for id,event in current_app.config["TYPES"].items()]
 
 
 class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:
         model   = User
-        exclude = ['password'] # Administrator should not be able to change a password
+#        exclude = ['password'] # Administrator should not be able to change a password, but as a start, wee authorize it
 
     validators  = {'mail': [Email()]}
     submit      = SubmitField('Enregistrer')

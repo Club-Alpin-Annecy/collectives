@@ -7,42 +7,42 @@
 {% endblock %}
 
 {% block additionalhead %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/activity/activity.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
 {% endblock %}
 
 {% block content %}
 
-<div id="activitylist" class="panel">
+<div id="eventlist" class="panel">
   {% if current_user.is_authenticated %}
-    <p class="action"><a href="{{url_for('root.add_activity')}}" class="button">Ajouter une activité</a></p>
+    <p class="action"><a href="{{url_for('event.add_event')}}" class="button">Ajouter un évènement</a></p>
   {% endif %}
-{% for activity in activities %}
-<a href="{{url_for('root.view_activity', id=activity.id)}}">
-  <div class="activity">
-    <img class="photo" src="{% if activity.photo %}{{ url_for('images.crop', filename=activity.photo, width=200, height=200 ) }}{% endif %}"/>
+{% for event in events %}
+<a href="{{url_for('event.view_event', id=event.id)}}">
+  <div class="event">
+    <img class="photo" src="{% if event.photo %}{{ url_for('images.crop', filename=event.photo, width=200, height=200 ) }}{% endif %}"/>
 
 
     <h3>
-      {% if activity.type != ''  %}
-        <img src="{{ url_for('static', filename= "caf/icon/"+ conf["TYPES"][activity.type]["short"] + '_60x60.png') }}" class="type" alt="[{{ conf["TYPES"][activity.type]["name"] }}]"/>
+      {% if event.type != ''  %}
+        <img src="{{ url_for('static', filename= "caf/icon/"+ conf["TYPES"][event.type]["short"] + '_60x60.png') }}" class="type" alt="[{{ conf["TYPES"][event.type]["name"] }}]"/>
       {% endif %}
-      {{ activity.title}}
+      {{ event.title}}
     </h3>
 
 
     <h4> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-      {{ activity.start}}
-      {% if activity.start != activity.end %}
-          - {{activity.end }}
+      {{ event.start}}
+      {% if event.start != event.end %}
+          - {{event.end }}
       {% endif %}
     </h4>
     <div class="slots">
-      {% for i in range(0, activity.nbslots) %}
+      {% for i in range(0, event.nbslots) %}
           <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
       {% endfor %}
     </div>
     <div class="">
-      {{activity.shortdescription}}
+      {{event.shortdescription}}
     </div>
 
 

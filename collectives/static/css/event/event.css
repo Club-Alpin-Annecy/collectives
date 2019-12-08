@@ -1,11 +1,11 @@
-#activitylist{
+#eventlist{
 }
 
-#activitylist .action{
+#eventlist .action{
   text-align: right;
   padding: 0 40px;
 }
-#activitylist .action input{
+#eventlist .action input{
   background-color: white;
   box-sizing: border-box;
   margin: 8px 0;
@@ -20,7 +20,7 @@
 }
 
 
-#activitylist .activity{
+#eventlist .event{
   width: 47%;
   margin: 1%;
   height: 200px;
@@ -28,14 +28,14 @@
   border: 2px solid #666666;
   background: rgba(255, 255, 255, 0.9);
 }
-/* Mobile Adjustment :less activity on same line*/
+/* Mobile Adjustment :less event on same line*/
 @media only screen and (max-width:1000px) {
-	#activitylist .activity{
+	#eventlist .event{
 		width: 95%;
 	}
 }
 
-#activitylist .activity .photo{
+#eventlist .event .photo{
   height: 200px;
   width: 200px;
   float: left;
@@ -44,58 +44,58 @@
   background-color: white;
 }
 
-#activitylist .activity h3{
+#eventlist .event h3{
   text-align: center;
   background-color: #00a6d0;
   margin: 0;
   font-size: 2em;
 }
-#activitylist .activity h3 img{
+#eventlist .event h3 img{
   height: 1em;
   position: relative;
   top: .15em;
 }
 
-#activitylist .activity h4{
+#eventlist .event h4{
   text-align: right;
   padding: 0 5  px;
   margin: 0.1em;
 }
-#activitylist .icon, #activitydetail .icon{
+#eventlist .icon, #eventdetail .icon{
   height: 1.2em;
   position: relative;
   top: .2em;
 }
-#activitylist .slots {
+#eventlist .slots {
   text-align: right;
   padding-right: 5px;
 }
-#activitylist .slots .freeslot{
+#eventlist .slots .freeslot{
   opacity: .5;
 }
 
 
-/* Activity details */
-#activitydetail h3{
+/* Event details */
+#eventdetail h3{
   margin-bottom: 0;
 }
-#activitydetail h5{
+#eventdetail h5{
   font-size: 20px;
   margin: .5em 20px;
 }
-#activitydetail .slots {
+#eventdetail .slots {
   text-align: left;
 }
-#activitydetail .photo {
+#eventdetail .photo {
   float: left;
   max-width: 50%;
   margin-right: 20px;
   margin-bottom: 20px;
 }
-#activitydetail .type{
+#eventdetail .type{
   float: right;
 }
-#activitydetail #description{
+#eventdetail #description{
   text-align: justify;
   max-width: 1000px;
   margin:auto;

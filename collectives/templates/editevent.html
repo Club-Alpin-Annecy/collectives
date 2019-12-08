@@ -3,8 +3,8 @@
 
 {% block additionalhead %}
   {# Specific for this page #}
-  <script src="{{ url_for('static', filename='js/activity/edit.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/activity/edit.css') }}">
+  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/event/edit.css') }}">
 
   {# DateTime picker#}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel solidpanel" id="activityedit">
+<div class="panel solidpanel" id="eventedit">
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
   <form

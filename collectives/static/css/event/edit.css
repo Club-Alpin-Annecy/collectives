@@ -1,11 +1,11 @@
 
 
-#activityedit form{
+#eventedit form{
   padding: 10px 20px;
   text-align: center;
 }
 
-#activityedit label{
+#eventedit label{
   font-weight: bold;
   display: inline-block;
   width : 30%;
@@ -13,7 +13,7 @@
   padding-right: 5px;
   margin-bottom: 1em;
 }
-#activityedit input, #activityedit select{
+#eventedit input, #eventedit select{
   display: inline-block;
   width : 40%;
   margin-bottom: 1em;
@@ -22,7 +22,7 @@
 }
 
 
-#activityedit input[type=submit] {
+#eventedit input[type=submit] {
 	background-color: #00a6cf;
 	box-sizing: border-box;
 	margin: 8px 0;
@@ -39,11 +39,11 @@
 }
 
 
-#activityedit #editor, #activityedit .ql-toolbar{
+#eventedit #editor, #eventedit .ql-toolbar{
   width: 80%;
   margin:auto;
 }
 
-#activityedit #editor{
+#eventedit #editor{
   height: 20em;
 }

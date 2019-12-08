@@ -103,6 +103,9 @@ class User(db.Model, UserMixin):
     def can_lead_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id) 
 
+    def is_active(self):
+        return self.enabled
+
 class ActivityType(db.Model):
     """ Activités """
 
@@ -138,10 +141,9 @@ class Event(db.Model):
         backref=db.backref('events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)  
 
-
     def save_photo(self, file):
         if file != None:
-            filename = photos.save(file, name='activity-'+str(self.id)+'.')
+            filename = photos.save(file, name='event-'+str(self.id)+'.')
             self.photo = filename;
 
     def set_rendered_description(self, description):
