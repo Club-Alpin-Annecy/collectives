@@ -1,5 +1,8 @@
 import os
+from os import environ
 
+FLASK_ENV = environ.get('FLASK_ENV')
+FLASK_DEBUG = environ.get('FLASK_DEBUG')
 
 # To generate a new secret key:
 # >>> import random, string

@@ -16,7 +16,11 @@ def create_app(config_filename = 'config'):
     app.register_blueprint(views.root)
     app.register_blueprint(api.blueprint)
     print(  app.url_map)
+
     models.db.init_app(app)
+    app.app_context().push()
+    models.db.create_all()
+ 
     migrate = Migrate(app, models.db)
 
     forms.configure_forms(app)
@@ -26,7 +30,6 @@ def create_app(config_filename = 'config'):
     api.marshmallow.init_app(app)
 
     views.images.init_app(app)
-    app.app_context().push()
     auth.init_admin(app)
 
     return app
