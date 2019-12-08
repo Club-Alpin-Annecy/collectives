@@ -45,7 +45,7 @@ dealings in this Software without prior written authorization from @jnguiot.
 				<a href="{{ url_for('event.add_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
 				<a href="{{ url_for('root.update_user')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
 
-				{% if current_user.isadmin %}
+				{% if current_user.is_admin() %}
 					<a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
 				{% endif %}
 			</div>

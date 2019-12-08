@@ -8,6 +8,7 @@ WTForms-Alchemy
 flask_uploads
 flask-migrate
 flask-marshmallow
+flask-testing
 marshmallow-sqlalchemy
 Flask-Images
 quill-delta[html]

@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required, LoginManager
 from .forms import LoginForm
-from .models import User, db
+from .models import User, Role, RoleIds, db
 
 import sqlite3
 import sqlalchemy.exc
@@ -14,7 +14,6 @@ login_manager.login_view = 'auth.login'
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
-
 
 
 blueprint =  Blueprint('auth', __name__,  url_prefix='/auth')
@@ -64,8 +63,9 @@ def init_admin(app):
         if user is None:
             user = User()
             user.mail='admin'
-            user.isadmin = True
             user.password=app.config['ADMINPWD']
+            admin_role = Role(user = user, role_id = int(RoleIds.Administrator))
+            user.roles.append(admin_role)
             db.session.add(user)
             db.session.commit()
             print("WARN: create admin user")

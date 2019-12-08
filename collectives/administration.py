@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
 from .forms import AdminUserForm
-from .models import User, Event, db
+from .models import User, Event, ActivityType, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -10,6 +10,8 @@ from functools import wraps
 import sys
 import os
 
+import sqlalchemy.exc
+import sqlalchemy_utils
 
 blueprint = Blueprint('administration', __name__,  url_prefix='/administration')
 
@@ -19,7 +21,7 @@ blueprint = Blueprint('administration', __name__,  url_prefix='/administration')
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
-        if not current_user.isadmin:
+        if not current_user.is_admin():
             flash("Unauthorized", 'error')
             return  redirect(url_for('event.index'))
         return func(*args, **kwargs)
@@ -34,7 +36,7 @@ def admin_required(func):
 @login_required
 @admin_required
 def administration():
-    if not current_user.isadmin:
+    if not current_user.is_admin():
         flash('Unauthorized')
         return redirect(url_for('index'))
 
@@ -48,7 +50,7 @@ def administration():
 @admin_required
 def add_user():
     # Reject non admin
-    if not current_user.isadmin:
+    if not current_user.is_admin():
         flash('Unauthorized')
         return redirect(url_for('index'))
 
@@ -74,3 +76,18 @@ def add_user():
 
 
     return redirect(url_for('administration.administration'))
+
+
+# Init: Setup activity types (if db is ready)
+def init_activity_types(app):
+    try:
+        activity = ActivityType.query.first()
+        if activity is None:
+            for (id, atype) in current_app.config["TYPES"].items():
+                activity_type = ActivityType(name = atype["name"], short = atype["short"])
+                db.session.add(activity_type)
+            db.session.commit()
+
+            print("WARN: create activity types")
+    except sqlalchemy.exc.OperationalError:
+        print("WARN: Cannot configure activity types: db is not available")

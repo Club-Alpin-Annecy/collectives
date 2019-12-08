@@ -16,11 +16,13 @@
 <div class="panel solidpanel" id="eventdetail">
   <h3>{{event.title}}</h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    <img src="{{ url_for('static', filename= "caf/icon/"+ conf["TYPES"][event.type]["short"] + '_60x60.png') }}" class="type" alt="[{{ conf["TYPES"][event.type]["name"] }}]"/>
-
+    
+    {% for atype in event.activity_types %}
+      <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
+    {% endfor %}
     <h5 class="slots">
       Places:
-      {% for i in range(0, event.nbslots) %}
+      {% for i in range(0, event.num_slots) %}
           <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
       {% endfor %}
     </h5>
