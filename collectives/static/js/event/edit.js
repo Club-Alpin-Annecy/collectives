@@ -12,3 +12,7 @@ function copyStartDate(){
   if( ! document.querySelector('input[name=several]').checked)
       document.querySelector('input[name=end]').value = document.querySelector('input[name=start]').value;
 }
+
+window.onload = function() {
+      severalDays(document.querySelector('input[name=several]')) ;
+}

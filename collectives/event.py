@@ -42,7 +42,7 @@ def add_event():
     event.photo = None # We don't want to save an image in the db. Image save will be done later with event.save_photo
     event.num_online_slots = event.num_slots
     event.registration_open_time = datetime.now()
-    event.registration_close_time = datetime.combine(event.end, datetime.min.time())
+    event.registration_close_time = event.end
 
     activity_type = ActivityType.query.filter_by(id=event.type).first()
     event.activity_types.append(activity_type)
