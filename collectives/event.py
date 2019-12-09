@@ -28,20 +28,20 @@ def view_event(id):
 
 
 @blueprint.route('/add',  methods=['GET', 'POST'])
+@blueprint.route('/<id>/edit',  methods=['GET', 'POST'])
 @login_required
-def add_event():
+def manage_event(id=None):
     form = EventForm(CombinedMultiDict((request.files, request.form)))
 
     if not form.is_submitted():
-        form = EventForm()
+        form = EventForm(obj=Event.query.get(id)) if id != None else EventForm()
         return render_template('editevent.html', conf=current_app.config, form=form)
 
-    event = Event();
+    event = Event.query.get(id) if id != None else Event()
     form.populate_obj(event)
     event.set_rendered_description(event.description)
-    event.photo = None # We don't want to save an image in the db. Image save will be done later with event.save_photo
     event.num_online_slots = event.num_slots
-    event.registration_open_time = datetime.now()
+    event.registration_open_time = datetime.min
     event.registration_close_time = event.end
 
     activity_type = ActivityType.query.filter_by(id=event.type).first()
@@ -50,8 +50,10 @@ def add_event():
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
     db.session.commit()
-    event.save_photo(form.photo.data)
-    db.session.add(event)
-    db.session.commit()
 
-    return redirect('/')
+    if(form.photo_file.data != None): # If no photo is sen, we don't do anything, especially if a photo is already existing
+        event.save_photo(form.photo_file.data)
+        db.session.add(event)
+        db.session.commit()
+
+    return redirect(url_for('event.view_event', id=event.id))

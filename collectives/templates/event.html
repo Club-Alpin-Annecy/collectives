@@ -16,7 +16,7 @@
 <div class="panel solidpanel" id="eventdetail">
   <h3>{{event.title}}</h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    
+
     {% for atype in event.activity_types %}
       <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
     {% endfor %}
@@ -35,6 +35,7 @@
           - {{event.end }}
       {% endif %}
     </h5>
+    <h5><a class="button" href="{{ url_for('event.manage_event', id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
 
 
     <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
