@@ -5,7 +5,7 @@ from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from .models import Event, User, photos, avatars, ActivityType
+from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
 from flask import current_app
 import sys
 
@@ -50,3 +50,17 @@ class UserForm(ModelForm, FlaskForm ):
     avatar      = FileField(validators=[FileAllowed(photos, 'Image only!')])
     validators = {'mail': [Email()]}
     submit      = SubmitField('Enregistrer')
+
+
+class RoleForm(ModelForm, FlaskForm ):
+    class Meta:
+        model   = Role
+
+    role_id = SelectField('Role', choices=[])
+    activity_type_id = SelectField('Activité', choices=[])
+    submit      = SubmitField('Ajouter')
+
+    def __init__(self, *args, **kwargs):
+        super(RoleForm, self).__init__( *args, **kwargs)
+        self.activity_type_id.choices=[(a.id, a.name) for a in ActivityType.query.all()]
+        self.role_id.choices=[(r.value, r.name) for r in RoleIds]

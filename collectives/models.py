@@ -124,6 +124,9 @@ class ActivityType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable = False)
     short = db.Column(db.String(256), nullable = False)
+    
+    #Relationships
+    persons = db.relationship('Role', backref='activity_type', lazy=True)
 
 class Event(db.Model):
     """ Collectives """
@@ -233,6 +236,9 @@ class Role(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
     activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=True)
     role_id = db.Column(db.Integer, nullable = False)  
+
+    def name(self):
+        return RoleIds(self.role_id).name
 
 class Registration(db.Model):
     """ Participants à la collective (adhérents lambda, dont co-encadrants) """
