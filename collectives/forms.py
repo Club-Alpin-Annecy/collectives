@@ -25,8 +25,9 @@ class LoginForm(FlaskForm):
 
 class EventForm(ModelForm, FlaskForm ):
     class Meta:
-        model = Event
-    photo       = FileField(validators=[FileAllowed(photos, 'Image only!')])
+        model       = Event
+        exclude     = ['photo']
+    photo_file  = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type        = SelectField('Type', choices=[])
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__( *args, **kwargs)

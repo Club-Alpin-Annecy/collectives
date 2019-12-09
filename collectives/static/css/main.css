@@ -339,6 +339,11 @@ a.button{
 	width: 30px;
 }
 
+
+img.icon{
+	height: 1em;
+}
+
 /* UTILS */
 .breaker{
 	clear: both;

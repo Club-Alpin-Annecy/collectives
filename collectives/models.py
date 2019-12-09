@@ -39,12 +39,12 @@ class RegistrationStatus(enum.IntEnum):
 
 # Utility tables
 
-""" Reponsables d'une collective (avec droits de modifs sur ladite collective, 
+""" Reponsables d'une collective (avec droits de modifs sur ladite collective,
     pas comptés dans le nombre de place """
 event_leaders = db.Table('event_leaders',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
     db.Column('event_id', db.Integer, db.ForeignKey('events.id'), index=True)
-) 
+)
 
 """ Objets (activités) de la collective. Contrainte: Pour chaque activite de la
         collective il doit exister un co-responsable cable de l'encadrer"""
@@ -59,7 +59,7 @@ class User(db.Model, UserMixin):
     """ Utilisateurs """
 
     __tablename__ = 'users'
-    
+
     id              = db.Column(db.Integer, primary_key=True)
     mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} ,       default="unknow@example.org")
     first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'},         default="Not Known")
@@ -76,13 +76,13 @@ class User(db.Model, UserMixin):
 
     #Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
-    registrations = db.relationship('Registration', backref='user', lazy=True)  
+    registrations = db.relationship('Registration', backref='user', lazy=True)
 
     def save_avatar(self, file):
         if file != None:
             filename = avatars.save(file, name='user-'+str(self.id)+'.')
             self.avatar = filename;
-    
+
     def check_license_valid_at_time(self, time):
         # TODO:
         return True
@@ -95,7 +95,7 @@ class User(db.Model, UserMixin):
 
     def is_admin(self):
         return self.has_role([RoleIds.Administrator])
-    
+
     def is_moderator(self):
         return self.has_role([RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]) 
     
@@ -103,7 +103,7 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.EventLeader, RoleIds.ActivitySupervisor, RoleIds.President, RoleIds.Administrator]) 
 
     def can_lead_activity(self, activity_id):
-        return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id) 
+        return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id)
 
     # Format
 
@@ -139,20 +139,20 @@ class Event(db.Model):
     rendered_description =  db.Column(db.Text(), nullable=True, default="")
     shortdescription= db.Column(db.String(100), nullable=True, default="")
     photo           = db.Column(db.String(100), nullable=True)
-    start = db.Column(db.DateTime, nullable=False, index=True)
-    end = db.Column(db.Date, nullable=False)
+    start           = db.Column(db.DateTime, nullable=False, index=True)
+    end             = db.Column(db.DateTime, nullable=False)
 
     num_slots = db.Column(db.Integer, nullable = False)
     num_online_slots = db.Column(db.Integer, nullable = False)
     registration_open_time = db.Column(db.DateTime, nullable=False)
     registration_close_time = db.Column(db.DateTime, nullable=False)
-    
+
     # Relationships
     leaders = db.relationship('User', secondary=event_leaders, lazy='subquery',
         backref=db.backref('lead_events', lazy=True))
     activity_types = db.relationship('ActivityType', secondary=event_activity_types, lazy='subquery',
         backref=db.backref('events', lazy=True))
-    registrations = db.relationship('Registration', backref='event', lazy=True)  
+    registrations = db.relationship('Registration', backref='event', lazy=True)
 
     def save_photo(self, file):
         if file != None:
@@ -168,17 +168,17 @@ class Event(db.Model):
     def starts_before_ends(self):
         # Event must starts before it ends
         return self.start.date() <= self.end
-    
+
     def opens_before_closes(self):
         # Registrations must open before they close
         return self.registration_open_time <= self.registration_close_time
-    
+
     def opens_before_ends(self):
         # Registrations must open before event ends
         return self.registration_open_time.date() <= self.end
 
     def has_valid_slots(self):
-        return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots 
+        return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
     def has_valid_leaders(self):
         if not any(self.activity_types):
@@ -191,10 +191,10 @@ class Event(db.Model):
     # Registrations
 
     def is_registration_open_at_time(self, time):
-        return time >= self.registration_open_time and time <= self.registration_close_time 
+        return time >= self.registration_open_time and time <= self.registration_close_time
 
     def active_registrations(self):
-        return [registration for registration in self.registrations if registration.status == RegistrationStatus.Active] 
+        return [registration for registration in self.registrations if registration.status == RegistrationStatus.Active]
 
     def has_free_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
@@ -231,11 +231,11 @@ class Role(db.Model):
     """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable activité... """
 
     __tablename__ = 'roles'
-   
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
     activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=True)
-    role_id = db.Column(db.Integer, nullable = False)  
+    role_id = db.Column(db.Integer, nullable = False)
 
     def name(self):
         return RoleIds(self.role_id).name
@@ -249,4 +249,3 @@ class Registration(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
     status = db.Column(db.Integer, nullable = False) # Active, Rejected...
     level = db.Column(db.Integer, nullable = False)  # Co-encadrant, Normal
-

@@ -44,7 +44,7 @@
     <h4>Description</h4>
     <div id="editor"></div>
     {{ form.description(style="display:none;", required=false) }}<br/>
-    <label for="photo">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo }} <br/>
+    <label for="photo_file">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo_file }} <br/>
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />
@@ -55,6 +55,8 @@ tail.DateTime("input[type=datetime]");
 var quill = new Quill('#editor', {
   theme: 'snow'
 });
+
+quill.setContents(JSON.parse(document.querySelector('textarea[name=description]').defaultValue));
 </script>
 
 {% endblock %}
