@@ -46,9 +46,10 @@ def administration():
 
 
 @blueprint.route('/users/add',  methods=['GET', 'POST'])
+@blueprint.route('/users/<id>',  methods=['GET', 'POST'])
 @login_required
 @admin_required
-def add_user():
+def manage_user(id = None):
     # Reject non admin
     if not current_user.is_admin():
         flash('Unauthorized')
@@ -77,6 +78,12 @@ def add_user():
 
     return redirect(url_for('administration.administration'))
 
+@blueprint.route('/users/<id>/delete',  methods=['POST'])
+@login_required
+@admin_required
+def delete_user(id):
+    flash('Not Implemented', 'error')
+    return redirect(url_for('administration.administration'))
 
 # Init: Setup activity types (if db is ready)
 def init_activity_types(app):
