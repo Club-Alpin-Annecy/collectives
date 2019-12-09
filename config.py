@@ -12,7 +12,6 @@ SECRET_KEY = "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
-
 # Page information
 MOTTO= "L'esprit Club Alpin"
 TITLE= "Collectives CAF Annecy"

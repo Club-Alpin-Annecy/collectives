@@ -19,18 +19,18 @@ def create_app(config_filename = 'config'):
     auth.login_manager.init_app(app) # app is a Flask object
     api.marshmallow.init_app(app)
     views.images.init_app(app)
-    
+
     migrate = Migrate(app, models.db)
 
     with app.app_context():
-    
+
         # Register blueprints
         app.register_blueprint(views.root)
         app.register_blueprint(api.blueprint)
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
-        print(  app.url_map)
+        #print(  app.url_map)
 
         forms.configure_forms(app)
         forms.csrf.init_app(app)

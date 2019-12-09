@@ -12,3 +12,4 @@ flask-testing
 marshmallow-sqlalchemy
 Flask-Images
 quill-delta[html]
+pytest
