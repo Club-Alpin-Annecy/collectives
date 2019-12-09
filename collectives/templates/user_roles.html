@@ -21,7 +21,7 @@
    pour l'activité <em>{{role.activity_type.name}}</em>
   {% endif %}
         <form action="{{url_for('administration.remove_user_role', id=role.id)}}" method="post">
-          <input type="submit" value="Supprimer" >
+          <input type="submit" class="button" value="Supprimer" >
         </form>
   </li>
   {% endfor %}

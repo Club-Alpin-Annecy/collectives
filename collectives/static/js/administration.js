@@ -8,6 +8,7 @@ window.onload = function(){
             {title:"Email", field:"mail", headerFilter:"input", widthGrow:3},
             {title:"Admin", field:"isadmin",  formatter:"tick", widthGrow:1},
             {title:"Enable", field:"enabled",  formatter:"tickCross", widthGrow:1},
+            {title:"Roles", field:"roles_uri",  formatter:"link", formatterParams:{label:"Roles"}, widthGrow:1},
     ],});
     console.log("Fin du chargement du tableau");
 }
