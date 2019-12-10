@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_required
-from .forms import EventForm, photos
-from .models import Event, ActivityType, Registration, RegistrationLevels, RegistrationStatus, db
+from .forms import EventForm, photos, RegistrationForm
+from .models import Event, ActivityType, Registration, RegistrationLevels, RegistrationStatus, User, db
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
 import json
@@ -23,8 +23,12 @@ def index():
 @login_required
 def view_event(id):
     event =  Event.query.filter_by(id=id).first()
+
+    register_user_form = RegistrationForm() if event.has_edit_rights(current_user) else None
+
     return  render_template('event.html', conf=current_app.config, event=event, photos=photos,
-                            can_self_register = event.can_self_register(current_user, datetime.now()))
+                            current_time = datetime.now(), current_user = current_user,
+                            register_user_form = register_user_form)
 
 
 @blueprint.route('/add',  methods=['GET', 'POST'])
@@ -87,6 +91,34 @@ def self_register(id):
 
     return redirect(url_for('event.view_event', id=id))
 
+@blueprint.route('/<id>/register_user',  methods=['POST'])
+@login_required
+def register_user(id):
+    event =  Event.query.filter_by(id=id).first()
+    
+    if not (event and event.has_edit_rights(current_user)):
+        flash('Non autorisé', 'error')
+        return redirect(url_for('event.index'))
+    
+    form = RegistrationForm()
+    if form.is_submitted():
+        user = User.query.filter_by(id=form.user_id.data).first()
+        if user is None:
+            flash('Utilisateur non existant', 'error')
+        elif event.is_registered(user):
+            flash('Utilisateur déjà inscrit', 'error')
+        elif event.is_leader(user):
+            flash('L\'utilisateur encadre la sortie', 'error')
+        else:
+            registration = Registration(status = RegistrationStatus.Active,
+                                        level = RegistrationLevels.Normal,
+                                        event = event,
+                                        user =  user)
+            db.session.add(registration)
+            db.session.commit()
+
+    return redirect(url_for('event.view_event', id=id))
+
 @blueprint.route('/<id>/self_unregister',  methods=['POST'])
 @login_required
 def self_unregister(id):
@@ -101,3 +133,36 @@ def self_unregister(id):
     db.session.commit()
 
     return redirect(url_for('event.view_event', id=id))
+
+@blueprint.route('/registrations/<id>/reject',  methods=['POST'])
+@login_required
+def reject_registration(id):
+    registration = Registration.query.filter_by(id = id).first()
+    if registration is None:
+        flash('Inscription inexistante', 'error')
+        return redirect(url_for('event.index'))
+
+    if not registration.event.has_edit_rights(current_user):
+        flash('Non autorisé', 'error')
+        return redirect(url_for('event.index'))
+
+    registration.status = RegistrationStatus.Rejected
+    db.session.add(registration)
+    db.session.commit()
+    return redirect(url_for('event.view_event', id=registration.event_id))
+
+@blueprint.route('/registrations/<id>/delete',  methods=['POST'])
+@login_required
+def delete_registration(id):
+    registration = Registration.query.filter_by(id = id).first()
+    if registration is None:
+        flash('Inscription inexistante', 'error')
+        return redirect(url_for('event.index'))
+
+    if not registration.event.has_edit_rights(current_user):
+        flash('Non autorisé', 'error')
+        return redirect(url_for('event.index'))
+
+    db.session.delete(registration)
+    db.session.commit()
+    return redirect(url_for('event.view_event', id=registration.event_id))

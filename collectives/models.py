@@ -188,40 +188,31 @@ class Event(db.Model):
     def is_valid(self):
         return self.starts_before_ends() and self.opens_before_closes() and self.opens_before_ends()  and  self.has_valid_slots() and self.has_valid_leaders()
 
+    def is_leader(self, user):
+        return user in self.leaders
+
+    def has_edit_rights(self, user):
+        return self.is_leader(user) or user.is_admin() or any(
+            [activity for activity in activity_types if user.has_role_for_activity([RoleIds.ActivitySupervisor])])
+
     # Registrations
 
     def is_registration_open_at_time(self, time):
         return time >= self.registration_open_time and time <= self.registration_close_time
 
     def active_registrations(self):
-        return [registration for registration in self.registrations if registration.status == RegistrationStatus.Active]
+        return [registration for registration in self.registrations if registration.is_active()]
 
     def has_free_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
     def is_registered(self, user):
-        existing_registrations = [registration for registration in self.active_registrations() if registration.user_id == user.id]
+        existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         return any(existing_registrations)
 
-    def is_leader(self, user):
-        return user in self.leaders
-
     def can_self_register(self, user, time):
-        if self.is_leader(user):
+        if self.is_leader(user) or self.is_registered(user):
             return False
-
-        # Check if the user has already registered
-        existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
-        if not any(existing_registrations):
-            return self.has_free_slots() and self.is_registration_open_at_time(time)
-        existing_registration = existing_registrations[0]
-        # User already has an active registration, cannot register again
-        if existing_registration.status == RegistrationStatus.Active:
-            return False
-        # If the user has been explicitly rejected, do not allow them to register again
-        if existing_registration.status == RegistrationStatus.Rejected:
-            return False
-        # Otherwise proceed has usual
         return self.has_free_slots() and self.is_registration_open_at_time(time)
 
     def leader_names(self):
@@ -249,3 +240,9 @@ class Registration(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
     status = db.Column(db.Integer, nullable = False) # Active, Rejected...
     level = db.Column(db.Integer, nullable = False)  # Co-encadrant, Normal
+
+    def is_active(self):
+        return self.status == RegistrationStatus.Active
+    
+    def is_rejected(self):
+        return self.status == RegistrationStatus.Rejected
