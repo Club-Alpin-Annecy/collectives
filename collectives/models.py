@@ -105,6 +105,9 @@ class User(db.Model, UserMixin):
     def can_lead_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id)
 
+    def supervises_activity(self, activity_id):
+        return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
+
     # Format
 
     def full_name(self):
@@ -193,7 +196,7 @@ class Event(db.Model):
 
     def has_edit_rights(self, user):
         return self.is_leader(user) or user.is_admin() or any(
-            [activity for activity in self.activity_types if user.can_lead_activity(activity.id)])
+            [activity for activity in self.activity_types if user.supervises_activity(activity.id)])
 
     # Registrations
 
