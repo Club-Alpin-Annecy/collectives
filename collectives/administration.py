@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from .forms import AdminUserForm
-from .models import User, Event, ActivityType, db
+from .forms import AdminUserForm, RoleForm
+from .models import User, Event, ActivityType, Role, RoleIds, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -77,6 +77,47 @@ def add_user():
 
     return redirect(url_for('administration.administration'))
 
+@blueprint.route('/user/<id>/roles',  methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_user_role(id):
+
+    user = User.query.filter_by(id = id).first()
+    if user is None:
+        flash('Utilisateur inexistant', 'error')
+        return redirect(url_for('administration.administration'))
+
+    form = RoleForm()
+    if not form.is_submitted():
+        return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
+
+    role = Role()
+    form.populate_obj(role)
+    role.activity_type = ActivityType.query.filter_by(id=form.activity_type_id.data).first()
+
+    user.roles.append(role)
+    db.session.add(role)
+    db.session.commit()
+
+    form = RoleForm()
+    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
+
+@blueprint.route('/roles/<id>/delete',  methods=['POST'])
+@login_required
+@admin_required
+def remove_user_role(id):
+    role = Role.query.filter_by(id = id).first()
+    if role is None:
+        flash('Role inexistant', 'error')
+        return redirect(url_for('administration.administration'))
+
+    user = role.user
+
+    db.session.delete(role)
+    db.session.commit()
+    
+    form = RoleForm()
+    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
 
 # Init: Setup activity types (if db is ready)
 def init_activity_types(app):
@@ -91,3 +132,4 @@ def init_activity_types(app):
             print("WARN: create activity types")
     except sqlalchemy.exc.OperationalError:
         print("WARN: Cannot configure activity types: db is not available")
+
