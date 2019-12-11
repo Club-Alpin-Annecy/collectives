@@ -29,6 +29,11 @@ class RoleIds(enum.IntEnum):
     EventLeader = 10
     ActivitySupervisor = 11
 
+    def relates_to_activity(self):
+        cls = self.__class__
+        return self.value in [cls.ActivitySupervisor, cls.EventLeader]
+
+
 class RegistrationLevels(enum.IntEnum):
     Normal = 0
     CoLeader = 1
