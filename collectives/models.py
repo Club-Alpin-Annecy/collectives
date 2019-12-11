@@ -193,7 +193,7 @@ class Event(db.Model):
 
     def has_edit_rights(self, user):
         return self.is_leader(user) or user.is_admin() or any(
-            [activity for activity in activity_types if user.has_role_for_activity([RoleIds.ActivitySupervisor])])
+            [activity for activity in self.activity_types if user.can_lead_activity(activity.id)])
 
     # Registrations
 
