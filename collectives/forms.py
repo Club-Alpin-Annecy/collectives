@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
+from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
@@ -8,6 +9,9 @@ from wtforms_alchemy import ModelForm
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds, Registration
 from flask import current_app
 import sys
+
+csrf = CSRFProtect()
+
 
 def configure_forms(app):
     configure_uploads(app, photos)

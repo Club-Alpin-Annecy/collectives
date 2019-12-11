@@ -46,10 +46,11 @@
       <h5> Liste des inscrits</h5>
       <ul>
       {% for registration in event.active_registrations() %}
-        <li>   
+        <li>
         {% if event.has_edit_rights(current_user) %}
           {{registration.user.full_name()}}
           <form action="{{url_for('event.reject_registration', id=registration.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="button" value="Refuser" >
           </form>
         {% else %}
@@ -60,13 +61,15 @@
         <li>Aucun inscrit pour le moment.</li>
       {% endfor %}
       </ul>
-      
+
       {% if event.can_self_register(current_user, current_time) %}
         <form action="{{url_for('event.self_register', id=event.id)}}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" value="S'inscrire" >
         </form>
       {% elif event.is_registered(current_user) %}
         <form action="{{url_for('event.self_unregister', id=event.id)}}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" value="Se désinscrire" >
         </form>
       {% elif not event.has_free_slots() %}
@@ -93,9 +96,10 @@
         <h5> Inscriptions refusées</h5>
         <ul>
         {% for registration in event.registrations if registration.is_rejected() %}
-          <li>   
+          <li>
             {{registration.user.full_name()}}
             <form action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <input type="submit" class="button" value="Supprimer" >
             </form>
           </li>
