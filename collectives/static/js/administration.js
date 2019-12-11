@@ -13,8 +13,12 @@ window.onload = function(){
             {title:"Email", field:"mail", headerFilter:"input", widthGrow:3},
             {title:"Admin", field:"isadmin",  formatter:"tick", widthGrow:1},
             {title:"Enable", field:"enabled",  formatter:"tickCross", widthGrow:1},
+<<<<<<< HEAD
             { field:"manage",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET'}},
             { field:"delete",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'POST'}},
+=======
+            {title:"Roles", field:"roles_uri",  formatter:"link", formatterParams:{label:"Gérer"}, widthGrow:1},
+>>>>>>> master
     ],});
     console.log("Fin du chargement du tableau");
 }

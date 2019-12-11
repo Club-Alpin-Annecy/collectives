@@ -35,8 +35,7 @@ class RegistrationLevels(enum.IntEnum):
 
 class RegistrationStatus(enum.IntEnum):
     Active = 0,
-    Inactive = 1,
-    Rejected = 2
+    Rejected = 1
 
 # Utility tables
 
@@ -98,10 +97,24 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.Administrator])
 
     def is_moderator(self):
-        return self.has_role([RoleIds.Moderator, RoleIds.Administrator, RoleIds.President])
+        return self.has_role([RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]) 
+    
+    def can_create_events(self):
+        return self.has_role([RoleIds.EventLeader, RoleIds.ActivitySupervisor, RoleIds.President, RoleIds.Administrator]) 
 
     def can_lead_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id)
+
+    def supervises_activity(self, activity_id):
+        return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
+
+    # Format
+
+    def full_name(self):
+        return '{} {}'.format(self.first_name, self.last_name.upper())
+
+    def abbrev_name(self):
+        return '{} {}'.format(self.first_name, self.last_name[0].upper())
 
     def is_active(self):
         return self.enabled
@@ -114,6 +127,9 @@ class ActivityType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable = False)
     short = db.Column(db.String(256), nullable = False)
+    
+    #Relationships
+    persons = db.relationship('Role', backref='activity_type', lazy=True)
 
 class Event(db.Model):
     """ Collectives """
@@ -175,31 +191,35 @@ class Event(db.Model):
     def is_valid(self):
         return self.starts_before_ends() and self.opens_before_closes() and self.opens_before_ends()  and  self.has_valid_slots() and self.has_valid_leaders()
 
+    def is_leader(self, user):
+        return user in self.leaders
+
+    def has_edit_rights(self, user):
+        return self.is_leader(user) or user.is_admin() or any(
+            [activity for activity in self.activity_types if user.supervises_activity(activity.id)])
+
     # Registrations
 
     def is_registration_open_at_time(self, time):
         return time >= self.registration_open_time and time <= self.registration_close_time
 
     def active_registrations(self):
-        return [registration for registration in self.registrations if registration.status == RegistrationStatus.Active]
+        return [registration for registration in self.registrations if registration.is_active()]
 
     def has_free_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
-    def can_self_register(self, user, time):
-        # Check if the user has already registered
+    def is_registered(self, user):
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
-        if not any(existing_registrations):
-            return self.has_free_slots() and self.is_registration_open_at_time(time)
-        existing_registration = existing_registrations[0]
-        # User already has an active registration, cannot register again
-        if existing_registration.status == RegistrationStatus.Active:
+        return any(existing_registrations)
+
+    def can_self_register(self, user, time):
+        if self.is_leader(user) or self.is_registered(user):
             return False
-        # If the user has been explicitly rejected, do not allow them to register again
-        if existing_registration.status == RegistrationStatus.Rejected:
-            return False
-        # Otherwise proceed has usual
         return self.has_free_slots() and self.is_registration_open_at_time(time)
+
+    def leader_names(self):
+        return [u.full_name() for u in self.leaders]
 
 class Role(db.Model):
     """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable activité... """
@@ -211,6 +231,9 @@ class Role(db.Model):
     activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=True)
     role_id = db.Column(db.Integer, nullable = False)
 
+    def name(self):
+        return RoleIds(self.role_id).name
+
 class Registration(db.Model):
     """ Participants à la collective (adhérents lambda, dont co-encadrants) """
     __tablename__ = 'registrations'
@@ -220,3 +243,9 @@ class Registration(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
     status = db.Column(db.Integer, nullable = False) # Active, Rejected...
     level = db.Column(db.Integer, nullable = False)  # Co-encadrant, Normal
+
+    def is_active(self):
+        return self.status == RegistrationStatus.Active
+    
+    def is_rejected(self):
+        return self.status == RegistrationStatus.Rejected
