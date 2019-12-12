@@ -132,9 +132,9 @@ def remove_user_role(id):
         db.session.commit()
     
     form = RoleForm()
-    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="roles utilisateur")
+    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
 
-# init: setup activity types (if db is ready)
+# init: Setup activity types (if db is ready)
 def init_activity_types(app):
     try:
         activity = ActivityType.query.first()
