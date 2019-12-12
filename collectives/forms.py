@@ -41,11 +41,12 @@ class EventForm(ModelForm, FlaskForm ):
 class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:
         model   = User
+        exclude = ['avatar']  # Avatar is selected/modified by another field
 #        exclude = ['password'] # Administrator should not be able to change a password, but as a start, wee authorize it
 
     validators  = {'mail': [Email()]}
     submit      = SubmitField('Enregistrer')
-    avatar      = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    avatar_file      = FileField(validators=[FileAllowed(photos, 'Image only!')])
 
 class UserForm(ModelForm, FlaskForm ):
     class Meta:
