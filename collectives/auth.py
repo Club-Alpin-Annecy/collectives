@@ -63,6 +63,8 @@ def init_admin(app):
         if user is None:
             user = User()
             user.mail='admin'
+            user.first_name = 'Compte'
+            user.last_name = 'Administrateur'
             user.password=app.config['ADMINPWD']
             admin_role = Role(user = user, role_id = int(RoleIds.Administrator))
             user.roles.append(admin_role)

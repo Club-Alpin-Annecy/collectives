@@ -31,9 +31,9 @@ def create_app(config_filename = 'config'):
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
         print(  app.url_map)
- 
-        forms.configure_forms(app)
 
+        forms.configure_forms(app)
+        forms.csrf.init_app(app)
         # Initialize DB
         # models.db.create_all()
 

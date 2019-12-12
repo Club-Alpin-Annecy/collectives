@@ -80,9 +80,9 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id              = db.Column(db.Integer, primary_key=True)
-    mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} ,       default="unknow@example.org")
-    first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'},         default="Not Known")
-    last_name       = db.Column(db.String(100), nullable=False, info={'label': 'Nom'},         default="Not Known")
+    mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} )
+    first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'})
+    last_name       = db.Column(db.String(100), nullable=False, info={'label': 'Nom'})
     license         = db.Column(db.String(100),                 info={'label': 'Numéro de licence'})
     phone           = db.Column(db.String(20),                  info={'label': 'Téléphone'})
     password        = db.Column(PasswordType(schemes=['pbkdf2_sha512']), info={'label': 'Mot de passe'}, nullable=True )

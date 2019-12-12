@@ -46,15 +46,12 @@ def administration():
 
 
 @blueprint.route('/users/add',  methods=['GET', 'POST'])
+@blueprint.route('/users/<id>',  methods=['GET', 'POST'])
 @login_required
 @admin_required
-def add_user():
-    # Reject non admin
-    if not current_user.is_admin():
-        flash('Unauthorized')
-        return redirect(url_for('index'))
-
-    form = AdminUserForm()
+def manage_user(id = None):
+    user = User()           if id == None else      User.query.get(id)
+    form = AdminUserForm()  if id == None else      AdminUserForm(obj = user)
     if not form.is_submitted():
         return render_template('basicform.html', conf=current_app.config, form=form, title="Ajout d'utilisateur")
 
@@ -62,19 +59,24 @@ def add_user():
         flash('Erreur dans le formulaire', 'error')
         return redirect(url_for('update_user'))
 
-    # Idem for the avatars
-    if form.avatar.data == None:  del form.avatar
 
-    user = User();
     AdminUserForm(request.form).populate_obj(user)
     db.session.add(user)
     db.session.commit()
     # Save avatar into ight UploadSet
-    user.save_avatar(AdminUserForm().avatar.data)
-    db.session.add(user)
-    db.session.commit()
+    if form.avatar_file.data != None:
+        user.save_avatar(form.avatar_file.data)
+        db.session.add(user)
+        db.session.commit()
 
 
+    return redirect(url_for('administration.administration'))
+
+@blueprint.route('/users/<id>/delete',  methods=['POST'])
+@login_required
+@admin_required
+def delete_user(id):
+    flash('Not Implemented', 'error')
     return redirect(url_for('administration.administration'))
 
 @blueprint.route('/user/<id>/roles',  methods=['GET', 'POST'])
@@ -130,9 +132,9 @@ def remove_user_role(id):
         db.session.commit()
     
     form = RoleForm()
-    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
+    return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="roles utilisateur")
 
-# Init: Setup activity types (if db is ready)
+# init: setup activity types (if db is ready)
 def init_activity_types(app):
     try:
         activity = ActivityType.query.first()
@@ -145,4 +147,3 @@ def init_activity_types(app):
             print("WARN: create activity types")
     except sqlalchemy.exc.OperationalError:
         print("WARN: Cannot configure activity types: db is not available")
-
