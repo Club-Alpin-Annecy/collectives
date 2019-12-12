@@ -16,11 +16,14 @@
 <div class="panel solidpanel" id="eventdetail">
   <h3>{{event.title}}</h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    Encadrement par {{ ", ".join(event.leader_names()) }}.
-
     {% for atype in event.activity_types %}
       <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
     {% endfor %}
+
+
+
+
+
     <h5 class="slots">
       Places:
       {% for i in range(0, event.num_slots) %}
@@ -36,6 +39,14 @@
           - {{event.end }}
       {% endif %}
     </h5>
+
+    <div>
+      <h5>Encadrement :</h5>
+      {% for leader in event.leaders %}
+        {% include "usericon.html" %}
+      {% endfor %}
+    </div>
+
     <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
 
     {% if event.has_edit_rights(current_user) %}
@@ -79,7 +90,7 @@
       {% elif current_time > event.registration_close_time %}
       <p>Les inscriptions sont closes</p>
       {% endif %}
-        
+
       {% if event.has_edit_rights(current_user) %}
         <h5> Inscrire un adhérent </h5>
         <form action="{{url_for('event.register_user', id=event.id)}}" method="POST" >

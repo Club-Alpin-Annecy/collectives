@@ -339,6 +339,21 @@ a.button{
 	width: 30px;
 }
 
+.usericon {
+	display: inline-block;
+	width: 80px;
+	border-radius: 5px;
+	background-color: #baccd6;
+	text-align: center;
+	border: 1px solid #888888;
+}
+.usericon img.avatar{
+	width: 80px;
+	height: 80px;
+}
+.usericon .name{
+	margin: 1px 3px;
+}
 
 img.icon{
 	height: 1em;
