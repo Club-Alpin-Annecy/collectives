@@ -29,6 +29,25 @@ class RoleIds(enum.IntEnum):
     EventLeader = 10
     ActivitySupervisor = 11
 
+    @classmethod
+    def display_names(cls):
+        return {
+            cls.Administrator : "Administrateur",
+            cls.Moderator : "Modérateur",
+            cls.President : "Président du club",
+            cls.EventLeader : "Initiateur",
+            cls.ActivitySupervisor : "Responsable d'activité"
+        }
+
+    def display_name(self):
+        cls = self.__class__
+        return cls.display_names()[self.value] 
+
+    def relates_to_activity(self):
+        cls = self.__class__
+        return self.value in [cls.ActivitySupervisor, cls.EventLeader]
+
+
 class RegistrationLevels(enum.IntEnum):
     Normal = 0
     CoLeader = 1
@@ -61,9 +80,9 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id              = db.Column(db.Integer, primary_key=True)
-    mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} ,       default="unknow@example.org")
-    first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'},         default="Not Known")
-    last_name       = db.Column(db.String(100), nullable=False, info={'label': 'Nom'},         default="Not Known")
+    mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} )
+    first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'})
+    last_name       = db.Column(db.String(100), nullable=False, info={'label': 'Nom'})
     license         = db.Column(db.String(100),                 info={'label': 'Numéro de licence'})
     phone           = db.Column(db.String(20),                  info={'label': 'Téléphone'})
     password        = db.Column(PasswordType(schemes=['pbkdf2_sha512']), info={'label': 'Mot de passe'}, nullable=True )
@@ -232,7 +251,7 @@ class Role(db.Model):
     role_id = db.Column(db.Integer, nullable = False)
 
     def name(self):
-        return RoleIds(self.role_id).name
+        return RoleIds(self.role_id).display_name()
 
 class Registration(db.Model):
     """ Participants à la collective (adhérents lambda, dont co-encadrants) """

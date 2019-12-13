@@ -95,11 +95,21 @@ def add_user_role(id):
 
     role = Role()
     form.populate_obj(role)
-    role.activity_type = ActivityType.query.filter_by(id=form.activity_type_id.data).first()
+    role_id = RoleIds(int(role.role_id))
 
-    user.roles.append(role)
-    db.session.add(role)
-    db.session.commit()
+    if role_id.relates_to_activity():
+        role.activity_type = ActivityType.query.filter_by(id=form.activity_type_id.data).first()
+        role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
+    else:
+        role.activity_type = None
+        role_exists = user.has_role([role_id])
+
+    if role_exists:
+        flash('Role déjà associé à l\'utilisateur', 'error')
+    else:
+        user.roles.append(role)
+        db.session.add(role)
+        db.session.commit()
 
     form = RoleForm()
     return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
@@ -115,13 +125,16 @@ def remove_user_role(id):
 
     user = role.user
 
-    db.session.delete(role)
-    db.session.commit()
-
+    if user == current_user and role.role_id == RoleIds.Administrator:
+        flash('Rétrogradation impossible', 'error')
+    else:
+        db.session.delete(role)
+        db.session.commit()
+    
     form = RoleForm()
     return render_template('user_roles.html', conf=current_app.config, user=user, form=form, title="Roles utilisateur")
 
-# Init: Setup activity types (if db is ready)
+# init: Setup activity types (if db is ready)
 def init_activity_types(app):
     try:
         activity = ActivityType.query.first()

@@ -69,7 +69,7 @@ class RoleForm(ModelForm, FlaskForm ):
     def __init__(self, *args, **kwargs):
         super(RoleForm, self).__init__( *args, **kwargs)
         self.activity_type_id.choices=[(a.id, a.name) for a in ActivityType.query.all()]
-        self.role_id.choices=[(r.value, r.name) for r in RoleIds]
+        self.role_id.choices=[(r.value, r.display_name()) for r in RoleIds]
 
 
 class RegistrationForm(ModelForm, FlaskForm ):
