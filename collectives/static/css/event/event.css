@@ -66,13 +66,7 @@
   position: relative;
   top: .2em;
 }
-#eventlist .slots {
-  text-align: right;
-  padding-right: 5px;
-}
-#eventlist .slots .freeslot{
-  opacity: .5;
-}
+
 
 
 /* Event details */
@@ -99,4 +93,55 @@
   text-align: justify;
   max-width: 1000px;
   margin:auto;
+}
+#eventdetail #encadrement{
+  float: right;
+  text-align: center;
+}
+
+#eventdetail .subscriptions{
+  padding: 3px 20px;
+}
+
+#eventdetail .useractionmenu{
+  position: relative;
+  display: inline-block;
+}
+
+#eventdetail .useractionmenu form{
+  display: none;
+  position: absolute;
+  width: 80px;
+  background-color: red;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  padding: 5px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+
+}
+#eventdetail .useractionmenu:hover form{
+  display: inline-block;
+}
+
+#eventdetail .selfsubscribe{
+  cursor: pointer;
+  margin-left: 40px;
+  border: 3px solid #00a6d0;
+}
+
+#eventdetail .selfunregister{
+  display: inline;
+  vertical-align: middle;
+}
+
+#eventdetail .administration{
+  background-color: #cccccc;
+  margin-top: 5em;
+  padding: 20px 10px;
+}
+
+#eventdetail .administration h4{
+  text-align: center;
 }
