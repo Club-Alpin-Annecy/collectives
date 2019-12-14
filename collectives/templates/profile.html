@@ -22,7 +22,11 @@
         <li><b>Email :</b> {{user.mail}}</li>
         <li><b>Téléphone :</b> {{user.phone}}</li>
     </ul>
-
+    {% if user == current_user %}
+    <a class="button" href="{{url_for('root.update_user')}}">Modifier mes informations</a>
+    {% elif current_user.is_admin() %}
+    <a class="button" href="{{url_for('administration.manage_user', id=user.id)}}">Modifier l'utilisateur</a>
+    {% endif %}
 
     <h4>Sorties à venir</h4>
     <ul>

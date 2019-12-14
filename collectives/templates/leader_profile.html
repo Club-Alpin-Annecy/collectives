@@ -17,6 +17,7 @@
 <div class="panel solidpanel" id="eventdetail">
     <h3>{{user.full_name()}}</h3>
 
+    <h4>Rôles</h4>
     <ul>
         {% for role in user.roles %}
         <li>{{role.name()}}

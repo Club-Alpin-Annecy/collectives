@@ -16,7 +16,11 @@
 <div class="panel solidpanel" id="eventdetail">
   <h3>{{event.title}}</h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    Encadrement par {{ ", ".join(event.leader_names()) }}.
+    Encadrement par 
+    {% for leader in event.leaders %}
+    <a href="{{url_for('root.show_leader', id=leader.id)}}">{{leader.full_name()}}</a>
+    {% if not loop.last %}, {% endif %}
+    {% endfor %}
 
     {% for atype in event.activity_types %}
       <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
@@ -45,10 +49,10 @@
       {% for registration in event.active_registrations() %}
         <li>
         {% if event.has_edit_rights(current_user) %}
-          {{registration.user.full_name()}}
-          <form action="{{url_for('event.reject_registration', id=registration.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <a href="{{url_for('root.show_user', id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.reject_registration', id=registration.id)}}" method="post">
             <input type="submit" class="button" value="Refuser" >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           </form>
         {% else %}
           {{registration.user.abbrev_name()}}
@@ -94,8 +98,8 @@
         <ul>
         {% for registration in event.registrations if registration.is_rejected() %}
           <li>
-            {{registration.user.full_name()}}
-            <form action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
+            <a href="{{url_for('root.show_user', id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+            <form class="inline" action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <input type="submit" class="button" value="Supprimer" >
             </form>
