@@ -32,9 +32,14 @@
       {% endif %}
     </h4>
     <div class="slots">
-      {% for i in range(0, event.num_slots) %}
+      {% if not event.has_free_slots() %} COMPLET {% endif %}
+      {% for i in range(0, event.free_slots()) %}
           <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
       {% endfor %}
+      {% for i in range(event.free_slots(), event.num_slots) %}
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon"/>
+      {% endfor %}
+
     </div>
     <div class="">
       {{event.shortdescription}}
