@@ -209,6 +209,9 @@ class Event(db.Model):
     def has_free_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
+    def free_slots(self):
+        return self.num_slots - len(self.active_registrations())
+
     def is_registered(self, user):
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         return any(existing_registrations)
