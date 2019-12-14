@@ -20,7 +20,7 @@ def helpers_processor():
                                    fr_short_months[datetime.month-1])
 
     def format_time(datetime):
-        return datetime.time().strftime(u'%k\xa0h\xa0%M')
+        return u'{h}\xa0h\xa0{m:02d}'.format(h=datetime.hour, m=datetime.minute)
 
     def format_datetime_range(start, end):
         if start.date() == end.date():
