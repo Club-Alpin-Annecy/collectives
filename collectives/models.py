@@ -171,7 +171,7 @@ class Event(db.Model):
 
     # Relationships
     leaders = db.relationship('User', secondary=event_leaders, lazy='subquery',
-        backref=db.backref('lead_events', lazy=True))
+        backref=db.backref('led_events', lazy=True, order_by='Event.start'))
     activity_types = db.relationship('ActivityType', secondary=event_activity_types, lazy='subquery',
         backref=db.backref('events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)

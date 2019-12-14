@@ -53,34 +53,29 @@ def show_user(id):
     return render_template('profile.html', conf = current_app.config, title = "Profil utilisateur",
         user = user, next_events = next_events, past_events = past_events)
 
-@root.route('/leader/<id>/profile',  methods=['GET'])
+@root.route('/organizer/<id>',  methods=['GET'])
 @login_required
 def show_leader(id):
 
     user = None
     if int(id) == current_user.id:
         user = current_user
-    # For now any user with roles can view other users profiles
-    # Limit to leaders of events the user is registered to?
-    elif any(current_user.roles):
+    else :
         user = User.query.filter_by(id=id).first()
 
-    if user is None:
+    # For now allow getting information about any user with roles 
+    # Limit to leaders of events the user is registered to?
+    if user is None or not any(user.roles):
         flash("Non autorisé", "error")
         return redirect(url_for('event.index'))
 
-    next_events_q = db.session.query(Registration, Event).filter(
-        Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
-            Event.id == Registration.event_id).filter(Event.end >= datetime.now()).order_by(Event.start)
-    
-    past_events_q = db.session.query(Registration, Event).filter(
-        Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
-            Event.id == Registration.event_id).filter(Event.end < datetime.now()).order_by(Event.end.desc())
+    led_events = user.led_events
+    now = datetime.now()
 
-    next_events = next_events_q.all()
-    past_events = past_events_q.all()
+    next_events = [e for e in led_events if e.end >= now]
+    past_events = [e for e in led_events if e.end < now]
 
-    return render_template('profile.html', conf = current_app.config, title = "Profil utilisateur",
+    return render_template('leader_profile.html', conf = current_app.config, title = "Profil utilisateur",
         user = user, next_events = next_events, past_events = past_events)
 
 @root.route('/user',  methods=['GET', 'POST'])
