@@ -339,6 +339,38 @@ a.button{
 	width: 30px;
 }
 
+/* User icon display*/
+.usericon {
+	display: inline-block;
+	width: 80px;
+	border-radius: 5px;
+	background-color: #baccd6;
+	text-align: center;
+	border: 1px solid #888888;
+}
+.usericon img.avatar{
+	width: 80px;
+	height: 80px;
+	border-radius: 5px 5px 0px 0px;
+}
+.usericon .name{
+	padding: 1px .2em;
+	word-wrap: break-word;
+	min-height: 2.7em;
+	overflow: hidden;
+	width: 100%;
+}
+
+.tag{
+	border-radius: 5px;
+	display: inline-block;
+	padding: 3px 5px;
+}
+
+.tag.red{
+	color: white;
+	background-color: red;
+}
 
 img.icon{
 	height: 1em;

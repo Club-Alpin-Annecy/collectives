@@ -1,0 +1,8 @@
+<div class="usericon">
+  <img class="avatar" src="{% if user.avatar
+                      %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
+                else
+                      %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                endif %}" />
+  <div class="name">{{ user.first_name}}</div>
+</div>

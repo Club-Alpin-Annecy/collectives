@@ -17,7 +17,7 @@
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
           {{ field.label }}
-          {{ field }}<br/>
+          {{ field(autocomplete="new-password") }}<br/>
         {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
