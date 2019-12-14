@@ -2,7 +2,6 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-
 def create_app(config_filename = 'config'):
     app = Flask(__name__,  instance_relative_config=True)
 

@@ -31,10 +31,7 @@
       <b>Dénivelé, difficulté, cotation :</b>  {{event.shortdescription}}
     </h5>
     <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-      {{ event.start}}
-      {% if event.start != event.end %}
-          - {{event.end }}
-      {% endif %}
+      {{ format_datetime_range(event.start, event.end) | capitalize}}
     </h5>
     <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
 

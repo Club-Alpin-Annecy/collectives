@@ -13,7 +13,6 @@ images = Images()
 root = Blueprint('root', __name__)
 
 
-
 ##################################################################################
 # Event management
 ##################################################################################
@@ -22,6 +21,7 @@ root = Blueprint('root', __name__)
 @root.route('/list')
 def index():
     return redirect(url_for('event.index'))
+
 
 @root.route('/user/<id>/profile',  methods=['GET'])
 @login_required
@@ -42,7 +42,7 @@ def show_user(id):
     next_events_q = db.session.query(Registration, Event).filter(
         Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
             Event.id == Registration.event_id).filter(Event.end >= datetime.now()).order_by(Event.start)
-    
+
     past_events_q = db.session.query(Registration, Event).filter(
         Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
             Event.id == Registration.event_id).filter(Event.end < datetime.now()).order_by(Event.end.desc())
@@ -50,8 +50,9 @@ def show_user(id):
     next_events = next_events_q.all()
     past_events = past_events_q.all()
 
-    return render_template('profile.html', conf = current_app.config, title = "Profil utilisateur",
-        user = user, next_events = next_events, past_events = past_events)
+    return render_template('profile.html', conf=current_app.config, title="Profil utilisateur",
+                           user=user, next_events=next_events, past_events=past_events)
+
 
 @root.route('/organizer/<id>',  methods=['GET'])
 @login_required
@@ -60,10 +61,10 @@ def show_leader(id):
     user = None
     if int(id) == current_user.id:
         user = current_user
-    else :
+    else:
         user = User.query.filter_by(id=id).first()
 
-    # For now allow getting information about any user with roles 
+    # For now allow getting information about any user with roles
     # Limit to leaders of events the user is registered to?
     if user is None or not any(user.roles):
         flash("Non autorisé", "error")
@@ -75,8 +76,9 @@ def show_leader(id):
     next_events = [e for e in led_events if e.end >= now]
     past_events = [e for e in led_events if e.end < now]
 
-    return render_template('leader_profile.html', conf = current_app.config, title = "Profil utilisateur",
-        user = user, next_events = next_events, past_events = past_events)
+    return render_template('leader_profile.html', conf=current_app.config, title="Profil utilisateur",
+                           user=user, next_events=next_events, past_events=past_events)
+
 
 @root.route('/user',  methods=['GET', 'POST'])
 @login_required
@@ -96,9 +98,11 @@ def update_user():
     form = UserForm(request.form)
 
     # Do not touch password if user don't want to change it
-    if form.password.data == '':   form.password = None
+    if form.password.data == '':
+        form.password = None
     # Idem for the avatars
-    if form.avatar.data == None:   form.avatar = None
+    if form.avatar.data == None:
+        form.avatar = None
 
     form.populate_obj(user)
 
@@ -108,4 +112,3 @@ def update_user():
     db.session.commit()
 
     return redirect(url_for('root.update_user'))
-
