@@ -69,10 +69,14 @@
           <input type="submit" value="S'inscrire" >
         </form>
       {% elif event.is_registered(current_user) %}
+        {% if event.is_rejected(current_user)%}
+        Votre inscription a été refusée.
+        {% elif current_time < event.end %}
         <form action="{{url_for('event.self_unregister', id=event.id)}}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" value="Se désinscrire" >
         </form>
+        {% endif %}
       {% elif not event.has_free_slots() %}
       <p>Le nombre maximal d'inscrits a été atteint</p>
       {% elif current_time < event.registration_open_time %}
@@ -111,8 +115,6 @@
       {% endif %}
 
     </div>
-
-
 </div>
 
 

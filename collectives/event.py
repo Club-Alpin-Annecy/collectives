@@ -124,7 +124,9 @@ def register_user(id):
 def self_unregister(id):
     event =  Event.query.filter_by(id=id).first()
 
-    existing_registration = [r for r in event.active_registrations() if r.user == current_user]
+    if event.end > datetime.now():
+        existing_registration = [r for r in event.active_registrations() if r.user == current_user]
+
     if existing_registration is None or existing_registration[0].status == RegistrationStatus.Rejected :
         flash("Unauthorized", 'error')
         return redirect(url_for('event.view_event', id=id))

@@ -232,6 +232,13 @@ class Event(db.Model):
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         return any(existing_registrations)
 
+    def is_registered_with_status(self, user, statuses):
+        existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id and registration.status in statuses ]
+        return any(existing_registrations)
+    
+    def is_rejected(self, user):
+        return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
+
     def can_self_register(self, user, time):
         if self.is_leader(user) or self.is_registered(user):
             return False

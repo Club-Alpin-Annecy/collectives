@@ -40,11 +40,11 @@ def show_user(id):
         return redirect(url_for('event.index'))
 
     next_events_q = db.session.query(Registration, Event).filter(
-        Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
+        Registration.user_id == id).filter(Registration.status == RegistrationStatus.Active).filter(
             Event.id == Registration.event_id).filter(Event.end >= datetime.now()).order_by(Event.start)
 
     past_events_q = db.session.query(Registration, Event).filter(
-        Registration.user_id == id and Registration.status == RegistrationStatus.Active).filter(
+        Registration.user_id == id).filter(Registration.status == RegistrationStatus.Active).filter(
             Event.id == Registration.event_id).filter(Event.end < datetime.now()).order_by(Event.end.desc())
 
     next_events = next_events_q.all()
@@ -66,7 +66,7 @@ def show_leader(id):
 
     # For now allow getting information about any user with roles
     # Limit to leaders of events the user is registered to?
-    if user is None or not any(user.roles):
+    if user is None or not user.can_create_events():
         flash("Non autorisé", "error")
         return redirect(url_for('event.index'))
 
