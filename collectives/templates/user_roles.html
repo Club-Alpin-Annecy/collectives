@@ -12,7 +12,7 @@
 {% block content %}
 <div class="panel solidpanel" id="administration">
   <h2>{{user.full_name()}}</h2>
-  
+
   <h4>Roles existants</h4>
   <ul>
   {% for role in user.roles %}
@@ -20,16 +20,16 @@
   {% if role.activity_type %}
    pour l'activité <em>{{role.activity_type.name}}</em>
   {% endif %}
-        <form action="{{url_for('administration.remove_user_role', id=role.id)}}" method="post">
+        <form action="{{url_for('administration.remove_user_role', user_id=role.id)}}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" class="button" value="Supprimer" >
         </form>
   </li>
   {% endfor %}
   </ul>
-  
+
   <h4>Nouveau role</h4>
-  <form action="{{url_for('administration.add_user_role', id=user.id)}}" method="POST" >
+  <form action="{{url_for('administration.add_user_role', user_id=user.id)}}" method="POST" >
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
           {{ field.label }}

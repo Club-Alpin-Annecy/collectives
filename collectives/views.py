@@ -1,10 +1,12 @@
-from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
+from flask import Flask, flash, render_template, redirect, url_for, request
+from flask import current_app, Blueprint
 from flask_login import current_user, login_required
-from .forms import UserForm
-from .models import User, db
 from flask_images import Images
 import sys
 import os
+
+from .forms import UserForm
+from .models import User, db
 
 images = Images()
 
@@ -12,9 +14,9 @@ root = Blueprint('root', __name__)
 
 
 
-##################################################################################
+################################################################################
 # Event management
-##################################################################################
+################################################################################
 @root.route('/')
 @root.route('/index')
 @root.route('/list')
@@ -29,8 +31,11 @@ def update_user():
     form = UserForm()
     if not form.is_submitted():
         form = UserForm(obj=current_user)
-        form.password.data = "**********"
-        return render_template('basicform.html', conf=current_app.config, form=form, title="Profil utilisateur")
+        form.password.data = '**********'
+        return render_template('basicform.html',
+                               conf=current_app.config,
+                               form=form,
+                               title='Profil utilisateur')
 
     if not form.validate():
         flash('Erreur dans le formulaire', 'error')
@@ -40,9 +45,11 @@ def update_user():
     form = UserForm(request.form)
 
     # Do not touch password if user don't want to change it
-    if form.password.data == '':   form.password = None
+    if form.password.data == '':
+        form.password = None
     # Idem for the avatars
-    if form.avatar.data == None:   form.avatar = None
+    if form.avatar.data == None:
+        form.avatar = None
 
     form.populate_obj(user)
 

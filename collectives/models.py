@@ -32,16 +32,16 @@ class RoleIds(enum.IntEnum):
     @classmethod
     def display_names(cls):
         return {
-            cls.Administrator : "Administrateur",
-            cls.Moderator : "Modérateur",
-            cls.President : "Président du club",
-            cls.EventLeader : "Initiateur",
+            cls.Administrator : 'Administrateur',
+            cls.Moderator : 'Modérateur',
+            cls.President : 'Président du club',
+            cls.EventLeader : 'Initiateur',
             cls.ActivitySupervisor : "Responsable d'activité"
         }
 
     def display_name(self):
         cls = self.__class__
-        return cls.display_names()[self.value] 
+        return cls.display_names()[self.value]
 
     def relates_to_activity(self):
         cls = self.__class__
@@ -68,7 +68,10 @@ event_leaders = db.Table('event_leaders',
 """ Objets (activités) de la collective. Contrainte: Pour chaque activite de la
         collective il doit exister un co-responsable cable de l'encadrer"""
 event_activity_types = db.Table('event_activity_types',
-    db.Column('activity_id', db.Integer, db.ForeignKey('activity_types.id'), index=True),
+    db.Column('activity_id',
+              db.Integer,
+              db.ForeignKey('activity_types.id'),
+              index=True),
     db.Column('event_id', db.Integer, db.ForeignKey('events.id'), index=True)
     )
 
@@ -79,19 +82,30 @@ class User(db.Model, UserMixin):
 
     __tablename__ = 'users'
 
-    id              = db.Column(db.Integer, primary_key=True)
-    mail            = db.Column(db.String(100), nullable=False, info={'label': 'Email'} )
-    first_name      = db.Column(db.String(100), nullable=False, info={'label': 'Prénom'})
-    last_name       = db.Column(db.String(100), nullable=False, info={'label': 'Nom'})
-    license         = db.Column(db.String(100),                 info={'label': 'Numéro de licence'})
-    phone           = db.Column(db.String(20),                  info={'label': 'Téléphone'})
-    password        = db.Column(PasswordType(schemes=['pbkdf2_sha512']), info={'label': 'Mot de passe'}, nullable=True )
-    avatar          = db.Column(db.String(100), nullable=True)
-
-    enabled         = db.Column(db.Boolean, default=True,       info={'label': 'Utilisateur activé'})
+    id         = db.Column(db.Integer, primary_key=True)
+    mail       = db.Column(db.String(100),
+                           nullable=False,
+                           info={'label': 'Email'})
+    first_name = db.Column(db.String(100),
+                           nullable=False,
+                           info={'label': 'Prénom'})
+    last_name  = db.Column(db.String(100),
+                           nullable=False,
+                           info={'label': 'Nom'})
+    license    = db.Column(db.String(100),
+                           info={'label': 'Numéro de licence'})
+    phone      = db.Column(db.String(20),
+                           info={'label': 'Téléphone'})
+    password   = db.Column(PasswordType(schemes=['pbkdf2_sha512']),
+                           nullable=True,
+                           info={'label': 'Mot de passe'})
+    avatar     = db.Column(db.String(100), nullable=True)
+    enabled    = db.Column(db.Boolean,
+                           default=True,
+                           info={'label': 'Utilisateur activé'})
 
     # List of protected field, which cannot be modified by a User
-    protected       = ['enabled']
+    protected  = ['enabled']
 
     #Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
@@ -110,22 +124,31 @@ class User(db.Model, UserMixin):
         return any([role.role_id in role_ids for role in self.roles])
 
     def has_role_for_activity(self, role_ids, activity_id):
+        # pylint: disable=C0301
         return any([role.role_id in role_ids and role.activity_id  == activity_id for role in self.roles])
 
     def is_admin(self):
         return self.has_role([RoleIds.Administrator])
 
     def is_moderator(self):
-        return self.has_role([RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]) 
-    
+        return self.has_role([RoleIds.Moderator,
+                              RoleIds.Administrator,
+                              RoleIds.President])
+
     def can_create_events(self):
-        return self.has_role([RoleIds.EventLeader, RoleIds.ActivitySupervisor, RoleIds.President, RoleIds.Administrator]) 
+        return self.has_role([RoleIds.EventLeader,
+                              RoleIds.ActivitySupervisor,
+                              RoleIds.President,
+                              RoleIds.Administrator])
 
     def can_lead_activity(self, activity_id):
-        return self.has_role_for_activity([RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id)
+        return self.has_role_for_activity([RoleIds.EventLeader,
+                                           RoleIds.ActivitySupervisor],
+                                           activity_id)
 
     def supervises_activity(self, activity_id):
-        return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
+        return self.has_role_for_activity([RoleIds.ActivitySupervisor],
+                                          activity_id)
 
     # Format
 
@@ -146,7 +169,7 @@ class ActivityType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable = False)
     short = db.Column(db.String(256), nullable = False)
-    
+
     #Relationships
     persons = db.relationship('Role', backref='activity_type', lazy=True)
 
@@ -157,9 +180,9 @@ class Event(db.Model):
 
     id              = db.Column(db.Integer, primary_key=True)
     title           = db.Column(db.String(100), nullable=False)
-    description     = db.Column(db.Text(), nullable=False, default="")
-    rendered_description =  db.Column(db.Text(), nullable=True, default="")
-    shortdescription= db.Column(db.String(100), nullable=True, default="")
+    description     = db.Column(db.Text(), nullable=False, default='')
+    rendered_description =  db.Column(db.Text(), nullable=True, default='')
+    shortdescription= db.Column(db.String(100), nullable=True, default='')
     photo           = db.Column(db.String(100), nullable=True)
     start           = db.Column(db.DateTime, nullable=False, index=True)
     end             = db.Column(db.DateTime, nullable=False)
@@ -172,7 +195,9 @@ class Event(db.Model):
     # Relationships
     leaders = db.relationship('User', secondary=event_leaders, lazy='subquery',
         backref=db.backref('lead_events', lazy=True))
-    activity_types = db.relationship('ActivityType', secondary=event_activity_types, lazy='subquery',
+    activity_types = db.relationship('ActivityType',
+                                     secondary=event_activity_types,
+                                     lazy='subquery',
         backref=db.backref('events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)
 
@@ -200,29 +225,35 @@ class Event(db.Model):
         return self.registration_open_time.date() <= self.end
 
     def has_valid_slots(self):
+        # pylint: disable=C0301
         return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
     def has_valid_leaders(self):
         if not any(self.activity_types):
             return False
+        # pylint: disable=C0301
         return not any([not any([user.can_lead_activity(activity.id) for user in self.leaders]) for activity in self.activity_types])
 
     def is_valid(self):
+        # pylint: disable=C0301
         return self.starts_before_ends() and self.opens_before_closes() and self.opens_before_ends()  and  self.has_valid_slots() and self.has_valid_leaders()
 
     def is_leader(self, user):
         return user in self.leaders
 
     def has_edit_rights(self, user):
+        # pylint: disable=C0301
         return self.is_leader(user) or user.is_admin() or any(
             [activity for activity in self.activity_types if user.supervises_activity(activity.id)])
 
     # Registrations
 
     def is_registration_open_at_time(self, time):
+        # pylint: disable=C0301
         return time >= self.registration_open_time and time <= self.registration_close_time
 
     def active_registrations(self):
+        # pylint: disable=C0301
         return [registration for registration in self.registrations if registration.is_active()]
 
     def has_free_slots(self):
@@ -232,6 +263,7 @@ class Event(db.Model):
         return self.num_slots - len(self.active_registrations())
 
     def is_registered(self, user):
+        # pylint: disable=C0301
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         return any(existing_registrations)
 
@@ -244,13 +276,16 @@ class Event(db.Model):
         return [u.full_name() for u in self.leaders]
 
 class Role(db.Model):
-    """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable activité... """
+    """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable
+        activité... """
 
     __tablename__ = 'roles'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
-    activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    activity_id = db.Column(db.Integer,
+                            db.ForeignKey('activity_types.id'),
+                            nullable=True)
     role_id = db.Column(db.Integer, nullable = False)
 
     def name(self):
@@ -261,13 +296,13 @@ class Registration(db.Model):
     __tablename__ = 'registrations'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
-    event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), index=True)
     status = db.Column(db.Integer, nullable = False) # Active, Rejected...
     level = db.Column(db.Integer, nullable = False)  # Co-encadrant, Normal
 
     def is_active(self):
         return self.status == RegistrationStatus.Active
-    
+
     def is_rejected(self):
         return self.status == RegistrationStatus.Rejected

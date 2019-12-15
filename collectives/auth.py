@@ -1,5 +1,7 @@
-from flask import Flask, flash, render_template, redirect, url_for, request, current_app, Blueprint
-from flask_login import current_user, login_user, logout_user, login_required, LoginManager
+from flask import Flask, flash, render_template, redirect, url_for, request
+from flask import current_app, Blueprint
+from flask_login import current_user, login_user, logout_user, login_required
+from flask_login import LoginManager
 from .forms import LoginForm
 from .models import User, Role, RoleIds, db
 
@@ -12,8 +14,8 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 # Flask-login user loader
 @login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 blueprint =  Blueprint('auth', __name__,  url_prefix='/auth')
@@ -27,7 +29,9 @@ def login():
 
     # If no login is provided, display regular login interface
     if not form.validate_on_submit():
-        return  render_template('login.html', conf=current_app.config, form=form)
+        return  render_template('login.html',
+                                conf=current_app.config,
+                                form=form)
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
@@ -59,7 +63,7 @@ def logout():
 # Init: Setup admin (if db is ready)
 def init_admin(app):
     try:
-        user = User.query.filter_by(mail="admin").first()
+        user = User.query.filter_by(mail='admin').first()
         if user is None:
             user = User()
             user.mail='admin'
@@ -70,12 +74,12 @@ def init_admin(app):
             user.roles.append(admin_role)
             db.session.add(user)
             db.session.commit()
-            print("WARN: create admin user")
+            print('WARN: create admin user')
         if not user.password == app.config['ADMINPWD']:
             user.password=app.config['ADMINPWD']
             db.session.commit()
-            print("WARN: Reset admin password")
+            print('WARN: Reset admin password')
     except sqlite3.OperationalError:
-        print("WARN: Cannot configure admin: db is not available")
+        print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.OperationalError:
-        print("WARN: Cannot configure admin: db is not available")
+        print('WARN: Cannot configure admin: db is not available')
