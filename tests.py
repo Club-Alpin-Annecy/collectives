@@ -2,8 +2,10 @@ import unittest
 import flask_testing
 import datetime
 
-from collectives import create_app 
-from collectives.models import db, User, ActivityType, Role, RoleIds, Event, Registration, RegistrationLevels, RegistrationStatus
+# pylint: disable=C0301,W0622
+from collectives import create_app
+from collectives.models import db, User, ActivityType, Role, RoleIds, Event
+from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 
 
 def create_test_user(email="test", license=""):
@@ -41,20 +43,20 @@ class ModelTest(flask_testing.TestCase):
 class TestUsers(ModelTest):
 
     def test_create_user(self):
-        user = create_test_user()   
+        user = create_test_user()
         assert user in db.session
 
 class TestActivities(ModelTest):
 
     def test_create_activity(self):
-        activity = create_test_activity()   
+        activity = create_test_activity()
         assert activity in db.session
 
 class TestRoles(ModelTest):
 
     def make_role(self, user):
         return Role(user = user, role_id = int(RoleIds.Administrator))
-    
+
     def make_activity_role(self, user, activity):
         return Role(user = user, activity_id = activity.id, role_id = int(RoleIds.EventLeader))
 
@@ -67,7 +69,7 @@ class TestRoles(ModelTest):
 
         role = self.make_role(user)
         user.roles.append(role)
- 
+
         db.session.commit()
 
         assert role in db.session
@@ -85,7 +87,7 @@ class TestRoles(ModelTest):
 
         role = self.make_activity_role(user, activity1)
         user.roles.append(role)
- 
+
         db.session.commit()
 
         assert role in db.session
@@ -98,16 +100,19 @@ class TestRoles(ModelTest):
         assert not retrieved_user.can_lead_activity(activity2.id)
 
 class TestEvents(TestUsers):
-    
+
     def make_event(self):
-        return Event(title="Event", description="", shortdescription="",
-                    num_slots=2, num_online_slots=1, 
-                    start=datetime.datetime.now() + datetime.timedelta(days=1), 
-                    end=datetime.date.today() + datetime.timedelta(days=1),
-                    registration_open_time = datetime.datetime.now(), 
-                    registration_close_time = datetime.datetime.now() + datetime.timedelta(days=1), 
-                    )
-    
+        return Event(title="Event",
+                     description="",
+                     shortdescription="",
+                     num_slots=2,
+                     num_online_slots=1,
+                     start=datetime.datetime.now() + datetime.timedelta(days=1),
+                     end=datetime.date.today() + datetime.timedelta(days=1),
+                     registration_open_time = datetime.datetime.now(),
+                     registration_close_time = datetime.datetime.now() + datetime.timedelta(days=1),
+                     )
+
     def test_add_event(self):
         event = self.make_event()
         db.session.add(event)
@@ -168,13 +173,13 @@ class TestEvents(TestUsers):
         assert event.opens_before_closes()
         assert not event.opens_before_ends()
         assert not event.is_valid()
-        
+
         assert not event.is_registration_open_at_time(datetime.datetime.now())
 
 class TestRegistrations(TestEvents):
-    
+
     def make_registration(self, user):
-        now = datetime.datetime.timestamp(datetime.datetime.now())
+        #now = datetime.datetime.timestamp(datetime.datetime.now())
         return Registration(user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal)
 
     def test_add_registration(self):
@@ -182,7 +187,7 @@ class TestRegistrations(TestEvents):
         event.num_online_slots = 2
         db.session.add(event)
         db.session.commit()
-        
+
         now = datetime.datetime.now()
         assert event.is_registration_open_at_time(now)
         assert event.has_free_slots()

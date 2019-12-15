@@ -10,7 +10,7 @@ It is based on Flask.
 
 1. Unzip the package from the source.
 2. Install Python (this app has been tested with Python 3.8)
-3. Install required pip: pip install -r requirement.txt
+3. Install required pip: pip install -r requirements.txt
 (Development)
     4. Run ./run.py
     5. Open http://localhost:5000/

@@ -37,6 +37,7 @@ TYPES= {
 ADMINPWD="foobar2"
 
 # Technical stuff
+# pylint: disable=C0301
 UPLOADED_PHOTOS_DEST= os.path.join(basedir, "collectives/static/uploads")
 UPLOADED_AVATARS_DEST= os.path.join(basedir, "collectives/static/uploads/avatars")
 
