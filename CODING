@@ -1,0 +1,16 @@
+
+Python Coding Style
+ * https://google.github.io/styleguide/pyguide.html
+ * use pylint to validate your code
+ * always separate local module import to extenal ones
+ * indent with 4 spaces
+
+HTML
+ * indent with space
+
+All language type:
+ * Do not add blank spaces at end of line
+ * Never align with tabs, always using spaces
+
+Commit message in English
+
