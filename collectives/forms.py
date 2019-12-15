@@ -1,14 +1,17 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import SelectField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import Email
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds, Registration
 from flask import current_app
 import sys
+
+from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
+from .models import Registration
 
 csrf = CSRFProtect()
 
@@ -17,7 +20,8 @@ def configure_forms(app):
     configure_uploads(app, photos)
     configure_uploads(app, avatars)
 
-    patch_request_class(app, 3 * 1024 * 1024)  # set maximum file size, default is 3MB
+    # set maximum file size, default is 3MB
+    patch_request_class(app, 3 * 1024 * 1024)
 
 
 class LoginForm(FlaskForm):
@@ -42,16 +46,18 @@ class AdminUserForm(ModelForm, FlaskForm ):
     class Meta:
         model   = User
         exclude = ['avatar']  # Avatar is selected/modified by another field
-#        exclude = ['password'] # Administrator should not be able to change a password, but as a start, wee authorize it
+        # FIXME Administrator should not be able to change a password,
+        #exclude = ['password']
 
     validators  = {'mail': [Email()]}
     submit      = SubmitField('Enregistrer')
-    avatar_file      = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
 
 class UserForm(ModelForm, FlaskForm ):
     class Meta:
         model   = User
-        exclude = User.protected # User should not be able to change a protected parameter
+        # User should not be able to change a protected parameter
+        exclude = User.protected
 
     avatar      = FileField(validators=[FileAllowed(photos, 'Image only!')])
     validators = {'mail': [Email()]}
@@ -68,7 +74,8 @@ class RoleForm(ModelForm, FlaskForm ):
 
     def __init__(self, *args, **kwargs):
         super(RoleForm, self).__init__( *args, **kwargs)
-        self.activity_type_id.choices=[(a.id, a.name) for a in ActivityType.query.all()]
+        self.activity_type_id.choices=[(a.id, a.name
+                                       ) for a in ActivityType.query.all()]
         self.role_id.choices=[(r.value, r.display_name()) for r in RoleIds]
 
 
