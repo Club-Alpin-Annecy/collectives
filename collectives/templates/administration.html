@@ -11,6 +11,10 @@
   <script src="{{ url_for('static', filename='js/administration.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
 
+  <script type="text/javascript">
+    var csrf_token = "{{ csrf_token() }}";
+  </script>
+
 {% endblock %}
 
 {% block header %}

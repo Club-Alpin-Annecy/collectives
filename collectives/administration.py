@@ -83,7 +83,9 @@ def manage_user(user_id=None):
 @login_required
 @admin_required
 def delete_user(user_id):
-    flash('Not Implemented ' + user_id, 'error')
+    user = User.query.get(user_id)
+    db.session.delete(user)
+    db.session.commit()
     return redirect(url_for('administration.administration'))
 
 
