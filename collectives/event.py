@@ -40,22 +40,30 @@ def manage_event(id=None):
         return  redirect(url_for('event.index'))
 
     form = EventForm(CombinedMultiDict((request.files, request.form)))
+    event = Event.query.get(id) if id != None else Event()
 
     if not form.is_submitted():
-        form = EventForm(obj=Event.query.get(id)) if id != None else EventForm()
+        if not id is None:
+            form = EventForm(obj=event)
+            form.type.data = str(event.activity_types[0].id)
+
         return render_template('editevent.html', conf=current_app.config, form=form)
 
-    event = Event.query.get(id) if id != None else Event()
     form.populate_obj(event)
     event.set_rendered_description(event.description)
     event.num_online_slots = event.num_slots
     event.registration_open_time = datetime.min
     event.registration_close_time = event.end
 
+    # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
-    event.activity_types.append(activity_type)
+    if activity_type not in event.activity_types:
+        event.activity_types.clear()
+        event.activity_types.append(activity_type)
 
-    event.leaders.append(current_user)
+    # Only set ourselves as leader if there weren't any
+    if not any(event.leaders):
+        event.leaders.append(current_user)
     # TODO once roles mgmt implemented
     #if not event.has_valid_leaders():
     #    flash("Vous n'êtes pas capable d'encadrer cette activité")
@@ -124,7 +132,9 @@ def register_user(id):
 def self_unregister(id):
     event =  Event.query.filter_by(id=id).first()
 
-    existing_registration = [r for r in event.active_registrations() if r.user == current_user]
+    if event.end > datetime.now():
+        existing_registration = [r for r in event.active_registrations() if r.user == current_user]
+
     if existing_registration is None or existing_registration[0].status == RegistrationStatus.Rejected :
         flash("Unauthorized", 'error')
         return redirect(url_for('event.view_event', id=id))

@@ -20,7 +20,7 @@
   {% if role.activity_type %}
    pour l'activité <em>{{role.activity_type.name}}</em>
   {% endif %}
-        <form action="{{url_for('administration.remove_user_role', id=role.id)}}" method="post">
+        <form class="inline" action="{{url_for('administration.remove_user_role', id=role.id)}}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" class="button" value="Supprimer" >
         </form>

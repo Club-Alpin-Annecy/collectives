@@ -20,23 +20,19 @@
       <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
     {% endfor %}
 
-
-
     <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-      {{ event.start}}
-      {% if event.start != event.end %}
-          - {{event.end }}
-      {% endif %}
+      {{ format_datetime_range(event.start, event.end) | capitalize}}
     </h5>
     <h5>
       <b>Dénivelé, difficulté, cotation :</b>  {{event.shortdescription}}
     </h5>
 
-
     <div id="encadrement">
       <h5>Encadrement :</h5>
       {% for user in event.leaders %}
-        {% include "usericon.html" %}
+        {% with leader_info=True %}
+          {% include "usericon.html" %}
+        {% endwith %}
       {% endfor %}
     </div>
 
@@ -47,16 +43,20 @@
           {% endif %}
       </h5>
       {% if event.is_registered(current_user) %}
+        {% if event.is_rejected(current_user)%}
+          <p>Votre inscription a été refusée.</p>
+        {% elif current_time < event.end %}
         <form action="{{url_for('event.self_unregister', id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <a class="button" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous la désinscription?')) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
+        {% endif %}
       {% endif %}
 
       {% for registration in event.active_registrations() %}
 
           <div class="useractionmenu">
-            {% with user = registration.user %}
+            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
               {% include "usericon.html" %}
             {% endwith %}
 
@@ -108,8 +108,8 @@
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
         <li>
-          {{registration.user.full_name()}}
-          <form action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
+          <a href="{{url_for('root.show_user', id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="button" value="Supprimer" >
           </form>
@@ -118,7 +118,6 @@
         <li>Aucune inscription refusée.</li>
       {% endfor %}
       </ul>
-
 
     </div> <!-- .administration -->
     {% endif %}

@@ -171,7 +171,7 @@ class Event(db.Model):
 
     # Relationships
     leaders = db.relationship('User', secondary=event_leaders, lazy='subquery',
-        backref=db.backref('lead_events', lazy=True))
+        backref=db.backref('led_events', lazy=True, order_by='Event.start'))
     activity_types = db.relationship('ActivityType', secondary=event_activity_types, lazy='subquery',
         backref=db.backref('events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)
@@ -235,13 +235,17 @@ class Event(db.Model):
         existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id]
         return any(existing_registrations)
 
+    def is_registered_with_status(self, user, statuses):
+        existing_registrations = [registration for registration in self.registrations if registration.user_id == user.id and registration.status in statuses ]
+        return any(existing_registrations)
+    
+    def is_rejected(self, user):
+        return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
+
     def can_self_register(self, user, time):
         if self.is_leader(user) or self.is_registered(user):
             return False
         return self.has_free_slots() and self.is_registration_open_at_time(time)
-
-    def leader_names(self):
-        return [u.full_name() for u in self.leaders]
 
 class Role(db.Model):
     """ Roles utilisateurs: Administrateur, Modérateur, Encadrant/Reponsable activité... """
