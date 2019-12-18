@@ -1,12 +1,10 @@
 {% extends 'base.html' %}
 
-{% macro display_event(event) %}
-<a href="{{url_for('event.view_event', event_id=event.id)}}">{{event.title | title}}</a>
-{{format_datetime_range(event.start, event.end)}}
-{% endmacro %}
+{% import 'macros.html' as macros with context %}
 
 {% block additionalhead %}
-
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
 {% endblock %}
 
 {% block header %}
@@ -29,23 +27,22 @@
     {% endif %}
 
     <h4>Sorties à venir</h4>
-    <ul>
-        {% for reg_event in next_events %}
-        <li>{{display_event(reg_event[1])}}</li>
+    <div id="eventlist" class="panel" style="display:inline">
+        {% for event in next_events %}
+            {{ macros.eventitem(event[1]) }}
         {% else %}
-        <li>Aucune sortie à venir</li>
+            <li>Aucune sortie à venir</li>
         {% endfor %}
-    </ul>
+    </div>
 
     <h4>Sorties effectuées</h4>
-    <ul>
-        {% for reg_event in past_events %}
-        <li>{{display_event(reg_event[1])}}</li>
+    <div id="eventlist" class="panel" style="display:inline">
+        {% for event in past_events %}
+            {{ macros.eventitem(event[1]) }}
         {% else %}
-        <li>Aucune sortie effectuée jusqu'à présent</li>
+            <li>Aucune sortie encadrée jusqu'à présent</li>
         {% endfor %}
-    </ul>
-
+    </div>
 </div>
 
 {% endblock %}
