@@ -26,4 +26,4 @@ jobs:
         pytest
     - name: unittest
       run: |
-        tests.py
+        python tests.py

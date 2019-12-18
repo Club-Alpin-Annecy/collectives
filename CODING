@@ -2,7 +2,7 @@
 Python Coding Style
  * https://google.github.io/styleguide/pyguide.html
  * use pylint to validate your code
- * always separate local module import to extenal ones
+ * always separate local module import to external ones
  * indent with 4 spaces
  * might autoindent using autopep8 --in-place --aggressive
  * use the pylint linter
