@@ -46,7 +46,7 @@
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
         {% elif current_time < event.end %}
-        <form action="{{url_for('event.self_unregister', id=event.id)}}" method="post"   class="selfunregister">
+        <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <a class="button" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous la désinscription?')) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
@@ -62,7 +62,7 @@
 
             {% if event.has_edit_rights(current_user) %}
             <br/>
-            <form action="{{url_for('event.reject_registration', id=registration.id)}}" method="post" onclick="if(confirm('Confirmation du refus?')) this.submit()">
+            <form action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Confirmation du refus?')) this.submit()">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               Refuser
             </form>
@@ -72,7 +72,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-          <form action="{{url_for('event.self_register', id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
+          <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
             <div class="name">S'inscrire</div>
@@ -90,10 +90,10 @@
       <div class="administration">
       <h4>Administration</h4>
 
-      <h5><a class="button" href="{{ url_for('event.manage_event', id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
+      <h5><a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
 
       <h5> Inscrire un adhérent </h5>
-      <form action="{{url_for('event.register_user', id=event.id)}}" method="POST" >
+      <form action="{{url_for('event.register_user', event_id=event.id)}}" method="POST" >
         {% for field in register_user_form %}
             {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
               {{ field.label }}
@@ -108,8 +108,8 @@
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
         <li>
-          <a href="{{url_for('root.show_user', id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.delete_registration', id=registration.id)}}" method="post">
+          <a href="{{url_for('root.show_user', reg_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="button" value="Supprimer" >
           </form>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% macro display_event(event) %}
-<a href="{{url_for('event.view_event', id=event.id)}}">{{event.title | title}}</a>
+<a href="{{url_for('event.view_event', event_id=event.id)}}">{{event.title | title}}</a>
 {{format_datetime_range(event.start, event.end)}}
 {% endmacro %}
 
@@ -25,7 +25,7 @@
     {% if user == current_user %}
     <a class="button" href="{{url_for('root.update_user')}}">Modifier mes informations</a>
     {% elif current_user.is_admin() %}
-    <a class="button" href="{{url_for('administration.manage_user', id=user.id)}}">Modifier l'utilisateur</a>
+    <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
     {% endif %}
 
     <h4>Sorties à venir</h4>

@@ -12,3 +12,8 @@ flask-testing
 marshmallow-sqlalchemy
 Flask-Images
 quill-delta[html]
+pylint
+pylint-quotes
+pylint-flask-sqlalchemy
+autopep8
+pytest

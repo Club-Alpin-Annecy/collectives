@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% macro display_event(event) %}
-<a href="{{url_for('event.view_event', id=event.id)}}">{{event.title | title}}</a>
+<a href="{{url_for('event.view_event', event_id=event.id)}}">{{event.title | title}}</a>
 {{format_datetime_range(event.start, event.end)}}
 {% endmacro %}
 

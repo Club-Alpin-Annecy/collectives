@@ -14,7 +14,7 @@
 
 <div id="eventlist" class="panel">
 {% for event in events %}
-<a href="{{url_for('event.view_event', id=event.id)}}">
+<a href="{{url_for('event.view_event', event_id=event.id)}}">
   <div class="event">
     <img class="photo" src="{% if event.photo %}{{ url_for('images.crop', filename=event.photo, width=200, height=200 ) }}{% endif %}"/>
 

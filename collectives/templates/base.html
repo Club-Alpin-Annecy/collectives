@@ -28,78 +28,78 @@ dealings in this Software without prior written authorization from @jnguiot.
 
 #}<!DOCTYPE html><html>
 <head>
-	<title>Collectives {% block title %}{% endblock %}</title>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-	<link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
-	{% block additionalhead %}{% endblock %}
+    <title>Collectives {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+    {% block additionalhead %}{% endblock %}
 </head>
 <body>
 <div id="header">
-	<h2><a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename=conf['LOGO']) }}"/>{{ conf['TITLE'] }}</a></h2>
+    <h2><a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename=conf['LOGO']) }}"/>{{ conf['TITLE'] }}</a></h2>
 
-	{% if current_user.is_authenticated %}
-		<div id="menu" class="item">
-			<img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
-			<div class="content">
-				<a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
-				{% if current_user.can_create_events() %}
-					<a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
-				{% endif %}
-				<a href="{{ url_for('root.show_user', id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
-				{% if current_user.can_create_events() %}
-				<a href="{{ url_for('root.show_leader', id = current_user.id)}}"><img
-						src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
-				{% endif %}
-				{% if current_user.is_admin() %}
-					<a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
-				{% endif %}
-			</div>
-		</div><!-- To have no space between menu item
-	 -->{% endif %}<!--
+    {% if current_user.is_authenticated %}
+        <div id="menu" class="item">
+            <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton" alt="Bouton du menu" title="Menu"/>
+            <div class="content">
+                <a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
+                {% if current_user.can_create_events() %}
+                    <a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
+                {% endif %}
+                <a href="{{ url_for('root.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
+                {% if current_user.can_create_events() %}
+                <a href="{{ url_for('root.show_leader', leader_id = current_user.id)}}"><img
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
+                {% endif %}
+                {% if current_user.is_admin() %}
+                    <a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
+                {% endif %}
+            </div>
+        </div><!-- To have no space between menu item
+     -->{% endif %}<!--
 
 
-	 -->{% if current_user.is_authenticated %}<!--
+     -->{% if current_user.is_authenticated %}<!--
 --><a href="{{ url_for('root.update_user')}}"><div id="identity" class="item">
-		<img src="{% if current_user.avatar
-												%}{{ url_for('images.crop', filename=current_user.avatar, width=30, height=30) }}{%
-									else
-												%}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
-									endif %}" class="avatar"/>  {{ current_user.mail }}
-	</div></a>
-	<div class="item" id ="logout">
-		<a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
-	</div>
-	{% else %}<!--
-	--><div id="identity" class="item">
-		<a href="{{ url_for('auth.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
-	</div>
+        <img src="{% if current_user.avatar
+                                                %}{{ url_for('images.crop', filename=current_user.avatar, width=30, height=30) }}{%
+                                    else
+                                                %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                                    endif %}" class="avatar"/>  {{ current_user.mail }}
+    </div></a>
+    <div class="item" id="logout">
+        <a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
+    </div>
+    {% else %}<!--
+    --><div id="identity" class="item">
+        <a href="{{ url_for('auth.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+    </div>
   {% endif %}
 
 
-	<!--h3>{% block header %}{% endblock %}</h3-->
+    <!--h3>{% block header %}{% endblock %}</h3-->
 
 </div>
 <div id="playground">
-	<h1 id="motto">{{ conf['MOTTO'] }}</h1>
+    <h1 id="motto">{{ conf['MOTTO'] }}</h1>
 
-	{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
 </div>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-	<div id="messages">
+    <div id="messages">
     <div class="innermessages">
-		<img
-						src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-						class="close"
-						onclick= "this.parentNode.parentNode.style.display='none'"
-					/>
-		<h3>Message</h3>
+        <img
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                        class="close"
+                        onclick= "this.parentNode.parentNode.style.display='none'"
+                    />
+        <h3>Message</h3>
     {% for message in messages %}
       <p class="{{category}}">{{ message }}</p>
     {% endfor %}
     <div>
-	</div>
+    </div>
   {% endif %}
 {% endwith %}
 

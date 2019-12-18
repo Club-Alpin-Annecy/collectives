@@ -6,9 +6,9 @@
                 endif %}" />
   <div class="name">
       {% if leader_info %}
-            <a href="{{url_for('root.show_leader', id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
+            <a href="{{url_for('root.show_leader', leader_id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
       {% elif user_info %}
-            <a href="{{url_for('root.show_user', id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
+            <a href="{{url_for('root.show_user', user_id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
       {% else %}
             {{user.abbrev_name()}}
       {% endif %}

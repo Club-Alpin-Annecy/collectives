@@ -12,25 +12,31 @@ fr_short_months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin',
 
 def helpers_processor():
     def format_date(datetime):
-        return '{} {} {} {}'.format(fr_week_days[datetime.weekday()], datetime.day,
-                                    fr_months[datetime.month-1], datetime.year)
+        return '{} {} {} {}'.format(
+            fr_week_days[datetime.weekday()], datetime.day,
+            fr_months[datetime.month - 1], datetime.year)
 
     def format_date_short(datetime):
-        return '{}. {} {}.'.format(fr_week_days[datetime.weekday()][0:3], datetime.day,
-                                   fr_short_months[datetime.month-1])
+        return '{}. {} {}.'.format(
+            fr_week_days[datetime.weekday()][0:3], datetime.day,
+            fr_short_months[datetime.month - 1])
 
     def format_time(datetime):
-        return u'{h}\xa0h\xa0{m:02d}'.format(h=datetime.hour, m=datetime.minute)
+        return u'{h}\xa0h\xa0{m:02d}'.format(
+            h=datetime.hour, m=datetime.minute)
 
     def format_datetime_range(start, end):
         if start.date() == end.date():
-            return '{} de {} à {}'.format(format_date(start), format_time(start), format_time(end))
-        return 'du {} à {} au {} à {}'.format(format_date(start), format_time(start), format_date(end), format_time(end))
+            return '{} de {} à {}'.format(format_date(
+                start), format_time(start), format_time(end))
+        return 'du {} à {} au {} à {}'.format(format_date(
+            start), format_time(start), format_date(end), format_time(end))
 
     def format_date_range(start, end):
         if start.date() == end.date():
             return '{}'.format(format_date_short(start))
-        return 'du {} au {}'.format(format_date_short(start), format_date_short(end))
+        return 'du {} au {}'.format(
+            format_date_short(start), format_date_short(end))
 
     return dict(format_date=format_date, format_time=format_time,
                 format_date_range=format_date_range,

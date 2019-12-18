@@ -12,7 +12,6 @@ SECRET_KEY = "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
-
 # Page information
 MOTTO= "L'esprit Club Alpin"
 TITLE= "Collectives CAF Annecy"
@@ -37,8 +36,10 @@ TYPES= {
 ADMINPWD="foobar2"
 
 # Technical stuff
-UPLOADED_PHOTOS_DEST= os.path.join(basedir, "collectives/static/uploads")
-UPLOADED_AVATARS_DEST= os.path.join(basedir, "collectives/static/uploads/avatars")
+UPLOADED_PHOTOS_DEST= os.path.join(basedir,
+                                   "collectives/static/uploads")
+UPLOADED_AVATARS_DEST= os.path.join(basedir,
+                                    "collectives/static/uploads/avatars")
 
 ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'gif'}
 SQLALCHEMY_TRACK_MODIFICATIONS=False
