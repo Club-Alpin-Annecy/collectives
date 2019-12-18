@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% macro display_event(event) %}
+<a href="{{url_for('event.view_event', event_id=event.id)}}">{{event.title | title}}</a>
+{{format_datetime_range(event.start, event.end)}}
+{% endmacro %}
+
+{% block additionalhead %}
+
+{% endblock %}
+
+{% block header %}
+<h1>{% block title %} {{user.full_name()}} {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel solidpanel" id="eventdetail">
+    <h3>{{user.full_name()}}</h3>
+
+    <h4>Rôles</h4>
+    <ul>
+        {% for role in user.roles %}
+        <li>{{role.name()}}
+            {% if role.activity_type %}
+            pour l'activité <em>{{role.activity_type.name}}</em>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h4>Informations de contact</h4>
+    <ul>
+        <li><b>Email :</b> {{user.mail}}</li>
+        <li><b>Téléphone :</b> {{user.phone}}</li>
+    </ul>
+
+    <h4>Sorties encadrées à venir</h4>
+    <ul>
+        {% for reg_event in next_events %}
+        <li>{{display_event(reg_event)}}</li>
+        {% else %}
+        <li>Aucune sortie à venir</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Sorties encadrées effectuées</h4>
+    <ul>
+        {% for reg_event in past_events %}
+        <li>{{display_event(reg_event)}}</li>
+        {% else %}
+        <li>Aucune sortie encadrée jusqu'à présent</li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

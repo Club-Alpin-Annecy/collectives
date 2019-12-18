@@ -2,40 +2,21 @@
 
 #eventedit form{
   padding: 10px 20px;
-  text-align: center;
 }
 
 #eventedit label{
-  font-weight: bold;
-  display: inline-block;
   width : 30%;
-  text-align: right;
-  padding-right: 5px;
   margin-bottom: 1em;
 }
 #eventedit input, #eventedit select{
-  display: inline-block;
   width : 40%;
   margin-bottom: 1em;
-  text-align: left;
-  vertical-align: top;
 }
 
 
 #eventedit input[type=submit] {
-	background-color: #00a6cf;
-	box-sizing: border-box;
 	margin: 8px 0;
-	padding: 1em;
-	border: none;
-	font-size: 1em;
 	width: 50%;
-  text-align: center;
-  font-weight: bold;
-
-	border-radius: 5px;
-	color: white;
-
 }
 
 

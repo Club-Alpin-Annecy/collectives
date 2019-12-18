@@ -14,17 +14,19 @@ import os
 import sqlalchemy.exc
 import sqlalchemy_utils
 
-blueprint = Blueprint('administration', __name__,  url_prefix='/administration')
+blueprint = Blueprint('administration', __name__, url_prefix='/administration')
 
 ################################################################
 # Decorator
 ################################################################
+
+
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user.is_admin():
             flash('Unauthorized', 'error')
-            return  redirect(url_for('event.index'))
+            return redirect(url_for('event.index'))
         return func(*args, **kwargs)
     return decorated_view
 
@@ -33,7 +35,7 @@ def admin_required(func):
 # ADMINISTRATION
 ################################################################
 
-@blueprint.route('/',  methods=['GET', 'POST'])
+@blueprint.route('/', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def administration():
@@ -41,20 +43,20 @@ def administration():
         flash('Unauthorized')
         return redirect(url_for('index'))
 
-    users= User.query.all()
+    users = User.query.all()
 
     return render_template('administration.html',
                            conf=current_app.config,
                            users=users)
 
 
-@blueprint.route('/users/add',  methods=['GET', 'POST'])
-@blueprint.route('/users/<user_id>',  methods=['GET', 'POST'])
+@blueprint.route('/users/add', methods=['GET', 'POST'])
+@blueprint.route('/users/<user_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def manage_user(user_id = None):
-    user = User()           if user_id == None else User.query.get(user_id)
-    form = AdminUserForm()  if user_id == None else AdminUserForm(obj = user)
+def manage_user(user_id=None):
+    user = User() if user_id is None else User.query.get(user_id)
+    form = AdminUserForm() if user_id is None else AdminUserForm(obj=user)
     if not form.is_submitted():
         return render_template('basicform.html',
                                conf=current_app.config,
@@ -65,32 +67,32 @@ def manage_user(user_id = None):
         flash('Erreur dans le formulaire', 'error')
         return redirect(url_for('update_user'))
 
-
     AdminUserForm(request.form).populate_obj(user)
     db.session.add(user)
     db.session.commit()
     # Save avatar into ight UploadSet
-    if form.avatar_file.data != None:
+    if form.avatar_file.data is not None:
         user.save_avatar(form.avatar_file.data)
         db.session.add(user)
         db.session.commit()
 
-
     return redirect(url_for('administration.administration'))
 
-@blueprint.route('/users/<user_id>/delete',  methods=['POST'])
+
+@blueprint.route('/users/<user_id>/delete', methods=['POST'])
 @login_required
 @admin_required
 def delete_user(user_id):
     flash('Not Implemented ' + user_id, 'error')
     return redirect(url_for('administration.administration'))
 
-@blueprint.route('/user/<user_id>/roles',  methods=['GET', 'POST'])
+
+@blueprint.route('/user/<user_id>/roles', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_user_role(user_id):
 
-    user = User.query.filter_by(id = user_id).first()
+    user = User.query.filter_by(id=user_id).first()
     if user is None:
         flash('Utilisateur inexistant', 'error')
         return redirect(url_for('administration.administration'))
@@ -109,9 +111,9 @@ def add_user_role(user_id):
 
     if role_id.relates_to_activity():
         role.activity_type = ActivityType.query.filter_by(
-                                id=form.activity_type_id.data).first()
+            id=form.activity_type_id.data).first()
         role_exists = user.has_role_for_activity(
-                        [role_id], role.activity_type.id)
+            [role_id], role.activity_type.id)
     else:
         role.activity_type = None
         role_exists = user.has_role([role_id])
@@ -130,11 +132,12 @@ def add_user_role(user_id):
                            form=form,
                            title='Roles utilisateur')
 
-@blueprint.route('/roles/<user_id>/delete',  methods=['POST'])
+
+@blueprint.route('/roles/<user_id>/delete', methods=['POST'])
 @login_required
 @admin_required
 def remove_user_role(user_id):
-    role = Role.query.filter_by(id = user_id).first()
+    role = Role.query.filter_by(id=user_id).first()
     if role is None:
         flash('Role inexistant', 'error')
         return redirect(url_for('administration.administration'))
@@ -155,13 +158,15 @@ def remove_user_role(user_id):
                            title='Roles utilisateur')
 
 # init: Setup activity types (if db is ready)
+
+
 def init_activity_types():
     try:
         activity = ActivityType.query.first()
         if activity is None:
             for (_, atype) in current_app.config['TYPES'].items():
-                activity_type = ActivityType(name = atype['name'],
-                                             short = atype['short'])
+                activity_type = ActivityType(name=atype['name'],
+                                             short=atype['short'])
                 db.session.add(activity_type)
             db.session.commit()
 

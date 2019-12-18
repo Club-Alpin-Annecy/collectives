@@ -37,8 +37,10 @@ TYPES= {
 ADMINPWD="foobar2"
 
 # Technical stuff
-UPLOADED_PHOTOS_DEST= os.path.join(basedir, "collectives/static/uploads")
-UPLOADED_AVATARS_DEST= os.path.join(basedir, "collectives/static/uploads/avatars")
+UPLOADED_PHOTOS_DEST= os.path.join(basedir,
+                                   "collectives/static/uploads")
+UPLOADED_AVATARS_DEST= os.path.join(basedir,
+                                    "collectives/static/uploads/avatars")
 
 ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'gif'}
 SQLALCHEMY_TRACK_MODIFICATIONS=False

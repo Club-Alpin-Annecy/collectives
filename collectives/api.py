@@ -8,22 +8,33 @@ from .views import root
 import json
 
 marshmallow = Marshmallow()
-blueprint = Blueprint('api', __name__,  url_prefix='/api')
+blueprint = Blueprint('api', __name__, url_prefix='/api')
+
 
 def avatar_url(user):
-            if user.avatar != None:
-                return url_for('images.crop',
-                               filename=user.avatar,
-                               width=30,
-                               height=30)
-            return url_for('static', filename='img/icon/ionicon/md-person.svg')
+    if user.avatar is not None:
+        return url_for('images.crop',
+                       filename=user.avatar,
+                       width=30,
+                       height=30)
+    return url_for('static', filename='img/icon/ionicon/md-person.svg')
+
 
 class UserSchema(marshmallow.Schema):
-    isadmin     = fields.Function(lambda user: user.is_admin())
-    roles_uri   = fields.Function(lambda user: url_for('administration.add_user_role', user_id=user.id))
-    delete_uri  = fields.Function(lambda user: url_for('administration.delete_user', user_id=user.id))
-    manage_uri  = fields.Function(lambda user: url_for('administration.manage_user', user_id=user.id))
-    avatar_uri  = fields.Function(lambda user: avatar_url(user))
+    isadmin = fields.Function(lambda user: user.is_admin())
+    roles_uri = fields.Function(
+        lambda user: url_for(
+            'administration.add_user_role',
+            user_id=user.id))
+    delete_uri = fields.Function(
+        lambda user: url_for(
+            'administration.delete_user',
+            user_id=user.id))
+    manage_uri = fields.Function(
+        lambda user: url_for(
+            'administration.manage_user',
+            user_id=user.id))
+    avatar_uri = fields.Function(lambda user: avatar_url(user))
 
     class Meta:
         # Fields to expose

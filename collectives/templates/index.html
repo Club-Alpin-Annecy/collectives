@@ -26,10 +26,7 @@
     </h3>
 
     <h4> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-      {{ event.start}}
-      {% if event.start != event.end %}
-          - {{event.end }}
-      {% endif %}
+      {{ format_date_range(event.start, event.end) }}
     </h4>
     <div class="slots">
       {% if not event.has_free_slots() %} COMPLET {% endif %}
