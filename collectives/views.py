@@ -34,7 +34,7 @@ def show_user(user_id):
     # For now any user with roles can view other users profiles
     # Limit to leaders of events the user is registered to?
     elif any(current_user.roles):
-        user = User.query.filter_by(user_id=id).first()
+        user = User.query.filter_by(id=user_id).first()
 
     if user is None:
         flash("Non autorisé", "error")
