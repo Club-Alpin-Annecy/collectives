@@ -1,24 +1,22 @@
+[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives-flask2/workflows/Linter/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives-flask2/actions)
+[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives-flask2/workflows/Tests/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives-flask2/actions)
 
-1. INTRODUCTION
-===============
+
+# INTRODUCTION
 
 This is the collectives site to plan events within a mountain sport club.
 It is based on Flask.
 
-2. Installation
-===============
+# Installation
 
 1. Unzip the package from the source.
 2. Install Python (this app has been tested with Python 3.8)
-3. Install required pip: pip install -r requirements.txt
-(Development)
-    4. Run ./run.py
-    5. Open http://localhost:5000/
+3. Install required pip
+    pip install -r requirements.txt
+4. (Development server at http://localhost:5000)
+    ./run.py
 
-
-
-3. Architecture
-================
+# Architecture
 It used flask design:
 - collectives/:    Application
   - static/:         All static content such as images, css, js
@@ -28,20 +26,16 @@ It used flask design:
   - models.py:       Model part of the MVC. Contains all object and the DB access PARTICULAR
   - views.py:        View part of the MVC. Contains routes.
 
-4. Access
-=========
+# Access
 Default account is admin
 Default password is foobar2 (can be change in config.py)
 
-5. Demonstration
-================
+# Demonstration
 A demonstration website can be found https://demo.jnguiot.fr
 
-6. Production
-=============
+# Production
 For development, you can run ./run.py. However, it is not the recommended method for production environment.
 You can choose any production method you like, howver, we use waitress behind an nginx for SSL offloading. Waitress can be install with a pip `pip install waitress`, and a systemd service be created easily by adding deployment/systemd/collectives.service into /etc/systemd//system. In this case, please edit the file to update user and directory.
 
-7. Testing
-   pytest -s (to print all)
-   pylint
+# Contributing
+Refer to the CODING file.

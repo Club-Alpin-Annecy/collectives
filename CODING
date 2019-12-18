@@ -5,6 +5,7 @@ Python Coding Style
  * always separate local module import to extenal ones
  * indent with 4 spaces
  * might autoindent using autopep8 --in-place --aggressive
+ * use the pylint linter
 
 HTML
  * indent with space
