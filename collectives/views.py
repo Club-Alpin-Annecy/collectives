@@ -79,11 +79,16 @@ def show_leader(leader_id):
         flash("Non autorisé", "error")
         return redirect(url_for('event.index'))
 
-    led_events = user.led_events
-    now = datetime.now()
+    next_events_q = db.session.query(Event).filter(
+            Event.leaders.contains(user)).filter(
+            Event.end >= datetime.now()).order_by(Event.start)
 
-    next_events = [e for e in led_events if e.end >= now]
-    past_events = [e for e in led_events if e.end < now]
+    past_events_q = db.session.query(Event).filter(
+            Event.leaders.contains(user)).filter(
+            Event.end < datetime.now()).order_by(Event.start)
+
+    next_events = next_events_q.all()
+    past_events = past_events_q.all()
 
     return render_template('leader_profile.html',
                            conf=current_app.config,

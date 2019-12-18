@@ -1,6 +1,8 @@
 
 {% extends 'base.html' %}
 
+{% import 'macros.html' as macros with context %}
+
 {% block additionalhead %}
   {# Specific for this page #}
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
@@ -31,7 +33,7 @@
       <h5>Encadrement :</h5>
       {% for user in event.leaders %}
         {% with leader_info=True %}
-          {% include "usericon.html" %}
+          {{ macros.usericon(user, leader_info, user_info) }}
         {% endwith %}
       {% endfor %}
     </div>
@@ -57,7 +59,7 @@
 
           <div class="useractionmenu">
             {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {% include "usericon.html" %}
+              {{ macros.usericon(user, leader_info, user_info) }}
             {% endwith %}
 
             {% if event.has_edit_rights(current_user) %}
