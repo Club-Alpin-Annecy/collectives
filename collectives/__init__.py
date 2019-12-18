@@ -21,7 +21,7 @@ def create_app(config_filename='config'):
     views.images.init_app(app)
 
     app.context_processor(context_processor.helpers_processor)
-    Migrate(app, models.db)
+    migrate = Migrate(app, models.db)
 
     with app.app_context():
 
@@ -31,7 +31,7 @@ def create_app(config_filename='config'):
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
-        print(app.url_map)
+        #print(app.url_map)
 
         forms.configure_forms(app)
         forms.csrf.init_app(app)

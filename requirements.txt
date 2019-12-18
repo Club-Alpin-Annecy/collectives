@@ -16,3 +16,4 @@ pylint
 pylint-quotes
 pylint-flask-sqlalchemy
 autopep8
+pytest
