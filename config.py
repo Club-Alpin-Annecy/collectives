@@ -13,7 +13,8 @@ SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 ADMINPWD = environ.get('ADMINPWD') or "foobar2"
 
 # User/password for accessing extranet API
-EXTRANET_WDSL = environ.get('EXTRANET_WDSL') or 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
+EXTRANET_WDSL = environ.get(
+    'EXTRANET_WDSL') or 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
 EXTRANET_ACCOUNT_ID = environ.get('EXTRANET_ACCOUNT_ID')
 EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
 
