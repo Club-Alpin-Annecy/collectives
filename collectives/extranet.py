@@ -26,7 +26,7 @@ class ExtranetApi:
             return
 
         try:
-            self.soap_client = SoapClient(wsdl = config['EXTRANET_WDSL'])
+            self.soap_client = SoapClient(wsdl=config['EXTRANET_WDSL'])
             auth_response = self.soap_client.auth()
             self.auth_info = auth_response['authReturn']
             self.auth_info['utilisateur'] = config['EXTRANET_ACCOUNT_ID']
@@ -41,21 +41,22 @@ class ExtranetApi:
 
     def check_license(self, license_number):
         info = LicenseInfo()
-        
+
         if self.dummy_mode():
             # Dev mode, every license is valid
             info.exists = True
-            info.renewal_date=datetime.now()
+            info.renewal_date = datetime.now()
             return info
 
         try:
             response = self.soap_client.verifierUnAdherent(
                 connect=self.auth_info, id=license_number)
             result = response['verifierUnAdherentReturn']
-            
+
             if result['existe'] == 1:
                 info.exists = True
-                info.renewal_date = datetime.strptime(result['inscription'], '%Y-%m-%d')
+                info.renewal_date = datetime.strptime(
+                    result['inscription'], '%Y-%m-%d')
             return info
 
         except pysimplesoap.client.SoapFault as err:
