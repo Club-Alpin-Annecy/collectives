@@ -11,8 +11,8 @@ MAINTAINER Caf Annecy "digital@cafannecy.fr"
 #RUN pip install pipenv
 #COPY Pipfile* /tmp/
 #RUN cd /tmp && pipenv lock --requirements > requirements.txt
-COPY requirement.txt /tmp/
-RUN pip install -r /tmp/requirement.txt
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
 
 WORKDIR /app
 

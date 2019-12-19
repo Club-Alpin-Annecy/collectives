@@ -8,6 +8,7 @@ from collectives.models import db, User, ActivityType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 # pylint: enable=C0301
 
+from collectives import extranet 
 
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
@@ -32,6 +33,7 @@ class ModelTest(flask_testing.TestCase):
         app = create_app()
         app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/testdb.sqlite"
         app.config['TESTING'] = True
+        app.config['EXTRANET_ACCOUNT_ID'] = None
         return app
 
     def setUp(self):
@@ -239,6 +241,24 @@ class TestRegistrations(TestEvents):
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
+
+class ApiTest(flask_testing.TestCase):
+
+    def create_app(self):
+
+        # pass in test configuration
+        app = create_app()
+        return app
+
+    def setUp(self):
+        extranet.api.init()
+
+    def test_check_license(self):
+        result = extranet.api.check_license('740020189319')
+        assert result.exists
+        if not extranet.api.dummy_mode():
+            result = extranet.api.check_license('XXX')
+            assert not result.exists
 
 if __name__ == '__main__':
     unittest.main()
