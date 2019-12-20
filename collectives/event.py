@@ -75,7 +75,7 @@ def manage_event(event_id=None):
     if not event.opens_before_closes():
         flash('Les inscriptions internet doivent ouvrir avant de terminer')
         valid = False
-    if not event.opens_before_closes():
+    if not event.opens_before_ends():
         flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
         valid = False
     if event.num_slots < event.num_online_slots:
