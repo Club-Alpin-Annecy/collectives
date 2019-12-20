@@ -240,7 +240,7 @@ class Event(db.Model):
 
     def starts_before_ends(self):
         # Event must starts before it ends
-        return self.start.date() <= self.end
+        return self.start <= self.end
 
     def opens_before_closes(self):
         # Registrations must open before they close

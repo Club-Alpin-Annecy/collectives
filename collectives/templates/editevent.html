@@ -41,6 +41,14 @@
       <span class="datetimepicker" id="datetimepickerend" style="display:none"><label for="end" >Date de fin : </label>{{ form.end }}</span>
       <br/><label for="several">Plusieurs jours : </label><input name="several" type="checkbox" onchange="severalDays(this);"/>
     </div>
+
+    <div class="dates">
+      <h4>Inscriptions par internet</h4>
+      <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
+      <span class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time}}</span>
+      <span class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time }}</span>
+    </div>
+
     <h4>Description</h4>
     <div id="editor"></div>
     {{ form.description(style="display:none;", required=false) }}<br/>
