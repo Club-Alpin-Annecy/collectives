@@ -34,7 +34,7 @@ class UserSchema(marshmallow.Schema):
         lambda user: url_for(
             'administration.manage_user',
             user_id=user.id))
-    avatar_uri = fields.Function(lambda user: avatar_url(user))
+    avatar_uri = avatar_url
 
     class Meta:
         # Fields to expose

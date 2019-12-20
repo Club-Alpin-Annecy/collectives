@@ -11,6 +11,8 @@ class LicenseInfo:
 
 class ExtranetApi:
     soap_client = None
+    auth_info = None
+    app = None
 
     def init_app(self, app):
         self.app = app
@@ -22,11 +24,11 @@ class ExtranetApi:
 
         config = self.app.config
         if config['EXTRANET_ACCOUNT_ID'] is None:
-            print("Warning: no extranet API account provided, dummy mode activated")
+            print("Warning: no extranet API account provided, using mock API")
             return
 
         try:
-            self.soap_client = SoapClient(wsdl=config['EXTRANET_WDSL'])
+            self.soap_client = SoapClient(wsdl=config['EXTRANET_WSDL'])
             auth_response = self.soap_client.auth()
             self.auth_info = auth_response['authReturn']
             self.auth_info['utilisateur'] = config['EXTRANET_ACCOUNT_ID']
