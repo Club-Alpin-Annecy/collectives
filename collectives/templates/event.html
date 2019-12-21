@@ -16,11 +16,14 @@
 
 {% block content %}
 <div class="panel solidpanel" id="eventdetail">
-  <h3>{{event.title}}</h3>
+  <h3>
+      {% for atype in event.activity_types %}
+          <span class="activity {{atype.short}} type"></span>
+      {% endfor %}
+    {{event.title}}
+  </h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    {% for atype in event.activity_types %}
-      <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
-    {% endfor %}
+
 
     <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
       {{ format_datetime_range(event.start, event.end) | capitalize}}
