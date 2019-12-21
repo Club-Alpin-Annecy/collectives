@@ -1,0 +1,119 @@
+span.activity{
+  background: url("Pictos-FFCAM_Mdlt2.png")  0 0 no-repeat;
+  background-size: 625%;
+  height: 60px;
+  width: 60px;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  bottom: .1em;
+}
+
+span.activity.s30px{
+  height: 30px !important;
+  width: 30px !important;
+}
+
+/* Premiere ligne */
+span.activity.expe{
+    background-position: 0% 0%;
+}
+span.activity.telemark{
+    background-position: 19.5% 0%;
+}
+span.activity.cascade_glace{
+    background-position: 59% 0.4%;
+}
+span.activity.voyage{
+    background-position: 40.3% 0%;
+}
+span.activity.equipement{
+    background-position: 79.3% 0.3%;
+}
+span.activity.viaferrata{
+    background-position: 99.4% 0.3%;
+}
+
+/* Deuxieme ligne */
+span.activity.alpinisme{
+    background-position: 0.20% 23.9%;
+}
+span.activity.canyon{
+    background-position: 19.8% 23.5%;
+}
+span.activity.escalade{
+    background-position: 40.3% 23.6%;
+}
+span.activity.raquette{
+    background-position: 60% 23.6%;
+}
+span.activity.randonnee{
+    background-position: 79.6% 23.6%;
+}
+span.activity.ski_fond{
+    background-position: 100% 23.5%;
+}
+
+/* Troisieme ligne */
+span.activity.ski_rando{
+    background-position: 0.20% 48.3%;
+}
+span.activity.speleo{
+    background-position: 19% 48.3%;
+}
+span.activity.snow_rando{
+    background-position: 40% 48.0%;
+}
+span.activity.cyclisme{
+    background-position: 58.8% 47.8%;
+}
+span.activity.parapente{
+    background-position: 79.6% 47.6%;
+}
+span.activity.ours{
+    background-position: 99.5% 47.8%;
+}
+
+
+/* Quatrième ligne */
+span.activity.caf{
+    background-position: 0.20% 72.6%;
+}
+span.activity.jeune{
+    background-position: 20% 72.3%;
+}
+span.activity.medical{
+    background-position: 40.4% 73.5%;
+}
+span.activity.nivologie{
+    background-position: 59.5% 73.2%;
+}
+span.activity.ski_alpin{
+    background-position: 80.4% 73.5%;
+}
+span.activity.formation{
+    background-position: 100% 73.5%;
+}
+
+/* Cinquieme lignee */
+span.activity.wingsuit{
+  background-position: 0.7% 100%;
+}
+span.activity.orientation{
+  background-position: 20.2% 100%;
+}
+span.activity.mountain{
+  background-position: 39.5% 99.5%;
+}
+span.activity.sac{
+  background-position: 60.2% 99.2%;
+}
+span.activity.sourire{
+  background-position: 79.5% 99.5%;
+}
+span.activity.none{
+  background-position: 79.5% 99.5%;
+}
+span.activity.trail{
+  background-position: 99% 99.5%;
+}

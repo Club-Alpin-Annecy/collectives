@@ -24,7 +24,7 @@
 
     <h3>
       {% if event.activity_types %}
-      <img src="{{ url_for('static', filename= "caf/icon/"+ event.activity_types[0].short + '_60x60.png') }}" class="type" alt="[{{ event.activity_types[0].name }}]"/>
+      <span class="activity {{event.activity_types[0].short}} s30px"></span>
       {% endif %}
       {{ event.title }}
     </h3>
