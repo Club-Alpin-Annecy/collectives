@@ -116,7 +116,7 @@ class TestEvents(TestUsers):
                      shortdescription="",
                      num_slots=2, num_online_slots=1,
                      start=datetime.datetime.now() + datetime.timedelta(days=1),
-                     end=datetime.date.today() + datetime.timedelta(days=1),
+                     end=datetime.datetime.now() + datetime.timedelta(days=2),
                      registration_open_time=datetime.datetime.now(),
                      registration_close_time=datetime.datetime.now() +
                      datetime.timedelta(days=1))
@@ -167,9 +167,9 @@ class TestEvents(TestUsers):
         assert event.is_valid()
 
         # Test dates
-        event.end = datetime.date.today()
+        event.end = datetime.datetime.now()
         assert not event.is_valid()
-        event.end = event.start.date()
+        event.end = event.start
         assert event.is_valid()
 
         assert event.is_registration_open_at_time(datetime.datetime.now())

@@ -240,7 +240,7 @@ class Event(db.Model):
 
     def starts_before_ends(self):
         # Event must starts before it ends
-        return self.start.date() <= self.end
+        return self.start <= self.end
 
     def opens_before_closes(self):
         # Registrations must open before they close
@@ -248,7 +248,7 @@ class Event(db.Model):
 
     def opens_before_ends(self):
         # Registrations must open before event ends
-        return self.registration_open_time.date() <= self.end
+        return self.registration_open_time <= self.end
 
     def has_valid_slots(self):
         # pylint: disable=C0301

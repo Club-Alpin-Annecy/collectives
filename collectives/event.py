@@ -66,10 +66,31 @@ def manage_event(event_id=None):
                                form=form)
 
     form.populate_obj(event)
+
+    # Validate dates
+    valid = True
+    if not event.starts_before_ends():
+        flash('La date de début doit être antérieure à la date de fin')
+        valid = False
+    if not event.opens_before_closes():
+        flash('Les inscriptions internet doivent ouvrir avant de terminer')
+        valid = False
+    if not event.opens_before_ends():
+        flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
+        valid = False
+    if event.num_slots < event.num_online_slots:
+        flash('Le nombre de places internet ne doit pas dépasser le nombre de places total')
+        valid = False
+    if event.num_online_slots < 0:
+        flash('Le nombre de places ne peut être négatif')
+        valid = False
+
+    if not valid:
+        return render_template('editevent.html',
+                               conf=current_app.config,
+                               form=form)
+
     event.set_rendered_description(event.description)
-    event.num_online_slots = event.num_slots
-    event.registration_open_time = datetime.min
-    event.registration_close_time = event.end
 
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
@@ -80,11 +101,12 @@ def manage_event(event_id=None):
     # Only set ourselves as leader if there weren't any
     if not any(event.leaders):
         event.leaders.append(current_user)
+
     # TODO once roles mgmt implemented
-    # if not event.has_valid_leaders():
-    #    flash('Vous n'êtes pas capable d'encadrer cette activité')
-    #    return render_template('editevent.html',
-    #                            conf=current_app.config, form=form)
+    if not current_user.is_admin() and not event.has_valid_leaders():
+        flash('Encadrant invalide pour cette activité')
+        return render_template('editevent.html',
+                               conf=current_app.config, form=form)
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
