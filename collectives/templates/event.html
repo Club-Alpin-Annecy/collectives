@@ -82,6 +82,8 @@
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
             <div class="name">S'inscrire</div>
           </form>
+        {% elif not event.has_free_online_slots() %}
+        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
         <p>Inscriptions possibles à partir du {{event.registration_open_time}}</p>
         {% elif current_time > event.registration_close_time %}

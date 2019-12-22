@@ -208,7 +208,7 @@ class TestRegistrations(TestEvents):
 
         now = datetime.datetime.now()
         assert event.is_registration_open_at_time(now)
-        assert event.has_free_slots()
+        assert event.has_free_online_slots()
 
         user1 = create_test_user("email1", "license1")
         user2 = create_test_user("email2", "license2")
@@ -223,11 +223,11 @@ class TestRegistrations(TestEvents):
 
         event.num_online_slots = 1
 
-        assert not event.has_free_slots()
+        assert not event.has_free_online_slots()
         assert not event.can_self_register(user2, now)
 
         event.registrations[0].status = RegistrationStatus.Rejected
-        assert event.has_free_slots()
+        assert event.has_free_online_slots()
         assert not event.can_self_register(user1, now)
         assert event.can_self_register(user2, now)
 
@@ -235,7 +235,7 @@ class TestRegistrations(TestEvents):
 
         # Test db has been updated
         db_event = Event.query.filter_by(id=event.id).first()
-        assert db_event.has_free_slots()
+        assert db_event.has_free_online_slots()
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 

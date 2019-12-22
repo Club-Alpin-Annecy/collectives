@@ -286,6 +286,9 @@ class Event(db.Model):
             registration for registration in self.registrations if registration.is_active()]
 
     def has_free_slots(self):
+        return len(self.active_registrations()) < self.num_slots
+
+    def has_free_online_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
     def free_slots(self):
@@ -310,7 +313,7 @@ class Event(db.Model):
     def can_self_register(self, user, time):
         if self.is_leader(user) or self.is_registered(user):
             return False
-        return self.has_free_slots() and self.is_registration_open_at_time(time)
+        return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 
 
 class Role(db.Model):
