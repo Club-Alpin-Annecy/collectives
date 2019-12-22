@@ -137,13 +137,19 @@ class User(db.Model, UserMixin):
         # pylint disable=W0613
         return True
 
+    def matching_roles(self, role_ids):
+        return [role for role in self.roles if role.role_id in role_ids]
+
+    def matching_roles_for_activity(self, role_ids, activity_id):
+        matching_roles = self.matching_roles(role_ids)
+        return [role for role in matching_roles if role.activity_id == activity_id]
+
     def has_role(self, role_ids):
-        return any([role.role_id in role_ids for role in self.roles])
+        return len(self.matching_roles(role_ids)) > 0
 
     def has_role_for_activity(self, role_ids, activity_id):
-        # pylint: disable=C0301
-        return any([role.role_id in role_ids and role.activity_id ==
-                    activity_id for role in self.roles])
+        roles = self.matching_roles(role_ids)
+        return any([role.activity_id == activity_id for role in roles])
 
     def is_admin(self):
         return self.has_role([RoleIds.Administrator])
@@ -168,6 +174,11 @@ class User(db.Model, UserMixin):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor],
                                           activity_id)
 
+    def led_activities(self):
+        roles = self.matching_roles([RoleIds.EventLeader,
+                                     RoleIds.ActivitySupervisor])
+        return set([role.activity_type for role in roles])
+
     # Format
 
     def full_name(self):
@@ -191,6 +202,12 @@ class ActivityType(db.Model):
 
     # Relationships
     persons = db.relationship('Role', backref='activity_type', lazy=True)
+
+    def can_be_led_by(self, users):
+        for user in users:
+            if user.can_lead_activity(self.id):
+                return True
+        return False
 
 
 class Event(db.Model):
@@ -257,9 +274,10 @@ class Event(db.Model):
     def has_valid_leaders(self):
         if not any(self.activity_types):
             return False
-        # pylint: disable=C0301
-        return not any([not any([user.can_lead_activity(activity.id)
-                                 for user in self.leaders]) for activity in self.activity_types])
+        for activity in self.activity_types:
+            if not activity.can_be_led_by(self.leaders):
+                return False
+        return True
 
     def is_valid(self):
         # pylint: disable=C0301

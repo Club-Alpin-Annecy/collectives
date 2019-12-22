@@ -38,9 +38,9 @@ class EventForm(ModelForm, FlaskForm):
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type = SelectField('Type', choices=[])
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
-        self.type.choices = [(a.id, a.name) for a in ActivityType.query.all()]
+        self.type.choices = activity_choices
 
 
 class AdminUserForm(ModelForm, FlaskForm):
