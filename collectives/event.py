@@ -12,6 +12,16 @@ from .models import RegistrationStatus, User, db
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
 
+def activity_choices(activities, leaders):
+    if current_user.is_admin():
+        choices = ActivityType.query.all()
+    else:
+        choices = set(activities)
+        choices.update(current_user.led_activities())
+        for leader in leaders:
+            choices.update(leader.led_activities())
+    return [(a.id, a.name) for a in choices]
+
 ##########################################################################
 # Event management
 ##########################################################################
@@ -53,12 +63,14 @@ def manage_event(event_id=None):
         flash('Unauthorized', 'error')
         return redirect(url_for('event.index'))
 
-    form = EventForm(CombinedMultiDict((request.files, request.form)))
     event = Event.query.get(event_id) if event_id is not None else Event()
+    choices = activity_choices(event.activity_types, event.leaders)
+
+    form = EventForm(choices, CombinedMultiDict((request.files, request.form)))
 
     if not form.is_submitted():
         if not event_id is None:
-            form = EventForm(obj=event)
+            form = EventForm(choices, obj=event)
             form.type.data = str(event.activity_types[0].id)
 
         return render_template('editevent.html',
@@ -92,21 +104,21 @@ def manage_event(event_id=None):
 
     event.set_rendered_description(event.description)
 
+    # Only set ourselves as leader if there weren't any
+    if not any(event.leaders):
+        event.leaders.append(current_user)
+
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
     if activity_type not in event.activity_types:
         event.activity_types.clear()
         event.activity_types.append(activity_type)
 
-    # Only set ourselves as leader if there weren't any
-    if not any(event.leaders):
-        event.leaders.append(current_user)
-
-    # TODO once roles mgmt implemented
-    if not current_user.is_admin() and not event.has_valid_leaders():
-        flash('Encadrant invalide pour cette activité')
-        return render_template('editevent.html',
-                               conf=current_app.config, form=form)
+        # We are changing the activity, check that there is a valid leader
+        if not current_user.is_admin() and not event.has_valid_leaders():
+            flash('Encadrant invalide pour cette activité')
+            return render_template('editevent.html',
+                                   conf=current_app.config, form=form)
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
