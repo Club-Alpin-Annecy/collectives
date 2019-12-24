@@ -74,7 +74,7 @@ class AutocompleteUserSchema(marshmallow.Schema):
 @login_required
 def autocomplete_users():
     q = request.args.get('q')
-    if len(q) >= 2 and current_user.is_admin():
+    if (len(q) >= 2 and  current_user.can_create_events()):
         if db.session.bind.dialect.name == 'sqlite':
             # SQLlite does not follow SQL standard
             concat_clause = '(first_name || \' \' || last_name)'
@@ -82,10 +82,10 @@ def autocomplete_users():
             concat_clause = 'CONCAT(first_name, \' \', last_name)'
 
         sql = ('SELECT id, first_name, last_name from users '
-               'where {} LIKE :q').format(concat_clause)
+               'WHERE LOWER({}) LIKE :q').format(concat_clause)
 
         found_users = db.session.query(User).from_statement(
-            text(sql)).params(q="%{}%".format(q))
+            text(sql)).params(q="%{}%".format(q.lower()))
     else:
         found_users = []
 
