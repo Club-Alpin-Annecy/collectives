@@ -6,6 +6,7 @@ from sqlalchemy.sql import text
 from marshmallow import fields
 from .models import User, Event, db
 from .views import root
+from .administration import admin_required
 import json
 
 marshmallow = Marshmallow()
@@ -51,12 +52,9 @@ class UserSchema(marshmallow.Schema):
 
 @blueprint.route('/users/')
 @login_required
+@admin_required
 def users():
-    if current_user.is_admin():
-        all_users = User.query.all()
-    else:
-        all_users = []
-
+    all_users = User.query.all()
     return json.dumps(UserSchema(many=True).dump(all_users))
 
 
@@ -74,19 +72,11 @@ class AutocompleteUserSchema(marshmallow.Schema):
 @login_required
 def autocomplete_users():
     q = request.args.get('q')
-    if (len(q) >= 2 and  current_user.can_create_events()):
-        if db.session.bind.dialect.name == 'sqlite':
-            # SQLlite does not follow SQL standard
-            concat_clause = '(first_name || \' \' || last_name)'
-        else:
-            concat_clause = 'CONCAT(first_name, \' \', last_name)'
+    if (len(q) < 2 or not current_user.can_create_events()):
+        flash('Unauthorized')
+        return redirect(url_for('index'))
 
-        sql = ('SELECT id, first_name, last_name from users '
-               'WHERE LOWER({}) LIKE :q').format(concat_clause)
-
-        found_users = db.session.query(User).from_statement(
-            text(sql)).params(q="%{}%".format(q.lower()))
-    else:
-        found_users = []
+    all_users = User.query.all()
+    found_users = [ user for user in all_users if q.lower() in user.full_name().lower()  ]
 
     return json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
