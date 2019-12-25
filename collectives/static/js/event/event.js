@@ -31,7 +31,7 @@ const autocompleteSearch = function () {
     if (searchInput) {
         new window.autoComplete({
             selector: searchInput,
-            minChars: 1,
+            minChars: 2,
             source: function (term, suggest) {
                 loadResults(term,
                     function (data) {
