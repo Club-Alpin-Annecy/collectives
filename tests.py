@@ -239,6 +239,30 @@ class TestRegistrations(TestEvents):
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
+class TestApi(ModelTest):
+    def test_autocomplete(self):
+        from collectives.api import find_users_by_fuzzy_name
+
+        user1 = User(mail="u1", first_name="First", last_name="User", password="",
+                    license="", phone="")
+        user2 = User(mail="u2", first_name="Second", last_name="User", password="",
+                    license="", phone="")
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
+
+        users = list(find_users_by_fuzzy_name("user"))
+        assert len(users) == 2
+        users = list(find_users_by_fuzzy_name("rst u"))
+        assert len(users) == 1
+        assert users[0].mail == 'u1'
+        users = list(find_users_by_fuzzy_name("sec"))
+        assert len(users) == 1
+        assert users[0].mail == 'u2'
+        users = list(find_users_by_fuzzy_name("z"))
+        assert len(users) == 0
+
+
 
 if __name__ == '__main__':
     unittest.main()
