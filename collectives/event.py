@@ -60,7 +60,7 @@ def view_event(event_id):
 @login_required
 def manage_event(event_id=None):
     if not current_user.can_create_events():
-        flash('Unauthorized', 'error')
+        flash('Accès restreint, rôle insuffisant.', 'error')
         return redirect(url_for('event.index'))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
@@ -141,7 +141,7 @@ def self_register(event_id):
 
     now = datetime.now()
     if not event or not event.can_self_register(current_user, now):
-        flash('Unauthorized', 'error')
+        flash('Vous ne pouvez pas vous inscrire vous-même.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
     registration = Registration(user_id=current_user.id,
@@ -195,7 +195,7 @@ def self_unregister(event_id):
 
     if existing_registration is None or existing_registration[
             0].status == RegistrationStatus.Rejected:
-        flash("Unauthorized", 'error')
+        flash('Impossible de vous désinscrire, vous n\'êtes pas inscrit.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
     db.session.delete(existing_registration[0])
