@@ -7,6 +7,7 @@ from collectives import create_app
 from collectives.models import db, User, ActivityType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 # pylint: enable=C0301
+from collectives.api import find_users_by_fuzzy_name
 
 
 def create_test_user(email="test", user_license=""):
@@ -239,14 +240,14 @@ class TestRegistrations(TestEvents):
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
+
 class TestApi(ModelTest):
     def test_autocomplete(self):
-        from collectives.api import find_users_by_fuzzy_name
 
-        user1 = User(mail="u1", first_name="First", last_name="User", password="",
-                    license="", phone="")
-        user2 = User(mail="u2", first_name="Second", last_name="User", password="",
-                    license="", phone="")
+        user1 = User(mail="u1", first_name="First", last_name="User",
+                     password="", license="", phone="")
+        user2 = User(mail="u2", first_name="Second", last_name="User",
+                     password="", license="", phone="")
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
@@ -261,7 +262,6 @@ class TestApi(ModelTest):
         assert users[0].mail == 'u2'
         users = list(find_users_by_fuzzy_name("z"))
         assert len(users) == 0
-
 
 
 if __name__ == '__main__':
