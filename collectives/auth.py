@@ -12,6 +12,8 @@ import sqlalchemy_utils
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+login_manager.login_message = u"Merci de vous connecter pour accéder à cette page"
+
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
