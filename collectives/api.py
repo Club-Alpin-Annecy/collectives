@@ -69,7 +69,7 @@ class AutocompleteUserSchema(marshmallow.Schema):
                   )
 
 
-def find_users_by_fuzzy_name(q, limit=10):
+def find_users_by_fuzzy_name(q, limit=8):
     if db.session.bind.dialect.name == 'sqlite':
         # SQLlite does not follow SQL standard
         concat_clause = '(first_name || \' \' || last_name)'
