@@ -12,6 +12,8 @@ import sqlalchemy_utils
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
+login_manager.login_message = u"Merci de vous connecter pour accéder à cette page"
+
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
@@ -36,11 +38,11 @@ def login():
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
     if user is None or not user.password == form.password.data:
-        flash('Invalid username or password', 'error')
+        flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
         return redirect(url_for('auth.login'))
 
     if not user.is_active():
-        flash('Disabled account', 'error')
+        flash('Compte désactivé', 'error')
         return redirect(url_for('auth.login'))
 
     login_user(user, remember=form.remember_me.data)
