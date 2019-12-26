@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import SelectField
+from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import Email
@@ -86,10 +86,8 @@ class RegistrationForm(ModelForm, FlaskForm):
         model = Registration
         exclude = ['status', 'level']
 
-    user_id = SelectField('Adhérent', choices=[])
+    user_id = IntegerField('Id') 
     submit = SubmitField('Inscrire')
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
-        self.user_id.choices = [(u.id, u.full_name())
-                                for u in User.query.all()]
