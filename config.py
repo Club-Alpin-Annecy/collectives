@@ -35,6 +35,9 @@ TYPES= {
 # Password for admin account
 ADMINPWD="foobar2"
 
+# Timezone to use for time comparisons
+TZ_NAME = 'Europe/Paris'
+
 # Technical stuff
 UPLOADED_PHOTOS_DEST= os.path.join(basedir,
                                    "collectives/static/uploads")

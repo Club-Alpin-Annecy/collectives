@@ -8,6 +8,7 @@ import json
 from .forms import EventForm, photos, RegistrationForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import RegistrationStatus, User, db
+from .helpers import current_time
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -50,7 +51,7 @@ def view_event(event_id):
                            conf=current_app.config,
                            event=event,
                            photos=photos,
-                           current_time=datetime.now(),
+                           current_time=current_time(),
                            current_user=current_user,
                            register_user_form=register_user_form)
 
@@ -139,7 +140,7 @@ def manage_event(event_id=None):
 def self_register(event_id):
     event = Event.query.filter_by(id=event_id).first()
 
-    now = datetime.now()
+    now = current_time()
     if not event or not event.can_self_register(current_user, now):
         flash('Vous ne pouvez pas vous inscrire vous-même.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
@@ -189,7 +190,7 @@ def self_unregister(event_id):
     # pylint: disable=C0301
     event = Event.query.filter_by(id=event_id).first()
 
-    if event.end > datetime.now():
+    if event.end > current_time():
         existing_registration = [
             r for r in event.active_registrations() if r.user == current_user]
 
