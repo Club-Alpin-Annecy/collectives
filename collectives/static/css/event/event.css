@@ -1,11 +1,9 @@
-#eventlist{
-}
 
-#eventlist .action{
+.eventlist .action{
   text-align: right;
   padding: 0 40px;
 }
-#eventlist .action input{
+.eventlist .action input{
   background-color: white;
   box-sizing: border-box;
   margin: 8px 0;
@@ -20,7 +18,7 @@
 }
 
 
-#eventlist .event{
+.eventlist .event{
   width: 47%;
   margin: 1%;
   height: 200px;
@@ -37,7 +35,7 @@
 	}
 }
 
-#eventlist .event .photo{
+.eventlist .event .photo{
   height: 200px;
   width: 200px;
   float: left;
@@ -46,29 +44,35 @@
   background-color: white;
 }
 
-#eventlist .event h3{
+.eventlist .event h3{
   text-align: center;
   background-color: #00a6d0;
   margin: 0;
   font-size: 2em;
 }
-#eventlist .event h3 img{
+.eventlist .event h3 img{
   height: 1em;
   position: relative;
   top: .15em;
 }
 
-#eventlist .event h4{
+.eventlist .event h4{
   text-align: right;
   padding: 0 5  px;
   margin: 0.1em;
 }
-#eventlist .icon, #eventdetail .icon{
+.eventlist .icon, #eventdetail .icon{
   height: 1.2em;
   position: relative;
   top: .2em;
 }
 
+.eventlist .break{
+  clear: both;
+  display: block;  
+  content: "";
+  width: 100%;  
+}
 
 
 /* Event details */

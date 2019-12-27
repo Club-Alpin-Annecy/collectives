@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel solidpanel" id="eventdetail">
+<div class="panel solidpanel">
     <h3>{{user.full_name()}}</h3>
 
     <h4>Rôles</h4>
@@ -33,20 +33,21 @@
     </ul>
 
     <h4>Sorties encadrées à venir</h4>
-    <div id="eventlist" class="panel" style="display:inline">
+    <div class="panel eventlist" style="display:inline">
         {% for event in next_events %}
             {{ macros.eventitem(event) }}
         {% else %}
-            Aucune sortie à venir
+            <p>Aucune sortie à venir</p>
         {% endfor %}
+        <div class="break"></div>
     </div>
 
     <h4>Sorties encadrées effectuées</h4>
-    <div id="eventlist" class="panel" style="display:inline">
+    <div class="panel eventlist" style="display:inline">
         {% for event in past_events %}
             {{ macros.eventitem(event) }}
         {% else %}
-            Aucune sortie encadrée jusqu'à présent
+            <p>Aucune sortie encadrée jusqu'à présent</p>
         {% endfor %}
     </div>
 </div>
