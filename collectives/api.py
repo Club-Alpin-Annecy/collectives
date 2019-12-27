@@ -56,7 +56,8 @@ def users():
         abort(403)
 
     all_users = User.query.all()
-    return json.dumps(UserSchema(many=True).dump(all_users))
+    content = json.dumps(UserSchema(many=True).dump(all_users))
+    return content, 200, {'content-type' :'application/json'}
 
 
 class AutocompleteUserSchema(marshmallow.Schema):
@@ -99,4 +100,70 @@ def autocomplete_users():
     else:
         found_users = find_users_by_fuzzy_name(q)
 
-    return json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    return content, 200, {'content-type' :'application/json'}
+
+
+
+
+
+
+
+def photo_uri(event):
+    if event.photo is not None:
+        return url_for('images.crop',
+                       filename=event.photo,
+                       width=200,
+                       height=130)
+    return url_for('static', filename='img/icon/ionicon/md-images.svg')
+
+class UserSimpleSchema(marshmallow.Schema):
+    avatar_uri  = fields.Function(avatar_url)
+    name        = fields.Function(lambda user: user.abbrev_name())
+    class Meta:
+        fields = ('id', 'name', 'avatar_uri')
+
+class ActivityShortSchema(marshmallow.Schema):
+    class Meta:
+        fields = ('id', 'short')
+
+class EventSchema(marshmallow.Schema):
+    photo_uri   = fields.Function(photo_uri)
+    free_slots  = fields.Function(lambda event: event.free_slots())
+    leaders     = fields.Function(lambda event:
+                                UserSimpleSchema(many=True).dump(event.leaders)
+                            )
+    activity_types = fields.Function(lambda event:
+                                ActivityShortSchema(many=True).dump(event.activity_types)
+                            )
+    view_uri    = fields.Function(
+                    lambda event: url_for(
+                        'event.view_event',
+                        event_id=event.id))
+    class Meta:
+        fields = (  'id',
+                    'title',
+                    'start',
+                    'end',
+                    'num_slots',
+                    'num_online_slots',
+                    'registration_open_time',
+                    'registration_close_time',
+                    'photo_uri',
+                    'view_uri',
+                    'free_slots',
+                    'leaders',
+                    'activity_types'
+                )
+
+@blueprint.route('/events/')
+@login_required
+def events():
+    page = int(request.args.get('page'))
+    size = int(request.args.get('size'))
+
+    all_events = Event.query.order_by("start").paginate(page, size, False)
+    data = EventSchema(many=True).dump(all_events.items)
+    response = { 'data' : data, "last_page" :  all_events.pages }
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}
