@@ -50,5 +50,80 @@ SQLALCHEMY_TRACK_MODIFICATIONS=False
 IMAGES_CACHE=os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH=["static/uploads", "static/uploads/avatars"]
 
-# pylint: disable=C0301
-DESCRIPTION_TEMPLATE="{\"ops\":[{\"insert\":\"ITINERAIRE: \"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"\\nAltitude max.:  \"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"∆+:  \"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"Cotation: \"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"\\nLIEU ET HEURE DE DEPART: \"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"\\nMATERIEL REQUIS:\"},{\"attributes\":{\"header\":2},\"insert\":\"\\n\"},{\"insert\":\"Equipement1\"},{\"attributes\":{\"list\":\"bullet\"},\"insert\":\"\\n\"},{\"insert\":\"Equipement2\"},{\"attributes\":{\"list\":\"bullet\"},\"insert\":\"\\n\"}]}"
+
+DESCRIPTION_TEMPLATE="""{
+    \"ops\":[
+        {
+            \"insert\":\"ITINERAIRE: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nAltitude max.:  \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"∆+:  \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Cotation: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nLIEU ET HEURE DE DEPART: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nMATERIEL REQUIS:\"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Equipement1\"
+        },
+        {
+            \"attributes\":{
+                \"list\":\"bullet\"
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Equipement2\"
+        },
+        {
+            \"attributes\":{
+                \"list\":\"bullet\"
+            },
+            \"insert\":\"\\n\"
+        }
+    ]
+}"""
