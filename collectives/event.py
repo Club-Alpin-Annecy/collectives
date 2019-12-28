@@ -70,8 +70,8 @@ def manage_event(event_id=None):
     form = EventForm(choices, CombinedMultiDict((request.files, request.form)))
 
     if not form.is_submitted():
+        form = EventForm(choices, obj=event)
         if not event_id is None:
-            form = EventForm(choices, obj=event)
             form.type.data = str(event.activity_types[0].id)
 
         return render_template('editevent.html',

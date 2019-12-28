@@ -2,6 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType, force_auto_coercion
 from datetime import datetime
@@ -243,6 +244,11 @@ class Event(db.Model):
                                      backref=db.backref(
                                          'events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__( *args, **kwargs)
+        self.description = current_app.config['DESCRIPTION_TEMPLATE']
 
     def save_photo(self, file):
         if file is not None:
