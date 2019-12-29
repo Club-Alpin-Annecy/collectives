@@ -3,8 +3,10 @@ from flask import Response, current_app, Blueprint, abort
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
 from sqlalchemy.sql import text
+from sqlalchemy import desc
+
 from marshmallow import fields
-from .models import User, Event, db
+from .models import db, User, Event, ActivityType, Registration, RegistrationStatus
 from .views import root
 import json
 
@@ -35,7 +37,7 @@ class UserSchema(marshmallow.Schema):
         lambda user: url_for(
             'administration.manage_user',
             user_id=user.id))
-    avatar_uri = avatar_url
+    avatar_uri = fields.Function(avatar_url)
 
     class Meta:
         # Fields to expose
@@ -56,7 +58,46 @@ def users():
         abort(403)
 
     all_users = User.query.all()
-    return json.dumps(UserSchema(many=True).dump(all_users))
+    content = json.dumps(UserSchema(many=True).dump(all_users))
+    return content, 200, {'content-type' :'application/json'}
+
+# Get all event of a user
+@blueprint.route('/user/<user_id>/events')
+@login_required
+def user_events(user_id):
+    if  int(user_id) != current_user.id and not current_user.can_read_other_users()  :
+        return '[]', 403, {'content-type' :'application/json'}
+
+    query = db.session.query(Event)
+    query = query.filter(Registration.user_id == user_id)
+    query = query.filter(Registration.status == RegistrationStatus.Active)
+    query = query.filter(Event.id == Registration.event_id)
+    query = query.order_by(Event.start)
+
+    user_events = query.all()
+    print(user_events, flush=True)
+    response = EventSchema(many=True).dump(user_events)
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}
+
+# Get all lead events of a leader
+@blueprint.route('/leader/<leader_id>/events')
+@login_required
+def leader_events(leader_id):
+    leader = User.query.filter_by(id=leader_id).first()
+
+    if leader is None or not leader.can_create_events()  :
+        return '[]', 403, {'content-type' :'application/json'}
+
+    query = db.session.query(Event)
+    query = query.filter(Event.leaders.contains(leader))
+    query = query.order_by(Event.start)
+
+    leader_events = query.all()
+    print(leader_events, flush=True)
+    response = EventSchema(many=True).dump(leader_events)
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}
 
 
 class AutocompleteUserSchema(marshmallow.Schema):
@@ -77,11 +118,11 @@ def find_users_by_fuzzy_name(q, limit=8):
         concat_clause = 'CONCAT(first_name, \' \', last_name)'
 
     sql = ('SELECT id, first_name, last_name from users '
-            'WHERE LOWER({}) LIKE :pattern LIMIT :limit').format(concat_clause)
+           'WHERE LOWER({}) LIKE :pattern LIMIT :limit').format(concat_clause)
 
     pattern = "%{}%".format(q.lower())
     found_users = db.session.query(User).from_statement(
-        text(sql)).params(pattern = pattern, limit = limit)
+        text(sql)).params(pattern=pattern, limit=limit)
 
     return found_users
 
@@ -99,4 +140,97 @@ def autocomplete_users():
     else:
         found_users = find_users_by_fuzzy_name(q)
 
-    return json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    return content, 200, {'content-type' :'application/json'}
+
+
+
+
+
+
+
+def photo_uri(event):
+    if event.photo is not None:
+        return url_for('images.crop',
+                       filename=event.photo,
+                       width=200,
+                       height=130)
+    return url_for('static', filename='img/icon/ionicon/md-images.svg')
+
+class UserSimpleSchema(marshmallow.Schema):
+    avatar_uri  = fields.Function(avatar_url)
+    name        = fields.Function(lambda user: user.abbrev_name())
+    class Meta:
+        fields = ('id', 'name', 'avatar_uri')
+
+class ActivityShortSchema(marshmallow.Schema):
+    class Meta:
+        fields = ('id', 'short')
+
+class EventSchema(marshmallow.Schema):
+    photo_uri       = fields.Function(photo_uri)
+    free_slots      = fields.Function(lambda event: event.free_slots())
+    occupied_slots  = fields.Function(lambda event: len(event.active_registrations()))
+    leaders         = fields.Function(lambda event:
+                                UserSimpleSchema(many=True).dump(event.leaders)
+                            )
+    activity_types = fields.Function(lambda event:
+                                ActivityShortSchema(many=True).dump(event.activity_types)
+                            )
+    view_uri    = fields.Function(
+                    lambda event: url_for(
+                        'event.view_event',
+                        event_id=event.id))
+    class Meta:
+        fields = (  'id',
+                    'title',
+                    'start',
+                    'end',
+                    'num_slots',
+                    'num_online_slots',
+                    'registration_open_time',
+                    'registration_close_time',
+                    'photo_uri',
+                    'view_uri',
+                    'free_slots',
+                    'occupied_slots',
+                    'leaders',
+                    'activity_types'
+                )
+
+@blueprint.route('/events/')
+def events():
+    page        = int(request.args.get('page'))
+    size        = int(request.args.get('size'))
+
+    # Initialize query
+    query       = Event.query
+
+    # Process all filters.
+    # All filter are added as AND
+    i = 0
+    while f'filters[{i}][field]' in request.args :
+        value   = request.args.get(f'filters[{i}][value]')
+        field   = request.args.get(f'filters[{i}][field]')
+
+        if field == 'activity_type':
+            filter  = Event.activity_types.any(short = value)
+        if field == 'end':
+            filter  = Event.end >= value
+
+        query   = query.filter( filter )
+        # Get next filter
+        i += 1
+
+    # Process first sorter only
+    if  f'sorters[0][field]' in request.args :
+        sort_field  = request.args.get('sorters[0][field]')
+        sort_dir    = request.args.get('sorters[0][dir]')
+        order       = desc(sort_field) if sort_dir == 'desc' else sort_field
+        query       = query.order_by(order)
+
+    paginated_events = query.paginate(page, size, False)
+    data = EventSchema(many=True).dump(paginated_events.items)
+    response = { 'data' : data, "last_page" :  paginated_events.pages }
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}

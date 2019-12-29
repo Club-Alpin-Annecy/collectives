@@ -266,6 +266,24 @@ class TestJsonApi(ModelTest):
         users = list(find_users_by_fuzzy_name("z"))
         assert len(users) == 0
 
+class TestExtranetApi(flask_testing.TestCase):
+
+    def create_app(self):
+
+        # pass in test configuration
+        app = create_app()
+        return app
+
+    def setUp(self):
+        extranet.api.init()
+
+    def test_check_license(self):
+        result = extranet.api.check_license('740020189319')
+        assert result.exists
+        if not extranet.api.disabled():
+            result = extranet.api.check_license('XXX')
+            assert not result.exists
+
 
 class TestExtranetApi(flask_testing.TestCase):
 
