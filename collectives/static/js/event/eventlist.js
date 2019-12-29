@@ -1,6 +1,6 @@
 
 var locale = window.navigator.userLanguage || window.navigator.language;
-var eventstable;
+var eventsTable;
 moment.locale(locale);
 String.prototype.capitalize = function() {
   return this.charAt(0).toUpperCase() + this.slice(1)
@@ -8,7 +8,7 @@ String.prototype.capitalize = function() {
 
 window.onload = function(){
 
-  		eventstable = new Tabulator("#eventstable", {
+  		eventsTable = new Tabulator("#eventstable", {
   			layout:"fitColumns",
   			ajaxURL: '/api/events/',
             ajaxSorting:true,
@@ -18,9 +18,9 @@ window.onload = function(){
             // Activate grouping only if we sort by start date
             dataSorting : function(sorters){
                 if(sorters[0]['field'] != 'title')
-                    eventstable.setGroupBy(sorters[0]['field']);
+                    eventsTable.setGroupBy(sorters[0]['field']);
                 else
-                    eventstable.setGroupBy(false);
+                    eventsTable.setGroupBy(false);
             },
 
             pagination : 'remote',
@@ -110,15 +110,20 @@ function displayLeader(user){
 
 
 function toggleActivity(activity_id, element){
-    filter={field:"activity_type", type:"=", value:activity_id};
+    filter={field:"activity_type", type:"=", value: activity_id};
 
     // Toggle filter
-    if (eventstable.getFilters().filter(function(i ){
-                                            return i['field'] == filter['field'] && i['value'] == filter['value'] ;
-                                        }).length!=0)
-        eventstable.removeFilter( [{field:"activity_type", type:"=", value:activity_id}]);
-    else
-        eventstable.addFilter( [{field:"activity_type", type:"=", value:activity_id}]);
+    currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
+
+
+    if (currentActivityFilter.length ==0)
+        eventsTable.addFilter( [filter]);
+    else if (currentActivityFilter[0]['value'] == activity_id)
+        eventsTable.removeFilter(currentActivityFilter);
+    else{
+        eventsTable.removeFilter(currentActivityFilter);
+        eventsTable.addFilter( [filter]);
+    }
 
     refreshFilterDisplay();
 }
@@ -127,10 +132,10 @@ function togglePastActivities(element){
 
     if ( ! element.checked){
         var now = moment().format('YYYY-MM-DDTHH:mm:ss'); // As ISO 8601
-        eventstable.addFilter( [{field:"end", type:"=", value:  now  }]);
+        eventsTable.addFilter( [{field:"end", type:"=", value:  now  }]);
     }else{
-        endfilter=eventstable.getFilters().filter(function(i ){ return i['field'] == "end" });
-        eventstable.removeFilter(endfilter);
+        endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
+        eventsTable.removeFilter(endfilter);
     }
 
 }
@@ -141,7 +146,7 @@ function refreshFilterDisplay(){
         button.classList.add('unselected');
 
     // Select activity filter button which appears in tabulator filter
-    for (filter of eventstable.getFilters())
+    for (filter of eventsTable.getFilters())
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
 }
