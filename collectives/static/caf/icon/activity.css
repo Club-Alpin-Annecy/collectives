@@ -13,6 +13,10 @@ span.activity.s30px{
   height: 30px !important;
   width: 30px !important;
 }
+span.activity.s20px{
+  height: 20px !important;
+  width: 20px !important;
+}
 
 /* Premiere ligne */
 span.activity.expe{
