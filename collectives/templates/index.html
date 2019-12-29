@@ -9,14 +9,28 @@
 
 {% block additionalhead %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript">
+  var eventList;
+  window.onload = function () {
+    var options = {
+      page: 3,
+      pagination: true
+    };
+    eventList = new List("eventlist", options);
+  };
+  </script>
 {% endblock %}
 
 {% block content %}
 
 <div id="eventlist" class="panel">
+<ul class="pagination"></ul>
+<div class="list">
 {% for event in events %}
   {{ macros.eventitem(event) }}
 {% endfor %}
+</div>
 </div>
 
 {% endblock %}

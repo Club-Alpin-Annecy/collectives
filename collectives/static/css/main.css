@@ -438,3 +438,30 @@ form.inline input[type=submit] {
 	margin-bottom: 0.5em;
 	font-size: 0.8em;
 }
+
+.pagination {
+}
+
+.pagination li {
+background-color: white;
+display: inline;
+padding: .5em;
+padding-left: 1em;
+padding-right: 1em;
+margin: .5em;
+font-weight: bold;
+}
+
+.pagination li a {
+color: #00a6d0;
+text-decoration: none;
+}
+
+.pagination li.active {
+background-color: #00a6d0;
+}
+
+.pagination li.active a {
+color: white;
+}
+
