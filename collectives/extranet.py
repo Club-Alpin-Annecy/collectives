@@ -2,11 +2,13 @@
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 from datetime import datetime
+from sys import stderr
 
 
 class LicenseInfo:
     exists = False
     renewal_date = None
+
 
 class ExtranetApi:
     soap_client = None
@@ -17,13 +19,13 @@ class ExtranetApi:
         self.app = app
 
     def init(self):
-        if self.soap_client:
+        if not self.soap_client is None:
             # Already initialized
             return
 
         config = self.app.config
         if config['EXTRANET_DISABLE']:
-            print("Warning: extranet API disabled, using mock API")
+            print("Warning: extranet API disabled, using mock API", file=stderr)
             return
 
         try:
@@ -34,16 +36,17 @@ class ExtranetApi:
             self.auth_info['motdepasse'] = config['EXTRANET_ACCOUNT_PWD']
 
         except pysimplesoap.client.SoapFault as err:
-            print('Extranet API error: {}'.format(err))
+            print('Extranet API error: {}'.format(err), file=stderr)
             self.soap_client = None
+            raise err
 
-    def dummy_mode(self):
+    def disabled(self):
         return self.soap_client is None
 
     def check_license(self, license_number):
         info = LicenseInfo()
 
-        if self.dummy_mode():
+        if self.disabled():
             # Dev mode, every license is valid
             info.exists = True
             info.renewal_date = datetime.now()
@@ -61,8 +64,9 @@ class ExtranetApi:
             return info
 
         except pysimplesoap.client.SoapFault as err:
-            print('Extranet API error: {}'.format(err))
+            print('Extranet API error: {}'.format(err), file=stderr)
 
         return LicenseInfo()
+
 
 api = ExtranetApi()
