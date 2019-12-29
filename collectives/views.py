@@ -108,17 +108,13 @@ def show_leader(leader_id):
 def update_user():
 
     form = UserForm()
-    if not form.is_submitted():
+    if not form.validate_on_submit():
         form = UserForm(obj=current_user)
         form.password.data = None
         return render_template('basicform.html',
                                conf=current_app.config,
                                form=form,
                                title="Profil utilisateur")
-
-    if not form.validate():
-        flash('Erreur dans le formulaire', 'error')
-        return redirect(url_for('root.update_user'))
 
     user = current_user
     form = UserForm(request.form)

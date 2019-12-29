@@ -4,6 +4,9 @@ from pysimplesoap.client import SoapClient
 from datetime import datetime, date
 from sys import stderr
 
+from .models import User
+from .helpers import current_time
+
 # If a license has been renewed after RENEWAL_MONTH of year Y, 
 # then it is valid until EXPIRY_MONTH of year Y+1; else it is 
 # only valid until EXPITY_MONTH of year Y
@@ -22,6 +25,12 @@ class LicenseInfo:
         if self.renewal_date.month >= LICENSE_RENEWAL_MONTH:
             year = year + 1 
         return date(year, LICENSE_EXPIRY_MONTH, 1)
+    
+    def is_valid_at_time(self, time):
+        if not self.exists:
+            return False
+        expiry = self.expiry_date()
+        return expiry is None or expiry > time.date()
 
 class UserInfo:
     is_valid = False
@@ -33,6 +42,20 @@ class UserInfo:
     emergency_contact_name = ""
     emergency_contact_phone = ""
 
+
+def sync_user(user, user_info, license_info):
+    """
+        Update user info from extranet data
+    """
+    user.email = user_info.email
+    user.date_of_birth = user_info.date_of_birth
+    user.first_name = user_info.first_name
+    user.last_name = user_info.last_name
+    user.phone = user_info.phone
+    user.emergency_contact_name = user_info.emergency_contact_name
+    user.emergency_contact_phone = user_info.emergency_contact_phone
+    user.license_expiry_date = license_info.expiry_date()
+    user.last_extranet_sync_time = current_time()
 
 class ExtranetApi:
     soap_client = None
@@ -53,11 +76,12 @@ class ExtranetApi:
             return
 
         try:
-            self.soap_client = SoapClient(wsdl=config['EXTRANET_WSDL'])
-            auth_response = self.soap_client.auth()
+            soap_client = SoapClient(wsdl=config['EXTRANET_WSDL'])
+            auth_response = soap_client.auth()
             self.auth_info = auth_response['authReturn']
             self.auth_info['utilisateur'] = config['EXTRANET_ACCOUNT_ID']
             self.auth_info['motdepasse'] = config['EXTRANET_ACCOUNT_PWD']
+            self.soap_client = soap_client
 
         except pysimplesoap.client.SoapFault as err:
             print('Extranet API error: {}'.format(err), file=stderr)
@@ -68,6 +92,7 @@ class ExtranetApi:
         return self.soap_client is None
 
     def check_license(self, license_number):
+        self.init()
         info = LicenseInfo()
 
         if self.disabled():
@@ -84,7 +109,7 @@ class ExtranetApi:
             if result['existe'] == 1:
                 info.exists = True
                 info.renewal_date = datetime.strptime(
-                    result['inscription'], '%Y-%m-%d')
+                    result['inscription'], '%Y-%m-%d').date()
             return info
 
         except pysimplesoap.client.SoapFault as err:
@@ -93,6 +118,7 @@ class ExtranetApi:
         return LicenseInfo()
 
     def fetch_user_info(self, license_number):
+        self.init()
         info = UserInfo()
 
         if self.disabled():
@@ -116,7 +142,7 @@ class ExtranetApi:
             info.emergency_contact_name = result['accident_qui']
             info.emergency_contact_phone = result['accident_tel']
             info.date_of_birth = datetime.strptime(
-                    result['date_naissance'], '%Y-%m-%d')
+                    result['date_naissance'], '%Y-%m-%d').date()
 
             info.is_valid = True
 

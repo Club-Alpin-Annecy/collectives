@@ -57,15 +57,11 @@ def administration():
 def manage_user(user_id=None):
     user = User() if user_id is None else User.query.get(user_id)
     form = AdminUserForm() if user_id is None else AdminUserForm(obj=user)
-    if not form.is_submitted():
+    if not form.validate_on_submit():
         return render_template('basicform.html',
                                conf=current_app.config,
                                form=form,
                                title="Ajout d'utilisateur")
-
-    if not form.validate():
-        flash('Erreur dans le formulaire', 'error')
-        return redirect(url_for('update_user'))
 
     AdminUserForm(request.form).populate_obj(user)
     db.session.add(user)

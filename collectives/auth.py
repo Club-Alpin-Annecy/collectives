@@ -2,8 +2,11 @@ from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
-from .forms import LoginForm
+
+from .forms import LoginForm, AccountCreationForm
 from .models import User, Role, RoleIds, db
+from .extranet import api, sync_user
+from .helpers import current_time
 
 import sqlite3
 import sqlalchemy.exc
@@ -61,6 +64,48 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
+
+
+@blueprint.route('/signup', methods=['GET', 'POST'])
+def signup():
+
+    if current_user.is_authenticated:
+        flash('Vous êtes déjà connecté')
+        return redirect(url_for('event.index'))
+
+    form = AccountCreationForm()
+
+    if form.validate_on_submit():
+        license_number = form.license.data
+        license_info = api.check_license(license_number)
+
+        if not license_info.is_valid_at_time(current_time()):
+            flash('License inexistante ou expirée', 'error')
+        else:
+            user = User()
+            form.populate_obj(user)
+
+            user_info = api.fetch_user_info(license_number)
+            if (user.date_of_birth == user_info.date_of_birth
+                    and user.mail == user_info.email):
+                # Valid user, can create the account
+                sync_user(user, user_info, license_info)
+
+                print(user.__dict__, flush=True)
+                db.session.add(user)
+                db.session.commit()
+
+                flash('Compte crée avec succès pour {}'.format(
+                    user.full_name()))
+                return redirect(url_for('auth.login'))
+                
+            #flash('E-mail et/ou date de naissance incorrecte', 'error')
+            flash('E-mail et/ou date de naissance incorrecte {} {} {} {}'.format(user.date_of_birth, user_info.date_of_birth, user.mail, user_info.email), 'error')
+
+    return render_template('basicform.html',
+                           conf=current_app.config,
+                           form=form,
+                           title="Création de compte")
 
 
 # Init: Setup admin (if db is ready)

@@ -13,6 +13,17 @@
 <div class="panel solidpanel" id="administration">
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
+
+  <ul class="form-errors">
+  {% for field in form.errors %}
+  {% for error in form.errors[field] %}
+      <li>
+          <strong>Erreur: </strong> {{error}}
+      </li>
+  {% endfor %}
+  {% endfor %}
+  </ul>
+
   <form action="" method="POST"  enctype="multipart/form-data"  >
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
