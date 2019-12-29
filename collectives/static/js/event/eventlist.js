@@ -1,5 +1,6 @@
 
 var locale = window.navigator.userLanguage || window.navigator.language;
+var eventstable;
 moment.locale(locale);
 String.prototype.capitalize = function() {
   return this.charAt(0).toUpperCase() + this.slice(1)
@@ -7,14 +8,27 @@ String.prototype.capitalize = function() {
 
 window.onload = function(){
 
-  		var eventstable = new Tabulator("#eventstable", {
+  		eventstable = new Tabulator("#eventstable", {
   			layout:"fitColumns",
   			ajaxURL: '/api/events/',
+            ajaxSorting:true,
+            ajaxFiltering:true,
   			resizableColumns:false,
-            groupBy:"start",
+
+            // Activate grouping only if we sort by start date
+            dataSorting : function(sorters){
+                if(sorters[0]['field'] != 'title')
+                    eventstable.setGroupBy(sorters[0]['field']);
+                else
+                    eventstable.setGroupBy(false);
+            },
+
             pagination : 'remote',
             paginationSize : 10,
-            //initialSort:[ {column:"start", dir:"asc"}],
+            initialSort: [ {column:"start", dir:"asc"}],
+            initialFilter: [
+                {field:"end", type:"=", value:  moment().format('YYYY-MM-DDTHH:mm:ss')  }
+            ],
   			columns:[
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
@@ -83,6 +97,7 @@ function localInterval(start, end){
 function localDate(date){
     return moment(date).format('ddd D MMM YY');
 }
+
 function slots(nb, css){
     if(css == undefined)
         css = '';
@@ -91,4 +106,42 @@ function slots(nb, css){
 }
 function displayLeader(user){
     return user.name;
+}
+
+
+function toggleActivity(activity_id, element){
+    filter={field:"activity_type", type:"=", value:activity_id};
+
+    // Toggle filter
+    if (eventstable.getFilters().filter(function(i ){
+                                            return i['field'] == filter['field'] && i['value'] == filter['value'] ;
+                                        }).length!=0)
+        eventstable.removeFilter( [{field:"activity_type", type:"=", value:activity_id}]);
+    else
+        eventstable.addFilter( [{field:"activity_type", type:"=", value:activity_id}]);
+
+    refreshFilterDisplay();
+}
+
+function togglePastActivities(element){
+
+    if ( ! element.checked){
+        var now = moment().format('YYYY-MM-DDTHH:mm:ss'); // As ISO 8601
+        eventstable.addFilter( [{field:"end", type:"=", value:  now  }]);
+    }else{
+        endfilter=eventstable.getFilters().filter(function(i ){ return i['field'] == "end" });
+        eventstable.removeFilter(endfilter);
+    }
+
+}
+
+function refreshFilterDisplay(){
+    // Unselect all activity filter buttons
+    for ( button of document.querySelectorAll('#eventlist #filters .activity') )
+        button.classList.add('unselected');
+
+    // Select activity filter button which appears in tabulator filter
+    for (filter of eventstable.getFilters())
+        if (filter['field'] == 'activity_type')
+            document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
 }

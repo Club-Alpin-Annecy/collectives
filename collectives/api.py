@@ -3,8 +3,10 @@ from flask import Response, current_app, Blueprint, abort
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
 from sqlalchemy.sql import text
+from sqlalchemy import desc
+
 from marshmallow import fields
-from .models import User, Event, db
+from .models import User, Event, db, ActivityType
 from .views import root
 import json
 
@@ -159,11 +161,37 @@ class EventSchema(marshmallow.Schema):
 @blueprint.route('/events/')
 @login_required
 def events():
-    page = int(request.args.get('page'))
-    size = int(request.args.get('size'))
+    page        = int(request.args.get('page'))
+    size        = int(request.args.get('size'))
 
-    all_events = Event.query.order_by("start").paginate(page, size, False)
-    data = EventSchema(many=True).dump(all_events.items)
-    response = { 'data' : data, "last_page" :  all_events.pages }
+    # Initialize query
+    query       = Event.query
+
+    # Process all filters.
+    # All filter are added as AND
+    i = 0
+    while f'filters[{i}][field]' in request.args :
+        value   = request.args.get(f'filters[{i}][value]')
+        field   = request.args.get(f'filters[{i}][field]')
+
+        if field == 'activity_type':
+            filter  = Event.activity_types.any(short = value)
+        if field == 'end':
+            filter  = Event.end >= value
+
+        query   = query.filter( filter )
+        # Get next filter
+        i += 1
+
+    # Process first sorter only
+    if  f'sorters[0][field]' in request.args :
+        sort_field  = request.args.get('sorters[0][field]')
+        sort_dir    = request.args.get('sorters[0][dir]')
+        order       = desc(sort_field) if sort_dir == 'desc' else sort_field
+        query       = query.order_by(order)
+
+    paginated_events = query.paginate(page, size, False)
+    data = EventSchema(many=True).dump(paginated_events.items)
+    response = { 'data' : data, "last_page" :  paginated_events.pages }
 
     return json.dumps(response), 200, {'content-type' :'application/json'}

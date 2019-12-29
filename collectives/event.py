@@ -30,11 +30,10 @@ def activity_choices(activities, leaders):
 @blueprint.route('/index')
 @blueprint.route('/list')
 def index():
-    events = Event.query.filter(Event.end >= date.today()
-                                ).order_by(Event.start).all()
+    types = ActivityType.query.all()
     return render_template('index.html',
                            conf=current_app.config,
-                           events=events,
+                           types=types,
                            photos=photos)
 
 

@@ -1,9 +1,21 @@
-#eventlist .row{
+#eventlist #filters{
+    background: white;
+    padding: 20px;
+    text-align: right;
+}
+#eventlist #filters .unselected{
+    opacity: .5;
+}
+#eventlist #filters .activity{
+    cursor: pointer;
+}
+
+#eventlist #eventstable .row{
     padding: 20px 20px;
     display: flex;
     flex-direction: row;
 }
-#eventlist .row .section{
+#eventlist #eventstable .row .section{
     margin: 0 20px;
 }
 
