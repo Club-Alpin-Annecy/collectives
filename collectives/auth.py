@@ -128,6 +128,7 @@ def init_admin(app):
         if user is None:
             user = User()
             user.mail = 'admin'
+            user.license = 'admin'
             user.first_name = 'Compte'
             user.last_name = 'Administrateur'
             user.password = app.config['ADMINPWD']
