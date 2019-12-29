@@ -307,8 +307,6 @@ class TestExtranetApi(flask_testing.TestCase):
     def test_fetch_user_data(self):
         result = extranet.api.fetch_user_info(self.VALID_LICENSE_NUMBER)
         assert result.is_valid
-
-        print(result.__dict__)
     
     def test_license_expiry(self):
         info = extranet.LicenseInfo()
