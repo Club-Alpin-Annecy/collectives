@@ -8,8 +8,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType, force_auto_coercion
 from flask_uploads import UploadSet, IMAGES
 from delta import html
+from wtforms.validators import Email, Length
 
-from datetime import datetime
+from datetime import datetime, date
 import json
 import enum
 
@@ -102,38 +103,67 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
+
+    # E-mail
     mail = db.Column(db.String(100),
                      nullable=False,
-                     info={'label': 'Email'})
+                     unique=True,
+                     index=True,
+                     info={'validators': Email(message="E-mail invalide"),
+                           'label': 'Email'})
+
+    # Name
     first_name = db.Column(db.String(100),
                            nullable=False,
                            info={'label': 'Prénom'})
     last_name = db.Column(db.String(100),
                           nullable=False,
                           info={'label': 'Nom'})
-    license = db.Column(db.String(100),
-                        info={'label': 'Numéro de licence'})
-    phone = db.Column(db.String(20),
-                      info={'label': 'Téléphone'})
+
+    # License number
+    license = db.Column(
+        db.String(100),
+        nullable=False,
+        unique=True,
+        index=True,
+        info={'label': 'Numéro de licence',
+              'validators': Length(
+                  min=12, max=12,
+                  message="Numéro de licence invalide")})
+
+    # Date of birth
+    date_of_birth = db.Column(
+        db.Date, nullable=False, default=date.today(), 
+        info={'label': 'Date de naissance'})
+
+    # Hashed password
     password = db.Column(PasswordType(schemes=['pbkdf2_sha512']),
                          nullable=True,
                          info={'label': 'Mot de passe'})
+
+    # Custom avatar
     avatar = db.Column(db.String(100), nullable=True)
+
+    # Contact info
+    phone = db.Column(db.String(20), info={'label': 'Téléphone'})
+    emergency_contact_name = db.Column(
+        db.String(100), nullable=False, default='',
+        info={'label': 'Personne à contacter en cas d\'urgence'})
+    emergency_contact_phone = db.Column(
+        db.String(20), nullable=False, default='',
+        info={'label': 'Téléphone en cas d\'urgence'})
+
+    # Internal
     enabled = db.Column(db.Boolean,
                         default=True,
                         info={'label': 'Utilisateur activé'})
 
-    emergency_contact_name = db.Column(
-        db.String(100), info={'label': 'Personne à contacter en cas d\'urgence'})
-    emergency_contact_phone = db.Column(
-        db.String(20), info={'label': 'Téléphone en cas d\'urgence'})
-
-    date_of_birth = db.Column(db.Date, info={'label': 'Date de naissance'})
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
     # List of protected field, which cannot be modified by a User
-    protected = ['enabled', 'license']
+    protected = ['enabled', 'license', 'date_of_birth', 'license_expiry_date',
+                 'last_extranet_sync_time']
 
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
