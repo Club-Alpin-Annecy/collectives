@@ -15,10 +15,10 @@
   <h3>{{ title }}</h3>
 
   <ul class="form-errors">
-  {% for field in form.errors %}
-  {% for error in form.errors[field] %}
+  {% for field in form%}
+  {% for error in form.errors[field.name] %}
       <li>
-          <strong>Erreur: </strong> {{error}}
+          <strong>Erreur: {{field.label}}:</strong> {{error}}
       </li>
   {% endfor %}
   {% endfor %}

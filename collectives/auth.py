@@ -50,16 +50,15 @@ def login():
         flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
         return redirect(url_for('auth.login'))
 
-    if not user.is_active:
-        now = current_time()
-        if not user.check_license_valid_at_time(now):
-            # License has expired.
-            # Query API to check it is has been renewed
-            license_info = api.check_license(user.license)
-            if license_info.is_valid_at_time(now):
-                # License has been renewd, sync user data from API
-                user_info = api.fetch_user_info(user.license)
-                sync_user(user, user_info, license_info)
+    if user.enabled and not user.license_expiry_date is None:
+        # Check whether the license has been renewed
+        license_info = api.check_license(user.license)
+        if license_info.expiry_date() > user.license_expiry_date:
+            # License has been renewd, sync user data from API
+            user_info = api.fetch_user_info(user.license)
+            sync_user(user, user_info, license_info)
+            db.session.add(user)
+            db.session.commit()
 
     if not user.is_active:
         flash('Compte désactivé ou license expirée', 'error')
@@ -113,9 +112,8 @@ def signup():
                 flash('Compte crée avec succès pour {}'.format(
                     user.full_name()))
                 return redirect(url_for('auth.login'))
-                
-            #flash('E-mail et/ou date de naissance incorrecte', 'error')
-            flash('E-mail et/ou date de naissance incorrecte {} {} {} {}'.format(user.date_of_birth, user_info.date_of_birth, user.mail, user_info.email), 'error')
+
+            flash('E-mail et/ou date de naissance incorrecte', 'error')
 
     return render_template('basicform.html',
                            conf=current_app.config,
