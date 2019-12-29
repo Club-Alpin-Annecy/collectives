@@ -25,5 +25,7 @@ jobs:
       run: |
         pytest
     - name: unittest
+      env:
+        EXTRANET_DISABLE: 1 
       run: |
         python tests.py
