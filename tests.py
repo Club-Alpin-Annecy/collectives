@@ -9,6 +9,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 # pylint: enable=C0301
 from collectives.api import find_users_by_fuzzy_name
 
+from collectives import extranet 
 
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
@@ -33,6 +34,7 @@ class ModelTest(flask_testing.TestCase):
         app = create_app()
         app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/testdb.sqlite"
         app.config['TESTING'] = True
+        app.config['EXTRANET_ACCOUNT_ID'] = None
         return app
 
     def setUp(self):
@@ -240,8 +242,7 @@ class TestRegistrations(TestEvents):
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
-
-class TestApi(ModelTest):
+class TestJsonApi(ModelTest):
     def test_autocomplete(self):
 
         user1 = User(mail="u1", first_name="First", last_name="User",
@@ -262,6 +263,24 @@ class TestApi(ModelTest):
         assert users[0].mail == 'u2'
         users = list(find_users_by_fuzzy_name("z"))
         assert len(users) == 0
+
+class TestExtranetApi(flask_testing.TestCase):
+
+    def create_app(self):
+
+        # pass in test configuration
+        app = create_app()
+        return app
+
+    def setUp(self):
+        extranet.api.init()
+
+    def test_check_license(self):
+        result = extranet.api.check_license('740020189319')
+        assert result.exists
+        if not extranet.api.disabled():
+            result = extranet.api.check_license('XXX')
+            assert not result.exists
 
 
 if __name__ == '__main__':
