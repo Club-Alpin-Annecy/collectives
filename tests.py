@@ -278,7 +278,7 @@ class TestExtranetApi(flask_testing.TestCase):
     def test_check_license(self):
         result = extranet.api.check_license('740020189319')
         assert result.exists
-        if not extranet.api.dummy_mode():
+        if not extranet.api.disabled():
             result = extranet.api.check_license('XXX')
             assert not result.exists
 
