@@ -20,7 +20,13 @@ login_manager.login_message = u"Merci de vous connecter pour accéder à cette p
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    if user is None:
+        return None
+    if not user.check_license_valid_at_time(current_time()):
+        # License has expired, log-out user
+        return None
+    return user
 
 
 blueprint = Blueprint('auth', __name__, url_prefix='/auth')
@@ -45,9 +51,18 @@ def login():
         return redirect(url_for('auth.login'))
 
     if not user.is_active:
-        # TODO try to sync with extranet API
+        now = current_time()
+        if not user.check_license_valid_at_time(now):
+            # License has expired.
+            # Query API to check it is has been renewed
+            license_info = api.check_license(user.license)
+            if license_info.is_valid_at_time(now):
+                # License has been renewd, sync user data from API
+                user_info = api.fetch_user_info(user.license)
+                sync_user(user, user_info, license_info)
 
-        flash('Compte désactivé', 'error')
+    if not user.is_active:
+        flash('Compte désactivé ou license expirée', 'error')
         return redirect(url_for('auth.login'))
 
     login_user(user, remember=form.remember_me.data)
