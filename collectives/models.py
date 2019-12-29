@@ -171,6 +171,9 @@ class User(db.Model, UserMixin):
                                            RoleIds.ActivitySupervisor],
                                           activity_id)
 
+    def can_read_other_users(self):
+        return len(self.roles) > 0
+
     def supervises_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor],
                                           activity_id)

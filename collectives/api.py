@@ -6,7 +6,7 @@ from sqlalchemy.sql import text
 from sqlalchemy import desc
 
 from marshmallow import fields
-from .models import User, Event, db, ActivityType
+from .models import db, User, Event, ActivityType, Registration, RegistrationStatus
 from .views import root
 import json
 
@@ -60,6 +60,44 @@ def users():
     all_users = User.query.all()
     content = json.dumps(UserSchema(many=True).dump(all_users))
     return content, 200, {'content-type' :'application/json'}
+
+# Get all event of a user
+@blueprint.route('/user/<user_id>/events')
+@login_required
+def user_events(user_id):
+    if  int(user_id) != current_user.id and not current_user.can_read_other_users()  :
+        return '[]', 403, {'content-type' :'application/json'}
+
+    query = db.session.query(Event)
+    query = query.filter(Registration.user_id == user_id)
+    query = query.filter(Registration.status == RegistrationStatus.Active)
+    query = query.filter(Event.id == Registration.event_id)
+    query = query.order_by(Event.start)
+
+    user_events = query.all()
+    print(user_events, flush=True)
+    response = EventSchema(many=True).dump(user_events)
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}
+
+# Get all lead events of a leader
+@blueprint.route('/leader/<leader_id>/events')
+@login_required
+def leader_events(leader_id):
+    leader = User.query.filter_by(id=leader_id).first()
+
+    if leader is None or not leader.can_create_events()  :
+        return '[]', 403, {'content-type' :'application/json'}
+
+    query = db.session.query(Event)
+    query = query.filter(Event.leaders.contains(leader))
+    query = query.order_by(Event.start)
+
+    leader_events = query.all()
+    print(leader_events, flush=True)
+    response = EventSchema(many=True).dump(leader_events)
+
+    return json.dumps(response), 200, {'content-type' :'application/json'}
 
 
 class AutocompleteUserSchema(marshmallow.Schema):
@@ -130,9 +168,10 @@ class ActivityShortSchema(marshmallow.Schema):
         fields = ('id', 'short')
 
 class EventSchema(marshmallow.Schema):
-    photo_uri   = fields.Function(photo_uri)
-    free_slots  = fields.Function(lambda event: event.free_slots())
-    leaders     = fields.Function(lambda event:
+    photo_uri       = fields.Function(photo_uri)
+    free_slots      = fields.Function(lambda event: event.free_slots())
+    occupied_slots  = fields.Function(lambda event: len(event.active_registrations()))
+    leaders         = fields.Function(lambda event:
                                 UserSimpleSchema(many=True).dump(event.leaders)
                             )
     activity_types = fields.Function(lambda event:
@@ -154,6 +193,7 @@ class EventSchema(marshmallow.Schema):
                     'photo_uri',
                     'view_uri',
                     'free_slots',
+                    'occupied_slots',
                     'leaders',
                     'activity_types'
                 )

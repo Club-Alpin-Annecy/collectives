@@ -3,8 +3,16 @@
 {% import 'macros.html' as macros with context %}
 
 {% block additionalhead %}
-  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
+
+  <link href="https://unpkg.com/tabulator-tables@4.5.1/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.1/dist/js/tabulator.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  <script>
+      var ajaxURL= '/api/leader/{{user.id}}/events';
+  </script>
+  <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -33,21 +41,11 @@
     </ul>
 
     <h4>Sorties encadrées à venir</h4>
-    <div id="eventlist" class="panel" style="display:inline">
-        {% for event in next_events %}
-            {{ macros.eventitem(event) }}
-        {% else %}
-            Aucune sortie à venir
-        {% endfor %}
+    <div id="eventstable">
     </div>
 
     <h4>Sorties encadrées effectuées</h4>
-    <div id="eventlist" class="panel" style="display:inline">
-        {% for event in past_events %}
-            {{ macros.eventitem(event) }}
-        {% else %}
-            Aucune sortie encadrée jusqu'à présent
-        {% endfor %}
+    <div id="pasteventstable">
     </div>
 </div>
 
