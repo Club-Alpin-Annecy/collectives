@@ -1,8 +1,14 @@
 
 {% extends 'base.html' %}
 
+{% import 'macros.html' as macros with context %}
+
 {% block additionalhead %}
   {# Specific for this page #}
+
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
 
@@ -14,11 +20,14 @@
 
 {% block content %}
 <div class="panel solidpanel" id="eventdetail">
-  <h3>{{event.title}}</h3>
+  <h3>
+      {% for atype in event.activity_types %}
+          <span class="activity {{atype.short}} type"></span>
+      {% endfor %}
+    {{event.title}}
+  </h3>
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
-    {% for atype in event.activity_types %}
-      <img src="{{ url_for('static', filename= "caf/icon/"+ atype.short + '_60x60.png') }}" class="type" alt="[{{ atype.name }}]"/>
-    {% endfor %}
+
 
     <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
       {{ format_datetime_range(event.start, event.end) | capitalize}}
@@ -31,7 +40,7 @@
       <h5>Encadrement :</h5>
       {% for user in event.leaders %}
         {% with leader_info=True %}
-          {% include "usericon.html" %}
+          {{ macros.usericon(user, leader_info, user_info) }}
         {% endwith %}
       {% endfor %}
     </div>
@@ -57,7 +66,7 @@
 
           <div class="useractionmenu">
             {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {% include "usericon.html" %}
+              {{ macros.usericon(user, leader_info, user_info) }}
             {% endwith %}
 
             {% if event.has_edit_rights(current_user) %}
@@ -77,6 +86,8 @@
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
             <div class="name">S'inscrire</div>
           </form>
+        {% elif not event.has_free_online_slots() %}
+        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
         <p>Inscriptions possibles à partir du {{event.registration_open_time}}</p>
         {% elif current_time > event.registration_close_time %}
@@ -93,16 +104,13 @@
       <h5><a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
 
       <h5> Inscrire un adhérent </h5>
-      <form action="{{url_for('event.register_user', event_id=event.id)}}" method="POST" >
-        {% for field in register_user_form %}
-            {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-              {{ field.label }}
-              {{ field }}<br/>
-            {% endif %}
-        {% endfor %}
+      <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
+      <div id="user-search-data" class="form-search search-data">
+        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
-        <br/>{{ register_user_form.submit() }}
-      </form>
+      </div>
+      </form> 
 
       <h5> Inscriptions refusées</h5>
       <ul>
@@ -111,7 +119,7 @@
           <a href="{{url_for('root.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
           <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="submit" class="button" value="Supprimer" >
+          <input type="submit" class="button" value="Supprimer" >
           </form>
         </li>
       {% else %}

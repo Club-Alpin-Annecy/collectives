@@ -7,6 +7,7 @@ from collectives import create_app
 from collectives.models import db, User, ActivityType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 # pylint: enable=C0301
+from collectives.api import find_users_by_fuzzy_name
 
 from collectives import extranet 
 
@@ -118,7 +119,7 @@ class TestEvents(TestUsers):
                      shortdescription="",
                      num_slots=2, num_online_slots=1,
                      start=datetime.datetime.now() + datetime.timedelta(days=1),
-                     end=datetime.date.today() + datetime.timedelta(days=1),
+                     end=datetime.datetime.now() + datetime.timedelta(days=2),
                      registration_open_time=datetime.datetime.now(),
                      registration_close_time=datetime.datetime.now() +
                      datetime.timedelta(days=1))
@@ -169,9 +170,9 @@ class TestEvents(TestUsers):
         assert event.is_valid()
 
         # Test dates
-        event.end = datetime.date.today()
+        event.end = datetime.datetime.now()
         assert not event.is_valid()
-        event.end = event.start.date()
+        event.end = event.start
         assert event.is_valid()
 
         assert event.is_registration_open_at_time(datetime.datetime.now())
@@ -210,7 +211,7 @@ class TestRegistrations(TestEvents):
 
         now = datetime.datetime.now()
         assert event.is_registration_open_at_time(now)
-        assert event.has_free_slots()
+        assert event.has_free_online_slots()
 
         user1 = create_test_user("email1", "license1")
         user2 = create_test_user("email2", "license2")
@@ -225,11 +226,11 @@ class TestRegistrations(TestEvents):
 
         event.num_online_slots = 1
 
-        assert not event.has_free_slots()
+        assert not event.has_free_online_slots()
         assert not event.can_self_register(user2, now)
 
         event.registrations[0].status = RegistrationStatus.Rejected
-        assert event.has_free_slots()
+        assert event.has_free_online_slots()
         assert not event.can_self_register(user1, now)
         assert event.can_self_register(user2, now)
 
@@ -237,12 +238,33 @@ class TestRegistrations(TestEvents):
 
         # Test db has been updated
         db_event = Event.query.filter_by(id=event.id).first()
-        assert db_event.has_free_slots()
+        assert db_event.has_free_online_slots()
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
+class TestJsonApi(ModelTest):
+    def test_autocomplete(self):
 
-class ApiTest(flask_testing.TestCase):
+        user1 = User(mail="u1", first_name="First", last_name="User",
+                     password="", license="", phone="")
+        user2 = User(mail="u2", first_name="Second", last_name="User",
+                     password="", license="", phone="")
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
+
+        users = list(find_users_by_fuzzy_name("user"))
+        assert len(users) == 2
+        users = list(find_users_by_fuzzy_name("rst u"))
+        assert len(users) == 1
+        assert users[0].mail == 'u1'
+        users = list(find_users_by_fuzzy_name("sec"))
+        assert len(users) == 1
+        assert users[0].mail == 'u2'
+        users = list(find_users_by_fuzzy_name("z"))
+        assert len(users) == 0
+
+class TestExtranetApi(flask_testing.TestCase):
 
     def create_app(self):
 
@@ -259,6 +281,7 @@ class ApiTest(flask_testing.TestCase):
         if not extranet.api.dummy_mode():
             result = extranet.api.check_license('XXX')
             assert not result.exists
+
 
 if __name__ == '__main__':
     unittest.main()

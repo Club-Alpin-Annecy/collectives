@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import SelectField
+from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import Email
@@ -38,9 +38,9 @@ class EventForm(ModelForm, FlaskForm):
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type = SelectField('Type', choices=[])
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
-        self.type.choices = [(a.id, a.name) for a in ActivityType.query.all()]
+        self.type.choices = activity_choices
 
 
 class AdminUserForm(ModelForm, FlaskForm):
@@ -86,10 +86,8 @@ class RegistrationForm(ModelForm, FlaskForm):
         model = Registration
         exclude = ['status', 'level']
 
-    user_id = SelectField('Adhérent', choices=[])
+    user_id = IntegerField('Id') 
     submit = SubmitField('Inscrire')
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
-        self.user_id.choices = [(u.id, u.full_name())
-                                for u in User.query.all()]

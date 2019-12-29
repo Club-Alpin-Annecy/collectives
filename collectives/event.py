@@ -8,9 +8,20 @@ import json
 from .forms import EventForm, photos, RegistrationForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import RegistrationStatus, User, db
+from .helpers import current_time
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
+
+def activity_choices(activities, leaders):
+    if current_user.is_admin():
+        choices = ActivityType.query.all()
+    else:
+        choices = set(activities)
+        choices.update(current_user.led_activities())
+        for leader in leaders:
+            choices.update(leader.led_activities())
+    return [(a.id, a.name) for a in choices]
 
 ##########################################################################
 # Event management
@@ -40,7 +51,7 @@ def view_event(event_id):
                            conf=current_app.config,
                            event=event,
                            photos=photos,
-                           current_time=datetime.now(),
+                           current_time=current_time(),
                            current_user=current_user,
                            register_user_form=register_user_form)
 
@@ -50,15 +61,17 @@ def view_event(event_id):
 @login_required
 def manage_event(event_id=None):
     if not current_user.can_create_events():
-        flash('Unauthorized', 'error')
+        flash('Accès restreint, rôle insuffisant.', 'error')
         return redirect(url_for('event.index'))
 
-    form = EventForm(CombinedMultiDict((request.files, request.form)))
     event = Event.query.get(event_id) if event_id is not None else Event()
+    choices = activity_choices(event.activity_types, event.leaders)
+
+    form = EventForm(choices, CombinedMultiDict((request.files, request.form)))
 
     if not form.is_submitted():
+        form = EventForm(choices, obj=event)
         if not event_id is None:
-            form = EventForm(obj=event)
             form.type.data = str(event.activity_types[0].id)
 
         return render_template('editevent.html',
@@ -66,10 +79,35 @@ def manage_event(event_id=None):
                                form=form)
 
     form.populate_obj(event)
+
+    # Validate dates
+    valid = True
+    if not event.starts_before_ends():
+        flash('La date de début doit être antérieure à la date de fin')
+        valid = False
+    if not event.opens_before_closes():
+        flash('Les inscriptions internet doivent ouvrir avant de terminer')
+        valid = False
+    if not event.opens_before_ends():
+        flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
+        valid = False
+    if event.num_slots < event.num_online_slots:
+        flash('Le nombre de places internet ne doit pas dépasser le nombre de places total')
+        valid = False
+    if event.num_online_slots < 0:
+        flash('Le nombre de places ne peut être négatif')
+        valid = False
+
+    if not valid:
+        return render_template('editevent.html',
+                               conf=current_app.config,
+                               form=form)
+
     event.set_rendered_description(event.description)
-    event.num_online_slots = event.num_slots
-    event.registration_open_time = datetime.min
-    event.registration_close_time = event.end
+
+    # Only set ourselves as leader if there weren't any
+    if not any(event.leaders):
+        event.leaders.append(current_user)
 
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
@@ -77,14 +115,11 @@ def manage_event(event_id=None):
         event.activity_types.clear()
         event.activity_types.append(activity_type)
 
-    # Only set ourselves as leader if there weren't any
-    if not any(event.leaders):
-        event.leaders.append(current_user)
-    # TODO once roles mgmt implemented
-    # if not event.has_valid_leaders():
-    #    flash('Vous n'êtes pas capable d'encadrer cette activité')
-    #    return render_template('editevent.html',
-    #                            conf=current_app.config, form=form)
+        # We are changing the activity, check that there is a valid leader
+        if not current_user.is_admin() and not event.has_valid_leaders():
+            flash('Encadrant invalide pour cette activité')
+            return render_template('editevent.html',
+                                   conf=current_app.config, form=form)
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
@@ -105,9 +140,9 @@ def manage_event(event_id=None):
 def self_register(event_id):
     event = Event.query.filter_by(id=event_id).first()
 
-    now = datetime.now()
+    now = current_time()
     if not event or not event.can_self_register(current_user, now):
-        flash('Unauthorized', 'error')
+        flash('Vous ne pouvez pas vous inscrire vous-même.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
     registration = Registration(user_id=current_user.id,
@@ -155,13 +190,13 @@ def self_unregister(event_id):
     # pylint: disable=C0301
     event = Event.query.filter_by(id=event_id).first()
 
-    if event.end > datetime.now():
+    if event.end > current_time():
         existing_registration = [
             r for r in event.active_registrations() if r.user == current_user]
 
     if existing_registration is None or existing_registration[
             0].status == RegistrationStatus.Rejected:
-        flash("Unauthorized", 'error')
+        flash('Impossible de vous désinscrire, vous n\'êtes pas inscrit.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
     db.session.delete(existing_registration[0])

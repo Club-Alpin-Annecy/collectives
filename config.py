@@ -14,6 +14,7 @@ ADMINPWD = environ.get('ADMINPWD') or "foobar2"
 
 # User/password for accessing extranet API
 default_wsdl = 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
+EXTRANET_DISABLE = environ.get('EXTRANET_DISABLE') 
 EXTRANET_WSDL = environ.get('EXTRANET_WSDL') or default_wsdl
 EXTRANET_ACCOUNT_ID = environ.get('EXTRANET_ACCOUNT_ID')
 EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
@@ -29,6 +30,9 @@ TITLE = "Collectives CAF Annecy"
 LOGO = "caf/caf-gris.png" 
 #FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
+
+# Timezone to use for time comparisons
+TZ_NAME = 'Europe/Paris'
 
 # Event type:
 TYPES = {
@@ -53,3 +57,81 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
+
+
+DESCRIPTION_TEMPLATE="""{
+    \"ops\":[
+        {
+            \"insert\":\"ITINERAIRE: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nAltitude max.:  \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"∆+:  \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Cotation: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nLIEU ET HEURE DE DEPART: \"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"\\nMATERIEL REQUIS:\"
+        },
+        {
+            \"attributes\":{
+                \"header\":2
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Equipement1\"
+        },
+        {
+            \"attributes\":{
+                \"list\":\"bullet\"
+            },
+            \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"Equipement2\"
+        },
+        {
+            \"attributes\":{
+                \"list\":\"bullet\"
+            },
+            \"insert\":\"\\n\"
+        }
+    ]
+}"""

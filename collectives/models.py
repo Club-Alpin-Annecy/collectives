@@ -2,6 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType, force_auto_coercion
 from datetime import datetime
@@ -137,13 +138,19 @@ class User(db.Model, UserMixin):
         # pylint disable=W0613
         return True
 
+    def matching_roles(self, role_ids):
+        return [role for role in self.roles if role.role_id in role_ids]
+
+    def matching_roles_for_activity(self, role_ids, activity_id):
+        matching_roles = self.matching_roles(role_ids)
+        return [role for role in matching_roles if role.activity_id == activity_id]
+
     def has_role(self, role_ids):
-        return any([role.role_id in role_ids for role in self.roles])
+        return len(self.matching_roles(role_ids)) > 0
 
     def has_role_for_activity(self, role_ids, activity_id):
-        # pylint: disable=C0301
-        return any([role.role_id in role_ids and role.activity_id ==
-                    activity_id for role in self.roles])
+        roles = self.matching_roles(role_ids)
+        return any([role.activity_id == activity_id for role in roles])
 
     def is_admin(self):
         return self.has_role([RoleIds.Administrator])
@@ -168,6 +175,11 @@ class User(db.Model, UserMixin):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor],
                                           activity_id)
 
+    def led_activities(self):
+        roles = self.matching_roles([RoleIds.EventLeader,
+                                     RoleIds.ActivitySupervisor])
+        return set([role.activity_type for role in roles])
+
     # Format
 
     def full_name(self):
@@ -191,6 +203,12 @@ class ActivityType(db.Model):
 
     # Relationships
     persons = db.relationship('Role', backref='activity_type', lazy=True)
+
+    def can_be_led_by(self, users):
+        for user in users:
+            if user.can_lead_activity(self.id):
+                return True
+        return False
 
 
 class Event(db.Model):
@@ -227,6 +245,11 @@ class Event(db.Model):
                                          'events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)
 
+    def __init__(self, *args, **kwargs):
+
+        super().__init__( *args, **kwargs)
+        self.description = current_app.config['DESCRIPTION_TEMPLATE']
+
     def save_photo(self, file):
         if file is not None:
             filename = photos.save(file, name='event-' + str(self.id) + '.')
@@ -240,7 +263,7 @@ class Event(db.Model):
 
     def starts_before_ends(self):
         # Event must starts before it ends
-        return self.start.date() <= self.end
+        return self.start <= self.end
 
     def opens_before_closes(self):
         # Registrations must open before they close
@@ -248,7 +271,7 @@ class Event(db.Model):
 
     def opens_before_ends(self):
         # Registrations must open before event ends
-        return self.registration_open_time.date() <= self.end
+        return self.registration_open_time <= self.end
 
     def has_valid_slots(self):
         # pylint: disable=C0301
@@ -257,9 +280,10 @@ class Event(db.Model):
     def has_valid_leaders(self):
         if not any(self.activity_types):
             return False
-        # pylint: disable=C0301
-        return not any([not any([user.can_lead_activity(activity.id)
-                                 for user in self.leaders]) for activity in self.activity_types])
+        for activity in self.activity_types:
+            if not activity.can_be_led_by(self.leaders):
+                return False
+        return True
 
     def is_valid(self):
         # pylint: disable=C0301
@@ -286,6 +310,9 @@ class Event(db.Model):
             registration for registration in self.registrations if registration.is_active()]
 
     def has_free_slots(self):
+        return len(self.active_registrations()) < self.num_slots
+
+    def has_free_online_slots(self):
         return len(self.active_registrations()) < self.num_online_slots
 
     def free_slots(self):
@@ -310,7 +337,7 @@ class Event(db.Model):
     def can_self_register(self, user, time):
         if self.is_leader(user) or self.is_registered(user):
             return False
-        return self.has_free_slots() and self.is_registration_open_at_time(time)
+        return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 
 
 class Role(db.Model):

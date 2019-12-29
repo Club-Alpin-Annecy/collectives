@@ -25,7 +25,7 @@ def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user.is_admin():
-            flash('Unauthorized', 'error')
+            flash('Méthode non autorisée.', 'error')
             return redirect(url_for('event.index'))
         return func(*args, **kwargs)
     return decorated_view
@@ -40,7 +40,7 @@ def admin_required(func):
 @admin_required
 def administration():
     if not current_user.is_admin():
-        flash('Unauthorized')
+        flash('Vous n\'êtes pas administrateur.')
         return redirect(url_for('index'))
 
     users = User.query.all()
@@ -83,7 +83,7 @@ def manage_user(user_id=None):
 @login_required
 @admin_required
 def delete_user(user_id):
-    flash('Not Implemented ' + user_id, 'error')
+    flash('Suppression d\'utilisateur non implémentée. ID ' + user_id, 'error')
     return redirect(url_for('administration.administration'))
 
 

@@ -8,6 +8,7 @@ import os
 
 from .forms import UserForm
 from .models import User, Registration, RegistrationStatus, Event, db
+from .helpers import current_time
 
 images = Images()
 
@@ -40,17 +41,19 @@ def show_user(user_id):
         flash("Non autorisé", "error")
         return redirect(url_for('event.index'))
 
+    now = current_time()
+
     next_events_q = db.session.query(Registration, Event).filter(
         Registration.user_id == user_id).filter(
         Registration.status == RegistrationStatus.Active).filter(
         Event.id == Registration.event_id).filter(
-        Event.end >= datetime.now()).order_by(Event.start)
+        Event.end >= now).order_by(Event.start)
 
     past_events_q = db.session.query(Registration, Event).filter(
         Registration.user_id == user_id).filter(
         Registration.status == RegistrationStatus.Active).filter(
         Event.id == Registration.event_id).filter(
-        Event.end < datetime.now()).order_by(Event.end.desc())
+        Event.end < now).order_by(Event.end.desc())
 
     next_events = next_events_q.all()
     past_events = past_events_q.all()
@@ -79,11 +82,18 @@ def show_leader(leader_id):
         flash("Non autorisé", "error")
         return redirect(url_for('event.index'))
 
-    led_events = user.led_events
-    now = datetime.now()
+    now = current_time()
 
-    next_events = [e for e in led_events if e.end >= now]
-    past_events = [e for e in led_events if e.end < now]
+    next_events_q = db.session.query(Event).filter(
+            Event.leaders.contains(user)).filter(
+            Event.end >= now).order_by(Event.start)
+
+    past_events_q = db.session.query(Event).filter(
+            Event.leaders.contains(user)).filter(
+            Event.end < now).order_by(Event.start)
+
+    next_events = next_events_q.all()
+    past_events = past_events_q.all()
 
     return render_template('leader_profile.html',
                            conf=current_app.config,

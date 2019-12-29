@@ -8,7 +8,6 @@ class LicenseInfo:
     exists = False
     renewal_date = None
 
-
 class ExtranetApi:
     soap_client = None
     auth_info = None
@@ -23,8 +22,8 @@ class ExtranetApi:
             return
 
         config = self.app.config
-        if config['EXTRANET_ACCOUNT_ID'] is None:
-            print("Warning: no extranet API account provided, using mock API")
+        if config['EXTRANET_DISABLE']:
+            print("Warning: extranet API disabled, using mock API")
             return
 
         try:
@@ -65,6 +64,5 @@ class ExtranetApi:
             print('Extranet API error: {}'.format(err))
 
         return LicenseInfo()
-
 
 api = ExtranetApi()
