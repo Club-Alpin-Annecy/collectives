@@ -199,7 +199,6 @@ class EventSchema(marshmallow.Schema):
                 )
 
 @blueprint.route('/events/')
-@login_required
 def events():
     page        = int(request.args.get('page'))
     size        = int(request.args.get('size'))
