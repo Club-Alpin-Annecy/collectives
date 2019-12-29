@@ -1,13 +1,15 @@
 # This file describe all classes we will use in collectives
+from .helpers import current_time
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType, force_auto_coercion
-from datetime import datetime
 from flask_uploads import UploadSet, IMAGES
 from delta import html
+
+from datetime import datetime
 import json
 import enum
 
@@ -121,8 +123,17 @@ class User(db.Model, UserMixin):
                         default=True,
                         info={'label': 'Utilisateur activé'})
 
+    emergency_contact_name = db.Column(
+        db.String(100), info={'label': 'Personne à contacter en cas d\'urgence'})
+    emergency_contact_phone = db.Column(
+        db.String(20), info={'label': 'Téléphone en cas d\'urgence'})
+
+    date_of_birth = db.Column(db.Date, info={'label': 'Date de naissance'})
+    license_expiry_date = db.Column(db.Date)
+    last_extranet_sync_time = db.Column(db.DateTime)
+
     # List of protected field, which cannot be modified by a User
-    protected = ['enabled']
+    protected = ['enabled', 'license']
 
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
@@ -134,9 +145,10 @@ class User(db.Model, UserMixin):
             self.avatar = filename
 
     def check_license_valid_at_time(self, time):
-        # TODO:
-        # pylint disable=W0613
-        return True
+        if self.license_expiry_date is None:
+            # Test users licenses never expire
+            return True
+        return self.license_expiry_date > time.date()
 
     def matching_roles(self, role_ids):
         return [role for role in self.roles if role.role_id in role_ids]
@@ -188,8 +200,9 @@ class User(db.Model, UserMixin):
     def abbrev_name(self):
         return '{} {}'.format(self.first_name, self.last_name[0].upper())
 
+    @property
     def is_active(self):
-        return self.enabled
+        return self.enabled and self.check_license_valid_at_time(current_time())
 
 
 class ActivityType(db.Model):
@@ -247,7 +260,7 @@ class Event(db.Model):
 
     def __init__(self, *args, **kwargs):
 
-        super().__init__( *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.description = current_app.config['DESCRIPTION_TEMPLATE']
 
     def save_photo(self, file):

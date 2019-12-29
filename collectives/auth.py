@@ -41,7 +41,9 @@ def login():
         flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
         return redirect(url_for('auth.login'))
 
-    if not user.is_active():
+    if not user.is_active:
+        # TODO try to sync with extranet API
+
         flash('Compte désactivé', 'error')
         return redirect(url_for('auth.login'))
 

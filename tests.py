@@ -281,6 +281,15 @@ class TestExtranetApi(flask_testing.TestCase):
         if not extranet.api.disabled():
             result = extranet.api.check_license('XXX')
             assert not result.exists
+    
+    def test_license_expiry(self):
+        info = extranet.LicenseInfo()
+        info.renewal_date = datetime.date(2018, 10, 1)
+        assert info.expiry_date() == datetime.date(2019, 10, 1)
+        info.renewal_date = datetime.date(2019, 2, 2)
+        assert info.expiry_date() == datetime.date(2019, 10, 1)
+        info.renewal_date = datetime.date(2019, 9, 1)
+        assert info.expiry_date() == datetime.date(2020, 10, 1)
 
 
 if __name__ == '__main__':
