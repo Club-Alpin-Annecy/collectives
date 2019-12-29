@@ -35,7 +35,7 @@ class UserSchema(marshmallow.Schema):
         lambda user: url_for(
             'administration.manage_user',
             user_id=user.id))
-    avatar_uri = avatar_url
+    avatar_uri = fields.Function(avatar_url)
 
     class Meta:
         # Fields to expose
@@ -77,11 +77,11 @@ def find_users_by_fuzzy_name(q, limit=8):
         concat_clause = 'CONCAT(first_name, \' \', last_name)'
 
     sql = ('SELECT id, first_name, last_name from users '
-            'WHERE LOWER({}) LIKE :pattern LIMIT :limit').format(concat_clause)
+           'WHERE LOWER({}) LIKE :pattern LIMIT :limit').format(concat_clause)
 
     pattern = "%{}%".format(q.lower())
     found_users = db.session.query(User).from_statement(
-        text(sql)).params(pattern = pattern, limit = limit)
+        text(sql)).params(pattern=pattern, limit=limit)
 
     return found_users
 
