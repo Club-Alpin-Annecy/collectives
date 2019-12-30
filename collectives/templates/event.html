@@ -8,7 +8,7 @@
 
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
-  
+
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
 
@@ -40,7 +40,7 @@
       </h5>
 
 
-    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
+    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% else %}{{ url_for('static', filename='img/icon/ionicon/md-images.svg') }}{% endif %}"/>
 
 
 
@@ -110,7 +110,7 @@
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
       </div>
-      </form> 
+      </form>
 
       <h5> Inscriptions refusées</h5>
       <ul>
