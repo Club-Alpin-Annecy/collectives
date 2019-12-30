@@ -144,6 +144,10 @@ def self_register(event_id):
         flash('Vous ne pouvez pas vous inscrire vous-même.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
+    if not user.check_license_valid_at_time(event.end):
+        flash('Votre licence va expirer avant la fin de l\'événement.', 'error')
+        return redirect(url_for('event.view_event', event_id=event_id))
+
     registration = Registration(user_id=current_user.id,
                                 status=RegistrationStatus.Active,
                                 level=RegistrationLevels.Normal)
@@ -172,6 +176,9 @@ def register_user(event_id):
             flash('Utilisateur déjà inscrit', 'error')
         elif event.is_leader(user):
             flash('L\'utilisateur encadre la sortie', 'error')
+        elif not user.check_license_valid_at_time(event.end):
+            flash('La licence de l\'utilisateur va expirer avant la fin '
+                  + 'de l\'événement', 'error')
         else:
             registration = Registration(status=RegistrationStatus.Active,
                                         level=RegistrationLevels.Normal,

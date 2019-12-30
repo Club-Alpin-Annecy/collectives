@@ -1,6 +1,7 @@
 import unittest
 import flask_testing
 import datetime
+from os import environ
 
 # pylint: disable=C0301
 from collectives import create_app
@@ -8,6 +9,7 @@ from collectives.models import db, User, ActivityType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 # pylint: enable=C0301
 from collectives.api import find_users_by_fuzzy_name
+from collectives.helpers import current_time
 
 from collectives import extranet 
 
@@ -246,9 +248,9 @@ class TestJsonApi(ModelTest):
     def test_autocomplete(self):
 
         user1 = User(mail="u1", first_name="First", last_name="User",
-                     password="", license="", phone="")
+                     password="", license="u1", phone="")
         user2 = User(mail="u2", first_name="Second", last_name="User",
-                     password="", license="", phone="")
+                     password="", license="u2", phone="")
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
@@ -281,6 +283,39 @@ class TestExtranetApi(flask_testing.TestCase):
         if not extranet.api.disabled():
             result = extranet.api.check_license('XXX')
             assert not result.exists
+
+
+class TestExtranetApi(flask_testing.TestCase):
+
+    VALID_LICENSE_NUMBER = environ.get('EXTRANET_TEST_LICENSE_NUMBER') 
+
+    def create_app(self):
+
+        # pass in test configuration
+        app = create_app()
+        return app
+
+    def test_check_license(self):
+        result = extranet.api.check_license(self.VALID_LICENSE_NUMBER)
+        assert result.exists
+        expiry = result.expiry_date()
+        assert expiry is None or expiry >= current_time().date()
+        if not extranet.api.disabled():
+            result = extranet.api.check_license('XXX')
+            assert not result.exists
+    
+    def test_fetch_user_data(self):
+        result = extranet.api.fetch_user_info(self.VALID_LICENSE_NUMBER)
+        assert result.is_valid
+    
+    def test_license_expiry(self):
+        info = extranet.LicenseInfo()
+        info.renewal_date = datetime.date(2018, 10, 1)
+        assert info.expiry_date() == datetime.date(2019, 10, 1)
+        info.renewal_date = datetime.date(2019, 2, 2)
+        assert info.expiry_date() == datetime.date(2019, 10, 1)
+        info.renewal_date = datetime.date(2019, 9, 1)
+        assert info.expiry_date() == datetime.date(2020, 10, 1)
 
 
 if __name__ == '__main__':

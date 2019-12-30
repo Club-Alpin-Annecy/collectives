@@ -70,9 +70,12 @@ dealings in this Software without prior written authorization from @jnguiot.
     <div class="item" id="logout">
         <a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
     </div>
-    {% else %}<!--
-    --><div id="identity" class="item">
+    {% else %}
+    <div id="identity" class="item">
         <a href="{{ url_for('auth.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+    </div>
+    <div id="identity" class="item">
+        <a href="{{ url_for('auth.signup') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Activer son compte </a>
     </div>
   {% endif %}
 

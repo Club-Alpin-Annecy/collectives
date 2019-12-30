@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
-from wtforms.validators import Email
+from wtforms.validators import Email, InputRequired, EqualTo
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
@@ -46,9 +46,16 @@ class EventForm(ModelForm, FlaskForm):
 class AdminUserForm(ModelForm, FlaskForm):
     class Meta:
         model = User
-        exclude = ['avatar']  # Avatar is selected/modified by another field
+        # Avatar is selected/modified by another field
+        exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
         # FIXME Administrator should not be able to change a password,
         #exclude = ['password']
+
+    password = PasswordField(
+        'Mot de passe',
+        [EqualTo('confirm',
+                 message='Les mots de passe ne correspondent pas')])
+    confirm = PasswordField('Confirmation du mot de passe')
 
     validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
@@ -61,9 +68,31 @@ class UserForm(ModelForm, FlaskForm):
         # User should not be able to change a protected parameter
         exclude = User.protected
 
+    password = PasswordField(
+        'Mot de passe',
+        [EqualTo('confirm',
+                 message='Les mots de passe ne correspondent pas')])
+    confirm = PasswordField('Confirmation du mot de passe')
+
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
     validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
+
+
+class AccountCreationForm(ModelForm, FlaskForm):
+    class Meta:
+        model = User
+        only = ['mail', 'license', 'date_of_birth']
+
+    password = PasswordField(
+        'Mot de passe',
+        [InputRequired(),
+         EqualTo('confirm',
+                 message='Les mots de passe ne correspondent pas')])
+    confirm = PasswordField('Confirmation du mot de passe')
+
+    validators = {'mail': [Email()]}
+    submit = SubmitField('Activer le compte')
 
 
 class RoleForm(ModelForm, FlaskForm):
@@ -86,7 +115,7 @@ class RegistrationForm(ModelForm, FlaskForm):
         model = Registration
         exclude = ['status', 'level']
 
-    user_id = IntegerField('Id') 
+    user_id = IntegerField('Id')
     submit = SubmitField('Inscrire')
 
     def __init__(self, *args, **kwargs):

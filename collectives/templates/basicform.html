@@ -13,6 +13,17 @@
 <div class="panel solidpanel" id="administration">
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
+
+  <ul class="form-errors">
+  {% for field in form%}
+  {% for error in form.errors[field.name] %}
+      <li>
+          <strong>Erreur: {{field.label}}:</strong> {{error}}
+      </li>
+  {% endfor %}
+  {% endfor %}
+  </ul>
+
   <form action="" method="POST"  enctype="multipart/form-data"  >
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
@@ -23,5 +34,8 @@
     {{ form.hidden_tag() }}
      <br/>{{ form.submit() }}
   </form>
+  
+  {% include 'contact_link.html' %} 
+
 </div>
 {% endblock %}
