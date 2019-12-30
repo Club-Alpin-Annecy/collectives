@@ -62,8 +62,12 @@ def manage_user(user_id=None):
                                conf=current_app.config,
                                form=form,
                                title="Ajout d'utilisateur")
+    
+    # Do not touch password if user does not want to change it
+    if form.password.data == '':
+        delattr(form , 'password')
 
-    AdminUserForm(request.form).populate_obj(user)
+    form.populate_obj(user)
     db.session.add(user)
     db.session.commit()
     # Save avatar into ight UploadSet

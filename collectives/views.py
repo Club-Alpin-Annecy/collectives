@@ -73,9 +73,9 @@ def update_user():
 
     user = current_user
 
-    # Do not touch password if user don't want to change it
+    # Do not touch password if user does not want to change it
     if form.password.data == '':
-        form.password = None
+        delattr(form , 'password')
     # Idem for the avatars
     if form.avatar.data is None:
         form.avatar = None
