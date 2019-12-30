@@ -44,10 +44,8 @@
     opacity: .5;
 }
 
+
 /* Event details */
-#eventdetail h3{
-  margin-bottom: 0;
-}
 #eventdetail h5{
   font-size: 20px;
   margin: .5em 20px;
@@ -56,10 +54,10 @@
   text-align: left;
 }
 #eventdetail .photo {
-  float: left;
-  max-width: 50%;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  width: 50%;
+  margin: 2em auto;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  display: block;
 }
 #eventdetail .type{
   float: right;
@@ -67,7 +65,9 @@
 #eventdetail #description{
   text-align: justify;
   max-width: 1000px;
-  margin:auto;
+  margin: 2em auto 1em;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  padding: 30px 40px;
 }
 #eventdetail #encadrement{
   float: right;
@@ -76,6 +76,11 @@
 
 #eventdetail .subscriptions{
   padding: 3px 20px;
+
+}
+
+#eventdetail .date, #eventdetail .subscriptions h5{
+    color:  rgb(235,105,28);
 }
 
 #eventdetail .useractionmenu{
@@ -119,4 +124,9 @@
 
 #eventdetail .administration h4{
   text-align: center;
+}
+
+#eventdetail .search-input{
+    width: 400px;
+    font-size: 200%;
 }

@@ -8,6 +8,7 @@
 
 {% block content %}
 <!-- Logging Windows -->
+<div id="cover"></div>
 <div id="logger">
   <form method="POST" action="{{ url_for('auth.login') }}">
     {{ form.hidden_tag() }}
@@ -17,8 +18,9 @@
     <br/><br/>{{ form.password.label }} <br/> {{ form.password(size=256) }}
     <br/><br/>{{ form.remember_me() }} {{ form.remember_me.label }}
     <br/>{{ form.submit() }}
+    {% include 'contact_link.html' %}
   </form>
 
-  {% include 'contact_link.html' %} 
+
 </div>
 {% endblock %}

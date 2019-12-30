@@ -20,30 +20,30 @@
 
 {% block content %}
 <div class="panel solidpanel" id="eventdetail">
-  <h3>
-      {% for atype in event.activity_types %}
-          <span class="activity {{atype.short}} type"></span>
-      {% endfor %}
-    {{event.title}}
-  </h3>
-    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=600 ) }}{% endif %}"/>
+      <h3>
+          {% for atype in event.activity_types %}
+              <span class="activity {{atype.short}} type"></span>
+          {% endfor %}
+        {{event.title}}
+      </h3>
+      <div id="encadrement">
+        <h5>Encadrement</h5>
+        {% for user in event.leaders %}
+          {% with leader_info=True %}
+            {{ macros.usericon(user, leader_info, user_info) }}
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+        {{ format_datetime_range(event.start, event.end) | capitalize}}
+      </h5>
 
 
-    <h5> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-      {{ format_datetime_range(event.start, event.end) | capitalize}}
-    </h5>
-    <h5>
-      <b>Dénivelé, difficulté, cotation :</b>  {{event.shortdescription}}
-    </h5>
+    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
-    <div id="encadrement">
-      <h5>Encadrement :</h5>
-      {% for user in event.leaders %}
-        {% with leader_info=True %}
-          {{ macros.usericon(user, leader_info, user_info) }}
-        {% endwith %}
-      {% endfor %}
-    </div>
+
+
 
     <div class="subscriptions">
       <h5> Liste des inscrits {{event.active_registrations().__len__()}} / {{event.num_slots}}
