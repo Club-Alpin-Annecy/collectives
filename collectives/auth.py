@@ -5,8 +5,8 @@ from flask_login import LoginManager
 
 from .forms import LoginForm, AccountCreationForm
 from .models import User, Role, RoleIds, db
-from .extranet import api, sync_user
 from .helpers import current_time
+from . import extranet
 
 import sqlite3
 import sqlalchemy.exc
@@ -21,9 +21,7 @@ login_manager.login_message = u"Merci de vous connecter pour accéder à cette p
 @login_manager.user_loader
 def load_user(user_id):
     user = User.query.get(int(user_id))
-    if user is None:
-        return None
-    if not user.check_license_valid_at_time(current_time()):
+    if user is None or not user.is_active:
         # License has expired, log-out user
         return None
     return user
@@ -52,11 +50,11 @@ def login():
 
     if user.enabled and not user.license_expiry_date is None:
         # Check whether the license has been renewed
-        license_info = api.check_license(user.license)
+        license_info = extranet.api.check_license(user.license)
         if license_info.expiry_date() > user.license_expiry_date:
             # License has been renewd, sync user data from API
-            user_info = api.fetch_user_info(user.license)
-            sync_user(user, user_info, license_info)
+            user_info = extranet.api.fetch_user_info(user.license)
+            extranet.sync_user(user, user_info, license_info)
             db.session.add(user)
             db.session.commit()
 
@@ -91,7 +89,7 @@ def signup():
 
     if form.validate_on_submit():
         license_number = form.license.data
-        license_info = api.check_license(license_number)
+        license_info = extranet.api.check_license(license_number)
 
         if not license_info.is_valid_at_time(current_time()):
             flash('License inexistante ou expirée', 'error')
@@ -99,11 +97,11 @@ def signup():
             user = User()
             form.populate_obj(user)
 
-            user_info = api.fetch_user_info(license_number)
+            user_info = extranet.api.fetch_user_info(license_number)
             if (user.date_of_birth == user_info.date_of_birth
                     and user.mail == user_info.email):
                 # Valid user, can create the account
-                sync_user(user, user_info, license_info)
+                extranet.sync_user(user, user_info, license_info)
 
                 print(user.__dict__, flush=True)
                 db.session.add(user)

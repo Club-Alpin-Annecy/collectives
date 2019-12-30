@@ -53,8 +53,7 @@ class AdminUserForm(ModelForm, FlaskForm):
 
     password = PasswordField(
         'Mot de passe',
-        [InputRequired(),
-         EqualTo('confirm',
+        [EqualTo('confirm',
                  message='Les mots de passe ne correspondent pas')])
     confirm = PasswordField('Confirmation du mot de passe')
 
@@ -71,8 +70,7 @@ class UserForm(ModelForm, FlaskForm):
 
     password = PasswordField(
         'Mot de passe',
-        [InputRequired(),
-         EqualTo('confirm',
+        [EqualTo('confirm',
                  message='Les mots de passe ne correspondent pas')])
     confirm = PasswordField('Confirmation du mot de passe')
 
