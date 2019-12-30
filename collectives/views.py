@@ -62,9 +62,9 @@ def show_leader(leader_id):
 @login_required
 def update_user():
 
-    form = UserForm()
+    form = UserForm(obj=current_user)
+    
     if not form.validate_on_submit():
-        form = UserForm(obj=current_user)
         form.password.data = None
         return render_template('basicform.html',
                                conf=current_app.config,
@@ -72,7 +72,6 @@ def update_user():
                                title="Profil utilisateur")
 
     user = current_user
-    form = UserForm(request.form)
 
     # Do not touch password if user don't want to change it
     if form.password.data == '':
