@@ -40,7 +40,8 @@ def login():
     if not form.validate_on_submit():
         return render_template('login.html',
                                conf=current_app.config,
-                               form=form)
+                               form=form,
+                               contact_reason = 'vous connecter')
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
@@ -116,7 +117,8 @@ def signup():
     return render_template('basicform.html',
                            conf=current_app.config,
                            form=form,
-                           title="Création de compte")
+                           title="Création de compte",
+                           contact_reason="activer votre compte")
 
 
 # Init: Setup admin (if db is ready)
