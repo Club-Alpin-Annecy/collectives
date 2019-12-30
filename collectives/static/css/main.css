@@ -230,15 +230,17 @@ a:hover{
 	white-space: nowrap;
 	vertical-align: middle;
 	font-size: 2em;
-	padding: 0 5px;
-	background-color:  rgba(255,255,255);
+	padding: 0 10px;
+	background-color:  rgba(255,255,255,.7);
 }
 #header .item:hover{
-	background-color:  rgba(200,200,200);
+	background-color:  rgba(200,200,200,.7);
 }
 #header .item img{
 	height: 50%;
 	vertical-align: middle;
+	position: relative;
+	bottom: .15em;
 }
 
 #header #menu{
