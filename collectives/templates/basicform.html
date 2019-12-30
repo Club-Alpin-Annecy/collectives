@@ -1,8 +1,11 @@
-
 {% extends 'base.html' %}
 
 {% block additionalhead %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+
+  {# DateTime picker#}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -15,27 +18,40 @@
   <h3>{{ title }}</h3>
 
   <ul class="form-errors">
-  {% for field in form%}
-  {% for error in form.errors[field.name] %}
-      <li>
-          <strong>Erreur: {{field.label}}:</strong> {{error}}
-      </li>
-  {% endfor %}
-  {% endfor %}
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+    <li>
+      <strong>Erreur: {{field.label}}:</strong> {{error}}
+    </li>
+    {% endfor %}
+    {% endfor %}
   </ul>
 
-  <form action="" method="POST"  enctype="multipart/form-data"  >
+  <form action="" method="POST" enctype="multipart/form-data">
     {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-          {{ field.label }}
-          {{ field(autocomplete="new-password") }}<br/>
-        {% endif %}
+    {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+    {{ field.label }}
+    {{ field(autocomplete="new-password") }}<br />
+    {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
-     <br/>{{ form.submit() }}
+    <br />{{ form.submit() }}
   </form>
-  
-  {% include 'contact_link.html' %} 
+
+  {% include 'contact_link.html' %}
 
 </div>
+
+<script>
+  // Some browsers do not support HTML5 date pickers yet
+  // Use tail instead for those cases
+  // See https://stackoverflow.com/questions/18020950/how-to-make-input-type-date-supported-on-all-browsers-any-alternatives
+  var dateInput = document.querySelector("input[type='date']");
+  if (dateInput && dateInput.type != 'date') {
+    tail.DateTime("input[type=date]", {
+      weekStart: 1,
+      timeFormat: false
+    });
+  }
+</script>
 {% endblock %}
