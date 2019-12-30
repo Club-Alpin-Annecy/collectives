@@ -11,7 +11,7 @@ from . import extranet
 import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
-
+import uuid
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
@@ -128,7 +128,8 @@ def init_admin(app):
         if user is None:
             user = User()
             user.mail = 'admin'
-            user.license = 'admin'
+            # Generate unique license number
+            user.license = str(uuid.uuid4())[:12] 
             user.first_name = 'Compte'
             user.last_name = 'Administrateur'
             user.password = app.config['ADMINPWD']

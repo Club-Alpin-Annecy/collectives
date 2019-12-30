@@ -52,7 +52,7 @@ class AdminUserForm(ModelForm, FlaskForm):
         #exclude = ['password']
 
     password = PasswordField(
-        'Mot de passe',
+        'Nouveau mot de passe',
         [EqualTo('confirm',
                  message='Les mots de passe ne correspondent pas')])
     confirm = PasswordField('Confirmation du mot de passe')
@@ -69,7 +69,7 @@ class UserForm(ModelForm, FlaskForm):
         exclude = User.protected
 
     password = PasswordField(
-        'Mot de passe',
+        'Nouveau mot de passe',
         [EqualTo('confirm',
                  message='Les mots de passe ne correspondent pas')])
     confirm = PasswordField('Confirmation du mot de passe')
@@ -85,7 +85,7 @@ class AccountCreationForm(ModelForm, FlaskForm):
         only = ['mail', 'license', 'date_of_birth']
 
     password = PasswordField(
-        'Mot de passe',
+        'Nouveau mot de passe',
         [InputRequired(),
          EqualTo('confirm',
                  message='Les mots de passe ne correspondent pas')])
