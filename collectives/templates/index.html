@@ -22,7 +22,28 @@
 
 {% block content %}
 
-<div id="eventlist" class="panel">
+
+<div id="cover">
+    <div><img src="{{ url_for('static', filename='caf/esprit club alpin.png') }}" class="motto"/>
+        <br/>
+        <img
+            src="{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}"
+            class="arrow"
+            onclick="gotoEvents()"
+        />
+
+    </div>
+</div>
+{% if current_user.is_authenticated %}
+<script>
+    window.addEventListener("load", gotoEvents);
+</script>
+{% endif %}
+
+<div id="eventlist" class="panel solidpanel">
+    <h3>
+        Collectives du club
+    </h3>
     <div id="filters">
         <div class="">
             <label>Evènements passés: <input

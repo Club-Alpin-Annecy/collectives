@@ -150,3 +150,11 @@ function refreshFilterDisplay(){
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
 }
+
+function gotoEvents(event){
+    var position = document.querySelector('#eventlist').getBoundingClientRect().top +  window.scrollY - 60;
+    window.scrollTo(    {
+            top: position,
+            behavior: 'smooth'
+        });
+}

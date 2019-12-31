@@ -1,47 +1,14 @@
-/* The MIT License (MIT)
-
-Copyright @jnguiot, see https://github.com/jnguiot
-EXCEPT: ION ICON: Copyright (c) 2015-present Ionic (http://ionic.io/)
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of @jnguiot shall
-not be used in advertising or otherwise to promote the sale, use or other
-dealings in this Software without prior written authorization from @jnguiot. */
-
-
 @import url('https://fonts.googleapis.com/css?family=Playfair+Display&display=swap');
 @import url('https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap');
 
 body{
-	background-color: #555555;
 	margin: 0;
-	overflow: hidden;
-	font-family: 'Nunito Sans', sans-serif;
-  background-image: url("/static/caf/dsc_2983_2.jpg");
-  background-position: left;
-  background-size: cover;
+	background-color: white;
+	font-family: 'Nunito Sans', Arial, sans-serif;
 }
 
 a{
-	text-decoration: underline dotted;
+	text-decoration: none;
 	color: black;
 }
 
@@ -50,51 +17,26 @@ a:hover{
 }
 
 #playground{
-	height:100vh;
-	width: 100vw;
-
-}
-
-
-#motto{
-	float: left;
-  font-family: 'Playfair Display', serif;
-	font-weight: bold;
-	font-size: 120px;
-	color: white;
-	margin: 0;
-	margin-left: 5vw;
-  width: 30vw;
-}
-/* Mobile Adjustment : smaller motto*/
-@media only screen and (max-width:1000px) {
-	#motto{
-		padding: 15px;
-		font-size: 40px;
-		position: static;
-		transform:none;
-		border: solid 1px white;
-	}
+	margin-top: 60px;
 }
 
 .panel{
-	width: 65vw;
-	margin-left: 35vw;
-	height: calc(100vh - 60px);
-	overflow-y: auto;
+	max-width: 1100px;
+	margin: auto;
+	min-height: 100vh;
+	padding: 60px 10px 20px;
 }
 
 .solidpanel{
   background-color: white;
 }
 
-
 .solidpanel h3{
-  text-align: center;
-  background-color: #00a6d0;
-  margin-top:0;
-  padding: .5em;
-  font-size: 2em;
+	margin: 0 0 1em;
+	text-align: left;
+	text-transform: uppercase;
+	font-size: 4em;
+	font-weight: bolder;
 }
 
 .solidpanel h4{
@@ -103,15 +45,9 @@ a:hover{
   max-width: 600px;
   margin:auto;
   margin-top: 2em;
+  color:  rgb(235,105,28);
 }
 
-@media only screen and (max-width:1000px) {
-	.panel{
-		width: 95vw;
-		margin: auto;
-		margin-right: 0;
-	}
-}
 /* LOGIN PLACE */
 #logger{
 
@@ -119,14 +55,14 @@ a:hover{
 	position: absolute;
 	top: 50%;
 	right:0;
-	transform: translate(  20px, -50%);
+	transform: translate(  0px, -50%);
 	z-index: 400;
 
 	background-color: white;
 	color: black;
 
 	padding: 10px 30px;
-	border-radius: 20px;
+	border-radius: 20px 0 0 20px;
 
 	font-size: 1em;
 	font-family: 'Nunito Sans', sans-serif;
@@ -186,11 +122,33 @@ a:hover{
 	padding-top: 5px;
 	z-index: 20;
 }
+#logger .contact-link{
+	text-align: justify;
+}
+#logger .contact-link a{
+	text-decoration: underline;
+}
+
 
 #footer{
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
+	width: 100%;
+	margin: 6em 0 0 0;
+	padding: 4em 0 ;
+	background-color: #5a4d4b;
+	color:white;
+}
+#footer a{
+	color:white;
+}
+#footer .container{
+	max-width: 600px;
+	margin:auto;
+	display: flex;
+	justify-content: space-between;
+}
+#footer .logo{
+	float: left;
+	margin: 0 20px;
 }
 
 /* Flash panel for messages */
@@ -231,8 +189,15 @@ a:hover{
 
 /* HEADER */
 #header{
-	background-color: #69747c;
+	background-color: white;
 	height: 60px;
+	position: fixed;
+	width: 100%;
+	z-index: 2000;
+	top: 0;
+	left: 0;
+	background-image: url("/static/caf/friseffcam_bleu.png");
+	background-position: right;
 }
 #header h2 img{
 	height:1em;
@@ -244,12 +209,16 @@ a:hover{
 	float:	right;
 	text-align: right;
 	margin: 0;
-	padding: .5em;
 	font-family: 'Nunito Sans', sans-serif;
 	vertical-align: middle;
+	line-height: 60px;
+	font-size: 40px;
+	background-color: rgba(0, 104, 128,.75);
+	padding: 0px 20px;
 }
 #header h2 a{
 	color: white !important;
+	text-decoration: none;
 }
 #header .item{
 	height: 60px;
@@ -260,19 +229,22 @@ a:hover{
 	white-space: nowrap;
 	vertical-align: middle;
 	font-size: 2em;
-	padding: 0 5px;
+	padding: 0 10px;
+	background-color:  rgba(255,255,255,.7);
 }
 #header .item:hover{
-	background-color: rgba(0,0,10,.1);
+	background-color:  rgba(200,200,200,.7);
 }
 #header .item img{
 	height: 50%;
 	vertical-align: middle;
+	position: relative;
+	bottom: .15em;
 }
 
 #header #menu{
 	position: relative;
-	background-color: #bbbbbb	;
+	background-color: rgb(29,105,137)	;
 }
 #header #menu .content{
 	display: none;
@@ -303,6 +275,7 @@ a:hover{
 #header .menubutton{
 	height: 100% !important;
 	cursor: pointer;
+	filter: invert(1);
 }
 
 /* Identity space (top left user space) */
@@ -438,3 +411,48 @@ form.inline input[type=submit] {
 	margin-bottom: 0.5em;
 	font-size: 0.8em;
 }
+
+
+#cover{
+	margin: 0;
+  	background-image: url("/static/caf/dsc_2983_2.jpg");
+  	background-position: left;
+  	background-size: cover;
+	height: 100vh;
+	display: flex;
+	flex-direction: row;
+	text-align: center;
+	align-items: center;
+	position: relative;
+	overflow: hidden;
+}
+#cover::before{
+       content: "";
+       z-index: 10;
+       display: block;
+       position: absolute;
+       border-bottom: 15vh solid white;
+       border-left: 100vw solid  transparent;
+       bottom: 0;
+	   margin: 0;
+	   width: 0;
+}
+
+#cover div{
+	width: 100%;
+}
+#cover  .motto{
+	max-width: 90%;
+
+}
+#cover  .arrow{
+	width: 6em	;
+	filter: invert(1); /* Make arrow white */
+	animation: votre_animation 1.5s infinite;
+	animation-direction: alternate;
+	animation-timing-function: ease-in-out;
+	cursor: pointer;
+}
+@keyframes votre_animation{ to{
+       transform: scale(1.4)
+}}
