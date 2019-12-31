@@ -37,7 +37,7 @@
                                                 %}{{ url_for('images.crop', filename=current_user.avatar, width=30, height=30) }}{%
                                     else
                                                 %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
-                                    endif %}" class="avatar"/>  {{ current_user.first_name }}  {{ current_user.last_name }}
+                                    endif %}" class="avatar"/>  {{ current_user.full_name() }} 
     </div></a>{#
   #}<div class="item" id="logout">
         <a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
