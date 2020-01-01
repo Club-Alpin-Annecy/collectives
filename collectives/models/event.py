@@ -5,6 +5,7 @@ from flask_uploads import UploadSet, IMAGES
 import json
 from delta import html
 from . import db
+from .registration import RegistrationStatus
 
 photos = UploadSet('photos', IMAGES)
 

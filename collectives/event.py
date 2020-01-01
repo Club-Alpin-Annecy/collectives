@@ -144,7 +144,7 @@ def self_register(event_id):
         flash('Vous ne pouvez pas vous inscrire vous-même.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
-    if not user.check_license_valid_at_time(event.end):
+    if not current_user.check_license_valid_at_time(event.end):
         flash('Votre licence va expirer avant la fin de l\'événement.', 'error')
         return redirect(url_for('event.view_event', event_id=event_id))
 
