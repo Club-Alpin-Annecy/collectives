@@ -1,7 +1,7 @@
-from flask import Flask, flash, render_template, redirect, url_for, request
+from flask import Flask, flash, render_template, redirect, url_for, request, escape
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from .forms import AdminUserForm, RoleForm
+from .forms import AdminUserForm, RoleForm, CSVForm
 from .models import User, Event, ActivityType, Role, RoleIds, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
@@ -10,6 +10,8 @@ from wtforms import SelectField
 from functools import wraps
 import sys
 import os
+import codecs, csv, json
+from datetime import datetime
 
 import sqlalchemy.exc
 import sqlalchemy_utils
@@ -157,9 +159,55 @@ def remove_user_role(user_id):
                            form=form,
                            title='Roles utilisateur')
 
+
+@blueprint.route('/event/csv', methods=['GET'])
+@login_required
+@admin_required
+def csv_import():
+    choices =  [(a.id, a.name) for a in ActivityType.query.all()]
+    form=CSVForm(choices)
+    return render_template('basicform.html',
+                           conf=current_app.config,
+                           form=form,
+                           title="Création d'event par CSV")
+
+@blueprint.route('/event/csv', methods=['POST'])
+@login_required
+@admin_required
+def csv_import_action():
+    choices =  [(a.id, a.name) for a in ActivityType.query.all()]
+    form = CSVForm(choices)
+    file = form.csv_file.data
+
+    if file == None:
+        flash('No provided file', 'error')
+        return redirect(url_for('administration.csv_import'))
+
+    stream = codecs.iterdecode(file.stream, "iso-8859-1")
+
+    reader = csv.DictReader( stream, delimiter=",")
+    headers = reader.__next__()
+    processed = 0
+    failed = 0
+    for row in reader:
+        processed += 1
+        try:
+            event = Event()
+            event.fill_from_csv(row)
+            event.activity_types = [ActivityType.query.get(form.type.data)]
+            db.session.add(event)
+            db.session.commit()
+        except Exception as e:
+            failed += 1
+            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}', 'error')
+
+
+    flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
+    return redirect(url_for('administration.csv_import'))
+
+
+
 # init: Setup activity types (if db is ready)
-
-
 def init_activity_types():
     try:
         for (id, atype) in current_app.config['TYPES'].items():

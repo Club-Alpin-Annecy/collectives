@@ -123,3 +123,11 @@ class RegistrationForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
+
+class CSVForm(FlaskForm):
+    csv_file = FileField()
+    submit = SubmitField('Import')
+    type = SelectField('Type d\'activité', choices=[])
+    def __init__(self, activity_choices, *args, **kwargs):
+        super(CSVForm, self).__init__(*args, **kwargs)
+        self.type.choices = activity_choices
