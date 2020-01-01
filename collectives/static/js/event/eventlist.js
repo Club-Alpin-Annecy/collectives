@@ -66,8 +66,14 @@ function eventRowFormatter(row){
                 <img src="${data.photo_uri}" class="photo"/>
              </div>`;
 
+    var status_string = ''
+    if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
+
     html += `<div class="section">
-                 <h4>${data.title}</h4>
+                 <h4>
+                 ${status_string}
+                 ${data.title}
+                 </h4>
                  <div class="date">
                      <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
                      ${localInterval(data.start, data.end)}
@@ -135,6 +141,17 @@ function togglePastActivities(element){
         eventsTable.addFilter( [{field:"end", type:"=", value:  now  }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
+        eventsTable.removeFilter(endfilter);
+    }
+
+}
+
+function toggleConfirmedOnly(confirmedOnly){
+
+    if (confirmedOnly){
+        eventsTable.addFilter( [{field:"status", type:"=", value:  0  }]);
+    }else{
+        endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
         eventsTable.removeFilter(endfilter);
     }
 
