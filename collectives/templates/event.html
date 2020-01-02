@@ -24,6 +24,10 @@
           {% for atype in event.activity_types %}
               <span class="activity {{atype.short}} type"></span>
           {% endfor %}
+        
+        {% if not event.is_confirmed() %}
+          <span class="event-status">{{event.status_string()}}</span>&nbsp;
+        {% endif %}
         {{event.title}}
       </h3>
       <div id="encadrement">
@@ -41,8 +45,6 @@
 
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
-
-
 
 
     <div class="subscriptions">
@@ -86,12 +88,14 @@
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
             <div class="name">S'inscrire</div>
           </form>
+        {% elif not event.is_confirmed() %}
+        <p>Inscriptions indisponibles actuellement.</p>
         {% elif not event.has_free_online_slots() %}
         <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
-        <p>Inscriptions possibles à partir du {{event.registration_open_time}}</p>
+        <p>Inscriptions possibles à partir du {{event.registration_open_time}}.</p>
         {% elif current_time > event.registration_close_time %}
-        <p>Les inscriptions sont closes</p>
+        <p>Les inscriptions sont closes.</p>
         {% endif %}
     </div>
 

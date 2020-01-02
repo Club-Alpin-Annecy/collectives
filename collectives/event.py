@@ -7,7 +7,7 @@ import json
 
 from .forms import EventForm, photos, RegistrationForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
-from .models import RegistrationStatus, User, db
+from .models import EventStatus, RegistrationStatus, User, db
 from .helpers import current_time
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')

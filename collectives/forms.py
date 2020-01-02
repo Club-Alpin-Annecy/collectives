@@ -11,7 +11,7 @@ from flask import current_app
 import sys
 
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
-from .models import Registration
+from .models import Registration, EventStatus
 
 csrf = CSRFProtect()
 
@@ -37,10 +37,12 @@ class EventForm(ModelForm, FlaskForm):
         exclude = ['photo']
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
     type = SelectField('Type', choices=[])
+    status = SelectField('État', choices=[])
 
     def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
+        self.status.choices = [(s.value, s.display_name()) for s in EventStatus]
 
 
 class AdminUserForm(ModelForm, FlaskForm):

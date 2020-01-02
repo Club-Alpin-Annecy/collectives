@@ -44,6 +44,13 @@
     opacity: .5;
 }
 
+span.event-status{
+  padding: 0 0.5em; 
+  color:  white;
+  background-color: red;
+  border-radius: 5px;
+}
+
 
 /* Event details */
 #eventdetail h5{
