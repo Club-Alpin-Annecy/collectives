@@ -11,7 +11,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
 
-from collectives import extranet 
+from collectives import extranet
 
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
@@ -34,7 +34,7 @@ class ModelTest(flask_testing.TestCase):
 
         # pass in test configuration
         app = create_app()
-        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/testdb.sqlite"
+        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///testdb.sqlite"
         app.config['TESTING'] = True
         app.config['EXTRANET_ACCOUNT_ID'] = None
         return app
@@ -287,7 +287,7 @@ class TestExtranetApi(flask_testing.TestCase):
 
 class TestExtranetApi(flask_testing.TestCase):
 
-    VALID_LICENSE_NUMBER = environ.get('EXTRANET_TEST_LICENSE_NUMBER') 
+    VALID_LICENSE_NUMBER = environ.get('EXTRANET_TEST_LICENSE_NUMBER')
 
     def create_app(self):
 
@@ -303,11 +303,11 @@ class TestExtranetApi(flask_testing.TestCase):
         if not extranet.api.disabled():
             result = extranet.api.check_license('XXX')
             assert not result.exists
-    
+
     def test_fetch_user_data(self):
         result = extranet.api.fetch_user_info(self.VALID_LICENSE_NUMBER)
         assert result.is_valid
-    
+
     def test_license_expiry(self):
         info = extranet.LicenseInfo()
         info.renewal_date = datetime.date(2018, 10, 1)
@@ -316,6 +316,48 @@ class TestExtranetApi(flask_testing.TestCase):
         assert info.expiry_date() == datetime.date(2019, 10, 1)
         info.renewal_date = datetime.date(2019, 9, 1)
         assert info.expiry_date() == datetime.date(2020, 10, 1)
+
+class TestImportCSV(ModelTest, flask_testing.TestCase):
+
+    csv = {
+        "initiateur": "u1",
+        "seats": "8",
+        "internetSeats": "4",
+        "registrationStart": "13/06/19 19:00",
+        "registrationEnd": "14/06/19 12:00",
+        "dateStart": "14/06/19 18:30",
+        "dateEnd": "14/06/19 19:30",
+        "categories": "",
+        "title": "TITRE",
+        "location": "",
+        "carte": "",
+        "altitude": "",
+        "denivele": "",
+        "cotation": "",
+        "distance": "",
+        "observations": "observations"
+    }
+
+    def create_app(self):
+
+        # pass in test configuration
+        app = create_app()
+        return app
+
+    def test_csv_import(self):
+
+        user1 = User(mail="u1", first_name="First", last_name="User",
+                     password="", license="u1", phone="")
+        db.session.add(user1)
+        db.session.commit()
+
+        event = Event()
+        event.fill_from_csv(self.csv)
+        assert event.title == "TITRE"
+        assert event.num_slots == 8
+        assert event.num_online_slots == 4
+        assert event.rendered_description == "observations"
+        assert event.leaders[0].first_name == "First"
 
 
 if __name__ == '__main__':
