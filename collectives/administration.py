@@ -162,14 +162,16 @@ def remove_user_role(user_id):
 
 def init_activity_types():
     try:
-        activity = ActivityType.query.first()
-        if activity is None:
-            for (_, atype) in current_app.config['TYPES'].items():
-                activity_type = ActivityType(name=atype['name'],
-                                             short=atype['short'])
-                db.session.add(activity_type)
-            db.session.commit()
+        for (id, atype) in current_app.config['TYPES'].items():
+            activity_type = ActivityType.query.get(id)
+            if activity_type == None:
+                activity_type = ActivityType(id=id)
 
-            print('WARN: create activity types')
+            activity_type.name=atype['name']
+            activity_type.short=atype['short']
+            db.session.add(activity_type)
+
+        db.session.commit()
+
     except sqlalchemy.exc.OperationalError:
         print('WARN: Cannot configure activity types: db is not available')
