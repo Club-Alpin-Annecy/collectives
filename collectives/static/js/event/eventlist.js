@@ -131,8 +131,7 @@ function toggleActivity(activity_id, element){
 function togglePastActivities(element){
 
     if ( ! element.checked){
-        var now = moment().format('YYYY-MM-DDTHH:mm:ss'); // As ISO 8601
-        eventsTable.addFilter( [{field:"end", type:"=", value:  now  }]);
+        eventsTable.addFilter( [{field:"end", type:"=", value:getServerLocalTime() }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
         eventsTable.removeFilter(endfilter);
