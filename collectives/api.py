@@ -215,7 +215,8 @@ def events():
     size = int(request.args.get('size'))
 
     # Initialize query
-    query = Event.query.filter(Event.status != EventStatus.Pending)
+    query = Event.query
+    query = query.filter(Event.status != EventStatus.Pending)
 
     # Process all filters.
     # All filter are added as AND

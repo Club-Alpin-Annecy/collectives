@@ -151,8 +151,8 @@ function toggleConfirmedOnly(confirmedOnly){
     if (confirmedOnly){
         eventsTable.addFilter( [{field:"status", type:"=", value:  0  }]);
     }else{
-        endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
-        eventsTable.removeFilter(endfilter);
+        statusFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
+        eventsTable.removeFilter(statusFilter);
     }
 
 }
