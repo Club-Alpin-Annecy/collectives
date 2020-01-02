@@ -135,3 +135,5 @@ DESCRIPTION_TEMPLATE="""{
         }
     ]
 }"""
+
+XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx")
