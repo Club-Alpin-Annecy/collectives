@@ -24,7 +24,7 @@
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
   <form
-        action=""
+        action="{{ action }}"
         method="POST"
         onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
         enctype="multipart/form-data"
