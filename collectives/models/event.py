@@ -1,10 +1,14 @@
 # This file describe all classes we will use in collectives
 
 from flask import current_app
+from flask_login import current_user
 from flask_uploads import UploadSet, IMAGES
 from delta import html
 import json
 import enum
+from datetime import datetime, date
+from ..helpers import current_time
+
 
 from . import db
 from .registration import RegistrationStatus
@@ -96,6 +100,7 @@ class Event(db.Model):
                                      backref=db.backref(
                                          'events', lazy=True))
     registrations = db.relationship('Registration', backref='event', lazy=True)
+    logs = db.relationship('EventLog', backref='event', lazy=True)
 
     def __init__(self, *args, **kwargs):
 
@@ -199,3 +204,25 @@ class Event(db.Model):
 
     def status_string (self):
         return EventStatus(self.status).display_name()
+
+class EventLog(db.Model):
+    __tablename__ = 'event_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # This is the ID of which did the action (none if automated action)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    # This is the event this log is linked with
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), index=True)
+
+
+    message = db.Column(db.Text(), nullable=False, default='')
+    date = db.Column(db.DateTime, nullable=False, index=True, default=current_time)
+
+    def __init__(self, *args, **kwargs):
+        self.user = current_user
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()

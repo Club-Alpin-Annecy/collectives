@@ -1,5 +1,5 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint
+from flask import current_app, Blueprint, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
@@ -7,7 +7,7 @@ import json
 
 from .forms import EventForm, photos, RegistrationForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
-from .models import EventStatus, RegistrationStatus, User, db
+from .models import EventStatus, EventLog, RegistrationStatus, User, db
 from .helpers import current_time
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
@@ -131,6 +131,11 @@ def manage_event(event_id=None):
         db.session.add(event)
         db.session.commit()
 
+    if event_id == None:
+        EventLog(event=event, message="Création").save()
+    else:
+        EventLog(event=event, message="Edition").save()
+
     return redirect(url_for('event.view_event', event_id=event.id))
 
 
@@ -154,6 +159,9 @@ def self_register(event_id):
 
     event.registrations.append(registration)
     db.session.commit()
+
+
+    EventLog(event=event, message="Auto inscription").save()
 
     return redirect(url_for('event.view_event', event_id=event_id))
 
@@ -187,6 +195,10 @@ def register_user(event_id):
             db.session.add(registration)
             db.session.commit()
 
+            link = url_for('root.show_user', user_id=user.id)
+            message = f'Inscription de <a href="{link}">{escape(user.full_name())}</a>'
+            EventLog(event=event, message=message).save()
+
     return redirect(url_for('event.view_event', event_id=event_id))
 
 
@@ -208,6 +220,8 @@ def self_unregister(event_id):
     db.session.delete(existing_registration[0])
     db.session.commit()
 
+    EventLog(event=event, message="Auto désinscription").save()
+
     return redirect(url_for('event.view_event', event_id=event_id))
 
 
@@ -226,6 +240,12 @@ def reject_registration(reg_id):
     registration.status = RegistrationStatus.Rejected
     db.session.add(registration)
     db.session.commit()
+
+    user = registration.user
+    link = url_for('root.show_user', user_id=user.id)
+    message = f'Refus de <a href="{link}">{escape(user.full_name())}</a>'
+    EventLog(event=registration.event, message=message).save()
+
     return redirect(url_for('event.view_event',
                             event_id=registration.event_id))
 
@@ -244,5 +264,11 @@ def delete_registration(reg_id):
 
     db.session.delete(registration)
     db.session.commit()
+
+    user = registration.user
+    link = url_for('root.show_user', user_id=user.id)
+    message = f'Inscription de <a href="{link}">{escape(user.full_name())}</a> effacée'
+    EventLog(event=registration.event, message=message).save()
+
     return redirect(url_for('event.view_event',
                             event_id=registration.event_id))

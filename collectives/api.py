@@ -6,7 +6,7 @@ from sqlalchemy.sql import text
 from sqlalchemy import desc
 
 from marshmallow import fields
-from .models import db, User, Event, EventStatus
+from .models import db, User, Event, EventStatus, EventLog
 from .models import ActivityType, Registration, RegistrationStatus
 from .views import root
 import json
@@ -248,3 +248,19 @@ def events():
     response = {'data': data, "last_page":  paginated_events.pages}
 
     return json.dumps(response), 200, {'content-type': 'application/json'}
+
+
+class EventLogSchema(marshmallow.Schema):
+    user = fields.Function(lambda log:
+                              UserSimpleSchema().dump(log.user)
+                              )
+    class Meta:
+        fields = ('id', 'message', 'user', 'date')
+
+@blueprint.route('/event/<event_id>/logs')
+@login_required
+def event_log(event_id):
+
+    logs = EventLog.query.filter(Event.id == event_id).all()
+    content = json.dumps(EventLogSchema(many=True).dump(logs))
+    return content, 200, {'content-type': 'application/json'}

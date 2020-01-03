@@ -88,6 +88,7 @@ class User(db.Model, UserMixin):
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
     registrations = db.relationship('Registration', backref='user', lazy=True)
+    event_logs = db.relationship('EventLog', backref='user', lazy=True)
 
     def save_avatar(self, file):
         if file is not None:

@@ -26,6 +26,7 @@ def index():
 
 
 @root.route('/user/<user_id>/profile', methods=['GET'])
+@root.route('/user/<user_id>', methods=['GET'])
 @login_required
 def show_user(user_id):
 
