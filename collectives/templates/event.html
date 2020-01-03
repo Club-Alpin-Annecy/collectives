@@ -30,6 +30,11 @@
         {% endif %}
         {{event.title}}
       </h3>
+
+      {% if event.has_edit_rights(current_user) %}
+        <a class="button" href="{{ url_for('event.manage_event', event_id=event.id) }}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Éditer</a>
+      {% endif %}
+
       <div id="encadrement">
         <h5>Encadrement</h5>
         {% for user in event.leaders %}
@@ -43,9 +48,9 @@
         {{ format_datetime_range(event.start, event.end) | capitalize}}
       </h5>
 
+      <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
-
 
     <div class="subscriptions">
       <h5> Liste des inscrits {{event.active_registrations().__len__()}} / {{event.num_slots}}
@@ -53,6 +58,31 @@
             <span class="tag red">COMPLET</span>
           {% endif %}
       </h5>
+      {% if event.has_edit_rights(current_user) %}
+        <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST">
+          <div id="user-search-data" class="form-search search-data">
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Ajouter un membre..." >
+            {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
+            {{ register_user_form.hidden_tag() }}
+          </div>
+        </form>
+      {% endif %}
+
+      {% if event.can_self_register(current_user, current_time) %}
+        <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
+          <div class="name">S'inscrire</div>
+        </form>
+      {% elif not event.is_confirmed() %}
+        <p>Inscriptions indisponibles actuellement.</p>
+      {% elif not event.has_free_online_slots() %}
+        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
+      {% elif current_time < event.registration_open_time %}
+        <p>Inscriptions possibles à partir du {{event.registration_open_time}}.</p>
+      {% elif current_time > event.registration_close_time %}
+        <p>Les inscriptions sont closes.</p>
+      {% endif %}
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
@@ -81,58 +111,24 @@
           </div>
       {% endfor %}
 
-
-        {% if event.can_self_register(current_user, current_time) %}
-          <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-            <div class="name">S'inscrire</div>
-          </form>
-        {% elif not event.is_confirmed() %}
-        <p>Inscriptions indisponibles actuellement.</p>
-        {% elif not event.has_free_online_slots() %}
-        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
-        {% elif current_time < event.registration_open_time %}
-        <p>Inscriptions possibles à partir du {{event.registration_open_time}}.</p>
-        {% elif current_time > event.registration_close_time %}
-        <p>Les inscriptions sont closes.</p>
-        {% endif %}
+      {% if event.has_edit_rights(current_user) %}
+        <h5> Inscriptions refusées </h5>
+        {% for registration in event.registrations if registration.is_rejected() %}
+          <div class="useractionmenu">
+              {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
+                {{ macros.usericon(user, leader_info, user_info) }}
+              {% endwith %}
+            <br/>
+            <form action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post" onclick="this.submit()">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              Retirer
+            </form>
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
 
-    <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
 
-    {% if event.has_edit_rights(current_user) %}
-      <div class="administration">
-      <h4>Administration</h4>
-
-      <h5><a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
-
-      <h5> Inscrire un adhérent </h5>
-      <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
-      <div id="user-search-data" class="form-search search-data">
-        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
-        {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
-        {{ register_user_form.hidden_tag() }}
-      </div>
-      </form> 
-
-      <h5> Inscriptions refusées</h5>
-      <ul>
-      {% for registration in event.registrations if registration.is_rejected() %}
-        <li>
-          <a href="{{url_for('root.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button" value="Supprimer" >
-          </form>
-        </li>
-      {% else %}
-        <li>Aucune inscription refusée.</li>
-      {% endfor %}
-      </ul>
-
-    </div> <!-- .administration -->
-    {% endif %}
 </div>
 
 
