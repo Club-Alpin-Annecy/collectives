@@ -48,9 +48,9 @@
         {{ format_datetime_range(event.start, event.end) | capitalize}}
       </h5>
 
-      <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
+      <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
-    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
+      <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
 
     <div class="subscriptions">
       <h5> Liste des inscrits {{event.active_registrations().__len__()}} / {{event.num_slots}}

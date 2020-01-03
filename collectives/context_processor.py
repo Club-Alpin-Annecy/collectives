@@ -28,8 +28,11 @@ def helpers_processor():
 
     def format_datetime_range(start, end):
         if start.date() == end.date():
-            return '{} de {} à {}'.format(format_date(
-                start), format_time(start), format_time(end))
+            if start.time() == end.time():
+                return '{}'.format(format_date(start))
+            else:
+                return '{} de {} à {}'.format(format_date(
+                    start), format_time(start), format_time(end))
         return 'du {} à {} au {} à {}'.format(format_date(
             start), format_time(start), format_date(end), format_time(end))
 
