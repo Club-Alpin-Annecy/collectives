@@ -1,11 +1,12 @@
 from openpyxl import load_workbook
 from openpyxl.writer.excel import save_virtual_workbook
 from flask import current_app
+import json
 
 from .models import Event
 
 
-class XlsCells:
+class DefaultLayout:
     ACTIVITIES = 'A8'
     TITLE = 'D8'
     DESCRIPTION = 'A10'
@@ -19,6 +20,7 @@ class XlsCells:
 
     REG_START_ROW = 28
     REG_ROW_COUNT = 12
+
     def reg_cell(self, index, field):
         column = ''
         if field == 'index':
@@ -31,14 +33,41 @@ class XlsCells:
             column = 'E'
         elif field == 'phone':
             column = 'D'
-        return '{c}{r}'.format(r = self.REG_START_ROW+index, c=column)
+        return '{c}{r}'.format(r=self.REG_START_ROW+index, c=column)
 
 
-def strip_tags(text):
+def strip_tags(ops):
+    """
+    Very naive parsing on quill deltas
+    Keep only plain text and bullet lists 
+    """
+    tags = json.loads(ops)
+
+    text = ''
+    chunk = ''
+
+    for op in tags['ops']:
+        # Attributes refer to the previous chunk of text
+        pattern = '{}'
+        if 'attributes' in op.keys():
+            for attr, value in op['attributes'].items():
+                if attr == 'list' and value == 'bullet':
+                    pattern = '- {}'
+
+        # Apply attributes to current chunk
+        text += pattern.format(chunk) 
+
+        # Grab next chunk
+        chunk = ''
+        if 'insert' in op.keys():
+            chunk = op['insert']
+
+    text += chunk
+
     return text
 
 
-def to_xlsx(event, cells=XlsCells()):
+def to_xlsx(event, cells=DefaultLayout()):
     wb = load_workbook(filename=current_app.config['XLSX_TEMPLATE'])
 
     # grab the active worksheet
@@ -82,6 +111,5 @@ def to_xlsx(event, cells=XlsCells()):
         ws[cells.reg_cell(i, 'license')] = reg.user.license
         ws[cells.reg_cell(i, 'email')] = reg.user.mail
         ws[cells.reg_cell(i, 'phone')] = reg.user.phone
-
 
     return save_virtual_workbook(wb)
