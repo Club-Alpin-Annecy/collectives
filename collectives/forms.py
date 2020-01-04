@@ -8,6 +8,7 @@ from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 from flask import current_app
+from collections import OrderedDict
 import sys
 
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
@@ -22,6 +23,26 @@ def configure_forms(app):
 
     # set maximum file size, default is 3MB
     patch_request_class(app, 3 * 1024 * 1024)
+
+
+class OrderedForm(FlaskForm):
+    """
+    Extends FlaskForm with an optional 'field_order' property 
+    """
+
+    def __iter__(self):
+        field_order = getattr(self, 'field_order', None)
+        if field_order:
+            fields = self._fields
+            temp_fields = OrderedDict()
+            for name in field_order:
+                if name == '*':
+                    temp_fields.update(
+                        {n: f for n, f in fields.items() if n not in field_order})
+                else:
+                    temp_fields[name] = fields[name]
+            self._fields = temp_fields
+        return super(OrderedForm, self).__iter__()
 
 
 class LoginForm(FlaskForm):
@@ -43,10 +64,11 @@ class EventForm(ModelForm, FlaskForm):
     def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
-        self.status.choices = [(s.value, s.display_name()) for s in EventStatus]
+        self.status.choices = [(s.value, s.display_name())
+                               for s in EventStatus]
 
 
-class AdminUserForm(ModelForm, FlaskForm):
+class AdminUserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # Avatar is selected/modified by another field
@@ -54,45 +76,46 @@ class AdminUserForm(ModelForm, FlaskForm):
         # FIXME Administrator should not be able to change a password,
         #exclude = ['password']
 
-    password = PasswordField(
-        'Nouveau mot de passe',
-        [EqualTo('confirm',
+    confirm = PasswordField(
+        'Confirmation du mot de passe',
+        [EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
 
     validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
     avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    field_order = ['*', 'avatar_file', 'password', 'confirm']
 
 
-class UserForm(ModelForm, FlaskForm):
+class UserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
         exclude = User.protected
 
-    password = PasswordField(
-        'Nouveau mot de passe',
-        [EqualTo('confirm',
+    confirm = PasswordField(
+        'Confirmation du mot de passe',
+        [EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
 
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
     validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
+    field_order = ['*', 'avatar', 'password', 'confirm']
 
 
-class AccountCreationForm(ModelForm, FlaskForm):
+class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
-        only = ['mail', 'license', 'date_of_birth']
+        only = ['mail', 'license', 'date_of_birth', 'password']
 
-    password = PasswordField(
-        'Nouveau mot de passe',
+    confirm = PasswordField(
+        'Confirmation du mot de passe',
         [InputRequired(),
-         EqualTo('confirm',
+         EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
+
+    field_order = ['*', 'password', 'confirm']
 
     validators = {'mail': [Email()]}
     submit = SubmitField('Activer le compte')
