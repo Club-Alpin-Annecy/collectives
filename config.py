@@ -1,6 +1,5 @@
-# All configuration listed here is defaut
-# parameters. You can override them in
-# instance/config.py
+# All configuration parameters defined in
+# this file can be overriden in instance/config.py
 
 import os
 from os import environ
@@ -13,7 +12,7 @@ FLASK_DEBUG = environ.get('FLASK_DEBUG')
 # To generate a new secret key:
 # >>> import random, string
 # >>> "".join([random.choice(string.printable) for _ in range(24)])
-# Secret key can also be setted in instance/config.py
+# Secret key can also be set in instance/config.py
 SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 
 # Password for admin account
