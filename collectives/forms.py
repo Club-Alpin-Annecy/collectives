@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
@@ -36,6 +36,7 @@ class EventForm(ModelForm, FlaskForm):
         model = Event
         exclude = ['photo']
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    duplicate_photo = HiddenField()
     type = SelectField('Type', choices=[])
     status = SelectField('État', choices=[])
 

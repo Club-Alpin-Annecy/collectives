@@ -41,6 +41,10 @@ def index():
 @login_required
 def view_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
+    
+    if event is None:
+        flash('Événement inexistant', 'error')
+        return redirect(url_for('event.index'))
 
     # pylint: disable=C0301
     register_user_form = RegistrationForm(
@@ -130,8 +134,37 @@ def manage_event(event_id=None):
         event.save_photo(form.photo_file.data)
         db.session.add(event)
         db.session.commit()
+    elif form.duplicate_photo.data != "":
+        duplicated_event = Event.query.get(form.duplicate_photo.data)
+        if duplicated_event != None:
+            event.photo = duplicated_event.photo
+            db.session.add(event)
+            db.session.commit()
 
     return redirect(url_for('event.view_event', event_id=event.id))
+
+@blueprint.route('/<event_id>/duplicate', methods=['GET'])
+@login_required
+def duplicate(event_id=None):
+    if not current_user.can_create_events():
+        flash('Accès restreint, rôle insuffisant.', 'error')
+        return redirect(url_for('event.index'))
+
+    event = Event.query.get(event_id)
+
+    if event == None:
+        flash('Pas d\'évènement à dupliquer', 'error')
+        return redirect(url_for('event.index'))
+
+    choices = activity_choices(event.activity_types, event.leaders)
+    form = EventForm(choices, obj=event)
+    form.type.data = str(event.activity_types[0].id)
+    form.duplicate_photo.data=event_id
+
+    return render_template('editevent.html',
+                           conf=current_app.config,
+                           form=form,
+                           action=url_for('event.manage_event'))
 
 
 @blueprint.route('/<event_id>/self_register', methods=['POST'])

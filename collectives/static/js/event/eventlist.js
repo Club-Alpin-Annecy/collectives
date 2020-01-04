@@ -72,7 +72,7 @@ function eventRowFormatter(row){
     html += `<div class="section">
                  <h4>
                  ${status_string}
-                 ${data.title}
+                 ${escapeHTML(data.title)}
                  </h4>
                  <div class="date">
                      <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
@@ -80,7 +80,7 @@ function eventRowFormatter(row){
                  </div>
 
                  <div class="leader">
-                    Par ${data.leaders.map(displayLeader).join('et')}
+                    Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
                  </div>
                  <div class="slots">
                     ${slots(data.num_slots - data.free_slots)}

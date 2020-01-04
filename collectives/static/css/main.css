@@ -1,10 +1,8 @@
-@import url('https://fonts.googleapis.com/css?family=Playfair+Display&display=swap');
-@import url('https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap');
 
 body{
 	margin: 0;
 	background-color: white;
-	font-family: 'Nunito Sans', Arial, sans-serif;
+	font-family: Arial, sans-serif;
 }
 
 a{
@@ -25,13 +23,10 @@ a:hover{
 	margin: auto;
 	min-height: 100vh;
 	padding: 60px 10px 20px;
+    background-color: white;
 }
 
-.solidpanel{
-  background-color: white;
-}
-
-.solidpanel h3{
+.panel h3{
 	margin: 0 0 1em;
 	text-align: left;
 	text-transform: uppercase;
@@ -39,7 +34,7 @@ a:hover{
 	font-weight: bolder;
 }
 
-.solidpanel h4{
+.panel h4{
   text-align: left;
   font-size: 1.5em;
   max-width: 600px;
@@ -210,7 +205,6 @@ a:hover{
 	content: url("../img/icon/ionicon/md-checkmark-circle.svg");
 }
 
-
 /* HEADER */
 #header{
 	background-color: white;
@@ -301,14 +295,73 @@ a:hover{
 	cursor: pointer;
 	filter: invert(1);
 }
-
 /* Identity space (top left user space) */
-
 #header #logout{
 	width: 60px;
 	text-align: center;
 }
 
+
+
+/* Footer at the bottom of the page */
+#footer{
+	width: 100%;
+	margin: 6em 0 0 0;
+	padding: 4em 0 ;
+	background-color: #5a4d4b;
+	color:white;
+}
+#footer a{
+	color:white;
+}
+#footer .container{
+	max-width: 600px;
+	margin:auto;
+	display: flex;
+	justify-content: space-between;
+}
+#footer .logo{
+	float: left;
+	margin: 0 20px;
+}
+
+/* Flash panel for messages */
+#messages{
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 10, 0.5);
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	z-index: 3000;
+}
+#messages .innermessages{
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	background-color: white;
+	border-radius: 20px;
+	padding: 50px 30px;
+	min-width: 600px;
+}
+#messages h3{
+	font-size: 30px;
+	font-weight: bold;
+	margin-top: 0;
+}
+#messages .close{
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	cursor: pointer;
+	height: 30px;
+}
+
+
+
+
+/* Generic css classes across the site */
 .user{
 	float: left;
 	width: 80px;
@@ -385,6 +438,7 @@ img.icon{
 }
 
 /* UTILS */
+/* class used to cancel a float */
 .breaker{
 	clear: both;
 }
@@ -436,7 +490,7 @@ form.inline input[type=submit] {
 	font-size: 0.8em;
 }
 
-
+/* Class for the cover image (skiing man) */
 #cover{
 	margin: 0;
   	background-image: url("/static/caf/dsc_2983_2.jpg");
