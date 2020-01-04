@@ -105,7 +105,17 @@
       <div class="administration">
       <h4>Administration</h4>
 
-      <h5><a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/> Editer</a></h5>
+      <h5>
+          <a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
+              Editer
+          </a>
+
+          <a class="button" href="{{ url_for('event.duplicate', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
+              Dupliquer
+          </a>
+      </h5>
 
       <h5> Inscrire un adhérent </h5>
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
