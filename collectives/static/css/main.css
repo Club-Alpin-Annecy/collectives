@@ -124,6 +124,87 @@ a:hover{
 	text-decoration: underline;
 }
 
+
+#footer{
+	width: 100%;
+	margin: 6em 0 0 0;
+	padding: 4em 0 ;
+	background-color: #5a4d4b;
+	color:white;
+}
+#footer a{
+	color:white;
+}
+#footer .container{
+	max-width: 600px;
+	margin:auto;
+	display: flex;
+	justify-content: space-between;
+}
+#footer .logo{
+	float: left;
+	margin: 0 20px;
+}
+
+/* Flash panel for messages */
+#messages{
+	height: 100vh;
+	width: 100vw;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	z-index: 3000;
+}
+#messages .innermessages{
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	background-color: white;
+	border-radius: 20px;
+	padding: 50px 30px;
+	min-width: 600px;
+	z-index: 3000;
+}
+#messages .veil{
+	background-color: rgba(0, 0, 10, 0.5);
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	z-index: 2500;
+}
+#messages h3{
+	font-size: 30px;
+	font-weight: bold;
+	margin-top: 0;
+}
+#messages .close{
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	cursor: pointer;
+	height: 30px;
+}
+
+#messages .message::before{
+	height: 2em;
+	width: 2em;
+	margin-right: 7px;
+	display: inline-block;
+	vertical-align: middle;
+}
+#messages .error::before{
+	content: url("../img/icon/ionicon/md-close-circle.svg");
+}
+#messages .warning::before{
+	content: url("../img/icon/ionicon/md-alert.svg");
+}
+#messages .success::before{
+	content: url("../img/icon/ionicon/md-checkmark-circle.svg");
+}
+
 /* HEADER */
 #header{
 	background-color: white;
