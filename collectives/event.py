@@ -41,6 +41,10 @@ def index():
 @login_required
 def view_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
+    
+    if event is None:
+        flash('Événement inexistant', 'error')
+        return redirect(url_for('event.index'))
 
     # pylint: disable=C0301
     register_user_form = RegistrationForm(
