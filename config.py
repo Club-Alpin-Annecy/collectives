@@ -42,14 +42,20 @@ TZ_NAME = 'Europe/Paris'
 # Event type:
 TYPES = {
     0: {"short": "none",             "name": "Non classé"},
-    1: {"short": "ski_alpin",        "name": "Ski alpin"},
+    1: {"short": "ski_alpin",        "name": "Ski et surf en station"},
     2: {"short": "escalade",         "name": "Escalade"},
     3: {"short": "ski_rando",        "name": "Ski de randonnée"},
     4: {"short": "trail",            "name": "Trail"},
-    5: {"short": "canyon",           "name": "Canyoning"},
-    6: {"short": "raquette",         "name": "Raquette"},
+    5: {"short": "canyon",           "name": "Canyon"},
+    6: {"short": "raquette",         "name": "Randonnée raquettes"},
     7: {"short": "snow_rando",       "name": "Snow de randonnée"},
     8: {"short": "cascade_glace",    "name": "Cascade de glace"},
+    9: {"short": "alpinisme",        "name": "Alpinisme"},
+    10: {"short": "parapente",       "name": "Parapente"},
+    11: {"short": "randonnee",       "name": "Randonnée montagne"},
+    12: {"short": "cyclisme",        "name": "VTT"},
+    13: {"short": "formation",       "name": "Formation"},
+    14: {"short": "soiree",          "name": "Soirée"},
 }
 
 # Technical stuff
