@@ -24,6 +24,10 @@
                 <a href="{{ url_for('root.show_leader', leader_id = current_user.id)}}"><img
                         src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
                 {% endif %}
+                {% if current_user.get_supervised_activities() != [] %}
+                <a href="{{ url_for('event.csv_import')}}"><img
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" />Import CSV</a>
+                {% endif %}
                 {% if current_user.is_admin() %}
                     <a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
                 {% endif %}

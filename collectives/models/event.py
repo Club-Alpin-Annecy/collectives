@@ -5,11 +5,9 @@ from flask_uploads import UploadSet, IMAGES
 from delta import html
 import json
 import enum
-from datetime import datetime
 
 from . import db
 from .registration import RegistrationStatus
-from .user import User
 
 photos = UploadSet('photos', IMAGES)
 
@@ -201,19 +199,3 @@ class Event(db.Model):
 
     def status_string (self):
         return EventStatus(self.status).display_name()
-
-    def fill_from_csv(self, row):
-            self.title = row['title']
-            self.rendered_description = row['observations']
-            self.description = json.dumps({'ops':[{'insert': row['observations'] }]})
-            self.start = convert_csv_time(row['dateStart'])
-            self.end = convert_csv_time(row['dateEnd'])
-            self.registration_open_time = convert_csv_time(row['registrationStart'])
-            self.registration_close_time = convert_csv_time(row['registrationEnd'])
-            self.num_slots = int(row['seats'])
-            self.num_online_slots = int(row['internetSeats'])
-            self.leaders = [User.query.filter_by(license = row['initiateur']).first()]
-
-
-def convert_csv_time(date_time_str):
-    return datetime.strptime(date_time_str, '%d/%m/%y %H:%M')

@@ -10,6 +10,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 # pylint: enable=C0301
 from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
+from collectives.utils.csv import fill_from_csv
 
 from collectives import extranet
 
@@ -352,7 +353,7 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
         db.session.commit()
 
         event = Event()
-        event.fill_from_csv(self.csv)
+        fill_from_csv(event, self.csv)
         assert event.title == "TITRE"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
