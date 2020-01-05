@@ -1,12 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
-from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
-from wtforms.validators import Email, InputRequired, EqualTo, Length, ValidationError
-from flask_uploads import UploadSet, configure_uploads, patch_request_class
+from wtforms import StringField, PasswordField, BooleanField, SubmitField 
+from wtforms import SelectField, IntegerField, HiddenField
+from wtforms.validators import Email, InputRequired, EqualTo, ValidationError
 from wtforms.validators import DataRequired
-from wtforms_alchemy import ModelForm
+from wtforms_alchemy import ModelForm, Unique
+from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from flask import current_app
 from collections import OrderedDict
 import sys
@@ -82,6 +82,9 @@ class PasswordValidator:
         return 'Min. {len} caractères d\'au moins {nc} types différents'.format(
             len=self.min_length, nc=self.min_classes)
 
+class UniqueValidator(Unique):
+    def __init__(self, column = None, get_session = None, message='déjà associée à un compte'):
+        Unique.__init__(self, column = column, get_session = get_session, message=message)
 
 class OrderedForm(FlaskForm):
     """
@@ -132,6 +135,7 @@ class AdminUserForm(ModelForm, OrderedForm):
         exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
         # FIXME Administrator should not be able to change a password,
         # exclude = ['password']
+        unique_validator = UniqueValidator
 
     confirm = PasswordField(
         'Confirmation du nouveau mot de passe',
@@ -148,6 +152,7 @@ class UserForm(ModelForm, OrderedForm):
         model = User
         # User should not be able to change a protected parameter
         exclude = User.protected
+        unique_validator = UniqueValidator
 
     password = PasswordField(
         label='Nouveau mot de passe',
@@ -170,6 +175,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         only = ['mail', 'license', 'date_of_birth', 'password']
+        unique_validator = UniqueValidator
 
     password = PasswordField(
         label='Choisissez un mot de passe',

@@ -11,6 +11,7 @@ from . import extranet
 import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
+from sqlalchemy import or_
 import uuid
 
 login_manager = LoginManager()
@@ -41,7 +42,7 @@ def login():
         return render_template('login.html',
                                conf=current_app.config,
                                form=form,
-                               contact_reason = 'vous connecter')
+                               contact_reason='vous connecter')
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
@@ -80,45 +81,76 @@ def logout():
 
 
 @blueprint.route('/signup', methods=['GET', 'POST'])
+@blueprint.route('/recover', endpoint="recover", methods=['GET', 'POST'])
 def signup():
 
     if current_user.is_authenticated:
         flash('Vous êtes déjà connecté', 'warning')
         return redirect(url_for('event.index'))
-
+    
     form = AccountCreationForm()
+    is_recover = 'recover' in request.endpoint
 
-    if form.validate_on_submit():
-        license_number = form.license.data
-        license_info = extranet.api.check_license(license_number)
+    if form.is_submitted():
+        
+        existing_user = None
+        if is_recover:
+            # Check for any user that is already registered with this
+            # email or license
+            existing_users = User.query.filter(or_(
+                User.license == form.license.data,
+                User.mail == form.mail.data)).all()
 
-        if not license_info.is_valid_at_time(current_time()):
-            flash('License inexistante ou expirée', 'error')
-        else:
-            user = User()
-            form.populate_obj(user)
+            num_existing_users = len(existing_users)
+            # Check that a single existing account is matching the
+            # provided identifiers
+            if num_existing_users > 1:
+                flash('Identifiants ambigus', 'error')
+            elif num_existing_users == 1:
+                existing_user = existing_users[0]
+                form = AccountCreationForm(obj=existing_user)
 
-            user_info = extranet.api.fetch_user_info(license_number)
-            if (user.date_of_birth == user_info.date_of_birth
-                    and user.mail == user_info.email):
-                # Valid user, can create the account
-                extranet.sync_user(user, user_info, license_info)
+        if is_recover and existing_user is None:
+            flash('Aucun compte associé à ces identifiants', 'error')
+        elif form.validate():
+            license_number = form.license.data
+            license_info = extranet.api.check_license(license_number)
 
-                print(user.__dict__, flush=True)
-                db.session.add(user)
-                db.session.commit()
+            if not license_info.is_valid_at_time(current_time()):
+                flash('License inexistante ou expirée', 'error')
+            else:
+                user = existing_user if existing_user else User()
+                form.populate_obj(user)
 
-                flash('Compte crée avec succès pour {}'.format(
-                    user.full_name()), 'success')
-                return redirect(url_for('auth.login'))
+                user_info = extranet.api.fetch_user_info(license_number)
+                if (user.date_of_birth == user_info.date_of_birth
+                        and user.mail == user_info.email):
+                    # Valid user, can create the account
+                    extranet.sync_user(user, user_info, license_info)
 
-            flash('E-mail et/ou date de naissance incorrecte', 'error')
+                    db.session.add(user)
+                    db.session.commit()
+
+                    action = 'mis à jour' if is_recover else 'crée'
+                    flash('Compte {} avec succès pour {}'.format(
+                        action, user.full_name()), 'success')
+                    return redirect(url_for('auth.login'))
+
+                flash('E-mail et/ou date de naissance incorrecte', 'error')
+
+    action = "Récupération" if is_recover else "Création"
+    reason = "récupérer" if is_recover else "créer"
+    form.submit.label.text = "{} le compte".format(reason.capitalize())
+    propose_recover = not is_recover
+    propose_activate = is_recover
 
     return render_template('basicform.html',
                            conf=current_app.config,
                            form=form,
-                           title="Création de compte",
-                           contact_reason="activer votre compte")
+                           title='{} de compte'.format(action),
+                           contact_reason='{} votre compte'.format(reason),
+                           propose_activate=propose_activate,
+                           propose_recover=propose_recover)
 
 
 # Init: Setup admin (if db is ready)
@@ -129,7 +161,7 @@ def init_admin(app):
             user = User()
             user.mail = 'admin'
             # Generate unique license number
-            user.license = str(uuid.uuid4())[:12] 
+            user.license = str(uuid.uuid4())[:12]
             user.first_name = 'Compte'
             user.last_name = 'Administrateur'
             user.password = app.config['ADMINPWD']

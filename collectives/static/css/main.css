@@ -117,11 +117,15 @@ a:hover{
 	padding-top: 5px;
 	z-index: 20;
 }
-#logger .contact-link{
+
+.contact-link{
 	text-align: justify;
 }
-#logger .contact-link a{
+.contact-link a{
 	text-decoration: underline;
+}
+.contact-link a:hover{
+	text-decoration: none;
 }
 
 
