@@ -11,6 +11,7 @@ from datetime import date
 
 from . import db
 from .role import RoleIds
+from .activitytype import ActivityType
 
 
 # Upload
@@ -152,6 +153,14 @@ class User(db.Model, UserMixin):
 
     def abbrev_name(self):
         return '{} {}'.format(self.first_name, self.last_name[0].upper())
+
+    def get_supervised_activities(self):
+        if self.is_admin() :
+            return ActivityType.query.all()
+
+        roles = self.matching_roles([RoleIds.ActivitySupervisor])
+        return [role.activity_type for role in roles]
+
 
     @property
     def is_active(self):

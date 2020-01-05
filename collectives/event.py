@@ -3,12 +3,13 @@ from flask import current_app, Blueprint
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json
+import json, codecs, csv
 
-from .forms import EventForm, photos, RegistrationForm
+from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
-from .models import EventStatus, RegistrationStatus, User, db
+from .models import EventStatus, RegistrationStatus, User, RoleIds, db
 from .helpers import current_time
+from .utils.csv import fill_from_csv
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -279,3 +280,51 @@ def delete_registration(reg_id):
     db.session.commit()
     return redirect(url_for('event.view_event',
                             event_id=registration.event_id))
+
+
+
+@blueprint.route('/csv_import', methods=['GET', 'POST'])
+@login_required
+def csv_import():
+    activities = current_user.get_supervised_activities()
+    if activities == []:
+        flash('Fonction non autorisée.', 'error')
+        return redirect(url_for('event.index'))
+
+    choices = [(str(a.id), a.name) for a in activities]
+    form = CSVForm(choices)
+
+    if request.method != 'POST' or not form.validate():
+        return render_template('basicform.html',
+                               conf=current_app.config,
+                               form=form,
+                               title="Création d'event par CSV")
+
+    file = form.csv_file.data
+
+    if file == None:
+        flash('Pas de fichier fourni', 'error')
+        return redirect(url_for('administration.csv_import'))
+
+    activity_type = ActivityType.query.get(form.type.data)
+    stream = codecs.iterdecode(file.stream, "iso-8859-1")
+
+    reader = csv.DictReader( stream, delimiter=",")
+    headers = reader.__next__()
+    processed = 0
+    failed = 0
+    for row in reader:
+        processed += 1
+        try:
+            event = Event()
+            fill_from_csv(event, row)
+            event.activity_types = [activity_type]
+            db.session.add(event)
+            db.session.commit()
+        except Exception as e:
+            failed += 1
+            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}', 'error')
+
+
+    flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
+    return redirect(url_for('event.csv_import'))
