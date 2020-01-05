@@ -78,7 +78,7 @@ class AdminUserForm(ModelForm, OrderedForm):
 
     confirm = PasswordField(
         'Confirmation du mot de passe',
-        [EqualTo('password',
+        validators = [EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
 
     submit = SubmitField('Enregistrer')
@@ -94,29 +94,60 @@ class UserForm(ModelForm, OrderedForm):
 
     confirm = PasswordField(
         'Confirmation du mot de passe',
-        [EqualTo('password',
+        validators = [EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
 
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
     submit = SubmitField('Enregistrer')
     field_order = ['*', 'avatar', 'password', 'confirm']
 
-
 def check_license_format(form, field):
-    value = field.data
-    if not (len(value) == 12 and value.isdigit() and value.startswith('7400')):
-        raise ValidationError("Le numéro de licence doit contenir " +
-                              "12 chiffres et commencer par '7400'")
+    PREFIX = '7400' 
+    LEN = 12
 
+    value = field.data
+    if not (len(value) == LEN and value.isdigit() and value.startswith(PREFIX)):
+        raise ValidationError("Le numéro de licence doit contenir 12 " +
+                              "chiffres et commencer par '{}'".format(PREFIX))
+
+def check_password_format(form, field):
+    MIN_LENGTH = 8
+    MIN_CLASSES = 3
+
+    password = field.data
+    if len(password) < MIN_LENGTH:
+        raise ValidationError("Le mot de passe doit contenir au moins " +
+                              "{} caractères".format(MIN_LENGTH))
+
+    num_classes = 0
+    if re.search(r"\d", password):
+        num_classes += 1
+    if re.search(r"[A-Z]", password):
+        num_classes += 1
+    if re.search(r"[a-z]", password):
+        num_classes += 1
+    if re.search(r"[ !@;:%#$%&'()*+,-./[\\\]^_`{|}<>~+=?`]", password):
+        num_classes += 1
+
+    if num_classes < MIN_CLASSES:
+        raise ValidationError("Le mot de passe doit contenir au moins " +
+                              "{} classes de caractères".format(MIN_CLASSES) + 
+                              " parmi majuscules, minuscules, chiffres et " +
+                              " caractères spécieux")
 
 class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         only = ['mail', 'license', 'date_of_birth', 'password']
+    
+    password = PasswordField(
+        label = 'Choisissez un mot de passe',
+        description = 'Au moins 8 caractères et trois classes de caractères',
+        validators = [InputRequired(), check_password_format])
 
     confirm = PasswordField(
-        'Confirmation du mot de passe',
-        [InputRequired(),
+        label = 'Confirmation du mot de passe',
+        validators =[InputRequired(), 
          EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
 
