@@ -14,10 +14,6 @@
   padding: 10px 20px;
 }
 
-#administration label{
-  width : 30%;
-  margin-bottom: 1em;
-}
 #administration input{
   width : 40%;
   margin-bottom: 1em;
@@ -26,4 +22,21 @@
 #administration input[type=submit] {
 	margin: 8px 0;
 	width: 50%;
+}
+
+
+#administration form div{
+  display: inline-block;
+  text-align: right;
+  width:30%;
+  margin-bottom: 1em;
+}
+
+#administration form div label{
+  display:block;
+}
+
+#administration form div span.help{
+  padding-right: 5px;
+  font-size:80%;
 }

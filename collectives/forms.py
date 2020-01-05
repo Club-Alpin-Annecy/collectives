@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Hidde
 from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
-from wtforms.validators import Email, InputRequired, EqualTo
+from wtforms.validators import Email, InputRequired, EqualTo, Length, ValidationError
 from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
@@ -27,7 +27,7 @@ def configure_forms(app):
 
 class OrderedForm(FlaskForm):
     """
-    Extends FlaskForm with an optional 'field_order' property 
+    Extends FlaskForm with an optional 'field_order' property
     """
 
     def __iter__(self):
@@ -74,14 +74,13 @@ class AdminUserForm(ModelForm, OrderedForm):
         # Avatar is selected/modified by another field
         exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
         # FIXME Administrator should not be able to change a password,
-        #exclude = ['password']
+        # exclude = ['password']
 
     confirm = PasswordField(
         'Confirmation du mot de passe',
         [EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
 
-    validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
     avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
     field_order = ['*', 'avatar_file', 'password', 'confirm']
@@ -99,9 +98,15 @@ class UserForm(ModelForm, OrderedForm):
                  message='Les mots de passe ne correspondent pas')])
 
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
     field_order = ['*', 'avatar', 'password', 'confirm']
+
+
+def check_license_format(form, field):
+    value = field.data
+    if not (len(value) == 12 and value.isdigit() and value.startswith('7400')):
+        raise ValidationError("Le numéro de licence doit contenir " +
+                              "12 chiffres et commencer par '7400'")
 
 
 class AccountCreationForm(ModelForm, OrderedForm):
@@ -115,10 +120,19 @@ class AccountCreationForm(ModelForm, OrderedForm):
          EqualTo('password',
                  message='Les mots de passe ne correspondent pas')])
 
-    field_order = ['*', 'password', 'confirm']
+    license = StringField(
+        label='Numéro de license',
+        description='12 chiffres commencant par \'7400\'',
+        render_kw={'placeholder': '7400YYYYXXXX'},
+        validators=[check_license_format])
 
-    validators = {'mail': [Email()]}
+    field_order = ['mail', 'license', '*', 'password', 'confirm']
+
     submit = SubmitField('Activer le compte')
+
+    def __init__(self, *args, **kwargs):
+        super(AccountCreationForm, self).__init__(*args, **kwargs)
+        self.mail.description = "Utilisée lors de votre inscription au club"
 
 
 class RoleForm(ModelForm, FlaskForm):

@@ -30,8 +30,8 @@ class User(db.Model, UserMixin):
                      nullable=False,
                      unique=True,
                      index=True,
-                     info={'validators': Email(message="E-mail invalide"),
-                           'label': 'Email'})
+                     info={'validators': Email(message="Format d'adresse invalide"),
+                           'label': 'Adresse e-mail'})
 
     # Name
     first_name = db.Column(db.String(100),
@@ -47,10 +47,7 @@ class User(db.Model, UserMixin):
         nullable=False,
         unique=True,
         index=True,
-        info={'label': 'Numéro de licence',
-              'validators': Length(
-                  min=12, max=12,
-                  message="Numéro de licence invalide")})
+        info={'label': 'Numéro de licence'})
 
     # Date of birth
     date_of_birth = db.Column(
