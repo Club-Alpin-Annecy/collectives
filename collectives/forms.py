@@ -10,6 +10,7 @@ from wtforms_alchemy import ModelForm
 from flask import current_app
 from collections import OrderedDict
 import sys
+import re
 
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
 from .models import Registration, EventStatus
@@ -23,6 +24,63 @@ def configure_forms(app):
 
     # set maximum file size, default is 3MB
     patch_request_class(app, 3 * 1024 * 1024)
+
+class LicenseValidator:
+    prefix = '7400'
+    length = 12
+
+    def __call__(self, form, field):
+        val = field.data
+        if not (len(val) == self.length and val.isdigit() and
+                val.startswith(self.prefix)):
+            raise ValidationError(
+                ("Le numéro de licence doit contenir 12 chiffres " +
+                 "et commecer par '{}'".format(self.prefix)))
+
+    def help_string(self):
+        return '{len} chiffres commencant par \'{pref}\''.format(
+            len=self.length, pref=self.prefix)
+
+    def sample_value(self):
+        return self.prefix + 'X' * (self.length - len(self.prefix))
+
+
+class PasswordValidator:
+    min_length = 8
+    min_classes = 3
+
+    def __call__(self, form, field):
+        password = field.data
+
+        # Allow empty password, if it is requied another InputRequired() 
+        # validator will be used
+        if password == '':
+            return
+
+        if len(password) < self.min_length:
+            raise ValidationError("Le mot de passe doit contenir au moins " +
+                                  "{} caractères".format(self.min_length))
+
+        num_classes = 0
+        if re.search(r"\d", password):
+            num_classes += 1
+        if re.search(r"[A-Z]", password):
+            num_classes += 1
+        if re.search(r"[a-z]", password):
+            num_classes += 1
+        if re.search(r"[ !@;:%#$%&'()*+,-./[\\\]^_`{|}<>~+=?`]", password):
+            num_classes += 1
+
+        if num_classes < self.min_classes:
+            raise ValidationError(
+                ("Le mot de passe doit contenir au moins " +
+                 "{} classes de caractères".format(self.min_classes) +
+                 " parmi majuscules, minuscules, chiffres et " +
+                 " caractères spéciaux"))
+
+    def help_string(self):
+        return 'Min. {len} caractères d\'au moins {nc} types différents'.format(
+            len=self.min_length, nc=self.min_classes)
 
 
 class OrderedForm(FlaskForm):
@@ -67,7 +125,6 @@ class EventForm(ModelForm, FlaskForm):
         self.status.choices = [(s.value, s.display_name())
                                for s in EventStatus]
 
-
 class AdminUserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
@@ -77,9 +134,9 @@ class AdminUserForm(ModelForm, OrderedForm):
         # exclude = ['password']
 
     confirm = PasswordField(
-        'Confirmation du mot de passe',
-        validators = [EqualTo('password',
-                 message='Les mots de passe ne correspondent pas')])
+        'Confirmation du nouveau mot de passe',
+        validators=[EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
 
     submit = SubmitField('Enregistrer')
     avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
@@ -92,70 +149,44 @@ class UserForm(ModelForm, OrderedForm):
         # User should not be able to change a protected parameter
         exclude = User.protected
 
+    password = PasswordField(
+        label='Nouveau mot de passe',
+        description='Laisser vide pour conserver l\'actuel',
+        validators=[PasswordValidator()])
+
     confirm = PasswordField(
-        'Confirmation du mot de passe',
-        validators = [EqualTo('password',
-                 message='Les mots de passe ne correspondent pas')])
+        'Confirmation du nouveau mot de passe',
+        validators=[EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
 
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
     submit = SubmitField('Enregistrer')
     field_order = ['*', 'avatar', 'password', 'confirm']
 
-def check_license_format(form, field):
-    PREFIX = '7400' 
-    LEN = 12
-
-    value = field.data
-    if not (len(value) == LEN and value.isdigit() and value.startswith(PREFIX)):
-        raise ValidationError("Le numéro de licence doit contenir 12 " +
-                              "chiffres et commencer par '{}'".format(PREFIX))
-
-def check_password_format(form, field):
-    MIN_LENGTH = 8
-    MIN_CLASSES = 3
-
-    password = field.data
-    if len(password) < MIN_LENGTH:
-        raise ValidationError("Le mot de passe doit contenir au moins " +
-                              "{} caractères".format(MIN_LENGTH))
-
-    num_classes = 0
-    if re.search(r"\d", password):
-        num_classes += 1
-    if re.search(r"[A-Z]", password):
-        num_classes += 1
-    if re.search(r"[a-z]", password):
-        num_classes += 1
-    if re.search(r"[ !@;:%#$%&'()*+,-./[\\\]^_`{|}<>~+=?`]", password):
-        num_classes += 1
-
-    if num_classes < MIN_CLASSES:
-        raise ValidationError("Le mot de passe doit contenir au moins " +
-                              "{} classes de caractères".format(MIN_CLASSES) + 
-                              " parmi majuscules, minuscules, chiffres et " +
-                              " caractères spécieux")
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
 
 class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         only = ['mail', 'license', 'date_of_birth', 'password']
-    
+
     password = PasswordField(
-        label = 'Choisissez un mot de passe',
-        description = 'Au moins 8 caractères et trois classes de caractères',
-        validators = [InputRequired(), check_password_format])
+        label='Choisissez un mot de passe',
+        description=PasswordValidator().help_string(),
+        validators=[InputRequired(), PasswordValidator()])
 
     confirm = PasswordField(
-        label = 'Confirmation du mot de passe',
-        validators =[InputRequired(), 
-         EqualTo('password',
-                 message='Les mots de passe ne correspondent pas')])
+        label='Confirmation du mot de passe',
+        validators=[InputRequired(),
+                    EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
 
     license = StringField(
-        label='Numéro de license',
-        description='12 chiffres commencant par \'7400\'',
-        render_kw={'placeholder': '7400YYYYXXXX'},
-        validators=[check_license_format])
+        label='Numéro de licence',
+        description=LicenseValidator().help_string(),
+        render_kw={'placeholder': LicenseValidator().sample_value()},
+        validators=[LicenseValidator()])
 
     field_order = ['mail', 'license', '*', 'password', 'confirm']
 
