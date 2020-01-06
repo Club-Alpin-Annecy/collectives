@@ -10,7 +10,7 @@ class PlaceholderFiller:
     def __call__(self, match):
         key = match.group(1)
         if key in self.row.keys():
-            return self.row[key].replace('"', '\\"').replace("\n",' ')
+            return self.row[key].replace('"', '\\"').replace("\n",'\\n')
         return ''
 
 def fill_from_csv(event, row):
