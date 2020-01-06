@@ -3,7 +3,7 @@ from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json, io
+import json, io, csv, codecs
 
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
