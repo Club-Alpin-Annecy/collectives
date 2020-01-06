@@ -70,7 +70,7 @@ IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
 
 
-DESCRIPTION_TEMPLATE="""{
+DESCRIPTION_TEMPLATE = """{
     \"ops\":[
         {
             \"insert\":\"ITINERAIRE: \"
@@ -146,3 +146,6 @@ DESCRIPTION_TEMPLATE="""{
         }
     ]
 }"""
+
+XLSX_TEMPLATE = os.path.join(basedir,
+                             "collectives/templates/exported_event.xlsx")

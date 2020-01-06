@@ -115,6 +115,11 @@
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
               Dupliquer
           </a>
+        
+          <a class="button" href="{{ url_for('event.export_event', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> 
+            Exporter
+          </a>
       </h5>
 
       <h5> Inscrire un adhérent </h5>

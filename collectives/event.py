@@ -1,14 +1,15 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint
+from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json, codecs, csv
+import json, io, csv, codecs
 
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
-from .helpers import current_time
+from .helpers import current_time, slugify
+from .utils.export import to_xlsx
 from .utils.csv import fill_from_csv
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
@@ -58,6 +59,26 @@ def view_event(event_id):
                            current_time=current_time(),
                            current_user=current_user,
                            register_user_form=register_user_form)
+
+
+@blueprint.route('/<event_id>/export_xlsx')
+@login_required
+def export_event(event_id):
+    event = Event.query.get(event_id)
+
+    if event is None or not event.has_edit_rights(current_user):
+        abort(403)
+
+    filename = '{}-{}-{}.xlsx'.format(event.start.date(), event.id,
+                                      slugify(event.title))
+
+    return send_file(
+        io.BytesIO(to_xlsx(event)),
+        as_attachment=True,
+        attachment_filename=filename,
+        cache_timeout=-1,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 
 @blueprint.route('/add', methods=['GET', 'POST'])
