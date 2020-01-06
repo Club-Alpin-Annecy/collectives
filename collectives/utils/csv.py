@@ -1,11 +1,25 @@
 from ..models import User
 from datetime import datetime
-import json
+from flask import current_app
+import re
+
+class PlaceholderFiller:
+    def __init__(self, row):
+        self.row = row
+
+    def __call__(self, match):
+        key = match.group(1)
+        if key in self.row.keys():
+            return self.row[key].replace('"', '\\"').replace("\n",' ')
+        return ''
 
 def fill_from_csv(event, row):
             event.title = row['title']
-            event.rendered_description = row['observations']
-            event.description = json.dumps({'ops':[{'insert': row['observations'] }]})
+
+            filler = PlaceholderFiller(row)
+            template = current_app.config['DESCRIPTION_TEMPLATE']
+            event.description = re.sub(r'\$([\w]+?)\$', filler, template)
+            event.set_rendered_description(event.description)
             event.start = convert_csv_time(row['dateStart'])
             event.end = convert_csv_time(row['dateEnd'])
             event.registration_open_time = convert_csv_time(row['registrationStart'])

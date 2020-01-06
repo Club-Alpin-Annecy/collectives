@@ -5,6 +5,7 @@ from flask_uploads import UploadSet, IMAGES
 from delta import html
 import json
 import enum
+import re
 
 from . import db
 from .registration import RegistrationStatus
@@ -101,6 +102,8 @@ class Event(db.Model):
 
         super().__init__(*args, **kwargs)
         self.description = current_app.config['DESCRIPTION_TEMPLATE']
+        # Remove placeholders
+        self.description = re.sub(r'\$[\w]+?\$', '', self.description)
 
     def save_photo(self, file):
         if file is not None:
