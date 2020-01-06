@@ -1,4 +1,5 @@
 # Helpers functions that are make available to Jinja
+from .helpers import current_time
 
 # Server may not have fr_FR locale installed, for convenience
 # simply define days of weeks and months names here
@@ -38,6 +39,10 @@ def helpers_processor():
         return 'du {} au {}'.format(
             format_date_short(start), format_date_short(end))
 
+    def server_local_time():
+        return current_time()
+
     return dict(format_date=format_date, format_time=format_time,
                 format_date_range=format_date_range,
-                format_datetime_range=format_datetime_range)
+                format_datetime_range=format_datetime_range,
+                server_local_time=server_local_time)

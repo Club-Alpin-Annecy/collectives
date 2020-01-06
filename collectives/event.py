@@ -3,14 +3,24 @@ from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
+<<<<<<< HEAD
 import json
 import io
+=======
+import json, codecs, csv
+>>>>>>> origin/master
 
-from .forms import EventForm, photos, RegistrationForm
+from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
+<<<<<<< HEAD
 from .models import RegistrationStatus, User, db
 from .helpers import current_time, slugify
 from .export import to_xlsx
+=======
+from .models import EventStatus, RegistrationStatus, User, RoleIds, db
+from .helpers import current_time
+from .utils.csv import fill_from_csv
+>>>>>>> origin/master
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -43,6 +53,10 @@ def index():
 @login_required
 def view_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
+    
+    if event is None:
+        flash('Événement inexistant', 'error')
+        return redirect(url_for('event.index'))
 
     # pylint: disable=C0301
     register_user_form = RegistrationForm(
@@ -57,7 +71,7 @@ def view_event(event_id):
                            register_user_form=register_user_form)
 
 
-@blueprint.route('/<event_id>/export')
+@blueprint.route('/<event_id>/export_xlsx')
 @login_required
 def export_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
@@ -152,8 +166,37 @@ def manage_event(event_id=None):
         event.save_photo(form.photo_file.data)
         db.session.add(event)
         db.session.commit()
+    elif form.duplicate_photo.data != "":
+        duplicated_event = Event.query.get(form.duplicate_photo.data)
+        if duplicated_event != None:
+            event.photo = duplicated_event.photo
+            db.session.add(event)
+            db.session.commit()
 
     return redirect(url_for('event.view_event', event_id=event.id))
+
+@blueprint.route('/<event_id>/duplicate', methods=['GET'])
+@login_required
+def duplicate(event_id=None):
+    if not current_user.can_create_events():
+        flash('Accès restreint, rôle insuffisant.', 'error')
+        return redirect(url_for('event.index'))
+
+    event = Event.query.get(event_id)
+
+    if event == None:
+        flash('Pas d\'évènement à dupliquer', 'error')
+        return redirect(url_for('event.index'))
+
+    choices = activity_choices(event.activity_types, event.leaders)
+    form = EventForm(choices, obj=event)
+    form.type.data = str(event.activity_types[0].id)
+    form.duplicate_photo.data=event_id
+
+    return render_template('editevent.html',
+                           conf=current_app.config,
+                           form=form,
+                           action=url_for('event.manage_event'))
 
 
 @blueprint.route('/<event_id>/self_register', methods=['POST'])
@@ -268,3 +311,51 @@ def delete_registration(reg_id):
     db.session.commit()
     return redirect(url_for('event.view_event',
                             event_id=registration.event_id))
+
+
+
+@blueprint.route('/csv_import', methods=['GET', 'POST'])
+@login_required
+def csv_import():
+    activities = current_user.get_supervised_activities()
+    if activities == []:
+        flash('Fonction non autorisée.', 'error')
+        return redirect(url_for('event.index'))
+
+    choices = [(str(a.id), a.name) for a in activities]
+    form = CSVForm(choices)
+
+    if request.method != 'POST' or not form.validate():
+        return render_template('basicform.html',
+                               conf=current_app.config,
+                               form=form,
+                               title="Création d'event par CSV")
+
+    file = form.csv_file.data
+
+    if file == None:
+        flash('Pas de fichier fourni', 'error')
+        return redirect(url_for('administration.csv_import'))
+
+    activity_type = ActivityType.query.get(form.type.data)
+    stream = codecs.iterdecode(file.stream, "iso-8859-1")
+
+    reader = csv.DictReader( stream, delimiter=",")
+    headers = reader.__next__()
+    processed = 0
+    failed = 0
+    for row in reader:
+        processed += 1
+        try:
+            event = Event()
+            fill_from_csv(event, row)
+            event.activity_types = [activity_type]
+            db.session.add(event)
+            db.session.commit()
+        except Exception as e:
+            failed += 1
+            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}', 'error')
+
+
+    flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
+    return redirect(url_for('event.csv_import'))

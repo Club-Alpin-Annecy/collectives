@@ -2,12 +2,33 @@
 
 from flask import current_app
 from flask_uploads import UploadSet, IMAGES
-import json
 from delta import html
+import json
+import enum
+
 from . import db
 from .registration import RegistrationStatus
 
 photos = UploadSet('photos', IMAGES)
+
+
+class EventStatus(enum.IntEnum):
+    Confirmed = 0
+    Pending = 1
+    Cancelled = 2
+
+    @classmethod
+    def display_names(cls):
+        return {
+            cls.Confirmed: 'Confirmée',
+            cls.Pending: 'En attente',
+            cls.Cancelled: 'Annulée'
+        }
+
+    def display_name(self):
+        cls = self.__class__
+        return cls.display_names()[self.value]
+
 
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
 #  pas comptés dans le nombre de place
@@ -38,6 +59,7 @@ event_activity_types = db.Table('event_activity_types',
                                     index=True)
                                 )
 
+
 class Event(db.Model):
     """ Collectives """
 
@@ -56,6 +78,9 @@ class Event(db.Model):
     num_online_slots = db.Column(db.Integer, nullable=False)
     registration_open_time = db.Column(db.DateTime, nullable=False)
     registration_close_time = db.Column(db.DateTime, nullable=False)
+
+    status = db.Column(db.Integer, nullable=False,
+                       default=EventStatus.Confirmed)
 
     # Relationships
     leaders = db.relationship('User',
@@ -162,6 +187,15 @@ class Event(db.Model):
             user, [RegistrationStatus.Rejected])
 
     def can_self_register(self, user, time):
+        if not self.is_confirmed():
+            return False
         if self.is_leader(user) or self.is_registered(user):
             return False
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
+
+    # Status
+    def is_confirmed(self):
+        return self.status == EventStatus.Confirmed
+
+    def status_string (self):
+        return EventStatus(self.status).display_name()

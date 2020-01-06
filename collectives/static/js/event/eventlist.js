@@ -66,15 +66,21 @@ function eventRowFormatter(row){
                 <img src="${data.photo_uri}" class="photo"/>
              </div>`;
 
+    var status_string = ''
+    if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
+
     html += `<div class="section">
-                 <h4>${data.title}</h4>
+                 <h4>
+                 ${status_string}
+                 ${escapeHTML(data.title)}
+                 </h4>
                  <div class="date">
                      <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
                      ${localInterval(data.start, data.end)}
                  </div>
 
                  <div class="leader">
-                    Par ${data.leaders.map(displayLeader).join('et')}
+                    Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
                  </div>
                  <div class="slots">
                     ${slots(data.num_slots - data.free_slots)}
@@ -131,11 +137,21 @@ function toggleActivity(activity_id, element){
 function togglePastActivities(element){
 
     if ( ! element.checked){
-        var now = moment().format('YYYY-MM-DDTHH:mm:ss'); // As ISO 8601
-        eventsTable.addFilter( [{field:"end", type:"=", value:  now  }]);
+        eventsTable.addFilter( [{field:"end", type:"=", value:getServerLocalTime() }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
         eventsTable.removeFilter(endfilter);
+    }
+
+}
+
+function toggleConfirmedOnly(confirmedOnly){
+
+    if (confirmedOnly){
+        eventsTable.addFilter( [{field:"status", type:"=", value:  0  }]);
+    }else{
+        statusFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
+        eventsTable.removeFilter(statusFilter);
     }
 
 }

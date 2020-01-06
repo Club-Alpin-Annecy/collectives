@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='caf/icon/activity.css') }}">
     <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+    <script type="text/javascript">function getServerLocalTime(){ return '{{server_local_time()}}'; }</script>
     {% block additionalhead %}{% endblock %}
 </head>
 <body>
@@ -22,6 +23,10 @@
                 {% if current_user.can_create_events() %}
                 <a href="{{ url_for('root.show_leader', leader_id = current_user.id)}}"><img
                         src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
+                {% endif %}
+                {% if current_user.get_supervised_activities() != [] %}
+                <a href="{{ url_for('event.csv_import')}}"><img
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" />Import CSV</a>
                 {% endif %}
                 {% if current_user.is_admin() %}
                     <a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
@@ -60,7 +65,7 @@
     {% block content %}{% endblock %}
 
 </div>
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div id="messages">
         <div class="innermessages">
@@ -70,10 +75,11 @@
                             onclick= "this.parentNode.parentNode.style.display='none'"
                         />
             <h3>Message</h3>
-        {% for message in messages %}
-          <p class="{{category}}">{{ message }}</p>
+        {% for category, message in messages %}
+          <p class="{{category}} message">{{ message }}</p>
         {% endfor %}
         </div>
+        <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
     </div>
   {% endif %}
 {% endwith %}

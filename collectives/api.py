@@ -6,7 +6,8 @@ from sqlalchemy.sql import text
 from sqlalchemy import desc
 
 from marshmallow import fields
-from .models import db, User, Event, ActivityType, Registration, RegistrationStatus
+from .models import db, User, Event, EventStatus
+from .models import ActivityType, Registration, RegistrationStatus
 from .views import root
 import json
 
@@ -59,26 +60,27 @@ def users():
 
     all_users = User.query.all()
     content = json.dumps(UserSchema(many=True).dump(all_users))
-    return content, 200, {'content-type' :'application/json'}
+    return content, 200, {'content-type': 'application/json'}
 
 # Get all event of a user
 @blueprint.route('/user/<user_id>/events')
 @login_required
 def user_events(user_id):
-    if  int(user_id) != current_user.id and not current_user.can_read_other_users()  :
-        return '[]', 403, {'content-type' :'application/json'}
+    if int(user_id) != current_user.id and not current_user.can_read_other_users():
+        return '[]', 403, {'content-type': 'application/json'}
 
     query = db.session.query(Event)
     query = query.filter(Registration.user_id == user_id)
     query = query.filter(Registration.status == RegistrationStatus.Active)
     query = query.filter(Event.id == Registration.event_id)
+    query = query.filter(Event.status == EventStatus.Confirmed)
     query = query.order_by(Event.start)
 
     user_events = query.all()
     print(user_events, flush=True)
     response = EventSchema(many=True).dump(user_events)
 
-    return json.dumps(response), 200, {'content-type' :'application/json'}
+    return json.dumps(response), 200, {'content-type': 'application/json'}
 
 # Get all lead events of a leader
 @blueprint.route('/leader/<leader_id>/events')
@@ -86,8 +88,8 @@ def user_events(user_id):
 def leader_events(leader_id):
     leader = User.query.filter_by(id=leader_id).first()
 
-    if leader is None or not leader.can_create_events()  :
-        return '[]', 403, {'content-type' :'application/json'}
+    if leader is None or not leader.can_create_events():
+        return '[]', 403, {'content-type': 'application/json'}
 
     query = db.session.query(Event)
     query = query.filter(Event.leaders.contains(leader))
@@ -97,7 +99,7 @@ def leader_events(leader_id):
     print(leader_events, flush=True)
     response = EventSchema(many=True).dump(leader_events)
 
-    return json.dumps(response), 200, {'content-type' :'application/json'}
+    return json.dumps(response), 200, {'content-type': 'application/json'}
 
 
 class AutocompleteUserSchema(marshmallow.Schema):
@@ -141,12 +143,7 @@ def autocomplete_users():
         found_users = find_users_by_fuzzy_name(q)
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
-    return content, 200, {'content-type' :'application/json'}
-
-
-
-
-
+    return content, 200, {'content-type': 'application/json'}
 
 
 def photo_uri(event):
@@ -157,80 +154,97 @@ def photo_uri(event):
                        height=130)
     return url_for('static', filename='img/icon/ionicon/md-images.svg')
 
+
 class UserSimpleSchema(marshmallow.Schema):
-    avatar_uri  = fields.Function(avatar_url)
-    name        = fields.Function(lambda user: user.abbrev_name())
+    avatar_uri = fields.Function(avatar_url)
+    name = fields.Function(lambda user: user.abbrev_name())
+
     class Meta:
         fields = ('id', 'name', 'avatar_uri')
+
 
 class ActivityShortSchema(marshmallow.Schema):
     class Meta:
         fields = ('id', 'short')
 
+
 class EventSchema(marshmallow.Schema):
-    photo_uri       = fields.Function(photo_uri)
-    free_slots      = fields.Function(lambda event: event.free_slots())
-    occupied_slots  = fields.Function(lambda event: len(event.active_registrations()))
-    leaders         = fields.Function(lambda event:
-                                UserSimpleSchema(many=True).dump(event.leaders)
-                            )
+    photo_uri = fields.Function(photo_uri)
+    free_slots = fields.Function(lambda event: event.free_slots())
+    occupied_slots = fields.Function(
+        lambda event: len(event.active_registrations()))
+    leaders = fields.Function(lambda event:
+                              UserSimpleSchema(many=True).dump(event.leaders)
+                              )
     activity_types = fields.Function(lambda event:
-                                ActivityShortSchema(many=True).dump(event.activity_types)
-                            )
-    view_uri    = fields.Function(
-                    lambda event: url_for(
-                        'event.view_event',
-                        event_id=event.id))
+                                     ActivityShortSchema(many=True).dump(
+                                         event.activity_types)
+                                     )
+    view_uri = fields.Function(
+        lambda event: url_for(
+            'event.view_event',
+            event_id=event.id))
+
+    is_confirmed = fields.Function(lambda event: event.is_confirmed())
+    status = fields.Function(
+        lambda event: event.status_string())
+
     class Meta:
-        fields = (  'id',
-                    'title',
-                    'start',
-                    'end',
-                    'num_slots',
-                    'num_online_slots',
-                    'registration_open_time',
-                    'registration_close_time',
-                    'photo_uri',
-                    'view_uri',
-                    'free_slots',
-                    'occupied_slots',
-                    'leaders',
-                    'activity_types'
-                )
+        fields = ('id',
+                  'title',
+                  'start',
+                  'end',
+                  'num_slots',
+                  'num_online_slots',
+                  'registration_open_time',
+                  'registration_close_time',
+                  'photo_uri',
+                  'view_uri',
+                  'free_slots',
+                  'occupied_slots',
+                  'leaders',
+                  'activity_types',
+                  'is_confirmed',
+                  'status'
+                  )
+
 
 @blueprint.route('/events/')
 def events():
-    page        = int(request.args.get('page'))
-    size        = int(request.args.get('size'))
+    page = int(request.args.get('page'))
+    size = int(request.args.get('size'))
 
     # Initialize query
-    query       = Event.query
+    query = Event.query
+    query = query.filter(Event.status != EventStatus.Pending)
 
     # Process all filters.
     # All filter are added as AND
     i = 0
-    while f'filters[{i}][field]' in request.args :
-        value   = request.args.get(f'filters[{i}][value]')
-        field   = request.args.get(f'filters[{i}][field]')
+    while f'filters[{i}][field]' in request.args:
+        value = request.args.get(f'filters[{i}][value]')
+        field = request.args.get(f'filters[{i}][field]')
 
         if field == 'activity_type':
-            filter  = Event.activity_types.any(short = value)
+            filter = Event.activity_types.any(short=value)
         if field == 'end':
-            filter  = Event.end >= value
+            filter = Event.end >= value
+        if field == 'status':
+            filter = Event.status == value
 
-        query   = query.filter( filter )
+        query = query.filter(filter)
         # Get next filter
         i += 1
 
     # Process first sorter only
-    if  f'sorters[0][field]' in request.args :
-        sort_field  = request.args.get('sorters[0][field]')
-        sort_dir    = request.args.get('sorters[0][dir]')
-        order       = desc(sort_field) if sort_dir == 'desc' else sort_field
-        query       = query.order_by(order)
+    if f'sorters[0][field]' in request.args:
+        sort_field = request.args.get('sorters[0][field]')
+        sort_dir = request.args.get('sorters[0][dir]')
+        order = desc(sort_field) if sort_dir == 'desc' else sort_field
+        query = query.order_by(order)
 
     paginated_events = query.paginate(page, size, False)
     data = EventSchema(many=True).dump(paginated_events.items)
-    response = { 'data' : data, "last_page" :  paginated_events.pages }
+    response = {'data': data, "last_page":  paginated_events.pages}
 
-    return json.dumps(response), 200, {'content-type' :'application/json'}
+    return json.dumps(response), 200, {'content-type': 'application/json'}

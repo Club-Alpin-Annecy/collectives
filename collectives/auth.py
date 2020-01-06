@@ -83,7 +83,7 @@ def logout():
 def signup():
 
     if current_user.is_authenticated:
-        flash('Vous êtes déjà connecté')
+        flash('Vous êtes déjà connecté', 'warning')
         return redirect(url_for('event.index'))
 
     form = AccountCreationForm()
@@ -109,7 +109,7 @@ def signup():
                 db.session.commit()
 
                 flash('Compte crée avec succès pour {}'.format(
-                    user.full_name()))
+                    user.full_name()), 'success')
                 return redirect(url_for('auth.login'))
 
             flash('E-mail et/ou date de naissance incorrecte', 'error')

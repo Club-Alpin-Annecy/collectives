@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
@@ -11,7 +11,7 @@ from flask import current_app
 import sys
 
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
-from .models import Registration
+from .models import Registration, EventStatus
 
 csrf = CSRFProtect()
 
@@ -36,11 +36,14 @@ class EventForm(ModelForm, FlaskForm):
         model = Event
         exclude = ['photo']
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    duplicate_photo = HiddenField()
     type = SelectField('Type', choices=[])
+    status = SelectField('État', choices=[])
 
     def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
+        self.status.choices = [(s.value, s.display_name()) for s in EventStatus]
 
 
 class AdminUserForm(ModelForm, FlaskForm):
@@ -120,3 +123,11 @@ class RegistrationForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
+
+class CSVForm(FlaskForm):
+    csv_file = FileField()
+    submit = SubmitField('Import')
+    type = SelectField('Type d\'activité', choices=[])
+    def __init__(self, activity_choices, *args, **kwargs):
+        super(CSVForm, self).__init__(*args, **kwargs)
+        self.type.choices = activity_choices
