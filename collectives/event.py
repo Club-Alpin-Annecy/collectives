@@ -3,24 +3,14 @@ from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-<<<<<<< HEAD
-import json
-import io
-=======
-import json, codecs, csv
->>>>>>> origin/master
+import json, io
 
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
-<<<<<<< HEAD
-from .models import RegistrationStatus, User, db
-from .helpers import current_time, slugify
-from .export import to_xlsx
-=======
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
-from .helpers import current_time
+from .helpers import current_time, slugify
+from .utils.export import to_xlsx
 from .utils.csv import fill_from_csv
->>>>>>> origin/master
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -74,7 +64,7 @@ def view_event(event_id):
 @blueprint.route('/<event_id>/export_xlsx')
 @login_required
 def export_event(event_id):
-    event = Event.query.filter_by(id=event_id).first()
+    event = Event.query.get(event_id)
 
     if event is None or not event.has_edit_rights(current_user):
         abort(403)
