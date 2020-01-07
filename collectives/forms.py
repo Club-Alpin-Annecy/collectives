@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
-from wtforms import StringField, PasswordField, BooleanField, SubmitField 
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms import SelectField, IntegerField, HiddenField
 from wtforms.validators import Email, InputRequired, EqualTo, ValidationError
 from wtforms.validators import DataRequired
@@ -24,6 +24,7 @@ def configure_forms(app):
 
     # set maximum file size, default is 3MB
     patch_request_class(app, 3 * 1024 * 1024)
+
 
 class LicenseValidator:
     prefix = '7400'
@@ -52,7 +53,7 @@ class PasswordValidator:
     def __call__(self, form, field):
         password = field.data
 
-        # Allow empty password, if it is requied another InputRequired() 
+        # Allow empty password, if it is requied another InputRequired()
         # validator will be used
         if password == '':
             return
@@ -79,12 +80,15 @@ class PasswordValidator:
                  " caractères spéciaux"))
 
     def help_string(self):
-        return 'Min. {len} caractères d\'au moins {nc} types différents'.format(
-            len=self.min_length, nc=self.min_classes)
+        return ('Au moins {len} caractères dont majuscules, minuscules,'
+                + ' chiffres ou caractère spéciaux').format(
+            len=self.min_length)
 
 class UniqueValidator(Unique):
-    def __init__(self, column = None, get_session = None, message='déjà associée à un compte'):
-        Unique.__init__(self, column = column, get_session = get_session, message=message)
+    def __init__(self, column=None, get_session=None, message='déjà associée à un compte'):
+        Unique.__init__(self, column=column,
+                        get_session=get_session, message=message)
+
 
 class OrderedForm(FlaskForm):
     """
@@ -128,6 +132,7 @@ class EventForm(ModelForm, FlaskForm):
         self.status.choices = [(s.value, s.display_name())
                                for s in EventStatus]
 
+
 class AdminUserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
@@ -170,6 +175,7 @@ class UserForm(ModelForm, OrderedForm):
 
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
+
 
 class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
