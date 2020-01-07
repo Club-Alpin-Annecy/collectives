@@ -156,7 +156,7 @@ class UserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        exclude = User.protected
+        only = User.mutable
         unique_validator = UniqueValidator
 
     password = PasswordField(

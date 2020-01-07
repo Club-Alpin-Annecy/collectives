@@ -12,7 +12,7 @@ from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
 from collectives.utils.csv import fill_from_csv
 
-from collectives import extranet
+from collectives.utils import extranet
 
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
