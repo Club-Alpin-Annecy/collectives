@@ -43,7 +43,7 @@ def index():
 @login_required
 def view_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
-    
+
     if event is None:
         flash('Événement inexistant', 'error')
         return redirect(url_for('event.index'))
@@ -331,7 +331,6 @@ def csv_import():
     stream = codecs.iterdecode(file.stream, "iso-8859-1")
 
     reader = csv.DictReader( stream, delimiter=",")
-    headers = reader.__next__()
     processed = 0
     failed = 0
     for row in reader:
