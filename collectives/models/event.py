@@ -76,8 +76,8 @@ class Event(db.Model):
 
     num_slots = db.Column(db.Integer, nullable=False)
     num_online_slots = db.Column(db.Integer, nullable=False)
-    registration_open_time = db.Column(db.DateTime, nullable=False)
-    registration_close_time = db.Column(db.DateTime, nullable=False)
+    registration_open_time = db.Column(db.DateTime, nullable=True)
+    registration_close_time = db.Column(db.DateTime, nullable=True)
 
     status = db.Column(db.Integer, nullable=False,
                        default=EventStatus.Confirmed)
@@ -138,9 +138,20 @@ class Event(db.Model):
         return True
 
     def is_valid(self):
-        # pylint: disable=C0301
-        return self.starts_before_ends() and self.opens_before_closes(
-        ) and self.opens_before_ends() and self.has_valid_slots() and self.has_valid_leaders()
+        # Do not test registration date if online slots is null. Registration
+        # date is meant to be used only by an online user while registering.
+        # The leader or administrater is always able to register someone even if
+        # registration date are closed.
+        if self.num_online_slots == 0:
+            return (self.starts_before_ends() and
+                   self.has_valid_slots() and
+                   self.has_valid_leaders())
+        else:
+            return (self.starts_before_ends() and
+                   self.has_valid_slots() and
+                   self.has_valid_leaders() and
+                   self.starts_before_ends() and
+                   self.opens_before_closes())
 
     def is_leader(self, user):
         return user in self.leaders
