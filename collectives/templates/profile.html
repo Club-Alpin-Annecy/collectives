@@ -23,10 +23,17 @@
 <div class="panel" id="eventdetail">
     <h3>{{user.full_name()}}</h3>
 
+    {% if user.license_expiry_date %}
+    <p>
+        Licence de catégorie {{user.license_category}} expirant le {{format_date(user.license_expiry_date)}}.
+    </p>
+    {% endif %}
+
     <h4>Informations de contact</h4>
     <ul>
         <li><b>Email :</b> {{user.mail}}</li>
         <li><b>Téléphone :</b> {{user.phone}}</li>
+        <li><b>En cas d'accident :</b> {{user.emergency_contact_name}} au {{user.emergency_contact_phone}}</li>
     </ul>
     {% if user == current_user %}
     <a class="button" href="{{url_for('root.update_user')}}">Modifier mes informations</a>

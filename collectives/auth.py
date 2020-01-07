@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from .forms import LoginForm, AccountCreationForm
 from .models import User, Role, RoleIds, db
 from .helpers import current_time
-from . import extranet
+from .utils import extranet
 
 import sqlite3
 import sqlalchemy.exc

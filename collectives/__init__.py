@@ -2,8 +2,9 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-from . import models, views, auth, api, administration, event, extranet
+from . import models, views, auth, api, administration, event 
 from . import context_processor
+from .utils import extranet
 
 
 def create_app(config_filename='config'):
