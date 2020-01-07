@@ -3,14 +3,14 @@ from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json, io, csv, codecs
+import json, io
 
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
 from .helpers import current_time, slugify
 from .utils.export import to_xlsx
-from .utils.csv import fill_from_csv
+from .utils.csv import process_stream
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -328,23 +328,9 @@ def csv_import():
         return redirect(url_for('administration.csv_import'))
 
     activity_type = ActivityType.query.get(form.type.data)
-    stream = codecs.iterdecode(file.stream, "iso-8859-1")
 
-    reader = csv.DictReader( stream, delimiter=",")
-    processed = 0
-    failed = 0
-    for row in reader:
-        processed += 1
-        try:
-            event = Event()
-            fill_from_csv(event, row)
-            event.activity_types = [activity_type]
-            db.session.add(event)
-            db.session.commit()
-        except Exception as e:
-            failed += 1
-            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}', 'error')
-
+    processed, failed = process_stream(file.stream, activity_type)
 
     flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
+
     return redirect(url_for('event.csv_import'))
