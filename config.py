@@ -30,6 +30,13 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# SMTP (mail) configuration
+SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
+SMTP_PORT = environ.get('SMTP_PORT') or 25
+SMTP_ADDRESS = environ.get('SMTP_PORT') or 'noreply@example.org'
+SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
+
+
 # Page information
 TITLE = "Collectives CAF Annecy"
 LOGO = "caf/caf-gris.png"
@@ -70,7 +77,7 @@ IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
 
 
-DESCRIPTION_TEMPLATE="""{
+DESCRIPTION_TEMPLATE = """{
     \"ops\":[
         {
             \"insert\":\"ITINERAIRE: \"
@@ -149,3 +156,6 @@ DESCRIPTION_TEMPLATE="""{
         }
     ]
 }"""
+
+XLSX_TEMPLATE = os.path.join(basedir,
+                             "collectives/templates/exported_event.xlsx")

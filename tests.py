@@ -12,7 +12,7 @@ from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
 from collectives.utils.csv import fill_from_csv
 
-from collectives import extranet
+from collectives.utils import extranet
 
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
@@ -336,7 +336,7 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
         "denivele": "",
         "cotation": "",
         "distance": "",
-        "observations": "observations"
+        "observations": "dur"
     }
 
     def create_app(self):
@@ -353,11 +353,11 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
         db.session.commit()
 
         event = Event()
-        fill_from_csv(event, self.csv)
+        fill_from_csv(event, self.csv, '{"ops" : [{"insert":"$observations$"}]}')
         assert event.title == "TITRE"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
-        assert event.rendered_description == "observations"
+        assert "dur" in event.rendered_description 
         assert event.leaders[0].first_name == "First"
 
 

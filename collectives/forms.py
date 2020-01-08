@@ -1,14 +1,16 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
-from wtforms import SelectField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
-from wtforms.validators import Email, InputRequired, EqualTo
-from flask_uploads import UploadSet, configure_uploads, patch_request_class
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import SelectField, IntegerField, HiddenField, TextAreaField
+from wtforms.validators import Email, InputRequired, EqualTo, ValidationError
 from wtforms.validators import DataRequired
-from wtforms_alchemy import ModelForm
+from wtforms_alchemy import ModelForm, Unique
+from flask_uploads import UploadSet, configure_uploads, patch_request_class
 from flask import current_app
+from collections import OrderedDict
 import sys
+import re
 
 from .models import Event, User, photos, avatars, ActivityType, Role, RoleIds
 from .models import Registration, EventStatus
@@ -22,6 +24,91 @@ def configure_forms(app):
 
     # set maximum file size, default is 3MB
     patch_request_class(app, 3 * 1024 * 1024)
+
+
+class LicenseValidator:
+    prefix = '7400'
+    length = 12
+
+    def __call__(self, form, field):
+        val = field.data
+        if not (len(val) == self.length and val.isdigit() and
+                val.startswith(self.prefix)):
+            raise ValidationError(
+                ("Le numéro de licence doit contenir 12 chiffres " +
+                 "et commecer par '{}'".format(self.prefix)))
+
+    def help_string(self):
+        return '{len} chiffres commencant par \'{pref}\''.format(
+            len=self.length, pref=self.prefix)
+
+    def sample_value(self):
+        return self.prefix + 'X' * (self.length - len(self.prefix))
+
+
+class PasswordValidator:
+    min_length = 8
+    min_classes = 3
+
+    def __call__(self, form, field):
+        password = field.data
+
+        # Allow empty password, if it is requied another InputRequired()
+        # validator will be used
+        if password == '':
+            return
+
+        if len(password) < self.min_length:
+            raise ValidationError("Le mot de passe doit contenir au moins " +
+                                  "{} caractères".format(self.min_length))
+
+        num_classes = 0
+        if re.search(r"\d", password):
+            num_classes += 1
+        if re.search(r"[A-Z]", password):
+            num_classes += 1
+        if re.search(r"[a-z]", password):
+            num_classes += 1
+        if re.search(r"[ !@;:%#$%&'()*+,-./[\\\]^_`{|}<>~+=?`]", password):
+            num_classes += 1
+
+        if num_classes < self.min_classes:
+            raise ValidationError(
+                ("Le mot de passe doit contenir au moins " +
+                 "{} classes de caractères".format(self.min_classes) +
+                 " parmi majuscules, minuscules, chiffres et " +
+                 " caractères spéciaux"))
+
+    def help_string(self):
+        return ('Au moins {len} caractères dont majuscules, minuscules,'
+                + ' chiffres ou caractère spéciaux').format(
+            len=self.min_length)
+
+
+class UniqueValidator(Unique):
+    def __init__(self, column=None, get_session=None, message='déjà associée à un compte'):
+        Unique.__init__(self, column=column,
+                        get_session=get_session, message=message)
+
+
+class OrderedForm(FlaskForm):
+    """
+    Extends FlaskForm with an optional 'field_order' property
+    """
+
+    def __iter__(self):
+        field_order = getattr(self, 'field_order', None)
+        if field_order:
+            fields = self._fields
+            temp_fields = OrderedDict()
+            for name in field_order:
+                if name == '*':
+                    temp_fields.update(
+                        {n: f for n, f in fields.items() if n not in field_order})
+                else:
+                    temp_fields[name] = fields[name]
+            self._fields = temp_fields
+        return super(OrderedForm, self).__iter__()
 
 
 class LoginForm(FlaskForm):
@@ -43,59 +130,84 @@ class EventForm(ModelForm, FlaskForm):
     def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
-        self.status.choices = [(s.value, s.display_name()) for s in EventStatus]
+        self.status.choices = [(s.value, s.display_name())
+                               for s in EventStatus]
 
 
-class AdminUserForm(ModelForm, FlaskForm):
+class AdminUserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # Avatar is selected/modified by another field
         exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
         # FIXME Administrator should not be able to change a password,
-        #exclude = ['password']
+        # exclude = ['password']
+        unique_validator = UniqueValidator
 
-    password = PasswordField(
-        'Nouveau mot de passe',
-        [EqualTo('confirm',
-                 message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
+    confirm = PasswordField(
+        'Confirmation du nouveau mot de passe',
+        validators=[EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
 
-    validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
     avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    field_order = ['*', 'avatar_file', 'password', 'confirm']
 
 
-class UserForm(ModelForm, FlaskForm):
+class UserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        exclude = User.protected
+        only = User.mutable
+        unique_validator = UniqueValidator
 
     password = PasswordField(
-        'Nouveau mot de passe',
-        [EqualTo('confirm',
-                 message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
+        label='Nouveau mot de passe',
+        description='Laisser vide pour conserver l\'actuel',
+        validators=[PasswordValidator()])
+
+    confirm = PasswordField(
+        'Confirmation du nouveau mot de passe',
+        validators=[EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
 
     avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    validators = {'mail': [Email()]}
     submit = SubmitField('Enregistrer')
+    field_order = ['*', 'avatar', 'password', 'confirm']
+
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
 
 
-class AccountCreationForm(ModelForm, FlaskForm):
+class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
-        only = ['mail', 'license', 'date_of_birth']
+        only = ['mail', 'license', 'date_of_birth', 'password']
+        unique_validator = UniqueValidator
 
     password = PasswordField(
-        'Nouveau mot de passe',
-        [InputRequired(),
-         EqualTo('confirm',
-                 message='Les mots de passe ne correspondent pas')])
-    confirm = PasswordField('Confirmation du mot de passe')
+        label='Choisissez un mot de passe',
+        description=PasswordValidator().help_string(),
+        validators=[InputRequired(), PasswordValidator()])
 
-    validators = {'mail': [Email()]}
+    confirm = PasswordField(
+        label='Confirmation du mot de passe',
+        validators=[InputRequired(),
+                    EqualTo('password',
+                            message='Les mots de passe ne correspondent pas')])
+
+    license = StringField(
+        label='Numéro de licence',
+        description=LicenseValidator().help_string(),
+        render_kw={'placeholder': LicenseValidator().sample_value()},
+        validators=[LicenseValidator()])
+
+    field_order = ['mail', 'license', '*', 'password', 'confirm']
+
     submit = SubmitField('Activer le compte')
+
+    def __init__(self, *args, **kwargs):
+        super(AccountCreationForm, self).__init__(*args, **kwargs)
+        self.mail.description = "Utilisée lors de votre inscription au club"
 
 
 class RoleForm(ModelForm, FlaskForm):
@@ -124,10 +236,13 @@ class RegistrationForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
 
+
 class CSVForm(FlaskForm):
-    csv_file = FileField()
+    csv_file = FileField("Fichier Csv", validators=[InputRequired()])
+    description = TextAreaField('Template de description')
     submit = SubmitField('Import')
     type = SelectField('Type d\'activité', choices=[])
+
     def __init__(self, activity_choices, *args, **kwargs):
         super(CSVForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices

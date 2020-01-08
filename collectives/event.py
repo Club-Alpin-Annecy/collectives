@@ -1,15 +1,16 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint
+from flask import current_app, Blueprint, send_file, abort
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json, codecs, csv
+import json, io
 
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
-from .helpers import current_time
-from .utils.csv import fill_from_csv
+from .helpers import current_time, slugify
+from .utils.export import to_xlsx
+from .utils.csv import process_stream
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -42,7 +43,7 @@ def index():
 @login_required
 def view_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
-    
+
     if event is None:
         flash('Événement inexistant', 'error')
         return redirect(url_for('event.index'))
@@ -58,6 +59,26 @@ def view_event(event_id):
                            current_time=current_time(),
                            current_user=current_user,
                            register_user_form=register_user_form)
+
+
+@blueprint.route('/<event_id>/export_xlsx')
+@login_required
+def export_event(event_id):
+    event = Event.query.get(event_id)
+
+    if event is None or not event.has_edit_rights(current_user):
+        abort(403)
+
+    filename = '{}-{}-{}.xlsx'.format(event.start.date(), event.id,
+                                      slugify(event.title))
+
+    return send_file(
+        io.BytesIO(to_xlsx(event)),
+        as_attachment=True,
+        attachment_filename=filename,
+        cache_timeout=-1,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 
 @blueprint.route('/add', methods=['GET', 'POST'])
@@ -294,37 +315,21 @@ def csv_import():
     choices = [(str(a.id), a.name) for a in activities]
     form = CSVForm(choices)
 
-    if request.method != 'POST' or not form.validate():
-        return render_template('basicform.html',
+    if not form.is_submitted():
+        form.description.data = current_app.config['DESCRIPTION_TEMPLATE']
+
+    if not form.validate_on_submit():
+        return render_template('import_csv.html',
                                conf=current_app.config,
                                form=form,
                                title="Création d'event par CSV")
 
-    file = form.csv_file.data
-
-    if file == None:
-        flash('Pas de fichier fourni', 'error')
-        return redirect(url_for('administration.csv_import'))
 
     activity_type = ActivityType.query.get(form.type.data)
-    stream = codecs.iterdecode(file.stream, "iso-8859-1")
 
-    reader = csv.DictReader( stream, delimiter=",")
-    headers = reader.__next__()
-    processed = 0
-    failed = 0
-    for row in reader:
-        processed += 1
-        try:
-            event = Event()
-            fill_from_csv(event, row)
-            event.activity_types = [activity_type]
-            db.session.add(event)
-            db.session.commit()
-        except Exception as e:
-            failed += 1
-            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}', 'error')
-
+    file = form.csv_file.data
+    processed, failed = process_stream(file.stream, activity_type, form.description.data)
 
     flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
+
     return redirect(url_for('event.csv_import'))

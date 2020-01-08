@@ -30,8 +30,8 @@ class User(db.Model, UserMixin):
                      nullable=False,
                      unique=True,
                      index=True,
-                     info={'validators': Email(message="E-mail invalide"),
-                           'label': 'Email'})
+                     info={'validators': Email(message="Format d'adresse invalide"),
+                           'label': 'Adresse e-mail'})
 
     # Name
     first_name = db.Column(db.String(100),
@@ -41,16 +41,15 @@ class User(db.Model, UserMixin):
                           nullable=False,
                           info={'label': 'Nom'})
 
-    # License number
+    # License number and category
     license = db.Column(
         db.String(100),
         nullable=False,
         unique=True,
         index=True,
-        info={'label': 'Numéro de licence',
-              'validators': Length(
-                  min=12, max=12,
-                  message="Numéro de licence invalide")})
+        info={'label': 'Numéro de licence'})
+    license_category = db.Column(
+        db.String(2))
 
     # Date of birth
     date_of_birth = db.Column(
@@ -82,9 +81,8 @@ class User(db.Model, UserMixin):
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
-    # List of protected field, which cannot be modified by a User
-    protected = ['enabled', 'license', 'date_of_birth', 'license_expiry_date',
-                 'last_extranet_sync_time']
+    # List of fields that can be modified by a User
+    mutable = ['password', 'avatar']
 
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)

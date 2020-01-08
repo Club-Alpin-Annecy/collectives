@@ -1,0 +1,60 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+  {# Wysiwyg Editor #}
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Import CSV{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <!-- Logging Windows -->
+  <h3>{{ title }}</h3>
+
+  <ul class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+    <li>
+      <strong>Erreur: {{field.label}}:</strong> {{error}}
+    </li>
+    {% endfor %}
+    {% endfor %}
+  </ul>
+
+  <form action="" 
+        onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
+        method="POST" enctype="multipart/form-data">
+
+    {% for field in form %}
+    {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "TextAreaField" ]) %}
+    <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+    {{ field(title=field.description) }}
+    {% endif %}
+    {% endfor %}
+
+    <h4>Squelette de description</h4>
+    <p>
+    Les marqueurs de type <em>$nom_de_colonne$</em> seront remplacés par la valeur de la colonne du même nom.
+    </p>
+    <div id="editor"></div>
+    {{ form.description(style="display:none;", required=false) }}<br/>
+
+    <br/>
+    {{ form.hidden_tag() }}
+     <br/><input type="submit" value="Enregistrer"  />
+  </form>
+</div>
+<script>
+var quill = new Quill('#editor', {
+  theme: 'snow'
+});
+quill.setContents(JSON.parse(document.querySelector('textarea[name=description]').defaultValue));
+</script>
+
+{% endblock %}
