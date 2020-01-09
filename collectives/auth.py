@@ -18,6 +18,8 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = u"Merci de vous connecter pour accéder à cette page"
 
+blueprint = Blueprint('auth', __name__, url_prefix='/auth')
+
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
@@ -27,8 +29,23 @@ def load_user(user_id):
         return None
     return user
 
+def sync_user(user, force):
+    """
+    Synchronize user info from extranet if license has been renewed,
+    or if 'force' is True
+    """
+    if user.enabled and not user.license_expiry_date is None:
+        # Check whether the license has been renewed
+        license_info = extranet.api.check_license(user.license)
+        if not license_info.exists:
+            return
 
-blueprint = Blueprint('auth', __name__, url_prefix='/auth')
+        if force or license_info.expiry_date() > user.license_expiry_date:
+            # License has been renewd, sync user data from API
+            user_info = extranet.api.fetch_user_info(user.license)
+            extranet.sync_user(user, user_info, license_info)
+            db.session.add(user)
+            db.session.commit()
 
 ##########################################################################
 #   LOGIN
@@ -50,15 +67,7 @@ def login():
         flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
         return redirect(url_for('auth.login'))
 
-    if user.enabled and not user.license_expiry_date is None:
-        # Check whether the license has been renewed
-        license_info = extranet.api.check_license(user.license)
-        if license_info.expiry_date() > user.license_expiry_date:
-            # License has been renewd, sync user data from API
-            user_info = extranet.api.fetch_user_info(user.license)
-            extranet.sync_user(user, user_info, license_info)
-            db.session.add(user)
-            db.session.commit()
+    sync_user(user, False)
 
     if not user.is_active:
         flash('Compte désactivé ou license expirée', 'error')
