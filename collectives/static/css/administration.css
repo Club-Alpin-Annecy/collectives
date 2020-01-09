@@ -14,7 +14,7 @@
   padding: 10px 20px;
 }
 
-#administration input{
+#administration input, #administration select{
   width : 40%;
   margin-bottom: 1em;
 }
@@ -25,18 +25,27 @@
 }
 
 
-#administration form div{
+#administration form div.field{
   display: inline-block;
   text-align: right;
   width:30%;
   margin-bottom: 1em;
 }
 
-#administration form div label{
+#administration form div.field label{
   display:block;
 }
 
-#administration form div span.help{
+#administration form div.field span.help{
   padding-right: 5px;
   font-size:80%;
+}
+
+#administration #editor, #administration .ql-toolbar{
+  width: 80%;
+  margin:auto;
+}
+
+#administration #editor{
+  height: 20em;
 }

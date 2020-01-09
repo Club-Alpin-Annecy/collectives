@@ -320,21 +320,20 @@ def csv_import():
     choices = [(str(a.id), a.name) for a in activities]
     form = CSVForm(choices)
 
-    if request.method != 'POST' or not form.validate():
-        return render_template('basicform.html',
+    if not form.is_submitted():
+        form.description.data = current_app.config['DESCRIPTION_TEMPLATE']
+
+    if not form.validate_on_submit():
+        return render_template('import_csv.html',
                                conf=current_app.config,
                                form=form,
                                title="Création d'event par CSV")
 
-    file = form.csv_file.data
-
-    if file == None:
-        flash('Pas de fichier fourni', 'error')
-        return redirect(url_for('administration.csv_import'))
 
     activity_type = ActivityType.query.get(form.type.data)
 
-    processed, failed = process_stream(file.stream, activity_type)
+    file = form.csv_file.data
+    processed, failed = process_stream(file.stream, activity_type, form.description.data)
 
     flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
 

@@ -14,6 +14,7 @@ from collectives.utils.csv import fill_from_csv
 
 from collectives.utils import extranet
 
+
 def create_test_user(email="test", user_license=""):
     user = User(mail=email, first_name="Test", last_name="Test", password="",
                 license=user_license, enabled=True, phone="")
@@ -252,6 +253,7 @@ class TestRegistrations(TestEvents):
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
 
+
 class TestJsonApi(ModelTest):
     def test_autocomplete(self):
 
@@ -273,6 +275,7 @@ class TestJsonApi(ModelTest):
         assert users[0].mail == 'u2'
         users = list(find_users_by_fuzzy_name("z"))
         assert len(users) == 0
+
 
 class TestExtranetApi(flask_testing.TestCase):
 
@@ -325,6 +328,7 @@ class TestExtranetApi(flask_testing.TestCase):
         info.renewal_date = datetime.date(2019, 9, 1)
         assert info.expiry_date() == datetime.date(2020, 10, 1)
 
+
 class TestImportCSV(ModelTest, flask_testing.TestCase):
 
     csv = {
@@ -343,7 +347,7 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
         "denivele": "",
         "cotation": "",
         "distance": "",
-        "observations": "observations"
+        "observations": "dur"
     }
 
     def create_app(self):
@@ -360,11 +364,12 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
         db.session.commit()
 
         event = Event()
-        fill_from_csv(event, self.csv)
+        fill_from_csv(event, self.csv,
+                      '{"ops" : [{"insert":"$observations$"}]}')
         assert event.title == "TITRE"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
-        assert event.rendered_description == "observations"
+        assert "dur" in event.rendered_description
         assert event.leaders[0].first_name == "First"
 
 

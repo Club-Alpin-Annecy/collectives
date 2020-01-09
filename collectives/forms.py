@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import SelectField, IntegerField, HiddenField
+from wtforms import SelectField, IntegerField, HiddenField, TextAreaField
 from wtforms.validators import Email, InputRequired, EqualTo, ValidationError
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm, Unique
@@ -83,6 +83,7 @@ class PasswordValidator:
         return ('Au moins {len} caractères dont majuscules, minuscules,'
                 + ' chiffres ou caractère spéciaux').format(
             len=self.min_length)
+
 
 class UniqueValidator(Unique):
     def __init__(self, column=None, get_session=None, message='déjà associée à un compte'):
@@ -235,10 +236,13 @@ class RegistrationForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
 
+
 class CSVForm(FlaskForm):
-    csv_file = FileField()
+    csv_file = FileField("Fichier Csv", validators=[InputRequired()])
+    description = TextAreaField('Template de description')
     submit = SubmitField('Import')
     type = SelectField('Type d\'activité', choices=[])
+
     def __init__(self, activity_choices, *args, **kwargs):
         super(CSVForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices

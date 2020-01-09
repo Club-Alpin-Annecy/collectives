@@ -95,7 +95,7 @@ DESCRIPTION_TEMPLATE = """{
             \"attributes\":{
                 \"header\":2
             },
-            \"insert\":\"\\n\"
+            \"insert\":\"$altitude$\\n\"
         },
         {
             \"insert\":\"∆+:  \"
@@ -104,7 +104,7 @@ DESCRIPTION_TEMPLATE = """{
             \"attributes\":{
                 \"header\":2
             },
-            \"insert\":\"\\n\"
+            \"insert\":\"$denivele$\\n\"
         },
         {
             \"insert\":\"Cotation: \"
@@ -113,7 +113,7 @@ DESCRIPTION_TEMPLATE = """{
             \"attributes\":{
                 \"header\":2
             },
-            \"insert\":\"\\n\"
+            \"insert\":\"$cotation$\\n\"
         },
         {
             \"insert\":\"\\nLIEU ET HEURE DE DEPART: \"
@@ -150,6 +150,9 @@ DESCRIPTION_TEMPLATE = """{
                 \"list\":\"bullet\"
             },
             \"insert\":\"\\n\"
+        },
+        {
+            \"insert\":\"$observations$\"
         }
     ]
 }"""
