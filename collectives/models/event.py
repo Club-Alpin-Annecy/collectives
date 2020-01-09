@@ -112,6 +112,12 @@ class Event(db.Model):
         return self.rendered_description
 
     # Date validation
+    def has_defined_registration_date(self):
+        # One should not creat an event with online slot defined but
+        # any registration dates (open and close)
+        if not self.registration_open_time or not self.registration_close_time:
+            return False
+        return  True
 
     def starts_before_ends(self):
         # Event must starts before it ends
@@ -151,7 +157,8 @@ class Event(db.Model):
                    self.has_valid_slots() and
                    self.has_valid_leaders() and
                    self.starts_before_ends() and
-                   self.opens_before_closes())
+                   self.opens_before_closes() and
+                   self.has_defined_registration_date())
 
     def is_leader(self, user):
         return user in self.leaders

@@ -111,12 +111,16 @@ def manage_event(event_id=None):
         flash('La date de début doit être antérieure à la date de fin')
         valid = False
     if event.num_online_slots > 0:
-        if not event.opens_before_closes():
-            flash('Les inscriptions internet doivent ouvrir avant de terminer')
+        if not event.has_defined_registration_date():
+            flash("Les date de début ou fin d\'ouverture ou de fermeture d'inscription ne peuvent être nulles.")
             valid = False
-        if not event.opens_before_ends():
-            flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
-            valid = False
+        else:
+            if not event.opens_before_closes():
+                flash('Les inscriptions internet doivent ouvrir avant de terminer')
+                valid = False
+            if not event.opens_before_ends():
+                flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
+                valid = False
         if event.num_slots < event.num_online_slots:
             flash('Le nombre de places internet ne doit pas dépasser le nombre de places total')
             valid = False
