@@ -120,12 +120,9 @@ class TestEvents(TestUsers):
         return Event(title="Event",
                      description="",
                      shortdescription="",
-                     num_slots=2, num_online_slots=1,
+                     num_slots=2, num_online_slots=0,
                      start=datetime.datetime.now() + datetime.timedelta(days=1),
-                     end=datetime.datetime.now() + datetime.timedelta(days=2),
-                     registration_open_time=datetime.datetime.now(),
-                     registration_close_time=datetime.datetime.now() +
-                     datetime.timedelta(days=1))
+                     end=datetime.datetime.now() + datetime.timedelta(days=2))
 
     def test_add_event(self):
         event = self.make_event()
@@ -164,6 +161,7 @@ class TestEvents(TestUsers):
 
         # Test slots
         event.num_slots = 0
+        event.num_online_slots = 1
         assert not event.is_valid()
         event.num_online_slots = 0
         assert event.is_valid()
@@ -177,6 +175,11 @@ class TestEvents(TestUsers):
         assert not event.is_valid()
         event.end = event.start
         assert event.is_valid()
+
+        event.num_online_slots = 1
+        event.registration_open_time = datetime.datetime.now()
+        event.registration_close_time = datetime.datetime.now() + \
+            datetime.timedelta(days=1)
 
         assert event.is_registration_open_at_time(datetime.datetime.now())
 
@@ -209,6 +212,10 @@ class TestRegistrations(TestEvents):
     def test_add_registration(self):
         event = self.make_event()
         event.num_online_slots = 2
+        event.registration_open_time = datetime.datetime.now()
+        event.registration_close_time = datetime.datetime.now() + \
+            datetime.timedelta(days=1)
+
         db.session.add(event)
         db.session.commit()
 
