@@ -9,6 +9,7 @@ import os
 from .forms import UserForm
 from .models import User, Registration, RegistrationStatus, Event, db
 from .helpers import current_time
+from .auth import sync_user
 
 images = Images()
 
@@ -88,3 +89,11 @@ def update_user():
     db.session.commit()
 
     return redirect(url_for('root.update_user'))
+
+@root.route('/user/force_sync', methods=['POST'])
+@login_required
+def force_user_sync():
+    sync_user(current_user, True)
+    return redirect(url_for('root.show_user', user_id=current_user.id))
+
+
