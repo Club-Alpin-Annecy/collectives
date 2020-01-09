@@ -30,6 +30,13 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# SMTP (mail) configuration
+SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
+SMTP_PORT = environ.get('SMTP_PORT') or 25
+SMTP_ADDRESS = environ.get('SMTP_PORT') or 'noreply@example.org'
+SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
+
+
 # Page information
 TITLE = "Collectives CAF Annecy"
 LOGO = "caf/caf-gris.png"
