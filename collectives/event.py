@@ -1,5 +1,5 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint, send_file, abort
+from flask import current_app, Blueprint, send_file, abort, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
@@ -9,7 +9,7 @@ from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
 from .helpers import current_time, slugify
-from .utils.export import to_xlsx
+from .utils.export import to_xlsx, strip_tags
 from .utils.csv import process_stream
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
@@ -79,6 +79,22 @@ def export_event(event_id):
         cache_timeout=-1,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
+@blueprint.route('/<event_id>/print')
+@login_required
+def print_event(event_id):
+    event = Event.query.get(event_id)
+
+    if event is None or not event.has_edit_rights(current_user):
+        flash('Accès restreint, rôle insuffisant.', 'error')
+        return redirect(url_for('event.index'))
+
+    activity_names = [at.name for at in event.activity_types]    
+    description = escape(strip_tags(event.description))
+    return render_template('print_event.html',
+                            event = event,
+                            description = description,
+                            activity_names = activity_names)
 
 
 @blueprint.route('/add', methods=['GET', 'POST'])

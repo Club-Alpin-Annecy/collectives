@@ -1,0 +1,87 @@
+<html>
+    <head>
+        <title>{{event.title}} -- Fiche collective</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/event/print.css') }}">
+    </head>
+    <body>
+
+
+        <div id="emergency">
+            <ul>
+            <li><span class="what">Nivo météo:</span> <span class="phone">08 92 68 10 20</span></li>
+            <li><span class="what">Secours:   </span> <span class="phone">112</span></li>
+            <li><span class="what">CAF Annecy:</span> <span class="phone">04 50 09 82 09</span></li>
+            </ul>
+        </div>
+        
+        <div id="logo"><img src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
+
+        <div id="title">
+            <h2>Collective de {{','.join(activity_names)}} &mdash; </h2>
+            <h1>{{event.title}}</h1>
+        </div>
+
+        <div id="description">
+            <pre>
+            {{description}}
+            </pre>
+        </div>
+
+        <div id="info">
+            <div id="leaders">
+                <h4>Encadrement : </h4>
+                {%for leader in event.leaders%}
+                <div class="leader">
+                    <span class="name">{{leader.full_name()}}</span>
+                    <span class="phone">{{leader.phone}}</span>
+                    <span class="email">{{leader.mail}}</span>
+                </div>
+                {%endfor%}
+            </div>
+            
+            <div id="dates">
+                <ul>
+                    <li><span>Départ :</span> {{format_date(event.start)}}</li>
+                    <li><span>Retour :</span> {{format_date(event.end)}}</li>
+                </ul>
+            </div>
+        </div>
+
+
+        <table id="registrations">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Licence</th>
+                    <th>Nom</th>
+                    <th>Téléphone</th>
+                    <th>E-mail</th>
+                    <th>En cas d'accident</th>
+                    <th>Absent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in event.active_registrations() %}
+                <tr class="{{ loop.cycle('odd', 'even') }}">
+                    <td>{{loop.index}}</td>
+                    <td>{{reg.user.license}}</td>
+                    <td>{{reg.user.full_name()}}</td>
+                    <td>{{reg.user.phone}}</td>
+                    <td>{{reg.user.mail}}</td>
+                    <td>{{'{} au {}'.format(reg.user.emergency_contact_name, reg.user.emergency_contact_phone)}}</td>
+                    <td class="presence"><input type="checkbox"></td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <div id="footer">
+            <h3 id="observations">Observations:</h3>
+            <h3 id="signature">Signature:</h3>
+        </div>
+
+    </body>
+    <script>window.print();</script>
+</html>
