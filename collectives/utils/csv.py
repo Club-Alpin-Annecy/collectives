@@ -1,7 +1,10 @@
 from ..models import User, Event, db
 from datetime import datetime
 from flask import flash, current_app
-import re, codecs, csv
+import re
+import codecs
+import csv
+
 
 class PlaceholderFiller:
     def __init__(self, row):
@@ -10,8 +13,10 @@ class PlaceholderFiller:
     def __call__(self, match):
         key = match.group(1)
         if key in self.row.keys():
-            return self.row[key].replace('"', '\\"').replace("\n",'\\n')
+            return self.row[key].replace('\\', '\\\\').replace(
+                '"', '\\"').replace("\n", '\\n')
         return ''
+
 
 def fill_from_csv(event, row, template):
     event.title = row['title']
@@ -26,7 +31,7 @@ def fill_from_csv(event, row, template):
     event.num_slots = int(row['seats'])
     event.num_online_slots = int(row['internetSeats'])
 
-    leader = User.query.filter_by(license = row['initiateur']).first()
+    leader = User.query.filter_by(license=row['initiateur']).first()
     if leader is None:
         raise Exception(f'Utilisateur {row["initiateur"]} inconnu')
     event.leaders = [leader]
@@ -35,10 +40,11 @@ def fill_from_csv(event, row, template):
 def convert_csv_time(date_time_str):
     return datetime.strptime(date_time_str, '%d/%m/%y %H:%M')
 
+
 def process_stream(base_stream, activity_type, description):
     # First, we try to decode csv file as utf8
     # If it fails, we try again as Windows encoding
-    try :
+    try:
         stream = codecs.iterdecode(base_stream, "utf8")
         events, processed, failed = csv_to_events(stream, description)
     except UnicodeDecodeError:
@@ -54,12 +60,13 @@ def process_stream(base_stream, activity_type, description):
     db.session.commit()
     return processed, failed
 
+
 def csv_to_events(stream, description):
-    events=[]
+    events = []
     processed = 0
     failed = 0
 
-    reader = csv.DictReader( stream, delimiter=",")
+    reader = csv.DictReader(stream, delimiter=",")
     for row in reader:
         processed += 1
         event = Event()
@@ -68,5 +75,6 @@ def csv_to_events(stream, description):
             events.append(event)
         except Exception as e:
             failed += 1
-            flash(f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)} {str(row)}', 'error')
+            flash(
+                f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)} {str(row)}', 'error')
     return events, processed, failed
