@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email, Length
+import enum
 
 from datetime import date
 
@@ -16,6 +17,26 @@ from .activitytype import ActivityType
 
 # Upload
 avatars = UploadSet('avatars', IMAGES)
+
+class Gender(enum.IntEnum):
+    Unknown = 0
+    Woman = 1
+    Man = 2
+    Other = 3
+
+    @classmethod
+    def display_names(cls):
+        return {
+            cls.Other: 'Autre',
+            cls.Woman: 'Femme',
+            cls.Man: 'Homme',
+            cls.Unknown: 'Inconnu'
+        }
+
+    def display_name(self):
+        cls = self.__class__
+        return cls.display_names()[self.value]
+
 
 # Models
 class User(db.Model, UserMixin):
@@ -81,6 +102,8 @@ class User(db.Model, UserMixin):
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
+    gender = db.Column(db.Integer, nullable=False, default=0)
+
     # List of fields that can be modified by a User
     mutable = ['password', 'avatar']
 
@@ -92,6 +115,9 @@ class User(db.Model, UserMixin):
         if file is not None:
             filename = avatars.save(file, name='user-' + str(self.id) + '.')
             self.avatar = filename
+
+    def get_gender_name(self):
+        return Gender(self.gender).display_name()
 
     def check_license_valid_at_time(self, time):
         if self.license_expiry_date is None:
