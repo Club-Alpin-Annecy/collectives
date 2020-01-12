@@ -2,13 +2,13 @@
 body 
 {
     width:21cm;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 div#emergency
 {
     float:right;
-    width:15em;
+    width:18em;
     margin-right:2em;
     text-align:right;
 }
@@ -26,6 +26,7 @@ div#emergency li span.what
 div#emergency li span.phone
 {
     text-align:right;
+    width:8em;
 }
 
 div#title {
@@ -50,6 +51,8 @@ div#description pre {
     height:20em;
     padding:1em;
     border:1px solid black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size:80%;
  }
 
 div#info
