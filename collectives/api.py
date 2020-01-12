@@ -157,7 +157,7 @@ def photo_uri(event):
 
 class UserSimpleSchema(marshmallow.Schema):
     avatar_uri = fields.Function(avatar_url)
-    name = fields.Function(lambda user: user.abbrev_name())
+    name = fields.Function(lambda user: user.full_name())
 
     class Meta:
         fields = ('id', 'name', 'avatar_uri')
