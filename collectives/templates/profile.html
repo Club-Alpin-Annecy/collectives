@@ -50,10 +50,12 @@
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/>Genre :</td>
             <td> {{user.get_gender_name()}}</td>
         </tr>
+        {% if user == current_user %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt=""/> Date de naissance :</td>
             <td>{{format_date(user.date_of_birth)}}</td>
         </tr>
+        {% endif %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt=""/> Email :</td>
             <td>{{user.mail}}</td>
