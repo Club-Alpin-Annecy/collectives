@@ -4,7 +4,7 @@ from pysimplesoap.client import SoapClient
 from datetime import datetime, date
 from sys import stderr
 
-from ..models import User
+from ..models import User, Gender
 from ..helpers import current_time
 
 # If a license has been renewed after RENEWAL_MONTH of year Y, 
@@ -38,6 +38,7 @@ class UserInfo:
     last_name = ""
     email = ""
     phone = ""
+    qualite = ""
     date_of_birth = None
     emergency_contact_name = ""
     emergency_contact_phone = ""
@@ -58,6 +59,7 @@ def sync_user(user, user_info, license_info):
     user.license_expiry_date = license_info.expiry_date()
     user.license_category = user_info.license_category
     user.last_extranet_sync_time = current_time()
+    user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
 
 class ExtranetApi:
     soap_client = None
@@ -146,7 +148,7 @@ class ExtranetApi:
             info.license_category = result['categorie']
             info.date_of_birth = datetime.strptime(
                     result['date_naissance'], '%Y-%m-%d').date()
-
+            info.qualite = result['qualite']
             info.is_valid = True
 
         except pysimplesoap.client.SoapFault as err:

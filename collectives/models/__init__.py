@@ -10,4 +10,4 @@ from .event         import Event, EventStatus, photos
 from .activitytype  import ActivityType
 from .registration  import Registration, RegistrationLevels, RegistrationStatus
 from .role          import Role, RoleIds
-from .user          import User, avatars
+from .user          import User, Gender, avatars
