@@ -41,8 +41,8 @@
             
             <div id="dates">
                 <ul>
-                    <li><span>Départ :</span> {{format_date(event.start)}}</li>
-                    <li><span>Retour :</span> {{format_date(event.end)}}</li>
+                    <li><span>Départ</span> : {{format_date(event.start)}}</li>
+                    <li><span>Retour</span> : {{format_date(event.end)}}</li>
                 </ul>
             </div>
         </div>
@@ -66,9 +66,9 @@
                     <td>{{loop.index}}</td>
                     <td>{{reg.user.license}}</td>
                     <td>{{reg.user.full_name()}}</td>
-                    <td>{{reg.user.phone}}</td>
+                    <td>{{reg.user.phone if reg.user.phone != None else 'Non renseigné'}}</td>
                     <td>{{reg.user.mail}}</td>
-                    <td>{{'{} au {}'.format(reg.user.emergency_contact_name, reg.user.emergency_contact_phone)}}</td>
+                    <td>{{'{} ({})'.format(reg.user.emergency_contact_name, reg.user.emergency_contact_phone)}}</td>
                     <td class="presence"><input type="checkbox"></td>
                 </tr>
                 {% endfor %}
