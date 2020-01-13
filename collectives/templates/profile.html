@@ -70,7 +70,7 @@
         </tr>
     </table>
 
-    {% if user == current_user %}
+    {% if user == current_user and user.license_expiry_date %}
     <form action="{{url_for('root.force_user_sync')}}" method="post" id="refresh_extranet">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="submit" value="Resynchronizer mes informations FFCAM">

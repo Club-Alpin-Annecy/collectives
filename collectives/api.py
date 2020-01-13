@@ -38,6 +38,10 @@ class UserSchema(marshmallow.Schema):
         lambda user: url_for(
             'administration.manage_user',
             user_id=user.id))
+    profile_uri = fields.Function(
+        lambda user: url_for(
+            'root.show_user',
+            user_id=user.id))
     avatar_uri = fields.Function(avatar_url)
 
     class Meta:
@@ -49,6 +53,7 @@ class UserSchema(marshmallow.Schema):
                   'roles_uri',
                   'avatar_uri',
                   'manage_uri',
+                  'profile_uri',
                   'delete_uri')
 
 

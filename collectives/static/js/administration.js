@@ -13,7 +13,7 @@ window.onload = function(){
           layout:"fitColumns",
           columns:[
             {field:"avatar_uri", formatter: 'image', formatterParams:{height: '1em'}},
-            {title:"Email", field:"mail", headerFilter:"input", widthGrow:3},
+            {title:"Email", field:"mail", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Admin", field:"isadmin",  formatter:"tick", widthGrow:1},
             {title:"Enable", field:"enabled",  formatter:"tickCross", widthGrow:1},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm},
