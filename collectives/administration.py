@@ -77,13 +77,15 @@ def manage_user(user_id=None):
         delattr(form , 'password')
 
     form.populate_obj(user)
-    db.session.add(user)
-    db.session.commit()
-    # Save avatar into ight UploadSet
-    if form.avatar_file.data is not None:
-        user.save_avatar(form.avatar_file.data)
+    # Commit this object will create the id if it
+    # is a user creation
+    if user_id == None:
         db.session.add(user)
         db.session.commit()
+    # Save avatar into ight UploadSet
+    user.save_avatar(FormClass().avatar.data)
+    db.session.add(user)
+    db.session.commit()
 
     return redirect(url_for('administration.administration'))
 
