@@ -10,7 +10,7 @@ def current_time():
     now = datetime.now(tz_info)
     # Datetimes are stored in naive format, assumed to
     # always be in the correct timezone
-    # For Python to allow comparisons we need to strip the 
+    # For Python to allow comparisons we need to strip the
     # tz information from our local time
     return now.replace(tzinfo = None)
 
@@ -21,7 +21,7 @@ def slugify(value):
     """
     Normalizes string, converts to lowercase, removes non-alpha characters,
     and converts spaces to hyphens.
-    
+
     From Django's "django/template/defaultfilters.py".
     """
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')

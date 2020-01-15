@@ -72,8 +72,8 @@ class Event(db.Model):
     rendered_description = db.Column(db.Text(), nullable=True, default='')
     shortdescription = db.Column(db.String(100), nullable=True, default='')
     photo = db.Column(db.String(100), nullable=True)
-    start = db.Column(db.DateTime, nullable=False, index=True)
-    end = db.Column(db.DateTime, nullable=False)
+    start = db.Column(db.Date, nullable=False, index=True)
+    end = db.Column(db.Date, nullable=False)
 
     num_slots = db.Column(db.Integer, nullable=False)
     num_online_slots = db.Column(db.Integer, nullable=False)
@@ -104,6 +104,7 @@ class Event(db.Model):
         self.description = current_app.config['DESCRIPTION_TEMPLATE']
         # Remove placeholders
         self.description = re.sub(r'\$[\w]+?\$', '', self.description)
+        self.num_online_slots = 0
 
     def save_photo(self, file):
         if file is not None:

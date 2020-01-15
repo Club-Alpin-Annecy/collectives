@@ -34,10 +34,9 @@ def helpers_processor():
             start), format_time(start), format_date(end), format_time(end))
 
     def format_date_range(start, end):
-        if start.date() == end.date():
-            return '{}'.format(format_date_short(start))
-        return 'du {} au {}'.format(
-            format_date_short(start), format_date_short(end))
+        if start == end:
+            return 'Le {}'.format(format_date(start))
+        return 'du {} au {}'.format(format_date(start), format_date(end))
 
     def server_local_time():
         return current_time()

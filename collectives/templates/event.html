@@ -40,7 +40,7 @@
       </div>
 
       <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-        {{ format_datetime_range(event.start, event.end) | capitalize}}
+        {{ format_date_range(event.start, event.end) | capitalize}}
       </h5>
 
 

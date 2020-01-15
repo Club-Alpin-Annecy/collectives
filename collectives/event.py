@@ -121,11 +121,17 @@ def manage_event(event_id=None):
 
     form.populate_obj(event)
 
-    # Validate dates
+    # Validate using wtform basic validators
+    if not form.validate_on_submit():
+        if current_app.config['FLASK_DEBUG']:
+            flash(form.errors)
+        return render_template('editevent.html',
+                               conf=current_app.config,
+                               form=form)
+
+
+    # Custom validators
     valid = True
-    if not event.starts_before_ends():
-        flash('La date de début doit être antérieure à la date de fin')
-        valid = False
     if event.num_online_slots > 0:
         if not event.has_defined_registration_date():
             flash("Les date de début ou fin d\'ouverture ou de fermeture d'inscription ne peuvent être nulles.")
@@ -140,9 +146,6 @@ def manage_event(event_id=None):
         if event.num_slots < event.num_online_slots:
             flash('Le nombre de places internet ne doit pas dépasser le nombre de places total')
             valid = False
-    elif event.num_online_slots < 0:
-        flash('Le nombre de places par internet ne peut être négatif')
-        valid = False
 
     if not valid:
         return render_template('editevent.html',
@@ -344,7 +347,6 @@ def csv_import():
                                conf=current_app.config,
                                form=form,
                                title="Création d'event par CSV")
-
 
     activity_type = ActivityType.query.get(form.type.data)
 

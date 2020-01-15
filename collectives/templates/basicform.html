@@ -3,9 +3,6 @@
 {% block additionalhead %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
 
-  {# DateTime picker#}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
-  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -47,17 +44,4 @@
   {% include 'contact_link.html' %}
 
 </div>
-
-<script>
-  // Some browsers do not support HTML5 date pickers yet
-  // Use tail instead for those cases
-  // See https://stackoverflow.com/questions/18020950/how-to-make-input-type-date-supported-on-all-browsers-any-alternatives
-  var dateInput = document.querySelector("input[type='date']");
-  if (dateInput && dateInput.type != 'date') {
-    tail.DateTime("input[type=date]", {
-      weekStart: 1,
-      timeFormat: false
-    });
-  }
-</script>
 {% endblock %}
