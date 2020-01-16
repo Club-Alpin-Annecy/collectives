@@ -34,7 +34,7 @@ def sync_user(user, force):
     Synchronize user info from extranet if license has been renewed,
     or if 'force' is True
     """
-    if user.enabled and not user.license_expiry_date is None:
+    if user.enabled and not user.is_test:
         # Check whether the license has been renewed
         license_info = extranet.api.check_license(user.license)
         if not license_info.exists:
