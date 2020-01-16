@@ -17,9 +17,6 @@ class RegistrationForm(ModelForm, FlaskForm):
     user_id = IntegerField('Id')
     submit = SubmitField('Inscrire')
 
-    def __init__(self, *args, **kwargs):
-        super(RegistrationForm, self).__init__(*args, **kwargs)
-
 
 class EventForm(ModelForm, FlaskForm):
     class Meta:

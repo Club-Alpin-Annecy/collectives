@@ -51,9 +51,6 @@ class UserForm(ModelForm, OrderedForm):
     submit = SubmitField('Enregistrer')
     field_order = ['*', 'avatar', 'password', 'confirm']
 
-    def __init__(self, *args, **kwargs):
-        super(UserForm, self).__init__(*args, **kwargs)
-
 
 
 
