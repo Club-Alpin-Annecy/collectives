@@ -33,8 +33,7 @@ window.onload = function(){
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
   			],
-            rowClick: function(e, row){ document.location= row.getData().view_uri},
-  			rowFormatter: eventRowFormatter,
+  			    rowFormatter: eventRowFormatter,
             groupHeader:function(value, count, data, group){
                 return moment(new Date(value)).format('dddd D MMMM YYYY').capitalize();
             },
@@ -51,9 +50,10 @@ function eventRowFormatter(row){
     element.childNodes.forEach(function(e){ e.style.display="none"});
 
     //define a table layout structure and set width of row
-    divRow = document.createElement("div");
+    divRow = document.createElement("a");
     divRow.className = "row tabulator-cell";
     divRow.setAttribute("role","gridcell");
+    divRow.setAttribute("href", data.view_uri);
     divRow.style.width = (width - 18) + "px";
 
     //add row data on right hand side

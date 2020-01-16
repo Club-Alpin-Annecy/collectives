@@ -15,6 +15,9 @@
     display: flex;
     flex-direction: row;
 }
+#eventlist #eventstable .row:hover{
+    text-decoration: none;
+}
 #eventlist #eventstable .row .section{
     margin: 0 20px;
 }
