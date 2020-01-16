@@ -1,7 +1,7 @@
 from wtforms.validators import Email, InputRequired, EqualTo, ValidationError
 from wtforms.validators import DataRequired
 from wtforms_alchemy import Unique
-
+import re
 
 class LicenseValidator:
     prefix = '7400'
