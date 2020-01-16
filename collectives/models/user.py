@@ -104,9 +104,6 @@ class User(db.Model, UserMixin):
 
     gender = db.Column(db.Integer, nullable=False, default=0)
 
-    # List of fields that can be modified by a User
-    mutable = ['password', 'avatar']
-
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
     registrations = db.relationship('Registration', backref='user', lazy=True)

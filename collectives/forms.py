@@ -149,15 +149,15 @@ class AdminUserForm(ModelForm, OrderedForm):
                             message='Les mots de passe ne correspondent pas')])
 
     submit = SubmitField('Enregistrer')
-    avatar_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    field_order = ['*', 'avatar_file', 'password', 'confirm']
+    avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    field_order = ['*', 'avatar', 'password', 'confirm']
 
 
 class UserForm(ModelForm, OrderedForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        only = User.mutable
+        only = ['password']
         unique_validator = UniqueValidator
 
     password = PasswordField(
