@@ -47,7 +47,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     is_test = db.Column(db.Boolean,
-                    default=False,
+                    default=True,
                     nullable=False,
                     info={'label': 'Utilisateur de test'})
 

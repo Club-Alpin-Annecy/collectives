@@ -60,7 +60,7 @@ def manage_user(user_id=None):
     # If we are operating on a 'normal' user, restrict fields
     # Else allow editing everything
     FormClass = UserForm
-    if user.is_test:
+    if user.is_test or user_id == None:
         FormClass = AdminUserForm
 
     form = FormClass() if user_id is None else FormClass(obj=user)
