@@ -72,12 +72,14 @@
 
     {% if user == current_user and user.license_expiry_date %}
     <form action="{{url_for('root.force_user_sync')}}" method="post" id="refresh_extranet">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <input type="submit" value="Resynchroniser mes informations FFCAM">
         <p id="info_extranet">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
-            Si après synchronisation ces informations ne sont toujours pas à jour, veuillez contacter <a href="mailto:secretariat@cafannecy.fr">le secrétariat du club.</a>
+            Ces données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au Club Alpin Français d'Annecy. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
+            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/mesinfos/">https://extranet-clubalpin.com/mesinfos/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
+            Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
         </p>
+        <input type="submit" value="Resynchroniser mes informations FFCAM">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
     {% endif %}
 
