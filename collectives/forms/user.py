@@ -12,7 +12,7 @@ from .validators import UniqueValidator, PasswordValidator
 
 
 class AvatarForm():
-    avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
+    avatar = FileField(validators=[FileAllowed(photos, 'Image uniquement!')])
 
 class ConfirmPasswordForm():
     password = PasswordField(
