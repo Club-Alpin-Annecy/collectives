@@ -14,4 +14,4 @@ def configure_forms(app):
 from .csv import CSVForm
 from .auth import LoginForm, AccountCreationForm
 from .event import RegistrationForm, EventForm
-from .user import AdminUserForm, UserForm, RoleForm
+from .user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm

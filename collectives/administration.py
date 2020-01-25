@@ -1,7 +1,7 @@
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from .forms import UserForm, AdminUserForm, RoleForm
+from .forms import AdminUserForm, AdminTestUserForm, RoleForm
 from .models import User, Event, ActivityType, Role, RoleIds, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
@@ -56,22 +56,22 @@ def administration():
 @admin_required
 def manage_user(user_id=None):
     user = User() if user_id is None else User.query.get(user_id)
-    
+
     # If we are operating on a 'normal' user, restrict fields
     # Else allow editing everything
-    FormClass = UserForm
+    FormClass = AdminUserForm
     if user.is_test or user_id == None:
-        FormClass = AdminUserForm
+        FormClass = AdminTestUserForm
 
     form = FormClass() if user_id is None else FormClass(obj=user)
     action = 'Ajout' if user_id is None else 'Édition'
-    
+
     if not form.validate_on_submit():
         return render_template('basicform.html',
                                conf=current_app.config,
                                form=form,
                                title="{} d'utilisateur".format(action))
-    
+
     # Do not touch password if user does not want to change it
     if form.password.data == '':
         delattr(form , 'password')
