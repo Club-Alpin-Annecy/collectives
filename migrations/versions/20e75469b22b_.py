@@ -1,4 +1,4 @@
-"""empty message
+"""Add columns for extranet data
 
 Revision ID: 20e75469b22b
 Revises: aadaacde7f7e

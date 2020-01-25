@@ -1,6 +1,7 @@
 from .order import OrderedForm
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import HiddenField
 from wtforms.validators import Email, InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm, Unique
 
@@ -19,8 +20,24 @@ class LoginForm(FlaskForm):
 class AccountCreationForm(ModelForm, OrderedForm):
     class Meta:
         model = User
-        only = ['mail', 'license', 'date_of_birth', 'password']
+        only = ['mail', 'license', 'date_of_birth']
         unique_validator = UniqueValidator
+    
+    license = StringField(
+        label='Numéro de licence',
+        description=LicenseValidator().help_string(),
+        render_kw={'placeholder': LicenseValidator().sample_value()},
+        validators=[LicenseValidator()])
+
+    field_order = ['mail', 'license', '*']
+
+    submit = SubmitField('Activer le compte')
+
+    def __init__(self, *args, **kwargs):
+        super(AccountCreationForm, self).__init__(*args, **kwargs)
+        self.mail.description = "Utilisée lors de votre inscription au club"
+
+class PasswordResetForm(FlaskForm):
 
     password = PasswordField(
         label='Choisissez un mot de passe',
@@ -32,17 +49,5 @@ class AccountCreationForm(ModelForm, OrderedForm):
         validators=[InputRequired(),
                     EqualTo('password',
                             message='Les mots de passe ne correspondent pas')])
-
-    license = StringField(
-        label='Numéro de licence',
-        description=LicenseValidator().help_string(),
-        render_kw={'placeholder': LicenseValidator().sample_value()},
-        validators=[LicenseValidator()])
-
-    field_order = ['mail', 'license', '*', 'password', 'confirm']
-
+    
     submit = SubmitField('Activer le compte')
-
-    def __init__(self, *args, **kwargs):
-        super(AccountCreationForm, self).__init__(*args, **kwargs)
-        self.mail.description = "Utilisée lors de votre inscription au club"

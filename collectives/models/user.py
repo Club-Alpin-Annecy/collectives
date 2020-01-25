@@ -186,3 +186,4 @@ class User(db.Model, UserMixin):
     @property
     def is_active(self):
         return self.enabled and self.check_license_valid_at_time(current_time())
+

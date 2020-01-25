@@ -33,7 +33,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # SMTP (mail) configuration
 SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
 SMTP_PORT = environ.get('SMTP_PORT') or 25
-SMTP_ADDRESS = environ.get('SMTP_PORT') or 'noreply@example.org'
+SMTP_ADDRESS = environ.get('SMTP_ADDRESS') or 'noreply@example.org'
 SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
 
 
@@ -159,3 +159,14 @@ DESCRIPTION_TEMPLATE = """{
 
 XLSX_TEMPLATE = os.path.join(basedir,
                              "collectives/templates/exported_event.xlsx")
+
+
+CONFIRMATION_MESSAGE = """
+Bonjour {name},
+
+Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF Annecy, veuillez vous rendre à l'adresse ci-dessous:
+{link}
+
+Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
+"""
+

@@ -1,4 +1,4 @@
-"""empty message
+"""Add license category column to users
 
 Revision ID: afe864919723
 Revises: e9202b0b2510
