@@ -169,4 +169,3 @@ Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF Anne
 
 Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 """
-
