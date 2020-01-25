@@ -1,4 +1,4 @@
-"""empty message
+""" Create base tables
 
 Revision ID: aadaacde7f7e
 Revises:
