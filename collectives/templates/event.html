@@ -119,7 +119,19 @@
           <a class="button" href="{{ url_for('event.print_event', event_id=event.id)}}">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> 
             Fiche collective
-          </a>
+          </a> 
+    
+          {% if event.has_delete_rights(current_user) %}
+            <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="button delete-button">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/> 
+                Supprimer
+              </button>
+          
+            </form>
+          {% endif %}
+
       </h5>
 
       <h5> Inscrire un adhérent </h5>

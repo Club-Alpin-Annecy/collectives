@@ -324,6 +324,31 @@ def delete_registration(reg_id):
                             event_id=registration.event_id))
 
 
+@blueprint.route('/<event_id>/delete', methods=['POST'])
+@login_required
+def delete_event(event_id):
+    event = Event.query.get(event_id)
+
+    if not (event and event.has_delete_rights(current_user)):
+        flash('Non autorisé', 'error')
+        return redirect(url_for('event.index'))
+
+    # Delete registrations, activities and leaders
+    event.leaders.clear()
+    event.activity_types.clear()
+    event.registrations.clear()
+    db.session.commit()
+
+    # Delete event itself
+    db.session.delete(event)
+    db.session.commit()
+
+    # For now don't delete photo... there might
+    # be other events using it
+    
+    flash('Événement supprimé', 'success')
+    return redirect(url_for('event.index'))
+
 
 @blueprint.route('/csv_import', methods=['GET', 'POST'])
 @login_required
