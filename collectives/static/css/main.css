@@ -425,6 +425,16 @@ a.button:hover{
 	overflow: hidden;
 	width: 100%;
 }
+.usericon span.license-tag{
+	border-radius: 5px;
+	padding: 2px;
+}
+.usericon span.youth{
+	background-color:orange;
+}
+.usericon span.minor{
+	background-color:orangered;
+}
 
 .tag{
 	border-radius: 5px;
