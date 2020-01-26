@@ -82,7 +82,6 @@ def user_events(user_id):
     query = query.order_by(Event.start)
 
     user_events = query.all()
-    print(user_events, flush=True)
     response = EventSchema(many=True).dump(user_events)
 
     return json.dumps(response), 200, {'content-type': 'application/json'}

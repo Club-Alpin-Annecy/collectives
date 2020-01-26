@@ -17,8 +17,12 @@ def send_mail(**kwargs):
     msg = MIMEMultipart()
 
     msg['From']=config['SMTP_ADDRESS']
-    msg['To']=kwargs['email']
     msg['Subject']=kwargs['subject']
+
+    dest = kwargs['email']
+    if isinstance(dest, list):
+        dest = ','.join(dest)
+    msg['To']=dest
 
     msg.attach(MIMEText(kwargs['message'], 'plain'))
 

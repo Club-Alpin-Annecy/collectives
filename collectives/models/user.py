@@ -11,7 +11,7 @@ import enum
 from datetime import date
 
 from . import db
-from .role import RoleIds
+from .role import RoleIds, Role
 from .activitytype import ActivityType
 
 
@@ -187,3 +187,14 @@ class User(db.Model, UserMixin):
     def is_active(self):
         return self.enabled and self.check_license_valid_at_time(current_time())
 
+
+def activity_supervisors(activities):
+    """
+    Returns all supervisors for a list of activities
+    """
+    activity_ids = [a.id for a in activities]
+    query = db.session.query(User)
+    query = query.filter(Role.activity_id.in_(activity_ids))
+    query = query.filter(Role.role_id == RoleIds.ActivitySupervisor)
+    query = query.filter(User.id == Role.user_id)
+    return query.all()

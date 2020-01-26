@@ -8,9 +8,12 @@ import json, io
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
+from .models.user import activity_supervisors
+
 from .helpers import current_time, slugify
 from .utils.export import to_xlsx, strip_tags
 from .utils.csv import process_stream
+from .utils import mail
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -24,6 +27,46 @@ def activity_choices(activities, leaders):
         for leader in leaders:
             choices.update(leader.led_activities())
     return [(a.id, a.name) for a in choices]
+
+def send_new_event_notification(event):
+    supervisors = activity_supervisors(event.activity_types)
+    emails = [u.mail for u in supervisors]
+    leader_names = [l.full_name() for l in event.leaders]
+    activity_names = [a.name for a in event.activity_types]
+    conf = current_app.config
+    message = conf['NEW_EVENT_MESSAGE'].format(
+        leader_name = ','.join(leader_names),
+        activity_name = ','.join(activity_names),
+        event_title = event.title,
+        link = url_for('event.view_event', event_id=event.id, _external=True)
+    )
+    try:
+        mail.send_mail(
+            subject = conf['NEW_EVENT_SUBJECT'],
+            email = emails,
+            message = message
+        )
+    except BaseException as err:
+        print('Mailer error: {}'.format(err), file=stderr)
+
+
+def send_unregister_notification(event, user):
+    try:
+        leader_emails = [l.mail for l in event.leaders]
+        conf = current_app.config
+        message = conf['SELF_UNREGISTER_MESSAGE'].format(
+            user_name = user.full_name(),
+            event_title = event.title,
+            link = url_for('event.view_event', event_id=event.id, _external=True)
+        )
+        mail.send_mail(
+            subject = conf['SELF_UNREGISTER_SUBJECT'],
+            email = leader_emails,
+            message = message
+        )
+    except BaseException as err:
+        print('Mailer error: {}'.format(err), file=stderr)
+
 
 ##########################################################################
 # Event management
@@ -184,6 +227,10 @@ def manage_event(event_id=None):
             db.session.add(event)
             db.session.commit()
 
+    if event_id is None:
+        # This is a new event, send notification to supervisor
+        send_new_event_notification(event)
+
     return redirect(url_for('event.view_event', event_id=event.id))
 
 @blueprint.route('/<event_id>/duplicate', methods=['GET'])
@@ -283,6 +330,9 @@ def self_unregister(event_id):
 
     db.session.delete(existing_registration[0])
     db.session.commit()
+
+    # Send notification e-mail to leaders
+    send_unregister_notification(event, current_user)
 
     return redirect(url_for('event.view_event', event_id=event_id))
 

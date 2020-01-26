@@ -169,3 +169,27 @@ Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF Anne
 
 Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 """
+
+NEW_EVENT_SUBJECT = "Notification de création d'événement"
+NEW_EVENT_MESSAGE = """
+Bonjour,
+
+Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
+Vous pouvez le consulter à l'adresse ci-dessous:
+{link}
+
+Vous recevez cet e-mail en tant que Responsable de l'activité.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+
+SELF_UNREGISTER_SUBJECT = "Notification de désinscription"
+SELF_UNREGISTER_MESSAGE = """
+Bonjour,
+
+'{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
+Lien vers l'événement:
+{link}
+
+Vous recevez cet e-mail en tant qu'encadrant d'une activité.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""

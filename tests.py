@@ -10,6 +10,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 # pylint: enable=C0301
 from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
+from collectives.models.user import activity_supervisors
 from collectives.utils.csv import fill_from_csv
 
 from collectives.utils import extranet
@@ -70,10 +71,10 @@ class TestRoles(ModelTest):
     def make_role(self, user):
         return Role(user=user, role_id=int(RoleIds.Administrator))
 
-    def make_activity_role(self, user, activity):
+    def make_activity_role(self, user, activity, role_id=RoleIds.EventLeader):
         return Role(user=user,
                     activity_id=activity.id,
-                    role_id=int(RoleIds.EventLeader))
+                    role_id=int(role_id))
 
     def commit_role(self, role):
         db.session.add(role)
@@ -102,8 +103,7 @@ class TestRoles(ModelTest):
 
         role = self.make_activity_role(user, activity1)
         user.roles.append(role)
-
-        db.session.commit()
+        self.commit_role(role)
 
         assert role in db.session
 
@@ -113,6 +113,17 @@ class TestRoles(ModelTest):
         assert not retrieved_user.is_moderator()
         assert retrieved_user.can_lead_activity(activity1.id)
         assert not retrieved_user.can_lead_activity(activity2.id)
+        
+        role = self.make_activity_role(user, activity2, RoleIds.ActivitySupervisor)
+        user.roles.append(role)
+        self.commit_role(role)
+
+        supervisors = activity_supervisors([activity1])
+        assert len(supervisors) == 0
+        supervisors = activity_supervisors([activity2])
+        assert len(supervisors) == 1
+        supervisors = activity_supervisors([activity1, activity2])
+        assert len(supervisors) == 1
 
 
 class TestEvents(TestUsers):
