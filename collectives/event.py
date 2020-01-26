@@ -16,7 +16,7 @@ blueprint = Blueprint('event', __name__, url_prefix='/event')
 
 
 def activity_choices(activities, leaders):
-    if current_user.is_admin():
+    if current_user.is_moderator():
         choices = ActivityType.query.all()
     else:
         choices = set(activities)
@@ -162,7 +162,7 @@ def manage_event(event_id=None):
         event.activity_types.append(activity_type)
 
         # We are changing the activity, check that there is a valid leader
-        if not current_user.is_admin() and not event.has_valid_leaders():
+        if not current_user.is_moderator() and not event.has_valid_leaders():
             flash('Encadrant invalide pour cette activité')
             return render_template('editevent.html',
                                    conf=current_app.config, form=form)
