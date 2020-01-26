@@ -49,7 +49,7 @@ def sync_user(user, user_info, license_info):
     """
         Update user info from extranet data
     """
-    user.email = user_info.email
+    user.mail = user_info.email
     user.date_of_birth = user_info.date_of_birth
     user.first_name = user_info.first_name
     user.last_name = user_info.last_name
