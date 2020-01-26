@@ -113,8 +113,9 @@ class TestRoles(ModelTest):
         assert not retrieved_user.is_moderator()
         assert retrieved_user.can_lead_activity(activity1.id)
         assert not retrieved_user.can_lead_activity(activity2.id)
-        
-        role = self.make_activity_role(user, activity2, RoleIds.ActivitySupervisor)
+
+        role = self.make_activity_role(user, activity2,
+                                       RoleIds.ActivitySupervisor)
         user.roles.append(role)
         self.commit_role(role)
 
