@@ -167,8 +167,14 @@ class Event(db.Model):
         return user in self.leaders
 
     def has_edit_rights(self, user):
+        """
+        Returns true if either:
+         - user is leader of this event
+         - user supervises any of this event activities
+         - user is moderator
+        """
         # pylint: disable=C0301
-        return self.is_leader(user) or user.is_admin() or any(
+        return self.is_leader(user) or user.is_moderator() or any(
             [activity for activity in self.activity_types if user.supervises_activity(activity.id)])
 
     # Registrations
