@@ -221,6 +221,7 @@ def signup():
                 flash('License inexistante ou expirée', 'error')
             else:
                 user = existing_user if existing_user else User()
+                form.populate_obj(user)
 
                 user_info = extranet.api.fetch_user_info(license_number)
                 if (user.date_of_birth == user_info.date_of_birth
