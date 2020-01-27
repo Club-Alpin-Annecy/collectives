@@ -11,32 +11,10 @@ from ..models import User, photos, ActivityType, Role, RoleIds
 from .validators import UniqueValidator, PasswordValidator
 
 
-class AdminUserForm(ModelForm, OrderedForm):
-    class Meta:
-        model = User
-        # Avatar is selected/modified by another field
-        exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
-        # FIXME Administrator should not be able to change a password,
-        # exclude = ['password']
-        unique_validator = UniqueValidator
+class AvatarForm():
+    avatar = FileField(validators=[FileAllowed(photos, 'Image uniquement!')])
 
-    confirm = PasswordField(
-        'Confirmation du nouveau mot de passe',
-        validators=[EqualTo('password',
-                            message='Les mots de passe ne correspondent pas')])
-
-    submit = SubmitField('Enregistrer')
-    avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
-    field_order = ['*', 'avatar', 'password', 'confirm']
-
-
-class UserForm(ModelForm, OrderedForm):
-    class Meta:
-        model = User
-        # User should not be able to change a protected parameter
-        only = ['password']
-        unique_validator = UniqueValidator
-
+class ConfirmPasswordForm():
     password = PasswordField(
         label='Nouveau mot de passe',
         description='Laisser vide pour conserver l\'actuel',
@@ -47,7 +25,39 @@ class UserForm(ModelForm, OrderedForm):
         validators=[EqualTo('password',
                             message='Les mots de passe ne correspondent pas')])
 
-    avatar = FileField(validators=[FileAllowed(photos, 'Image only!')])
+
+class AdminTestUserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+    class Meta:
+        model = User
+        # Avatar is selected/modified by another field
+        exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
+        # FIXME Administrator should not be able to change a password,
+        # exclude = ['password']
+        unique_validator = UniqueValidator
+
+    submit = SubmitField('Enregistrer')
+
+    field_order = ['*', 'avatar', 'password', 'confirm']
+
+
+class AdminUserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+    class Meta:
+        model = User
+        # User should not be able to change a protected parameter
+        only = ['password', 'enabled']
+        unique_validator = UniqueValidator
+
+    submit = SubmitField('Enregistrer')
+    field_order = ['*', 'avatar', 'password', 'confirm']
+
+
+class UserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+    class Meta:
+        model = User
+        # User should not be able to change a protected parameter
+        only = ['password']
+        unique_validator = UniqueValidator
+
     submit = SubmitField('Enregistrer')
     field_order = ['*', 'avatar', 'password', 'confirm']
 

@@ -46,6 +46,11 @@ class User(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    is_test = db.Column(db.Boolean,
+                    default=True,
+                    nullable=False,
+                    info={'label': 'Utilisateur de test'})
+
     # E-mail
     mail = db.Column(db.String(100),
                      nullable=False,
@@ -117,7 +122,7 @@ class User(db.Model, UserMixin):
         return Gender(self.gender).display_name()
 
     def check_license_valid_at_time(self, time):
-        if self.license_expiry_date is None:
+        if self.is_test:
             # Test users licenses never expire
             return True
         return self.license_expiry_date > time.date()

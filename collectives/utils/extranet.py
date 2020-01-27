@@ -43,6 +43,7 @@ class UserInfo:
     emergency_contact_name = ""
     emergency_contact_phone = ""
     license_category = ""
+    is_test = False
 
 
 def sync_user(user, user_info, license_info):
@@ -60,6 +61,7 @@ def sync_user(user, user_info, license_info):
     user.license_category = user_info.license_category
     user.last_extranet_sync_time = current_time()
     user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
+    user.is_test = user_info.is_test
 
 class ExtranetApi:
     soap_client = None

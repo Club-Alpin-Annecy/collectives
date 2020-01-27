@@ -24,8 +24,8 @@ def test_admin_create_valideuser(dbauth,client):
     dbauth.login(client)
     response = client.post('/administration/users/add', data={
                            'mail': 'user1@mail.domain',
-                           'password': 'foobar1',
-                           'confirm': 'foobar1',
+                           'password': 'foobar1+',
+                           'confirm': 'foobar1+',
                            'first_name': 'user',
                            'last_name': 'LastName',
                            'license': '987987981234',

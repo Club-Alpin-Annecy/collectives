@@ -36,7 +36,6 @@
     <h4>Informations FFCAM </h4>
 
     <table id="profile_info">
-        {% if user.license_expiry_date %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
             <td>Catégorie {{user.license_category}}</td>
@@ -45,7 +44,6 @@
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
             <td>{{format_date(user.license_expiry_date)}}</td>
         </tr>
-        {% endif %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/>Genre :</td>
             <td> {{user.get_gender_name()}}</td>
@@ -70,7 +68,7 @@
         </tr>
     </table>
 
-    {% if user == current_user and user.license_expiry_date %}
+    {% if user == current_user and not user.is_test %}
     <form action="{{url_for('root.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
