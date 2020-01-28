@@ -8,7 +8,7 @@ from .models import User, Role, RoleIds, db
 from .models.auth import ConfirmationTokenType, ConfirmationToken
 from .helpers import current_time
 from .utils import extranet
-from .utils import mail
+from .email_templates import send_confirmation_email
 
 import sqlite3
 import sqlalchemy.exc
@@ -51,24 +51,6 @@ def sync_user(user, force):
             extranet.sync_user(user, user_info, license_info)
             db.session.add(user)
             db.session.commit()
-
-
-def send_confirmation_email(email, name, token):
-    reason = 'création'
-    if token.token_type == ConfirmationTokenType.RecoverAccount:
-        reason = 'récupération'
-
-    message = current_app.config['CONFIRMATION_MESSAGE'].format(
-        name=name,
-        reason=reason,
-        link=url_for('auth.process_confirmation',
-                     token_uuid=token.uuid, _external=True))
-
-    mail.send_mail(
-        email=email,
-        subject='{} de compte Collectives'.format(reason.capitalize()),
-        message=message
-    )
 
 
 def create_confirmation_token(license_number, user):

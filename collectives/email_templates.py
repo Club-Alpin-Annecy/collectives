@@ -1,5 +1,6 @@
 from .utils import mail
 from .models.auth import ConfirmationTokenType 
+from .models.user import activity_supervisors
 
 from flask import current_app, url_for 
 from sys import stderr
