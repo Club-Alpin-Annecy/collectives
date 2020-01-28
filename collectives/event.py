@@ -8,6 +8,9 @@ import json, io
 from .forms import EventForm, photos, RegistrationForm, CSVForm
 from .models import Event, ActivityType, Registration, RegistrationLevels
 from .models import EventStatus, RegistrationStatus, User, RoleIds, db
+from .email_templates import send_new_event_notification
+from .email_templates import send_unregister_notification
+
 from .helpers import current_time, slugify
 from .utils.export import to_xlsx, strip_tags
 from .utils.csv import process_stream
@@ -24,6 +27,7 @@ def activity_choices(activities, leaders):
         for leader in leaders:
             choices.update(leader.led_activities())
     return [(a.id, a.name) for a in choices]
+
 
 ##########################################################################
 # Event management
@@ -184,6 +188,10 @@ def manage_event(event_id=None):
             db.session.add(event)
             db.session.commit()
 
+    if event_id is None:
+        # This is a new event, send notification to supervisor
+        send_new_event_notification(event)
+
     return redirect(url_for('event.view_event', event_id=event.id))
 
 @blueprint.route('/<event_id>/duplicate', methods=['GET'])
@@ -283,6 +291,9 @@ def self_unregister(event_id):
 
     db.session.delete(existing_registration[0])
     db.session.commit()
+
+    # Send notification e-mail to leaders
+    send_unregister_notification(event, current_user)
 
     return redirect(url_for('event.view_event', event_id=event_id))
 
