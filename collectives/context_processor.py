@@ -13,16 +13,22 @@ fr_short_months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin',
 
 def helpers_processor():
     def format_date(datetime):
+        if datetime is None:
+             return 'N/A'
         return '{} {} {} {}'.format(
             fr_week_days[datetime.weekday()], datetime.day,
             fr_months[datetime.month - 1], datetime.year)
 
     def format_date_short(datetime):
+        if datetime is None:
+             return 'N/A'
         return '{}. {} {}.'.format(
             fr_week_days[datetime.weekday()][0:3], datetime.day,
             fr_short_months[datetime.month - 1])
 
     def format_time(datetime):
+        if datetime is None:
+             return 'N/A'
         return u'{h}\xa0h\xa0{m:02d}'.format(
             h=datetime.hour, m=datetime.minute)
 

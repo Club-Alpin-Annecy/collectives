@@ -407,6 +407,7 @@ button:hover, a.button:hover{
 
 /* User icon display*/
 .usericon {
+	position: relative;
 	display: inline-block;
 	width: 80px;
 	border-radius: 5px;
@@ -425,6 +426,19 @@ button:hover, a.button:hover{
 	min-height: 2.7em;
 	overflow: hidden;
 	width: 100%;
+}
+.usericon span.license-tag{
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	border-radius: 5px;
+	padding: 2px;
+}
+.usericon span.youth{
+	background-color:orange;
+}
+.usericon span.minor{
+	background-color:orangered;
 }
 
 .tag{

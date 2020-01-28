@@ -127,6 +127,14 @@ class User(db.Model, UserMixin):
             return True
         return self.license_expiry_date > time.date()
 
+    def is_youth(self):
+        return self.license_category in ['J1', 'E1']
+
+    def is_minor(self):
+        return self.license_category in ['J2', 'E2']
+
+    # Roles
+
     def matching_roles(self, role_ids):
         return [role for role in self.roles if role.role_id in role_ids]
 
