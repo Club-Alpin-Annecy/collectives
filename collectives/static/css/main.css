@@ -406,6 +406,7 @@ a.button:hover{
 
 /* User icon display*/
 .usericon {
+	position: relative;
 	display: inline-block;
 	width: 80px;
 	border-radius: 5px;
@@ -426,6 +427,9 @@ a.button:hover{
 	width: 100%;
 }
 .usericon span.license-tag{
+	position: absolute;
+	top: 2px;
+	left: 2px;
 	border-radius: 5px;
 	padding: 2px;
 }
