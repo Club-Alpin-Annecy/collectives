@@ -1,4 +1,4 @@
-"""empty message
+"""Add status column to events
 
 Revision ID: e9202b0b2510
 Revises: 20e75469b22b

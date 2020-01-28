@@ -3,22 +3,26 @@ from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 
-from .forms import LoginForm, AccountCreationForm
+from .forms.auth import LoginForm, AccountCreationForm, PasswordResetForm
 from .models import User, Role, RoleIds, db
+from .models.auth import ConfirmationTokenType, ConfirmationToken
 from .helpers import current_time
 from .utils import extranet
+from .utils import mail
 
 import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
 from sqlalchemy import or_
 import uuid
+from sys import stderr
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = u"Merci de vous connecter pour accéder à cette page"
 
 blueprint = Blueprint('auth', __name__, url_prefix='/auth')
+
 
 # Flask-login user loader
 @login_manager.user_loader
@@ -28,6 +32,7 @@ def load_user(user_id):
         # License has expired, log-out user
         return None
     return user
+
 
 def sync_user(user, force):
     """
@@ -46,6 +51,32 @@ def sync_user(user, force):
             extranet.sync_user(user, user_info, license_info)
             db.session.add(user)
             db.session.commit()
+
+
+def send_confirmation_email(email, name, token):
+    reason = 'création'
+    if token.token_type == ConfirmationTokenType.RecoverAccount:
+        reason = 'récupération'
+
+    message = current_app.config['CONFIRMATION_MESSAGE'].format(
+        name=name,
+        reason=reason,
+        link=url_for('auth.process_confirmation',
+                     token_uuid=token.uuid, _external=True))
+
+    mail.send_mail(
+        email=email,
+        subject='{} de compte Collectives'.format(reason.capitalize()),
+        message=message
+    )
+
+
+def create_confirmation_token(license_number, user):
+    token = ConfirmationToken(license_number, user)
+    db.session.add(token)
+    db.session.commit()
+    return token
+
 
 ##########################################################################
 #   LOGIN
@@ -88,65 +119,68 @@ def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
+def render_confirmation_form(form, is_recover):
+    action = "Récupération " if is_recover else "Création"
+    reason = "récupérer" if is_recover else "créer"
+    form.submit.label.text = "{} le compte".format(reason.capitalize())
+    return render_template('basicform.html',
+                           conf=current_app.config,
+                           form=form,
+                           title='{} de compte'.format(action))
 
-@blueprint.route('/signup', methods=['GET', 'POST'])
-@blueprint.route('/recover', endpoint="recover", methods=['GET', 'POST'])
-def signup():
 
-    if current_user.is_authenticated:
-        flash('Vous êtes déjà connecté', 'warning')
-        return redirect(url_for('event.index'))
+@blueprint.route('/process_confirmation/<token_uuid>', methods=['GET', 'POST'])
+def process_confirmation(token_uuid):
+    token = ConfirmationToken.query.filter_by(uuid=token_uuid).first()
     
-    form = AccountCreationForm()
-    is_recover = 'recover' in request.endpoint
+    # Check token validaty
+    if token is None:
+        flash('Jeton de confirmation invalide', 'error')
+        return redirect(url_for('auth.signup'))
+    if token.expiry_date < current_time():
+        flash('Jeton de confirmation expiré', 'error')
+        db.session.delete(token)
+        db.session.commit()
+        return redirect(url_for('auth.signup'))
 
-    if form.is_submitted():
-        
-        existing_user = None
-        if is_recover:
-            # Check for any user that is already registered with this
-            # email or license
-            existing_users = User.query.filter(or_(
-                User.license == form.license.data,
-                User.mail == form.mail.data)).all()
+    form = PasswordResetForm()
+    is_recover = token.token_type == ConfirmationTokenType.RecoverAccount
 
-            num_existing_users = len(existing_users)
-            # Check that a single existing account is matching the
-            # provided identifiers
-            if num_existing_users > 1:
-                flash('Identifiants ambigus', 'error')
-            elif num_existing_users == 1:
-                existing_user = existing_users[0]
-                form = AccountCreationForm(obj=existing_user)
+    # Form not yet submitted or contains errors
+    if not form.validate_on_submit():
+        return render_confirmation_form(form, is_recover)
 
-        if is_recover and existing_user is None:
-            flash('Aucun compte associé à ces identifiants', 'error')
-        elif form.validate():
-            license_number = form.license.data
-            license_info = extranet.api.check_license(license_number)
+    # Check license validity
+    license_number = token.user_license
+    license_info = extranet.api.check_license(license_number)
+    if not license_info.is_valid_at_time(current_time()):
+        flash('Licence inexistante ou expirée', 'error')
+        return render_confirmation_form(form, is_recover)
 
-            if not license_info.is_valid_at_time(current_time()):
-                flash('License inexistante ou expirée', 'error')
-            else:
-                user = existing_user if existing_user else User()
-                form.populate_obj(user)
+    # Fetch extranet data
+    user_info = extranet.api.fetch_user_info(license_number)
+    if not user_info.is_valid:
+        flash('Accès aux données FFCAM impossible actuellement', 'error')
+        return render_confirmation_form(form, is_recover)
 
-                user_info = extranet.api.fetch_user_info(license_number)
-                if (user.date_of_birth == user_info.date_of_birth
-                        and user.mail == user_info.email):
-                    # Valid user, can create the account
-                    extranet.sync_user(user, user_info, license_info)
+    # Synchronize user info from API
+    user = User.query.get(token.existing_user_id) if is_recover else User()
+    extranet.sync_user(user, user_info, license_info)
+    form.populate_obj(user)
 
-                    db.session.add(user)
-                    db.session.commit()
+    # Update/add user to db
+    db.session.add(user)
+    # Remove token
+    db.session.delete(token)
+    db.session.commit()
 
-                    action = 'mis à jour' if is_recover else 'crée'
-                    flash('Compte {} avec succès pour {}'.format(
-                        action, user.full_name()), 'success')
-                    return redirect(url_for('auth.login'))
+    # Redirect to  login page
+    action = 'mis à jour' if is_recover else 'crée'
+    flash('Compte {} avec succès pour {}'.format(
+        action, user.full_name()), 'success')
+    return redirect(url_for('auth.login'))
 
-                flash('E-mail et/ou date de naissance incorrecte', 'error')
-
+def render_signup_form(form, is_recover):
     action = "Récupération" if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
     form.submit.label.text = "{} le compte".format(reason.capitalize())
@@ -161,6 +195,82 @@ def signup():
                            propose_activate=propose_activate,
                            propose_recover=propose_recover)
 
+@blueprint.route('/signup', methods=['GET', 'POST'])
+@blueprint.route('/recover', endpoint="recover", methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        flash('Vous êtes déjà connecté', 'warning')
+        return redirect(url_for('event.index'))
+
+    form = AccountCreationForm()
+    is_recover = 'recover' in request.endpoint
+
+    # Form not yet submitted 
+    # Don't validate yet as unicity test requires fetching user first
+    if not form.is_submitted():
+        return render_signup_form(form, is_recover)
+
+    # In recover mode, check for any user that is already registered with this
+    # email or license
+    existing_user = None
+    if is_recover:
+        existing_users = User.query.filter(or_(
+            User.license == form.license.data,
+            User.mail == form.mail.data)).all()
+
+        num_existing_users = len(existing_users)
+        # Check that a single existing account is matching the
+        # provided identifiers
+        if num_existing_users == 1:
+            existing_user = existing_users[0]
+            form = AccountCreationForm(obj=existing_user)
+        elif num_existing_users > 1:
+            flash('Identifiants ambigus', 'error')
+            return render_signup_form(form, is_recover)
+        else:
+            flash('Aucun compte associé à ces identifiants', 'error')
+            return render_signup_form(form, is_recover)
+    
+    # Check form erros
+    if not form.validate():
+        return render_signup_form(form, is_recover)
+
+    # Check license validity
+    license_number = form.license.data
+    license_info = extranet.api.check_license(license_number)
+    if not license_info.is_valid_at_time(current_time()):
+        flash('Licence inexistante ou expirée', 'error')
+        return render_signup_form(form, is_recover)
+
+    # Fetch extranet data and check against user-provided info
+    user = existing_user if existing_user else User()
+    form.populate_obj(user)
+    user_info = extranet.api.fetch_user_info(license_number)
+    if not (user.date_of_birth == user_info.date_of_birth
+            and user.mail == user_info.email):
+        flash('E-mail et/ou date de naissance incorrecte', 'error')
+        return render_signup_form(form, is_recover)
+
+    # User-provided info is correct,
+    # generate confirmation token
+    token = create_confirmation_token(
+        license_number, existing_user)
+
+    try:
+        # Send confirmation email with link to token
+        send_confirmation_email(user_info.email,
+                                user_info.first_name, token)
+        flash(
+            ('Un e-mail de confirmation vous a été envoyé et ' +
+                ' devrait vous parvenir sous quelques minutes. ' +
+                'Pensez à vérifier vos courriers indésirables.'),
+            'success')
+        return redirect(url_for('auth.login'))
+    except BaseException as err:
+        print('Mailer error: {}'.format(err), file=stderr)
+        flash('Erreur lors de l\'envoi de l\'e-mail de confirmation',
+                'error')
+    return render_signup_form(form, is_recover)
 
 # Init: Setup admin (if db is ready)
 def init_admin(app):

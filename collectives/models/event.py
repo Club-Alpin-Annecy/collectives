@@ -172,11 +172,22 @@ class Event(db.Model):
             [a for a in self.activity_types if user.supervises_activity(a.id)])
 
     def has_edit_rights(self, user):
+        """
+        Returns true if either:
+         - user is leader of this event
+         - user supervises any of this event activities
+         - user is moderator
+        """
         if user.is_moderator():
             return True
         return self.is_leader(user) or self.is_supervisor(user)
 
     def has_delete_rights(self, user):
+        """
+        Returns true if either:
+         - user supervises any of this event activities
+         - user is moderator
+        """
         return user.is_moderator() or self.is_supervisor(user)
 
     # Registrations

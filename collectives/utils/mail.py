@@ -11,6 +11,7 @@ def send_mail(**kwargs):
 
     s.starttls()
     s.login(config['SMTP_ADDRESS'], config['SMTP_PASSWORD'])
+    
     msg = MIMEMultipart()
 
     msg['From']=config['SMTP_ADDRESS']
