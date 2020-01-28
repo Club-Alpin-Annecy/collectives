@@ -125,7 +125,7 @@
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button delete-button">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/> 
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/> 
                 Supprimer
               </button>
           

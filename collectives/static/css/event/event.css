@@ -143,8 +143,10 @@ span.event-status{
 
 .delete-button{
   font-size: 20px;
-  background-color: rgb(220, 20, 40);
+  color:white;
+  background-color: rgb(20, 20, 40);
 }
 .delete-button:hover{
-  background-color:  rgb(219, 100, 100);
+  color:white;
+  background-color:  rgb(60, 60, 60);
 }
