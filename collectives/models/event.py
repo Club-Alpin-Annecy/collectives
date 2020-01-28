@@ -96,7 +96,8 @@ class Event(db.Model):
                                      lazy='subquery',
                                      backref=db.backref(
                                          'events', lazy=True))
-    registrations = db.relationship('Registration', backref='event', lazy=True)
+    registrations = db.relationship('Registration', backref='event', lazy=True,
+                                    cascade="all, delete-orphan")
 
     def __init__(self, *args, **kwargs):
 
@@ -120,7 +121,7 @@ class Event(db.Model):
         # any registration dates (open and close)
         if not self.registration_open_time or not self.registration_close_time:
             return False
-        return  True
+        return True
 
     def starts_before_ends(self):
         # Event must starts before it ends
@@ -153,18 +154,22 @@ class Event(db.Model):
         # registration date are closed.
         if self.num_online_slots == 0:
             return (self.starts_before_ends() and
-                   self.has_valid_slots() and
-                   self.has_valid_leaders())
+                    self.has_valid_slots() and
+                    self.has_valid_leaders())
         else:
             return (self.starts_before_ends() and
-                   self.has_valid_slots() and
-                   self.has_valid_leaders() and
-                   self.starts_before_ends() and
-                   self.opens_before_closes() and
-                   self.has_defined_registration_date())
+                    self.has_valid_slots() and
+                    self.has_valid_leaders() and
+                    self.starts_before_ends() and
+                    self.opens_before_closes() and
+                    self.has_defined_registration_date())
 
     def is_leader(self, user):
         return user in self.leaders
+
+    def is_supervisor(self, user):
+        return any(
+            [a for a in self.activity_types if user.supervises_activity(a.id)])
 
     def has_edit_rights(self, user):
         """
@@ -173,9 +178,17 @@ class Event(db.Model):
          - user supervises any of this event activities
          - user is moderator
         """
-        # pylint: disable=C0301
-        return self.is_leader(user) or user.is_moderator() or any(
-            [activity for activity in self.activity_types if user.supervises_activity(activity.id)])
+        if user.is_moderator():
+            return True
+        return self.is_leader(user) or self.is_supervisor(user)
+
+    def has_delete_rights(self, user):
+        """
+        Returns true if either:
+         - user supervises any of this event activities
+         - user is moderator
+        """
+        return user.is_moderator() or self.is_supervisor(user)
 
     # Registrations
 
@@ -224,5 +237,5 @@ class Event(db.Model):
     def is_confirmed(self):
         return self.status == EventStatus.Confirmed
 
-    def status_string (self):
+    def status_string(self):
         return EventStatus(self.status).display_name()
