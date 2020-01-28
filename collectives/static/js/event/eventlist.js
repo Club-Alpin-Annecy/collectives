@@ -25,6 +25,7 @@ window.onload = function(){
 
             pagination : 'remote',
             paginationSize : 10,
+            paginationSizeSelector:[5, 10, 25, 50, 100],
             initialSort: [ {column:"start", dir:"asc"}],
             initialFilter: [
                 {field:"end", type:"=", value:  moment().format('YYYY-MM-DDTHH:mm:ss')  }
@@ -36,6 +37,27 @@ window.onload = function(){
   			    rowFormatter: eventRowFormatter,
             groupHeader:function(value, count, data, group){
                 return moment(new Date(value)).format('dddd D MMMM YYYY').capitalize();
+            },
+            locale: true,
+            locale:true,
+            langs:{
+                "fr":{
+                    "ajax":{
+                        "loading":"Chargement", //ajax loader text
+                        "error":"Erreur", //ajax error text
+                    },
+                    "pagination":{
+                        "page_size":"Evénements par page", //label for the page size select element
+                        "first":"Début", //text for the first page button
+                        "first_title":"Première Page", //tooltip text for the first page button
+                        "last":"Fin",
+                        "last_title":"Dernière Page",
+                        "prev":"Précédente",
+                        "prev_title":"Page Précédente",
+                        "next":"Suivante",
+                        "next_title":"Page Suivante",
+                    }
+                }
             },
   		})
 };
