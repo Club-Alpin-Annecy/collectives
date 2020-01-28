@@ -47,7 +47,7 @@ window.onload = function(){
                         "error":"Erreur", //ajax error text
                     },
                     "pagination":{
-                        "page_size":"Taille des pages", //label for the page size select element
+                        "page_size":"Evénements par page", //label for the page size select element
                         "first":"Début", //text for the first page button
                         "first_title":"Première Page", //tooltip text for the first page button
                         "last":"Fin",
