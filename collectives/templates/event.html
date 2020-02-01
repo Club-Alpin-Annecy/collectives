@@ -59,7 +59,7 @@
         {% elif current_time < event.end %}
         <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <a class="button" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous la désinscription?')) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+          <a class="button" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
         {% endif %}
       {% endif %}
