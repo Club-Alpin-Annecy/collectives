@@ -3,7 +3,7 @@ from flask import Response, current_app, Blueprint, abort
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
 from sqlalchemy.sql import text
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 
 from marshmallow import fields
 from .models import db, User, Event, EventStatus
@@ -220,7 +220,35 @@ def events():
 
     # Initialize query
     query = Event.query
-    query = query.filter(Event.status != EventStatus.Pending)
+
+    # Display pending events only to relevant persons
+    if not current_user.is_authenticated:
+        # Not logged users see no pending event
+        query = query.filter(Event.status != EventStatus.Pending)
+    elif current_user.is_admin():
+        # Admin see all pending events (no filter)
+        pass
+    else:
+        # Regular user can see non Pending
+        filter = Event.status != EventStatus.Pending
+
+        # If user is a supervisor, it can see Pending events of its activities
+        if current_user.is_supervisor():
+            # Supervisors can see all sup
+            activities = current_user.get_supervised_activities()
+            activities_ids = map(lambda a: a.id, activities)
+            supervised = Event.activity_types.any(ActivityType.id.in_(activities_ids))
+            filter = or_(filter, supervised)
+
+        # If user can create event, it can see its pending events
+        if current_user.can_create_events():
+            lead = Event.leaders.any(id = current_user.id)
+            filter = or_(filter, lead)
+
+        # After filter construction, it is applied to the query
+        query = query.filter(filter)
+
+
 
     # Process all filters.
     # All filter are added as AND

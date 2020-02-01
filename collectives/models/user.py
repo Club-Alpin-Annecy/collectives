@@ -156,6 +156,8 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.Moderator,
                               RoleIds.Administrator,
                               RoleIds.President])
+    def is_supervisor(self):
+        return self.has_role([RoleIds.ActivitySupervisor])
 
     def can_create_events(self):
         return self.has_role([RoleIds.EventLeader,
