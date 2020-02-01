@@ -47,16 +47,19 @@
     </h3>
     <div id="filters">
         <div class="">
-            <label>Evènements passés: <input
+            Afficher aussi les collectives:
+            <label> passées <input
                                             type="checkbox"
                                             onchange="togglePastActivities(this)"
                                             autocomplete="off"
+                                            id="pastcheckbox"
                                             /></label>
-            <label>Evènements annulés: <input
+            <label> annulées <input
                                             type="checkbox"
                                             onchange="toggleConfirmedOnly(!this.checked)"
                                             autocomplete="off"
                                             checked="1"
+                                            id="cancelledcheckbox"
                                             /></label>
         </div>
         <div class="activity_filters">

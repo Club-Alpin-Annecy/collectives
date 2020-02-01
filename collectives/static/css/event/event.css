@@ -10,6 +10,10 @@
     cursor: pointer;
 }
 
+#eventlist #eventstable{
+    min-height: 2200px;
+}
+
 #eventlist #eventstable .row{
     padding: 20px 20px;
     display: flex;

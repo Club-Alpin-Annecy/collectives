@@ -15,6 +15,12 @@ window.onload = function(){
             ajaxFiltering:true,
   			resizableColumns:false,
 
+            persistence:{
+                sort: true, //persist column sorting
+                filter: true, //persist filter sorting
+                page: false, // /!\ page persistence does not work with remote pagination
+            },
+
             // Activate grouping only if we sort by start date
             dataSorting : function(sorters){
                 if(sorters[0]['field'] != 'title')
@@ -25,7 +31,8 @@ window.onload = function(){
 
             pagination : 'remote',
             paginationSize : 10,
-            paginationSizeSelector:[5, 10, 25, 50, 100],
+            pageLoaded :  updatePageURL,
+
             initialSort: [ {column:"start", dir:"asc"}],
             initialFilter: [
                 {field:"end", type:"=", value:  moment().format('YYYY-MM-DDTHH:mm:ss')  }
@@ -59,7 +66,19 @@ window.onload = function(){
                     }
                 }
             },
-  		})
+  		});
+
+        // Try to extract and set page
+        var page = document.location.toString().split('#p')[1];
+        if(page != undefined){
+            eventsTable.setMaxPage(page); // We extends max page to avoid an error
+            eventsTable.setPage(page);
+        }
+        else
+            console.log('No page defined')
+
+
+        refreshFilterDisplay();
 };
 
 function eventRowFormatter(row){
@@ -179,17 +198,35 @@ function toggleConfirmedOnly(confirmedOnly){
 }
 
 function refreshFilterDisplay(){
+    var filters = eventsTable.getFilters();
     // Unselect all activity filter buttons
     for ( button of document.querySelectorAll('#eventlist #filters .activity') )
         button.classList.add('unselected');
 
     // Select activity filter button which appears in tabulator filter
-    for (filter of eventsTable.getFilters())
+    for (filter of filters)
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
+
+    var onlyConfirmed = filters.filter(function(filter){ return filter['field'] == "status" && filter['value'] == 0 }).length == 0 ;
+    document.getElementById('cancelledcheckbox').checked = onlyConfirmed;
+
+    var onlyFuture = filters.filter(function(filter){ return filter['field'] == "end" }).length != 0 ;
+    document.getElementById('pastcheckbox').checked = ! onlyFuture;
+}
+
+// Put age number in browser URL
+function updatePageURL(){
+    var page = eventsTable.getPage();
+    var location = document.location.toString().split('#');
+    document.location = `${location[0]}#p${page}` ;
 }
 
 function gotoEvents(event){
+    // if we are not on top, do not mess with page position
+    if(window.scrollY > 50)
+        return 0;
+
     var position = document.querySelector('#eventlist').getBoundingClientRect().top +  window.scrollY - 60;
     window.scrollTo(    {
             top: position,
