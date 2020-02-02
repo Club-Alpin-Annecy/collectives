@@ -70,7 +70,7 @@ window.onload = function(){
 
         // Try to extract and set page
         var page = document.location.toString().split('#p')[1];
-        if(page != undefined){
+        if(! isNaN(page) ){
             eventsTable.setMaxPage(page); // We extends max page to avoid an error
             eventsTable.setPage(page);
         }
