@@ -70,6 +70,7 @@ class Event(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text(), nullable=False, default='')
     rendered_description = db.Column(db.Text(), nullable=True, default='')
+    # TODO: remove the column when sqlite won't be used
     shortdescription = db.Column(db.String(100), nullable=True, default='')
     photo = db.Column(db.String(100), nullable=True)
     start = db.Column(db.DateTime, nullable=False, index=True)

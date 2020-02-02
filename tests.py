@@ -132,7 +132,6 @@ class TestEvents(TestUsers):
     def make_event(self):
         return Event(title="Event",
                      description="",
-                     shortdescription="",
                      num_slots=2, num_online_slots=0,
                      start=datetime.datetime.now() + datetime.timedelta(days=1),
                      end=datetime.datetime.now() + datetime.timedelta(days=2))
