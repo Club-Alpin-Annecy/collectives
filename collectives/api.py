@@ -236,7 +236,7 @@ def events():
         if current_user.is_supervisor():
             # Supervisors can see all sup
             activities = current_user.get_supervised_activities()
-            activities_ids = map(lambda a: a.id, activities)
+            activities_ids = [a.id for a in activities]
             supervised = Event.activity_types.any(ActivityType.id.in_(activities_ids))
             filter = or_(filter, supervised)
 
