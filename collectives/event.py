@@ -124,8 +124,15 @@ def manage_event(event_id=None):
                                form=form)
 
     form.populate_obj(event)
+    # Validate using wtform basic validators
+    if not form.validate_on_submit():
+        if current_app.config['FLASK_DEBUG']:
+            flash(form.errors)
+        return render_template('editevent.html',
+                           conf=current_app.config,
+                           form=form)
 
-    # Validate dates
+    # Custom validators
     valid = True
     if not event.starts_before_ends():
         flash('La date de début doit être antérieure à la date de fin')

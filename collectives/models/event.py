@@ -105,6 +105,7 @@ class Event(db.Model):
         self.description = current_app.config['DESCRIPTION_TEMPLATE']
         # Remove placeholders
         self.description = re.sub(r'\$[\w]+?\$', '', self.description)
+        self.num_online_slots = 0
 
     def save_photo(self, file):
         if file is not None:
