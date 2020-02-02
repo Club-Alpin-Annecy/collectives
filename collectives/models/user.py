@@ -8,7 +8,7 @@ from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email, Length
 import enum
 
-from datetime import date
+from datetime import date,datetime
 
 from . import db
 from .role import RoleIds, Role
@@ -108,6 +108,10 @@ class User(db.Model, UserMixin):
     last_extranet_sync_time = db.Column(db.DateTime)
 
     gender = db.Column(db.Integer, nullable=False, default=0)
+
+    last_failed_login= db.Column(db.DateTime,
+                                nullable=False,
+                                default=datetime(2000,1,1))
 
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
