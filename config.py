@@ -18,6 +18,9 @@ SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 # Password for admin account
 ADMINPWD = environ.get('ADMINPWD') or "foobar2"
 
+# Time a user has to wait after a wrong auth in seconds
+AUTH_FAILURE_WAIT=10
+
 # User/password for accessing extranet API
 default_wsdl = 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
 EXTRANET_DISABLE = environ.get('EXTRANET_DISABLE')

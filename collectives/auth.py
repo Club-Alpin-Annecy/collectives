@@ -14,7 +14,7 @@ import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
 from sqlalchemy import or_
-import uuid
+import uuid, datetime
 from sys import stderr
 
 login_manager = LoginManager()
@@ -76,7 +76,20 @@ def login():
 
     # Check if user exists
     user = User.query.filter_by(mail=form.mail.data).first()
-    if user is None or not user.password == form.password.data:
+
+    if user is None :
+        flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
+        return redirect(url_for('auth.login'))
+
+    maxdelta=datetime.timedelta(seconds=current_app.config['AUTH_FAILURE_WAIT'])
+    if current_time() - user.last_failed_login < maxdelta:
+        flash('Merci d\'attendre quelques secondes avant de retenter un login', 'error')
+        return redirect(url_for('auth.login'))
+
+    if not user.password == form.password.data:
+        user.last_failed_login = current_time()
+        db.session.add(user)
+        db.session.commit()
         flash('Nom d\'utilisateur ou mot de passe invalide.', 'error')
         return redirect(url_for('auth.login'))
 
