@@ -23,6 +23,15 @@
 <div class="panel" id="eventedit">
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
+  <ul class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+    <li>
+      <strong>Erreur: {{field.label}}:</strong> {{error}}
+    </li>
+    {% endfor %}
+    {% endfor %}
+  </ul>
   <form
         action="{{ action }}"
         method="POST"

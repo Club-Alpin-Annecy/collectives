@@ -119,10 +119,13 @@ def manage_event(event_id=None):
 
     form = EventForm(choices, CombinedMultiDict((request.files, request.form)))
 
-    if not form.is_submitted():
-        form = EventForm(choices, obj=event)
+    if not form.validate_on_submit():
         if not event_id is None:
+            form = EventForm(choices, obj=event)
             form.type.data = str(event.activity_types[0].id)
+        elif not form.is_submitted():
+            form = EventForm(choices)
+            form.set_default_description()
 
         return render_template('editevent.html',
                                conf=current_app.config,
@@ -130,7 +133,7 @@ def manage_event(event_id=None):
 
     form.populate_obj(event)
 
-    # Validate dates
+    # Custom validators
     valid = True
     if not event.starts_before_ends():
         flash('La date de début doit être antérieure à la date de fin')
