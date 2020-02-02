@@ -1,4 +1,14 @@
 
+var unregister_message = `L'inscription a un évènement vous engage à y participer.
+
+Une désinscription inopinée peut fortement contrarier l'organisation de l'encadrant bénévole, voire le pousser à annuler une collective pour laquelle il aura investi de son temps pour l'organiser.
+
+Si lors de votre inscription des arrhes ont été demandés par l’encadrant, ils ne vous seront pas remboursés.
+
+Merci de contacter l'encadrant pour prévenir et justifier votre désinscription.
+
+Confirmez-vous la désinscription ?`;
+
 
 const renderItem = function (item) {
     let icon;
