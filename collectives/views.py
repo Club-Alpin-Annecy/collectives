@@ -83,8 +83,11 @@ def update_user():
 
     form.populate_obj(user)
 
-    # Save avatar into ight UploadSet
+    # Save avatar into UploadSet
+    if form.remove_avatar and form.remove_avatar.data:
+        user.delete_avatar()
     user.save_avatar(UserForm().avatar.data)
+    
     db.session.add(user)
     db.session.commit()
 

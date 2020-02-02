@@ -73,7 +73,7 @@ def manage_user(user_id=None):
                                title="{} d'utilisateur".format(action))
 
     # Do not touch password if user does not want to change it
-    if form.password.data == '':
+    if hasattr(form, 'password') and form.password.data == '':
         delattr(form , 'password')
 
     form.populate_obj(user)
@@ -82,8 +82,12 @@ def manage_user(user_id=None):
     if user_id == None:
         db.session.add(user)
         db.session.commit()
+
     # Save avatar into ight UploadSet
+    if form.remove_avatar and form.remove_avatar.data:
+        user.delete_avatar()
     user.save_avatar(FormClass().avatar.data)
+
     db.session.add(user)
     db.session.commit()
 

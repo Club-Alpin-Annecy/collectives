@@ -7,6 +7,7 @@ from sqlalchemy_utils import PasswordType
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email, Length
 import enum
+import os
 
 from datetime import date,datetime
 
@@ -17,6 +18,7 @@ from .activitytype import ActivityType
 
 # Upload
 avatars = UploadSet('avatars', IMAGES)
+
 
 class Gender(enum.IntEnum):
     Unknown = 0
@@ -47,9 +49,9 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     is_test = db.Column(db.Boolean,
-                    default=True,
-                    nullable=False,
-                    info={'label': 'Utilisateur de test'})
+                        default=True,
+                        nullable=False,
+                        info={'label': 'Utilisateur de test'})
 
     # E-mail
     mail = db.Column(db.String(100),
@@ -75,7 +77,8 @@ class User(db.Model, UserMixin):
         index=True,
         info={'label': 'Numéro de licence'})
     license_category = db.Column(
-        db.String(2))
+        db.String(2),
+        info={'label': 'Catégorie de licence'})
 
     # Date of birth
     date_of_birth = db.Column(
@@ -107,7 +110,8 @@ class User(db.Model, UserMixin):
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
-    gender = db.Column(db.Integer, nullable=False, default=0)
+    gender = db.Column(db.Integer, nullable=False, default=Gender.Unknown,
+                       info={'label': 'Genre'})
 
     last_failed_login= db.Column(db.DateTime,
                                 nullable=False,
@@ -117,10 +121,17 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', backref='user', lazy=True)
     registrations = db.relationship('Registration', backref='user', lazy=True)
 
+
+
     def save_avatar(self, file):
         if file is not None:
             filename = avatars.save(file, name='user-' + str(self.id) + '.')
             self.avatar = filename
+    
+    def delete_avatar(self):
+        if self.avatar:
+            os.remove(avatars.path(self.avatar))
+            self.avatar = None
 
     def get_gender_name(self):
         return Gender(self.gender).display_name()
@@ -195,12 +206,11 @@ class User(db.Model, UserMixin):
         return '{} {}'.format(self.first_name, self.last_name[0].upper())
 
     def get_supervised_activities(self):
-        if self.is_admin() :
+        if self.is_admin():
             return ActivityType.query.all()
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
-
 
     @property
     def is_active(self):
