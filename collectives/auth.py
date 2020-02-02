@@ -83,7 +83,7 @@ def login():
 
     maxdelta=datetime.timedelta(seconds=current_app.config['AUTH_FAILURE_WAIT'])
     if current_time() - user.last_failed_login < maxdelta:
-        flash('Merci d\'attendre avant de retenter un login', 'error')
+        flash('Merci d\'attendre quelques secondes avant de retenter un login', 'error')
         return redirect(url_for('auth.login'))
 
     if not user.password == form.password.data:
