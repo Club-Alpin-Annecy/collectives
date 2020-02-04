@@ -12,9 +12,10 @@ from .validators import UniqueValidator, PasswordValidator
 
 
 class AvatarForm():
-    avatar = FileField(validators=[FileAllowed(photos, 'Image uniquement!')])
-    remove_avatar = BooleanField("Supprimer l'avatar existant") 
-    
+    avatar_file = FileField("Nouvel avatar",
+                            validators=[FileAllowed(photos, 'Image uniquement!')])
+    remove_avatar = BooleanField("Supprimer l'avatar existant")
+
     def __init__(self, user):
         if not (user and user.avatar):
             del self.remove_avatar
@@ -41,11 +42,13 @@ class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
 
     submit = SubmitField('Enregistrer')
 
-    field_order = ['enabled', '*', 'avatar', 'remove_avatar', 'password', 'confirm']
+    field_order = ['enabled', '*', 'avatar_file',
+                   'remove_avatar', 'password', 'confirm']
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
         AvatarForm.__init__(self, kwargs.get('obj'))
+
 
 class AdminUserForm(OrderedModelForm, AvatarForm):
     class Meta:
@@ -55,7 +58,7 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
         unique_validator = UniqueValidator
 
     submit = SubmitField('Enregistrer')
-    field_order = ['enabled', '*', 'avatar', 'remove_avatar']
+    field_order = ['enabled', '*', 'avatar_file', 'remove_avatar']
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
@@ -70,12 +73,11 @@ class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
         unique_validator = UniqueValidator
 
     submit = SubmitField('Enregistrer')
-    field_order = ['*', 'avatar', 'remove_avatar', 'password', 'confirm']
+    field_order = ['*', 'avatar_file', 'remove_avatar', 'password', 'confirm']
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
         AvatarForm.__init__(self, kwargs.get('obj'))
-
 
 
 class RoleForm(ModelForm, FlaskForm):

@@ -86,7 +86,7 @@ def manage_user(user_id=None):
     # Save avatar into ight UploadSet
     if form.remove_avatar and form.remove_avatar.data:
         user.delete_avatar()
-    user.save_avatar(FormClass().avatar.data)
+    user.save_avatar(FormClass().avatar_file.data)
 
     db.session.add(user)
     db.session.commit()
