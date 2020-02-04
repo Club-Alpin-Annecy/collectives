@@ -21,12 +21,12 @@ depends_on = None
 def upgrade():
     # Change events.registration_open_time 'nullable' False to True
     with op.batch_alter_table('events') as batch_op:
-        batch_op.alter_column('registration_open_time', nullable=True)
-        batch_op.alter_column('registration_close_time', nullable=True)
+        batch_op.alter_column('registration_open_time', nullable=True, existing_type = sa.DateTime)
+        batch_op.alter_column('registration_close_time', nullable=True, existing_type = sa.DateTime)
 
 
 def downgrade():
     with op.batch_alter_table('events') as batch_op:
-        batch_op.alter_column('registration_open_time', nullable=False)
-        batch_op.alter_column('registration_close_time', nullable=False)
+        batch_op.alter_column('registration_open_time', nullable=False, existing_type = sa.DateTime)
+        batch_op.alter_column('registration_close_time', nullable=False, existing_type = sa.DateTime)
     pass
