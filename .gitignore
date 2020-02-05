@@ -3,6 +3,8 @@ __pycache__
 app.db
 uploads
 
+/collectives/static/.webassets-cache
+
 .env
 .coverage
 
