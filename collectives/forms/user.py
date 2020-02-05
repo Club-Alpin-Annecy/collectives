@@ -1,8 +1,8 @@
-from .order import OrderedForm
+from .order import OrderedForm, OrderedModelForm
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import PasswordField, SubmitField
-from wtforms import SelectField
+from wtforms import SelectField, BooleanField
 from wtforms.validators import EqualTo
 from wtforms_alchemy import ModelForm, Unique
 
@@ -12,7 +12,14 @@ from .validators import UniqueValidator, PasswordValidator
 
 
 class AvatarForm():
-    avatar = FileField(validators=[FileAllowed(photos, 'Image uniquement!')])
+    avatar_file = FileField("Nouvel avatar",
+                            validators=[FileAllowed(photos, 'Image uniquement!')])
+    remove_avatar = BooleanField("Supprimer l'avatar existant")
+
+    def __init__(self, user):
+        if not (user and user.avatar):
+            del self.remove_avatar
+
 
 class ConfirmPasswordForm():
     password = PasswordField(
@@ -26,32 +33,39 @@ class ConfirmPasswordForm():
                             message='Les mots de passe ne correspondent pas')])
 
 
-class AdminTestUserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     class Meta:
         model = User
         # Avatar is selected/modified by another field
         exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
-        # FIXME Administrator should not be able to change a password,
-        # exclude = ['password']
         unique_validator = UniqueValidator
 
     submit = SubmitField('Enregistrer')
 
-    field_order = ['*', 'avatar', 'password', 'confirm']
+    field_order = ['enabled', '*', 'avatar_file',
+                   'remove_avatar', 'password', 'confirm']
+
+    def __init__(self, *args, **kwargs):
+        OrderedModelForm.__init__(self, *args, **kwargs)
+        AvatarForm.__init__(self, kwargs.get('obj'))
 
 
-class AdminUserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+class AdminUserForm(OrderedModelForm, AvatarForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        only = ['password', 'enabled']
+        only = ['enabled']
         unique_validator = UniqueValidator
 
     submit = SubmitField('Enregistrer')
-    field_order = ['*', 'avatar', 'password', 'confirm']
+    field_order = ['enabled', '*', 'avatar_file', 'remove_avatar']
+
+    def __init__(self, *args, **kwargs):
+        OrderedModelForm.__init__(self, *args, **kwargs)
+        AvatarForm.__init__(self, kwargs.get('obj'))
 
 
-class UserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
+class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
@@ -59,9 +73,11 @@ class UserForm(ModelForm, OrderedForm, AvatarForm, ConfirmPasswordForm):
         unique_validator = UniqueValidator
 
     submit = SubmitField('Enregistrer')
-    field_order = ['*', 'avatar', 'password', 'confirm']
+    field_order = ['*', 'avatar_file', 'remove_avatar', 'password', 'confirm']
 
-
+    def __init__(self, *args, **kwargs):
+        OrderedModelForm.__init__(self, *args, **kwargs)
+        AvatarForm.__init__(self, kwargs.get('obj'))
 
 
 class RoleForm(ModelForm, FlaskForm):

@@ -77,14 +77,14 @@ def update_user():
     # Do not touch password if user does not want to change it
     if form.password.data == '':
         delattr(form , 'password')
-    # Idem for the avatars
-    if form.avatar.data is None:
-        form.avatar = None
 
     form.populate_obj(user)
 
-    # Save avatar into ight UploadSet
-    user.save_avatar(UserForm().avatar.data)
+    # Save avatar into UploadSet
+    if form.remove_avatar and form.remove_avatar.data:
+        user.delete_avatar()
+    user.save_avatar(UserForm().avatar_file.data)
+    
     db.session.add(user)
     db.session.commit()
 
