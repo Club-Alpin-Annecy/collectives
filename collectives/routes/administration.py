@@ -194,3 +194,5 @@ def init_activity_types():
         print('WARN: Cannot configure activity types: db is not available')
     except MySQLdb._exceptions.OperationalError:
         print('WARN: Cannot configure activity types: db is not available')
+    except sqlalchemy.exc.ProgrammingError:
+        print('WARN: Cannot configure activity types: db is not available')    

@@ -295,4 +295,6 @@ def init_admin(app):
     except sqlalchemy.exc.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
     except MySQLdb._exceptions.OperationalError:
-        print('WARN: Cannot configure activity types: db is not available')
+        print('WARN: Cannot configure admin: db is not available')
+    except sqlalchemy.exc.ProgrammingError: 
+        print('WARN: Cannot configure admin: db is not available')
