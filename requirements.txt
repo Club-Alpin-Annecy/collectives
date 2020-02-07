@@ -21,3 +21,4 @@ pysimplesoap
 openpyxl
 # See Issue #98
 Werkzeug==0.16.1
+mysqlclient

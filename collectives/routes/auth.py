@@ -7,6 +7,7 @@ from flask_login import LoginManager
 import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
+import MySQLdb
 from sqlalchemy import or_
 import uuid, datetime
 from sys import stderr
@@ -128,7 +129,7 @@ def render_confirmation_form(form, is_recover):
 @blueprint.route('/process_confirmation/<token_uuid>', methods=['GET', 'POST'])
 def process_confirmation(token_uuid):
     token = ConfirmationToken.query.filter_by(uuid=token_uuid).first()
-    
+
     # Check token validaty
     if token is None:
         flash('Jeton de confirmation invalide', 'error')
@@ -201,7 +202,7 @@ def signup():
     form = AccountCreationForm()
     is_recover = 'recover' in request.endpoint
 
-    # Form not yet submitted 
+    # Form not yet submitted
     # Don't validate yet as unicity test requires fetching user first
     if not form.is_submitted():
         return render_signup_form(form, is_recover)
@@ -226,7 +227,7 @@ def signup():
         else:
             flash('Aucun compte associé à ces identifiants', 'error')
             return render_signup_form(form, is_recover)
-    
+
     # Check form erros
     if not form.validate():
         return render_signup_form(form, is_recover)
@@ -293,3 +294,5 @@ def init_admin(app):
         print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
+    except MySQLdb._exceptions.OperationalError:
+        print('WARN: Cannot configure activity types: db is not available')
