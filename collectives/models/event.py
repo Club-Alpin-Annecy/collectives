@@ -81,7 +81,7 @@ class Event(db.Model):
     registration_open_time = db.Column(db.DateTime, nullable=True)
     registration_close_time = db.Column(db.DateTime, nullable=True)
 
-    status = db.Column(db.Integer, nullable=False,
+    status = db.Column(db.Enum(EventStatus), nullable=False,
                        default=EventStatus.Confirmed)
 
     # Relationships

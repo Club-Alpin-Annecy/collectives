@@ -110,7 +110,8 @@ class User(db.Model, UserMixin):
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
-    gender = db.Column(db.Integer, nullable=False, default=Gender.Unknown,
+    gender = db.Column(db.Enum(Gender), nullable=False, default=Gender.Unknown,
+
                        info={'label': 'Genre'})
 
     last_failed_login= db.Column(db.DateTime,

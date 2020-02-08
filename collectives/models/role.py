@@ -41,7 +41,7 @@ class Role(db.Model):
     activity_id = db.Column(db.Integer,
                             db.ForeignKey('activity_types.id'),
                             nullable=True)
-    role_id = db.Column(db.Integer, nullable=False)
+    role_id = db.Column(db.Enum(RoleIds), nullable=False)
 
     def name(self):
         return RoleIds(self.role_id).display_name()
