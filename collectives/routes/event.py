@@ -5,15 +5,15 @@ from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
 import json, io
 
-from .forms import EventForm, photos, RegistrationForm, CSVForm
-from .models import Event, ActivityType, Registration, RegistrationLevels
-from .models import EventStatus, RegistrationStatus, User, RoleIds, db
-from .email_templates import send_new_event_notification
-from .email_templates import send_unregister_notification
+from ..forms import EventForm, photos, RegistrationForm, CSVForm
+from ..models import Event, ActivityType, Registration, RegistrationLevels
+from ..models import EventStatus, RegistrationStatus, User, RoleIds, db
+from ..email_templates import send_new_event_notification
+from ..email_templates import send_unregister_notification
 
-from .helpers import current_time, slugify
-from .utils.export import to_xlsx, strip_tags
-from .utils.csv import process_stream
+from ..helpers import current_time, slugify
+from ..utils.export import to_xlsx, strip_tags
+from ..utils.csv import process_stream
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
