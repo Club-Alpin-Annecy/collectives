@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email, Length
-import enum
 import os
 
 from datetime import date,datetime
@@ -14,13 +13,13 @@ from datetime import date,datetime
 from . import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
-
+from .utils import ChoiceEnum
 
 # Upload
 avatars = UploadSet('avatars', IMAGES)
 
 
-class Gender(enum.IntEnum):
+class Gender(ChoiceEnum):
     Unknown = 0
     Woman = 1
     Man = 2
@@ -34,10 +33,6 @@ class Gender(enum.IntEnum):
             cls.Man: 'Homme',
             cls.Unknown: 'Inconnu'
         }
-
-    def display_name(self):
-        cls = self.__class__
-        return cls.display_names()[self.value]
 
 
 # Models
@@ -112,7 +107,10 @@ class User(db.Model, UserMixin):
 
     gender = db.Column(db.Enum(Gender), nullable=False, default=Gender.Unknown,
 
-                       info={'label': 'Genre'})
+                       info={'label': 'Genre',
+                             'choices': Gender.choices(),
+                             'coerce': Gender.coerce
+                             })
 
     last_failed_login= db.Column(db.DateTime,
                                 nullable=False,
@@ -128,7 +126,7 @@ class User(db.Model, UserMixin):
         if file is not None:
             filename = avatars.save(file, name='user-' + str(self.id) + '.')
             self.avatar = filename
-    
+
     def delete_avatar(self):
         if self.avatar:
             os.remove(avatars.path(self.avatar))

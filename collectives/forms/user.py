@@ -84,7 +84,6 @@ class RoleForm(ModelForm, FlaskForm):
     class Meta:
         model = Role
 
-    role_id = SelectField('Role', choices=[])
     activity_type_id = SelectField('Activité', choices=[])
     submit = SubmitField('Ajouter')
 
@@ -92,4 +91,3 @@ class RoleForm(ModelForm, FlaskForm):
         super(RoleForm, self).__init__(*args, **kwargs)
         self.activity_type_id.choices = [(a.id, a.name
                                           ) for a in ActivityType.query.all()]
-        self.role_id.choices = [(r.value, r.display_name()) for r in RoleIds]

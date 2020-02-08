@@ -1,8 +1,8 @@
 # This file describe all classes we will use in collectives
-import enum
+from .utils import ChoiceEnum
 from . import db
 
-class RoleIds(enum.IntEnum):
+class RoleIds(ChoiceEnum):
     # Global roles
     Moderator = 1
     Administrator = 2
@@ -21,10 +21,6 @@ class RoleIds(enum.IntEnum):
             cls.ActivitySupervisor: "Responsable d'activité"
         }
 
-    def display_name(self):
-        cls = self.__class__
-        return cls.display_names()[self.value]
-
     def relates_to_activity(self):
         cls = self.__class__
         return self.value in [cls.ActivitySupervisor, cls.EventLeader]
@@ -41,7 +37,11 @@ class Role(db.Model):
     activity_id = db.Column(db.Integer,
                             db.ForeignKey('activity_types.id'),
                             nullable=True)
-    role_id = db.Column(db.Enum(RoleIds), nullable=False)
+    role_id = db.Column(db.Enum(RoleIds),
+                        nullable=False,
+                        info={'choices': RoleIds.choices(),
+                              'coerce': RoleIds.coerce,
+                              'label': 'Rôle' })
 
     def name(self):
         return RoleIds(self.role_id).display_name()

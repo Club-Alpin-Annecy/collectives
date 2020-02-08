@@ -4,16 +4,16 @@ from flask import current_app
 from flask_uploads import UploadSet, IMAGES
 from delta import html
 import json
-import enum
 import re
 
 from . import db
 from .registration import RegistrationStatus
+from .utils import ChoiceEnum
 
 photos = UploadSet('photos', IMAGES)
 
 
-class EventStatus(enum.IntEnum):
+class EventStatus(ChoiceEnum):
     Confirmed = 0
     Pending = 1
     Cancelled = 2
@@ -26,9 +26,6 @@ class EventStatus(enum.IntEnum):
             cls.Cancelled: 'Annulée'
         }
 
-    def display_name(self):
-        cls = self.__class__
-        return cls.display_names()[self.value]
 
 
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
@@ -70,7 +67,6 @@ class Event(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text(), nullable=False, default='')
     rendered_description = db.Column(db.Text(), nullable=True, default='')
-    # TODO: remove the column when sqlite won't be used
     photo = db.Column(db.String(100), nullable=True)
     start = db.Column(db.DateTime, nullable=False, index=True)
     end = db.Column(db.DateTime, nullable=False)
@@ -81,7 +77,9 @@ class Event(db.Model):
     registration_close_time = db.Column(db.DateTime, nullable=True)
 
     status = db.Column(db.Enum(EventStatus), nullable=False,
-                       default=EventStatus.Confirmed)
+                       default=EventStatus.Confirmed,
+                       info={'choices': EventStatus.choices(),
+                             'coerce': EventStatus.coerce})
 
     # Relationships
     leaders = db.relationship('User',
