@@ -51,7 +51,6 @@ TZ_NAME = 'Europe/Paris'
 
 # Event type:
 TYPES = {
-    0: {"short": "none",             "name": "Non classé"},
     1: {"short": "ski_alpin",        "name": "Ski et surf en station"},
     2: {"short": "escalade",         "name": "Escalade"},
     3: {"short": "ski_rando",        "name": "Ski de randonnée"},
@@ -66,6 +65,7 @@ TYPES = {
     12: {"short": "cyclisme",        "name": "VTT"},
     13: {"short": "formation",       "name": "Formation"},
     14: {"short": "soiree",          "name": "Soirée"},
+    15: {"short": "none",             "name": "Non classé"},
 }
 
 # Technical stuff
