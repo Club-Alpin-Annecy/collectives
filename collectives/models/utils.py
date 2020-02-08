@@ -14,3 +14,6 @@ class ChoiceEnum(enum.IntEnum):
         def display_name(self):
             cls = self.__class__
             return cls.display_names()[self.value]
+
+        def __len__(self):
+            return 1
