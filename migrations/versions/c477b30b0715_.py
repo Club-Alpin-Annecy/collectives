@@ -1,7 +1,7 @@
 """empty message
 
 Revision ID: c477b30b0715
-Revises: 
+Revises:
 Create Date: 2020-02-08 01:05:17.875387
 
 """
@@ -29,7 +29,6 @@ def upgrade():
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('rendered_description', sa.Text(), nullable=True),
-    sa.Column('shortdescription', sa.String(length=100), nullable=True),
     sa.Column('photo', sa.String(length=100), nullable=True),
     sa.Column('start', sa.DateTime(), nullable=False),
     sa.Column('end', sa.DateTime(), nullable=False),
