@@ -161,7 +161,12 @@ def process_confirmation(token_uuid):
         return render_confirmation_form(form, is_recover)
 
     # Synchronize user info from API
-    user = User.query.get(token.existing_user_id) if is_recover else User()
+    if is_recover:
+        user = User.query.get(token.existing_user_id)
+    else:
+        user = User()
+        user.license = token.user_license
+        
     extranet.sync_user(user, user_info, license_info)
     form.populate_obj(user)
 
@@ -296,5 +301,5 @@ def init_admin(app):
         print('WARN: Cannot configure admin: db is not available')
     except MySQLdb._exceptions.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
-    except sqlalchemy.exc.ProgrammingError: 
+    except sqlalchemy.exc.ProgrammingError:
         print('WARN: Cannot configure admin: db is not available')
