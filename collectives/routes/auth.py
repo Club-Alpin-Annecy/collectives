@@ -7,7 +7,6 @@ from flask_login import LoginManager
 import sqlite3
 import sqlalchemy.exc
 import sqlalchemy_utils
-import MySQLdb
 from sqlalchemy import or_
 import uuid, datetime
 from sys import stderr
@@ -166,7 +165,7 @@ def process_confirmation(token_uuid):
     else:
         user = User()
         user.license = token.user_license
-        
+
     extranet.sync_user(user, user_info, license_info)
     form.populate_obj(user)
 
@@ -298,8 +297,6 @@ def init_admin(app):
     except sqlite3.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.OperationalError:
-        print('WARN: Cannot configure admin: db is not available')
-    except MySQLdb._exceptions.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.ProgrammingError:
         print('WARN: Cannot configure admin: db is not available')

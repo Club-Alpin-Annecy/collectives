@@ -11,7 +11,6 @@ import sys
 import os
 import sqlalchemy.exc
 import sqlalchemy_utils
-import MySQLdb
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
 from ..models import User, Event, ActivityType, Role, RoleIds, db
@@ -192,7 +191,5 @@ def init_activity_types():
 
     except sqlalchemy.exc.OperationalError:
         print('WARN: Cannot configure activity types: db is not available')
-    except MySQLdb._exceptions.OperationalError:
-        print('WARN: Cannot configure activity types: db is not available')
     except sqlalchemy.exc.ProgrammingError:
-        print('WARN: Cannot configure activity types: db is not available')    
+        print('WARN: Cannot configure activity types: db is not available')
