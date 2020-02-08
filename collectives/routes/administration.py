@@ -1,8 +1,7 @@
+
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
-from .forms import AdminUserForm, AdminTestUserForm, RoleForm
-from .models import User, Event, ActivityType, Role, RoleIds, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -10,9 +9,11 @@ from wtforms import SelectField
 from functools import wraps
 import sys
 import os
-
 import sqlalchemy.exc
 import sqlalchemy_utils
+
+from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
+from ..models import User, Event, ActivityType, Role, RoleIds, db
 
 blueprint = Blueprint('administration', __name__, url_prefix='/administration')
 

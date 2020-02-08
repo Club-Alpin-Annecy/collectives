@@ -8,7 +8,7 @@ from sqlalchemy import desc, or_
 from marshmallow import fields
 from .models import db, User, Event, EventStatus
 from .models import ActivityType, Registration, RegistrationStatus
-from .views import root
+from .routes.views import root
 import json
 
 marshmallow = Marshmallow()

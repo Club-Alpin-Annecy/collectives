@@ -1,14 +1,8 @@
+
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
-
-from .forms.auth import LoginForm, AccountCreationForm, PasswordResetForm
-from .models import User, Role, RoleIds, db
-from .models.auth import ConfirmationTokenType, ConfirmationToken
-from .helpers import current_time
-from .utils import extranet
-from .email_templates import send_confirmation_email
 
 import sqlite3
 import sqlalchemy.exc
@@ -16,6 +10,13 @@ import sqlalchemy_utils
 from sqlalchemy import or_
 import uuid, datetime
 from sys import stderr
+
+from ..forms.auth import LoginForm, AccountCreationForm, PasswordResetForm
+from ..models import User, Role, RoleIds, db
+from ..models.auth import ConfirmationTokenType, ConfirmationToken
+from ..helpers import current_time
+from ..utils import extranet
+from ..email_templates import send_confirmation_email
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'

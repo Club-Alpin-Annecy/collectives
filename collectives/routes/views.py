@@ -6,9 +6,9 @@ from datetime import datetime
 import sys
 import os
 
-from .forms import UserForm
-from .models import User, Registration, RegistrationStatus, Event, db
-from .helpers import current_time
+from ..forms import UserForm
+from ..models import User, Registration, RegistrationStatus, Event, db
+from ..helpers import current_time
 from .auth import sync_user
 
 images = Images()

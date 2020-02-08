@@ -2,8 +2,8 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-from . import models, views, auth, api, administration, event 
-from . import context_processor
+from . import models, api, context_processor
+from .routes import views, auth, administration, event 
 from .utils import extranet
 
 
