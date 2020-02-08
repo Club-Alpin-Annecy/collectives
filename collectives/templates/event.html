@@ -147,7 +147,7 @@
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
         <li>
-          <a href="{{url_for('root.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
           <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="submit" class="button" value="Supprimer" >
