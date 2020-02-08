@@ -13,20 +13,9 @@ from .auth import sync_user
 
 images = Images()
 
-root = Blueprint('root', __name__)
+blueprint = Blueprint('profile', __name__, url_prefix='/profile')
 
-
-##########################################################################
-# Event management
-##########################################################################
-@root.route('/')
-@root.route('/index')
-@root.route('/list')
-def index():
-    return redirect(url_for('event.index'))
-
-
-@root.route('/user/<user_id>/profile', methods=['GET'])
+@blueprint.route('/user/<user_id>', methods=['GET'])
 @login_required
 def show_user(user_id):
 
@@ -42,7 +31,7 @@ def show_user(user_id):
                            user=user)
 
 
-@root.route('/organizer/<leader_id>', methods=['GET'])
+@blueprint.route('/organizer/<leader_id>', methods=['GET'])
 @login_required
 def show_leader(leader_id):
     user = User.query.filter_by(id=leader_id).first()
@@ -59,7 +48,7 @@ def show_leader(leader_id):
                            user=user)
 
 
-@root.route('/user', methods=['GET', 'POST'])
+@blueprint.route('/user/edit', methods=['GET', 'POST'])
 @login_required
 def update_user():
 
@@ -88,12 +77,12 @@ def update_user():
     db.session.add(user)
     db.session.commit()
 
-    return redirect(url_for('root.update_user'))
+    return redirect(url_for('profile.update_user'))
 
-@root.route('/user/force_sync', methods=['POST'])
+@blueprint.route('/user/force_sync', methods=['POST'])
 @login_required
 def force_user_sync():
     sync_user(current_user, True)
-    return redirect(url_for('root.show_user', user_id=current_user.id))
+    return redirect(url_for('profile.show_user', user_id=current_user.id))
 
 

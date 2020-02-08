@@ -8,7 +8,6 @@ from sqlalchemy import desc, or_
 from marshmallow import fields
 from .models import db, User, Event, EventStatus
 from .models import ActivityType, Registration, RegistrationStatus
-from .routes.views import root
 import json
 
 marshmallow = Marshmallow()
@@ -40,7 +39,7 @@ class UserSchema(marshmallow.Schema):
             user_id=user.id))
     profile_uri = fields.Function(
         lambda user: url_for(
-            'root.show_user',
+            'profile.show_user',
             user_id=user.id))
     avatar_uri = fields.Function(avatar_url)
 

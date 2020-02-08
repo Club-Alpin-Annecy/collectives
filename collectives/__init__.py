@@ -3,7 +3,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 
 from . import models, api, context_processor
-from .routes import views, auth, administration, event 
+from .routes import root, profile, auth, administration, event 
 from .utils import extranet
 
 
@@ -19,7 +19,7 @@ def create_app(config_filename='config'):
     models.db.init_app(app)
     auth.login_manager.init_app(app)  # app is a Flask object
     api.marshmallow.init_app(app)
-    views.images.init_app(app)
+    profile.images.init_app(app)
     extranet.api.init_app(app)
 
     app.context_processor(context_processor.helpers_processor)
@@ -28,7 +28,8 @@ def create_app(config_filename='config'):
     with app.app_context():
 
         # Register blueprints
-        app.register_blueprint(views.root)
+        app.register_blueprint(root.blueprint)
+        app.register_blueprint(profile.blueprint)
         app.register_blueprint(api.blueprint)
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
