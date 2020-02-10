@@ -128,7 +128,7 @@ def render_confirmation_form(form, is_recover):
 @blueprint.route('/process_confirmation/<token_uuid>', methods=['GET', 'POST'])
 def process_confirmation(token_uuid):
     token = ConfirmationToken.query.filter_by(uuid=token_uuid).first()
-    
+
     # Check token validaty
     if token is None:
         flash('Jeton de confirmation invalide', 'error')
@@ -160,7 +160,12 @@ def process_confirmation(token_uuid):
         return render_confirmation_form(form, is_recover)
 
     # Synchronize user info from API
-    user = User.query.get(token.existing_user_id) if is_recover else User()
+    if is_recover:
+        user = User.query.get(token.existing_user_id)
+    else:
+        user = User()
+        user.license = token.user_license
+
     extranet.sync_user(user, user_info, license_info)
     form.populate_obj(user)
 
@@ -201,7 +206,7 @@ def signup():
     form = AccountCreationForm()
     is_recover = 'recover' in request.endpoint
 
-    # Form not yet submitted 
+    # Form not yet submitted
     # Don't validate yet as unicity test requires fetching user first
     if not form.is_submitted():
         return render_signup_form(form, is_recover)
@@ -226,7 +231,7 @@ def signup():
         else:
             flash('Aucun compte associé à ces identifiants', 'error')
             return render_signup_form(form, is_recover)
-    
+
     # Check form erros
     if not form.validate():
         return render_signup_form(form, is_recover)
@@ -292,4 +297,6 @@ def init_admin(app):
     except sqlite3.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.OperationalError:
+        print('WARN: Cannot configure admin: db is not available')
+    except sqlalchemy.exc.ProgrammingError:
         print('WARN: Cannot configure admin: db is not available')

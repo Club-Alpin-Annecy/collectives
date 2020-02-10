@@ -25,10 +25,7 @@ class EventForm(ModelForm, FlaskForm):
     photo_file = FileField(validators=[FileAllowed(photos, 'Image only!')])
     duplicate_photo = HiddenField()
     type = SelectField('Type', choices=[])
-    status = SelectField('État', choices=[])
 
     def __init__(self, activity_choices, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
-        self.status.choices = [(s.value, s.display_name())
-                               for s in EventStatus]

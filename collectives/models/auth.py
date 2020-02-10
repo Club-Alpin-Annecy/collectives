@@ -28,7 +28,7 @@ class ConfirmationToken(db.Model):
     existing_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     # Type of token (account creation, reset, ...)
-    token_type = db.Column(db.Integer, nullable=False)
+    token_type = db.Column(db.Enum(ConfirmationTokenType), nullable=False)
 
 
     def __init__(self, user_license, existing_user):
