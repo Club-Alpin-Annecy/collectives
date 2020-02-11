@@ -82,57 +82,62 @@ window.onload = function(){
 };
 
 function eventRowFormatter(row){
-    var element = row.getElement();
-    var data    = row.getData();
-    var width   = element.offsetWidth;
-    var html    = "";
+    try {
+        var element = row.getElement();
+        var data    = row.getData();
+        var width   = element.offsetWidth;
+        var html    = "";
 
-    //clear current row data
-    element.childNodes.forEach(function(e){ e.style.display="none"});
+        //clear current row data
+        element.childNodes.forEach(function(e){ e.style.display="none"});
 
-    //define a table layout structure and set width of row
-    divRow = document.createElement("a");
-    divRow.className = "row tabulator-cell";
-    divRow.setAttribute("role","gridcell");
-    divRow.setAttribute("href", data.view_uri);
-    divRow.style.width = (width - 18) + "px";
+        //define a table layout structure and set width of row
+        divRow = document.createElement("a");
+        divRow.className = "row tabulator-cell";
+        divRow.setAttribute("role","gridcell");
+        divRow.setAttribute("href", data.view_uri);
+        divRow.style.width = (width - 18) + "px";
 
-    //add row data on right hand side
-    html += `<div class="activities section">`;
-    for (const activity of data.activity_types)
-                html += `<span class="activity ${activity['short']} type"></span>`;
-    html += `</div>`;
+        //add row data on right hand side
+        html += `<div class="activities section">`;
+        for (const activity of data.activity_types)
+                    html += `<span class="activity ${activity['short']} type"></span>`;
+        html += `</div>`;
 
-    html += `<div class="section">
-                <img src="${data.photo_uri}" class="photo"/>
-             </div>`;
+        html += `<div class="section">
+                    <img src="${data.photo_uri}" class="photo"/>
+                 </div>`;
 
-    var status_string = ''
-    if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
+        var status_string = ''
+        if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
 
-    html += `<div class="section">
-                 <h4>
-                 ${status_string}
-                 ${escapeHTML(data.title)}
-                 </h4>
-                 <div class="date">
-                     <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
-                     ${localInterval(data.start, data.end)}
+        html += `<div class="section">
+                     <h4>
+                     ${status_string}
+                     ${escapeHTML(data.title)}
+                     </h4>
+                     <div class="date">
+                         <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
+                         ${localInterval(data.start, data.end)}
+                     </div>
+
+                     <div class="leader">
+                        Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
+                     </div>
+                     <div class="slots">
+                        ${slots(data.num_slots - data.free_slots)}
+                        ${slots(data.free_slots, 'free_slot')}
+                     </div>
                  </div>
+                 <div class="breaker"></div>`;
+        divRow.innerHTML = html;
 
-                 <div class="leader">
-                    Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
-                 </div>
-                 <div class="slots">
-                    ${slots(data.num_slots - data.free_slots)}
-                    ${slots(data.free_slots, 'free_slot')}
-                 </div>
-             </div>
-             <div class="breaker"></div>`;
-    divRow.innerHTML = html;
-
-    //append newly formatted contents to the row
-    element.append(divRow);
+        //append newly formatted contents to the row
+        element.append(divRow);
+    }
+    catch(error){
+      console.error(error);
+    }
 }
 
 function localInterval(start, end){
@@ -148,6 +153,8 @@ function localDate(date){
 function slots(nb, css){
     if(css == undefined)
         css = '';
+    if( ! Number.isInteger(nb) || nb < 0)
+        return '';
     var slot = `<img src="/static/img/icon/ionicon/md-contact.svg" class="icon ${css}"/>`;
     return (new Array(nb)).fill( slot ).join('');
 }

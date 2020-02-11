@@ -206,7 +206,8 @@ class Event(db.Model):
         return len(self.active_registrations()) < self.num_online_slots
 
     def free_slots(self):
-        return self.num_slots - len(self.active_registrations())
+        free = self.num_slots - len(self.active_registrations())
+        return 0 if free < 0 else free
 
     def is_registered(self, user):
         # pylint: disable=C0301
