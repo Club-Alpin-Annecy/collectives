@@ -136,13 +136,13 @@ function eventRowFormatter(row){
 }
 
 function localInterval(start, end){
-    if( start == end)
-        return localDate(new Date(start));
-    return `${localDate(new Date(start))} au ${localDate(new Date(end))}`;
+    if( localDate(start) == localDate(end))
+        return localDate(start);
+    return `${localDate(start)} au ${localDate(end)}`;
 }
 
 function localDate(date){
-    return moment(date).format('ddd D MMM YY');
+    return moment(new Date(date)).format('ddd D MMM YY');
 }
 
 function slots(nb, css){

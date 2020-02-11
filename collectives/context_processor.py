@@ -33,6 +33,8 @@ def helpers_processor():
             h=datetime.hour, m=datetime.minute)
 
     def format_datetime_range(start, end):
+        if start == end:
+            return '{} à {}'.format(format_date(start), format_time(start))
         if start.date() == end.date():
             return '{} de {} à {}'.format(format_date(
                 start), format_time(start), format_time(end))
