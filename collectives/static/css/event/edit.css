@@ -23,8 +23,16 @@
 #eventedit #editor, #eventedit .ql-toolbar{
   width: 80%;
   margin:auto;
+	text-align: left;
 }
 
-#eventedit #editor{
+#eventedit #editor-area{
   height: 40em;
+}
+
+#editor a{
+  text-decoration: underline;
+}
+#editor a:hover{
+  text-decoration: none;
 }

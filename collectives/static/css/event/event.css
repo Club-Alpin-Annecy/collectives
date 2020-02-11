@@ -154,3 +154,10 @@ span.event-status{
   color:white;
   background-color:  rgb(60, 60, 60);
 }
+
+#description a{
+  text-decoration: underline;
+}
+#description a:hover{
+  text-decoration: none;
+}

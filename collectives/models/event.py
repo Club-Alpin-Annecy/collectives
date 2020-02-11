@@ -2,8 +2,8 @@
 
 from flask import current_app
 from flask_uploads import UploadSet, IMAGES
-from delta import html
-import json
+import markdown
+import enum
 import re
 
 from . import db
@@ -110,7 +110,11 @@ class Event(db.Model):
             self.photo = filename
 
     def set_rendered_description(self, description):
-        self.rendered_description = html.render(json.loads(description)['ops'])
+        # Urify links
+        # From https://daringfireball.net/2010/07/improved_regex_for_matching_urls
+        URI_REGEX = r'(?i)(^|^\s|[^(]\s+)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
+        description = re.sub(URI_REGEX, r'\1[\2](\2)', description)
+        self.rendered_description = markdown.markdown(description, extensions=['nl2br'])
         return self.rendered_description
 
     # Date validation

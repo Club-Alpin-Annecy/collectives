@@ -11,8 +11,8 @@
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
 
   {# Wysiwyg Editor #}
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 {% endblock %}
 
 {% block header %}
@@ -26,7 +26,7 @@
   <form
         action="{{ action }}"
         method="POST"
-        onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
+        onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
   >
     <h4>Informations</h4>
@@ -49,7 +49,7 @@
     </div>
 
     <h4>Description</h4>
-    <div id="editor"></div>
+    <div id="editor"><textarea id="editor-area"></textarea></div>
     {{ form.description(style="display:none;", required=false) }}<br/>
     <label for="photo_file">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo_file }} <br/>
     <br/>
@@ -61,11 +61,101 @@
 tail.DateTime("input[type=datetime]",{
     weekStart: 1
 });
-var quill = new Quill('#editor', {
-  theme: 'snow'
-});
 
-quill.setContents(JSON.parse(document.querySelector('textarea[name=description]').defaultValue));
+var simplemde = new SimpleMDE({ 
+  element: document.getElementById("editor-area"),
+  blockStyles: {italic:"_"},
+  spellChecker:false,
+  status:false,
+  promptURLs:true,
+  toolbar: [
+    {
+			name: "bold",
+			action: SimpleMDE.toggleBold,
+			className: "fa fa-bold",
+			title: "Gras",
+		},
+    {
+			name: "italic",
+			action: SimpleMDE.toggleItalic,
+			className: "fa fa-italic",
+			title: "Italique",
+		},
+    {
+			name: "strikethrough",
+			action: SimpleMDE.toggleStrikethrough,
+			className: "fa fa-strikethrough",
+			title: "Barré",
+		},
+    {
+			name: "heading",
+			action: SimpleMDE.toggleHeadingSmaller,
+			className: "fa fa-header",
+			title: "Titre",
+		},
+    "|",
+    {
+			name: "list-ul",
+			action: SimpleMDE.toggleUnorderedList,
+			className: "fa fa-list-ul",
+			title: "Liste",
+		},
+    {
+			name: "list-ol",
+			action: SimpleMDE.toggleOrderedList,
+			className: "fa fa-list-ol",
+			title: "Liste numérotée",
+		},
+    "|",
+    {
+			name: "link",
+			action: SimpleMDE.drawLink,
+			className: "fa fa-link",
+			title: "Lien hypertexte",
+		},
+    {
+			name: "image",
+			action: SimpleMDE.drawImage,
+			className: "fa fa-picture-o",
+			title: "Image",
+		},
+    {
+			name: "table",
+			action: SimpleMDE.drawTable,
+			className: "fa fa-table",
+			title: "Tableau",
+		},
+    "|",
+    {
+			name: "preview",
+			action: SimpleMDE.togglePreview,
+			className: "fa fa-eye no-disable",
+			title: "Aperçu",
+		},
+    {
+			name: "side-by-side",
+			action: SimpleMDE.toggleSideBySide,
+			className: "fa fa-columns no-disable no-mobile",
+			title: "Aperçu temps-réel",
+		},
+    {
+			name: "fullscreen",
+			action: SimpleMDE.toggleFullScreen,
+			className: "fa fa-arrows-alt no-disable no-mobile",
+			title: "Plein écran",
+		},
+    "|",
+    {
+			name: "guide",
+			action: "https://docs.framasoft.org/fr/mattermost/help/messaging/formatting-text.html",
+			className: "fa fa-question-circle",
+			title: "Aide",
+		},
+
+    ]
+   });
+simplemde.options.promptTexts = {"link" : "Adresse du lien", "image" : "Adresse de l'image"};
+simplemde.value(document.querySelector('textarea[name=description]').defaultValue);
 </script>
 
 {% endblock %}
