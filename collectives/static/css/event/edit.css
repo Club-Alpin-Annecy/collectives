@@ -20,13 +20,13 @@
 }
 
 
-#eventedit #editor, #eventedit .ql-toolbar{
+#eventedit #editor {
   width: 80%;
   margin:auto;
 	text-align: left;
 }
 
-#eventedit #editor-area{
+#eventedit #description{
   height: 40em;
 }
 

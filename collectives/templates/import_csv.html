@@ -2,10 +2,11 @@
 {% extends 'base.html' %}
 
 {% block additionalhead %}
+  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
   {# Wysiwyg Editor #}
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 {% endblock %}
 
 {% block header %}
@@ -42,19 +43,16 @@
     <p>
     Les marqueurs de type <em>$nom_de_colonne$</em> seront remplacés par la valeur de la colonne du même nom.
     </p>
-    <div id="editor"></div>
-    {{ form.description(style="display:none;", required=false) }}<br/>
-
+    <div id="editor">
+    {{ form.description }}
+    </div>
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />
   </form>
 </div>
 <script>
-var quill = new Quill('#editor', {
-  theme: 'snow'
-});
-quill.setContents(JSON.parse(document.querySelector('textarea[name=description]').defaultValue));
+var simplemde = makeEditor("description");
 </script>
 
 {% endblock %}

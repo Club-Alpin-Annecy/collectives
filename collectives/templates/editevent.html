@@ -49,8 +49,9 @@
     </div>
 
     <h4>Description</h4>
-    <div id="editor"><textarea id="editor-area"></textarea></div>
-    {{ form.description(style="display:none;", required=false) }}<br/>
+    <div id="editor">
+    {{ form.description }}
+    </div>
     <label for="photo_file">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo_file }} <br/>
     <br/>
     {{ form.hidden_tag() }}
@@ -62,100 +63,7 @@ tail.DateTime("input[type=datetime]",{
     weekStart: 1
 });
 
-var simplemde = new SimpleMDE({ 
-  element: document.getElementById("editor-area"),
-  blockStyles: {italic:"_"},
-  spellChecker:false,
-  status:false,
-  promptURLs:true,
-  toolbar: [
-    {
-			name: "bold",
-			action: SimpleMDE.toggleBold,
-			className: "fa fa-bold",
-			title: "Gras",
-		},
-    {
-			name: "italic",
-			action: SimpleMDE.toggleItalic,
-			className: "fa fa-italic",
-			title: "Italique",
-		},
-    {
-			name: "strikethrough",
-			action: SimpleMDE.toggleStrikethrough,
-			className: "fa fa-strikethrough",
-			title: "Barré",
-		},
-    {
-			name: "heading",
-			action: SimpleMDE.toggleHeadingSmaller,
-			className: "fa fa-header",
-			title: "Titre",
-		},
-    "|",
-    {
-			name: "list-ul",
-			action: SimpleMDE.toggleUnorderedList,
-			className: "fa fa-list-ul",
-			title: "Liste",
-		},
-    {
-			name: "list-ol",
-			action: SimpleMDE.toggleOrderedList,
-			className: "fa fa-list-ol",
-			title: "Liste numérotée",
-		},
-    "|",
-    {
-			name: "link",
-			action: SimpleMDE.drawLink,
-			className: "fa fa-link",
-			title: "Lien hypertexte",
-		},
-    {
-			name: "image",
-			action: SimpleMDE.drawImage,
-			className: "fa fa-picture-o",
-			title: "Image",
-		},
-    {
-			name: "table",
-			action: SimpleMDE.drawTable,
-			className: "fa fa-table",
-			title: "Tableau",
-		},
-    "|",
-    {
-			name: "preview",
-			action: SimpleMDE.togglePreview,
-			className: "fa fa-eye no-disable",
-			title: "Aperçu",
-		},
-    {
-			name: "side-by-side",
-			action: SimpleMDE.toggleSideBySide,
-			className: "fa fa-columns no-disable no-mobile",
-			title: "Aperçu temps-réel",
-		},
-    {
-			name: "fullscreen",
-			action: SimpleMDE.toggleFullScreen,
-			className: "fa fa-arrows-alt no-disable no-mobile",
-			title: "Plein écran",
-		},
-    "|",
-    {
-			name: "guide",
-			action: "https://docs.framasoft.org/fr/mattermost/help/messaging/formatting-text.html",
-			className: "fa fa-question-circle",
-			title: "Aide",
-		},
-
-    ]
-   });
-simplemde.options.promptTexts = {"link" : "Adresse du lien", "image" : "Adresse de l'image"};
-simplemde.value(document.querySelector('textarea[name=description]').defaultValue);
+var simplemde = makeEditor("description");
 </script>
 
 {% endblock %}

@@ -112,7 +112,7 @@ class Event(db.Model):
     def set_rendered_description(self, description):
         # Urify links
         # From https://daringfireball.net/2010/07/improved_regex_for_matching_urls
-        URI_REGEX = r'(?i)(^|^\s|[^(]\s+)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
+        URI_REGEX = r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
         description = re.sub(URI_REGEX, r'\1[\2](\2)', description)
         self.rendered_description = markdown.markdown(description, extensions=['nl2br'])
         return self.rendered_description

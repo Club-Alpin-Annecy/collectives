@@ -13,8 +13,7 @@ class PlaceholderFiller:
     def __call__(self, match):
         key = match.group(1)
         if key in self.row.keys():
-            return self.row[key].replace('\\', '\\\\').replace(
-                '"', '\\"').replace("\n", '\\n')
+            return self.row[key]
         return ''
 
 
