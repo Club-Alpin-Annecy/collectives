@@ -136,9 +136,12 @@ function eventRowFormatter(row){
 }
 
 function localInterval(start, end){
-    if( localDate(start) == localDate(end))
-        return localDate(start);
-    return `${localDate(start)} au ${localDate(end)}`;
+    var startDate = localDate(start);
+    var endDate = localDate(end);
+
+    if( startDate == endDate)
+        return startDate;
+    return `${startDate} au ${endDate}`;
 }
 
 function localDate(date){
