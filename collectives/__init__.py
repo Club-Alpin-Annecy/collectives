@@ -64,7 +64,7 @@ def create_app(config_filename="config"):
             'css/event/event.css',
             'css/tail.datetime-harx-light.min.css',
             filters='pyscss',
-            output='all.css')
+            output='dist/css/all.css')
         assets.register('scss_all', scss)
 
         # Register blueprints

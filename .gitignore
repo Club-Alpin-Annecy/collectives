@@ -4,6 +4,7 @@ app.db
 uploads
 
 /collectives/static/.webassets-cache
+/collectives/static/dist/*
 
 .env
 .coverage
