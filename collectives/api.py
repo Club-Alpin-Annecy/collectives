@@ -53,7 +53,9 @@ class UserSchema(marshmallow.Schema):
                   'avatar_uri',
                   'manage_uri',
                   'profile_uri',
-                  'delete_uri')
+                  'delete_uri',
+                  'first_name',
+                  'last_name')
 
 
 @blueprint.route('/users/')
@@ -62,9 +64,38 @@ def users():
     if not current_user.is_admin():
         abort(403)
 
-    all_users = User.query.all()
-    content = json.dumps(UserSchema(many=True).dump(all_users))
-    return content, 200, {'content-type': 'application/json'}
+    query = db.session.query(User)
+
+    # Process all filters.
+    # All filter are added as AND
+    i = 0
+    while f'filters[{i}][field]' in request.args:
+        value = request.args.get(f'filters[{i}][value]')
+        field = request.args.get(f'filters[{i}][field]')
+
+        print(f'{field} {value}', flush=True)
+
+        filter = getattr(User, field).ilike(f'%{value}%')
+        print(filter, flush=True)
+        query = query.filter(filter)
+        # Get next filter
+        i += 1
+
+    # Process first sorter only
+    if f'sorters[0][field]' in request.args:
+        sort_field = request.args.get('sorters[0][field]')
+        sort_dir = request.args.get('sorters[0][dir]')
+        order = desc(sort_field) if sort_dir == 'desc' else sort_field
+        query = query.order_by(order)
+
+    # Pagination block
+    page = int(request.args.get('page'))
+    size = int(request.args.get('size'))
+    paginated_users = query.paginate(page, size, False)
+    data = UserSchema(many=True).dump(paginated_users.items)
+    response = {'data': data, "last_page":  paginated_users.pages}
+
+    return response, 200, {'content-type': 'application/json'}
 
 # Get all event of a user
 @blueprint.route('/user/<user_id>/events')
@@ -256,6 +287,7 @@ def events():
         value = request.args.get(f'filters[{i}][value]')
         field = request.args.get(f'filters[{i}][field]')
 
+        filter = None
         if field == 'activity_type':
             filter = Event.activity_types.any(short=value)
         if field == 'end':
@@ -263,7 +295,8 @@ def events():
         if field == 'status':
             filter = Event.status == value
 
-        query = query.filter(filter)
+        if filter != None:
+            query = query.filter(filter)
         # Get next filter
         i += 1
 
