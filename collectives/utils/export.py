@@ -36,36 +36,6 @@ class DefaultLayout:
         return '{c}{r}'.format(r=self.REGISTRATION_START_ROW+index, c=column)
 
 
-def strip_tags(ops):
-    """
-    Very naive parsing on quill deltas
-    Keep only plain text and bullet lists 
-    """
-    tags = json.loads(ops)
-
-    text = ''
-    chunk = ''
-
-    for op in tags['ops']:
-        # Attributes refer to the previous chunk of text
-        pattern = '{}'
-        if 'attributes' in op.keys():
-            for attr, value in op['attributes'].items():
-                if attr == 'list' and value == 'bullet':
-                    pattern = '- {}'
-
-        # Apply attributes to current chunk
-        text += pattern.format(chunk)
-
-        # Grab next chunk
-        chunk = ''
-        if 'insert' in op.keys():
-            chunk = op['insert']
-
-    text += chunk
-
-    return text
-
 
 def to_xlsx(event, cells=DefaultLayout()):
     wb = load_workbook(filename=current_app.config['XLSX_TEMPLATE'])
@@ -79,7 +49,7 @@ def to_xlsx(event, cells=DefaultLayout()):
 
     # Title, Description
     ws[cells.TITLE] = event.title
-    ws[cells.DESCRIPTION] = strip_tags(event.description)
+    ws[cells.DESCRIPTION] = event.description
 
     # Leader(s)
     leader_names = [l.full_name() for l in event.leaders]

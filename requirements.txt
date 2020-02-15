@@ -11,7 +11,7 @@ flask-marshmallow
 flask-testing
 marshmallow-sqlalchemy
 Flask-Images
-quill-delta[html]
+markdown
 pylint
 pylint-quotes
 pylint-flask-sqlalchemy

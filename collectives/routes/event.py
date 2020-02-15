@@ -12,7 +12,7 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 
 from ..helpers import current_time, slugify
-from ..utils.export import to_xlsx, strip_tags
+from ..utils.export import to_xlsx 
 from ..utils.csv import process_stream
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
@@ -94,7 +94,7 @@ def print_event(event_id):
         return redirect(url_for('event.index'))
 
     activity_names = [at.name for at in event.activity_types]    
-    description = escape(strip_tags(event.description))
+    description = escape(event.description)
     return render_template('print_event.html',
                             event = event,
                             description = description,

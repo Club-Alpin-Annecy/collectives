@@ -11,8 +11,8 @@
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
 
   {# Wysiwyg Editor #}
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 {% endblock %}
 
 {% block header %}
@@ -26,7 +26,7 @@
   <form
         action="{{ action }}"
         method="POST"
-        onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
+        onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
   >
     <h4>Informations</h4>
@@ -49,8 +49,9 @@
     </div>
 
     <h4>Description</h4>
-    <div id="editor"></div>
-    {{ form.description(style="display:none;", required=false) }}<br/>
+    <div id="editor">
+    {{ form.description }}
+    </div>
     <label for="photo_file">Image de présentation : <br/>&#9432; Max 2MB. Photo uniquement </label> {{ form.photo_file }} <br/>
     <br/>
     {{ form.hidden_tag() }}
@@ -61,11 +62,8 @@
 tail.DateTime("input[type=datetime]",{
     weekStart: 1
 });
-var quill = new Quill('#editor', {
-  theme: 'snow'
-});
 
-quill.setContents(JSON.parse(document.querySelector('textarea[name=description]').defaultValue));
+var simplemde = makeEditor("description");
 </script>
 
 {% endblock %}

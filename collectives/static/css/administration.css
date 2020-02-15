@@ -41,11 +41,19 @@
   font-size:80%;
 }
 
-#administration #editor, #administration .ql-toolbar{
+#administration #editor{
   width: 80%;
   margin:auto;
+	text-align: left;
 }
 
-#administration #editor{
+#administration #description{
   height: 20em;
+}
+
+#editor a{
+  text-decoration: underline;
+}
+#editor a:hover{
+  text-decoration: none;
 }
