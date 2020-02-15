@@ -3,7 +3,6 @@
 from flask import current_app
 from flask_uploads import UploadSet, IMAGES
 import markdown
-import enum
 import re
 
 from . import db
