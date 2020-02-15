@@ -24,8 +24,8 @@ def show_user(user_id):
             flash("Non autorisé", "error")
             return redirect(url_for('event.index'))
         if not current_user.has_signed() :
-            flash("""Merci de signer la charte RGPD avant de pouvoir
-                     accèder à des informations des utilisateurs""", "error")
+            flash("""Vous devez signer la charte RGPD avant de pouvoir
+                     accéder à des informations des utilisateurs""", "error")
             return redirect(url_for('profile.confidentiality_agreement'))
 
     user = User.query.filter_by(id=user_id).first()
