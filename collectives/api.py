@@ -295,7 +295,7 @@ def events():
         if field == 'status':
             filter = Event.status == value
 
-        if filter != None:
+        if filter is not None:
             query = query.filter(filter)
         # Get next filter
         i += 1
