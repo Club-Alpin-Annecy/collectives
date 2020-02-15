@@ -73,8 +73,6 @@ def users():
         value = request.args.get(f'filters[{i}][value]')
         field = request.args.get(f'filters[{i}][field]')
 
-        print(f'{field} {value}', flush=True)
-
         filter = getattr(User, field).ilike(f'%{value}%')
         print(filter, flush=True)
         query = query.filter(filter)
@@ -285,15 +283,24 @@ def events():
     i = 0
     while f'filters[{i}][field]' in request.args:
         value = request.args.get(f'filters[{i}][value]')
+        type = request.args.get(f'filters[{i}][type]')
         field = request.args.get(f'filters[{i}][field]')
+
+        if field == 'status':
+            value = getattr(EventStatus, value)
 
         filter = None
         if field == 'activity_type':
             filter = Event.activity_types.any(short=value)
-        if field == 'end':
-            filter = Event.end >= value
-        if field == 'status':
-            filter = Event.status == value
+        if field == 'end' or field == 'status':
+            if type == "=":
+                filter = getattr(Event, field) == value
+            if type == ">=":
+                filter = getattr(Event, field) >= value
+            if type == "<=":
+                filter = getattr(Event, field) <= value
+            if type == "!=":
+                filter = getattr(Event, field) != value
 
         if filter is not None:
             query = query.filter(filter)
