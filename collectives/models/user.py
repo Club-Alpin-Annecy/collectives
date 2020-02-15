@@ -116,6 +116,10 @@ class User(db.Model, UserMixin):
                                 nullable=False,
                                 default=datetime(2000,1,1))
 
+    confidentiality_agreement_signature_date = db.Column(
+                db.DateTime, nullable=True,
+                info={'label': 'Date de signature de la charte RGPD'})
+
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
     registrations = db.relationship('Registration', backref='user', lazy=True)
@@ -185,7 +189,13 @@ class User(db.Model, UserMixin):
                                           activity_id)
 
     def can_read_other_users(self):
+        return self.has_signed() and self.has_any_role()
+
+    def has_any_role(self):
         return len(self.roles) > 0
+
+    def has_signed(self):
+        return self.confidentiality_agreement_signature_date is not None
 
     def supervises_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor],

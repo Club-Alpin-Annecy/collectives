@@ -136,3 +136,28 @@ Lien vers l'événement:
 Vous recevez cet e-mail en tant qu'encadrant d'une activité.
 Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 """
+
+CONFIDENTIALITY_AGREEMENT="""<h4>Préambule</h4> :
+Vous avez été désigné par le Club Alpin Français d’Annecy, club affilié à la Fédération Française des Clubs Alpins et de Montagne, pour accéder à tout ou partie du site des collectives mis en place par le Club Alpin Français d’Annecy.
+Son accès est un <b>lieu sécurisé d’informations nominatives.</b>
+La Fédération Française des Clubs Alpins et de Montagne, soucieuse de garantir à tous les niveaux la sécurité des informations recensées par les traitements automatisés, estime utile de sensibiliser les personnes, susceptibles pour les besoins des services d’utiliser les codes d’accès, sur les précautions à prendre afin de préserver la sécurité des informations.
+Avant de vous permettre l'accès au site, la fédération vous demande donc d'accepter l'acte d'engagement ci-dessous. En fonction des droits différents qui peuvent vous être donnés par différentes instances du club, il est possible que votre acceptation vous soit demandée plusieurs fois.  
+{last_name} {first_name}
+{email}
+
+<h4>ACTE D’ENGAGEMENT DE CONFIDENTIALITE</h4>
+Etant amené/e à accéder à des données à caractère personnel dans le cadre de mes fonctions ou missions pour le Club Alpin Français d’Annecy, en signant électroniquement le présent document, je déclare reconnaître la confidentialité desdites données.
+Je m'engage par conséquent, conformément aux articles 34 et 35 de la loi du 6 janvier 1978 modifiée relative à l'informatique, aux fichiers et aux libertés ainsi qu'aux articles 32 à 35 du règlement général sur la protection des données du 27 avril 2016, à prendre toutes précautions conformes aux usages et à l'état de l'art dans le cadre de mes attributions afin de protéger la confidentialité des informations auxquelles j'ai accès, et en particulier d'empêcher qu'elles ne soient communiquées à des personnes non expressément autorisées à recevoir ces informations.
+Je m'engage en particulier à :
+    • ne pas utiliser les données auxquelles je peux accéderà des fins autres que celles prévues par mes attributions ;
+    • ne divulguer ces données qu'aux personnes dûment autorisées, en raison de leurs fonctions, à en recevoir communication, qu'il s'agisse de personnes privées, publiques, physiques ou morales ;
+    • ne faire aucune copie de ces données sauf à ce que cela soit nécessaire à l'exécution de mes fonctions ;
+    • prendre toutes les mesures conformes aux usages et à l'état de l'art dans le cadre de mes attributions afin d'éviter l'utilisation détournée ou frauduleuse de ces données ;
+    • prendre toutes précautions conformes aux usages et à l'état de l'art pour préserver la sécurité physique et logique de ces données ;
+    • m'assurer, dans la limite de mes attributions, que seuls des moyens de communication sécurisés seront utilisés pour transférer ces données ;
+    • en cas de cessation de mes fonctions, restituer intégralement les données, fichiers informatiques et tout support d'information relatif à ces données.
+Cet engagement de confidentialité, en vigueur pendant toute la durée de mes fonctions, demeurera effectif, sans limitation de durée après la cessation de mes fonctions, quelle qu'en soit la cause, dès lors que cet engagement concerne l'utilisation et la communication de données à caractère personnel.
+J'ai été informé/e que toute violation du présent engagement m'expose à des sanctions disciplinaires et pénales conformément à la réglementation en vigueur, notamment au regard des articles 226-16 à 226-24 du code pénal.
+
+<b>J'accepte sans aucune réserve les conditions ci-dessus.</b>
+""".replace('\n','<br />\n')

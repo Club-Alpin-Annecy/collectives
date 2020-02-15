@@ -19,9 +19,14 @@ blueprint = Blueprint('profile', __name__, url_prefix='/profile')
 @login_required
 def show_user(user_id):
 
-    if  int(user_id) != current_user.id and not current_user.can_read_other_users() :
-        flash("Non autorisé", "error")
-        return redirect(url_for('event.index'))
+    if int(user_id) != current_user.id:
+        if not current_user.has_any_role() :
+            flash("Non autorisé", "error")
+            return redirect(url_for('event.index'))
+        if not current_user.has_signed() :
+            flash("""Merci de signer la charte RGPD avant de pouvoir
+                     accèder à des informations des utilisateurs""", "error")
+            return redirect(url_for('profile.confidentiality_agreement'))
 
     user = User.query.filter_by(id=user_id).first()
 
@@ -86,3 +91,15 @@ def force_user_sync():
     return redirect(url_for('profile.show_user', user_id=current_user.id))
 
 
+@blueprint.route('/user/confidentiality',  methods=['GET', 'POST'])
+@login_required
+def confidentiality_agreement():
+    if request.method == 'POST' and current_user.confidentiality_agreement_signature_date == None:
+        current_user.confidentiality_agreement_signature_date = datetime.now()
+        db.session.add(current_user)
+        db.session.commit()
+        flash('Merci d\'avoir signé la charte RGPD', 'success')
+
+    return render_template('confidentiality_agreement.html',
+                           conf=current_app.config,
+                           title="Charte RGPD")

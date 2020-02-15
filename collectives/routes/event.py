@@ -92,6 +92,11 @@ def print_event(event_id):
     if event is None or not event.has_edit_rights(current_user):
         flash('Accès restreint, rôle insuffisant.', 'error')
         return redirect(url_for('event.index'))
+        
+    if not current_user.has_signed() :
+        flash("""Merci de signer la charte RGPD avant de pouvoir
+                 accèder à des informations des utilisateurs""", "error")
+        return redirect(url_for('profile.confidentiality_agreement'))
 
     activity_names = [at.name for at in event.activity_types]    
     description = escape(event.description)

@@ -1,6 +1,6 @@
 
 from flask import Flask, flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint
+from flask import current_app, Blueprint, Markup
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 
@@ -101,6 +101,17 @@ def login():
         return redirect(url_for('auth.login'))
 
     login_user(user, remember=form.remember_me.data)
+
+    # for user with a role which don't hve signed the confidentiality agreement
+    # We ask them to signed. This is non restrictive as long as user does note
+    # access a user profile
+    if not user.has_signed() and user.has_any_role():
+        url = url_for('profile.confidentiality_agreement')
+        flash(Markup(f"""Avec vos fonctions, vous pouvez accèder à
+                des informations personnelles d'adhérent.
+                Merci donc de signer la
+                <a href=\"{url}\">charte RGPD [ICI].</a>""")
+            , "warning")
 
     # Redirection to the page required by user before login
     next_page = request.args.get('next')

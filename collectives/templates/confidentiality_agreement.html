@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+
+  {# DateTime picker#}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}{{ title }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="confidentiality_agreement">
+  <!-- Logging Windows -->
+  <h3>{{ title }}</h3>
+  <p>{{
+        conf['CONFIDENTIALITY_AGREEMENT'].format(
+                    first_name=current_user.first_name,
+                    last_name=current_user.last_name,
+                    email=current_user.mail
+                )|safe}}</p>
+
+  {% if current_user.confidentiality_agreement_signature_date == None %}
+          <form action="#" method="post"><br/><br/>
+              <input type="submit" name="" value="SIGNER">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          </form>
+  {% else %}
+          <p><br/><em>Charte signée par <b>{{current_user.full_name()}}</b> le <b>{{current_user.confidentiality_agreement_signature_date.strftime("%d/%m/%Y à %H:%M")}}</b></em></p>
+  {% endif %}
+
+</div>
+
+{% endblock %}
