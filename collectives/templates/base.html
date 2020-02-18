@@ -88,7 +88,10 @@
 <div id="footer">
     <div class="container">
          <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
-        <div><a href="">Conditions d'utilisation du site</a> - <a href="">Contacter le club</a> - <a href="">Contact RGPD</a></div>
+        <div>
+            <a href="">Conditions d'utilisation du site</a> - <a href="">Contacter le club</a> - <a href="">Contact RGPD</a> <br/><br/>
+            Version du site: {{conf['VERSION']}}
+        </div>
     </div>
 </div>
 </body>
