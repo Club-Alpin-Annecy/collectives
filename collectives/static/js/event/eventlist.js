@@ -188,7 +188,7 @@ function toggleActivity(activity_id, element){
 function togglePastActivities(element){
 
     if ( ! element.checked){
-        eventsTable.addFilter( [{field:"end", type:"=", value:getServerLocalTime() }]);
+        eventsTable.addFilter( [{field:"end", type:">=", value:getServerLocalTime() }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
         eventsTable.removeFilter(endfilter);
@@ -199,7 +199,7 @@ function togglePastActivities(element){
 function toggleConfirmedOnly(confirmedOnly){
 
     if (confirmedOnly){
-        eventsTable.addFilter( [{field:"status", type:"=", value:  0  }]);
+        eventsTable.addFilter( [{field:"status", type: "!=", value:  'Cancelled'  }]);
     }else{
         statusFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
         eventsTable.removeFilter(statusFilter);
