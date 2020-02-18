@@ -3,7 +3,7 @@
 
 import os
 from os import environ
-
+import subprocess
 
 
 FLASK_ENV = environ.get('FLASK_ENV')
@@ -43,6 +43,10 @@ SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
 # Page information
 TITLE = "Collectives CAF Annecy"
 LOGO = "caf/caf-gris.png"
+run = subprocess.run(['git', 'describe', '--tags'],
+                        stdout=subprocess.PIPE,
+                        check=False)
+VERSION = run.stdout.decode('utf-8')
 #FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
 
