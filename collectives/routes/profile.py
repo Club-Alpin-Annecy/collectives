@@ -15,8 +15,13 @@ images = Images()
 
 blueprint = Blueprint('profile', __name__, url_prefix='/profile')
 
-@blueprint.route('/user/<user_id>', methods=['GET'])
+@blueprint.before_request
 @login_required
+def before_request():
+    """ Protect all profile from unregistered access """
+    pass
+
+@blueprint.route('/user/<user_id>', methods=['GET'])
 def show_user(user_id):
 
     if int(user_id) != current_user.id:
@@ -37,7 +42,6 @@ def show_user(user_id):
 
 
 @blueprint.route('/organizer/<leader_id>', methods=['GET'])
-@login_required
 def show_leader(leader_id):
     user = User.query.filter_by(id=leader_id).first()
 
@@ -54,11 +58,10 @@ def show_leader(leader_id):
 
 
 @blueprint.route('/user/edit', methods=['GET', 'POST'])
-@login_required
 def update_user():
 
     form = UserForm(obj=current_user)
-    
+
     if not form.validate_on_submit():
         form.password.data = None
         return render_template('basicform.html',
@@ -78,21 +81,19 @@ def update_user():
     if form.remove_avatar and form.remove_avatar.data:
         user.delete_avatar()
     user.save_avatar(UserForm().avatar_file.data)
-    
+
     db.session.add(user)
     db.session.commit()
 
     return redirect(url_for('profile.update_user'))
 
 @blueprint.route('/user/force_sync', methods=['POST'])
-@login_required
 def force_user_sync():
     sync_user(current_user, True)
     return redirect(url_for('profile.show_user', user_id=current_user.id))
 
 
 @blueprint.route('/user/confidentiality',  methods=['GET', 'POST'])
-@login_required
 def confidentiality_agreement():
     if request.method == 'POST' and current_user.confidentiality_agreement_signature_date == None:
         current_user.confidentiality_agreement_signature_date = datetime.now()
