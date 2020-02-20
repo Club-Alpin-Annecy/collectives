@@ -62,8 +62,8 @@ class UserSchema(marshmallow.Schema):
 
 @blueprint.route('/users/')
 @login_required
-@admin_required()
-@confidentiality_agreement()
+@admin_required(True)
+@confidentiality_agreement(True)
 def users():
 
     query = db.session.query(User)
