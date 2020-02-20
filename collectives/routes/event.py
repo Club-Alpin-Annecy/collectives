@@ -12,8 +12,10 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 
 from ..helpers import current_time, slugify
-from ..utils.export import to_xlsx 
+from ..utils.export import to_xlsx
 from ..utils.csv import process_stream
+from ..utils.access import confidentiality_agreement
+
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
 
@@ -67,6 +69,7 @@ def view_event(event_id):
 
 @blueprint.route('/<event_id>/export_xlsx')
 @login_required
+@confidentiality_agreement()
 def export_event(event_id):
     event = Event.query.get(event_id)
 
@@ -86,6 +89,7 @@ def export_event(event_id):
 
 @blueprint.route('/<event_id>/print')
 @login_required
+@confidentiality_agreement()
 def print_event(event_id):
     event = Event.query.get(event_id)
 
@@ -93,7 +97,7 @@ def print_event(event_id):
         flash('Accès restreint, rôle insuffisant.', 'error')
         return redirect(url_for('event.index'))
 
-    activity_names = [at.name for at in event.activity_types]    
+    activity_names = [at.name for at in event.activity_types]
     description = escape(event.description)
     return render_template('print_event.html',
                             event = event,
@@ -104,6 +108,7 @@ def print_event(event_id):
 @blueprint.route('/add', methods=['GET', 'POST'])
 @blueprint.route('/<event_id>/edit', methods=['GET', 'POST'])
 @login_required
+@confidentiality_agreement()
 def manage_event(event_id=None):
     if not current_user.can_create_events():
         flash('Accès restreint, rôle insuffisant.', 'error')
@@ -196,6 +201,7 @@ def manage_event(event_id=None):
 
 @blueprint.route('/<event_id>/duplicate', methods=['GET'])
 @login_required
+@confidentiality_agreement()
 def duplicate(event_id=None):
     if not current_user.can_create_events():
         flash('Accès restreint, rôle insuffisant.', 'error')
@@ -356,13 +362,14 @@ def delete_event(event_id):
 
     # For now don't delete photo... there might
     # be other events using it
-    
+
     flash('Événement supprimé', 'success')
     return redirect(url_for('event.index'))
 
 
 @blueprint.route('/csv_import', methods=['GET', 'POST'])
 @login_required
+@confidentiality_agreement()
 def csv_import():
     activities = current_user.get_supervised_activities()
     if activities == []:

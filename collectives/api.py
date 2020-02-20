@@ -10,6 +10,8 @@ from .models import db, User, Event, EventStatus
 from .models import ActivityType, Registration, RegistrationStatus
 import json
 
+from .utils.access import confidentiality_agreement, admin_required
+
 marshmallow = Marshmallow()
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 
@@ -60,9 +62,9 @@ class UserSchema(marshmallow.Schema):
 
 @blueprint.route('/users/')
 @login_required
+@admin_required(True)
+@confidentiality_agreement(True)
 def users():
-    if not current_user.is_admin():
-        abort(403)
 
     query = db.session.query(User)
 

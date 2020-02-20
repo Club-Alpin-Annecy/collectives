@@ -24,12 +24,19 @@
     <h3>{{user.full_name()}}</h3>
 
     {% if user == current_user %}
-    <a class="button" href="{{url_for('profile.update_user')}}">
-         <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
-        Modifier mes paramètres
-    </a>
+        <a class="button" href="{{url_for('profile.update_user')}}">
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
+            Modifier mes paramètres
+        </a>
+        {% if current_user.has_any_role() %}
+            <a class="button" href="{{url_for('profile.confidentiality_agreement')}}">
+                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                Charte RGPD
+            </a>
+        {% endif %}
+
     {% elif current_user.is_admin() %}
-    <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
+        <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
     {% endif %}
 
 
