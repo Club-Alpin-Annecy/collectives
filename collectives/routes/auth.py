@@ -307,6 +307,8 @@ def init_admin(app):
             print('WARN: Reset admin password')
     except sqlite3.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
+    except sqlalchemy.exc.InternalError:
+        print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.OperationalError:
         print('WARN: Cannot configure admin: db is not available')
     except sqlalchemy.exc.ProgrammingError:
