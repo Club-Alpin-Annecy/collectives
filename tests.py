@@ -2,6 +2,7 @@ import unittest
 import flask_testing
 import datetime
 from os import environ
+from io import StringIO
 
 # pylint: disable=C0301
 from collectives import create_app
@@ -11,7 +12,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 from collectives.api import find_users_by_fuzzy_name
 from collectives.helpers import current_time
 from collectives.models.user import activity_supervisors
-from collectives.utils.csv import fill_from_csv
+from collectives.utils.csv import csv_to_events
 
 from collectives.utils import extranet
 
@@ -342,24 +343,9 @@ class TestExtranetApi(flask_testing.TestCase):
 
 class TestImportCSV(ModelTest, flask_testing.TestCase):
 
-    csv = {
-        "initiateur": "u1",
-        "seats": "8",
-        "internetSeats": "4",
-        "registrationStart": "13/06/19 19:00",
-        "registrationEnd": "14/06/19 12:00",
-        "dateStart": "14/06/19 18:30",
-        "dateEnd": "14/06/19 19:30",
-        "categories": "",
-        "title": "TITRE",
-        "location": "",
-        "carte": "",
-        "altitude": "",
-        "denivele": "",
-        "cotation": "",
-        "distance": "",
-        "observations": "dur"
-    }
+    # pylint: disable=C0301
+    csv = "TEST ,740020000001,mardi26,mardi 26 novembre 2019,26/11/19 7:00,mardi 26 novembre 2019,26/11/19 7:00,19/11/19 7:00,25/11/19 12:00,,Aiguille des Calvaires,Aravis,,2322,1200,F,,,8,4"
+
 
     def create_app(self):
 
@@ -370,17 +356,23 @@ class TestImportCSV(ModelTest, flask_testing.TestCase):
     def test_csv_import(self):
 
         user1 = User(mail="u1", first_name="First", last_name="User",
-                     password="", license="u1", phone="")
+                     password="", license="740020000001", phone="")
         db.session.add(user1)
         db.session.commit()
 
         event = Event()
-        fill_from_csv(event, self.csv,
-                      '{"ops" : [{"insert":"$observations$"}]}')
-        assert event.title == "TITRE"
+
+        output = StringIO(self.csv)
+
+        events, processed, failed=csv_to_events(output,
+                        '{altitude}m-{denivele}m-{cotation}')
+        event=events[0]
+        assert processed == 1
+        assert failed == []
+        assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
-        assert "dur" in event.rendered_description
+        assert "2322m-1200m-F" in event.rendered_description
         assert event.leaders[0].first_name == "First"
 
 
