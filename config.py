@@ -86,9 +86,9 @@ IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
 
 DESCRIPTION_TEMPLATE = """
 ## Itinéraire:
-**Altitude max** : $altitude$
-**Dénivelé** : $denivele$
-**Cotation** : $cotation$
+**Altitude max** : {altitude}m
+**Dénivelé** : {denivele}m
+**Cotation** : {cotation}
 
 ## Lieu et heure de départ
 
@@ -97,7 +97,7 @@ DESCRIPTION_TEMPLATE = """
  - Équipement 2
 
 ## Observations
-$observations$
+{observations}
 """
 
 XLSX_TEMPLATE = os.path.join(basedir,

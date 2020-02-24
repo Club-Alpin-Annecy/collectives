@@ -6,35 +6,44 @@ import codecs
 import csv
 
 
-class PlaceholderFiller:
-    def __init__(self, row):
-        self.row = row
+# COLUMN NAME
+LEADER=1
+TITLE=10
+START=4
+END=6
+REGISTRATION_START=7
+REGISTRATION_END=8
+ALTITUDE=13
+DENIVELE=14
+COTATION=15
+OBSERVATIONS=17
+SLOTS=18
+INTERNET_SLOTS=19
 
-    def __call__(self, match):
-        key = match.group(1)
-        if key in self.row.keys():
-            return self.row[key]
-        return ''
 
 
 def fill_from_csv(event, row, template):
-    event.title = row['title']
+    print(row, flush=True)
+    event.title = row[TITLE]
 
-    filler = PlaceholderFiller(row)
-    event.description = re.sub(r'\$([\w]+?)\$', filler, template)
-    event.set_rendered_description(event.description)
-    event.start = convert_csv_time(row['dateStart'])
-    event.end = convert_csv_time(row['dateEnd'])
-    event.registration_open_time = convert_csv_time(row['registrationStart'])
-    event.registration_close_time = convert_csv_time(row['registrationEnd'])
-    event.num_slots = int(row['seats'])
-    event.num_online_slots = int(row['internetSeats'])
+    event.start = convert_csv_time(row[START])
+    event.end = convert_csv_time(row[END])
+    event.registration_open_time = convert_csv_time(row[REGISTRATION_START])
+    event.registration_close_time = convert_csv_time(row[REGISTRATION_END])
+    event.num_slots = int(row[SLOTS])
+    event.num_online_slots = int(row[INTERNET_SLOTS])
 
-    leader = User.query.filter_by(license=row['initiateur']).first()
+    leader = User.query.filter_by(license=row[LEADER]).first()
     if leader is None:
-        raise Exception(f'Utilisateur {row["initiateur"]} inconnu')
+        raise Exception(f'Utilisateur {row[LEADER]} inconnu')
     event.leaders = [leader]
 
+    event.description = template.format(altitude = row[ALTITUDE],
+        denivele = row[DENIVELE],
+        cotation = row[COTATION],
+        observations = row[OBSERVATIONS],
+    )
+    event.set_rendered_description(event.description)
 
 def convert_csv_time(date_time_str):
     return datetime.strptime(date_time_str, '%d/%m/%y %H:%M')
@@ -63,9 +72,9 @@ def process_stream(base_stream, activity_type, description):
 def csv_to_events(stream, description):
     events = []
     processed = 0
-    failed = 0
+    failed = []
 
-    reader = csv.DictReader(stream, delimiter=",")
+    reader = csv.reader(stream, delimiter=",")
     for row in reader:
         processed += 1
         event = Event()
@@ -73,7 +82,6 @@ def csv_to_events(stream, description):
             fill_from_csv(event, row, description)
             events.append(event)
         except Exception as e:
-            failed += 1
-            flash(
-                f'Impossible d\'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)} {str(row)}', 'error')
+            failed.append(
+                f'Impossible d\'importer la ligne {processed}: [{type(e).__name__}] {str(e)} {str(row)}')
     return events, processed, failed

@@ -385,18 +385,18 @@ def csv_import():
     if not form.is_submitted():
         form.description.data = current_app.config['DESCRIPTION_TEMPLATE']
 
-    if not form.validate_on_submit():
-        return render_template('import_csv.html',
-                               conf=current_app.config,
-                               form=form,
-                               title="Création d'event par CSV")
+    failed = []
+    if form.validate_on_submit():
+        activity_type = ActivityType.query.get(form.type.data)
+
+        file = form.csv_file.data
+        processed, failed = process_stream(file.stream, activity_type, form.description.data)
+
+        flash(f'Importation de {processed-len(failed)} éléments sur {processed}', 'message')
 
 
-    activity_type = ActivityType.query.get(form.type.data)
-
-    file = form.csv_file.data
-    processed, failed = process_stream(file.stream, activity_type, form.description.data)
-
-    flash(f'Importation de {processed-failed} éléments sur {processed}', 'message')
-
-    return redirect(url_for('event.csv_import'))
+    return render_template('import_csv.html',
+                           conf=current_app.config,
+                           form=form,
+                           failed = failed,
+                           title="Création d'event par CSV")
