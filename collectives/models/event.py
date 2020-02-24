@@ -4,6 +4,7 @@ from flask import current_app
 from flask_uploads import UploadSet, IMAGES
 import markdown
 import re
+import enum
 
 from . import db
 from .registration import RegistrationStatus
@@ -70,8 +71,8 @@ class Event(db.Model):
     start = db.Column(db.DateTime, nullable=False, index=True)
     end = db.Column(db.DateTime, nullable=False)
 
-    num_slots = db.Column(db.Integer, nullable=False)
-    num_online_slots = db.Column(db.Integer, nullable=False)
+    num_slots = db.Column(db.Integer, nullable=False, default='10', info={'min': 1})
+    num_online_slots = db.Column(db.Integer, nullable=False, default='0', info={'min': 0})
     registration_open_time = db.Column(db.DateTime, nullable=True)
     registration_close_time = db.Column(db.DateTime, nullable=True)
 
@@ -97,11 +98,7 @@ class Event(db.Model):
                                     cascade="all, delete-orphan")
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
-        self.description = current_app.config['DESCRIPTION_TEMPLATE']
-        # Remove placeholders
-        self.description = re.sub(r'\$[\w]+?\$', '', self.description)
 
     def save_photo(self, file):
         if file is not None:
