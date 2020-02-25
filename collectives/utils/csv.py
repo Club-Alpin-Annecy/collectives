@@ -6,42 +6,23 @@ import codecs
 import csv
 
 
-# COLUMN NAME
-LEADER=1
-TITLE=10
-START=4
-END=6
-REGISTRATION_START=7
-REGISTRATION_END=8
-ALTITUDE=13
-DENIVELE=14
-COTATION=15
-OBSERVATIONS=17
-SLOTS=18
-INTERNET_SLOTS=19
-
-
-
 def fill_from_csv(event, row, template):
     print(row, flush=True)
-    event.title = row[TITLE]
+    event.title = row['titre']
 
-    event.start = convert_csv_time(row[START])
-    event.end = convert_csv_time(row[END])
-    event.registration_open_time = convert_csv_time(row[REGISTRATION_START])
-    event.registration_close_time = convert_csv_time(row[REGISTRATION_END])
-    event.num_slots = int(row[SLOTS])
-    event.num_online_slots = int(row[INTERNET_SLOTS])
+    event.start = convert_csv_time(row['debut2'])
+    event.end = convert_csv_time(row['fin2'])
+    event.registration_open_time = convert_csv_time(row['debut_internet'])
+    event.registration_close_time = convert_csv_time(row['fin_internet'])
+    event.num_slots = int(row['places'])
+    event.num_online_slots = int(row['places_internet'])
 
-    leader = User.query.filter_by(license=row[LEADER]).first()
+    leader = User.query.filter_by(license=row['id_encadrant']).first()
     if leader is None:
-        raise Exception(f'Utilisateur {row[LEADER]} inconnu')
+        raise Exception(f'Utilisateur {row["id_encadrant"]} inconnu')
     event.leaders = [leader]
 
-    event.description = template.format(altitude = row[ALTITUDE],
-        denivele = row[DENIVELE],
-        cotation = row[COTATION],
-        observations = row[OBSERVATIONS],
+    event.description = template.format(**row,
     )
     event.set_rendered_description(event.description)
 
@@ -74,9 +55,17 @@ def csv_to_events(stream, description):
     processed = 0
     failed = []
 
-    reader = csv.reader(stream, delimiter=",")
+    fields = current_app.config['CSV_COLUMNS']
+    reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     for row in reader:
         processed += 1
+
+        # If a value is empty, we skip this row
+        if "" in row.values():
+            failed.append(
+                f'Impossible d\'importer la ligne {processed}: une colonne est vide ${row.values()}')
+            continue
+
         event = Event()
         try:
             fill_from_csv(event, row, description)

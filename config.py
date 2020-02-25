@@ -85,20 +85,25 @@ IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
 
 
 DESCRIPTION_TEMPLATE = """
-## Itinéraire:
-**Altitude max** : {altitude}m
-**Dénivelé** : {denivele}m
-**Cotation** : {cotation}
-
-## Lieu et heure de départ
-
-## Matériel requis
- - Équipement 1
- - Équipement 2
-
-## Observations
 {observations}
+
+Secteur: {secteur}
+Carte IGN: {carte_IGN}
+Altitude max.: {altitude}m
+Dénivelé: {denivele}m
+Distance: {distance}km
+Cotation: {cotation}
+
+Lieu et heure de départ: {debut2}
+
+Matériel requis:
 """
+CSV_COLUMNS = [ 'nom_encadrant', 'id_encadrant', 'unknown',
+                "debut1", "debut2", "fin1", "fin2",
+                "debut_internet","fin_internet", "pictogramme",
+                "titre", "secteur", "carte_IGN", "altitude", "denivele",
+                "cotation", "distance", "observations" ,
+                "places", "places_internet"]
 
 XLSX_TEMPLATE = os.path.join(basedir,
                              "collectives/templates/exported_event.xlsx")
