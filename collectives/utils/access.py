@@ -28,7 +28,7 @@ def confidentiality_agreement(api=False):
             message= """Vous devez signer la charte RGPD avant de pouvoir
                         accéder à des informations des utilisateurs"""
             url = url_for('profile.confidentiality_agreement')
-            return current_user.has_signed(), message, url
+            return current_user.has_signed_ca(), message, url
 
         return access_requires(f, tester, api)
     return innerF

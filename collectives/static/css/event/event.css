@@ -140,9 +140,25 @@ span.event-status{
   text-align: center;
 }
 
+#eventdetail .administration h5{
+  margin-top: 2em;
+}
+
+
 #eventdetail .search-input{
     width: 400px;
     font-size: 200%;
+}
+
+#eventdetail p {
+    padding: 1em 20px;
+}
+#eventdetail .contactinfos input[type=text]{
+    width: calc(100% - 1em - 60px - 20px);
+}
+
+#eventdetail .contactinfos input[type=button]{
+    width:  60px;
 }
 
 .delete-button{

@@ -133,6 +133,35 @@
           {% endif %}
 
       </h5>
+      <h5>Coordonnées du groupe</h5>
+      {% if current_user.has_signed_ca() %}
+          <p class="contactinfos">
+              <label>
+                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/call.svg') }}" />
+                  <input type="button" value="Copier" onclick="copy('phonelist' )">
+                  <input type="text"
+                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | join(', ') }}"
+                         id="phonelist"
+                         />
+              </label><br/>
+              <label>
+                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" />
+                  <input type="button" value="Copier" onclick="copy('maillist')">
+                  <input type="text"
+                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
+                         id="maillist"
+                         />
+              </label><br/>
+          </p>
+      {% else %}
+          <p>
+              Vous ne pouvez pas voir les coordonnées des participants car vous n'avez pas signé la
+              <a href="{{url_for('profile.confidentiality_agreement')}}">
+                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                  Charte RGPD
+              </a>
+          </p>
+      {% endif %}
 
       <h5> Inscrire un adhérent </h5>
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
