@@ -344,7 +344,7 @@ class TestExtranetApi(flask_testing.TestCase):
 class TestImportCSV(ModelTest, flask_testing.TestCase):
 
     # pylint: disable=C0301
-    csv = "TEST ,740020000001,mardi26,mardi 26 novembre 2019,26/11/19 7:00,mardi 26 novembre 2019,26/11/19 7:00,19/11/19 7:00,25/11/19 12:00,,Aiguille des Calvaires,Aravis,,2322,1200,F,,,8,4"
+    csv = "TEST ,740020000001,mardi26,mardi 26 novembre 2019,26/11/19 7:00,mardi 26 novembre 2019,26/11/19 7:00,19/11/19 7:00,25/11/19 12:00, ,Aiguille des Calvaires,Aravis, ,2322,1200,F, , ,8,4"
 
 
     def create_app(self):
