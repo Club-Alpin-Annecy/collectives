@@ -27,8 +27,14 @@
     {% endfor %}
     {% endfor %}
   </ul>
+  <ul class="form-errors">
+    {% for message in failed%}
+    <li>{{message}}</li>
+    {% endfor %}
+  </ul>
 
-  <form action="" 
+
+  <form action=""
         onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
         method="POST" enctype="multipart/form-data">
 
@@ -40,12 +46,12 @@
     {% endfor %}
 
     <h4>Squelette de description</h4>
-    <p>
-    Les marqueurs de type <em>$nom_de_colonne$</em> seront remplacés par la valeur de la colonne du même nom.
-    </p>
+    <br/>
     <div id="editor">
     {{ form.description }}
     </div>
+    <br/>
+    <p><b>Variables utilisables: </b> {{ conf['CSV_COLUMNS'] | join(', ')}}</p>
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />

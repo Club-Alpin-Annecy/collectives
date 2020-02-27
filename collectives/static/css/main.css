@@ -466,6 +466,10 @@ form {
 	text-align:center;
 }
 
+form p{
+	text-align:left;
+}
+
 form.inline{
     display: inline;
 	text-align:left;
