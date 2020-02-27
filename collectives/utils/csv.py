@@ -60,12 +60,6 @@ def csv_to_events(stream, description):
     for row in reader:
         processed += 1
 
-        # If a value is empty, we skip this row
-        if "" in row.values():
-            failed.append(
-                f'Impossible d\'importer la ligne {processed}: une colonne est vide ${row.values()}')
-            continue
-
         event = Event()
         try:
             fill_from_csv(event, row, description)
