@@ -4,7 +4,6 @@ from flask import current_app
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
 from wtforms_alchemy import ModelForm
 from wtforms.validators import InputRequired, NumberRange
-import re
 
 from ..models import Event, photos
 from ..models import Registration, EventStatus
@@ -35,5 +34,7 @@ class EventForm(ModelForm, FlaskForm):
 
     def set_default_description(self):
         description = current_app.config['DESCRIPTION_TEMPLATE']
+        vars = {i:'' for i in  current_app.config['CSV_COLUMNS']}
+
         # Remove placeholders
-        self.description.data = re.sub(r'\$[\w]+?\$', '', description)
+        self.description.data = description.format(**vars)
