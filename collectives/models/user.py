@@ -189,12 +189,12 @@ class User(db.Model, UserMixin):
                                           activity_id)
 
     def can_read_other_users(self):
-        return self.has_signed() and self.has_any_role()
+        return self.has_signed_ca() and self.has_any_role()
 
     def has_any_role(self):
         return len(self.roles) > 0
 
-    def has_signed(self):
+    def has_signed_ca(self):
         return self.confidentiality_agreement_signature_date is not None
 
     def supervises_activity(self, activity_id):

@@ -52,7 +52,7 @@
 }
 
 span.event-status{
-  padding: 0 0.5em; 
+  padding: 0 0.5em;
   color:  white;
   background-color: red;
   border-radius: 5px;
@@ -140,9 +140,18 @@ span.event-status{
   text-align: center;
 }
 
+#eventdetail .administration h5{
+  margin-top: 2em;
+}
+
+
 #eventdetail .search-input{
     width: 400px;
     font-size: 200%;
+}
+
+#eventdetail p {
+    padding: 1em 20px;
 }
 
 .delete-button{

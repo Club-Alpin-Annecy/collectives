@@ -28,7 +28,7 @@ def show_user(user_id):
         if not current_user.has_any_role() :
             flash("Non autorisé", "error")
             return redirect(url_for('event.index'))
-        if not current_user.has_signed() :
+        if not current_user.has_signed_ca() :
             flash("""Vous devez signer la charte RGPD avant de pouvoir
                      accéder à des informations des utilisateurs""", "error")
             return redirect(url_for('profile.confidentiality_agreement'))

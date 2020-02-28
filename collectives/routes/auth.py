@@ -104,7 +104,7 @@ def login():
 
     # We ask users with roles to sign the confidentiality agreement.
     # Signature is compulsory to view user profiles.
-    if not user.has_signed() and user.has_any_role():
+    if not user.has_signed_ca() and user.has_any_role():
         url = url_for('profile.confidentiality_agreement')
         flash(Markup(f"""Avec vos fonctions, vous pouvez accèder à
                 des informations personnelles d'adhérent.

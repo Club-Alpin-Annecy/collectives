@@ -554,6 +554,16 @@ form.inline input[type=submit] {
 	animation-timing-function: ease-in-out;
 	cursor: pointer;
 }
+
+/* use flexbox to have a label in front of an input on the same line,
+ but the input can take up to the rest of the space*/
+.inputGrow{
+	display: flex;
+}
+.inputGrow .grow{
+	flex-grow: 20;
+}
+
 @keyframes votre_animation{ to{
        transform: scale(1.4)
 }}
