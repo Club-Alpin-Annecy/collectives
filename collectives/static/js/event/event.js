@@ -61,7 +61,7 @@ const autocompleteSearch = function () {
 
 // Function to load into clipboard the Content
 // of an input (#id).
-function copy(id){
+function copyToClipboard(id){
     var input = document.getElementById(id);
     input.select();
     input.setSelectionRange(0, 99999); /*For mobile devices*/

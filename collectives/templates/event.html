@@ -115,44 +115,52 @@
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
               Dupliquer
           </a>
-        
+
           <a class="button" href="{{ url_for('event.print_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> 
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
-          </a> 
-    
+          </a>
+
           {% if event.has_delete_rights(current_user) %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button delete-button">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/> 
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
                 Supprimer
               </button>
-          
+
             </form>
           {% endif %}
 
       </h5>
       <h5>Coordonnées du groupe</h5>
       {% if current_user.has_signed_ca() %}
-          <p class="contactinfos">
-              <label>
-                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/call.svg') }}" />
-                  <input type="button" value="Copier" onclick="copy('phonelist' )">
+          <div class="contactinfos">
+              <p class="inputGrow">
+                  <label for="phonelist">
+                      Liste téléphonique :
+                  </label>
                   <input type="text"
                          value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | join(', ') }}"
                          id="phonelist"
+                         readonly
+                         class="grow"
                          />
-              </label><br/>
-              <label>
-                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" />
-                  <input type="button" value="Copier" onclick="copy('maillist')">
+                   <input type="button" value="Copier" onclick="copyToClipboard('phonelist' )">
+              </p>
+               <p class="inputGrow">
+                  <label>
+                      List d'email :
+                  </label>
                   <input type="text"
                          value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
                          id="maillist"
+                         readonly
+                         class="grow"
                          />
-              </label><br/>
-          </p>
+                  <input type="button" value="Copier" onclick="copyToClipboard('maillist')">
+                </p>
+          </div>
       {% else %}
           <p>
               Vous ne pouvez pas voir les coordonnées des participants car vous n'avez pas signé la
