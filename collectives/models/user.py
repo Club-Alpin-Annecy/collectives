@@ -120,6 +120,10 @@ class User(db.Model, UserMixin):
                 db.DateTime, nullable=True,
                 info={'label': 'Date de signature de la charte RGPD'})
 
+    legal_text_signature_date = db.Column(
+            db.DateTime, nullable=True,
+            info={'label': 'Date de signature des mentions légales'})
+
     # Relationships
     roles = db.relationship('Role', backref='user', lazy=True)
     registrations = db.relationship('Registration', backref='user', lazy=True)

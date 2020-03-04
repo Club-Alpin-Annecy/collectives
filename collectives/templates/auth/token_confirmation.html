@@ -2,10 +2,6 @@
 
 {% block additionalhead %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
-
-  {# DateTime picker#}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
-  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -28,20 +24,26 @@
   </ul>
 
   <form action="" method="POST" enctype="multipart/form-data">
-    {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-            <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+      <h4>Mot de passe</h4>
+      <br/>
+      <div class="field">{{ form.password.label }}<span class="help">{{ form.password.description }}</span></div>
+      {{ form.password(title=form.password.description) }}
 
-            {% if field.type == "PasswordField" %}
-                {{ field(autocomplete="new-password", title=field.description) }}
-            {% else %}
-                {{ field(title=field.description) }}
-            {% endif %}
+      <div class="field">{{ form.confirm.label }}<span class="help">{{ form.confirm.description }}</span></div>
+      {{ form.confirm(title=form.confirm.description) }}
 
-        {% endif %}
-    {% endfor %}
+      {% if form.legal_accepted is defined %}
+      <h4>Acceptations des conditions du site</h4>
+      <br/>
+      <div class="flex">
+            <div>{{ form.legal_accepted(title=form.legal_accepted.description) }}</div>
+            <div class="leftalign">{{ form.legal_accepted.label(class="leftalign") }}<span class="help">{{ form.legal_accepted.description }}</span></div>
+
+      </div>
+      {% endif %}
+
     {{ form.hidden_tag() }}
-    <br />{{ form.submit() }}
+    <br /><br /><br /><br />{{ form.submit() }}
   </form>
 
   {% include 'contact_link.html' %}

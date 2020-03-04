@@ -1,5 +1,9 @@
 from flask import redirect, url_for, Blueprint
 from flask import current_app, render_template
+from flask_login import current_user
+from ..forms.auth import LegalAcceptation
+from ..helpers import current_time
+from ..models import db
 
 blueprint = Blueprint('root', __name__)
 
@@ -12,4 +16,12 @@ def index():
 @blueprint.route('/legal')
 def legal():
     return render_template('legal.html',
-                           conf=current_app.config)
+                           conf=current_app.config,
+                           form=LegalAcceptation())
+
+@blueprint.route('/legal/accept', methods=['POST'])
+def legal_accept():
+    current_user.legal_text_signature_date = current_time()
+    db.session.add(current_user)
+    db.session.commit()
+    return redirect(url_for('root.legal'))
