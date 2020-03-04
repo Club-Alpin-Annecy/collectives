@@ -201,6 +201,9 @@ class User(db.Model, UserMixin):
     def has_signed_ca(self):
         return self.confidentiality_agreement_signature_date is not None
 
+    def has_signed_legal_text(self):
+        return self.legal_text_signature_date is not None
+
     def supervises_activity(self, activity_id):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor],
                                           activity_id)

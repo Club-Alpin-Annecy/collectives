@@ -112,6 +112,11 @@ def login():
                 <a href=\"{url}\">charte RGPD [ICI].</a>""")
             , "warning")
 
+    if not user.has_signed_legal_text():
+        flash(Markup(f"""Merci d'accepter les mentions légales du site.""")
+            , "warning")
+        return redirect(url_for('root.legal'))
+
     # Redirection to the page required by user before login
     next_page = request.args.get('next')
     if not next_page or url_parse(next_page).netloc != '':
