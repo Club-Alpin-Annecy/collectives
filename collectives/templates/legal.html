@@ -11,7 +11,7 @@
 
     {% if current_user.legal_text_signature_date %}
         <p>Vous avez accepté ces mentions légales le {{current_user.legal_text_signature_date.strftime("%d/%m/%Y à %H:%M")}}</p>
-    {% else  %}
+    {% elif  current_user.is_authenticated  %}
         <form action="{{ url_for('root.legal_accept')}}" method="post">
             <div class="flex">
                   <div>{{ form.legal_accepted(title=form.legal_accepted.description) }}</div>

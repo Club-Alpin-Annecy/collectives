@@ -27,10 +27,10 @@
       <h4>Mot de passe</h4>
       <br/>
       <div class="field">{{ form.password.label }}<span class="help">{{ form.password.description }}</span></div>
-      {{ form.password(title=form.password.description) }}
+      {{ form.password(title=form.password.description, autocomplete="new-password") }}
 
       <div class="field">{{ form.confirm.label }}<span class="help">{{ form.confirm.description }}</span></div>
-      {{ form.confirm(title=form.confirm.description) }}
+      {{ form.confirm(title=form.confirm.description, autocomplete="new-password") }}
 
       {% if form.legal_accepted is defined %}
       <h4>Acceptations des conditions du site</h4>
@@ -49,17 +49,4 @@
   {% include 'contact_link.html' %}
 
 </div>
-
-<script>
-  // Some browsers do not support HTML5 date pickers yet
-  // Use tail instead for those cases
-  // See https://stackoverflow.com/questions/18020950/how-to-make-input-type-date-supported-on-all-browsers-any-alternatives
-  var dateInput = document.querySelector("input[type='date']");
-  if (dateInput && dateInput.type != 'date') {
-    tail.DateTime("input[type=date]", {
-      weekStart: 1,
-      timeFormat: false
-    });
-  }
-</script>
 {% endblock %}
