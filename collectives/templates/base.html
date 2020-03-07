@@ -89,7 +89,7 @@
     <div class="container">
          <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
         <div>
-            <a href="">Conditions d'utilisation du site</a> - <a href="">Contacter le club</a> - <a href="">Contact RGPD</a> <br/><br/>
+            <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
             Version du site: {{conf['VERSION']}}
         </div>
     </div>

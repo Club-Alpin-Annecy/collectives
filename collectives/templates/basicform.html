@@ -29,16 +29,16 @@
 
   <form action="" method="POST" enctype="multipart/form-data">
     {% for field in form %}
-    {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-    <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+            <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
 
-    {% if field.type == "PasswordField" %} 
-    {{ field(autocomplete="new-password", title=field.description) }}
-    {% else %}
-    {{ field(title=field.description) }}
-    {% endif %}
+            {% if field.type == "PasswordField" %}
+                {{ field(autocomplete="new-password", title=field.description) }}
+            {% else %}
+                {{ field(title=field.description) }}
+            {% endif %}
 
-    {% endif %}
+        {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
     <br />{{ form.submit() }}

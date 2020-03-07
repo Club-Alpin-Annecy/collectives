@@ -11,7 +11,7 @@ from sqlalchemy import or_
 import uuid, datetime
 from sys import stderr
 
-from ..forms.auth import LoginForm, AccountCreationForm, PasswordResetForm
+from ..forms.auth import LoginForm, AccountCreationForm, PasswordResetForm, AccountActivationForm
 from ..models import User, Role, RoleIds, db
 from ..models.auth import ConfirmationTokenType, ConfirmationToken
 from ..helpers import current_time
@@ -70,7 +70,7 @@ def login():
 
     # If no login is provided, display regular login interface
     if not form.validate_on_submit():
-        return render_template('login.html',
+        return render_template('auth/login.html',
                                conf=current_app.config,
                                form=form,
                                contact_reason='vous connecter')
@@ -112,6 +112,11 @@ def login():
                 <a href=\"{url}\">charte RGPD [ICI].</a>""")
             , "warning")
 
+    if not user.has_signed_legal_text():
+        flash(Markup(f"""Merci d'accepter les mentions légales du site.""")
+            , "warning")
+        return redirect(url_for('root.legal'))
+
     # Redirection to the page required by user before login
     next_page = request.args.get('next')
     if not next_page or url_parse(next_page).netloc != '':
@@ -129,7 +134,7 @@ def render_confirmation_form(form, is_recover):
     action = "Récupération " if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
     form.submit.label.text = "{} le compte".format(reason.capitalize())
-    return render_template('basicform.html',
+    return render_template('auth/token_confirmation.html',
                            conf=current_app.config,
                            form=form,
                            title='{} de compte'.format(action))
@@ -149,8 +154,10 @@ def process_confirmation(token_uuid):
         db.session.commit()
         return redirect(url_for('auth.signup'))
 
-    form = PasswordResetForm()
+
     is_recover = token.token_type == ConfirmationTokenType.RecoverAccount
+
+    form = PasswordResetForm() if is_recover else AccountActivationForm()
 
     # Form not yet submitted or contains errors
     if not form.validate_on_submit():
@@ -174,6 +181,7 @@ def process_confirmation(token_uuid):
         user = User.query.get(token.existing_user_id)
     else:
         user = User()
+        user.legal_text_signature_date = current_time()
         user.license = token.user_license
 
     extranet.sync_user(user, user_info, license_info)
@@ -295,6 +303,7 @@ def init_admin(app):
             user.first_name = 'Compte'
             user.last_name = 'Administrateur'
             user.confidentiality_agreement_signature_date =  datetime.datetime.now()
+            user.legal_text_signature_date =  datetime.datetime.now()
             user.password = app.config['ADMINPWD']
             admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
             user.roles.append(admin_role)

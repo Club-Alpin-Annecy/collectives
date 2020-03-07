@@ -555,6 +555,7 @@ form.inline input[type=submit] {
 	cursor: pointer;
 }
 
+
 /* use flexbox to have a label in front of an input on the same line,
  but the input can take up to the rest of the space*/
 .inputGrow{
@@ -562,6 +563,15 @@ form.inline input[type=submit] {
 }
 .inputGrow .grow{
 	flex-grow: 20;
+}
+
+
+.flex{
+	display: flex;
+}
+
+.leftalign{
+	text-align: left !important;
 }
 
 @keyframes votre_animation{ to{

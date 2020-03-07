@@ -1,5 +1,6 @@
 from .order import OrderedForm
 from flask_wtf import FlaskForm
+from flask import url_for
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms import HiddenField
 from wtforms.validators import Email, InputRequired, EqualTo, DataRequired
@@ -49,5 +50,19 @@ class PasswordResetForm(FlaskForm):
         validators=[InputRequired(),
                     EqualTo('password',
                             message='Les mots de passe ne correspondent pas')])
-    
+
     submit = SubmitField('Activer le compte')
+
+class LegalAcceptation(FlaskForm):
+    legal_accepted=BooleanField(f"""Je reconnais avoir pris connaissance
+    des effets du traitement des données à caractère personnel dont je
+    fait l'objet et accepte que ce traitement soit effectué dans les
+    limites des finalitées portées à ma connaissance et conformément
+    au RGPD.<br/>
+    Si vous souhaitez plus d'informations à ce sujet, nous vous invitons
+    à consulter la page consacrée en cliquant
+    <a href="/legal">ICI</a>. """,
+                validators=[DataRequired()])
+
+class AccountActivationForm(PasswordResetForm, LegalAcceptation):
+    pass
