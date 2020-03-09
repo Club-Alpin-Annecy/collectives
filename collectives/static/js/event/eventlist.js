@@ -10,7 +10,7 @@ window.onload = function(){
 
   		eventsTable = new Tabulator("#eventstable", {
   			layout:"fitColumns",
-  			ajaxURL: '/api/events/',
+  			//ajaxURL: '/api/events/',
             ajaxSorting:true,
             ajaxFiltering:true,
   			resizableColumns:false,
@@ -23,6 +23,9 @@ window.onload = function(){
 
             // Activate grouping only if we sort by start date
             dataSorting : function(sorters){
+                // If eventsTable is not ready to be used: exit
+                if(eventsTable == undefined)
+                    return 0;
                 if(sorters[0]['field'] != 'title')
                     eventsTable.setGroupBy(sorters[0]['field']);
                 else
@@ -75,6 +78,8 @@ window.onload = function(){
         else
             console.log('No page defined')
 
+        // Set data after page processing to avoid double load
+        eventsTable.setData('/api/events/');
 
         refreshFilterDisplay();
 };
