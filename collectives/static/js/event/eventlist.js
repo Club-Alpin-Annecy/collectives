@@ -34,9 +34,7 @@ window.onload = function(){
             pageLoaded :  updatePageURL,
 
             initialSort: [ {column:"start", dir:"asc"}],
-            initialFilter: [
-                {field:"end", type:"=", value:  moment().format('YYYY-MM-DDTHH:mm:ss')  }
-            ],
+            initialFilter: [{field:"end", type:">=", value:getServerLocalTime() }], 
   			columns:[
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
