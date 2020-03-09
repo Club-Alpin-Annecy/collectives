@@ -110,3 +110,94 @@ function makeEditor(elementId)
     simplemde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
     return simplemde;
 }
+
+function validateDateTime(element){
+    if (element.value != "" && isNaN(new Date(element.value).getDay())){
+        element.setCustomValidity('Doit être une date');
+        return false;
+    }
+    element.setCustomValidity('');
+    return true;
+}
+
+function checkDateOrder(){
+    const start = document.getElementById('start');
+    const end = document.getElementById('end');
+    const registration_open_time = document.getElementById('registration_open_time');
+    const registration_close_time = document.getElementById('registration_close_time');
+
+    // Don't check order if a Date is not validated
+    var validation =    validateDateTime(start) &&
+                        validateDateTime(end) &&
+                        validateDateTime(registration_open_time) &&
+                        validateDateTime(registration_close_time);
+    if( ! validation )
+        return false;
+
+    // If a registration bound is defined, check the other one definition
+    const halfregistration = document.getElementById("halfregistration");
+    if(     ( registration_open_time.value == "" && registration_close_time.value != "" )
+        ||  ( registration_open_time.value != "" && registration_close_time.value == "" )){
+        halfregistration.style.display = "inline";
+        registration_close_time.setCustomValidity('Doit être défini');
+        registration_open_time.setCustomValidity('Doit être défini');
+        // Quit to avoid resetting pattern later
+        return false;
+    }
+    else{
+        halfregistration.style.display = "none";
+        registration_close_time.setCustomValidity('');
+        registration_open_time.setCustomValidity('');
+    }
+
+
+    // Start of event is before end of it
+    const dateorder1 = document.getElementById("dateorder1");
+    if( new Date(start.value) > new Date(end.value) ){
+        dateorder1.style.display = "inline";
+        start.setCustomValidity('Mauvais ordre des dates');
+        end.setCustomValidity('Mauvais ordre des dates');
+        // Quit to avoid resetting pattern later
+        return false;
+    }
+    else{
+        dateorder1.style.display = "none";
+        start.setCustomValidity('');
+        end.setCustomValidity('');
+    }
+
+
+    // End of registration is before start of event
+    // Nothing if no value
+    const dateorder2 = document.getElementById("dateorder2");
+    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(start.value) ) {
+        dateorder2.style.display = "inline";
+        registration_close_time.setCustomValidity('Mauvais ordre des dates');
+        start.setCustomValidity('Mauvais ordre des dates');
+        // Quit to avoid resetting pattern later
+        return false;
+    }
+    else{
+        dateorder2.style.display = "none";
+        registration_close_time.setCustomValidity('');
+        start.setCustomValidity('');
+    }
+
+    // End of registration is before start of event
+    // Nothing if no value
+    const dateorder3 = document.getElementById("dateorder3");
+    if(registration_open_time.value != "" && registration_close_time.value != "" && new Date(registration_close_time.value) < new Date(registration_open_time.value) ){
+        dateorder3.style.display = "inline";
+        registration_close_time.setCustomValidity('Mauvais ordre des dates');
+        registration_open_time.setCustomValidity('Mauvais ordre des dates');
+        // Quit to avoid resetting pattern later
+        return false;
+    }
+    else{
+        dateorder3.style.display = "none";
+        registration_close_time.setCustomValidity('');
+        registration_open_time.setCustomValidity('');
+    }
+
+    return true;
+}
