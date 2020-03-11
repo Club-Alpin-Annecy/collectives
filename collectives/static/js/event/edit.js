@@ -170,17 +170,17 @@ function checkDateOrder(){
     // End of registration is before start of event
     // Nothing if no value
     const dateorder2 = document.getElementById("dateorder2");
-    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(start.value) ) {
+    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(end.value) ) {
         dateorder2.style.display = "inline";
         registration_close_time.setCustomValidity('Mauvais ordre des dates');
-        start.setCustomValidity('Mauvais ordre des dates');
+        end.setCustomValidity('Mauvais ordre des dates');
         // Quit to avoid resetting pattern later
         return false;
     }
     else{
         dateorder2.style.display = "none";
         registration_close_time.setCustomValidity('');
-        start.setCustomValidity('');
+        end.setCustomValidity('');
     }
 
     // End of registration is before start of event
