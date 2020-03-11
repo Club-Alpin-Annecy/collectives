@@ -46,15 +46,31 @@
 
     <div class="dates">
       <h4>Dates</h4>
-      <span class="datetimepicker" id="datetimepickerstart"><label for="start" onchange="copyStartDate();">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate()")}}</span>
-      <span class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end }}</span>
+      <span class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</span>
+      <span class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</span>
+      <b id="dateorder1" style="display: none"><br/>
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+          La date de début d'évènement doit être antérieure à la fin
+      </b>
     </div>
 
     <div class="dates">
       <h4>Inscriptions par internet</h4>
       <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
-      <span class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time}}</span>
-      <span class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time }}</span>
+      <span class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</span>
+      <span class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</span>
+      <b id="halfregistration" style="display: none"><br/>
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+          Vous devez définir le début et la fin des inscriptions
+      </b>
+      <b id="dateorder2" style="display: none"><br/>
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+          La date de fin d'inscription doit être antérieure à la fin de l'évènement
+      </b>
+      <b id="dateorder3" style="display: none"><br/>
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+          La date de début d'inscription doit être antérieure à la fin de l'inscription
+      </b>
     </div>
 
     <h4>Description</h4>
