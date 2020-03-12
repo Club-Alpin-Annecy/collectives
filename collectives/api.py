@@ -11,6 +11,7 @@ from .models import ActivityType, Registration, RegistrationStatus
 import json
 
 from .utils.access import confidentiality_agreement, admin_required
+from .helpers import current_time
 
 marshmallow = Marshmallow()
 blueprint = Blueprint('api', __name__, url_prefix='/api')
@@ -294,15 +295,14 @@ def events():
         filter = None
         if field == 'activity_type':
             filter = Event.activity_types.any(short=value)
-        if field == 'end' or field == 'status':
-            if type == "=":
-                filter = getattr(Event, field) == value
+        elif field == 'end' :
             if type == ">=":
-                filter = getattr(Event, field) >= value
-            if type == "<=":
-                filter = getattr(Event, field) <= value
-            if type == "!=":
-                filter = getattr(Event, field) != value
+                filter = Event.end >= current_time()
+        elif field == 'status': 
+            if type == "=":
+                filter = Event.status == value
+            elif type == "!=":
+                filter = Event.status != value
 
         if filter is not None:
             query = query.filter(filter)

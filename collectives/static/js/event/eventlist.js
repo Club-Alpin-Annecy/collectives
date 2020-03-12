@@ -37,7 +37,7 @@ window.onload = function(){
             pageLoaded :  updatePageURL,
 
             initialSort: [ {column:"start", dir:"asc"}],
-            initialFilter: [{field:"end", type:">=", value:getServerLocalTime() }], 
+            initialFilter: [{field:"end", type:">=", value:"now" }], 
   			columns:[
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
@@ -191,7 +191,7 @@ function toggleActivity(activity_id, element){
 function togglePastActivities(element){
 
     if ( ! element.checked){
-        eventsTable.addFilter( [{field:"end", type:">=", value:getServerLocalTime() }]);
+        eventsTable.addFilter( [{field:"end", type:">=", value:"now" }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
         eventsTable.removeFilter(endfilter);
