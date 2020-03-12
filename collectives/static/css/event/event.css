@@ -18,6 +18,8 @@
     padding: 20px 20px;
     display: flex;
     flex-direction: row;
+    white-space: normal;
+    align-items: center;
 }
 #eventlist #eventstable .row:hover{
     text-decoration: none;
