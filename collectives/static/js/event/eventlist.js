@@ -82,6 +82,11 @@ window.onload = function(){
         eventsTable.setData('/api/events/');
 
         refreshFilterDisplay();
+
+        var endFilter = eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
+        var statusFilter = eventsTable.getFilters().filter(function(i ){ return i['field'] == "status" });
+        document.getElementById('pastcheckbox').checked = endFilter.length == 0;
+        document.getElementById('cancelledcheckbox').checked = statusFilter.length == 0;
 };
 
 function eventRowFormatter(row){
@@ -217,9 +222,12 @@ function refreshFilterDisplay(){
         button.classList.add('unselected');
 
     // Select activity filter button which appears in tabulator filter
-    for (filter of filters)
+    // and redresh checkboxes status
+    for (filter of filters) {
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
+    }
+
 
     var onlyConfirmed = filters.filter(function(filter){ return filter['field'] == "status" && filter['value'] == 0 }).length == 0 ;
     document.getElementById('cancelledcheckbox').checked = onlyConfirmed;
