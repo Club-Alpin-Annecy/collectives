@@ -222,7 +222,6 @@ function refreshFilterDisplay(){
         button.classList.add('unselected');
 
     // Select activity filter button which appears in tabulator filter
-    // and redresh checkboxes status
     for (filter of filters) {
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
