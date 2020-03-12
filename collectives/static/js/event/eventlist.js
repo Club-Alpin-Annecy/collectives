@@ -217,15 +217,18 @@ function refreshFilterDisplay(){
         button.classList.add('unselected');
 
     // Select activity filter button which appears in tabulator filter
-    for (filter of filters)
+    // and redresh checkboxes status
+    for (filter of filters) {
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
+    }
 
-    var onlyConfirmed = filters.filter(function(filter){ return filter['field'] == "status" && filter['value'] == 0 }).length == 0 ;
-    document.getElementById('cancelledcheckbox').checked = onlyConfirmed;
 
-    var onlyFuture = filters.filter(function(filter){ return filter['field'] == "end" }).length != 0 ;
-    document.getElementById('pastcheckbox').checked = ! onlyFuture;
+    var showCancelled = filters.filter(function(filter){ return filter['field'] == "status" }).length == 0 ;
+    document.getElementById('cancelledcheckbox').checked = showCancelled;
+
+    var showPast = filters.filter(function(filter){ return filter['field'] == "end" }).length == 0 ;
+    document.getElementById('pastcheckbox').checked = showPast;
 }
 
 // Put age number in browser URL
