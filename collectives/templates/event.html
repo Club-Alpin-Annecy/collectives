@@ -93,7 +93,7 @@
         {% elif not event.has_free_online_slots() %}
         <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
-        <p>Inscriptions possibles à partir du {{event.registration_open_time}}.</p>
+        <p>Inscriptions possibles à partir du {{format_date(event.registration_open_time)}} à {{format_time(event.registration_open_time)}}.</p>
         {% elif current_time > event.registration_close_time %}
         <p>Les inscriptions sont closes.</p>
         {% endif %}
