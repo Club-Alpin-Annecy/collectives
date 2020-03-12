@@ -15,7 +15,12 @@ window.onload = function(){
             ajaxFiltering:true,
   			resizableColumns:false,
 
-            
+            persistence:{
+                sort: true, //persist column sorting
+                filter: true, //persist filter sorting
+                page: false, // /!\ page persistence does not work with remote pagination
+            },
+
             // Activate grouping only if we sort by start date
             dataSorting : function(sorters){
                 // If eventsTable is not ready to be used: exit
@@ -32,7 +37,7 @@ window.onload = function(){
             pageLoaded :  updatePageURL,
 
             initialSort: [ {column:"start", dir:"asc"}],
-            initialFilter: [{field:"end", type:">=", value:getServerLocalTime() }],
+            initialFilter: [{field:"end", type:">=", value:getServerLocalTime() }], 
   			columns:[
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
