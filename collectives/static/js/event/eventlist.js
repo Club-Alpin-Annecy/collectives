@@ -226,13 +226,6 @@ function refreshFilterDisplay(){
         if (filter['field'] == 'activity_type')
             document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
     }
-
-
-    var onlyConfirmed = filters.filter(function(filter){ return filter['field'] == "status" && filter['value'] == 0 }).length == 0 ;
-    document.getElementById('cancelledcheckbox').checked = onlyConfirmed;
-
-    var onlyFuture = filters.filter(function(filter){ return filter['field'] == "end" }).length != 0 ;
-    document.getElementById('pastcheckbox').checked = ! onlyFuture;
 }
 
 // Put age number in browser URL
