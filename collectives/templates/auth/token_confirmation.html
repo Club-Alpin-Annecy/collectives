@@ -35,10 +35,9 @@
       {% if form.legal_accepted is defined %}
       <h4>Acceptations des conditions du site</h4>
       <br/>
-      <div class="flex">
-            <div>{{ form.legal_accepted(title=form.legal_accepted.description) }}</div>
-            <div class="leftalign">{{ form.legal_accepted.label(class="leftalign") }}<span class="help">{{ form.legal_accepted.description }}</span></div>
-
+      <div class="inline_field">
+            {{ form.legal_accepted(title=form.legal_accepted.description) }}
+            {{ form.legal_accepted.label }}
       </div>
       {% endif %}
 

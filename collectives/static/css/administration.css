@@ -41,6 +41,24 @@
   font-size:80%;
 }
 
+#administration form div.inline_field{
+  width:90%;
+  text-align:justify;
+}
+
+#administration form div.inline_field label{
+  font-weight: bold;
+  display: inline;
+  text-align: left;
+  padding: auto;
+}
+
+#administration form div.inline_field input{
+  width: auto;
+  margin:auto;
+  padding: auto;
+}
+
 #administration #editor{
   width: 80%;
   margin:auto;
