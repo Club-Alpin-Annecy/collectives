@@ -38,7 +38,9 @@ SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
 SMTP_PORT = environ.get('SMTP_PORT') or 25
 SMTP_ADDRESS = environ.get('SMTP_ADDRESS') or 'noreply@example.org'
 SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
-
+# Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
+DKIM_KEY = ""
+DKIM_SELECTOR = "default"
 
 # Page information
 TITLE = "Collectives CAF Annecy"
