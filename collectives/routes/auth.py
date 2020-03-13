@@ -266,7 +266,7 @@ def signup():
     form.populate_obj(user)
     user_info = extranet.api.fetch_user_info(license_number)
     if not (user.date_of_birth == user_info.date_of_birth
-            and user.mail == user_info.email):
+            and user.mail.lower() == user_info.email.lower()):
         flash('E-mail et/ou date de naissance incorrecte', 'error')
         return render_signup_form(form, is_recover)
 
