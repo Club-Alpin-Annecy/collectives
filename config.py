@@ -71,7 +71,8 @@ TYPES = {
     12: {"short": "cyclisme",        "name": "VTT"},
     13: {"short": "formation",       "name": "Formation"},
     14: {"short": "soiree",          "name": "Soirée"},
-    15: {"short": "none",             "name": "Non classé"},
+    16: {"short": "slackline",       "name": "Slackline"},
+    15: {"short": "none",            "name": "Non classé"},
 }
 
 # Technical stuff
