@@ -2,7 +2,7 @@ import smtplib, dkim
 from flask import current_app
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email import utils
+import email
 import unicodedata
 
 # To use it:
@@ -20,8 +20,8 @@ def send_mail(**kwargs):
 
     msg['From'] = config['SMTP_ADDRESS']
     msg['Subject'] = kwargs['subject']
-    msg['Message-ID'] = utils.make_msgid(domain=config['SERVER_NAME'])
-    msg['Date'] = utils.formatdate()
+    msg['Message-ID'] = email.utils.make_msgid(domain=config['SERVER_NAME'])
+    msg['Date'] = email.utils.formatdate()
 
     dest = kwargs['email']
     if isinstance(dest, list):
