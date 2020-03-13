@@ -32,6 +32,10 @@ class EventForm(ModelForm, FlaskForm):
         super(EventForm, self).__init__(*args, **kwargs)
         self.type.choices = activity_choices
 
+
+        if 'obj' in kwargs:
+            self.type.data = int(kwargs['obj'].activity_types[0].id)
+
     def set_default_description(self):
         description = current_app.config['DESCRIPTION_TEMPLATE']
         vars = {i:'' for i in  current_app.config['CSV_COLUMNS']}

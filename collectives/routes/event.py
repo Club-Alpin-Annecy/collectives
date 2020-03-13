@@ -122,7 +122,6 @@ def manage_event(event_id=None):
     if not form.validate_on_submit():
         if not event_id is None:
             form = EventForm(choices, obj=event)
-            form.type.data = str(event.activity_types[0].id)
         elif not form.is_submitted():
             form = EventForm(choices)
             form.set_default_description()
@@ -218,7 +217,6 @@ def duplicate(event_id=None):
 
     choices = activity_choices(event.activity_types, event.leaders)
     form = EventForm(choices, obj=event)
-    form.type.data = str(event.activity_types[0].id)
     form.duplicate_photo.data=event_id
 
     return render_template('editevent.html',
