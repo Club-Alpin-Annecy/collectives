@@ -281,15 +281,14 @@ def register_user(event_id):
             flash(error, 'error')
         else:
             # Check for existing user registration and reuse if it exists
-            user_registrations = [
-                r for r in event.registrations if r.user_id == user.id]
-            if len(user_registrations) > 0:
-                registration = user_registrations[0]
-            else:
+            try:
+                registration = next(
+                    r for r in event.registrations if r.user_id == user.id)
+            except(StopIteration):
                 registration = Registration(level=RegistrationLevels.Normal,
                                             event=event,
                                             user=user)
-            
+
             registration.status = RegistrationStatus.Active
             db.session.add(registration)
             db.session.commit()
