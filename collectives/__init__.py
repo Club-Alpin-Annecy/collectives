@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from . import models, api, context_processor
 from .routes import root, profile, auth, administration, event 
 from .utils import extranet
+from collectives.utils import init
 
 
 def create_app(config_filename='config'):
@@ -43,7 +44,7 @@ def create_app(config_filename='config'):
 
         # Create admin user
         auth.init_admin(app)
-        administration.init_activity_types()
+        init.activity_types(app)
 
         return app
 

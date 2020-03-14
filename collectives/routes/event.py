@@ -39,7 +39,7 @@ def activity_choices(activities, leaders):
 @blueprint.route('/index')
 @blueprint.route('/list')
 def index():
-    types = ActivityType.query.all()
+    types = ActivityType.query.order_by('order').all()
     return render_template('index.html',
                            conf=current_app.config,
                            types=types,
