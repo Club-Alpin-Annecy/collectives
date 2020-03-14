@@ -3,8 +3,16 @@
 {% import 'macros.html' as macros with context %}
 
 {% block additionalhead %}
-  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+
+  <link href="https://unpkg.com/tabulator-tables@4.5.1/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.1/dist/js/tabulator.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  <script>
+      var ajaxURL= '/api/user/{{user.id}}/events';
+  </script>
+  <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
 
 {% block header %}
@@ -12,36 +20,84 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel solidpanel" id="eventdetail">
+<div class="panel" id="profile">
     <h3>{{user.full_name()}}</h3>
 
-    <h4>Informations de contact</h4>
-    <ul>
-        <li><b>Email :</b> {{user.mail}}</li>
-        <li><b>Téléphone :</b> {{user.phone}}</li>
-    </ul>
     {% if user == current_user %}
-    <a class="button" href="{{url_for('root.update_user')}}">Modifier mes informations</a>
+        <a class="button" href="{{url_for('profile.update_user')}}">
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
+            Modifier mes paramètres
+        </a>
+        <a class="button" href="{{url_for('root.legal')}}">
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt=""/>
+            Mentions légales
+        </a>
+        {% if current_user.has_any_role() %}
+            <a class="button" href="{{url_for('profile.confidentiality_agreement')}}">
+                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                Charte RGPD
+            </a>
+        {% endif %}
+
     {% elif current_user.is_admin() %}
-    <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
+        <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
+    {% endif %}
+
+
+    <h4>Informations FFCAM </h4>
+
+    <table id="profile_info">
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
+            <td>Catégorie {{user.license_category}}</td>
+        </tr>
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
+            <td>{{format_date(user.license_expiry_date)}}</td>
+        </tr>
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/>Genre :</td>
+            <td> {{user.get_gender_name()}}</td>
+        </tr>
+        {% if user == current_user %}
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt=""/> Date de naissance :</td>
+            <td>{{format_date(user.date_of_birth)}}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt=""/> Email :</td>
+            <td>{{user.mail}}</td>
+        </tr>
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt=""/> Téléphone :</td>
+            <td> {{user.phone}}</td>
+        </tr>
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"/> Contact d'urgence :</td>
+            <td>{{user.emergency_contact_name}} au {{user.emergency_contact_phone}}</td>
+        </tr>
+    </table>
+
+    {% if user == current_user and not user.is_test %}
+    <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
+        <p id="info_extranet">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
+            Ces données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au Club Alpin Français d'Annecy. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
+            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/mesinfos/">https://extranet-clubalpin.com/mesinfos/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
+            Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
+        </p>
+        <input type="submit" value="Resynchroniser mes informations FFCAM">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
     {% endif %}
 
     <h4>Sorties à venir</h4>
-    <div id="eventlist" class="panel" style="display:inline">
-        {% for event in next_events %}
-            {{ macros.eventitem(event[1]) }}
-        {% else %}
-            <li>Aucune sortie à venir</li>
-        {% endfor %}
+    <div id="eventstable">
     </div>
 
     <h4>Sorties effectuées</h4>
-    <div id="eventlist" class="panel" style="display:inline">
-        {% for event in past_events %}
-            {{ macros.eventitem(event[1]) }}
-        {% else %}
-            <li>Aucune sortie encadrée jusqu'à présent</li>
-        {% endfor %}
+    <div id="pasteventstable">
     </div>
 </div>
 

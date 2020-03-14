@@ -1,42 +1,15 @@
-{# The MIT License (MIT)
-
-Copyright @jnguiot, see https://github.com/jnguiot
-EXCEPT: ION ICON: Copyright (c) 2015-present Ionic (http://ionic.io/)
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of @jnguiot shall
-not be used in advertising or otherwise to promote the sale, use or other
-dealings in this Software without prior written authorization from @jnguiot.
-
-#}<!DOCTYPE html><html>
+<!DOCTYPE html><html>
 <head>
     <title>Collectives {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='caf/icon/activity.css') }}">
     <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+    <script type="text/javascript">function getServerLocalTime(){ return '{{server_local_time()}}'; }</script>
     {% block additionalhead %}{% endblock %}
 </head>
 <body>
 <div id="header">
-    <h2><a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename=conf['LOGO']) }}"/>{{ conf['TITLE'] }}</a></h2>
+    <h2><a href="{{ url_for('root.index')}}">{{ conf['TITLE'] }}</a></h2>
 
     {% if current_user.is_authenticated %}
         <div id="menu" class="item">
@@ -46,10 +19,14 @@ dealings in this Software without prior written authorization from @jnguiot.
                 {% if current_user.can_create_events() %}
                     <a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
                 {% endif %}
-                <a href="{{ url_for('root.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
+                <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
                 {% if current_user.can_create_events() %}
-                <a href="{{ url_for('root.show_leader', leader_id = current_user.id)}}"><img
+                <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"><img
                         src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
+                {% endif %}
+                {% if current_user.get_supervised_activities() != [] %}
+                <a href="{{ url_for('event.csv_import')}}"><img
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" />Import CSV</a>
                 {% endif %}
                 {% if current_user.is_admin() %}
                     <a href="{{ url_for('administration.administration')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/> Administration</a>
@@ -60,19 +37,22 @@ dealings in this Software without prior written authorization from @jnguiot.
 
 
      -->{% if current_user.is_authenticated %}<!--
---><a href="{{ url_for('root.update_user')}}"><div id="identity" class="item">
+--><a href="{{ url_for('profile.show_user', user_id=current_user.id)}}"><div id="identity" class="item">
         <img src="{% if current_user.avatar
                                                 %}{{ url_for('images.crop', filename=current_user.avatar, width=30, height=30) }}{%
                                     else
                                                 %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
-                                    endif %}" class="avatar"/>  {{ current_user.mail }}
-    </div></a>
-    <div class="item" id="logout">
+                                    endif %}" class="avatar"/>  {{ current_user.full_name() }} 
+    </div></a>{#
+  #}<div class="item" id="logout">
         <a href="{{ url_for('auth.logout') }}" title="Déconnexion" >  <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/> </a>
     </div>
-    {% else %}<!--
-    --><div id="identity" class="item">
+    {% else %}
+    <div id="identity" class="item">
         <a href="{{ url_for('auth.login') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+    </div>{#
+  #}<div id="identity" class="item">
+        <a href="{{ url_for('auth.signup') }}" > <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Activer son compte </a>
     </div>
   {% endif %}
 
@@ -81,28 +61,38 @@ dealings in this Software without prior written authorization from @jnguiot.
 
 </div>
 <div id="playground">
-    <h1 id="motto">{{ conf['MOTTO'] }}</h1>
 
     {% block content %}{% endblock %}
 
 </div>
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div id="messages">
-    <div class="innermessages">
-        <img
-                        src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                        class="close"
-                        onclick= "this.parentNode.parentNode.style.display='none'"
-                    />
-        <h3>Message</h3>
-    {% for message in messages %}
-      <p class="{{category}}">{{ message }}</p>
-    {% endfor %}
-    <div>
+        <div class="innermessages">
+            <img
+                            src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                            class="close"
+                            onclick= "this.parentNode.parentNode.style.display='none'"
+                        />
+            <h3>Message</h3>
+        {% for category, message in messages %}
+          <p class="{{category}} message">{{ message }}</p>
+        {% endfor %}
+        </div>
+        <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
     </div>
   {% endif %}
 {% endwith %}
 
+
+<div id="footer">
+    <div class="container">
+         <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
+        <div>
+            <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
+            Version du site: {{conf['VERSION']}}
+        </div>
+    </div>
+</div>
 </body>
 </html>

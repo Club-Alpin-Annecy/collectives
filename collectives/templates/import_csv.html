@@ -1,0 +1,64 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+  {# Wysiwyg Editor #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Import CSV{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <!-- Logging Windows -->
+  <h3>{{ title }}</h3>
+
+  <ul class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+    <li>
+      <strong>Erreur: {{field.label}}:</strong> {{error}}
+    </li>
+    {% endfor %}
+    {% endfor %}
+  </ul>
+  <ul class="form-errors">
+    {% for message in failed%}
+    <li>{{message}}</li>
+    {% endfor %}
+  </ul>
+
+
+  <form action=""
+        onsubmit="document.querySelector('textarea[name=description]').value= JSON.stringify(quill.getContents())"
+        method="POST" enctype="multipart/form-data">
+
+    {% for field in form %}
+    {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "TextAreaField" ]) %}
+    <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+    {{ field(title=field.description) }}
+    {% endif %}
+    {% endfor %}
+
+    <h4>Squelette de description</h4>
+    <br/>
+    <div id="editor">
+    {{ form.description }}
+    </div>
+    <br/>
+    <p><b>Variables utilisables: </b> {{ conf['CSV_COLUMNS'] | join(', ')}}</p>
+    <br/>
+    {{ form.hidden_tag() }}
+     <br/><input type="submit" value="Enregistrer"  />
+  </form>
+</div>
+<script>
+var simplemde = makeEditor("description");
+</script>
+
+{% endblock %}

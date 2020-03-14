@@ -1,0 +1,112 @@
+
+body 
+{
+    width:21cm;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+div#emergency
+{
+    float:right;
+    width:18em;
+    margin-right:2em;
+    text-align:right;
+}
+
+div#emergency li span
+{
+    display:inline-block;
+    width:6em;
+}
+    
+div#emergency li span.what
+{
+    text-align:left;
+}
+div#emergency li span.phone
+{
+    text-align:right;
+    width:8em;
+}
+
+div#title {
+    clear:both;
+}
+
+div#title h2, div#title h1 {
+    display:inline;
+}
+
+div#description
+{
+    float:left;
+    width:65%;
+}
+
+div#description pre {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    height:20em;
+    padding:1em;
+    border:1px solid black;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size:80%;
+ }
+
+div#info
+{
+    margin-left:70%;
+}
+
+div#info .leader span
+{
+    display:block;
+}
+
+div#info .leader span.email, div#info .leader span.phone
+{
+    padding-left:1em;
+}
+
+#dates ul
+{
+    list-style-type: none;
+    padding-left:0;
+    font-size:90%;
+}
+
+#dates ul span
+{
+    text-decoration:underline;
+}
+
+table {
+    clear:both;
+    width:100%;
+    border-collapse: collapse;
+}
+
+table th{
+    text-align:left;
+}
+
+table td {
+    font-size:90%;
+    border-top:1px solid grey;
+}
+
+table tr.odd {
+    background-color:linen;
+}
+
+table td.presence {
+    text-align:center;
+}
+
+#footer h3 {
+    float:left;
+    width:50%;
+}
+  
