@@ -3,7 +3,8 @@ from flask import current_app, Blueprint, send_file, abort, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
-import json, io
+import json
+import io
 
 from ..forms import EventForm, photos, RegistrationForm, CSVForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels
@@ -87,6 +88,7 @@ def export_event(event_id):
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
+
 @blueprint.route('/<event_id>/print')
 @login_required
 @confidentiality_agreement()
@@ -100,9 +102,9 @@ def print_event(event_id):
     activity_names = [at.name for at in event.activity_types]
     description = escape(event.description)
     return render_template('print_event.html',
-                            event = event,
-                            description = description,
-                            activity_names = activity_names)
+                           event=event,
+                           description=description,
+                           activity_names=activity_names)
 
 
 @blueprint.route('/add', methods=['GET', 'POST'])
@@ -139,17 +141,20 @@ def manage_event(event_id=None):
         valid = False
     if event.num_online_slots > 0:
         if not event.has_defined_registration_date():
-            flash("Les date de début ou fin d\'ouverture ou de fermeture d'inscription ne peuvent être nulles.")
+            flash(
+                "Les date de début ou fin d\'ouverture ou de fermeture d'inscription ne peuvent être nulles.")
             valid = False
         else:
             if not event.opens_before_closes():
                 flash('Les inscriptions internet doivent ouvrir avant de terminer')
                 valid = False
             if not event.opens_before_ends():
-                flash('Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
+                flash(
+                    'Les inscriptions internet doivent ouvrir avant la fin de l\'événement')
                 valid = False
         if event.num_slots < event.num_online_slots:
-            flash('Le nombre de places internet ne doit pas dépasser le nombre de places total')
+            flash(
+                'Le nombre de places internet ne doit pas dépasser le nombre de places total')
             valid = False
     elif event.num_online_slots < 0:
         flash('Le nombre de places par internet ne peut être négatif')
@@ -201,6 +206,7 @@ def manage_event(event_id=None):
 
     return redirect(url_for('event.view_event', event_id=event.id))
 
+
 @blueprint.route('/<event_id>/duplicate', methods=['GET'])
 @login_required
 @confidentiality_agreement()
@@ -217,7 +223,7 @@ def duplicate(event_id=None):
 
     choices = activity_choices(event.activity_types, event.leaders)
     form = EventForm(choices, obj=event)
-    form.duplicate_photo.data=event_id
+    form.duplicate_photo.data = event_id
 
     return render_template('editevent.html',
                            conf=current_app.config,
@@ -261,20 +267,29 @@ def register_user(event_id):
     form = RegistrationForm()
     if form.is_submitted():
         user = User.query.filter_by(id=form.user_id.data).first()
+
+        # Check that user can be registered
+        error = None
         if user is None:
-            flash('Utilisateur non existant', 'error')
-        elif event.is_registered(user):
-            flash('Utilisateur déjà inscrit', 'error')
+            error = 'Utilisateur non existant'
         elif event.is_leader(user):
-            flash('L\'utilisateur encadre la sortie', 'error')
+            error = 'L\'utilisateur encadre la sortie'
         elif not user.check_license_valid_at_time(event.end):
-            flash('La licence de l\'utilisateur va expirer avant la fin '
-                  + 'de l\'événement', 'error')
+            error = ('La licence de l\'utilisateur va expirer avant la fin '
+                     + 'de l\'événement')
+        if error:
+            flash(error, 'error')
         else:
-            registration = Registration(status=RegistrationStatus.Active,
-                                        level=RegistrationLevels.Normal,
-                                        event=event,
-                                        user=user)
+            # Check for existing user registration and reuse if it exists
+            try:
+                registration = next(
+                    r for r in event.registrations if r.user_id == user.id)
+            except(StopIteration):
+                registration = Registration(level=RegistrationLevels.Normal,
+                                            event=event,
+                                            user=user)
+
+            registration.status = RegistrationStatus.Active
             db.session.add(registration)
             db.session.commit()
 
@@ -388,13 +403,14 @@ def csv_import():
         activity_type = ActivityType.query.get(form.type.data)
 
         file = form.csv_file.data
-        processed, failed = process_stream(file.stream, activity_type, form.description.data)
+        processed, failed = process_stream(
+            file.stream, activity_type, form.description.data)
 
-        flash(f'Importation de {processed-len(failed)} éléments sur {processed}', 'message')
-
+        flash(
+            f'Importation de {processed-len(failed)} éléments sur {processed}', 'message')
 
     return render_template('import_csv.html',
                            conf=current_app.config,
                            form=form,
-                           failed = failed,
+                           failed=failed,
                            title="Création d'event par CSV")
