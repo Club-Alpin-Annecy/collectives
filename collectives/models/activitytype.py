@@ -9,6 +9,7 @@ class ActivityType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     short = db.Column(db.String(256), nullable=False)
+    order = db.Column(db.Integer, nullable=False)
 
     # Relationships
     persons = db.relationship('Role', backref='activity_type', lazy=True)

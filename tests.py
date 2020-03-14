@@ -26,7 +26,7 @@ def create_test_user(email="test", user_license=""):
 
 
 def create_test_activity(name="Ski"):
-    activity = ActivityType(name=name, short="")
+    activity = ActivityType(name=name, short="", order=1)
     db.session.add(activity)
     db.session.commit()
     return activity

@@ -5,6 +5,7 @@ from werkzeug.datastructures import CombinedMultiDict
 from datetime import datetime, date
 import json
 import io
+from operator import attrgetter
 
 from ..forms import EventForm, photos, RegistrationForm, CSVForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels
@@ -29,6 +30,7 @@ def activity_choices(activities, leaders):
         choices.update(current_user.led_activities())
         for leader in leaders:
             choices.update(leader.led_activities())
+    choices.sort(key=attrgetter('order', 'name', 'id'))
     return [(a.id, a.name) for a in choices]
 
 
@@ -39,7 +41,7 @@ def activity_choices(activities, leaders):
 @blueprint.route('/index')
 @blueprint.route('/list')
 def index():
-    types = ActivityType.query.all()
+    types = ActivityType.query.order_by('order', 'name').all()
     return render_template('index.html',
                            conf=current_app.config,
                            types=types,
