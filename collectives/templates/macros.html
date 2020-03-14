@@ -7,17 +7,44 @@
                 endif %}" />
   <div class="name">
       {% if leader_info %}
-            <a href="{{url_for('profile.show_leader', leader_id=user.id)}}" alt="Avatar de {{user.full_name()}}">{{user.full_name()}}</a>
+            <a href="{{url_for('root.show_leader', leader_id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
       {% elif user_info %}
-            {% if user.is_minor() %}
-            <span class="license-tag minor">-18</span>
-            {% elif user.is_youth() %}
-            <span class="license-tag youth">-25</span>
-            {% endif %}
-            <a href="{{url_for('profile.show_user', user_id=user.id)}}" alt="Avatar de {{user.abbrev_name()}}">{{user.abbrev_name()}}</a>
+            <a href="{{url_for('root.show_user', user_id=user.id)}}" alt="{{user.full_name()}}">{{user.abbrev_name()}}</a>
       {% else %}
             {{user.abbrev_name()}}
       {% endif %}
   </div>
 </div>
+{%- endmacro %}
+
+{% macro eventitem(event) -%}
+<a href="{{url_for('event.view_event', event_id=event.id)}}">
+  <div class="event">
+    <img class="photo" src="{% if event.photo %}{{ url_for('images.crop', filename=event.photo, width=200, height=200 ) }}{% endif %}"/>
+
+    <h3>
+      {% if event.activity_types %}
+      <span class="activity {{event.activity_types[0].short}} s30px"></span>
+      {% endif %}
+      {{ event.title }}
+    </h3>
+
+    <h4> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+      {{ format_date_range(event.start, event.end) }}
+    </h4>
+    <div class="slots">
+      {% if not event.has_free_slots() %} COMPLET {% endif %}
+      {% for i in range(0, event.free_slots()) %}
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact.svg') }}" class="icon freeslot"/>
+      {% endfor %}
+      {% for i in range(event.free_slots(), event.num_slots) %}
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-contact-on.svg') }}" class="icon"/>
+      {% endfor %}
+
+    </div>
+    <div class="">
+      {{event.shortdescription}}
+    </div>
+  </div>
+</a>
 {%- endmacro %}

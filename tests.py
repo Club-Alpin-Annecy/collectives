@@ -1,20 +1,12 @@
 import unittest
 import flask_testing
 import datetime
-from os import environ
-from io import StringIO
 
 # pylint: disable=C0301
 from collectives import create_app
 from collectives.models import db, User, ActivityType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 # pylint: enable=C0301
-from collectives.api import find_users_by_fuzzy_name
-from collectives.helpers import current_time
-from collectives.models.user import activity_supervisors
-from collectives.utils.csv import csv_to_events
-
-from collectives.utils import extranet
 
 
 def create_test_user(email="test", user_license=""):
@@ -26,7 +18,7 @@ def create_test_user(email="test", user_license=""):
 
 
 def create_test_activity(name="Ski"):
-    activity = ActivityType(name=name, short="", order=1)
+    activity = ActivityType(name=name, short="")
     db.session.add(activity)
     db.session.commit()
     return activity
@@ -38,9 +30,8 @@ class ModelTest(flask_testing.TestCase):
 
         # pass in test configuration
         app = create_app()
-        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///testdb.sqlite"
+        app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/testdb.sqlite"
         app.config['TESTING'] = True
-        app.config['EXTRANET_ACCOUNT_ID'] = None
         return app
 
     def setUp(self):
@@ -72,10 +63,10 @@ class TestRoles(ModelTest):
     def make_role(self, user):
         return Role(user=user, role_id=int(RoleIds.Administrator))
 
-    def make_activity_role(self, user, activity, role_id=RoleIds.EventLeader):
+    def make_activity_role(self, user, activity):
         return Role(user=user,
                     activity_id=activity.id,
-                    role_id=int(role_id))
+                    role_id=int(RoleIds.EventLeader))
 
     def commit_role(self, role):
         db.session.add(role)
@@ -104,7 +95,8 @@ class TestRoles(ModelTest):
 
         role = self.make_activity_role(user, activity1)
         user.roles.append(role)
-        self.commit_role(role)
+
+        db.session.commit()
 
         assert role in db.session
 
@@ -115,27 +107,19 @@ class TestRoles(ModelTest):
         assert retrieved_user.can_lead_activity(activity1.id)
         assert not retrieved_user.can_lead_activity(activity2.id)
 
-        role = self.make_activity_role(user, activity2,
-                                       RoleIds.ActivitySupervisor)
-        user.roles.append(role)
-        self.commit_role(role)
-
-        supervisors = activity_supervisors([activity1])
-        assert len(supervisors) == 0
-        supervisors = activity_supervisors([activity2])
-        assert len(supervisors) == 1
-        supervisors = activity_supervisors([activity1, activity2])
-        assert len(supervisors) == 1
-
 
 class TestEvents(TestUsers):
 
     def make_event(self):
         return Event(title="Event",
                      description="",
-                     num_slots=2, num_online_slots=0,
+                     shortdescription="",
+                     num_slots=2, num_online_slots=1,
                      start=datetime.datetime.now() + datetime.timedelta(days=1),
-                     end=datetime.datetime.now() + datetime.timedelta(days=2))
+                     end=datetime.datetime.now() + datetime.timedelta(days=2),
+                     registration_open_time=datetime.datetime.now(),
+                     registration_close_time=datetime.datetime.now() +
+                     datetime.timedelta(days=1))
 
     def test_add_event(self):
         event = self.make_event()
@@ -174,7 +158,6 @@ class TestEvents(TestUsers):
 
         # Test slots
         event.num_slots = 0
-        event.num_online_slots = 1
         assert not event.is_valid()
         event.num_online_slots = 0
         assert event.is_valid()
@@ -188,11 +171,6 @@ class TestEvents(TestUsers):
         assert not event.is_valid()
         event.end = event.start
         assert event.is_valid()
-
-        event.num_online_slots = 1
-        event.registration_open_time = datetime.datetime.now()
-        event.registration_close_time = datetime.datetime.now() + \
-            datetime.timedelta(days=1)
 
         assert event.is_registration_open_at_time(datetime.datetime.now())
 
@@ -225,10 +203,6 @@ class TestRegistrations(TestEvents):
     def test_add_registration(self):
         event = self.make_event()
         event.num_online_slots = 2
-        event.registration_open_time = datetime.datetime.now()
-        event.registration_close_time = datetime.datetime.now() + \
-            datetime.timedelta(days=1)
-
         db.session.add(event)
         db.session.commit()
 
@@ -264,116 +238,6 @@ class TestRegistrations(TestEvents):
         assert db_event.has_free_online_slots()
         assert not db_event.can_self_register(user1, now)
         assert db_event.can_self_register(user2, now)
-
-
-class TestJsonApi(ModelTest):
-    def test_autocomplete(self):
-
-        user1 = User(mail="u1", first_name="First", last_name="User",
-                     password="", license="u1", phone="")
-        user2 = User(mail="u2", first_name="Second", last_name="User",
-                     password="", license="u2", phone="")
-        db.session.add(user1)
-        db.session.add(user2)
-        db.session.commit()
-
-        users = list(find_users_by_fuzzy_name("user"))
-        assert len(users) == 2
-        users = list(find_users_by_fuzzy_name("rst u"))
-        assert len(users) == 1
-        assert users[0].mail == 'u1'
-        users = list(find_users_by_fuzzy_name("sec"))
-        assert len(users) == 1
-        assert users[0].mail == 'u2'
-        users = list(find_users_by_fuzzy_name("z"))
-        assert len(users) == 0
-
-
-class TestExtranetApi(flask_testing.TestCase):
-
-    def create_app(self):
-
-        # pass in test configuration
-        app = create_app()
-        return app
-
-    def setUp(self):
-        extranet.api.init()
-
-    def test_check_license(self):
-        result = extranet.api.check_license('740020189319')
-        assert result.exists
-        if not extranet.api.disabled():
-            result = extranet.api.check_license('XXX')
-            assert not result.exists
-
-
-class TestExtranetApi(flask_testing.TestCase):
-
-    VALID_LICENSE_NUMBER = environ.get('EXTRANET_TEST_LICENSE_NUMBER')
-
-    def create_app(self):
-
-        # pass in test configuration
-        app = create_app()
-        return app
-
-    def test_check_license(self):
-        result = extranet.api.check_license(self.VALID_LICENSE_NUMBER)
-        assert result.exists
-        expiry = result.expiry_date()
-        assert expiry is None or expiry >= current_time().date()
-        if not extranet.api.disabled():
-            result = extranet.api.check_license('XXX')
-            assert not result.exists
-
-    def test_fetch_user_data(self):
-        result = extranet.api.fetch_user_info(self.VALID_LICENSE_NUMBER)
-        assert result.is_valid
-
-    def test_license_expiry(self):
-        info = extranet.LicenseInfo()
-        info.renewal_date = datetime.date(2018, 10, 1)
-        assert info.expiry_date() == datetime.date(2019, 10, 1)
-        info.renewal_date = datetime.date(2019, 2, 2)
-        assert info.expiry_date() == datetime.date(2019, 10, 1)
-        info.renewal_date = datetime.date(2019, 9, 1)
-        assert info.expiry_date() == datetime.date(2020, 10, 1)
-
-
-class TestImportCSV(ModelTest, flask_testing.TestCase):
-
-    # pylint: disable=C0301
-    csv = "TEST ,740020000001,mardi26,mardi 26 novembre 2019,26/11/19 7:00,mardi 26 novembre 2019,26/11/19 7:00,19/11/19 7:00,25/11/19 12:00, ,Aiguille des Calvaires,Aravis, ,2322,1200,F, , ,8,4"
-
-
-    def create_app(self):
-
-        # pass in test configuration
-        app = create_app()
-        return app
-
-    def test_csv_import(self):
-
-        user1 = User(mail="u1", first_name="First", last_name="User",
-                     password="", license="740020000001", phone="")
-        db.session.add(user1)
-        db.session.commit()
-
-        event = Event()
-
-        output = StringIO(self.csv)
-
-        events, processed, failed=csv_to_events(output,
-                        '{altitude}m-{denivele}m-{cotation}')
-        event=events[0]
-        assert processed == 1
-        assert failed == []
-        assert event.title == "Aiguille des Calvaires"
-        assert event.num_slots == 8
-        assert event.num_online_slots == 4
-        assert "2322m-1200m-F" in event.rendered_description
-        assert event.leaders[0].first_name == "First"
 
 
 if __name__ == '__main__':

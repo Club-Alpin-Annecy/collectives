@@ -1,12 +1,47 @@
+/* The MIT License (MIT)
+
+Copyright @jnguiot, see https://github.com/jnguiot
+EXCEPT: ION ICON: Copyright (c) 2015-present Ionic (http://ionic.io/)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of @jnguiot shall
+not be used in advertising or otherwise to promote the sale, use or other
+dealings in this Software without prior written authorization from @jnguiot. */
+
+
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap');
 
 body{
+	background-color: #555555;
 	margin: 0;
-	background-color: white;
-	font-family: Arial, sans-serif;
+	overflow: hidden;
+	font-family: 'Nunito Sans', sans-serif;
+  background-image: url("/static/caf/dsc_2983_2.jpg");
+  background-position: left;
+  background-size: cover;
 }
 
 a{
-	text-decoration: none;
+	text-decoration: underline dotted;
 	color: black;
 }
 
@@ -15,33 +50,68 @@ a:hover{
 }
 
 #playground{
-	margin-top: 60px;
+	height:100vh;
+	width: 100vw;
+
+}
+
+
+#motto{
+	float: left;
+  font-family: 'Playfair Display', serif;
+	font-weight: bold;
+	font-size: 120px;
+	color: white;
+	margin: 0;
+	margin-left: 5vw;
+  width: 30vw;
+}
+/* Mobile Adjustment : smaller motto*/
+@media only screen and (max-width:1000px) {
+	#motto{
+		padding: 15px;
+		font-size: 40px;
+		position: static;
+		transform:none;
+		border: solid 1px white;
+	}
 }
 
 .panel{
-	max-width: 1100px;
-	margin: auto;
-	min-height: 100vh;
-	padding: 60px 10px 20px;
-    background-color: white;
+	width: 65vw;
+	margin-left: 35vw;
+	height: calc(100vh - 60px);
+	overflow-y: auto;
 }
 
-.panel h3{
-	margin: 0 0 1em;
-	text-align: left;
-	text-transform: uppercase;
-	font-size: 4em;
-	font-weight: bolder;
+.solidpanel{
+  background-color: white;
 }
 
-.panel h4{
+
+.solidpanel h3{
+  text-align: center;
+  background-color: #00a6d0;
+  margin-top:0;
+  padding: .5em;
+  font-size: 2em;
+}
+
+.solidpanel h4{
   text-align: left;
   font-size: 1.5em;
+  max-width: 600px;
   margin:auto;
   margin-top: 2em;
-  color:  rgb(235,105,28);
 }
 
+@media only screen and (max-width:1000px) {
+	.panel{
+		width: 95vw;
+		margin: auto;
+		margin-right: 0;
+	}
+}
 /* LOGIN PLACE */
 #logger{
 
@@ -49,14 +119,14 @@ a:hover{
 	position: absolute;
 	top: 50%;
 	right:0;
-	transform: translate(  0px, -50%);
+	transform: translate(  20px, -50%);
 	z-index: 400;
 
 	background-color: white;
 	color: black;
 
 	padding: 10px 30px;
-	border-radius: 20px 0 0 20px;
+	border-radius: 20px;
 
 	font-size: 1em;
 	font-family: 'Nunito Sans', sans-serif;
@@ -117,42 +187,17 @@ a:hover{
 	z-index: 20;
 }
 
-.contact-link{
-	text-align: justify;
-}
-.contact-link a{
-	text-decoration: underline;
-}
-.contact-link a:hover{
-	text-decoration: none;
-}
-
-
 #footer{
-	width: 100%;
-	margin: 6em 0 0 0;
-	padding: 4em 0 ;
-	background-color: #5a4d4b;
-	color:white;
-}
-#footer a{
-	color:white;
-}
-#footer .container{
-	max-width: 600px;
-	margin:auto;
-	display: flex;
-	justify-content: space-between;
-}
-#footer .logo{
-	float: left;
-	margin: 0 20px;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
 }
 
 /* Flash panel for messages */
 #messages{
 	height: 100vh;
 	width: 100vw;
+	background-color: rgba(0, 0, 10, 0.5);
 	position: fixed;
 	top: 0px;
 	left: 0px;
@@ -167,16 +212,6 @@ a:hover{
 	border-radius: 20px;
 	padding: 50px 30px;
 	min-width: 600px;
-	z-index: 3000;
-}
-#messages .veil{
-	background-color: rgba(0, 0, 10, 0.5);
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100vh;
-	width: 100vw;
-	z-index: 2500;
 }
 #messages h3{
 	font-size: 30px;
@@ -191,34 +226,13 @@ a:hover{
 	height: 30px;
 }
 
-#messages .message::before{
-	height: 2em;
-	width: 2em;
-	margin-right: 7px;
-	display: inline-block;
-	vertical-align: middle;
-}
-#messages .error::before{
-	content: url("../img/icon/ionicon/md-close-circle.svg");
-}
-#messages .warning::before{
-	content: url("../img/icon/ionicon/md-alert.svg");
-}
-#messages .success::before{
-	content: url("../img/icon/ionicon/md-checkmark-circle.svg");
-}
+
+
 
 /* HEADER */
 #header{
-	background-color: white;
+	background-color: #69747c;
 	height: 60px;
-	position: fixed;
-	width: 100%;
-	z-index: 2000;
-	top: 0;
-	left: 0;
-	background-image: url("/static/caf/friseffcam_bleu.png");
-	background-position: right;
 }
 #header h2 img{
 	height:1em;
@@ -230,16 +244,12 @@ a:hover{
 	float:	right;
 	text-align: right;
 	margin: 0;
+	padding: .5em;
 	font-family: 'Nunito Sans', sans-serif;
 	vertical-align: middle;
-	line-height: 60px;
-	font-size: 40px;
-	background-color: rgba(0, 104, 128,.75);
-	padding: 0px 20px;
 }
 #header h2 a{
 	color: white !important;
-	text-decoration: none;
 }
 #header .item{
 	height: 60px;
@@ -250,22 +260,19 @@ a:hover{
 	white-space: nowrap;
 	vertical-align: middle;
 	font-size: 2em;
-	padding: 0 10px;
-	background-color:  rgba(255,255,255,.7);
+	padding: 0 5px;
 }
 #header .item:hover{
-	background-color:  rgba(200,200,200,.7);
+	background-color: rgba(0,0,10,.1);
 }
 #header .item img{
 	height: 50%;
 	vertical-align: middle;
-	position: relative;
-	bottom: .15em;
 }
 
 #header #menu{
 	position: relative;
-	background-color: rgb(29,105,137)	;
+	background-color: #bbbbbb	;
 }
 #header #menu .content{
 	display: none;
@@ -296,75 +303,15 @@ a:hover{
 #header .menubutton{
 	height: 100% !important;
 	cursor: pointer;
-	filter: invert(1);
 }
+
 /* Identity space (top left user space) */
+
 #header #logout{
 	width: 60px;
 	text-align: center;
 }
 
-
-
-/* Footer at the bottom of the page */
-#footer{
-	width: 100%;
-	margin: 6em 0 0 0;
-	padding: 4em 0 ;
-	background-color: #5a4d4b;
-	color:white;
-}
-#footer a{
-	color:white;
-}
-#footer .container{
-	max-width: 600px;
-	margin:auto;
-	display: flex;
-	justify-content: space-between;
-}
-#footer .logo{
-	float: left;
-	margin: 0 20px;
-}
-
-/* Flash panel for messages */
-#messages{
-	height: 100vh;
-	width: 100vw;
-	background-color: rgba(0, 0, 10, 0.5);
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	z-index: 3000;
-}
-#messages .innermessages{
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translateX(-50%) translateY(-50%);
-	background-color: white;
-	border-radius: 20px;
-	padding: 50px 30px;
-	min-width: 600px;
-}
-#messages h3{
-	font-size: 30px;
-	font-weight: bold;
-	margin-top: 0;
-}
-#messages .close{
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	cursor: pointer;
-	height: 30px;
-}
-
-
-
-
-/* Generic css classes across the site */
 .user{
 	float: left;
 	width: 80px;
@@ -383,16 +330,15 @@ a:hover{
 	background-color: white;
 }
 
-button, a.button{
+a.button{
 	border-radius: 5px;
 	background-color: #eeeeee;
 	cursor: pointer;
 	display: inline-block;
 	padding: 8px 10px;
 	text-decoration:none;
-	border:0;
 }
-button:hover, a.button:hover{
+a.button:hover{
 	text-decoration:none;
 	background-color: #dddddd;
 }
@@ -406,7 +352,6 @@ button:hover, a.button:hover{
 
 /* User icon display*/
 .usericon {
-	position: relative;
 	display: inline-block;
 	width: 80px;
 	border-radius: 5px;
@@ -426,19 +371,6 @@ button:hover, a.button:hover{
 	overflow: hidden;
 	width: 100%;
 }
-.usericon span.license-tag{
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	border-radius: 5px;
-	padding: 2px;
-}
-.usericon span.youth{
-	background-color:orange;
-}
-.usericon span.minor{
-	background-color:orangered;
-}
 
 .tag{
 	border-radius: 5px;
@@ -456,17 +388,12 @@ img.icon{
 }
 
 /* UTILS */
-/* class used to cancel a float */
 .breaker{
 	clear: both;
 }
 
 form {
 	text-align:center;
-}
-
-form p{
-	text-align:left;
 }
 
 form.inline{
@@ -511,68 +438,3 @@ form.inline input[type=submit] {
 	margin-bottom: 0.5em;
 	font-size: 0.8em;
 }
-
-/* Class for the cover image (skiing man) */
-#cover{
-	margin: 0;
-  	background-image: url("/static/caf/dsc_2983_2.jpg");
-  	background-position: left;
-  	background-size: cover;
-	height: 100vh;
-	display: flex;
-	flex-direction: row;
-	text-align: center;
-	align-items: center;
-	position: relative;
-	overflow: hidden;
-}
-#cover::before{
-       content: "";
-       z-index: 10;
-       display: block;
-       position: absolute;
-       border-bottom: 15vh solid white;
-       border-left: 100vw solid  transparent;
-       bottom: 0;
-	   margin: 0;
-	   width: 0;
-}
-
-#cover div{
-	width: 100%;
-}
-#cover  .motto{
-	max-width: 90%;
-
-}
-#cover  .arrow{
-	width: 6em	;
-	filter: invert(1); /* Make arrow white */
-	animation: votre_animation 1.5s infinite;
-	animation-direction: alternate;
-	animation-timing-function: ease-in-out;
-	cursor: pointer;
-}
-
-
-/* use flexbox to have a label in front of an input on the same line,
- but the input can take up to the rest of the space*/
-.inputGrow{
-	display: flex;
-}
-.inputGrow .grow{
-	flex-grow: 20;
-}
-
-
-.flex{
-	display: flex;
-}
-
-.leftalign{
-	text-align: left !important;
-}
-
-@keyframes votre_animation{ to{
-       transform: scale(1.4)
-}}

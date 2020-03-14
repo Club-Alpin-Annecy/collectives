@@ -11,15 +11,9 @@ flask-marshmallow
 flask-testing
 marshmallow-sqlalchemy
 Flask-Images
-markdown
+quill-delta[html]
 pylint
 pylint-quotes
 pylint-flask-sqlalchemy
 autopep8
 pytest
-pysimplesoap
-openpyxl
-# See Issue #98
-Werkzeug==0.16.1
-pymysql
-dkimpy

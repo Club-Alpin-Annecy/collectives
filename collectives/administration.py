@@ -1,7 +1,8 @@
-
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from flask_login import current_user, login_user, logout_user, login_required
+from .forms import AdminUserForm, RoleForm
+from .models import User, Event, ActivityType, Role, RoleIds, db
 from flask_images import Images
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import CombinedMultiDict
@@ -9,32 +10,41 @@ from wtforms import SelectField
 from functools import wraps
 import sys
 import os
+
 import sqlalchemy.exc
 import sqlalchemy_utils
 
-from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
-from ..models import User, Event, ActivityType, Role, RoleIds, db
-from ..utils.access import confidentiality_agreement, admin_required
-
 blueprint = Blueprint('administration', __name__, url_prefix='/administration')
+
+################################################################
+# Decorator
+################################################################
+
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_admin():
+            flash('Unauthorized', 'error')
+            return redirect(url_for('event.index'))
+        return func(*args, **kwargs)
+    return decorated_view
 
 
 ################################################################
 # ADMINISTRATION
 ################################################################
 
-@blueprint.before_request
-@login_required
-@admin_required()
-@confidentiality_agreement()
-def before_request():
-    """ Protect all of the admin endpoints. """
-    pass
-
-
 @blueprint.route('/', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def administration():
+    if not current_user.is_admin():
+        flash('Unauthorized')
+        return redirect(url_for('index'))
+
     users = User.query.all()
+
     return render_template('administration.html',
                            conf=current_app.config,
                            users=users)
@@ -42,53 +52,44 @@ def administration():
 
 @blueprint.route('/users/add', methods=['GET', 'POST'])
 @blueprint.route('/users/<user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def manage_user(user_id=None):
     user = User() if user_id is None else User.query.get(user_id)
-
-    # If we are operating on a 'normal' user, restrict fields
-    # Else allow editing everything
-    FormClass = AdminUserForm
-    if user.is_test or user_id == None:
-        FormClass = AdminTestUserForm
-
-    form = FormClass() if user_id is None else FormClass(obj=user)
-    action = 'Ajout' if user_id is None else 'Édition'
-
-    if not form.validate_on_submit():
+    form = AdminUserForm() if user_id is None else AdminUserForm(obj=user)
+    if not form.is_submitted():
         return render_template('basicform.html',
                                conf=current_app.config,
                                form=form,
-                               title="{} d'utilisateur".format(action))
+                               title="Ajout d'utilisateur")
 
-    # Do not touch password if user does not want to change it
-    if hasattr(form, 'password') and form.password.data == '':
-        delattr(form , 'password')
+    if not form.validate():
+        flash('Erreur dans le formulaire', 'error')
+        return redirect(url_for('update_user'))
 
-    form.populate_obj(user)
-    # Commit this object will create the id if it
-    # is a user creation
-    if user_id == None:
-        db.session.add(user)
-        db.session.commit()
-
-    # Save avatar into ight UploadSet
-    if form.remove_avatar and form.remove_avatar.data:
-        user.delete_avatar()
-    user.save_avatar(FormClass().avatar_file.data)
-
+    AdminUserForm(request.form).populate_obj(user)
     db.session.add(user)
     db.session.commit()
+    # Save avatar into ight UploadSet
+    if form.avatar_file.data is not None:
+        user.save_avatar(form.avatar_file.data)
+        db.session.add(user)
+        db.session.commit()
 
     return redirect(url_for('administration.administration'))
 
 
 @blueprint.route('/users/<user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
 def delete_user(user_id):
-    flash('Suppression d\'utilisateur non implémentée. ID ' + user_id, 'error')
+    flash('Not Implemented ' + user_id, 'error')
     return redirect(url_for('administration.administration'))
 
 
 @blueprint.route('/user/<user_id>/roles', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add_user_role(user_id):
 
     user = User.query.filter_by(id=user_id).first()
@@ -133,6 +134,8 @@ def add_user_role(user_id):
 
 
 @blueprint.route('/roles/<user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
 def remove_user_role(user_id):
     role = Role.query.filter_by(id=user_id).first()
     if role is None:
@@ -153,3 +156,20 @@ def remove_user_role(user_id):
                            user=user,
                            form=form,
                            title='Roles utilisateur')
+
+# init: Setup activity types (if db is ready)
+
+
+def init_activity_types():
+    try:
+        activity = ActivityType.query.first()
+        if activity is None:
+            for (_, atype) in current_app.config['TYPES'].items():
+                activity_type = ActivityType(name=atype['name'],
+                                             short=atype['short'])
+                db.session.add(activity_type)
+            db.session.commit()
+
+            print('WARN: create activity types')
+    except sqlalchemy.exc.OperationalError:
+        print('WARN: Cannot configure activity types: db is not available')

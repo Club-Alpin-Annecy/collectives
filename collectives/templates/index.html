@@ -8,72 +8,15 @@
 {% endblock %}
 
 {% block additionalhead %}
-
-
-  {# Tabulator: for tables#}
-  <link href="https://unpkg.com/tabulator-tables@4.5.1/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.1/dist/js/tabulator.js"></script>
-
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='css/event/event.css') }}">
-  <script src="{{ url_for('static', filename='js/event/eventlist.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
 {% endblock %}
 
 {% block content %}
 
-
-<div id="cover">
-    <div><img src="{{ url_for('static', filename='caf/esprit club alpin.png') }}" class="motto"/>
-        <br/>
-        <img
-            src="{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}"
-            class="arrow"
-            onclick="gotoEvents()"
-        />
-
-    </div>
-</div>
-{% if current_user.is_authenticated %}
-<script>
-    window.addEventListener("load", gotoEvents);
-</script>
-{% endif %}
-
 <div id="eventlist" class="panel">
-    <h3>
-        Collectives du club
-    </h3>
-    <div id="filters">
-        <div class="">
-            Afficher aussi les collectives:
-            <label> passées <input
-                                            type="checkbox"
-                                            onchange="togglePastActivities(this)"
-                                            autocomplete="off"
-                                            id="pastcheckbox"
-                                            /></label>
-            <label> annulées <input
-                                            type="checkbox"
-                                            onchange="toggleConfirmedOnly(!this.checked)"
-                                            autocomplete="off"
-                                            checked="1"
-                                            id="cancelledcheckbox"
-                                            /></label>
-        </div>
-        <div class="activity_filters">
-            Activité:
-            {% for type in types %}
-                <span
-                    class="activity {{type.short}} unselected s30px"
-                    onclick="toggleActivity('{{type.short}}');"
-                    title="{{type.name}}"
-                ></span>
-            {% endfor %}
-        </div>
-    </div>
-    <div id="eventstable"></div>
+{% for event in events %}
+  {{ macros.eventitem(event) }}
+{% endfor %}
 </div>
 
 {% endblock %}
