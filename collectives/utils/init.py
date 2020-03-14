@@ -27,7 +27,7 @@ def activity_types(app):
             activity_type.name=atype['name']
             activity_type.short=atype['short']
              # if order doesn't exists, use id
-            activity_type.order=atype.get('order', id)
+            activity_type.order=atype.get('order', 50)
             db.session.add(activity_type)
 
         db.session.commit()
