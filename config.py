@@ -6,38 +6,38 @@ from os import environ
 import subprocess
 
 
-FLASK_ENV = environ.get('FLASK_ENV')
-FLASK_DEBUG = environ.get('FLASK_DEBUG')
+FLASK_ENV = environ.get("FLASK_ENV")
+FLASK_DEBUG = environ.get("FLASK_DEBUG")
 
 # To generate a new secret key:
 # >>> import random, string
 # >>> "".join([random.choice(string.printable) for _ in range(24)])
 # Secret key can also be set in instance/config.py
-SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+SECRET_KEY = environ.get("SECRET_KEY") or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 
 # Password for admin account
-ADMINPWD = environ.get('ADMINPWD') or "foobar2"
+ADMINPWD = environ.get("ADMINPWD") or "foobar2"
 
 # Time a user has to wait after a wrong auth in seconds
-AUTH_FAILURE_WAIT=10
+AUTH_FAILURE_WAIT = 10
 
 # User/password for accessing extranet API
-default_wsdl = 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
-EXTRANET_DISABLE = environ.get('EXTRANET_DISABLE')
-EXTRANET_WSDL = environ.get('EXTRANET_WSDL') or default_wsdl
-EXTRANET_ACCOUNT_ID = environ.get('EXTRANET_ACCOUNT_ID')
-EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
+default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
+EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
+EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or default_wsdl
+EXTRANET_ACCOUNT_ID = environ.get("EXTRANET_ACCOUNT_ID")
+EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
 
 # Database
 basedir = os.path.abspath(os.path.dirname(__file__))
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # SMTP (mail) configuration
-SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
-SMTP_PORT = environ.get('SMTP_PORT') or 25
-SMTP_ADDRESS = environ.get('SMTP_ADDRESS') or 'noreply@example.org'
-SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
+SMTP_HOST = environ.get("SMTP_HOST") or "smtp.example.org"
+SMTP_PORT = environ.get("SMTP_PORT") or 25
+SMTP_ADDRESS = environ.get("SMTP_ADDRESS") or "noreply@example.org"
+SMTP_PASSWORD = environ.get("SMTP_PASSWORD") or ""
 # Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
 DKIM_KEY = ""
 DKIM_SELECTOR = "default"
@@ -45,17 +45,17 @@ DKIM_SELECTOR = "default"
 # Page information
 TITLE = "Collectives CAF Annecy"
 LOGO = "caf/caf-gris.png"
-run = subprocess.run(['git', 'describe', '--tags'],
-                        stdout=subprocess.PIPE,
-                        check=False)
-VERSION = run.stdout.decode('utf-8')
-#FAVICON= "img/icon/favicon.ico"
+run = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE, check=False)
+VERSION = run.stdout.decode("utf-8")
+# FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
 
 # Timezone to use for time comparisons
-TZ_NAME = 'Europe/Paris'
+TZ_NAME = "Europe/Paris"
 
 # Event type:
+# fmt: off
+# pylint: disable=C0326
 TYPES = {
     1: {"short": "ski_alpin", "name": "Ski et surf en station"},
     2: {"short": "escalade", "name": "Escalade"},
@@ -74,14 +74,13 @@ TYPES = {
     16: {"short": "slackline", "name": "Slackline"},
     15: {"short": "none", "name": "Non classé", "order": 100 },
 }
+# fmt: on
 
 # Technical stuff
-UPLOADED_PHOTOS_DEST = os.path.join(basedir,
-                                    "collectives/static/uploads")
-UPLOADED_AVATARS_DEST = os.path.join(basedir,
-                                    "collectives/static/uploads/avatars")
+UPLOADED_PHOTOS_DEST = os.path.join(basedir, "collectives/static/uploads")
+UPLOADED_AVATARS_DEST = os.path.join(basedir, "collectives/static/uploads/avatars")
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
@@ -101,15 +100,30 @@ Lieu et heure de départ: {debut2}
 
 Matériel requis:
 """
-CSV_COLUMNS = [ 'nom_encadrant', 'id_encadrant', 'unknown',
-                "debut1", "debut2", "fin1", "fin2",
-                "debut_internet","fin_internet", "pictogramme",
-                "titre", "secteur", "carte_IGN", "altitude", "denivele",
-                "cotation", "distance", "observations" ,
-                "places", "places_internet"]
+CSV_COLUMNS = [
+    "nom_encadrant",
+    "id_encadrant",
+    "unknown",
+    "debut1",
+    "debut2",
+    "fin1",
+    "fin2",
+    "debut_internet",
+    "fin_internet",
+    "pictogramme",
+    "titre",
+    "secteur",
+    "carte_IGN",
+    "altitude",
+    "denivele",
+    "cotation",
+    "distance",
+    "observations",
+    "places",
+    "places_internet",
+]
 
-XLSX_TEMPLATE = os.path.join(basedir,
-                             "collectives/templates/exported_event.xlsx")
+XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx")
 
 
 CONFIRMATION_MESSAGE = """
