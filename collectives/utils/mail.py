@@ -1,9 +1,13 @@
-import smtplib, dkim
-from flask import current_app
+import email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import email
-import unicodedata
+import smtplib
+
+# pylint: disable=E0001
+import dkim
+# pylint: enable=E0001
+
+from flask import current_app
 
 # To use it:
 # send_mail(subject="test", email="user@example.org", message="TEST")

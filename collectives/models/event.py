@@ -1,5 +1,3 @@
-# This file describe all classes we will use in collectives
-
 import re
 import markdown
 from flask_uploads import UploadSet, IMAGES

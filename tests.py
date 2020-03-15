@@ -60,39 +60,41 @@ class ModelTest(flask_testing.TestCase):
         db.session.remove()
         db.drop_all()
 
+def test_create_user():
+    user = create_test_user()
+    assert user in db.session
 
-class TestUsers(ModelTest):
-    @staticmethod
-    def test_create_user():
-        user = create_test_user()
-        assert user in db.session
+def test_create_activity():
+    activity = create_test_activity()
+    assert activity in db.session
 
+def make_role(user):
+    return Role(user=user, role_id=int(RoleIds.Administrator))
 
-class TestActivities(ModelTest):
-    @staticmethod
-    def test_create_activity():
-        activity = create_test_activity()
-        assert activity in db.session
+def make_activity_role(user, activity, role_id=RoleIds.EventLeader):
+    return Role(user=user, activity_id=activity.id, role_id=int(role_id))
+
+def commit_role(role):
+    db.session.add(role)
+    db.session.commit()
+
+def make_event():
+    return Event(
+        title="Event",
+        description="",
+        num_slots=2,
+        num_online_slots=0,
+        start=datetime.datetime.now() + datetime.timedelta(days=1),
+        end=datetime.datetime.now() + datetime.timedelta(days=2),
+    )
 
 
 class TestRoles(ModelTest):
-    @staticmethod
-    def make_role(user):
-        return Role(user=user, role_id=int(RoleIds.Administrator))
-
-    @staticmethod
-    def make_activity_role(user, activity, role_id=RoleIds.EventLeader):
-        return Role(user=user, activity_id=activity.id, role_id=int(role_id))
-
-    @staticmethod
-    def commit_role(role):
-        db.session.add(role)
-        db.session.commit()
 
     def test_add_role(self):
         user = create_test_user()
 
-        role = self.make_role(user)
+        role = make_role(user)
         user.roles.append(role)
 
         db.session.commit()
@@ -135,17 +137,7 @@ class TestRoles(ModelTest):
         assert len(supervisors) == 1
 
 
-class TestEvents(TestUsers):
-    @staticmethod
-    def make_event():
-        return Event(
-            title="Event",
-            description="",
-            num_slots=2,
-            num_online_slots=0,
-            start=datetime.datetime.now() + datetime.timedelta(days=1),
-            end=datetime.datetime.now() + datetime.timedelta(days=2),
-        )
+class TestEvents(ModelTest):
 
     def test_add_event(self):
         event = self.make_event()

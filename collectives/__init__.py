@@ -2,18 +2,18 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-from . import models, api, context_processor
-from .routes import root, profile, auth, administration, event 
+from . import models, api, context_processor, forms
+from .routes import root, profile, auth, administration, event
 from .utils import extranet
-from collectives.utils import init
+from .utils import init
 
 
-def create_app(config_filename='config'):
+def create_app(config_filename="config"):
     app = Flask(__name__, instance_relative_config=True)
 
     # Config options - Make sure you created a 'config.py' file.
     app.config.from_object(config_filename)
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile("config.py")
     # To get one variable, tape app.config['MY_VARIABLE']
 
     # Initialize plugins
@@ -24,7 +24,8 @@ def create_app(config_filename='config'):
     extranet.api.init_app(app)
 
     app.context_processor(context_processor.helpers_processor)
-    migrate = Migrate(app, models.db)
+
+    _migrate = Migrate(app, models.db)
 
     with app.app_context():
 
@@ -35,7 +36,7 @@ def create_app(config_filename='config'):
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
-        #print(app.url_map)
+        # print(app.url_map)
 
         forms.configure_forms(app)
         forms.csrf.init_app(app)
@@ -50,4 +51,4 @@ def create_app(config_filename='config'):
 
 
 if __name__ == "__main__":
-    app.run()
+    create_app().run()

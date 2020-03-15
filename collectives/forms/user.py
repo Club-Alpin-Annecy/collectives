@@ -1,13 +1,13 @@
-from .order import OrderedForm, OrderedModelForm
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import PasswordField, SubmitField
 from wtforms import SelectField, BooleanField
 from wtforms.validators import EqualTo
-from wtforms_alchemy import ModelForm, Unique
+from wtforms_alchemy import ModelForm
 
 
-from ..models import User, photos, ActivityType, Role, RoleIds
+from .order import OrderedModelForm
+from ..models import User, photos, ActivityType, Role
 from .validators import UniqueValidator, PasswordValidator
 
 
