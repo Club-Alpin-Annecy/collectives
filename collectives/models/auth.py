@@ -2,7 +2,7 @@ from datetime import timedelta
 import enum
 import uuid
 
-from . import db
+from .globals import db
 from ..helpers import current_time
 
 TOKEN_DURATION = timedelta(hours=2)

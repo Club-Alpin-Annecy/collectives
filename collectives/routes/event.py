@@ -1,7 +1,6 @@
-import io
 from operator import attrgetter
 from flask import flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint, send_file, abort, escape
+from flask import current_app, Blueprint, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 
@@ -11,7 +10,7 @@ from ..models import RegistrationStatus, User, db
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 
-from ..helpers import current_time, slugify
+from ..helpers import current_time
 from ..utils.csv import process_stream
 from ..utils.access import confidentiality_agreement
 

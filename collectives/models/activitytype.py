@@ -1,5 +1,5 @@
 # This file describe all classes we will use in collectives
-from . import db
+from .globals import db
 
 
 class ActivityType(db.Model):
