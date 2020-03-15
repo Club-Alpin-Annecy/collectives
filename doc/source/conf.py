@@ -12,8 +12,12 @@
 #
 import os
 import sys
+import subprocess
 sys.path.insert(0, os.path.abspath('../..'))
 
+run = subprocess.run(['git', 'describe', '--tags'],
+                        stdout=subprocess.PIPE,
+                        check=False)
 
 # -- Project information -----------------------------------------------------
 
@@ -22,7 +26,7 @@ copyright = '2020, CAF Annecy'
 author = 'CAF Annecy'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.3'
+release = run.stdout.decode('utf-8')
 
 
 # -- General configuration ---------------------------------------------------

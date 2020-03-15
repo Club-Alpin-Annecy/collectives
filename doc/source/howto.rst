@@ -4,8 +4,10 @@ This document is meant to help new comers to the project to handle it
 
 I want to suggest a modification
 ------------------------------------
-Please submit a Pull Request on our project on _github: https://github.com/Club-Alpin-Annecy/collectives-flask2.
-We are using standard github PR process. This _link: https://opensource.com/article/19/7/create-pull-request-github
+Please submit a Pull Request on our project on `github <https://github.com/Club-Alpin-Annecy/collectives-flask2>`_ .
+
+We are using standard github PR process. This
+`link <https://opensource.com/article/19/7/create-pull-request-github>`_
 will help you to follow it.
 
 Please READ the CODING file before creating the PR.
@@ -33,11 +35,17 @@ Install pip ``Sphinx``
 Then,
 For windows:
 
-- execute ``doc/make_html.bat``
+.. code-block:: bash
+
+    cd doc
+    ./make_html.bat
 
 For Linux and Mac:
 
-- execute: ``make html``
+.. code-block:: bash
+
+    cd doc
+    make html
 
 I want to deploy the website into production on my server
 -----------------------------------------------------------
@@ -45,6 +53,7 @@ Installation
 ..............
 For development, you can run ./run.py. However, it is not the recommended
 method for production environment.
+
 You can choose any production method you like, however, you can use waitress
 behind an nginx for SSL offloading. Waitress can be install with a pip
 `pip install waitress`, and a systemd service be created easily by adding
