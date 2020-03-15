@@ -1,3 +1,19 @@
+"""API of ``collectives`` website.
+
+This is a very simple API meant to be used with Ajax frontend, mainly
+tabulator. It offers ``GET`` endpoint to serve various tables dynamically.
+But it could be extended to ``POST`` and ``DELETE`` request later.
+This module is initialized by the application factory, and contains the
+``/api`` blueprint
+
+    Typical usage example:
+
+    from . import api
+    app = Flask(__name__)
+    app.register_blueprint(api.blueprint)
+"""
+
+
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import Response, current_app, Blueprint, abort
 from flask_login import current_user, login_required
@@ -18,6 +34,15 @@ blueprint = Blueprint('api', __name__, url_prefix='/api')
 
 
 def avatar_url(user):
+    """Get avatar URL for a user.
+
+    Args:
+        user: a ``User`` object, from which avatar is wanted
+
+    Returns:
+        A URL to a resized picture of the avatar 30x30. If user has no avatar
+        it return the default avatar SVG.
+    """
     if user.avatar is not None:
         return url_for('images.crop',
                        filename=user.avatar,
@@ -27,6 +52,25 @@ def avatar_url(user):
 
 
 class UserSchema(marshmallow.Schema):
+    """Schema of a user to be used to extract API information.
+
+    This class is a ``marshmallow`` schema which automatically gets its
+    structure from the ``User`` class. Plus, we add some useful information
+    or link. This schema is only used for administration listing.
+
+    :param isadmin: Wraps ``User.is_admin()``
+    :type isadmin: bool
+    :param roles_uri: URI to role management page for this user
+    :type roles_uri: string
+    :param delete_uri: URI to delete this user (WIP)
+    :type delete_uri: string
+    :param manage_uri: URI to modify this user
+    :type manage_uri: string
+    :param profile_uri: URI to see user profile
+    :type profile_uri: string
+    :param avatar_uri: URI to a resized version (30px) of user avatar
+    :type avatar_uri: string
+    """
     isadmin = fields.Function(lambda user: user.is_admin())
     roles_uri = fields.Function(
         lambda user: url_for(
@@ -66,6 +110,16 @@ class UserSchema(marshmallow.Schema):
 @admin_required(True)
 @confidentiality_agreement(True)
 def users():
+    """API endpoint to list users
+
+    Only available to administrators
+    
+    :return: A tuple:
+        - JSON containing information describe in UserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
 
     query = db.session.query(User)
 

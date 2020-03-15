@@ -1,3 +1,14 @@
+"""Module containing the whole `collectives` Flask application
+
+This file is the entry point to build the `collectives` Flask application. It
+imports all the submodule and contains the application factory.
+
+  Typical usage example:
+
+  import collectives
+  collectives.create_app().run(debug=True)
+"""
+
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -9,6 +20,21 @@ from collectives.utils import init
 
 
 def create_app(config_filename='config'):
+    """Flask application factory.
+
+
+    This is the flask application factory for this project. It loads the
+    other submodules used to runs the collectives website. It also creates
+    the blueprins and init apps.
+
+
+    :param config_filename: name of the application config file.
+    :type config_filename: string
+
+
+    :return: A flask application for collectives
+    :rtype: flask.Flask
+    """
     app = Flask(__name__, instance_relative_config=True)
 
     # Config options - Make sure you created a 'config.py' file.

@@ -1,3 +1,5 @@
+"""Module to handle csv import
+"""
 from ..models import User, Event, db
 from datetime import datetime
 from flask import flash, current_app

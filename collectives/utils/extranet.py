@@ -1,4 +1,5 @@
-
+"""Module to handle connexions to FFCAM extranet
+"""
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 from datetime import datetime, date

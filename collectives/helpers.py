@@ -1,3 +1,5 @@
+"""Functions to help on standard taks
+"""
 from flask import current_app
 from datetime import datetime
 from dateutil import tz
@@ -18,7 +20,8 @@ def current_time():
 _slugify_strip_re = re.compile(r'[^\w\s-]')
 _slugify_hyphenate_re = re.compile(r'[-\s]+')
 def slugify(value):
-    """
+    """String normalisation.
+
     Normalizes string, converts to lowercase, removes non-alpha characters,
     and converts spaces to hyphens.
     

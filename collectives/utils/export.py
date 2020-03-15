@@ -1,3 +1,5 @@
+"""Module to handle event export as xlsx
+"""
 from openpyxl import load_workbook
 from openpyxl.writer.excel import save_virtual_workbook
 from flask import current_app

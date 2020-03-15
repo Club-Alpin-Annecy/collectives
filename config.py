@@ -1,3 +1,10 @@
+"""Configuration for the Application
+
+Base configuration is defined in /config.py, but this file should be modified
+only by developper. To deploy an application with specific parameters, use
+instance/config.py.
+WARNING: for production, some parameter MUST be modified (ADMINPWD, SECRET_KEY)
+"""
 # All configuration parameters defined in
 # this file can be overriden in instance/config.py
 
@@ -7,53 +14,149 @@ import subprocess
 
 
 FLASK_ENV = environ.get('FLASK_ENV')
+"""What environment the app is running in.
+
+See https://flask.palletsprojects.com/en/1.1.x/config/#ENV
+
+:type: string
+"""
 FLASK_DEBUG = environ.get('FLASK_DEBUG')
+"""Whether debug mode is enabled.
 
-# To generate a new secret key:
-# >>> import random, string
-# >>> "".join([random.choice(string.printable) for _ in range(24)])
-# Secret key can also be set in instance/config.py
+See https://flask.palletsprojects.com/en/1.1.x/config/#DEBUG
+
+:type: boolean
+"""
+
 SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+"""A secret key to securely sign the session cookie and other.
 
-# Password for admin account
+See https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY
+To generate a new secret key:
+>>> import random, string
+>>> "".join([random.choice(string.printable) for _ in range(24)])
+Secret key can also be set in instance/config.py
+
+:type: string
+"""
+
 ADMINPWD = environ.get('ADMINPWD') or "foobar2"
+"""Password for admin account
 
-# Time a user has to wait after a wrong auth in seconds
+Will be set or reset at every application. Makes sure this is a secure password
+in production.
+
+:type: string
+"""
+
 AUTH_FAILURE_WAIT=10
+"""Time a user has to wait after a wrong auth in seconds
+
+:type: int
+"""
 
 # User/password for accessing extranet API
 default_wsdl = 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
 EXTRANET_DISABLE = environ.get('EXTRANET_DISABLE')
+"""Use a coonection to FFCAM to activate account
+
+Usually set to False for tests which don't have acces to FFCAM server such
+as github CI tests.
+
+:type: boolean
+"""
 EXTRANET_WSDL = environ.get('EXTRANET_WSDL') or default_wsdl
+"""URL of WSDL to connect to FFCAM server
+
+:type: string
+"""
 EXTRANET_ACCOUNT_ID = environ.get('EXTRANET_ACCOUNT_ID')
+"""Account login for FFCAM extranet access
+
+:type: string
+"""
 EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
+"""Account password for FFCAM extranet access
+
+:type: string
+"""
 
 # Database
 basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+"""Database URL
+
+Set URL for SQLAlchemy database.
+Can be sqlite: ``sqlite:///app.db``
+or mysql: ``mysql+pymysql://username:password@localhost/db_name``
+
+:type: string
+"""
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # SMTP (mail) configuration
 SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
+"""Host SMTP to send mail
+
+:type: string
+"""
 SMTP_PORT = environ.get('SMTP_PORT') or 25
+"""TCP port for SMTP server
+
+:type: int
+"""
 SMTP_ADDRESS = environ.get('SMTP_ADDRESS') or 'noreply@example.org'
+"""Sending address to send adminsitration mails
+
+Will be used as a reply address and a SMTP login
+"""
 SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
-# Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
+"""SMTP password to be used along SMTP_ADDRESS as login
+
+:type: string
+"""
 DKIM_KEY = ""
+"""DKIM private KEY
+
+Contain the PEM encoded PKCS#8 format private key (not the file name, but its
+content).
+Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
+
+:type: string
+"""
 DKIM_SELECTOR = "default"
+"""DKIM selector
+
+:type: string
+"""
 
 # Page information
 TITLE = "Collectives CAF Annecy"
+"""Website title
+
+:type: string
+"""
 LOGO = "caf/caf-gris.png"
+"""URL to the site logo
+
+:type: string
+"""
 run = subprocess.run(['git', 'describe', '--tags'],
                         stdout=subprocess.PIPE,
                         check=False)
 VERSION = run.stdout.decode('utf-8')
 #FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
+"""URL to the site favicon
 
-# Timezone to use for time comparisons
+:type: string
+"""
+
 TZ_NAME = 'Europe/Paris'
+"""Timezone to use for time comparisons
+
+:type: string
+"""
 
 # Event type:
 TYPES = {
@@ -74,14 +177,33 @@ TYPES = {
     16: {"short": "slackline", "name": "Slackline"},
     15: {"short": "none", "name": "Non classé", "order": 100 },
 }
+"""List of event type
+
+Contains the list of event type as a dictionnary. id is an int, value is
+a hash. ``short`` is the name of the icon.
+
+:type: dict
+"""
 
 # Technical stuff
 UPLOADED_PHOTOS_DEST = os.path.join(basedir,
                                     "collectives/static/uploads")
+"""Folder path for uploaded event photos.
+
+:type: string
+"""
 UPLOADED_AVATARS_DEST = os.path.join(basedir,
                                     "collectives/static/uploads/avatars")
+"""Folder path for uploaded user avatars.
+
+:type: string
+"""
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+""" Allowed extension for uploaded images
+
+:type: array
+"""
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
@@ -101,16 +223,33 @@ Lieu et heure de départ: {debut2}
 
 Matériel requis:
 """
+"""Default event description template.
+
+Place holder can be inserted, and will be used for CSV import.
+
+:type: strings"""
+
 CSV_COLUMNS = [ 'nom_encadrant', 'id_encadrant', 'unknown',
                 "debut1", "debut2", "fin1", "fin2",
                 "debut_internet","fin_internet", "pictogramme",
                 "titre", "secteur", "carte_IGN", "altitude", "denivele",
                 "cotation", "distance", "observations" ,
                 "places", "places_internet"]
+"""List of columns to import CSV files.
+
+Ordered list of column. ``debut2`` and ``fin2`` are mandatory. These columns
+names will be used as variables during csv import and can be inserted in
+description using place holders.
+
+:type: Array
+"""
 
 XLSX_TEMPLATE = os.path.join(basedir,
                              "collectives/templates/exported_event.xlsx")
+"""Path to Excel template.
 
+:type: string
+"""
 
 CONFIRMATION_MESSAGE = """
 Bonjour {name},
@@ -120,8 +259,16 @@ Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF Anne
 
 Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 """
+"""Template of confirmation email.
+
+:type: string
+"""
 
 NEW_EVENT_SUBJECT = "Notification de création d'événement"
+"""Email subject for event creation
+
+:type: string
+"""
 NEW_EVENT_MESSAGE = """
 Bonjour,
 
@@ -132,8 +279,16 @@ Vous pouvez le consulter à l'adresse ci-dessous:
 Vous recevez cet e-mail en tant que Responsable de l'activité.
 Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 """
+"""Email template content for event creation
+
+:type: string
+"""
 
 SELF_UNREGISTER_SUBJECT = "Notification de désinscription"
+"""Email subject for user self unregister
+
+:type: string
+"""
 SELF_UNREGISTER_MESSAGE = """
 Bonjour,
 
@@ -143,4 +298,8 @@ Lien vers l'événement:
 
 Vous recevez cet e-mail en tant qu'encadrant d'une activité.
 Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+"""Email template content for user self unregister
+
+:type: string
 """

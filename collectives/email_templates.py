@@ -1,3 +1,5 @@
+"""Templates for mails
+"""
 from .utils import mail
 from .models.auth import ConfirmationTokenType 
 from .models.user import activity_supervisors
