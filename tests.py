@@ -88,6 +88,11 @@ def make_event():
         end=datetime.datetime.now() + datetime.timedelta(days=2),
     )
 
+def make_registration(user):
+    datetime.datetime.timestamp(datetime.datetime.now())
+    return Registration(
+        user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal
+    )
 
 class TestRoles(ModelTest):
 
@@ -108,14 +113,15 @@ class TestRoles(ModelTest):
         assert retrieved_user.is_moderator()
         assert not retrieved_user.can_lead_activity(0)
 
-    def test_add_activity_role(self):
+    @staticmethod
+    def test_add_activity_role():
         user = create_test_user()
         activity1 = create_test_activity("1")
         activity2 = create_test_activity("2")
 
-        role = self.make_activity_role(user, activity1)
+        role = make_activity_role(user, activity1)
         user.roles.append(role)
-        self.commit_role(role)
+        commit_role(role)
 
         assert role in db.session
 
@@ -126,9 +132,9 @@ class TestRoles(ModelTest):
         assert retrieved_user.can_lead_activity(activity1.id)
         assert not retrieved_user.can_lead_activity(activity2.id)
 
-        role = self.make_activity_role(user, activity2, RoleIds.ActivitySupervisor)
+        role = make_activity_role(user, activity2, RoleIds.ActivitySupervisor)
         user.roles.append(role)
-        self.commit_role(role)
+        commit_role(role)
 
         supervisors = activity_supervisors([activity1])
         assert len(supervisors) == 0
@@ -140,13 +146,15 @@ class TestRoles(ModelTest):
 
 class TestEvents(ModelTest):
 
-    def test_add_event(self):
-        event = self.make_event()
+    @staticmethod
+    def test_add_event():
+        event = make_event()
         db.session.add(event)
         db.session.commit()
         return event
 
-    def test_event_validity(self):
+    @staticmethod
+    def test_event_validity():
         user1 = create_test_user("email1", "license1")
         user2 = create_test_user("email2", "license2")
         activity1 = create_test_activity("1")
@@ -156,7 +164,7 @@ class TestEvents(ModelTest):
         user2.roles.append(Role(role_id=RoleIds.EventLeader, activity_id=activity2.id))
         db.session.commit()
 
-        event = self.make_event()
+        event = make_event()
         # Event has no activity, not valid
         assert not event.is_valid()
 
@@ -218,15 +226,10 @@ class TestEvents(ModelTest):
 
 
 class TestRegistrations(TestEvents):
-    @staticmethod
-    def make_registration(user):
-        datetime.datetime.timestamp(datetime.datetime.now())
-        return Registration(
-            user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal
-        )
 
-    def test_add_registration(self):
-        event = self.make_event()
+    @staticmethod
+    def test_add_registration():
+        event = make_event()
         event.num_online_slots = 2
         event.registration_open_time = datetime.datetime.now()
         event.registration_close_time = datetime.datetime.now() + datetime.timedelta(
@@ -246,7 +249,7 @@ class TestRegistrations(TestEvents):
         assert event.can_self_register(user1, now)
         assert event.can_self_register(user2, now)
 
-        event.registrations.append(self.make_registration(user1))
+        event.registrations.append(make_registration(user1))
         db.session.commit()
         assert not event.can_self_register(user1, now)
         assert event.can_self_register(user2, now)
