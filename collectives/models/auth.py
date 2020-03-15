@@ -3,21 +3,24 @@
 Example: Account creation tokens. However, User is in module
 ``collectives.model.user``.
 """
-from . import db
-from ..helpers import current_time
 
 from datetime import timedelta
 import enum
 import uuid
 
-TOKEN_DURATION = timedelta(hours = 2)
+from . import db
+from ..helpers import current_time
+
+TOKEN_DURATION = timedelta(hours=2)
 """Duration of a token before expiration
 
 :type: datetime.timedelta
 """
 
+
 class ConfirmationTokenType(enum.IntEnum):
     """ Enum listing types of token"""
+
     ActivateAccount = 0
     """Token for account activation"""
     RecoverAccount = 1
@@ -31,11 +34,9 @@ class ConfirmationToken(db.Model):
     is sent to an email address and user has to be able to access the email
     address to validate the token. Tokens have a limited life duration.
     """
+
     # Token uuid
-    uuid = db.Column(
-        db.String(36),
-        nullable=False,
-        primary_key = True)
+    uuid = db.Column(db.String(36), nullable=False, primary_key=True)
     """UUID to indentify the token
 
     :type: string
@@ -49,7 +50,6 @@ class ConfirmationToken(db.Model):
     :type: :py:class:`datetime.datetime`
     """
 
-
     user_license = db.Column(db.String(12), nullable=False)
     """License number of relevant user
 
@@ -59,7 +59,7 @@ class ConfirmationToken(db.Model):
     :type: string
     """
 
-    existing_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    existing_user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     """Associated Id if the token affects an existing account
 
     :type: int"""

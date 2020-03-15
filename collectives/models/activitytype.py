@@ -2,6 +2,7 @@
 """
 from . import db
 
+
 class ActivityType(db.Model):
     """ Class of the type of activity.
 
@@ -10,7 +11,7 @@ class ActivityType(db.Model):
     ``activity_types``
     """
 
-    __tablename__ = 'activity_types'
+    __tablename__ = "activity_types"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
@@ -33,10 +34,8 @@ class ActivityType(db.Model):
     :type: int
     """
 
-
-
     # Relationships
-    persons = db.relationship('Role', backref='activity_type', lazy=True)
+    persons = db.relationship("Role", backref="activity_type", lazy=True)
     """Person with a role with this activity
 
     :type: User
