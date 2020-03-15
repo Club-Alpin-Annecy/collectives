@@ -91,7 +91,8 @@ def make_event():
 
 class TestRoles(ModelTest):
 
-    def test_add_role(self):
+    @staticmethod
+    def test_add_role():
         user = create_test_user()
 
         role = make_role(user)
