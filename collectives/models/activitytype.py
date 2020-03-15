@@ -1,6 +1,6 @@
 """Module to describe the type of activity.
 """
-from . import db
+from .globals import db
 
 
 class ActivityType(db.Model):

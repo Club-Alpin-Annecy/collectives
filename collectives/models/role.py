@@ -1,5 +1,5 @@
 from .utils import ChoiceEnum
-from . import db
+from .globals import db
 
 
 class RoleIds(ChoiceEnum):

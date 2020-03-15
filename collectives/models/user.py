@@ -9,7 +9,7 @@ from sqlalchemy_utils import PasswordType
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
 
-from . import db
+from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
 from .utils import ChoiceEnum
@@ -249,7 +249,7 @@ class User(db.Model, UserMixin):
 
     def led_activities(self):
         roles = self.matching_roles([RoleIds.EventLeader, RoleIds.ActivitySupervisor])
-        return set([role.activity_type for role in roles])
+        return set(role.activity_type for role in roles)
 
     # Format
 

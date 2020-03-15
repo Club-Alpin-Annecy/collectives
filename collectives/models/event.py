@@ -4,7 +4,7 @@ import re
 import markdown
 from flask_uploads import UploadSet, IMAGES
 
-from . import db
+from .globals import db
 from .registration import RegistrationStatus
 from .utils import ChoiceEnum
 

@@ -1,5 +1,5 @@
 import enum
-from . import db
+from .globals import db
 
 
 class RegistrationLevels(enum.IntEnum):
