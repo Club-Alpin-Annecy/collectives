@@ -13,14 +13,14 @@ from os import environ
 import subprocess
 
 
-FLASK_ENV = environ.get('FLASK_ENV')
+FLASK_ENV = environ.get("FLASK_ENV")
 """What environment the app is running in.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#ENV
 
 :type: string
 """
-FLASK_DEBUG = environ.get('FLASK_DEBUG')
+FLASK_DEBUG = environ.get("FLASK_DEBUG")
 """Whether debug mode is enabled.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#DEBUG
@@ -28,7 +28,7 @@ See https://flask.palletsprojects.com/en/1.1.x/config/#DEBUG
 :type: boolean
 """
 
-SECRET_KEY = environ.get('SECRET_KEY') or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+SECRET_KEY = environ.get("SECRET_KEY") or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 """A secret key to securely sign the session cookie and other.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY
@@ -40,7 +40,7 @@ Secret key can also be set in instance/config.py
 :type: string
 """
 
-ADMINPWD = environ.get('ADMINPWD') or "foobar2"
+ADMINPWD = environ.get("ADMINPWD") or "foobar2"
 """Password for admin account
 
 Will be set or reset at every application. Makes sure this is a secure password
@@ -49,15 +49,15 @@ in production.
 :type: string
 """
 
-AUTH_FAILURE_WAIT=10
+AUTH_FAILURE_WAIT = 10
 """Time a user has to wait after a wrong auth in seconds
 
 :type: int
 """
 
 # User/password for accessing extranet API
-default_wsdl = 'https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl'
-EXTRANET_DISABLE = environ.get('EXTRANET_DISABLE')
+default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
+EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
 """Use a coonection to FFCAM to activate account
 
 Usually set to False for tests which don't have acces to FFCAM server such
@@ -65,17 +65,17 @@ as github CI tests.
 
 :type: boolean
 """
-EXTRANET_WSDL = environ.get('EXTRANET_WSDL') or default_wsdl
+EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or default_wsdl
 """URL of WSDL to connect to FFCAM server
 
 :type: string
 """
-EXTRANET_ACCOUNT_ID = environ.get('EXTRANET_ACCOUNT_ID')
+EXTRANET_ACCOUNT_ID = environ.get("EXTRANET_ACCOUNT_ID")
 """Account login for FFCAM extranet access
 
 :type: string
 """
-EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
+EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
 """Account password for FFCAM extranet access
 
 :type: string
@@ -83,7 +83,7 @@ EXTRANET_ACCOUNT_PWD = environ.get('EXTRANET_ACCOUNT_PWD')
 
 # Database
 basedir = os.path.abspath(os.path.dirname(__file__))
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
 """Database URL
 
 Set URL for SQLAlchemy database.
@@ -95,22 +95,22 @@ or mysql: ``mysql+pymysql://username:password@localhost/db_name``
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # SMTP (mail) configuration
-SMTP_HOST = environ.get('SMTP_HOST') or 'smtp.example.org'
+SMTP_HOST = environ.get("SMTP_HOST") or "smtp.example.org"
 """Host SMTP to send mail
 
 :type: string
 """
-SMTP_PORT = environ.get('SMTP_PORT') or 25
+SMTP_PORT = environ.get("SMTP_PORT") or 25
 """TCP port for SMTP server
 
 :type: int
 """
-SMTP_ADDRESS = environ.get('SMTP_ADDRESS') or 'noreply@example.org'
+SMTP_ADDRESS = environ.get("SMTP_ADDRESS") or "noreply@example.org"
 """Sending address to send adminsitration mails
 
 Will be used as a reply address and a SMTP login
 """
-SMTP_PASSWORD = environ.get('SMTP_PASSWORD') or ''
+SMTP_PASSWORD = environ.get("SMTP_PASSWORD") or ""
 """SMTP password to be used along SMTP_ADDRESS as login
 
 :type: string
@@ -141,24 +141,24 @@ LOGO = "caf/caf-gris.png"
 
 :type: string
 """
-run = subprocess.run(['git', 'describe', '--tags'],
-                        stdout=subprocess.PIPE,
-                        check=False)
-VERSION = run.stdout.decode('utf-8')
-#FAVICON= "img/icon/favicon.ico"
+run = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE, check=False)
+VERSION = run.stdout.decode("utf-8")
+# FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
 """URL to the site favicon
 
 :type: string
 """
 
-TZ_NAME = 'Europe/Paris'
+TZ_NAME = "Europe/Paris"
 """Timezone to use for time comparisons
 
 :type: string
 """
 
 # Event type:
+# fmt: off
+# pylint: disable=C0326
 TYPES = {
     1: {"short": "ski_alpin", "name": "Ski et surf en station"},
     2: {"short": "escalade", "name": "Escalade"},
