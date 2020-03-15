@@ -1,3 +1,5 @@
+"""Decorators to help manage page access
+"""
 from functools import wraps
 from flask import request, redirect, url_for, flash, current_app, abort
 from flask_login import current_user, login_required
@@ -6,6 +8,19 @@ from flask_login import current_user, login_required
 
 
 def access_requires(f, test,  api=False):
+    """Decorator to do a test before granting access
+
+    It is a very generic decorator meant to have a way to create any test to
+    grant access to an endpoint
+
+    :param f: The function of the endpoint that will be protected
+    :type f: function
+    :param test: A function the must return a boolean. If false, access to
+        `f` will be refused
+    :type test: function
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
     @wraps(f)
     @wraps(test)
     @wraps(api)

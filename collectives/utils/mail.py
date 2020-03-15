@@ -1,3 +1,21 @@
+"""Module to handle mail
+
+This module handles mail sending using a SMTP server. Also, it can sign with
+DKIM. Conf are taken from app config:
+
+:param SMTP_HOST: Hostname of SMTP server
+:type SMTP_HOST: string
+:param SMTP_PORT: Connexion port to SMTP server
+:type SMTP_PORT: string
+:param SMTP_ADDRESS: Login and return address. Also used to set DKIM domain
+:type SMTP_ADDRESS: string
+:param SMTP_PASSWORD: Password of SMTP server
+:type SMTP_PASSWORD: string
+:param DKIM_SELECTOR: DKIM selector, usually default
+:type DKIM_SELECTOR: string
+:param DKIM_KEY: DKIM private key as PEM format
+:type DKIM_KEY: string
+"""
 import smtplib, dkim
 from flask import current_app
 from email.mime.multipart import MIMEMultipart

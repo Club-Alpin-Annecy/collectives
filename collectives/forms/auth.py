@@ -1,3 +1,8 @@
+"""Authentification related modules.
+
+This module contains form related to authentification such as login
+and account creation.
+"""
 from .order import OrderedForm
 from flask_wtf import FlaskForm
 from flask import url_for

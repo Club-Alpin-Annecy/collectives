@@ -1,4 +1,6 @@
-# This file describe all classes we will use in collectives
+"""Module for user related classes
+
+"""
 from ..helpers import current_time
 
 from flask_login import UserMixin
@@ -20,13 +22,25 @@ avatars = UploadSet('avatars', IMAGES)
 
 
 class Gender(ChoiceEnum):
+    """Enum to store User gender
+    """
     Unknown = 0
+    """Default gender if not known """
     Woman = 1
+    """Woman gender """
     Man = 2
+    """Man gender"""
     Other = 3
+    """Other gender"""
 
     @classmethod
     def display_names(cls):
+        """ Return all available gender with their names.
+
+        :return: The list of gender in a dictionnary that link its id with
+            the display names.
+        :rtype: dictionnary
+        """
         return {
             cls.Other: 'Autre',
             cls.Woman: 'Femme',
@@ -37,16 +51,29 @@ class Gender(ChoiceEnum):
 
 # Models
 class User(db.Model, UserMixin):
-    """ Utilisateurs """
+    """ Class to manage user.
+
+    Persistence is managed by SQLAlchemy. This class is used by ``flask_login``
+    to manage acccess to the system.
+    """
 
     __tablename__ = 'users'
+    """Name of the table for persistence by sqlalchemy"""
 
     id = db.Column(db.Integer, primary_key=True)
+    """Simple database identifier
+
+    :type: int
+    """
 
     is_test = db.Column(db.Boolean,
                         default=True,
                         nullable=False,
                         info={'label': 'Utilisateur de test'})
+    """Attribute to know if the user is real or just for tests
+
+    :type: boolean
+    """
 
     # E-mail
     mail = db.Column(db.String(100),
@@ -236,6 +263,9 @@ class User(db.Model, UserMixin):
 def activity_supervisors(activities):
     """
     Returns all supervisors for a list of activities
+
+    :return: List of all activities for configuration
+    :rtype: Array
     """
     activity_ids = [a.id for a in activities]
     query = db.session.query(User)

@@ -6,6 +6,8 @@ uploads
 .env
 .coverage
 
+doc/build
+
 # VIM swap
 # Swap
 [._]*.s[a-v][a-z]
