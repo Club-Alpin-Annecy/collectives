@@ -29,9 +29,8 @@ Default password is foobar2 (can be change in config.py)
 A demonstration website can be found https://test.collectives.cafannecy.fr
 
 # Documentation
-More detailed documentation can be found in ``doc`` folder or on the test
-website:
-`https://doc.test.collectives.cafannecy.fr<https://doc.test.collectives.cafannecy.fr>`_
+More detailed documentation can be found in ``doc`` folder or on the doc
+website: https://doc.collectives.cafannecy.fr
 
 # Tests
 :hammer_and_wrench: [TODO] :hammer_and_wrench:
