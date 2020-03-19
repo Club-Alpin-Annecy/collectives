@@ -1,3 +1,7 @@
+""" Module for event related route
+
+This modules contains the /event Blueprint
+"""
 from flask import Flask, flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, send_file, abort, escape
 from flask_login import current_user, login_required
@@ -20,16 +24,34 @@ from ..utils.access import confidentiality_agreement
 
 
 blueprint = Blueprint('event', __name__, url_prefix='/event')
+""" Event blueprint
+
+This blueprint contains all routes for avent display and management"""
 
 
 def activity_choices(activities, leaders):
+    """Creates a list of activities theses leaders can lead.
+
+    This list can be used in a select form input. It will contains: all
+    activities this user can lead, plus activities any leader of this event
+    can lead, plus activities given in parameters (usually, in case of event
+    modification, it is the event activity). Anyway, if current user is a high
+    level (admin or moderator), it will return all activities.
+
+    :param activities: list of activities that will always appears in the list
+    :param types: Array[:py:class:`collectives.models.activitytype.ActivityType`]
+    :param leader: list of leader used to build activity list.
+    :param leader: Array[:py:class:`collectives.models.user.User`]
+    :return: List of authorized activities (id and name)
+    :rtype: Array(Tuple)
+    """
     if current_user.is_moderator():
         choices = ActivityType.query.all()
     else:
-        choices = set(activities)
-        choices.update(current_user.led_activities())
+        choices = activities
+        choices += current_user.led_activities()
         for leader in leaders:
-            choices.update(leader.led_activities())
+            choices += leader.led_activities()
     choices.sort(key=attrgetter('order', 'name', 'id'))
     return [(a.id, a.name) for a in choices]
 
