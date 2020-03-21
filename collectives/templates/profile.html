@@ -71,7 +71,7 @@
         </tr>
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt=""/> Téléphone :</td>
-            <td> {{user.phone}}</td>
+            <td> {{user.phone | default("Non renseigné", true)}}</td>
         </tr>
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"/> Contact d'urgence :</td>
