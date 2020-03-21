@@ -141,7 +141,7 @@
                       Liste téléphonique :
                   </label>
                   <input type="text"
-                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | join(', ') }}"
+                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | select | join(', ') }}"
                          id="phonelist"
                          readonly
                          class="grow"
@@ -150,7 +150,7 @@
               </p>
                <p class="inputGrow">
                   <label>
-                      List d'email :
+                      Liste d'email :
                   </label>
                   <input type="text"
                          value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
