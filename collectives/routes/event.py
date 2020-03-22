@@ -114,9 +114,12 @@ def manage_event(event_id=None):
 
     # Fetch existing readers leaders minus removed ones
     tentative_leaders = []
+    has_removed_leaders = False
     for action in form.leader_actions:
-        if not action.data["delete"]:
-            leader_id = int(action.data["leader_id"])
+        if action.data['delete']:
+            has_removed_leaders = True
+        else:
+            leader_id = int(action.data['leader_id'])
             leader = User.query.get(leader_id)
             if leader is None or not leader.can_create_events():
                 flash("Encadrant invalide")
@@ -136,8 +139,8 @@ def manage_event(event_id=None):
     # Do not process the remainder of the form
     if form.update_leaders.data:
         # Check that the set of leaders is valid for current activities
-        if not accept_event_leaders(event, tentative_leaders):
-            flash("Encadrant(s) invalide(s) pour cette activité")
+        if has_removed_leaders and not accept_event_leaders(event, tentative_leaders):
+            flash('Encadrant(s) invalide(s) pour cette activité')
         else:
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
@@ -197,16 +200,20 @@ def manage_event(event_id=None):
 
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
-    if activity_type not in event.activity_types:
+    has_new_activity = activity_type not in event.activity_types
+    if has_new_activity:
         event.activity_types.clear()
         event.activity_types.append(activity_type)
 
+    # We have changed activity or removed a leader
     # Check that there is a valid leader
-    if not accept_event_leaders(event, tentative_leaders):
-        flash("Encadrant invalide pour cette activité")
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+    if has_new_activity or has_removed_leaders:
+        if not accept_event_leaders(event, tentative_leaders):
+            flash('Encadrant invalide pour cette activité')
+            return render_template('editevent.html',
+                                    conf=current_app.config, 
+                                    event=event,
+                                    form=form)
     event.leaders = tentative_leaders
 
     # We have to save new event before add the photo, or id is not defined
