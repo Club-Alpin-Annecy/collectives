@@ -38,15 +38,15 @@ class ActivityType(db.Model):
     persons = db.relationship("Role", backref="activity_type", lazy=True)
     """Person with a role with this activity
 
-    :type: User
+    :type: :py:class:`collectives.models.user.User`
     """
 
     def can_be_led_by(self, users):
         """Check if at least anyone in a list can lead an event
         of this activity
 
-        :param users: list of user
-        :type users: Array[Users]
+        :param users: list of user to test for leading capabilities
+        :type users: list[:py:class:`collectives.models.user.User`]
         :return: if someone in the list can lead this activity
         :rtype: boolean
         """

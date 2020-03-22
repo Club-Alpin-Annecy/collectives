@@ -1,5 +1,5 @@
-[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives-flask2/workflows/Linter/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives-flask2/actions)
-[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives-flask2/workflows/Tests/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives-flask2/actions)
+[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives/workflows/Linter/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives/actions)
+[![Actions Status](https://github.com/Club-Alpin-Annecy/collectives/workflows/Tests/badge.svg)](https://github.com/Club-Alpin-Annecy/collectives/actions)
 
 # INTRODUCTION
 

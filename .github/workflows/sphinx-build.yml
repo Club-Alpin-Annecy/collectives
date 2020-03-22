@@ -2,7 +2,7 @@
 # https://help.github.com/en/articles/workflow-syntax-for-github-actions
 
 name: sphinx
-on: [push, pull_request]
+on: [push]
 
 # https://gist.github.com/c-bata/ed5e7b7f8015502ee5092a3e77937c99
 jobs:
@@ -27,5 +27,7 @@ jobs:
           pip install Sphinx
       - name: Build Sphinx docs
         working-directory: doc
+        env:
+            SPHINXOPTS: -W  --keep-going
         run: |
           make html

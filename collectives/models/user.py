@@ -60,7 +60,7 @@ class User(db.Model, UserMixin):
     """Name of the table for persistence by sqlalchemy"""
 
     id = db.Column(db.Integer, primary_key=True)
-    """Simple database identifier
+    """Database primary key.
 
     :type: int
     """
@@ -84,12 +84,19 @@ class User(db.Model, UserMixin):
             "label": "Adresse e-mail",
         },
     )
+    """ User email address.
 
-    # Name
+    :type: string """
+
     first_name = db.Column(db.String(100), nullable=False, info={"label": "Prénom"})
-    last_name = db.Column(db.String(100), nullable=False, info={"label": "Nom"})
+    """ User first name.
 
-    # License number and category
+    :type: string """
+    last_name = db.Column(db.String(100), nullable=False, info={"label": "Nom"})
+    """ User last name.
+
+    :type: string """
+
     license = db.Column(
         db.String(100),
         nullable=False,
@@ -97,7 +104,14 @@ class User(db.Model, UserMixin):
         index=True,
         info={"label": "Numéro de licence"},
     )
+    """ User club license number.
+
+    :type: string (100 char)'"""
+
     license_category = db.Column(db.String(2), info={"label": "Catégorie de licence"})
+    """ User club license category.
+
+    :type: string (2 char)"""
 
     # Date of birth
     date_of_birth = db.Column(
@@ -106,37 +120,71 @@ class User(db.Model, UserMixin):
         default=date.today(),
         info={"label": "Date de naissance"},
     )
+    """ User date of birth.
 
-    # Hashed password
+    :type: :py:class:`datetime.date`"""
+
     password = db.Column(
         PasswordType(schemes=["pbkdf2_sha512"]),
         nullable=True,
         info={"label": "Mot de passe"},
     )
+    """ Hashed password.
 
-    # Custom avatar
+    Hash is done with pbkdf2_sha512: https://fr.wikipedia.org/wiki/PBKDF2 .
+
+    :type: string """
+
     avatar = db.Column(db.String(100), nullable=True)
+    """ URL to avatar file.
+
+    :type: string"""
 
     # Contact info
     phone = db.Column(db.String(20), info={"label": "Téléphone"})
+    """ User phone number.
+
+    :type: string (20 char)
+    """
     emergency_contact_name = db.Column(
         db.String(100),
         nullable=False,
         default="",
         info={"label": "Personne à contacter en cas d'urgence"},
     )
+    """ Name of User emergency contact.
+
+    :type: string (100 char)
+    """
     emergency_contact_phone = db.Column(
         db.String(20),
         nullable=False,
         default="",
         info={"label": "Téléphone en cas d'urgence"},
     )
+    """ Phone number of User emergency contact.
+
+    :type: string (20 char)
+    """
 
     # Internal
     enabled = db.Column(db.Boolean, default=True, info={"label": "Utilisateur activé"})
+    """ User status.
+
+    Only an enabled user can login.
+
+    :type: boolean
+    """
 
     license_expiry_date = db.Column(db.Date)
+    """ User license expiration date.
+
+    :type: :py:class:`datetime.date`"""
+
     last_extranet_sync_time = db.Column(db.DateTime)
+    """ Last synchronisation date of user profile with FFCAM extranet.
+
+    :type: :py:class:`datetime.datetime`"""
 
     gender = db.Column(
         db.Enum(Gender),
@@ -144,26 +192,61 @@ class User(db.Model, UserMixin):
         default=Gender.Unknown,
         info={"label": "Genre", "choices": Gender.choices(), "coerce": Gender.coerce},
     )
+    """ User gender.
+
+    For a user from FFCAM extranet, it is guessed from its title. See
+    :py:func:`collectives.utils.extranet.sync_user`.
+
+    :type: :py:class:`Gender`"""
 
     last_failed_login = db.Column(
         db.DateTime, nullable=False, default=datetime(2000, 1, 1)
     )
+    """ Last failed login attempt on user account.
+
+    It is the date of the last time a wrong password has been used to connect.
+    It is used to rate limit login attempt. See
+    :py:func:`collectives.routes.auth.login`.
+
+    :type: :py:class:`datetime.datetime`"""
 
     confidentiality_agreement_signature_date = db.Column(
         db.DateTime,
         nullable=True,
         info={"label": "Date de signature de la charte RGPD"},
     )
+    """ Date of the signature of confidentiality agreement.
+
+    The agreement signature is mandatory for all users with special functions
+    within this site. If it has not been signed,
+    `confidentiality_agreement_signature_date` is null.
+
+    :type: :py:class:`datetime.datetime`"""
 
     legal_text_signature_date = db.Column(
         db.DateTime,
         nullable=True,
         info={"label": "Date de signature des mentions légales"},
     )
+    """ Date of the signature of the legal terms.
+
+    All user must sign the legal term at account creation. If it has not been
+    signed (usually test account), `confidentiality_agreement_signature_date`
+    is null.
+
+    :type: :py:class:`datetime.datetime`"""
 
     # Relationships
     roles = db.relationship("Role", backref="user", lazy=True)
+    """ List of granted roles within this site for this user. (eg administrator)
+
+    :type: list(:py:class:`collectives.models.role.Role`)"""
+
     registrations = db.relationship("Registration", backref="user", lazy=True)
+    """ List registration of the user.
+
+    :type: list(:py:class:`collectives.models.registration.Registration`)
+    """
 
     def save_avatar(self, file):
         if file is not None:

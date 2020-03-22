@@ -58,7 +58,7 @@ AUTH_FAILURE_WAIT = 10
 # User/password for accessing extranet API
 default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
 EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
-"""Use a coonection to FFCAM to activate account
+"""Use a connection to FFCAM server to activate accounts.
 
 Usually set to False for tests which don't have acces to FFCAM server such
 as github CI tests.
@@ -227,7 +227,7 @@ Matériel requis:
 
 Place holder can be inserted, and will be used for CSV import.
 
-:type: strings"""
+:type: string"""
 
 CSV_COLUMNS = [ 'nom_encadrant', 'id_encadrant', 'unknown',
                 "debut1", "debut2", "fin1", "fin2",
