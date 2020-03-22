@@ -36,3 +36,26 @@
 #editor a:hover{
   text-decoration: none;
 }
+
+#encadrement .useractionmenu{
+  display:inline-block;
+  text-align: center;
+  margin-bottom:0.5em;
+}
+
+#eventedit form div.inline_field{
+  width:100%;
+}
+
+#eventedit form div.inline_field label{
+  font-weight: normal;
+  display: inline;
+  text-align: left;
+  margin:auto;
+}
+
+#eventedit form div.inline_field input{
+  width:auto;
+  margin:auto;
+  vertical-align: middle;
+}

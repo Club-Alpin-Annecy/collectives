@@ -201,3 +201,12 @@ function checkDateOrder(){
 
     return true;
 }
+
+function removeRequiredAttributes()
+{
+    Array.from(document.getElementsByTagName("input")).forEach(
+        function(element) {
+            element.removeAttribute("required");
+        }
+    );
+}

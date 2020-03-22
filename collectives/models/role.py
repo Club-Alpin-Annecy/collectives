@@ -51,6 +51,17 @@ class RoleIds(ChoiceEnum):
         cls = self.__class__
         return self.value in [cls.ActivitySupervisor, cls.EventLeader]
 
+    @classmethod
+    def all_moderator_roles(cls):
+        return [cls.Administrator, cls.Moderator, cls.President]
+
+    @classmethod
+    def all_activity_leader_roles(cls):
+        return [cls.EventLeader, cls.ActivitySupervisor]
+
+    @classmethod
+    def all_event_creator_roles(cls):
+        return cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
 class Role(db.Model):
     """ Role for a specific user.

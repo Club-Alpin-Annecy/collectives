@@ -2,7 +2,6 @@
 
 This modules contains the /event Blueprint
 """
-from operator import attrgetter
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user, login_required
@@ -25,31 +24,12 @@ blueprint = Blueprint("event", __name__, url_prefix="/event")
 This blueprint contains all routes for avent display and management"""
 
 
-def activity_choices(activities, leaders):
-    """Creates a list of activities theses leaders can lead.
-
-    This list can be used in a select form input. It will contains: all
-    activities this user can lead, plus activities any leader of this event
-    can lead, plus activities given in parameters (usually, in case of event
-    modification, it is the event activity). Anyway, if current user is a high
-    level (admin or moderator), it will return all activities.
-
-    :param activities: list of activities that will always appears in the list
-    :param types: Array[:py:class:`collectives.models.activitytype.ActivityType`]
-    :param leader: list of leader used to build activity list.
-    :param leader: Array[:py:class:`collectives.models.user.User`]
-    :return: List of authorized activities (id and name)
-    :rtype: Array(Tuple)
-    """
+def accept_event_leaders(event, leaders):
+    if not any(leaders):
+        return False
     if current_user.is_moderator():
-        choices = ActivityType.query.all()
-    else:
-        choices = activities
-        choices += current_user.led_activities()
-        for leader in leaders:
-            choices += leader.led_activities()
-    choices.sort(key=attrgetter("order", "name", "id"))
-    return [(a.id, a.name) for a in choices]
+        return True
+    return event.are_valid_leaders(leaders)
 
 
 ##########################################################################
@@ -119,21 +99,66 @@ def manage_event(event_id=None):
         return redirect(url_for("event.index"))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
-    choices = activity_choices(event.activity_types, event.leaders)
+    form = EventForm(event, CombinedMultiDict((request.files, request.form)))
 
-    form = EventForm(choices, CombinedMultiDict((request.files, request.form)))
-
-    if not form.validate_on_submit():
-        if not event_id is None:
-            form = EventForm(choices, obj=event)
-        elif not form.is_submitted():
-            form = EventForm(choices)
+    if not form.is_submitted():
+        if event_id is None:
+            form = EventForm(event)
             form.set_default_description()
+        elif not form.is_submitted():
+            form = EventForm(event, obj=event)
+        form.setup_leader_actions()
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
 
-        return render_template("editevent.html", conf=current_app.config, form=form)
+    # Fetch existing readers leaders minus removed ones
+    tentative_leaders = []
+    for action in form.leader_actions:
+        if not action.data["delete"]:
+            leader_id = int(action.data["leader_id"])
+            leader = User.query.get(leader_id)
+            if leader is None or not leader.can_create_events():
+                flash("Encadrant invalide")
+            else:
+                tentative_leaders.append(leader)
+
+    # Add new leader
+    new_leader_id = int(form.add_leader.data)
+    if new_leader_id > 0:
+        leader = User.query.get(new_leader_id)
+        if leader is None or not leader.can_create_events():
+            flash("Encadrant invalide")
+        else:
+            tentative_leaders.append(leader)
+
+    # The 'Update leaders' button has been clicked
+    # Do not process the remainder of the form
+    if form.update_leaders.data:
+        # Check that the set of leaders is valid for current activities
+        if not accept_event_leaders(event, tentative_leaders):
+            flash("Encadrant(s) invalide(s) pour cette activité")
+        else:
+            form.set_current_leaders(tentative_leaders)
+            form.update_choices(event)
+            form.setup_leader_actions()
+            if not event_id is None:
+                event.leaders = tentative_leaders
+                db.session.add(event)
+                db.session.commit()
+
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
+
+    if not form.validate():
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
 
     form.populate_obj(event)
 
+    # The 'Update event button has been clicked'
     # Custom validators
     valid = True
     if not event.starts_before_ends():
@@ -164,13 +189,11 @@ def manage_event(event_id=None):
         valid = False
 
     if not valid:
-        return render_template("editevent.html", conf=current_app.config, form=form)
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
 
     event.set_rendered_description(event.description)
-
-    # Only set ourselves as leader if there weren't any
-    if not any(event.leaders):
-        event.leaders.append(current_user)
 
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
@@ -178,10 +201,13 @@ def manage_event(event_id=None):
         event.activity_types.clear()
         event.activity_types.append(activity_type)
 
-        # We are changing the activity, check that there is a valid leader
-        if not current_user.is_moderator() and not event.has_valid_leaders():
-            flash("Encadrant invalide pour cette activité")
-            return render_template("editevent.html", conf=current_app.config, form=form)
+    # Check that there is a valid leader
+    if not accept_event_leaders(event, tentative_leaders):
+        flash("Encadrant invalide pour cette activité")
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
+    event.leaders = tentative_leaders
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
@@ -221,14 +247,15 @@ def duplicate(event_id=None):
         flash("Pas d'évènement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
-    choices = activity_choices(event.activity_types, event.leaders)
-    form = EventForm(choices, obj=event)
+    form = EventForm(event, obj=event)
+    form.setup_leader_actions()
     form.duplicate_photo.data = event_id
 
     return render_template(
         "editevent.html",
         conf=current_app.config,
         form=form,
+        event=event,
         action=url_for("event.manage_event"),
     )
 
