@@ -115,16 +115,26 @@ def manage_event(event_id=None):
     # Fetch existing readers leaders minus removed ones
     tentative_leaders = []
     has_removed_leaders = False
+    seen_ids = set()
     for action in form.leader_actions:
+        leader_id = int(action.data['leader_id'])
+        seen_ids.add(leader_id)
         if action.data['delete']:
             has_removed_leaders = True
         else:
-            leader_id = int(action.data['leader_id'])
             leader = User.query.get(leader_id)
             if leader is None or not leader.can_create_events():
                 flash("Encadrant invalide")
             else:
                 tentative_leaders.append(leader)
+
+    # Protect ourselves against form data manipulation
+    # We should have a form entry for all existing leaders
+    for existing_leader in event.leaders:
+        if not existing_leader.id in seen_ids:
+            flash('Données incohérentes.', 'error')
+            return redirect(url_for('event.index'))
+
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
