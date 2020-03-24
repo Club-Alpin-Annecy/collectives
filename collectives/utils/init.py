@@ -2,8 +2,8 @@
 
 """
 
-from collectives.models import ActivityType, db
 import sqlalchemy
+from ..models import ActivityType, db
 
 
 def activity_types(app):
@@ -19,22 +19,22 @@ def activity_types(app):
     :return: None
     """
     try:
-        for (id, atype) in app.config['TYPES'].items():
-            activity_type = ActivityType.query.get(id)
+        for (aid, atype) in app.config["TYPES"].items():
+            activity_type = ActivityType.query.get(aid)
             if activity_type == None:
-                activity_type = ActivityType(id=id)
+                activity_type = ActivityType(id=aid)
 
-            activity_type.name=atype['name']
-            activity_type.short=atype['short']
-             # if order doesn't exists, use id
-            activity_type.order=atype.get('order', 50)
+            activity_type.name = atype["name"]
+            activity_type.short = atype["short"]
+            # if order doesn't exists, use id
+            activity_type.order = atype.get("order", 50)
             db.session.add(activity_type)
 
         db.session.commit()
 
     except sqlalchemy.exc.OperationalError:
-        print('WARN: Cannot configure activity types: db is not available')
+        print("WARN: Cannot configure activity types: db is not available")
     except sqlalchemy.exc.InternalError:
-        print('WARN: Cannot configure activity types: db is not available')
+        print("WARN: Cannot configure activity types: db is not available")
     except sqlalchemy.exc.ProgrammingError:
-        print('WARN: Cannot configure activity types: db is not available')
+        print("WARN: Cannot configure activity types: db is not available")

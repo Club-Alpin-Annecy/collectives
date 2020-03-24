@@ -1,29 +1,28 @@
 """Module for user related classes
 
 """
-from ..helpers import current_time
+import os
+from datetime import date, datetime
 
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_utils import PasswordType
 from flask_uploads import UploadSet, IMAGES
-from wtforms.validators import Email, Length
-import os
+from wtforms.validators import Email
 
-from datetime import date,datetime
-
-from . import db
+from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
 from .utils import ChoiceEnum
+from ..helpers import current_time
 
 # Upload
-avatars = UploadSet('avatars', IMAGES)
+avatars = UploadSet("avatars", IMAGES)
 
 
 class Gender(ChoiceEnum):
     """Enum to store User gender
     """
+
     Unknown = 0
     """Default gender if not known """
     Woman = 1
@@ -42,10 +41,10 @@ class Gender(ChoiceEnum):
         :rtype: dictionnary
         """
         return {
-            cls.Other: 'Autre',
-            cls.Woman: 'Femme',
-            cls.Man: 'Homme',
-            cls.Unknown: 'Inconnu'
+            cls.Other: "Autre",
+            cls.Woman: "Femme",
+            cls.Man: "Homme",
+            cls.Unknown: "Inconnu",
         }
 
 
@@ -57,7 +56,7 @@ class User(db.Model, UserMixin):
     to manage acccess to the system.
     """
 
-    __tablename__ = 'users'
+    __tablename__ = "users"
     """Name of the table for persistence by sqlalchemy"""
 
     id = db.Column(db.Integer, primary_key=True)
@@ -66,30 +65,29 @@ class User(db.Model, UserMixin):
     :type: int
     """
 
-    is_test = db.Column(db.Boolean,
-                        default=True,
-                        nullable=False,
-                        info={'label': 'Utilisateur de test'})
+    is_test = db.Column(
+        db.Boolean, default=True, nullable=False, info={"label": "Utilisateur de test"}
+    )
     """Attribute to know if the user is real or just for tests
 
     :type: boolean
     """
 
     # E-mail
-    mail = db.Column(db.String(100),
-                     nullable=False,
-                     unique=True,
-                     index=True,
-                     info={'validators': Email(message="Format d'adresse invalide"),
-                           'label': 'Adresse e-mail'})
+    mail = db.Column(
+        db.String(100),
+        nullable=False,
+        unique=True,
+        index=True,
+        info={
+            "validators": Email(message="Format d'adresse invalide"),
+            "label": "Adresse e-mail",
+        },
+    )
 
     # Name
-    first_name = db.Column(db.String(100),
-                           nullable=False,
-                           info={'label': 'Prénom'})
-    last_name = db.Column(db.String(100),
-                          nullable=False,
-                          info={'label': 'Nom'})
+    first_name = db.Column(db.String(100), nullable=False, info={"label": "Prénom"})
+    last_name = db.Column(db.String(100), nullable=False, info={"label": "Nom"})
 
     # License number and category
     license = db.Column(
@@ -97,69 +95,79 @@ class User(db.Model, UserMixin):
         nullable=False,
         unique=True,
         index=True,
-        info={'label': 'Numéro de licence'})
-    license_category = db.Column(
-        db.String(2),
-        info={'label': 'Catégorie de licence'})
+        info={"label": "Numéro de licence"},
+    )
+    license_category = db.Column(db.String(2), info={"label": "Catégorie de licence"})
 
     # Date of birth
     date_of_birth = db.Column(
-        db.Date, nullable=False, default=date.today(),
-        info={'label': 'Date de naissance'})
+        db.Date,
+        nullable=False,
+        default=date.today(),
+        info={"label": "Date de naissance"},
+    )
 
     # Hashed password
-    password = db.Column(PasswordType(schemes=['pbkdf2_sha512']),
-                         nullable=True,
-                         info={'label': 'Mot de passe'})
+    password = db.Column(
+        PasswordType(schemes=["pbkdf2_sha512"]),
+        nullable=True,
+        info={"label": "Mot de passe"},
+    )
 
     # Custom avatar
     avatar = db.Column(db.String(100), nullable=True)
 
     # Contact info
-    phone = db.Column(db.String(20), info={'label': 'Téléphone'})
+    phone = db.Column(db.String(20), info={"label": "Téléphone"})
     emergency_contact_name = db.Column(
-        db.String(100), nullable=False, default='',
-        info={'label': 'Personne à contacter en cas d\'urgence'})
+        db.String(100),
+        nullable=False,
+        default="",
+        info={"label": "Personne à contacter en cas d'urgence"},
+    )
     emergency_contact_phone = db.Column(
-        db.String(20), nullable=False, default='',
-        info={'label': 'Téléphone en cas d\'urgence'})
+        db.String(20),
+        nullable=False,
+        default="",
+        info={"label": "Téléphone en cas d'urgence"},
+    )
 
     # Internal
-    enabled = db.Column(db.Boolean,
-                        default=True,
-                        info={'label': 'Utilisateur activé'})
+    enabled = db.Column(db.Boolean, default=True, info={"label": "Utilisateur activé"})
 
     license_expiry_date = db.Column(db.Date)
     last_extranet_sync_time = db.Column(db.DateTime)
 
-    gender = db.Column(db.Enum(Gender), nullable=False, default=Gender.Unknown,
+    gender = db.Column(
+        db.Enum(Gender),
+        nullable=False,
+        default=Gender.Unknown,
+        info={"label": "Genre", "choices": Gender.choices(), "coerce": Gender.coerce},
+    )
 
-                       info={'label': 'Genre',
-                             'choices': Gender.choices(),
-                             'coerce': Gender.coerce
-                             })
-
-    last_failed_login= db.Column(db.DateTime,
-                                nullable=False,
-                                default=datetime(2000,1,1))
+    last_failed_login = db.Column(
+        db.DateTime, nullable=False, default=datetime(2000, 1, 1)
+    )
 
     confidentiality_agreement_signature_date = db.Column(
-                db.DateTime, nullable=True,
-                info={'label': 'Date de signature de la charte RGPD'})
+        db.DateTime,
+        nullable=True,
+        info={"label": "Date de signature de la charte RGPD"},
+    )
 
     legal_text_signature_date = db.Column(
-            db.DateTime, nullable=True,
-            info={'label': 'Date de signature des mentions légales'})
+        db.DateTime,
+        nullable=True,
+        info={"label": "Date de signature des mentions légales"},
+    )
 
     # Relationships
-    roles = db.relationship('Role', backref='user', lazy=True)
-    registrations = db.relationship('Registration', backref='user', lazy=True)
-
-
+    roles = db.relationship("Role", backref="user", lazy=True)
+    registrations = db.relationship("Registration", backref="user", lazy=True)
 
     def save_avatar(self, file):
         if file is not None:
-            filename = avatars.save(file, name='user-' + str(self.id) + '.')
+            filename = avatars.save(file, name="user-" + str(self.id) + ".")
             self.avatar = filename
 
     def delete_avatar(self):
@@ -177,10 +185,10 @@ class User(db.Model, UserMixin):
         return self.license_expiry_date > time.date()
 
     def is_youth(self):
-        return self.license_category in ['J1', 'E1']
+        return self.license_category in ["J1", "E1"]
 
     def is_minor(self):
-        return self.license_category in ['J2', 'E2']
+        return self.license_category in ["J2", "E2"]
 
     # Roles
 
@@ -202,22 +210,27 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.Administrator])
 
     def is_moderator(self):
-        return self.has_role([RoleIds.Moderator,
-                              RoleIds.Administrator,
-                              RoleIds.President])
+        return self.has_role(
+            [RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]
+        )
+
     def is_supervisor(self):
         return self.has_role([RoleIds.ActivitySupervisor])
 
     def can_create_events(self):
-        return self.has_role([RoleIds.EventLeader,
-                              RoleIds.ActivitySupervisor,
-                              RoleIds.President,
-                              RoleIds.Administrator])
+        return self.has_role(
+            [
+                RoleIds.EventLeader,
+                RoleIds.ActivitySupervisor,
+                RoleIds.President,
+                RoleIds.Administrator,
+            ]
+        )
 
     def can_lead_activity(self, activity_id):
-        return self.has_role_for_activity([RoleIds.EventLeader,
-                                           RoleIds.ActivitySupervisor],
-                                          activity_id)
+        return self.has_role_for_activity(
+            [RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id
+        )
 
     def can_read_other_users(self):
         return self.has_signed_ca() and self.has_any_role()
@@ -232,21 +245,19 @@ class User(db.Model, UserMixin):
         return self.legal_text_signature_date is not None
 
     def supervises_activity(self, activity_id):
-        return self.has_role_for_activity([RoleIds.ActivitySupervisor],
-                                          activity_id)
+        return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
 
     def led_activities(self):
-        roles = self.matching_roles([RoleIds.EventLeader,
-                                     RoleIds.ActivitySupervisor])
-        return set([role.activity_type for role in roles])
+        roles = self.matching_roles([RoleIds.EventLeader, RoleIds.ActivitySupervisor])
+        return set(role.activity_type for role in roles)
 
     # Format
 
     def full_name(self):
-        return '{} {}'.format(self.first_name, self.last_name.upper())
+        return "{} {}".format(self.first_name, self.last_name.upper())
 
     def abbrev_name(self):
-        return '{} {}'.format(self.first_name, self.last_name[0].upper())
+        return "{} {}".format(self.first_name, self.last_name[0].upper())
 
     def get_supervised_activities(self):
         if self.is_admin():

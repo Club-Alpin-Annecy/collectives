@@ -22,7 +22,7 @@ load-plugins=
 
 
 # Configure quote preferences.
-string-quote = single-avoid-escape
+string-quote = double-avoid-escape
 triple-quote = double
 docstring-quote = double
 
@@ -39,40 +39,11 @@ docstring-quote = double
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
 #
-# These should get enabled, but the codebase has too many violations currently:
-#     bad-continuation
-#     anomalous-backslash-in-string
-#     bad-context-manager
-#     bad-indentation
-#     bad-str-strip-call
-#     bad-whitespace
-#     cell-var-from-loop
-#     deprecated-lambda
-#     eval-used
-#     function-redefined
-#     import-error
-#     locally-enabled
-#     missing-final-newline
-#     no-init
-#     no-name-in-module
-#     no-self-use
-#     not-callable
-#     old-style-class
-#     protected-access
-#     superfluous-parens
-#     super-on-old-class
-#     too-many-function-args
-#     trailing-whitespace
-#     unnecessary-semicolon
-#     unpacking-non-sequence
-#     unused-import
-#     useless-else-on-loop
 #
 # CHANGED:
 disable=
     invalid-name,
     missing-docstring,
-    too-many-lines,
     bad-inline-option,
     locally-disabled,
     duplicate-code,
@@ -97,57 +68,33 @@ disable=
     broad-except,
     logging-not-lazy,
     bad-continuation,
-    anomalous-backslash-in-string,
     assigning-non-slot,
-    bad-context-manager,
-    bad-indentation,
-    bad-str-strip-call,
     bad-super-call,
-    bad-whitespace,
-    cell-var-from-loop,
     consider-using-enumerate,
-    deprecated-lambda,
     deprecated-method,
-    eval-used,
-    function-redefined,
-    import-error,
     invalid-docstring-quote,
     invalid-string-quote,
     invalid-triple-quote,
-    locally-enabled,
     misplaced-comparison-constant,
     misplaced-bare-raise,
-    missing-final-newline,
     multiple-imports,
-    no-init,
-    no-name-in-module,
     no-self-argument,
-    no-self-use,
     not-an-iterable,
-    not-callable,
-    old-style-class,
-    protected-access,
     redefined-variable-type,
     simplifiable-if-statement,
     singleton-comparison,
-    superfluous-parens,
     super-on-old-class,
     too-many-boolean-expressions,
-    too-many-function-args,
     too-many-nested-blocks,
-    trailing-whitespace,
-    undefined-variable,
     ungrouped-imports,
-    unnecessary-semicolon,
     unneeded-not,
-    unpacking-non-sequence,
     unsubscriptable-object,
     unsupported-membership-test,
-    unused-import,
-    useless-else-on-loop,
     using-constant-test,
-    wrong-import-order,
-    wrong-import-position,
+    line-too-long,
+    trailing-newlines,
+    unnecessary-pass,
+    no-member #False positives with SQLAlchemy
 
 
 [REPORTS]
@@ -227,7 +174,7 @@ ignore-docstrings=yes
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=80
+max-line-length=88
 
 # Maximum number of lines in a module
 max-module-lines=1000
@@ -235,7 +182,7 @@ max-module-lines=1000
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
 # CHANGED:
-indent-string='  '
+indent-string="    "
 
 
 [BASIC]
@@ -289,7 +236,7 @@ max-args=5
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
-ignored-argument-names=_.*
+ignored-argument-names=_.*|args|kwargs
 
 # Maximum number of locals for function / method body
 max-locals=15
