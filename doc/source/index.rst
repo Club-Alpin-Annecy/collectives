@@ -17,8 +17,8 @@ CAF Annecy <mailto:digital@cafannecy.fr>`_
 Test and demo website can be found there: `test.collectives.cafannecy.fr
 <https://test.collectives.cafannecy.fr>`_
 
-Code, participation, and issue reporting can be done on github: `https://github.com/Club-Alpin-Annecy/collectives-flask2
-<https://github.com/Club-Alpin-Annecy/collectives-flask2>`_
+Code, participation, and issue reporting can be done on github: `https://github.com/Club-Alpin-Annecy/collectives
+<https://github.com/Club-Alpin-Annecy/collectives>`_
 
 .. toctree::
    :maxdepth: 2

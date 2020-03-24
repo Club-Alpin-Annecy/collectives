@@ -4,17 +4,17 @@ This document is meant to help new comers to the project to handle it
 
 I want to suggest a modification
 ------------------------------------
-Please submit a Pull Request on our project on `github <https://github.com/Club-Alpin-Annecy/collectives-flask2>`_ .
+Please submit a Pull Request on our project on `github <https://github.com/Club-Alpin-Annecy/collectives>`_ .
 
 We are using standard github PR process. This
 `link <https://opensource.com/article/19/7/create-pull-request-github>`_
 will help you to follow it.
 
 Please READ the CODING file before creating the PR.
-In particular: 
+In particular:
 
 1. Format Python files using `black`. `black` is available as a formatter in some IDEs, or can be run manually from the repo root as ``python -m black *.py collectives``
-2. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+`` 
+2. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+``
 
 I want to test it on my computer
 ----------------------------------

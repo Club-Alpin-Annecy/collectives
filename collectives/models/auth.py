@@ -14,7 +14,7 @@ from ..helpers import current_time
 TOKEN_DURATION = timedelta(hours=2)
 """Duration of a token before expiration
 
-:type: datetime.timedelta
+:type: :py:class:`datetime.timedelta`
 """
 
 

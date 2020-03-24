@@ -11,11 +11,6 @@ Module ``collectives.utils.csv``
 .. automodule:: collectives.utils.csv
     :members:
 
-Module ``collectives.utils.export``
------------------------------------
-.. automodule:: collectives.utils.export
-    :members:
-
 Module ``collectives.utils.extranet``
 -------------------------------------
 .. automodule:: collectives.utils.extranet
