@@ -11,9 +11,10 @@ from ..models import User, photos, ActivityType, Role
 from .validators import UniqueValidator, PasswordValidator
 
 
-class AvatarForm():
-    avatar_file = FileField("Nouvel avatar",
-                            validators=[FileAllowed(photos, 'Image uniquement!')])
+class AvatarForm:
+    avatar_file = FileField(
+        "Nouvel avatar", validators=[FileAllowed(photos, "Image uniquement!")]
+    )
     remove_avatar = BooleanField("Supprimer l'avatar existant")
 
     def __init__(self, user):
@@ -21,73 +22,83 @@ class AvatarForm():
             del self.remove_avatar
 
 
-class ConfirmPasswordForm():
+class ConfirmPasswordForm:
     password = PasswordField(
-        label='Nouveau mot de passe',
-        description='Laisser vide pour conserver l\'actuel',
-        validators=[PasswordValidator()])
+        label="Nouveau mot de passe",
+        description="Laisser vide pour conserver l'actuel",
+        validators=[PasswordValidator()],
+    )
 
     confirm = PasswordField(
-        'Confirmation du nouveau mot de passe',
-        validators=[EqualTo('password',
-                            message='Les mots de passe ne correspondent pas')])
+        "Confirmation du nouveau mot de passe",
+        validators=[
+            EqualTo("password", message="Les mots de passe ne correspondent pas")
+        ],
+    )
 
 
 class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     class Meta:
         model = User
         # Avatar is selected/modified by another field
-        exclude = ['avatar', 'license_expiry_date', 'last_extranet_sync_time']
+        exclude = ["avatar", "license_expiry_date", "last_extranet_sync_time"]
         unique_validator = UniqueValidator
 
-    submit = SubmitField('Enregistrer')
+    submit = SubmitField("Enregistrer")
 
-    field_order = ['enabled', '*', 'avatar_file',
-                   'remove_avatar', 'password', 'confirm']
+    field_order = [
+        "enabled",
+        "*",
+        "avatar_file",
+        "remove_avatar",
+        "password",
+        "confirm",
+    ]
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
-        AvatarForm.__init__(self, kwargs.get('obj'))
+        AvatarForm.__init__(self, kwargs.get("obj"))
 
 
 class AdminUserForm(OrderedModelForm, AvatarForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        only = ['enabled']
+        only = ["enabled"]
         unique_validator = UniqueValidator
 
-    submit = SubmitField('Enregistrer')
-    field_order = ['enabled', '*', 'avatar_file', 'remove_avatar']
+    submit = SubmitField("Enregistrer")
+    field_order = ["enabled", "*", "avatar_file", "remove_avatar"]
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
-        AvatarForm.__init__(self, kwargs.get('obj'))
+        AvatarForm.__init__(self, kwargs.get("obj"))
 
 
 class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     class Meta:
         model = User
         # User should not be able to change a protected parameter
-        only = ['password']
+        only = ["password"]
         unique_validator = UniqueValidator
 
-    submit = SubmitField('Enregistrer')
-    field_order = ['*', 'avatar_file', 'remove_avatar', 'password', 'confirm']
+    submit = SubmitField("Enregistrer")
+    field_order = ["*", "avatar_file", "remove_avatar", "password", "confirm"]
 
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
-        AvatarForm.__init__(self, kwargs.get('obj'))
+        AvatarForm.__init__(self, kwargs.get("obj"))
 
 
 class RoleForm(ModelForm, FlaskForm):
     class Meta:
         model = Role
 
-    activity_type_id = SelectField('Activité', choices=[])
-    submit = SubmitField('Ajouter')
+    activity_type_id = SelectField("Activité", choices=[])
+    submit = SubmitField("Ajouter")
 
     def __init__(self, *args, **kwargs):
         super(RoleForm, self).__init__(*args, **kwargs)
-        self.activity_type_id.choices = [(a.id, a.name
-                                          ) for a in ActivityType.query.all()]
+        self.activity_type_id.choices = [
+            (a.id, a.name) for a in ActivityType.query.all()
+        ]

@@ -340,4 +340,3 @@ def init_admin(app):
         print("WARN: Cannot configure admin: db is not available")
     except sqlalchemy.exc.ProgrammingError:
         print("WARN: Cannot configure admin: db is not available")
-

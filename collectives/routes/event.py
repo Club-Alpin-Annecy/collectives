@@ -423,4 +423,3 @@ def csv_import():
         failed=failed,
         title="Création d'event par CSV",
     )
-

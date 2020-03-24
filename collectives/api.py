@@ -369,4 +369,3 @@ def events():
     response = {"data": data, "last_page": paginated_events.pages}
 
     return json.dumps(response), 200, {"content-type": "application/json"}
-

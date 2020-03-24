@@ -35,4 +35,3 @@ def slugify(value):
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore")
     value = _slugify_strip_re.sub("", value.decode("ascii")).strip().lower()
     return _slugify_hyphenate_re.sub("-", value)
-

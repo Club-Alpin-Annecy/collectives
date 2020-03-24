@@ -60,23 +60,29 @@ class ModelTest(flask_testing.TestCase):
         db.session.remove()
         db.drop_all()
 
+
 def test_create_user():
     user = create_test_user()
     assert user in db.session
+
 
 def test_create_activity():
     activity = create_test_activity()
     assert activity in db.session
 
+
 def make_role(user):
     return Role(user=user, role_id=int(RoleIds.Administrator))
+
 
 def make_activity_role(user, activity, role_id=RoleIds.EventLeader):
     return Role(user=user, activity_id=activity.id, role_id=int(role_id))
 
+
 def commit_role(role):
     db.session.add(role)
     db.session.commit()
+
 
 def make_event():
     return Event(
@@ -88,14 +94,15 @@ def make_event():
         end=datetime.datetime.now() + datetime.timedelta(days=2),
     )
 
+
 def make_registration(user):
     datetime.datetime.timestamp(datetime.datetime.now())
     return Registration(
         user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal
     )
 
-class TestRoles(ModelTest):
 
+class TestRoles(ModelTest):
     @staticmethod
     def test_add_role():
         user = create_test_user()
@@ -145,7 +152,6 @@ class TestRoles(ModelTest):
 
 
 class TestEvents(ModelTest):
-
     @staticmethod
     def test_add_event():
         event = make_event()
@@ -226,7 +232,6 @@ class TestEvents(ModelTest):
 
 
 class TestRegistrations(TestEvents):
-
     @staticmethod
     def test_add_registration():
         event = make_event()
