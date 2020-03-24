@@ -13,8 +13,7 @@ will help you to follow it.
 Please READ the CODING file before creating the PR.
 In particular: 
 
-1. Format Python files using `black`. `black` is available as a formatter in some IDEs,
-or can be run manually from the repo root as ``python -m black *.py collectives``
+1. Format Python files using `black`. `black` is available as a formatter in some IDEs, or can be run manually from the repo root as ``python -m black *.py collectives``
 2. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+`` 
 
 I want to test it on my computer
