@@ -29,9 +29,9 @@ def available_leaders(leaders):
 def available_activities(activities, leaders):
     """Creates a list of activities theses leaders can lead.
 
-    This list can be used in a select form input. It will contain activities 
-    any leader of this event can lead, plus activities given in parameters (usually, 
-    in case of event modification, it is the event activity). Anyway, if current user 
+    This list can be used in a select form input. It will contain activities
+    any leader of this event can lead, plus activities given in parameters (usually,
+    in case of event modification, it is the event activity). Anyway, if current user
     is a high level (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list

@@ -323,7 +323,7 @@ class User(db.Model, UserMixin):
 
     def led_activities(self):
         roles = self.matching_roles(RoleIds.all_activity_leader_roles())
-        return set([role.activity_type for role in roles])
+        return set(role.activity_type for role in roles)
 
     # Format
 
