@@ -302,8 +302,9 @@ class User(db.Model, UserMixin):
         return self.has_role(RoleIds.all_event_creator_roles())
 
     def can_lead_activity(self, activity_id):
-        return self.has_role_for_activity(RoleIds.all_activity_leader_roles(),
-                                          activity_id)
+        return self.has_role_for_activity(
+            RoleIds.all_activity_leader_roles(), activity_id
+        )
 
     def can_read_other_users(self):
         return self.has_signed_ca() and self.has_any_role()

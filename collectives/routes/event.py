@@ -117,9 +117,9 @@ def manage_event(event_id=None):
     has_removed_leaders = False
     seen_ids = set()
     for action in form.leader_actions:
-        leader_id = int(action.data['leader_id'])
+        leader_id = int(action.data["leader_id"])
         seen_ids.add(leader_id)
-        if action.data['delete']:
+        if action.data["delete"]:
             has_removed_leaders = True
         else:
             leader = User.query.get(leader_id)
@@ -132,9 +132,8 @@ def manage_event(event_id=None):
     # We should have a form entry for all existing leaders
     for existing_leader in event.leaders:
         if not existing_leader.id in seen_ids:
-            flash('Données incohérentes.', 'error')
-            return redirect(url_for('event.index'))
-
+            flash("Données incohérentes.", "error")
+            return redirect(url_for("event.index"))
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
@@ -150,7 +149,7 @@ def manage_event(event_id=None):
     if form.update_leaders.data:
         # Check that the set of leaders is valid for current activities
         if has_removed_leaders and not accept_event_leaders(event, tentative_leaders):
-            flash('Encadrant(s) invalide(s) pour cette activité')
+            flash("Encadrant(s) invalide(s) pour cette activité")
         else:
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
@@ -219,11 +218,10 @@ def manage_event(event_id=None):
     # Check that there is a valid leader
     if has_new_activity or has_removed_leaders:
         if not accept_event_leaders(event, tentative_leaders):
-            flash('Encadrant invalide pour cette activité')
-            return render_template('editevent.html',
-                                    conf=current_app.config, 
-                                    event=event,
-                                    form=form)
+            flash("Encadrant invalide pour cette activité")
+            return render_template(
+                "editevent.html", conf=current_app.config, event=event, form=form
+            )
     event.leaders = tentative_leaders
 
     # We have to save new event before add the photo, or id is not defined

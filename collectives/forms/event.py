@@ -3,19 +3,20 @@ from operator import attrgetter
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
-from flask_login import current_user 
+from flask_login import current_user
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
 from wtforms import FieldList, FormField, BooleanField
 from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
-from ..models import Registration 
+from ..models import Registration
 from ..models import ActivityType
 from ..models import User, Role, RoleIds, db
 
+
 def available_leaders(leaders):
     existing_leaders = set(leaders)
-    
+
     query = db.session.query(User)
     query = query.filter(Role.user_id == User.id)
     query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
@@ -48,7 +49,7 @@ def available_activities(activities, leaders):
         for leader in leaders:
             choices.update(leader.led_activities())
         choices = list(choices)
-    choices.sort(key=attrgetter('order', 'name', 'id'))
+    choices.sort(key=attrgetter("order", "name", "id"))
 
     return choices
 
@@ -61,13 +62,16 @@ class RegistrationForm(ModelForm, FlaskForm):
     user_id = IntegerField("Id")
     submit = SubmitField("Inscrire")
 
+
 class LeaderAction:
     leader_id = -1
     delete = False
 
+
 class LeaderActionForm(FlaskForm):
     leader_id = HiddenField()
-    delete = BooleanField("Supprimer") 
+    delete = BooleanField("Supprimer")
+
 
 class EventForm(ModelForm, FlaskForm):
     class Meta:
@@ -78,9 +82,9 @@ class EventForm(ModelForm, FlaskForm):
     duplicate_photo = HiddenField()
     type = SelectField("Type", choices=[], coerce=int)
 
-    add_leader = SelectField('Encadrant supplémentaire', choices=[], coerce=int)
+    add_leader = SelectField("Encadrant supplémentaire", choices=[], coerce=int)
     leader_actions = FieldList(FormField(LeaderActionForm, default=LeaderAction()))
-    
+
     update_leaders = SubmitField("Mettre à jour les encadrants")
     save_all = SubmitField("Enregistrer")
 
@@ -93,13 +97,13 @@ class EventForm(ModelForm, FlaskForm):
         from event data.
         """
         super(EventForm, self).__init__(*args, **kwargs)
-        
+
         if event is not None:
             self.set_current_leaders(event.leaders)
             self.update_choices(event)
 
-        if 'obj' in kwargs:
-            self.type.data = int(kwargs['obj'].activity_types[0].id)
+        if "obj" in kwargs:
+            self.type.data = int(kwargs["obj"].activity_types[0].id)
 
     def set_current_leaders(self, leaders):
         self.current_leaders = list(leaders)
@@ -110,13 +114,15 @@ class EventForm(ModelForm, FlaskForm):
         leader_choices = available_leaders(self.current_leaders)
         self.add_leader.choices = [(0, "")]
         self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
-       
-        activity_choices = available_activities(event.activity_types, self.current_leaders)
+
+        activity_choices = available_activities(
+            event.activity_types, self.current_leaders
+        )
         self.type.choices = [(a.id, a.name) for a in activity_choices]
-       
+
     def setup_leader_actions(self):
         # Remove all existing entries
-        while len(self.leader_actions) > 0.:
+        while len(self.leader_actions) > 0.0:
             self.leader_actions.pop_entry()
 
         # Create new entries

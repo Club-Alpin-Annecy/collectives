@@ -285,7 +285,7 @@ class Event(db.Model):
             if not activity.can_be_led_by(leaders):
                 return False
         return True
-    
+
     def has_valid_leaders(self):
         return self.are_valid_leaders(self.leaders)
 

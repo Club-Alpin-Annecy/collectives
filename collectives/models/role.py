@@ -63,6 +63,7 @@ class RoleIds(ChoiceEnum):
     def all_event_creator_roles(cls):
         return cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
+
 class Role(db.Model):
     """ Role for a specific user.
 
