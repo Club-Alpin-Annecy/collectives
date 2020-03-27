@@ -23,6 +23,15 @@
 <div class="panel" id="profile">
     <h3>{{user.full_name()}}</h3>
 
+    <div><img src="{%   if user.avatar
+                                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
+                        else
+                                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                        endif %}"
+                alt="Avatar de l'utilisateur"
+                class="avatar big float_right" />
+    </div>
+
     {% if user == current_user %}
         <a class="button" href="{{url_for('profile.update_user')}}">
              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
