@@ -403,6 +403,10 @@ button:hover, a.button:hover{
 	height: 30px;
 	width: 30px;
 }
+.avatar.big{
+	height: 200px;
+	width: 200px;
+}
 
 /* User icon display*/
 .usericon {
@@ -459,6 +463,12 @@ img.icon{
 /* class used to cancel a float */
 .breaker{
 	clear: both;
+}
+.float_left{
+	float: left;
+}
+.float_right{
+	float: right;
 }
 
 form {
