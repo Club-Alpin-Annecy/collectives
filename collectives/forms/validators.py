@@ -1,4 +1,4 @@
-"""Module containing custom WTForms validators 
+"""Module containing custom WTForms validators
 """
 import re
 

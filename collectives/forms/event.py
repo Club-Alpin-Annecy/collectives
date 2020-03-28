@@ -80,16 +80,15 @@ class LeaderAction:
     """
     Class describing the action to be performed for a given leader
     """
+
     leader_id = -1
     """ Id of leader that will be affected by the action
-   
-    :type: int
-    """
+
+    :type: int"""
     delete = False
     """ Whether the leader should be delete
 
-    :type: bool
-    """
+    :type: bool"""
 
 
 class LeaderActionForm(FlaskForm):
@@ -132,7 +131,7 @@ class EventForm(ModelForm, FlaskForm):
     def set_current_leaders(self, leaders):
         """
         Stores the list of current leaders, used to populate form fields
-    
+
         :param leaders: list of current leaders
         :type leaders: list[:py:class:`collectives.models.user.User`]
         """
