@@ -17,7 +17,7 @@ BLANK_REGEX = re.compile(r"^\s*$")
 Regexp for detecting blank lines
 """
 
-LIST_REGEX = re.compile(r"^\s*([-*+]|[0-9]\.)\s")
+LIST_REGEX = re.compile(r"^\s*([-*+]|[0-9]+\.)\s")
 """
 Regexp for detecting list items
 """
@@ -33,7 +33,7 @@ class UrifyExtension(Extension):
             return [URI_REGEX.sub(r"\1[\2](\2)", line) for line in lines]
 
     def extendMarkdown(self, md):
-        md.preprocessors.register(UrifyExtension.Impl(md), "prepend", 10)
+        md.preprocessors.register(UrifyExtension.Impl(md), "urify", 10)
 
 
 class PrependBlankLineExtension(Extension):
