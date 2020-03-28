@@ -1,12 +1,12 @@
 """Module for event related classes
 """
-import re
-import markdown
 from flask_uploads import UploadSet, IMAGES
 
 from .globals import db
 from .registration import RegistrationStatus
 from .utils import ChoiceEnum
+
+from ..utils import render_markdown
 
 photos = UploadSet("photos", IMAGES)
 """Upload instance for events photos
@@ -202,12 +202,7 @@ class Event(db.Model):
         :return: Rendered :py:attr:`description` as HTML
         :rtype: string
         """
-        # Urify links
-        # From https://daringfireball.net/2010/07/improved_regex_for_matching_urls
-        # pylint: disable=C0301
-        URI_REGEX = r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
-        description = re.sub(URI_REGEX, r"\1[\2](\2)", description)
-        self.rendered_description = markdown.markdown(description, extensions=["nl2br"])
+        self.rendered_description = render_markdown.markdown_to_html(description)
         return self.rendered_description
 
     # Date validation
