@@ -1,3 +1,5 @@
+"""Module containing custom WTForms validators
+"""
 import re
 
 from wtforms.validators import ValidationError

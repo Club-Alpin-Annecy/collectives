@@ -293,26 +293,17 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.Administrator])
 
     def is_moderator(self):
-        return self.has_role(
-            [RoleIds.Moderator, RoleIds.Administrator, RoleIds.President]
-        )
+        return self.has_role(RoleIds.all_moderator_roles())
 
     def is_supervisor(self):
         return self.has_role([RoleIds.ActivitySupervisor])
 
     def can_create_events(self):
-        return self.has_role(
-            [
-                RoleIds.EventLeader,
-                RoleIds.ActivitySupervisor,
-                RoleIds.President,
-                RoleIds.Administrator,
-            ]
-        )
+        return self.has_role(RoleIds.all_event_creator_roles())
 
     def can_lead_activity(self, activity_id):
         return self.has_role_for_activity(
-            [RoleIds.EventLeader, RoleIds.ActivitySupervisor], activity_id
+            RoleIds.all_activity_leader_roles(), activity_id
         )
 
     def can_read_other_users(self):
@@ -331,7 +322,7 @@ class User(db.Model, UserMixin):
         return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
 
     def led_activities(self):
-        roles = self.matching_roles([RoleIds.EventLeader, RoleIds.ActivitySupervisor])
+        roles = self.matching_roles(RoleIds.all_activity_leader_roles())
         return set(role.activity_type for role in roles)
 
     # Format

@@ -267,22 +267,31 @@ class Event(db.Model):
         # pylint: disable=C0301
         return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
-    def has_valid_leaders(self):
-        """Check if current leaders has right to lead it.
+    def are_valid_leaders(self, leaders):
+        """Check if leaders has right to lead it.
 
         Test each activity to see if at least one leader can lead it (see
         :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
         ).
 
-        :return: True if current leaders can lead it. If no activities: it returns False.
+        :param leaders: List of User which will be tested.
+        :type leaders: list
+        :return: True if leaders can lead all activities. If activities are empty, returns False.
         :rtype: boolean
         """
         if not any(self.activity_types):
             return False
         for activity in self.activity_types:
-            if not activity.can_be_led_by(self.leaders):
+            if not activity.can_be_led_by(leaders):
                 return False
         return True
+
+    def has_valid_leaders(self):
+        """
+        :return: True if current leaders can lead all activities. If activities are empty, returns False.
+        :seealso: :py:meth:`are_valid_leaders`
+        """
+        return self.are_valid_leaders(self.leaders)
 
     def is_valid(self):
         """Check if current event is valid.
@@ -366,6 +375,20 @@ class Event(db.Model):
         :return: True if user can delete the event.
         :rtype: boolean
         """
+        return user.is_moderator() or self.is_supervisor(user)
+
+    def can_remove_leader(self, user, leader):
+        """
+        Returns true if either:
+         - user supervises any of this event activities
+         - user is moderator
+         - user is leader of this event and is not removing themselves
+        """
+        if not self.has_edit_rights(user):
+            return False
+        if user != leader:
+            return True
+
         return user.is_moderator() or self.is_supervisor(user)
 
     # Registrations
