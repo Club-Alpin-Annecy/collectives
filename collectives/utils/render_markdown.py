@@ -17,7 +17,7 @@ BLANK_REGEX = re.compile(r"^\s*$")
 Regexp for detecting blank lines
 """
 
-LIST_REGEX = re.compile(r"^\s*([-*+]|[0-9]\.)")
+LIST_REGEX = re.compile(r"^\s*([-*+]|[0-9]\.)\s")
 """
 Regexp for detecting list items
 """
