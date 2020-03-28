@@ -16,6 +16,12 @@ Module ``collectives.utils.extranet``
 .. automodule:: collectives.utils.extranet
     :members:
 
+Module ``collectives.utils.render_markdown``
+----------------------------------------------
+.. automodule:: collectives.utils.render_markdown
+    :members:
+
+
 Module ``collectives.utils.mail``
 ---------------------------------
 .. automodule:: collectives.utils.mail
