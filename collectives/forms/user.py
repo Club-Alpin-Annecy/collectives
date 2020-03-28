@@ -1,3 +1,5 @@
+"""Module containing forms for updating user information
+"""
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import PasswordField, SubmitField

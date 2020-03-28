@@ -1,9 +1,15 @@
+"""Helper module for explicitly ordering fields in WTForms 
+"""
 from collections import OrderedDict
 from flask_wtf import FlaskForm
 from wtforms_alchemy import ModelForm
 
-
 def sort_fields(form):
+    """
+    Sort fields according to their index the field_order attribute.
+    If field_order constaints the "*", then it will be replace by all
+    fields  that are not explicitly mentioned
+    """
     field_order = getattr(form, "field_order", None)
     if field_order:
         fields = form._fields

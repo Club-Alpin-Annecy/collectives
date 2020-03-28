@@ -276,7 +276,7 @@ class Event(db.Model):
 
         :param leaders: List of User which will be tested.
         :type leaders: list
-        :return: True if current leaders can lead it. If no activities: it returns False.
+        :return: True if leaders can lead all activities. If activities are empty, returns False.
         :rtype: boolean
         """
         if not any(self.activity_types):
@@ -287,6 +287,10 @@ class Event(db.Model):
         return True
 
     def has_valid_leaders(self):
+        """
+        :return: True if current leaders can lead all activities. If activities are empty, returns False.
+        :seealso: :py:meth:`are_valid_leaders`
+        """
         return self.are_valid_leaders(self.leaders)
 
     def is_valid(self):

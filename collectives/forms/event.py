@@ -1,3 +1,5 @@
+"""Module containing forms related to event management
+"""
 from operator import attrgetter
 
 from flask_wtf import FlaskForm
@@ -15,12 +17,23 @@ from ..models import User, Role, RoleIds, db
 
 
 def available_leaders(leaders):
+    """Creates a list of leaders that can be added to an event.
+
+    This list can be used in a select form input. It will all users with
+    'event creator' roles (EventLeader, ActivitySupervisor, etc) that
+    are not in the list of current leaders
+
+    :param leaders: list of current leaders
+    :type leaders: list[:py:class:`collectives.models.user.User`]
+    :return: List of authorized activities
+    :rtype: list[:py:class:`collectives.models.user.User`]
+    """
     existing_leaders = set(leaders)
 
     query = db.session.query(User)
     query = query.filter(Role.user_id == User.id)
     query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
-    query = query.order_by(User.last_name, User.first_name)
+    query = query.order_by(User.first_name, User.last_name)
     choices = query.all()
 
     return [u for u in choices if u not in existing_leaders]
@@ -35,11 +48,11 @@ def available_activities(activities, leaders):
     is a high level (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list
-    :param types: Array[:py:class:`collectives.models.activitytype.ActivityType`]
+    :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
     :param leader: list of leader used to build activity list.
-    :param leader: Array[:py:class:`collectives.models.user.User`]
+    :type leader: list[:py:class:`collectives.models.user.User`]
     :return: List of authorized activities
-    :rtype: Array(ActivityType)
+    :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
     """
     if current_user.is_moderator():
         choices = ActivityType.query.all()
@@ -64,8 +77,19 @@ class RegistrationForm(ModelForm, FlaskForm):
 
 
 class LeaderAction:
+    """
+    Class describing the action to be performed for a given leader
+    """
     leader_id = -1
+    """ Id of leader that will be affected by the action
+   
+    :type: int
+    """
     delete = False
+    """ Whether the leader should be delete
+
+    :type: bool
+    """
 
 
 class LeaderActionForm(FlaskForm):
@@ -106,11 +130,22 @@ class EventForm(ModelForm, FlaskForm):
             self.type.data = int(kwargs["obj"].activity_types[0].id)
 
     def set_current_leaders(self, leaders):
+        """
+        Stores the list of current leaders, used to populate form fields
+    
+        :param leaders: list of current leaders
+        :type leaders: list[:py:class:`collectives.models.user.User`]
+        """
         self.current_leaders = list(leaders)
         if not any(leaders):
             self.current_leaders.append(current_user)
 
     def update_choices(self, event):
+        """
+        Updates possible choices for activity and new leader select fields
+        :param event: Event being currently edited
+        :type event: :py:class:`collectives.modes.event.Event`
+        """
         leader_choices = available_leaders(self.current_leaders)
         self.add_leader.choices = [(0, "")]
         self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
@@ -121,6 +156,9 @@ class EventForm(ModelForm, FlaskForm):
         self.type.choices = [(a.id, a.name) for a in activity_choices]
 
     def setup_leader_actions(self):
+        """
+        Setups action form for all current leaders
+        """
         # Remove all existing entries
         while len(self.leader_actions) > 0.0:
             self.leader_actions.pop_entry()
@@ -133,6 +171,9 @@ class EventForm(ModelForm, FlaskForm):
             self.leader_actions.append_entry(action_form)
 
     def set_default_description(self):
+        """
+        Populates description field with event description template
+        """
         description = current_app.config["DESCRIPTION_TEMPLATE"]
         columns = {i: "" for i in current_app.config["CSV_COLUMNS"]}
 
