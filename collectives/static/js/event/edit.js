@@ -152,16 +152,16 @@ function checkDateOrder(){
 
 
     // Start of event is before end of it
-    const dateorder1 = document.getElementById("dateorder1");
+    const starts_before_ends = document.getElementById("starts_before_ends_error");
     if( new Date(start.value) > new Date(end.value) ){
-        dateorder1.style.display = "inline";
+        starts_before_ends.style.display = "inline";
         start.setCustomValidity('Mauvais ordre des dates');
         end.setCustomValidity('Mauvais ordre des dates');
         // Quit to avoid resetting pattern later
         return false;
     }
     else{
-        dateorder1.style.display = "none";
+        starts_before_ends.style.display = "none";
         start.setCustomValidity('');
         end.setCustomValidity('');
     }
@@ -169,32 +169,32 @@ function checkDateOrder(){
 
     // End of registration is before start of event
     // Nothing if no value
-    const dateorder2 = document.getElementById("dateorder2");
-    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(end.value) ) {
-        dateorder2.style.display = "inline";
+    const closes_before_starts = document.getElementById("closes_before_starts_error");
+    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(start.value) ) {
+        closes_before_starts.style.display = "inline";
         registration_close_time.setCustomValidity('Mauvais ordre des dates');
         end.setCustomValidity('Mauvais ordre des dates');
         // Quit to avoid resetting pattern later
         return false;
     }
     else{
-        dateorder2.style.display = "none";
+        closes_before_starts.style.display = "none";
         registration_close_time.setCustomValidity('');
         end.setCustomValidity('');
     }
 
     // End of registration is before start of event
     // Nothing if no value
-    const dateorder3 = document.getElementById("dateorder3");
+    const opens_before_closes = document.getElementById("opens_before_closes_error");
     if(registration_open_time.value != "" && registration_close_time.value != "" && new Date(registration_close_time.value) < new Date(registration_open_time.value) ){
-        dateorder3.style.display = "inline";
+        opens_before_closes.style.display = "inline";
         registration_close_time.setCustomValidity('Mauvais ordre des dates');
         registration_open_time.setCustomValidity('Mauvais ordre des dates');
         // Quit to avoid resetting pattern later
         return false;
     }
     else{
-        dateorder3.style.display = "none";
+        opens_before_closes.style.display = "none";
         registration_close_time.setCustomValidity('');
         registration_open_time.setCustomValidity('');
     }

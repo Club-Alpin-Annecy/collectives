@@ -59,3 +59,9 @@
   margin:auto;
   vertical-align: middle;
 }
+
+#eventedit span.date_error
+{
+  display: none;
+  font-weight: bold;
+}
