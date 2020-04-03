@@ -7,7 +7,7 @@ from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
 from flask_login import current_user
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
-from wtforms import FieldList, FormField, BooleanField
+from wtforms import FieldList, FormField, BooleanField, RadioField
 from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
@@ -108,10 +108,13 @@ class EventForm(ModelForm, FlaskForm):
     add_leader = SelectField("Encadrant supplémentaire", choices=[], coerce=int)
     leader_actions = FieldList(FormField(LeaderActionForm, default=LeaderAction()))
 
+    main_leader_id = RadioField("Responsable", coerce=int)
+
     update_leaders = SubmitField("Mettre à jour les encadrants")
     save_all = SubmitField("Enregistrer")
 
     current_leaders = []
+    main_leader_fields = []
 
     def __init__(self, event, *args, **kwargs):
         """
@@ -154,12 +157,21 @@ class EventForm(ModelForm, FlaskForm):
         )
         self.type.choices = [(a.id, a.name) for a in activity_choices]
 
+        self.main_leader_id.choices = [
+            (l.id, "Responsable") for l in self.current_leaders
+        ]
+        if self.main_leader_id.raw_data is None:
+            if event.main_leader_id is None:
+                self.main_leader_id.default = self.current_leaders[0].id
+                self.main_leader_id.process([])
+        self.main_leader_fields = list(self.main_leader_id)
+
     def setup_leader_actions(self):
         """
         Setups action form for all current leaders
         """
         # Remove all existing entries
-        while len(self.leader_actions) > 0.0:
+        while len(self.leader_actions) > 0:
             self.leader_actions.pop_entry()
 
         # Create new entries

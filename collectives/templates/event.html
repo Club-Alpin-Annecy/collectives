@@ -32,7 +32,7 @@
       </h3>
       <div id="encadrement">
         <h5>Encadrement</h5>
-        {% for user in event.leaders %}
+        {% for user in event.ranked_leaders() %}
           {% with leader_info=True %}
             {{ macros.usericon(user, leader_info, user_info) }}
           {% endwith %}

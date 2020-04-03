@@ -146,6 +146,11 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.event.EventStatus`"""
 
+    main_leader_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    """ Primary key of the registered user (see  :py:class:`collectives.models.user.User`)
+
+    :type: int"""
+
     # Relationships
     leaders = db.relationship(
         "User",
@@ -271,11 +276,9 @@ class Event(db.Model):
 
         :param leaders: List of User which will be tested.
         :type leaders: list
-        :return: True if leaders can lead all activities. If activities are empty, returns False.
+        :return: True if leaders can lead all activities. 
         :rtype: boolean
         """
-        if not any(self.activity_types):
-            return False
         for activity in self.activity_types:
             if not activity.can_be_led_by(leaders):
                 return False
@@ -287,6 +290,22 @@ class Event(db.Model):
         :seealso: :py:meth:`are_valid_leaders`
         """
         return self.are_valid_leaders(self.leaders)
+
+    def ranked_leaders(self):
+        """
+        :return: the list of leaders in which the main one comes first
+        :rtype: list(:py:class:`collectives.models.user.User`)
+        """
+        main_leader = None
+        other_leaders = []
+        for l in self.leaders:
+            if l.id == self.main_leader_id:
+                main_leader = l
+            else:
+                other_leaders.append(l)
+        if main_leader is None:
+            return other_leaders
+        return [main_leader] + other_leaders
 
     def is_valid(self):
         """Check if current event is valid.
@@ -345,6 +364,7 @@ class Event(db.Model):
         """ Check if a user can edit this event.
 
         Returns true if either:
+         - event is WIP (not created yet)
          - user is leader of this event
          - user supervises any of this event activities
          - user is moderator
@@ -354,6 +374,9 @@ class Event(db.Model):
         :return: True if user can edit the event.
         :rtype: boolean
         """
+        if self.id is None:
+            return True
+
         if user.is_moderator():
             return True
         return self.is_leader(user) or self.is_supervisor(user)

@@ -113,20 +113,28 @@ def manage_event(event_id=None):
         )
 
     # Fetch existing readers leaders minus removed ones
+    previous_leaders = []
     tentative_leaders = []
     has_removed_leaders = False
     seen_ids = set()
     for action in form.leader_actions:
         leader_id = int(action.data["leader_id"])
         seen_ids.add(leader_id)
+
+        leader = User.query.get(leader_id)
+        if leader is None or not leader.can_create_events():
+            flash("Encadrant invalide")
+            continue
+
+        previous_leaders.append(leader)
         if action.data["delete"]:
             has_removed_leaders = True
         else:
-            leader = User.query.get(leader_id)
-            if leader is None or not leader.can_create_events():
-                flash("Encadrant invalide")
-            else:
-                tentative_leaders.append(leader)
+            tentative_leaders.append(leader)
+
+    if event_id is None:
+        form.set_current_leaders(previous_leaders)
+        form.update_choices(event)
 
     # Protect ourselves against form data manipulation
     # We should have a form entry for all existing leaders
@@ -144,6 +152,17 @@ def manage_event(event_id=None):
         else:
             tentative_leaders.append(leader)
 
+    # Check that the main leader still exists
+    event.main_leader_id = int(form.main_leader_id.data)
+    if not any(l.id == event.main_leader_id for l in tentative_leaders):
+        flash("Un encadrant responsable doit être défini")
+
+        form.setup_leader_actions()
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
+
+
     # The 'Update leaders' button has been clicked
     # Do not process the remainder of the form
     if form.update_leaders.data:
@@ -153,17 +172,18 @@ def manage_event(event_id=None):
         else:
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
-            form.setup_leader_actions()
             if not event_id is None:
                 event.leaders = tentative_leaders
                 db.session.add(event)
                 db.session.commit()
 
+        form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
 
     if not form.validate():
+        form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
