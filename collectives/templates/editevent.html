@@ -11,6 +11,7 @@
   {# DateTime picker#}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
@@ -40,6 +41,11 @@
         onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
   >
+    {# We want to make sure pressing 'Enter' submits the whole form #}
+    {# For this add a hidden submit button before 'update_leaders' #}
+    {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }} 
+
+
     <h4>Encadrants</h4>
     <div id="encadrement">
       {% for action in form.leader_actions %}

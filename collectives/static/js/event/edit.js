@@ -111,8 +111,17 @@ function makeEditor(elementId)
     return simplemde;
 }
 
-function validateDateTime(element){
-    if (element.value != "" && isNaN(new Date(element.value).getDay())){
+function validateDateTime(element, canBeEmpty){
+    if (element.value == "") {
+        if(canBeEmpty) {
+            element.setCustomValidity('');
+        } else {
+            element.setCustomValidity('Doit être défini');
+        }
+        return canBeEmpty;
+    }
+
+    if (!moment(element.value).isValid()){
         element.setCustomValidity('Doit être une date');
         return false;
     }
@@ -126,80 +135,73 @@ function checkDateOrder(){
     const registration_open_time = document.getElementById('registration_open_time');
     const registration_close_time = document.getElementById('registration_close_time');
 
-    // Don't check order if a Date is not validated
-    var validation =    validateDateTime(start) &&
-                        validateDateTime(end) &&
-                        validateDateTime(registration_open_time) &&
-                        validateDateTime(registration_close_time);
-    if( ! validation )
-        return false;
-
-    // If a registration bound is defined, check the other one definition
-    const halfregistration = document.getElementById("halfregistration");
-    if(     ( registration_open_time.value == "" && registration_close_time.value != "" )
-        ||  ( registration_open_time.value != "" && registration_close_time.value == "" )){
-        halfregistration.style.display = "inline";
-        registration_close_time.setCustomValidity('Doit être défini');
-        registration_open_time.setCustomValidity('Doit être défini');
-        // Quit to avoid resetting pattern later
-        return false;
-    }
-    else{
-        halfregistration.style.display = "none";
-        registration_close_time.setCustomValidity('');
-        registration_open_time.setCustomValidity('');
-    }
-
-
-    // Start of event is before end of it
+    // Hide all previous error messages
     const starts_before_ends = document.getElementById("starts_before_ends_error");
-    if( new Date(start.value) > new Date(end.value) ){
-        starts_before_ends.style.display = "inline";
-        start.setCustomValidity('Mauvais ordre des dates');
-        end.setCustomValidity('Mauvais ordre des dates');
-        // Quit to avoid resetting pattern later
-        return false;
-    }
-    else{
-        starts_before_ends.style.display = "none";
-        start.setCustomValidity('');
-        end.setCustomValidity('');
-    }
-
-
-    // End of registration is before start of event
-    // Nothing if no value
+    const halfregistration = document.getElementById("halfregistration");
     const closes_before_starts = document.getElementById("closes_before_starts_error");
-    if(registration_close_time.value != "" && new Date(registration_close_time.value) > new Date(start.value) ) {
-        closes_before_starts.style.display = "inline";
-        registration_close_time.setCustomValidity('Mauvais ordre des dates');
-        end.setCustomValidity('Mauvais ordre des dates');
-        // Quit to avoid resetting pattern later
-        return false;
+    const opens_before_closes = document.getElementById("opens_before_closes_error");
+    halfregistration.style.display = "none";
+    starts_before_ends.style.display = "none";
+    closes_before_starts.style.display = "none";
+    opens_before_closes.style.display = "none";
+
+
+    var hasDateError = false;
+    // Make sure validateDateTime is called for each field, even if errors have already
+    // benn encountered, in order to properly reset custom validity message
+    hasDateError = hasDateError || !validateDateTime(start, false);
+    hasDateError = hasDateError || !validateDateTime(end, false);
+    hasDateError = hasDateError || !validateDateTime(registration_open_time, true);
+    hasDateError = hasDateError || !validateDateTime(registration_close_time, true);
+
+    // Don't check order if some dates are invalid
+    if(hasDateError) return false;
+
+    // Start of event is before the end 
+    if( moment(start.value) > moment(end.value) ){
+        starts_before_ends.style.display = "inline";
+        start.setCustomValidity('Doit être avant la fin');
+        end.setCustomValidity('Doit être après le début');
+   
+        hasDateError = true;
     }
-    else{
-        closes_before_starts.style.display = "none";
-        registration_close_time.setCustomValidity('');
-        end.setCustomValidity('');
+
+    var hasRegistrationOpen = registration_open_time.value != "";
+    var hasRegistrationClose = registration_close_time.value != "";
+    if(hasRegistrationClose || hasRegistrationOpen){
+        // If a registration bound is defined, check the other one definition
+        if(hasRegistrationOpen && hasRegistrationClose){
+            // End of registration is before opening of registrations
+            if(moment(registration_close_time.value) < moment(registration_open_time.value) ){
+                opens_before_closes.style.display = "inline";
+                registration_close_time.setCustomValidity("Doit être après l'ouverture");
+                registration_open_time.setCustomValidity("Doit être avant la fermeture");
+                
+                hasDateError = true;
+            }
+        } else { 
+            halfregistration.style.display = "inline";
+            if(!hasRegistrationClose)
+                registration_close_time.setCustomValidity('Doit être défini');
+            if(!hasRegistrationOpen)
+                registration_open_time.setCustomValidity('Doit être défini');
+        
+            hasDateError = true;
+        }
     }
+
+    // If there are already errors, do not proceed further on
+    if(hasDateError) return false;
 
     // End of registration is before start of event
-    // Nothing if no value
-    const opens_before_closes = document.getElementById("opens_before_closes_error");
-    if(registration_open_time.value != "" && registration_close_time.value != "" && new Date(registration_close_time.value) < new Date(registration_open_time.value) ){
-        opens_before_closes.style.display = "inline";
-        registration_close_time.setCustomValidity('Mauvais ordre des dates');
-        registration_open_time.setCustomValidity('Mauvais ordre des dates');
-        // Quit to avoid resetting pattern later
-        return false;
-    }
-    else{
-        opens_before_closes.style.display = "none";
-        registration_close_time.setCustomValidity('');
-        registration_open_time.setCustomValidity('');
+    if(registration_close_time.value != "" && moment(registration_close_time.value) > moment(start.value) ) {
+        closes_before_starts.style.display = "inline";
+        registration_close_time.setCustomValidity("Doit être avant le début de l'événement");
+        start.setCustomValidity('Doit être après fermeture des inscriptions');
+        hasDateError = true;
     }
 
-    return true;
+    return hasDateError;
 }
 
 function removeRequiredAttributes()
@@ -207,6 +209,7 @@ function removeRequiredAttributes()
     Array.from(document.getElementsByTagName("input")).forEach(
         function(element) {
             element.removeAttribute("required");
+            element.setCustomValidity("");
         }
     );
 }
