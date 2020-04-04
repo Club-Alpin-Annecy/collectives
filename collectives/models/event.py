@@ -267,29 +267,27 @@ class Event(db.Model):
         # pylint: disable=C0301
         return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
-    def are_valid_leaders(self, leaders):
+    def activities_without_leader(self, leaders):
         """Check if leaders has right to lead it.
 
         Test each activity to see if at least one leader can lead it (see
         :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
         ).
+        Return the list of activitiers with no valid leader
 
         :param leaders: List of User which will be tested.
         :type leaders: list
-        :return: True if leaders can lead all activities. 
+        :return: True if leaders can lead all activities.
         :rtype: boolean
         """
-        for activity in self.activity_types:
-            if not activity.can_be_led_by(leaders):
-                return False
-        return True
+        return [a for a in self.activity_types if not a.can_be_led_by(leaders)]
 
     def has_valid_leaders(self):
         """
         :return: True if current leaders can lead all activities. If activities are empty, returns False.
         :seealso: :py:meth:`are_valid_leaders`
         """
-        return self.are_valid_leaders(self.leaders)
+        return len(self.activities_without_leader(self.leaders)) == 0
 
     def ranked_leaders(self):
         """

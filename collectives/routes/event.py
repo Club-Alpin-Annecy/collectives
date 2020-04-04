@@ -25,11 +25,31 @@ This blueprint contains all routes for avent display and management"""
 
 
 def accept_event_leaders(event, leaders):
+    """
+    Check whether all activities have a valid leader, display error if not the case
+    """
     if not any(leaders):
+        flash("Au moins un encadrant doit être défini")
         return False
     if current_user.is_moderator():
         return True
-    return event.are_valid_leaders(leaders)
+    problems = event.activities_without_leader(leaders)
+    if len(problems) == 0:
+        return True
+    if len(problems) == 1:
+        flash(
+            "Aucun encadrant valide n'a été défini pour l'activité {}".format(
+                problems[0].name
+            )
+        )
+    else:
+        names = [a.name for a in problems]
+        flash(
+            "Aucun encadrant valide n'a été défini pour les activités {}".format(
+                names.join(", ")
+            )
+        )
+    return False
 
 
 ##########################################################################
@@ -166,9 +186,7 @@ def manage_event(event_id=None):
     # Do not process the remainder of the form
     if form.update_leaders.data:
         # Check that the set of leaders is valid for current activities
-        if has_removed_leaders and not accept_event_leaders(event, tentative_leaders):
-            flash("Encadrant(s) invalide(s) pour cette activité")
-        else:
+        if not has_removed_leaders or accept_event_leaders(event, tentative_leaders):
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
             form.setup_leader_actions()
@@ -236,7 +254,6 @@ def manage_event(event_id=None):
     # Check that there is a valid leader
     if has_new_activity or has_removed_leaders:
         if not accept_event_leaders(event, tentative_leaders):
-            flash("Encadrant invalide pour cette activité")
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
