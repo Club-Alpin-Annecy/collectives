@@ -133,15 +133,16 @@ def manage_event(event_id=None):
             tentative_leaders.append(leader)
 
     if event_id is None:
+        # Event is not created yet, get current leaders from submitted form
         form.set_current_leaders(previous_leaders)
         form.update_choices(event)
-
-    # Protect ourselves against form data manipulation
-    # We should have a form entry for all existing leaders
-    for existing_leader in event.leaders:
-        if not existing_leader.id in seen_ids:
-            flash("Données incohérentes.", "error")
-            return redirect(url_for("event.index"))
+    else:
+        # Protect ourselves against form data manipulation
+        # We should have a form entry for all existing leaders
+        for existing_leader in event.leaders:
+            if not existing_leader.id in seen_ids:
+                flash("Données incohérentes.", "error")
+                return redirect(url_for("event.index"))
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
@@ -157,7 +158,6 @@ def manage_event(event_id=None):
     if not any(l.id == event.main_leader_id for l in tentative_leaders):
         flash("Un encadrant responsable doit être défini")
 
-        form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
@@ -172,18 +172,17 @@ def manage_event(event_id=None):
         else:
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
+            form.setup_leader_actions()
             if not event_id is None:
                 event.leaders = tentative_leaders
                 db.session.add(event)
                 db.session.commit()
 
-        form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
 
     if not form.validate():
-        form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
