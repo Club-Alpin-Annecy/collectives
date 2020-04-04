@@ -65,6 +65,11 @@ div#info .leader span
     display:block;
 }
 
+div#info .main 
+{
+    font-weight:bold;
+}
+
 div#info .leader span.email, div#info .leader span.phone
 {
     padding-left:1em;

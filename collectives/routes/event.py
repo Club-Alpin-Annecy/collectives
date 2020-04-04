@@ -162,7 +162,6 @@ def manage_event(event_id=None):
             "editevent.html", conf=current_app.config, event=event, form=form
         )
 
-
     # The 'Update leaders' button has been clicked
     # Do not process the remainder of the form
     if form.update_leaders.data:

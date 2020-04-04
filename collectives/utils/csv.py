@@ -24,6 +24,7 @@ def fill_from_csv(event, row, template):
     if leader is None:
         raise Exception(f'Utilisateur {row["id_encadrant"]} inconnu')
     event.leaders = [leader]
+    event.main_leader_id = leader.id
 
     event.description = template.format(**row,)
     event.set_rendered_description(event.description)
