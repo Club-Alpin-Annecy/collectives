@@ -285,9 +285,11 @@ class Event(db.Model):
     def has_valid_leaders(self):
         """
         :return: True if current leaders can lead all activities. If activities are empty, returns False.
-        :seealso: :py:meth:`are_valid_leaders`
+        :seealso: :py:meth:`activities_without_leader`
         """
-        return len(self.activities_without_leader(self.leaders)) == 0
+        if not any(self.activity_types):
+            return False
+        return not any(self.activities_without_leader(self.leaders))
 
     def ranked_leaders(self):
         """
