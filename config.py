@@ -268,7 +268,7 @@ XLSX_TEMPLATE = os.path.join(basedir,
 CONFIRMATION_MESSAGE = """
 Bonjour {name},
 
-Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF Annecy, veuillez vous rendre à l'adresse ci-dessous:
+Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous (lien valable 2h):
 {link}
 
 Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
