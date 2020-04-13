@@ -25,11 +25,31 @@ This blueprint contains all routes for avent display and management"""
 
 
 def accept_event_leaders(event, leaders):
+    """
+    Check whether all activities have a valid leader, display error if not the case
+    """
     if not any(leaders):
+        flash("Au moins un encadrant doit être défini")
         return False
     if current_user.is_moderator():
         return True
-    return event.are_valid_leaders(leaders)
+    problems = event.activities_without_leader(leaders)
+    if len(problems) == 0:
+        return True
+    if len(problems) == 1:
+        flash(
+            "Aucun encadrant valide n'a été défini pour l'activité {}".format(
+                problems[0].name
+            )
+        )
+    else:
+        names = [a.name for a in problems]
+        flash(
+            "Aucun encadrant valide n'a été défini pour les activités {}".format(
+                names.join(", ")
+            )
+        )
+    return False
 
 
 ##########################################################################
@@ -113,27 +133,36 @@ def manage_event(event_id=None):
         )
 
     # Fetch existing readers leaders minus removed ones
+    previous_leaders = []
     tentative_leaders = []
     has_removed_leaders = False
     seen_ids = set()
     for action in form.leader_actions:
         leader_id = int(action.data["leader_id"])
         seen_ids.add(leader_id)
+
+        leader = User.query.get(leader_id)
+        if leader is None or not leader.can_create_events():
+            flash("Encadrant invalide")
+            continue
+
+        previous_leaders.append(leader)
         if action.data["delete"]:
             has_removed_leaders = True
         else:
-            leader = User.query.get(leader_id)
-            if leader is None or not leader.can_create_events():
-                flash("Encadrant invalide")
-            else:
-                tentative_leaders.append(leader)
+            tentative_leaders.append(leader)
 
-    # Protect ourselves against form data manipulation
-    # We should have a form entry for all existing leaders
-    for existing_leader in event.leaders:
-        if not existing_leader.id in seen_ids:
-            flash("Données incohérentes.", "error")
-            return redirect(url_for("event.index"))
+    if event_id is None:
+        # Event is not created yet, get current leaders from submitted form
+        form.set_current_leaders(previous_leaders)
+        form.update_choices(event)
+    else:
+        # Protect ourselves against form data manipulation
+        # We should have a form entry for all existing leaders
+        for existing_leader in event.leaders:
+            if not existing_leader.id in seen_ids:
+                flash("Données incohérentes.", "error")
+                return redirect(url_for("event.index"))
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
@@ -144,13 +173,20 @@ def manage_event(event_id=None):
         else:
             tentative_leaders.append(leader)
 
+    # Check that the main leader still exists
+    event.main_leader_id = int(form.main_leader_id.data)
+    if not any(l.id == event.main_leader_id for l in tentative_leaders):
+        flash("Un encadrant responsable doit être défini")
+
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
+
     # The 'Update leaders' button has been clicked
     # Do not process the remainder of the form
     if form.update_leaders.data:
         # Check that the set of leaders is valid for current activities
-        if has_removed_leaders and not accept_event_leaders(event, tentative_leaders):
-            flash("Encadrant(s) invalide(s) pour cette activité")
-        else:
+        if not has_removed_leaders or accept_event_leaders(event, tentative_leaders):
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
             form.setup_leader_actions()
@@ -224,7 +260,6 @@ def manage_event(event_id=None):
     # Check that there is a valid leader
     if has_new_activity or has_removed_leaders:
         if not accept_event_leaders(event, tentative_leaders):
-            flash("Encadrant invalide pour cette activité")
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )

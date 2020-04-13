@@ -261,7 +261,7 @@ class EventSchema(marshmallow.Schema):
     free_slots = fields.Function(lambda event: event.free_slots())
     occupied_slots = fields.Function(lambda event: len(event.active_registrations()))
     leaders = fields.Function(
-        lambda event: UserSimpleSchema(many=True).dump(event.leaders)
+        lambda event: UserSimpleSchema(many=True).dump(event.ranked_leaders())
     )
     activity_types = fields.Function(
         lambda event: ActivityShortSchema(many=True).dump(event.activity_types)

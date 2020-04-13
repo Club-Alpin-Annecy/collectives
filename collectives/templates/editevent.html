@@ -59,8 +59,10 @@
             {{action.leader_id}}  
             {% if event.can_remove_leader(current_user, user)  %}
               {{action.delete}}  
-              {{action.delete.label}}  
+              {{action.delete.label}} <br />
             {% endif %}
+            {{ form.main_leader_fields[loop.index0] }}
+            {{ form.main_leader_fields[loop.index0].label }}
           </div>
         </div>
         {% endwith %}

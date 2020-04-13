@@ -30,8 +30,8 @@
         <div id="info">
             <div id="leaders">
                 <h4>Encadrement : </h4>
-                {%for leader in event.leaders%}
-                <div class="leader">
+                {%for leader in event.ranked_leaders()%}
+                <div class="leader {% if leader.id == event.main_leader_id %} main {% endif %}">
                     <span class="name">{{leader.full_name()}}</span>
                     <span class="phone">{{leader.phone}}</span>
                     <span class="email">{{leader.mail}}</span>
