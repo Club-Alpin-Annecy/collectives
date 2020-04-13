@@ -411,29 +411,36 @@ button:hover, a.button:hover{
 /* User icon display*/
 .usericon {
 	position: relative;
+	min-width: 150px;
+	height: 60px;
 	display: inline-block;
-	width: 80px;
-	border-radius: 5px;
-	background-color: #baccd6;
-	text-align: center;
-	border: 1px solid #888888;
+	margin : 10px 20px;
+	padding-right: 15px;
+
+	background: #F5F5F5;
+	border: 2px solid #006880;
+	border-left: none;
+	box-sizing: border-box;
+	border-radius: 30px;
+
+	font-size: 20px;
 }
 .usericon img.avatar{
-	width: 80px;
-	height: 80px;
-	border-radius: 5px 5px 0px 0px;
+	width: 60px;
+	height: 60px;
+	border-radius: 30px;
+	position: relative;
+	top: -2px;
+	left: -2px;
+	background-color: #CDCDCD;
+	vertical-align: middle;
 }
-.usericon .name{
-	padding: 1px .2em;
-	word-wrap: break-word;
-	min-height: 2.7em;
-	overflow: hidden;
-	width: 100%;
+
+.usericon .name a{
+	color: #121F22 !important;
 }
+
 .usericon span.license-tag{
-	position: absolute;
-	top: 2px;
-	left: 2px;
 	border-radius: 5px;
 	padding: 2px;
 }

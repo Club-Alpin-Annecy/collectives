@@ -5,19 +5,19 @@
                 else
                       %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
                 endif %}" />
-  <div class="name">
+  <span class="name">
       {% if leader_info %}
-            <a href="{{url_for('profile.show_leader', leader_id=user.id)}}" alt="Avatar de {{user.full_name()}}">{{user.full_name()}}</a>
+            <a href="{{url_for('profile.show_leader', leader_id=user.id)}}" alt="Avatar de {{user.full_name()}}">{{user.full_name().title()}}</a>
       {% elif user_info %}
             {% if user.is_minor() %}
             <span class="license-tag minor">-18</span>
             {% elif user.is_youth() %}
             <span class="license-tag youth">-25</span>
             {% endif %}
-            <a href="{{url_for('profile.show_user', user_id=user.id)}}" alt="Avatar de {{user.abbrev_name()}}">{{user.abbrev_name()}}</a>
+            <a href="{{url_for('profile.show_user', user_id=user.id)}}" alt="Avatar de {{user.abbrev_name()}}">{{user.abbrev_name().title()}}</a>
       {% else %}
-            {{user.abbrev_name()}}
+            {{user.abbrev_name().title()}}
       {% endif %}
-  </div>
+  </span>
 </div>
 {%- endmacro %}

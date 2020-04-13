@@ -30,14 +30,6 @@
         {% endif %}
         {{event.title}}
       </h3>
-      <div id="encadrement">
-        <h5>Encadrement</h5>
-        {% for user in event.ranked_leaders() %}
-          {% with leader_info=True %}
-            {{ macros.usericon(user, leader_info, user_info) }}
-          {% endwith %}
-        {% endfor %}
-      </div>
 
       <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
         {{ format_datetime_range(event.start, event.end) | capitalize}}
@@ -46,7 +38,16 @@
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
-
+    <div id="encadrement">
+      <h5>Encadrement</h5>
+      <div class="userlist">
+      {% for user in event.ranked_leaders() %}
+        {% with leader_info=True %}
+          {{ macros.usericon(user, leader_info, user_info) }}
+        {% endwith %}
+      {% endfor %}
+      </div>
+    </div>
     <div class="subscriptions">
       <h5> Liste des inscrits {{event.active_registrations().__len__()}} / {{event.num_slots}}
           {% if not event.has_free_slots() %}
@@ -86,7 +87,7 @@
           <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-            <div class="name">S'inscrire</div>
+            <span class="name">S'inscrire</span>
           </form>
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>

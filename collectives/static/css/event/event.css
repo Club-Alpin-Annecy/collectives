@@ -86,17 +86,13 @@ span.event-status{
   padding: 30px 40px;
   overflow-wrap: break-word;
 }
-#eventdetail #encadrement{
-  float: right;
-  text-align: center;
-}
 
-#eventdetail .subscriptions{
+#eventdetail .subscriptions, #eventdetail #encadrement{
   padding: 3px 20px;
 
 }
 
-#eventdetail .date, #eventdetail .subscriptions h5{
+#eventdetail .date, #eventdetail .subscriptions h5, #eventdetail #encadrement h5{
     color:  rgb(235,105,28);
 }
 
@@ -108,6 +104,7 @@ span.event-status{
 #eventdetail .useractionmenu form{
   display: none;
   position: absolute;
+  bottom: -15px;
   width: 80px;
   background-color: red;
   text-align: center;
@@ -116,7 +113,7 @@ span.event-status{
   padding: 5px 2px;
   cursor: pointer;
   border-radius: 5px;
-
+  z-index: 500;
 }
 #eventdetail .useractionmenu:hover form{
   display: inline-block;
@@ -125,7 +122,8 @@ span.event-status{
 #eventdetail .selfsubscribe{
   cursor: pointer;
   margin-left: 40px;
-  border: 3px solid #00a6d0;
+  background-color: #006880;
+  color: white;
 }
 
 #eventdetail .selfunregister{
