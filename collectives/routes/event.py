@@ -186,7 +186,13 @@ def manage_event(event_id=None):
             if not event.opens_before_closes():
                 flash("Les inscriptions internet doivent ouvrir avant de terminer")
                 valid = False
-            if not event.opens_before_ends():
+            if not event.closes_before_starts():
+                # May need to be relaxed for special events. See #159
+                flash(
+                    "Les inscriptions internet doivent se terminer avant le début de l'événement"
+                )
+                valid = False
+            elif not event.opens_before_ends():
                 flash(
                     "Les inscriptions internet doivent ouvrir avant la fin de l'événement"
                 )

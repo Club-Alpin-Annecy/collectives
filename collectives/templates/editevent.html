@@ -11,6 +11,7 @@
   {# DateTime picker#}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css') }}">
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
@@ -40,6 +41,11 @@
         onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
   >
+    {# We want to make sure pressing 'Enter' submits the whole form #}
+    {# For this add a hidden submit button before 'update_leaders' #}
+    {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }} 
+
+
     <h4>Encadrants</h4>
     <div id="encadrement">
       {% for action in form.leader_actions %}
@@ -76,10 +82,10 @@
       <h4>Dates</h4>
       <span class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</span>
       <span class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</span>
-      <b id="dateorder1" style="display: none"><br/>
+      <span id="starts_before_ends_error" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
-          La date de début d'évènement doit être antérieure à la fin
-      </b>
+          L'événement doit commencer avant de se terminer.
+      </span>
     </div>
 
     <div class="dates">
@@ -87,18 +93,18 @@
       <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
       <span class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</span>
       <span class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</span>
-      <b id="halfregistration" style="display: none"><br/>
+      <span id="halfregistration" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
-          Vous devez définir le début et la fin des inscriptions
-      </b>
-      <b id="dateorder2" style="display: none"><br/>
+          Vous devez définir le début et la fin des inscriptions.
+      </span>
+      <span id="closes_before_starts_error" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
-          La date de fin d'inscription doit être antérieure à la fin de l'évènement
-      </b>
-      <b id="dateorder3" style="display: none"><br/>
+          Les inscriptions par internet doivent se terminer avant le début de l'événement
+      </span>
+      <span id="opens_before_closes_error" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
-          La date de début d'inscription doit être antérieure à la fin de l'inscription
-      </b>
+          Les inscriptions par internet doivent débuter avant de se terminer.
+      </span>
     </div>
 
     <h4>Description</h4>

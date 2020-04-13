@@ -252,6 +252,16 @@ class Event(db.Model):
         """
         return self.registration_open_time <= self.end
 
+    def closes_before_starts(self):
+        """ Check if this event closes registrations before starting.
+        This should be the case for "normal" events, see #159
+
+        :return: Is :py:attr:`registration_close_time` anterior to
+             :py:attr:`start` ?
+        :rtype: boolean
+        """
+        return self.registration_close_time <= self.start
+
     def has_valid_slots(self):
         """ Check if this event does not have more online slots than overall
         slots.
