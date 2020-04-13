@@ -113,7 +113,10 @@
 </div>
 <script>
 tail.DateTime("input[type=datetime]",{
-    weekStart: 1
+    weekStart: 1,
+    locale: "fr",
+    timeStepMinutes: 15,
+    timeSeconds: false,
 });
 
 var simplemde = makeEditor("description");
