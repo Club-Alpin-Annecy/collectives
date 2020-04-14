@@ -82,8 +82,8 @@
 
     <div class="dates">
       <h4>Dates</h4>
-      <span class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</span>
-      <span class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</span>
+      <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
+      <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
       <span id="starts_before_ends_error" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
           L'événement doit commencer avant de se terminer.
@@ -93,8 +93,8 @@
     <div class="dates">
       <h4>Inscriptions par internet</h4>
       <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
-      <span class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</span>
-      <span class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</span>
+      <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
+      <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
       <span id="halfregistration" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
           Vous devez définir le début et la fin des inscriptions.
@@ -120,13 +120,25 @@
   </form>
 </div>
 <script>
-tail.DateTime("input[type=datetime]",{
-    weekStart: 1,
-    locale: "fr",
-    timeStepMinutes: 15,
-    timeSeconds: false,
-});
+var datepickers = {};
+document.querySelectorAll("input[type=datetime]").forEach(function(input){
+                var datepicker = tail.DateTime(input,{
+                    animate: false,
+                    weekStart: 1,
+                    locale: "fr",
+                    timeStepMinutes: 15,
+                    timeSeconds: false,
+                    closeButton: false,
+                    startOpen: true,
+                    stayOpen: true, 
+                    position: "#"+input.parentElement.id,
+                    classNames:"form-tail-datetime default",
+                });
+                datepickers[input.id]=datepicker;
+                input.style.display = "none";
 
+});
+updateToolTip(null);
 var simplemde = makeEditor("description");
 </script>
 
