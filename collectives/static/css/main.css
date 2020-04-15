@@ -245,7 +245,6 @@ a:hover{
 	height: 60px;
 	display: inline-block;
 	margin: 0;
-	padding: 0;
 	line-height: 60px;
 	white-space: nowrap;
 	vertical-align: middle;
@@ -264,10 +263,12 @@ a:hover{
 }
 
 #header #menu{
+	line-height: 1px;
 	position: relative;
 	background-color: rgb(29,105,137)	;
 }
 #header #menu .content{
+	line-height: 50px;
 	display: none;
 	position: absolute;
 	background-color: #f1f1f1;
