@@ -46,31 +46,47 @@
         Collectives du club
     </h3>
     <div id="filters">
-        <div class="">
-            Afficher aussi les collectives:
-            <label> passées <input
-                                            type="checkbox"
-                                            onchange="togglePastActivities(this)"
-                                            autocomplete="off"
-                                            id="pastcheckbox"
-                                            /></label>
-            <label> annulées <input
-                                            type="checkbox"
-                                            onchange="toggleConfirmedOnly(!this.checked)"
-                                            autocomplete="off"
-                                            checked="1"
-                                            id="cancelledcheckbox"
-                                            /></label>
-        </div>
-        <div class="activity_filters">
-            Activité:
-            {% for type in types %}
-                <span
-                    class="activity {{type.short}} unselected s30px"
-                    onclick="toggleActivity('{{type.short}}');"
-                    title="{{type.name}}"
-                ></span>
-            {% endfor %}
+        <div>
+            
+            <input
+                    type="checkbox"
+                    onchange="togglePastActivities(this)"
+                    autocomplete="off"
+                    id="pastcheckbox"
+                    class="button"
+                    />
+            <label class="checkbox" for="pastcheckbox"> Passées </label>
+            
+            <input
+                    type="checkbox"
+                    onchange="toggleConfirmedOnly(!this.checked)"
+                    autocomplete="off"
+                    checked="1"
+                    id="cancelledcheckbox"
+                    class="button"
+                    />
+            <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
+             
+            <div class="select" >
+                    <div class="chevrons">
+                         &#11205;<br/>
+                         &#11206;
+                    </div>
+                    <input type="checkbox" id="select_display"/>
+                    <label for="select_display">Sélectionner votre activité</label>
+                    <label for="select_display" class="closer"></label>
+                    
+                    <input type="radio" name="activity" id="select_all" checked/>
+                    <label for="select_all" onclick="selectActivity(false);">Toutes activités</label>
+                    {% for type in types %}
+                        <input type="radio" name="activity" id="select_{{type.short}}"/>
+                        <label for="select_{{type.short}}" onclick="selectActivity('{{type.short}}');"> 
+                            <span class="activity {{type.short}} s30px"></span> 
+                            {{type.name}}
+                        </label>
+                    {% endfor %}
+                
+            </div>
         </div>
     </div>
     <div id="eventstable"></div>

@@ -173,20 +173,26 @@ function displayLeader(user){
 }
 
 
-function toggleActivity(activity_id, element){
-    filter={field:"activity_type", type:"=", value: activity_id};
+function selectActivity(activity_id, element){
+    
 
     // Toggle filter
     currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
-
-
-    if (currentActivityFilter.length ==0)
-        eventsTable.addFilter( [filter]);
-    else if (currentActivityFilter[0]['value'] == activity_id)
+    console.log(currentActivityFilter.length);
+    
+    // Display all activities
+    if (false === activity_id && currentActivityFilter.length != 0)
         eventsTable.removeFilter(currentActivityFilter);
-    else{
-        eventsTable.removeFilter(currentActivityFilter);
-        eventsTable.addFilter( [filter]);
+
+    
+    if (false !== activity_id){
+        filter={field:"activity_type", type:"=", value: activity_id};
+        if( currentActivityFilter.length ==0)
+            eventsTable.addFilter( [filter]);
+        else{
+            eventsTable.removeFilter(currentActivityFilter);
+            eventsTable.addFilter( [filter]);
+        }
     }
 
     refreshFilterDisplay();
@@ -217,14 +223,13 @@ function toggleConfirmedOnly(confirmedOnly){
 function refreshFilterDisplay(){
     var filters = eventsTable.getFilters();
     // Unselect all activity filter buttons
-    for ( button of document.querySelectorAll('#eventlist #filters .activity') )
-        button.classList.add('unselected');
+    document.getElementById('select_all').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
         if (filter['field'] == 'activity_type')
-            document.querySelector('#eventlist #filters .'+filter['value']).classList.remove('unselected');
+            document.getElementById('select_'+filter['value']).checked = true;
     }
 
 
