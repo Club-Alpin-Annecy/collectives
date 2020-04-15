@@ -22,7 +22,16 @@
 {% block content %}
 <div class="panel" id="eventdetail">
     <h3>{{user.full_name()}}</h3>
-
+    
+    <div><img src="{%   if user.avatar
+                                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
+                        else
+                                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                        endif %}"
+                alt="Avatar de l'utilisateur"
+                class="avatar big float_right" />
+    </div>
+    
     <h4>Rôles</h4>
     <ul>
         {% for role in user.roles %}
