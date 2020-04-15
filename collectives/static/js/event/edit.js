@@ -214,39 +214,4 @@ function removeRequiredAttributes()
     );
 }
 
-function updateToolTip(e){
-    const new_tooltips = [
-        {
-            date: moment(datepickers['start'].fetchDate()).format( "YYYY-MM-DD"),
-            text: "Début",
-            color: "#3333ff"
-        },
-        {
-            date:  moment(datepickers['end'].fetchDate()).format( "YYYY-MM-DD"),
-            text: "Fin",
-            color: "#3333ff"
-        }, 
-        {
-            date: moment(datepickers['registration_open_time'].fetchDate()).format( "YYYY-MM-DD"),
-            text: "Début des inscriptions",
-            color: "#000000"
-        },
-        {
-            date:  moment(datepickers['registration_close_time'].fetchDate()).format( "YYYY-MM-DD"),
-            text: "Fin des inscriptions",
-            color: "#000000"
-        },
-    ];
-
-    if(JSON.stringify(tooltips) == JSON.stringify(new_tooltips))
-        return 0;
-    tooltips = new_tooltips;
-
-    Object.values(datepickers).forEach(function(picker){
-        picker.con.tooltips = tooltips;
-        picker.reload();
-        picker.on('change', updateToolTip);
-    });
- 
-}
     

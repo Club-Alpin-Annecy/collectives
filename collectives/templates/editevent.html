@@ -120,8 +120,6 @@
   </form>
 </div>
 <script>
-var datepickers = {};
-var tooltips = [];
 document.querySelectorAll("input[type=datetime]").forEach(function(input){
                 var datepicker = tail.DateTime(input,{
                     animate: false,
@@ -135,11 +133,7 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                     position: "#"+input.parentElement.id,
                     classNames:"form-tail-datetime default",
                 });
-                datepickers[input.id]=datepicker;
-                input.style.display = "none";
-
 });
-updateToolTip(null);
 var simplemde = makeEditor("description");
 </script>
 
