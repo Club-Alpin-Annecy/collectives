@@ -215,7 +215,7 @@ function removeRequiredAttributes()
 }
 
 function updateToolTip(e){
-    const tooltips= [
+    const new_tooltips = [
         {
             date: moment(datepickers['start'].fetchDate()).format( "YYYY-MM-DD"),
             text: "Début",
@@ -237,11 +237,16 @@ function updateToolTip(e){
             color: "#000000"
         },
     ];
+
+    if(JSON.stringify(tooltips) == JSON.stringify(new_tooltips))
+        return 0;
+    tooltips = new_tooltips;
+
     Object.values(datepickers).forEach(function(picker){
         picker.con.tooltips = tooltips;
         picker.reload();
         picker.on('change', updateToolTip);
     });
-    
+ 
 }
     
