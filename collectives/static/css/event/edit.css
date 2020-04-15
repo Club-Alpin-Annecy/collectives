@@ -64,4 +64,22 @@
 {
   display: none;
   font-weight: bold;
+  color: red;
+  font-size: 150%;
+}
+
+#eventedit .datetimepicker{
+    display: inline-block !important;
+}
+#eventedit .datetimepicker label{
+    width: 100%;
+    text-align: center;
+}
+#eventedit .form-tail-datetime{
+    
+    vertical-align: middle;
+}
+#eventedit .form-tail-datetime input{  
+  width : 75px;
+  margin-bottom: 0;
 }
