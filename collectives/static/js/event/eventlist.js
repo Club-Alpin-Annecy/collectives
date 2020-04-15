@@ -68,6 +68,10 @@ window.onload = function(){
                 }
             },
   		});
+        
+        document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
+                    button.addEventListener('click', gotoEvents);
+                });
 
         // Try to extract and set page
         var page = document.location.toString().split('#p')[1];
@@ -239,8 +243,9 @@ function updatePageURL(){
 }
 
 function gotoEvents(event){
-    // if we are not on top, do not mess with page position
-    if(window.scrollY > 50)
+    console.log(event);
+    // if we are not on top during a load, do not mess with page position
+    if(window.scrollY > 50 && event.type !== 'click')
         return 0;
 
     var position = document.querySelector('#eventlist').getBoundingClientRect().top +  window.scrollY - 60;
