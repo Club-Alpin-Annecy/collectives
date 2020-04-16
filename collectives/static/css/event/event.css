@@ -3,11 +3,25 @@
     padding: 20px;
     text-align: right;
 }
-#eventlist #filters .unselected{
-    opacity: .5;
+
+#eventlist #filters input.button{
+    display:none;
 }
-#eventlist #filters .activity{
+#eventlist #filters input.button + label{
+    height: 40px;
+    border: 2px solid rgb(29,105,137);
+    font-size: 20px;
+    vertical-align: middle;
+    line-height: 40px;
+    display: inline-block;
+    padding: 0 10px;
+    color: grey;
     cursor: pointer;
+}
+#eventlist #filters input.button:checked + label{
+    color: white;
+    background-color: rgb(29,105,137);
+    font-weight: bold;
 }
 
 #eventlist #eventstable{
@@ -170,4 +184,77 @@ span.event-status{
 }
 #description a:hover{
   text-decoration: none;
+}
+
+.select{
+    height: 40px;
+    width: 360px;
+    position: relative;
+    border: 1px solid rgb(29,105,137);
+    text-align: left;
+    font-size: 20px;
+    vertical-align: middle;
+    line-height: 40px;
+    display: inline-block;
+    z-index:100;
+}
+
+.select .chevrons{
+    float: right;
+    height: 30px;
+    margin-top: 5px;
+    z-index:10000;
+    transform: rotate(90deg);
+    position: relative;
+    color: rgb(29,105,137);
+}
+.select input[type="checkbox"]{
+    height: 100%;
+    width: 100%; 
+    opacity: 0;
+    position: absolute;
+    top:0;
+    left:0;
+    z-index: 10000;
+ }
+.select input[type="checkbox"]:checked + .message{
+    display: block;
+}
+.select input[type="radio"]{
+    display: none;
+}
+
+.select label.closer{
+    position: fixed;
+    top:0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background: none;
+    z-index: 100;
+}
+
+.select label{
+    display:none;
+    height: 100%;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border: 1px solid rgb(29,105,137);
+    background-color: white;
+    cursor: pointer;
+    z-index: 5000;
+    position: relative;
+}
+.select input[type="checkbox"]:checked ~ label{
+    display: block;
+    border-top: none;
+}
+.select input[type="radio"]:checked + label{
+    display: block;
+    background-color: #e0e0e0;
+}
+
+.select input[type="checkbox"]:not(:checked) ~ label{
+    background-color: white !important;
 }
