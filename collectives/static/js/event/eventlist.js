@@ -44,7 +44,7 @@ window.onload = function(){
   			],
   			    rowFormatter: eventRowFormatter,
             groupHeader:function(value, count, data, group){
-                return moment(new Date(value)).format('dddd D MMMM YYYY').capitalize();
+                return moment(value).format('dddd D MMMM YYYY').capitalize();
             },
             locale: true,
             locale:true,
@@ -157,7 +157,7 @@ function localInterval(start, end){
 }
 
 function localDate(date){
-    return moment(new Date(date)).format('ddd D MMM YY');
+    return moment(date).format('ddd D MMM YY');
 }
 
 function slots(nb, css){
