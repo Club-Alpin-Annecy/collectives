@@ -201,9 +201,9 @@ span.event-status{
 
 .select .chevrons{
     float: right;
-    line-height: 10px;
+    line-height: 15px;
     height: 100%;
-    margin: 10px 0;
+    margin: 5px 0;
     padding-right: 10px;
     z-index:10000;
     position: relative;
