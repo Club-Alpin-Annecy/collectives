@@ -41,7 +41,11 @@
     {% for field in form %}
     {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "TextAreaField" ]) %}
     <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
-    {{ field(title=field.description) }}
+    {% if field.type == "FileField" %}
+        {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
+    {% else %}
+        {{ field(title=field.description) }}
+    {% endif %}
     {% endif %}
     {% endfor %}
 
