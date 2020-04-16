@@ -201,11 +201,10 @@ span.event-status{
 
 .select .chevrons{
     float: right;
-    line-height: 15px;
-    height: 100%;
-    margin: 5px 0;
-    padding-right: 10px;
+    height: 30px;
+    margin-top: 5px;
     z-index:10000;
+    transform: rotate(90deg);
     position: relative;
     color: rgb(29,105,137);
 }
