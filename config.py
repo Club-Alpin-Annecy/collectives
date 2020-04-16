@@ -186,6 +186,17 @@ a hash. ``short`` is the name of the icon.
 """
 
 # Technical stuff
+MAX_FILE_SIZE=2 * 1024 * 1024
+""" Max size to upload files.
+
+:type: int """
+MAX_FILE_SIZE_MESSAGE=f"Le fichier est trop gros pour être chargé sur le serveur: [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
+""" Error message if uploaded file is too big.
+
+This error message is only used in form validation on client. `[size]` is a
+placeholder which will be replaced by the actual size of the file.
+
+:type: int """
 UPLOADED_PHOTOS_DEST = os.path.join(basedir,
                                     "collectives/static/uploads")
 """Folder path for uploaded event photos.

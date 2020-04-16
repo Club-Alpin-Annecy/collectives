@@ -23,4 +23,4 @@ def configure_forms(app):
     configure_uploads(app, avatars)
 
     # set maximum file size, default is 3MB
-    patch_request_class(app, 3 * 1024 * 1024)
+    patch_request_class(app, app.config["MAX_FILE_SIZE"])

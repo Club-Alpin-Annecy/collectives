@@ -15,7 +15,8 @@ from .validators import UniqueValidator, PasswordValidator
 
 class AvatarForm:
     avatar_file = FileField(
-        "Nouvelle photo de profil", validators=[FileAllowed(photos, "Image uniquement!")]
+        "Nouvelle photo de profil",
+        validators=[FileAllowed(photos, "Image uniquement!")],
     )
     remove_avatar = BooleanField("Supprimer la photo de profil existante")
 
