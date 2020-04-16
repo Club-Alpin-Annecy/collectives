@@ -148,6 +148,7 @@
                          class="grow"
                          />
                    <input type="button" value="Copier" onclick="copyToClipboard('phonelist' )">
+                   <input type="button" value="Message" onclick="document.location.href='sms:' + document.getElementById('phonelist').value">
               </p>
                <p class="inputGrow">
                   <label>
@@ -160,6 +161,7 @@
                          class="grow"
                          />
                   <input type="button" value="Copier" onclick="copyToClipboard('maillist')">
+                  <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('maillist').value">
                 </p>
           </div>
       {% else %}
