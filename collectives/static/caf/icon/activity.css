@@ -97,7 +97,7 @@ span.activity.s90px{
     background-position: 77.77% 11.11%;
 }
 
-.icon8_1, span.activity.ski_fond{
+.icon8_1, span.activity.ski_fond, span.activity.ski_nordique{
     background-position: 88.88% 11.11%;
 }
 
@@ -163,4 +163,8 @@ span.activity.s90px{
 
 .icon4_3, span.activity.viaferrata{
     background-position: 44.44% 33.33%;
+}
+
+.icon5_3, span.activity.marche_nordique{
+    background-position: 55.55% 33.33%;
 }
