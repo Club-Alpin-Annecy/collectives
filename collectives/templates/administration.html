@@ -8,6 +8,7 @@
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.1/dist/js/tabulator.min.js"></script>
 
   {# Specific for this page #}
+  <script>const filters =  {{ filters |safe }}</script>
   <script src="{{ url_for('static', filename='js/administration.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
 
@@ -21,6 +22,7 @@
 <div class="panel" id="administration">
   <h3>Administration</h3>
   <h4>Utilisateurs</h4>
+  <h5>{{count['total']}} utilisateurs dont {{count['enable']}} activés</h5>
   <div class="action"><a href="{{url_for('administration.manage_user')}}" class="button">Ajouter un utilisateur</a></div>
   <div id="users-table"></div>
 </div>

@@ -25,8 +25,26 @@ def before_request():
 
 @blueprint.route("/", methods=["GET", "POST"])
 def administration():
-    users = User.query.all()
-    return render_template("administration.html", conf=current_app.config, users=users)
+    # Create the filter list
+    filters = {"": ""}
+    for activity in ActivityType.get_all_types():
+        filters[f"t{activity.id}"] = f"{activity.name} (Tous)"
+        for role in RoleIds.all_activity_leader_roles():
+            filters[
+                f"t{activity.id}-r{int(role)}"
+            ] = f"- {activity.name} ({role.display_name()})"
+
+    filters[f"tnone"] = f"Role General"
+    for role in RoleIds.all_event_creator_roles():
+        filters[f"r{role}"] = f"Role {role.display_name()}"
+
+    count = {}
+    count["total"] = User.query.count()
+    count["enable"] = User.query.filter(User.enabled == True).count()
+
+    return render_template(
+        "administration.html", conf=current_app.config, filters=filters, count=count
+    )
 
 
 @blueprint.route("/users/add", methods=["GET", "POST"])

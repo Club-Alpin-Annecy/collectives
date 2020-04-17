@@ -75,6 +75,17 @@ class RoleIds(ChoiceEnum):
         """
         return cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
+    @classmethod
+    def get(cls, required_id):
+        """
+        :return: Get a :py:class:`RodeIds` from its id
+        :rtype: :py:class:`RodeIds`
+        """
+        for role_id in cls.all_event_creator_roles():
+            if role_id == int(required_id):
+                return role_id
+        raise Exception(f"Unknown role id {required_id}")
+
 
 class Role(db.Model):
     """ Role for a specific user.
@@ -116,6 +127,7 @@ class Role(db.Model):
     :type: :py:class:`RoleIds`
     """
 
+    @property
     def name(self):
         """ Returns the name of the role.
 
