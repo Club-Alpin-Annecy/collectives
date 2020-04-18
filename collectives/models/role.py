@@ -81,7 +81,7 @@ class RoleIds(ChoiceEnum):
         :return: Get a :py:class:`RodeIds` from its id
         :rtype: :py:class:`RodeIds`
         """
-        for role_id in cls.all_event_creator_roles():
+        for role_id in cls:
             if role_id == int(required_id):
                 return role_id
         raise Exception(f"Unknown role id {required_id}")

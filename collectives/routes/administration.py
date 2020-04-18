@@ -27,16 +27,14 @@ def before_request():
 def administration():
     # Create the filter list
     filters = {"": ""}
+    filters[f"tnone"] = f"Role General"
+    for role in RoleIds:
+        filters[f"r{role}"] = f"Role {role.display_name()}"
     for activity in ActivityType.get_all_types():
         filters[f"t{activity.id}"] = f"{activity.name} (Tous)"
         for role in RoleIds.all_activity_leader_roles():
-            filters[
-                f"t{activity.id}-r{int(role)}"
-            ] = f"- {activity.name} ({role.display_name()})"
-
-    filters[f"tnone"] = f"Role General"
-    for role in RoleIds.all_event_creator_roles():
-        filters[f"r{role}"] = f"Role {role.display_name()}"
+            filter_id = f"t{activity.id}-r{int(role)}"
+            filters[filter_id] = f"- {activity.name} ({role.display_name()})"
 
     count = {}
     count["total"] = User.query.count()

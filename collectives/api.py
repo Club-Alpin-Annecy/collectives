@@ -151,7 +151,6 @@ def users():
             for role_filter in value.split("-"):
                 role_value = None if role_filter[1:] == "none" else role_filter[1:]
                 if role_filter[0] == "r":
-                    print(id, flush=True)
                     query_filter = User.roles.any(
                         Role.role_id == RoleIds.get(role_value)
                     )
