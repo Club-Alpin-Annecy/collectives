@@ -19,7 +19,7 @@ from flask import Blueprint, abort
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
 from sqlalchemy.sql import text
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, and_
 
 from marshmallow import fields
 
@@ -148,18 +148,22 @@ def users():
 
         if field == "roles":
             # if field is roles,
-            for role_filter in value.split("-"):
-                role_value = None if role_filter[1:] == "none" else role_filter[1:]
-                if role_filter[0] == "r":
-                    query_filter = User.roles.any(
-                        Role.role_id == RoleIds.get(role_value)
-                    )
-                if role_filter[0] == "t":
-                    query_filter = User.roles.any(Role.activity_id == role_value)
-                query = query.filter(query_filter)
+
+            filters = {i[0]: i[1:] for i in value.split("-")}
+            if "r" in filters:
+                filters["r"] = Role.role_id == RoleIds.get(filters["r"])
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Role.activity_id == filters["t"]
+
+            filters = list(filters.values())
+            query_filter = User.roles.any(and_(*filters))
+
         else:
             query_filter = getattr(User, field).ilike(f"%{value}%")
-            query = query.filter(query_filter)
+
+        query = query.filter(query_filter)
         # Get next filter
         i += 1
 
