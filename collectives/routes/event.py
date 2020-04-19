@@ -29,6 +29,10 @@ def accept_event_leaders(activities, leaders, multi_activity_mode):
     """
     Check whether all activities have a valid leader, display error if not the case
     """
+    if len(activities) == 0:
+        flash("Aucune activité définie", "error")
+        return False
+
     if current_user.is_moderator():
         return True
 
@@ -51,7 +55,7 @@ def accept_event_leaders(activities, leaders, multi_activity_mode):
             names = [a.name for a in problems]
             flash(
                 "Aucun encadrant valide n'a été défini pour les activités {}".format(
-                    names.join(", ")
+                    ", ".join(names)
                 )
             )
         return False
@@ -73,8 +77,8 @@ def accept_event_leaders(activities, leaders, multi_activity_mode):
     else:
         names = [u.full_name() for u in problems]
         flash(
-            "{} ne peuvent pas l'activité {}".format(
-                names.join(", "), activities[0].name
+            "{} ne peuvent pas encadrer l'activité {}".format(
+                ", ".join(names), activities[0].name
             )
         )
     return False
@@ -142,23 +146,21 @@ def print_event(event_id):
 @login_required
 @confidentiality_agreement()
 def manage_event(event_id=None):
-    multi_activities_mode = False
-
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
     form = EventForm(
-        event, multi_activities_mode, CombinedMultiDict((request.files, request.form))
+        event, CombinedMultiDict((request.files, request.form))
     )
 
     if not form.is_submitted():
         if event_id is None:
-            form = EventForm(event, multi_activities_mode)
+            form = EventForm(event)
             form.set_default_description()
         elif not form.is_submitted():
-            form = EventForm(event, multi_activities_mode, obj=event)
+            form = EventForm(event, obj=event)
         form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
@@ -202,7 +204,7 @@ def manage_event(event_id=None):
         # Check that the set of leaders is valid for current activities
         tentative_activities = form.current_activities()
         if accept_event_leaders(
-            tentative_activities, form.current_leaders, multi_activities_mode
+            tentative_activities, form.current_leaders, form.multi_activities_mode.data
         ):
             if not event_id is None:
                 event.activity_types = tentative_activities
@@ -210,8 +212,9 @@ def manage_event(event_id=None):
                 db.session.commit()
         elif not event_id is None:
             # Revert to previous event activity
-            form.type.data = event.current_activities[0].id
-            form.update_choices()
+            form.type.data = event.activity_types[0].id
+            form.types.data = [event.activity_types[0].id]
+            form.update_choices(event)
 
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
@@ -242,7 +245,7 @@ def manage_event(event_id=None):
     if has_removed_leaders or int(form.update_leaders.data):
         # Check that the set of leaders is valid for current activities
         if not has_changed_leaders or accept_event_leaders(
-            form.current_activities(), tentative_leaders, multi_activities_mode
+            form.current_activities(), tentative_leaders, form.multi_activities_mode.data
         ):
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
@@ -307,22 +310,21 @@ def manage_event(event_id=None):
     event.set_rendered_description(event.description)
 
     # For now enforce single activity type
-    activity_type = ActivityType.query.filter_by(id=event.type).first()
-    has_new_activity = activity_type not in event.activity_types
+    tentative_activities = form.current_activities()
+    has_new_activity = any(a not in event.activity_types for a in tentative_activities)
 
     # We have changed activity or added/removed a leader
     # Check that there is a valid leader
     if has_new_activity or has_changed_leaders:
         if not accept_event_leaders(
-            form.current_activities(), tentative_leaders, multi_activities_mode
+            form.current_activities(), tentative_leaders, form.multi_activities_mode.data
         ):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
 
     # Apply changes
-    if has_new_activity:
-        event.activity_types = form.current_activities()
+    event.activity_types = tentative_activities
     event.leaders = tentative_leaders
 
     # We have to save new event before add the photo, or id is not defined
@@ -353,8 +355,6 @@ def manage_event(event_id=None):
 @login_required
 @confidentiality_agreement()
 def duplicate(event_id=None):
-    multi_activities_mode = False
-
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
@@ -365,7 +365,7 @@ def duplicate(event_id=None):
         flash("Pas d'évènement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
-    form = EventForm(event, multi_activities_mode, obj=event)
+    form = EventForm(event, obj=event)
     form.setup_leader_actions()
     form.duplicate_photo.data = event_id
 
