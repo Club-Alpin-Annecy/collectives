@@ -10,6 +10,7 @@ from werkzeug.datastructures import CombinedMultiDict
 from ..forms import EventForm, photos, RegistrationForm, CSVForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels
 from ..models import RegistrationStatus, User, db
+from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 
@@ -24,29 +25,56 @@ blueprint = Blueprint("event", __name__, url_prefix="/event")
 This blueprint contains all routes for avent display and management"""
 
 
-def accept_event_leaders(event, leaders):
+def accept_event_leaders(activities, leaders, multi_activity_mode):
     """
     Check whether all activities have a valid leader, display error if not the case
     """
-    if not any(leaders):
-        flash("Au moins un encadrant doit être défini")
-        return False
     if current_user.is_moderator():
         return True
-    problems = event.activities_without_leader(leaders)
+
+    if multi_activity_mode:
+        if not any(leaders):
+            flash("Au moins un encadrant doit être défini")
+            return False
+        if current_user.is_moderator():
+            return True
+        problems = activities_without_leader(activities, leaders)
+        if len(problems) == 0:
+            return True
+        if len(problems) == 1:
+            flash(
+                "Aucun encadrant valide n'a été défini pour l'activité {}".format(
+                    problems[0].name
+                )
+            )
+        else:
+            names = [a.name for a in problems]
+            flash(
+                "Aucun encadrant valide n'a été défini pour les activités {}".format(
+                    names.join(", ")
+                )
+            )
+        return False
+
+    # Single activity mode
+    # Checks whether all leaders can lead this activity
+    if len(activities) != 1:
+        flash("Une seule activité doit être définie", "error")
+
+    problems = leaders_without_activities(activities, leaders)
     if len(problems) == 0:
         return True
     if len(problems) == 1:
         flash(
-            "Aucun encadrant valide n'a été défini pour l'activité {}".format(
-                problems[0].name
+            "{} ne peut pas encadrer l'activité {}".format(
+                problems[0].full_name(), activities[0].name
             )
         )
     else:
-        names = [a.name for a in problems]
+        names = [u.full_name() for u in problems]
         flash(
-            "Aucun encadrant valide n'a été défini pour les activités {}".format(
-                names.join(", ")
+            "{} ne peuvent pas l'activité {}".format(
+                names.join(", "), activities[0].name
             )
         )
     return False
@@ -114,19 +142,23 @@ def print_event(event_id):
 @login_required
 @confidentiality_agreement()
 def manage_event(event_id=None):
+    multi_activities_mode = False
+
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
-    form = EventForm(event, CombinedMultiDict((request.files, request.form)))
+    form = EventForm(
+        event, multi_activities_mode, CombinedMultiDict((request.files, request.form))
+    )
 
     if not form.is_submitted():
         if event_id is None:
-            form = EventForm(event)
+            form = EventForm(event, multi_activities_mode)
             form.set_default_description()
         elif not form.is_submitted():
-            form = EventForm(event, obj=event)
+            form = EventForm(event, multi_activities_mode, obj=event)
         form.setup_leader_actions()
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
@@ -164,6 +196,27 @@ def manage_event(event_id=None):
                 flash("Données incohérentes.", "error")
                 return redirect(url_for("event.index"))
 
+    # The 'Update activity' button has been clicked
+    # Do not process the remainder of the form
+    if form.update_activity.data == "1":
+        # Check that the set of leaders is valid for current activities
+        tentative_activities = form.current_activities()
+        if accept_event_leaders(
+            tentative_activities, form.current_leaders, multi_activities_mode
+        ):
+            if not event_id is None:
+                event.activity_types = tentative_activities
+                db.session.add(event)
+                db.session.commit()
+        elif not event_id is None:
+            # Revert to previous event activity
+            form.type.data = event.current_activities[0].id
+            form.update_choices()
+
+        return render_template(
+            "editevent.html", conf=current_app.config, event=event, form=form
+        )
+
     # Add new leader
     new_leader_id = int(form.add_leader.data)
     if new_leader_id > 0:
@@ -186,7 +239,9 @@ def manage_event(event_id=None):
     # Do not process the remainder of the form
     if form.update_leaders.data:
         # Check that the set of leaders is valid for current activities
-        if not has_removed_leaders or accept_event_leaders(event, tentative_leaders):
+        if not has_removed_leaders or accept_event_leaders(
+            form.current_activities(), tentative_leaders, multi_activities_mode
+        ):
             form.set_current_leaders(tentative_leaders)
             form.update_choices(event)
             form.setup_leader_actions()
@@ -293,6 +348,8 @@ def manage_event(event_id=None):
 @login_required
 @confidentiality_agreement()
 def duplicate(event_id=None):
+    multi_activities_mode = False
+
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
@@ -303,7 +360,7 @@ def duplicate(event_id=None):
         flash("Pas d'évènement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
-    form = EventForm(event, obj=event)
+    form = EventForm(event, multi_activities_mode, obj=event)
     form.setup_leader_actions()
     form.duplicate_photo.data = event_id
 
