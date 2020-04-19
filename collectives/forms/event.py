@@ -70,7 +70,7 @@ def available_activities(activities, leaders, union):
         for leader in leaders:
             if choices is None:
                 choices = leader.led_activities()
-            if union:
+            elif union:
                 choices |= leader.led_activities()
             else:
                 choices &= leader.led_activities()
