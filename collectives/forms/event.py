@@ -16,7 +16,7 @@ from ..models import ActivityType
 from ..models import User, Role, RoleIds, db
 
 
-def available_leaders(leaders):
+def available_leaders(leaders, activity_ids):
     """Creates a list of leaders that can be added to an event.
 
     This list can be used in a select form input. It will all users with
@@ -32,14 +32,16 @@ def available_leaders(leaders):
 
     query = db.session.query(User)
     query = query.filter(Role.user_id == User.id)
-    query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
+    query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
+    if len(activity_ids) > 0:
+        query = query.filter(Role.activity_id.in_(activity_ids))
     query = query.order_by(User.first_name, User.last_name)
     choices = query.all()
 
     return [u for u in choices if u not in existing_leaders]
 
 
-def available_activities(activities, leaders):
+def available_activities(activities, leaders, union):
     """Creates a list of activities theses leaders can lead.
 
     This list can be used in a select form input. It will contain activities
@@ -49,8 +51,10 @@ def available_activities(activities, leaders):
 
     :param activities: list of activities that will always appears in the list
     :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
-    :param leader: list of leader used to build activity list.
-    :type leader: list[:py:class:`collectives.models.user.User`]
+    :param leaders: list of leader used to build activity list.
+    :type leaders: list[:py:class:`collectives.models.user.User`]
+    :param union: If true, return the union all activities that can be lead, otherwise return the intersection
+    :type union: bool
     :return: List of authorized activities
     :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
     """
@@ -60,8 +64,12 @@ def available_activities(activities, leaders):
         # Gather unique activities
         choices = set(activities)
         for leader in leaders:
-            choices.update(leader.led_activities())
+            if union:
+                choices |= leader.led_activities()
+            else:
+                choices &= leader.led_activities()
         choices = list(choices)
+
     choices.sort(key=attrgetter("order", "name", "id"))
 
     return choices
@@ -110,13 +118,16 @@ class EventForm(ModelForm, FlaskForm):
 
     main_leader_id = RadioField("Responsable", coerce=int)
 
+    update_activity = HiddenField()
     update_leaders = SubmitField("Mettre à jour les encadrants")
     save_all = SubmitField("Enregistrer")
 
     current_leaders = []
     main_leader_fields = []
 
-    def __init__(self, event, *args, **kwargs):
+    multi_activities_mode = False
+
+    def __init__(self, event, multi_activities_mode, *args, **kwargs):
         """
         event is only used to populate activity/leader field choices.
         It is different from passing obj=event, which would populate all form fields
@@ -124,12 +135,12 @@ class EventForm(ModelForm, FlaskForm):
         """
         super(EventForm, self).__init__(*args, **kwargs)
 
-        if event is not None:
-            self.set_current_leaders(event.leaders)
-            self.update_choices(event)
-
         if "obj" in kwargs:
             self.type.data = int(kwargs["obj"].activity_types[0].id)
+
+        self.multi_activities_mode = multi_activities_mode
+        self.set_current_leaders(event.leaders)
+        self.update_choices(event)
 
     def set_current_leaders(self, leaders):
         """
@@ -148,12 +159,15 @@ class EventForm(ModelForm, FlaskForm):
         :param event: Event being currently edited
         :type event: :py:class:`collectives.modes.event.Event`
         """
-        leader_choices = available_leaders(self.current_leaders)
+        activity_ids = (
+            [] if self.multi_activities_mode or not self.type.data else [self.type.data]
+        )
+        leader_choices = available_leaders(self.current_leaders, activity_ids)
         self.add_leader.choices = [(0, "")]
         self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
 
         activity_choices = available_activities(
-            event.activity_types, self.current_leaders
+            event.activity_types, self.current_leaders, self.multi_activities_mode
         )
         self.type.choices = [(a.id, a.name) for a in activity_choices]
 
@@ -190,3 +204,7 @@ class EventForm(ModelForm, FlaskForm):
 
         # Remove placeholders
         self.description.data = description.format(**columns)
+
+    def current_activities(self):
+        activity = ActivityType.query.get(self.type.data)
+        return [] if activity is None else [activity]

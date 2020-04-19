@@ -5,6 +5,7 @@ from flask_uploads import UploadSet, IMAGES
 from .globals import db
 from .registration import RegistrationStatus
 from .utils import ChoiceEnum
+from .activitytype import activities_without_leader
 
 from ..utils import render_markdown
 
@@ -277,21 +278,6 @@ class Event(db.Model):
         # pylint: disable=C0301
         return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
-    def activities_without_leader(self, leaders):
-        """Check if leaders has right to lead it.
-
-        Test each activity to see if at least one leader can lead it (see
-        :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
-        ).
-        Return the list of activitiers with no valid leader
-
-        :param leaders: List of User which will be tested.
-        :type leaders: list
-        :return: True if leaders can lead all activities.
-        :rtype: boolean
-        """
-        return [a for a in self.activity_types if not a.can_be_led_by(leaders)]
-
     def has_valid_leaders(self):
         """
         :return: True if current leaders can lead all activities. If activities are empty, returns False.
@@ -299,7 +285,7 @@ class Event(db.Model):
         """
         if not any(self.activity_types):
             return False
-        return not any(self.activities_without_leader(self.leaders))
+        return not any(activities_without_leader(self.activity_types, self.leaders))
 
     def ranked_leaders(self):
         """
