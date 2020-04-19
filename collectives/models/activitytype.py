@@ -54,3 +54,11 @@ class ActivityType(db.Model):
             if user.can_lead_activity(self.id):
                 return True
         return False
+
+    @classmethod
+    def get_all_types(cls):
+        """ List all activity_types in database
+
+        :return: list of types
+        :rtype: list(:py:class:`ActivityType`)"""
+        return cls.query.order_by("order", "name").all()

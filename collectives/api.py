@@ -19,12 +19,12 @@ from flask import Blueprint, abort
 from flask_login import current_user, login_required
 from flask_marshmallow import Marshmallow
 from sqlalchemy.sql import text
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, and_
 
 from marshmallow import fields
 
 from .models import db, User, Event, EventStatus
-from .models import ActivityType, Registration, RegistrationStatus
+from .models import ActivityType, Registration, RegistrationStatus, Role, RoleIds
 
 from .utils.access import confidentiality_agreement, admin_required
 from .helpers import current_time
@@ -46,6 +46,22 @@ def avatar_url(user):
     if user.avatar is not None:
         return url_for("images.crop", filename=user.avatar, width=30, height=30)
     return url_for("static", filename="img/icon/ionicon/md-person.svg")
+
+
+class RoleSchema(marshmallow.Schema):
+    """Schema for the role of a user.
+
+    Mainly used in :py:attr:`UserSchema.roles`
+    """
+
+    class Meta:
+        # Fields to expose
+        fields = (
+            "name",
+            "role_id",
+            "activity_type.name",
+            "activity_type.short",
+        )
 
 
 class UserSchema(marshmallow.Schema):
@@ -83,6 +99,8 @@ class UserSchema(marshmallow.Schema):
         lambda user: url_for("profile.show_user", user_id=user.id)
     )
     avatar_uri = fields.Function(avatar_url)
+    roles = fields.Function(lambda user: RoleSchema(many=True).dump(user.roles))
+    """ List of roles of the User """
 
     class Meta:
         # Fields to expose
@@ -98,6 +116,8 @@ class UserSchema(marshmallow.Schema):
             "delete_uri",
             "first_name",
             "last_name",
+            "roles",
+            "isadmin",
         )
 
 
@@ -126,7 +146,23 @@ def users():
         value = request.args.get(f"filters[{i}][value]")
         field = request.args.get(f"filters[{i}][field]")
 
-        query_filter = getattr(User, field).ilike(f"%{value}%")
+        if field == "roles":
+            # if field is roles,
+
+            filters = {i[0]: i[1:] for i in value.split("-")}
+            if "r" in filters:
+                filters["r"] = Role.role_id == RoleIds.get(filters["r"])
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Role.activity_id == filters["t"]
+
+            filters = list(filters.values())
+            query_filter = User.roles.any(and_(*filters))
+
+        else:
+            query_filter = getattr(User, field).ilike(f"%{value}%")
+
         query = query.filter(query_filter)
         # Get next filter
         i += 1

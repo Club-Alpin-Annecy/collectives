@@ -16,7 +16,7 @@
   <h4>Roles existants</h4>
   <ul>
   {% for role in user.roles %}
-  <li>{{role.name()}}
+  <li>{{role.name}}
   {% if role.activity_type %}
    pour l'activité <em>{{role.activity_type.name}}</em>
   {% endif %}
