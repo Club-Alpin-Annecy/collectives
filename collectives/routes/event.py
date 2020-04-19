@@ -198,7 +198,7 @@ def manage_event(event_id=None):
 
     # The 'Update activity' button has been clicked
     # Do not process the remainder of the form
-    if form.update_activity.data == "1":
+    if int(form.update_activity.data):
         # Check that the set of leaders is valid for current activities
         tentative_activities = form.current_activities()
         if accept_event_leaders(
@@ -235,11 +235,13 @@ def manage_event(event_id=None):
             "editevent.html", conf=current_app.config, event=event, form=form
         )
 
+    has_changed_leaders = has_removed_leaders or new_leader_id > 0
+
     # The 'Update leaders' button has been clicked
     # Do not process the remainder of the form
-    if form.update_leaders.data:
+    if has_removed_leaders or int(form.update_leaders.data):
         # Check that the set of leaders is valid for current activities
-        if not has_removed_leaders or accept_event_leaders(
+        if not has_changed_leaders or accept_event_leaders(
             form.current_activities(), tentative_leaders, multi_activities_mode
         ):
             form.set_current_leaders(tentative_leaders)
@@ -307,17 +309,20 @@ def manage_event(event_id=None):
     # For now enforce single activity type
     activity_type = ActivityType.query.filter_by(id=event.type).first()
     has_new_activity = activity_type not in event.activity_types
-    if has_new_activity:
-        event.activity_types.clear()
-        event.activity_types.append(activity_type)
 
-    # We have changed activity or removed a leader
+    # We have changed activity or added/removed a leader
     # Check that there is a valid leader
-    if has_new_activity or has_removed_leaders:
-        if not accept_event_leaders(event, tentative_leaders, multi_activities_mode):
+    if has_new_activity or has_changed_leaders:
+        if not accept_event_leaders(
+            form.current_activities(), tentative_leaders, multi_activities_mode
+        ):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
+
+    # Apply changes
+    if has_new_activity:
+        event.activity_types = form.current_activities()
     event.leaders = tentative_leaders
 
     # We have to save new event before add the photo, or id is not defined

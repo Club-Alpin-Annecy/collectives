@@ -74,6 +74,7 @@ def available_activities(activities, leaders, union):
                 choices |= leader.led_activities()
             else:
                 choices &= leader.led_activities()
+        # Always include existing activities
         choices = list(choices | set(activities))
 
     choices.sort(key=attrgetter("order", "name", "id"))
