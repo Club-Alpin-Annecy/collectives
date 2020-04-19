@@ -41,15 +41,15 @@
         onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
   >
+
     {# We want to make sure pressing 'Enter' submits the whole form #}
     {# For this add a hidden submit button before 'update_leaders' #}
     {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }} 
 
-
     <h4>Activité et encadrants</h4>
       {{form.update_activity(value=0)}}
      
-      <label for="type">Activité : </label> {{ form.type(onchange="javascript:document.getElementById('update_activity').value=1; this.form.submit();") }}<br/>
+      <label for="type">Activité : </label> {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
       <fieldset>
       <legend>Encadrants:</legend>
 
@@ -63,11 +63,16 @@
             <br/>
             <div class="inline_field">
               {{action.leader_id}}  
-              {% if event.can_remove_leader(current_user, user)  %}
-                {{action.delete}}  
-                {{action.delete.label}} <br />
+              {% if form.can_remove_leader(event, user)  %}
+                {# {{action.delete(onchange="javascript:updateLeaders(this);", style="display:block")}} #} 
+                {# <button class="button delete" onlick="javascript:document.getElementById('{{action.delete.id}}').checked = true; removeRequiredFields();" >Supprimer</a> #}
+                {# <button class="button delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">Supprimer</button> #}
+                <button class="button delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">
+                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
+                  Supprimer
+                </button>
               {% endif %}
-              {{ form.main_leader_fields[loop.index0] }}
+              {{ form.main_leader_fields[loop.index0](onchange="javascript:updateLeaders(this);") }}
               {{ form.main_leader_fields[loop.index0].label }}
             </div>
           </div>
@@ -76,10 +81,9 @@
       </div>
       <div>
         {{ form.add_leader.label }}
-        {{ form.add_leader(title=form.add_leader.description) }}<br />
+        {{ form.add_leader(title=form.add_leader.description, onchange="javascript:updateLeaders(this);") }}<br />
       </div>
-
-      <br/>{{ form.update_leaders(onclick="removeRequiredAttributes()") }}
+      {{ form.update_leaders(value=0) }}
     </fieldset>
     
     <h4>Informations</h4>
@@ -127,6 +131,17 @@
   </form>
 </div>
 <script>
+function updateActivity(element)
+{
+    document.getElementById('update_activity').value=1; 
+    element.form.submit();
+}
+function updateLeaders(element)
+{
+    document.getElementById('update_leaders').value=1; 
+    element.form.submit();
+}
+
 document.querySelectorAll("input[type=datetime]").forEach(function(input){
                 var datepicker = tail.DateTime(input,{
                     animate: false,

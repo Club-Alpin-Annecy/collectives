@@ -40,7 +40,19 @@
 #encadrement .useractionmenu{
   display:inline-block;
   text-align: center;
+  position: relative;
   margin-bottom:0.5em;
+}
+
+#encadrement .useractionmenu .delete {
+  color:white;
+  background-color: darkred;
+  padding:5px;
+  font-weight:normal;
+}
+
+#encadrement .useractionmenu .delete:hover {
+  background-color: red;
 }
 
 #eventedit form div.inline_field{
