@@ -62,3 +62,35 @@ class ActivityType(db.Model):
         :return: list of types
         :rtype: list(:py:class:`ActivityType`)"""
         return cls.query.order_by("order", "name").all()
+
+
+def activities_without_leader(activities, leaders):
+    """Check if leaders has right to lead it.
+
+    Test each activity to see if at least one leader can lead it (see
+    :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
+    ).
+    Return the list of activitiers with no valid leader
+
+    :param leaders: List of User which will be tested.
+    :type leaders: list
+    :return: True if leaders can lead all activities.
+    :rtype: boolean
+    """
+    return [a for a in activities if not a.can_be_led_by(leaders)]
+
+
+def leaders_without_activities(activities, leaders):
+    """Check if leaders has right to lead it.
+
+    Test each leader to see if they can lead each activity
+    :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
+    ).
+    Return the list of leaders not able to lead all activities
+
+    :param leaders: List of User which will be tested.
+    :type leaders: list
+    :return: True if leaders can lead all activities.
+    :rtype: boolean
+    """
+    return [l for l in leaders if not l.can_lead_activity(activities)]
