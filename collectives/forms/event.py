@@ -32,9 +32,13 @@ def available_leaders(leaders, activity_ids):
 
     query = db.session.query(User)
     query = query.filter(Role.user_id == User.id)
-    query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
-    if len(activity_ids) > 0:
-        query = query.filter(Role.activity_id.in_(activity_ids))
+    if current_user.is_moderator():
+        query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
+    else:
+        query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
+        if len(activity_ids) > 0:
+            query = query.filter(Role.activity_id.in_(activity_ids))
+    
     query = query.order_by(User.first_name, User.last_name)
     choices = query.all()
 
@@ -101,7 +105,7 @@ class LeaderAction:
 
 class LeaderActionForm(FlaskForm):
     leader_id = HiddenField()
-    delete = BooleanField("Supprimer")
+    delete = SubmitField("Supprimer")
 
 
 class EventForm(ModelForm, FlaskForm):
@@ -119,7 +123,7 @@ class EventForm(ModelForm, FlaskForm):
     main_leader_id = RadioField("Responsable", coerce=int)
 
     update_activity = HiddenField()
-    update_leaders = SubmitField("Mettre à jour les encadrants")
+    update_leaders = HiddenField()
     save_all = SubmitField("Enregistrer")
 
     current_leaders = []
@@ -208,3 +212,10 @@ class EventForm(ModelForm, FlaskForm):
     def current_activities(self):
         activity = ActivityType.query.get(self.type.data)
         return [] if activity is None else [activity]
+
+    def can_remove_leader(self, event, leader):
+        if leader.id == self.main_leader_id.data:
+            return False
+        if len(self.current_leaders) <= 1:
+            return False
+        return event.can_remove_leader(current_user, leader)
