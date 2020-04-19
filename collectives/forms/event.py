@@ -7,7 +7,7 @@ from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
 from flask_login import current_user
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
-from wtforms import FieldList, FormField, BooleanField, RadioField
+from wtforms import FieldList, FormField, RadioField
 from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
@@ -38,7 +38,7 @@ def available_leaders(leaders, activity_ids):
         query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
         if len(activity_ids) > 0:
             query = query.filter(Role.activity_id.in_(activity_ids))
-    
+
     query = query.order_by(User.first_name, User.last_name)
     choices = query.all()
 
@@ -66,13 +66,15 @@ def available_activities(activities, leaders, union):
         choices = ActivityType.query.all()
     else:
         # Gather unique activities
-        choices = set(activities)
+        choices = None
         for leader in leaders:
+            if choices is None:
+                choices = leader.led_activities()
             if union:
                 choices |= leader.led_activities()
             else:
                 choices &= leader.led_activities()
-        choices = list(choices)
+        choices = list(choices | set(activities))
 
     choices.sort(key=attrgetter("order", "name", "id"))
 
@@ -175,9 +177,10 @@ class EventForm(ModelForm, FlaskForm):
         )
         self.type.choices = [(a.id, a.name) for a in activity_choices]
 
-        self.main_leader_id.choices = [
-            (l.id, "Responsable") for l in self.current_leaders
-        ]
+        self.main_leader_id.choices = []
+        for l in self.current_leaders:
+            self.main_leader_id.choices.append((l.id, "Responsable"))
+
         if self.main_leader_id.raw_data is None:
             if event.main_leader_id is None:
                 self.main_leader_id.default = self.current_leaders[0].id
