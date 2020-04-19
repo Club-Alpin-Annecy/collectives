@@ -314,7 +314,7 @@ def manage_event(event_id=None):
     # We have changed activity or removed a leader
     # Check that there is a valid leader
     if has_new_activity or has_removed_leaders:
-        if not accept_event_leaders(event, tentative_leaders):
+        if not accept_event_leaders(event, tentative_leaders, multi_activities_mode):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
