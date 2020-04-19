@@ -16,6 +16,11 @@
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
   <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 {% endblock %}
 
 {% block header %}
@@ -48,8 +53,15 @@
 
     <h4>Activité et encadrants</h4>
       {{form.update_activity(value=0)}}
-     
-      <label for="type">Activité : </label> {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
+      <div class="inline_field">     
+         {{form.multi_activities_mode(onchange="javascript:updateActivity(this)") }}
+         {{form.multi_activities_mode.label}} 
+      </div>
+      {% if form.multi_activities_mode.data %}
+         {{form.types.label}} : {{form.types(class="choices")}} 
+      {% else %}
+         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
+      {% endif %}
       <fieldset>
       <legend>Encadrants:</legend>
 
@@ -154,6 +166,14 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                 });
 });
 var simplemde = makeEditor("description");
+
+var activities_multiselect = document.getElementById("types");
+if(activities_multiselect) {
+  const choices = new Choices(activities_multiselect, {
+    removeItemButton:true
+  });
+}
+
 </script>
 
 {% endblock %}
