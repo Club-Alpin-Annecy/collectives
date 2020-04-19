@@ -95,3 +95,8 @@
   width : 75px;
   margin-bottom: 0;
 }
+
+#eventedit div.choices {
+  display:inline-block;
+  width:40%;
+}
