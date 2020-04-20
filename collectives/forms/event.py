@@ -26,6 +26,8 @@ def available_leaders(leaders, activity_ids):
 
     :param leaders: list of current leaders
     :type leaders: list[:py:class:`collectives.models.user.User`]
+    :param activity_ids: Ids of activities that leaders must be able to lead
+    :type activity_ids: list[int]
     :return: List of available leaders
     :rtype: list[:py:class:`collectives.models.user.User`]
     """
