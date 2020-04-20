@@ -28,6 +28,11 @@ This blueprint contains all routes for avent display and management"""
 def validate_event_leaders(activities, leaders, multi_activity_mode):
     """
     Check whether all activities have a valid leader, display error if not the case
+    :param multi_activity_mode: If `False`, check that all `leaders` can lead the
+    (single) activitie in `activities`. If `True`, check that each activity in
+    `activities` can be lead by one of the `leaders`
+    :return: whether all tests succeeded
+    :rtype: bool
     """
     if len(activities) == 0:
         flash("Aucune activité définie", "error")
@@ -85,6 +90,12 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
 
 
 def validate_dates_and_slots(event):
+    """
+    Checks whether the various dates an numbers of slots in the event
+    are valid; display an error message if not
+    :return: whether all tests succeeded
+    :rtype: bool
+    """
     valid = True
     if not event.starts_before_ends():
         flash("La date de début doit être antérieure à la date de fin")
@@ -221,7 +232,7 @@ def manage_event(event_id=None):
             has_removed_leaders = True
         else:
             tentative_leaders.append(leader)
-       
+
     # Set current leaders from submitted form
     form.set_current_leaders(previous_leaders)
     form.update_choices()
@@ -260,9 +271,7 @@ def manage_event(event_id=None):
     if has_removed_leaders or int(form.update_leaders.data):
         # Check that the set of leaders is valid for current activities
         if validate_event_leaders(
-            tentative_activities,
-            tentative_leaders,
-            form.multi_activities_mode.data,
+            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
         ):
             form.set_current_leaders(tentative_leaders)
             form.update_choices()
@@ -296,9 +305,7 @@ def manage_event(event_id=None):
     # Check that the leaders are still valid
     if has_new_activity or has_changed_leaders:
         if not validate_event_leaders(
-            tentative_activities,
-            tentative_leaders,
-            form.multi_activities_mode.data,
+            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
         ):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
