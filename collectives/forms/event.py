@@ -20,13 +20,13 @@ from ..models.activitytype import leaders_without_activities
 def available_leaders(leaders, activity_ids):
     """Creates a list of leaders that can be added to an event.
 
-    This list can be used in a select form input. It will all users with
-    'event creator' roles (EventLeader, ActivitySupervisor, etc) that
-    are not in the list of current leaders
+    Available leaders are users that have 'event creator' roles (EventLeader, ActivitySupervisor, etc),
+    are not in the list of current leaders, and, if `activity_ids` is not empty, can lead
+    any of the corresponding activities.
 
     :param leaders: list of current leaders
     :type leaders: list[:py:class:`collectives.models.user.User`]
-    :return: List of authorized activities
+    :return: List of available leaders
     :rtype: list[:py:class:`collectives.models.user.User`]
     """
     existing_leaders = set(leaders)
@@ -58,7 +58,7 @@ def available_activities(activities, leaders, union):
     :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
     :param leaders: list of leader used to build activity list.
     :type leaders: list[:py:class:`collectives.models.user.User`]
-    :param union: If true, return the union all activities that can be lead, otherwise return the intersection
+    :param union: If true, return the union all activities that can be lead, otherwise returns the intersection
     :type union: bool
     :return: List of authorized activities
     :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
@@ -237,6 +237,10 @@ class EventForm(ModelForm, FlaskForm):
         self.description.data = description.format(**columns)
 
     def current_activities(self):
+        """
+        :return: the list of currently selected activities.
+        :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
+        """
         if self.multi_activities_mode.data:
             return ActivityType.query.filter(ActivityType.id.in_(self.types.data)).all()
 
@@ -244,6 +248,22 @@ class EventForm(ModelForm, FlaskForm):
         return [] if activity is None else [activity]
 
     def can_remove_leader(self, event, leader):
+        """
+        Checks whether the current user has the right to remove a leader from the form.
+        This is prevented if:
+         - There is only one leader
+         - The leader is the main leader
+         - The user is not allowed to remove the leader from the event
+
+        seealso:: :py::meth:`collectives.models.event.Event.can_remove_leader`
+
+        :param event: Event the form is operating on
+        :type event: :py:class:`collectives.models.event.Event`:
+        :param leader: leader to be removed from the form
+        :type leader: :py:class:`collectives.models.user.User`:
+        :return: whether authorization to remove the leader is granted.
+        :rtype: bool
+        """
         if leader.id == self.main_leader_id.data:
             return False
         if len(self.current_leaders) <= 1:
