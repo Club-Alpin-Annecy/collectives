@@ -58,9 +58,14 @@
          {{form.multi_activities_mode.label}} 
       </div>
       {% if form.multi_activities_mode.data %}
-         {{form.types.label}} : {{form.types(class="choices")}} 
+         <div id="multi_activity"> 
+          {{form.types.label}} :
+          {{form.types(class="choices")}} </div>
+         <span class="help">En mode multi-activité, vous pouvez ajouter des encadrants d'autres activités à la sortie pour ensuite y ajouter de
+           nouvelles activités.</span>
       {% else %}
-         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
+         {{form.type.label}} :
+         {{form.type(onchange="javascript:updateActivity(this)")}}<br/>
       {% endif %}
       <fieldset>
       <legend>Encadrants:</legend>
@@ -170,7 +175,17 @@ var simplemde = makeEditor("description");
 var activities_multiselect = document.getElementById("types");
 if(activities_multiselect) {
   const choices = new Choices(activities_multiselect, {
-    removeItemButton:true
+    removeItemButton:true,
+    loadingText: 'Chargement...',
+    noResultsText: 'Aucun résultat trouvé',
+    noChoicesText: 'Plus de choix disponible',
+    itemSelectText: '',
+    addItemText: (value) => {
+      return `Appuyez sur 'Entrée' pour ajouter <b>"${value}"</b>`;
+    },
+    maxItemText: (maxItemCount) => {
+      return `Au plus ${maxItemCount} activités peuvent être ajoutées.`;
+    },
   });
 }
 
