@@ -50,15 +50,15 @@ def available_activities(activities, leaders, union):
     """Creates a list of activities theses leaders can lead.
 
     This list can be used in a select form input. It will contain activities
-    any leader of this event can lead, plus activities given in parameters (usually,
-    in case of event modification, it is the event activity). Anyway, if current user
-    is a high level (admin or moderator), it will return all activities.
+    leaders of this event can lead, plus activities given in parameters (usually,
+    in case of event modification, it is the event activity). In any case, if the current user
+    has a moderator role (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list
     :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
     :param leaders: list of leader used to build activity list.
     :type leaders: list[:py:class:`collectives.models.user.User`]
-    :param union: If true, return the union all activities that can be lead, otherwise returns the intersection
+    :param union: If true, return the union all activities that can be led, otherwise returns the intersection
     :type union: bool
     :return: List of authorized activities
     :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
@@ -251,9 +251,10 @@ class EventForm(ModelForm, FlaskForm):
         """
         Checks whether the current user has the right to remove a leader from the form.
         This is prevented if:
-         - There is only one leader
-         - The leader is the main leader
-         - The user is not allowed to remove the leader from the event
+
+        - There is only one leader
+        - The leader is the main leader
+        - The user is not allowed to remove the leader from the event
 
         seealso:: :py::meth:`collectives.models.event.Event.can_remove_leader`
 
