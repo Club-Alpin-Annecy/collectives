@@ -83,14 +83,14 @@ def activities_without_leader(activities, leaders):
 def leaders_without_activities(activities, leaders):
     """Check if leaders has right to lead it.
 
-    Test each leader to see if they can lead each activity
+    Test each leader to see if they can lead any activity
     :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
     ).
-    Return the list of leaders not able to lead all activities
+    Return the list of leaders not able to lead any activity
 
     :param leaders: List of User which will be tested.
     :type leaders: list
-    :return: True if leaders can lead all activities.
+    :return: True if all leaders can lead at least one activities.
     :rtype: boolean
     """
-    return [l for l in leaders if not l.can_lead_activities(activities)]
+    return [l for l in leaders if not l.can_lead_any_activity(activities)]

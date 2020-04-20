@@ -132,6 +132,28 @@ def validate_dates_and_slots(event):
     return valid
 
 
+def validate_all_leaders_are_useful(activities, leaders):
+    """
+    Check whether all leaders can lead at least one the of the activities,
+    and display an error message if this is not the case.
+    If the current user is a moderator, validation always succeed.
+    :return: whether all tests succeeded
+    :rtype: bool
+    """
+    if current_user.is_moderator():
+        return True
+
+    problems = leaders_without_activities(activities, leaders)
+    if len(problems) == 0:
+        return True
+    if len(problems) == 1:
+        flash("{} ne peut encadrer aucune activité.".format(problems[0].full_name()))
+    else:
+        names = [u.full_name() for u in problems]
+        flash("{} ne peuvent encadrer aucune activité.".format(", ".join(names)))
+    return False
+
+
 ##########################################################################
 # Event management
 ##########################################################################
@@ -304,9 +326,15 @@ def manage_event(event_id=None):
     # We have added a new activity or added/removed leaders
     # Check that the leaders are still valid
     if has_new_activity or has_changed_leaders:
-        if not validate_event_leaders(
+        valid = validate_event_leaders(
             tentative_activities, tentative_leaders, form.multi_activities_mode.data,
-        ):
+        )
+        if valid and form.multi_activities_mode.data:
+            valid = validate_all_leaders_are_useful(
+                tentative_activities, tentative_leaders
+            )
+
+        if not valid:
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
