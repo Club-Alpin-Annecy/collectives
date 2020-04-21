@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
       - name: Install Sphinx
         run: |
-          pip install Sphinx
+          pip install Sphinx==3.0.1
       - name: Build Sphinx docs
         working-directory: doc
         env:
