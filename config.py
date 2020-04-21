@@ -177,8 +177,7 @@ TYPES = {
     15: {"short": "none",          "name": "Non classé", "order": 100 },
     16: {"short": "slackline",     "name": "Slackline"},
     17: {"short": "marche_nordique","name": "Marche nordique"},
-    18: {"short": "ski_fond",      "name": "Ski de fond"},
-    19: {"short": "ski_nordique",  "name": "Ski nordique"},
+    18: {"short": "ski_fond",      "name": "Ski de fond et rando nordique"},
     20: {"short": "jeune",         "name": "Jeunes"},
 }
 """List of event type

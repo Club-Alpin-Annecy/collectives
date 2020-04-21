@@ -30,6 +30,12 @@ def activity_types(app):
             activity_type.order = atype.get("order", 50)
             db.session.add(activity_type)
 
+        # Remove activity not in config
+        absent_filter = sqlalchemy.not_(ActivityType.id.in_(app.config["TYPES"].keys()))
+        ActivityType.query.filter(absent_filter).delete(synchronize_session=False)
+        # due to synchronize_session=False, do not use this session after without
+        # commit it
+
         db.session.commit()
 
     except sqlalchemy.exc.OperationalError:
