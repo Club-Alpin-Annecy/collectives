@@ -75,16 +75,16 @@ window.onload = function(){
 
         // Try to extract and set page
         var page = document.location.toString().split('#p')[1];
+        eventsTable.modules.ajax.setUrl('/api/events/');
         if(! isNaN(page) ){
             eventsTable.setMaxPage(page); // We extends max page to avoid an error
             eventsTable.setPage(page);
         }
-        else
-            console.log('No page defined')
-
-        // Set data after page processing to avoid double load
-        eventsTable.setData('/api/events/');
-
+        else{
+            eventsTable.setPage(1);
+            console.log('No page defined');
+        }
+        
         refreshFilterDisplay();
 };
 
