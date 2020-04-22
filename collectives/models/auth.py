@@ -79,7 +79,9 @@ class ConfirmationToken(db.Model):
         :type existing_user: :py:class:`collectives.models.user.User`
         """
         self.uuid = str(uuid.uuid4())
-        self.expiry_date = current_time() + timedelta(hours=current_app.config["TOKEN_DURATION"])
+        self.expiry_date = current_time() + timedelta(
+            hours=current_app.config["TOKEN_DURATION"]
+        )
         self.user_license = user_license
 
         if existing_user:
