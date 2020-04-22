@@ -53,6 +53,7 @@ def send_confirmation_email(email, name, token):
     message = current_app.config["CONFIRMATION_MESSAGE"].format(
         name=name,
         reason=reason,
+        expiry_hours=current_app.config["TOKEN_DURATION"],
         link=url_for(
             "auth.process_confirmation", token_uuid=token.uuid, _external=True
         ),
