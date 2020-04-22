@@ -265,11 +265,19 @@ XLSX_TEMPLATE = os.path.join(basedir,
 :type: string
 """
 
+TOKEN_DURATION = environ.get("TOKEN_DURATION") or 2
+"""Duration (in hours) of a token before expiration
+
+:type: int
+"""
+
 CONFIRMATION_MESSAGE = """
 Bonjour {name},
 
-Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous (lien valable 2h):
+Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous:
 {link}
+
+Ce lien expirera après {expiry_hours} heures.
 
 Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 """
