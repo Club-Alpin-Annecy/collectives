@@ -22,4 +22,7 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint *.py collectives/*.py collectives/*/*.py
-
+        
+    - name: Format with black
+      run: |
+        black --check *.py collectives
