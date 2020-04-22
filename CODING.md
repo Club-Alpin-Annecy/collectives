@@ -18,14 +18,13 @@
  
 # Github merge: 
 (for project maintainers)
- * Merge into master on github usint "Squash and merge" to keep a lean git history.
  * Add a tag in merge commit message (eg. [FEATURE] xxxxxxx )
    * `[FEATURE]` : contains a new feature.
    * `[FIX]` : fix a bug 
    * `[INTERNAL]` : no functional changes (refactoring, documentation, test, performance, etc...)
    * `[OTHER]`
    * Don't include if it should not be in release note.
- * If the commit is linked to an issue, use [github link in commit](https://help.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) just after the tag. eg:
+ * If the PR is linked to an issue, use [github link in commit](https://help.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) just after the tag. in merge commit, eg:
    * `[FIX] Fixes #123 : event list title fixed`
    * `[FEATURE] Closes #124 : add info on event`
 
