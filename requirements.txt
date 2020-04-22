@@ -22,3 +22,4 @@ pysimplesoap
 Werkzeug==0.16.1
 pymysql
 dkimpy
+email_validator
