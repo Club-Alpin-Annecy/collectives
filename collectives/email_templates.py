@@ -5,6 +5,7 @@ from sys import stderr
 from flask import current_app, url_for
 
 from .utils import mail
+from .utils.url import slugify
 from .models.auth import ConfirmationTokenType
 from .models.user import activity_supervisors
 
@@ -19,7 +20,12 @@ def send_new_event_notification(event):
         leader_name=",".join(leader_names),
         activity_name=",".join(activity_names),
         event_title=event.title,
-        link=url_for("event.view_event", event_id=event.id, _external=True),
+        link=url_for(
+            "event.view_event",
+            event_id=event.id,
+            name=slugify(event.title),
+            _external=True,
+        ),
     )
     try:
         mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
@@ -34,7 +40,12 @@ def send_unregister_notification(event, user):
         message = conf["SELF_UNREGISTER_MESSAGE"].format(
             user_name=user.full_name(),
             event_title=event.title,
-            link=url_for("event.view_event", event_id=event.id, _external=True),
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
         )
         mail.send_mail(
             subject=conf["SELF_UNREGISTER_SUBJECT"],
