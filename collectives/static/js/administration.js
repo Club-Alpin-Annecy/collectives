@@ -22,8 +22,9 @@ function displayRole(role){
             </span>`;
 }
 
+var table;
 window.onload = function(){
-    var table = new Tabulator("#users-table",
+    table = new Tabulator("#users-table",
         {
           ajaxURL: '/api/users/',
           ajaxSorting:true,
@@ -39,7 +40,7 @@ window.onload = function(){
             {title:"Email", field:"mail", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Prénom", field:"first_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Nom", field:"last_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
-            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
+            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: {values:filters}, formatter:roleFormatter, headerSort:false,  widthGrow:2},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'POST', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
@@ -66,5 +67,54 @@ window.onload = function(){
                 }
             },
 });
-    console.log("Fin du chargement du tableau");
+}
+
+var export_table;
+function exportXLSX(){
+    var filters = table.getFilters(true);
+    
+    //if there is no filter on role, we refuse the export.
+    if( ! filters.map(function(i){return i['field']}).includes('roles') ){
+        alert('Il faut sélectionner un role pour l\'exporter.');
+        return false;
+    }
+        
+    
+    export_table = new Tabulator("#export-table", {
+            ajaxURL: '/api/users/?filter_role=true',
+            ajaxSorting:true,
+            ajaxFiltering:true,
+            pagination : 'remote',
+            paginationSize : 9999999,
+            columns:[
+              {title:"Licence", field:"license",},
+              {title:"Prénom", field:"first_name",},
+              {title:"Nom", field:"last_name",},
+              {title:"Email", field:"mail",},
+              {title:"Téléphone", field:"phone",},
+              {title:"Role", field:"role",},
+              {title:"Activité", field:"activity",},
+            ],
+            initialFilter: table.getFilters(true),
+            ajaxResponse:function(url, params, response){
+               //url - the URL of the request
+               //params - the parameters passed with the request
+               //response - the JSON object returned in the body of the response.
+               // This function aims to duplicate rows when user has several roles.
+               newResponse = {'last_page': response['last_page'], 'data': []}
+               for (user in response['data']) 
+                    for (role in response['data'][user]['roles']){
+                        user_data = Object.assign({}, response['data'][user]);
+                        user_data['role'] = user_data['roles'][role]['name'];
+                        user_data['activity'] = user_data['roles'][role]['activity_type.name'];
+                        newResponse['data'].push(user_data);
+                    }
+              
+               return newResponse; 
+           },
+            pageLoaded: function(){
+                export_table.download("xlsx", "Listing.xlsx", {sheetName:"Liste"});
+            }
+        }
+    ); 
 }

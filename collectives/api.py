@@ -118,6 +118,8 @@ class UserSchema(marshmallow.Schema):
             "last_name",
             "roles",
             "isadmin",
+            "license",
+            "phone",
         )
 
 
@@ -150,11 +152,14 @@ def users():
             # if field is roles,
 
             filters = {i[0]: i[1:] for i in value.split("-")}
+            user_filter = {}
             if "r" in filters:
+                user_filter["role"] = RoleIds.get(filters["r"])
                 filters["r"] = Role.role_id == RoleIds.get(filters["r"])
             if "t" in filters:
                 if filters["t"] == "none":
                     filters["t"] = None
+                user_filter["activity_type"] = filters["t"]
                 filters["t"] = Role.activity_id == filters["t"]
 
             filters = list(filters.values())
@@ -178,6 +183,12 @@ def users():
     page = int(request.args.get("page"))
     size = int(request.args.get("size"))
     paginated_users = query.paginate(page, size, False)
+
+    if request.args.get("filter_role") == "true" and "user_filter" in locals():
+        for user in paginated_users.items:
+            print(user, flush=True)
+            user.filter_roles(**user_filter)
+
     data = UserSchema(many=True).dump(paginated_users.items)
     response = {"data": data, "last_page": paginated_users.pages}
 

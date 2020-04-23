@@ -347,6 +347,39 @@ class User(db.Model, UserMixin):
     def is_active(self):
         return self.enabled and self.check_license_valid_at_time(current_time())
 
+    def filter_roles(self, **filters):
+        """ Remove roles from which are not covered by filter_role.
+
+        Example usage:
+        ```
+        user.filter_roles(role=RoleIds.Moderator, type = 1)
+        ```
+
+        Setting both role and activity acts as an `and`
+
+        :param role: Type of role to keep
+        :type role: RoleIds
+        :param activity_type: ID of the activity to keep
+        :type activity_type: int or string
+        """
+        if "role" in filters:
+            self.roles = list(
+                filter(lambda role: role.role_id == filters["role"], self.roles)
+            )
+        if "activity_type" in filters:
+            if filters["activity_type"] != None:
+                self.roles = list(
+                    filter(
+                        lambda role: role.activity_id != None
+                        and role.activity_id == int(filters["activity_type"]),
+                        self.roles,
+                    )
+                )
+            else:
+                self.roles = list(
+                    filter(lambda role: role.activity_id == None, self.roles)
+                )
+
 
 def activity_supervisors(activities):
     """
