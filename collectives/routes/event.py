@@ -16,6 +16,7 @@ from ..email_templates import send_unregister_notification
 
 from ..helpers import current_time
 from ..utils.csv import process_stream
+from ..utils.url import slugify
 from ..utils.access import confidentiality_agreement
 
 
@@ -146,13 +147,20 @@ def index():
 
 
 @blueprint.route("/<event_id>")
+@blueprint.route("/<event_id>/v/<name>")
 @login_required
-def view_event(event_id):
+def view_event(event_id, name=""):
     event = Event.query.filter_by(id=event_id).first()
 
     if event is None:
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
+
+    # If name is empty, redirect to a more meaningful URL
+    if name == "":
+        return redirect(
+            url_for("event.view_event", event_id=event.id, name=slugify(event.title))
+        )
 
     register_user_form = (
         RegistrationForm() if event.has_edit_rights(current_user) else None

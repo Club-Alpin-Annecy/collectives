@@ -27,6 +27,7 @@ from .models import db, User, Event, EventStatus
 from .models import ActivityType, Registration, RegistrationStatus, Role, RoleIds
 
 from .utils.access import confidentiality_agreement, admin_required
+from .utils.url import slugify
 from .helpers import current_time
 
 marshmallow = Marshmallow()
@@ -303,7 +304,9 @@ class EventSchema(marshmallow.Schema):
         lambda event: ActivityShortSchema(many=True).dump(event.activity_types)
     )
     view_uri = fields.Function(
-        lambda event: url_for("event.view_event", event_id=event.id)
+        lambda event: url_for(
+            "event.view_event", event_id=event.id, name=slugify(event.title)
+        )
     )
 
     is_confirmed = fields.Function(lambda event: event.is_confirmed())
