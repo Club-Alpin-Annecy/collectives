@@ -28,10 +28,10 @@
                 {% if current_user.can_create_events() %}
                     <a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
                 {% endif %}
-                <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil Utilisateur</a>
+                <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil adhérent</a>
                 {% if current_user.can_create_events() %}
                 <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"><img
-                        src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil Encadrant</a>
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" /> Profil encadrant</a>
                 {% endif %}
                 {% if current_user.get_supervised_activities() != [] %}
                 <a href="{{ url_for('event.csv_import')}}"><img

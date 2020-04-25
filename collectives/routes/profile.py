@@ -39,7 +39,7 @@ def show_user(user_id):
     user = User.query.filter_by(id=user_id).first()
 
     return render_template(
-        "profile.html", conf=current_app.config, title="Profil utilisateur", user=user
+        "profile.html", conf=current_app.config, title="Profil adhérent", user=user
     )
 
 
@@ -56,7 +56,7 @@ def show_leader(leader_id):
     return render_template(
         "leader_profile.html",
         conf=current_app.config,
-        title="Profil utilisateur",
+        title="Profil adhérent",
         user=user,
     )
 
@@ -72,7 +72,7 @@ def update_user():
             "basicform.html",
             conf=current_app.config,
             form=form,
-            title="Profil utilisateur",
+            title="Profil adhérent",
         )
 
     user = current_user
