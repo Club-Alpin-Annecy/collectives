@@ -7,11 +7,10 @@ from ..models import User, ActivityType, Role, RoleIds, db
 from ..utils.access import confidentiality_agreement, admin_required
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
+""" Administration blueprint
 
-
-################################################################
-# ADMINISTRATION
-################################################################
+This blueprint contains all routes for administration. It is reserved to administrator with :py:func:`before_request`.
+"""
 
 
 @blueprint.before_request
@@ -19,12 +18,21 @@ blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 @admin_required()
 @confidentiality_agreement()
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all of the admin endpoints.
+
+    Protection is done by the decorator:
+
+    - check if user is logged :py:func:`flask_login.login_required`
+    - check if user is an admin :py:func:`collectives.utils.access.admin_required`
+    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    """
     pass
 
 
 @blueprint.route("/", methods=["GET", "POST"])
 def administration():
+    """ Route function fot administration home page.
+    """
     # Create the filter list
     filters = {"": ""}
     filters[f"tnone"] = f"Role General"
@@ -48,6 +56,13 @@ def administration():
 @blueprint.route("/users/add", methods=["GET", "POST"])
 @blueprint.route("/users/<user_id>", methods=["GET", "POST"])
 def manage_user(user_id=None):
+    """ Route for user management page.
+
+    This is the page for user modification. If it is a test user, more field are offered to the modification. This route is also used for test user creation.
+
+    :param user_id: ID managed user
+    :type user_id: string
+    """
     user = User() if user_id is None else User.query.get(user_id)
 
     # If we are operating on a 'normal' user, restrict fields
@@ -91,13 +106,18 @@ def manage_user(user_id=None):
 
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
 def delete_user(user_id):
+    """ Route to delete an user.
+
+    TODO
+    """
     flash("Suppression d'utilisateur non implémentée. ID " + user_id, "error")
     return redirect(url_for("administration.administration"))
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 def add_user_role(user_id):
-
+    """ Route for user roles management page.
+    """
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         flash("Utilisateur inexistant", "error")
@@ -145,6 +165,11 @@ def add_user_role(user_id):
 
 @blueprint.route("/roles/<user_id>/delete", methods=["POST"])
 def remove_user_role(user_id):
+    """ Route to delete a user role.
+
+    This route does the action, and then redirect to :py:func:`add_user_role`
+    """
+
     role = Role.query.filter_by(id=user_id).first()
     if role is None:
         flash("Role inexistant", "error")

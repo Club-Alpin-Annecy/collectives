@@ -23,7 +23,8 @@ from ..utils.access import confidentiality_agreement
 blueprint = Blueprint("event", __name__, url_prefix="/event")
 """ Event blueprint
 
-This blueprint contains all routes for avent display and management"""
+This blueprint contains all routes for event display and management
+"""
 
 
 def validate_event_leaders(activities, leaders, multi_activity_mode):

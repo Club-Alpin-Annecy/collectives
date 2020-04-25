@@ -54,6 +54,10 @@ class User(db.Model, UserMixin):
 
     Persistence is managed by SQLAlchemy. This class is used by ``flask_login``
     to manage acccess to the system.
+
+    Test users are special users created directly by admin. They have their licence
+    validity always true and their personnal information can be modified by
+    administrators. The parameter is :py:attr:`is_test`
     """
 
     __tablename__ = "users"
@@ -249,94 +253,253 @@ class User(db.Model, UserMixin):
     """
 
     def save_avatar(self, file):
+        """ Save an image as user avatar.
+
+        It will both save the files into the file system and save the path into the database.
+        If file is None, it will do nothing. It will use Flask-Upload to save the image.
+
+        :param file: request param to be saved.
+        :type file: :py:class:`werkzeug.datastructures.FileStorage`
+        """
         if file is not None:
             filename = avatars.save(file, name="user-" + str(self.id) + ".")
             self.avatar = filename
 
     def delete_avatar(self):
+        """ Remove and dereference an user avatar.
+        """
         if self.avatar:
             os.remove(avatars.path(self.avatar))
             self.avatar = None
 
     def get_gender_name(self):
+        """ Get the name of the user gender.
+
+        :return: The name of the user gender. See :py:class:`Gender`
+        :rtype: string
+        """
         return Gender(self.gender).display_name()
 
     def check_license_valid_at_time(self, time):
+        """ Check if the user license is still valid at a given time.
+
+        Test users (:py:attr:`is_test`) are always valid.
+
+        :param time: Time when the validity must be checked.
+        :type time: :py:class:`datetime.datetime`
+        :return: True if license is valid.
+        :rtype: boolean
+        """
         if self.is_test:
             # Test users licenses never expire
             return True
         return self.license_expiry_date > time.date()
 
     def is_youth(self):
+        """ Check if user license category is one of a youth (between 18 and 25).
+
+        :return: True if user a youth license.
+        :rtype: boolean
+        """
         return self.license_category in ["J1", "E1"]
 
     def is_minor(self):
+        """ Check if user license category is one of a minor (below 18).
+
+        :return: True if user a youth license.
+        :rtype: boolean
+        """
         return self.license_category in ["J2", "E2"]
 
     # Roles
-
     def matching_roles(self, role_ids):
+        """ Returns filtered user roles against a role types list.
+
+        :param role_ids: Role types that will be extracted.
+        :type role_ids: list(:py:class:`collectives.models.role.RoleIds`)
+        :return: Filtered User roles.
+        :rtype: list(:py:class:`collectives.models.role.Role`)
+        """
         return [role for role in self.roles if role.role_id in role_ids]
 
     def matching_roles_for_activity(self, role_ids, activity_id):
+        """ Returns filtered user roles against a role types list and an activity.
+
+        :param role_ids: Role types that will be extracted.
+        :type role_ids: list(:py:class:`collectives.models.role.RoleIds`).
+        :param activity_id: Activity which will be used as a filter.
+        :type activity_id: int
+        :return: Filtered User roles.
+        :rtype: list(:py:class:`collectives.models.role.Role`)
+        """
         matching_roles = self.matching_roles(role_ids)
         return [role for role in matching_roles if role.activity_id == activity_id]
 
     def has_role(self, role_ids):
+        """ Check if user has at least one of the roles types.
+
+        :param role_ids: Roles that will be tested.
+        :type role_ids: list(:py:class:`collectives.models.role.RoleIds`).
+        :return: True if user has at least one of the listed roles type.
+        :rtype: boolean
+        """
         return len(self.matching_roles(role_ids)) > 0
 
     def has_role_for_activity(self, role_ids, activity_id):
+        """ Check if user has at least one of the roles types for an activity.
+
+        :param role_ids: Roles that will be tested.
+        :type role_ids: list(:py:class:`collectives.models.role.RoleIds`).
+        :param activity_id: Activity onto which role should applied.
+        :type activity_id: int
+        :return: True if user has at least one of the listed roles type for the activity.
+        :rtype: boolean
+        """
         roles = self.matching_roles(role_ids)
         return any([role.activity_id == activity_id for role in roles])
 
     def is_admin(self):
+        """ Check if user has an admin role.
+
+        See :py:attr:`collectives.models.role.RoleIds.Administrator`
+
+        :return: True if user has an admin role.
+        :rtype: boolean
+        """
         return self.has_role([RoleIds.Administrator])
 
     def is_moderator(self):
+        """ Check if user has a moderator role.
+
+        See :py:meth:`collectives.models.role.RoleIds.all_moderator_roles`
+
+        :return: True if user has a moderator role.
+        :rtype: boolean
+        """
         return self.has_role(RoleIds.all_moderator_roles())
 
     def is_supervisor(self):
+        """ Check if user supervises at least one activity.
+
+        See :py:attr:`collectives.models.role.RoleIds.ActivitySupervisor`
+
+        :return: True if user supervises at least one activity.
+        :rtype: boolean
+        """
         return self.has_role([RoleIds.ActivitySupervisor])
 
     def can_create_events(self):
+        """ Check if user has a role which allow him to creates events.
+
+        See :py:meth:`collectives.models.role.RoleIds.all_event_creator_roles`
+
+        :return: True if user can create events.
+        :rtype: boolean
+        """
         return self.has_role(RoleIds.all_event_creator_roles())
 
     def can_lead_activity(self, activity_id):
+        """ Check if user has a role which allow him to lead a specific activity.
+
+        See :py:meth:`collectives.models.role.RoleIds.all_activity_leader_roles`
+
+        :param activity_id: Activity which will be tested.
+        :type activity_id: int
+        :return: True if user can lead the activity.
+        :rtype: boolean
+        """
         return self.has_role_for_activity(
             RoleIds.all_activity_leader_roles(), activity_id
         )
 
     def can_lead_activities(self, activities):
+        """ Check if user has a role which allow him to lead all specified activities.
+
+        See :py:meth:`can_lead_activity`
+
+        :param activities: Activities which will be tested.
+        :type activities: list(int)
+        :return: True if user can lead all the activities.
+        :rtype: boolean
+        """
         return all(self.can_lead_activity(a.id) for a in activities)
 
     def can_read_other_users(self):
+        """ Check if user can see another user profile.
+
+        Only users with roles and which have sign confidentiality agreement can look other users profiles.
+
+        :return: True if user is authorized to see other profiles.
+        :rtype: boolean
+        """
         return self.has_signed_ca() and self.has_any_role()
 
     def has_any_role(self):
+        """ Check if user has any specific roles.
+
+        :return: True if user has at least one role.
+        :rtype: boolean
+        """
         return len(self.roles) > 0
 
     def has_signed_ca(self):
+        """ Check if user has signed the confidentiality agreement.
+
+        :return: True if user has signed it.
+        :rtype: boolean
+        """
         return self.confidentiality_agreement_signature_date is not None
 
     def has_signed_legal_text(self):
+        """ Check if user has signed the legal text.
+
+        :return: True if user has signed it.
+        :rtype: boolean
+        """
         return self.legal_text_signature_date is not None
 
     def supervises_activity(self, activity_id):
+        """ Check if user supervises a specific activity.
+
+        :param activity_id: Activity which will be tested.
+        :type activity_id: int
+        :return: True if user supervises the activity.
+        :rtype: boolean
+        """
         return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
 
     def led_activities(self):
+        """ Get activities the user can lead.
+
+        :return: The list of activities the user can lead.
+        :rtype: set(:py:class:`collectives.models.activitytype.ActivityType`)
+        """
         roles = self.matching_roles(RoleIds.all_activity_leader_roles())
         return set(role.activity_type for role in roles)
 
     # Format
 
     def full_name(self):
+        """ Get user full name.
+
+        :rtype: String
+        """
         return "{} {}".format(self.first_name, self.last_name.upper())
 
     def abbrev_name(self):
+        """ Get user first name and first letter of last name.
+
+        :rtype: String
+        """
         return "{} {}".format(self.first_name, self.last_name[0].upper())
 
     def get_supervised_activities(self):
+        """ Get activities the user supervises.
+
+        Admin supervises all.
+
+        :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
+        """
         if self.is_admin():
             return ActivityType.query.all()
 
@@ -345,6 +508,13 @@ class User(db.Model, UserMixin):
 
     @property
     def is_active(self):
+        """ Check if user is currently active.
+
+        An active user is not disabled and its license is valid.
+
+        :return: True if user is active.
+        :rtype: boolean
+        """
         return self.enabled and self.check_license_valid_at_time(current_time())
 
 

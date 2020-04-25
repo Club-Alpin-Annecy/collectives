@@ -15,6 +15,7 @@ In particular:
 
 1. Format Python files using `black`. `black` is available as a formatter in some IDEs, or can be run manually from the repo root as ``python -m black *.py collectives``
 2. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+``
+3. Make sure you are documenting your classes, methods and functions.
 
 I want to test it on my computer
 ----------------------------------
