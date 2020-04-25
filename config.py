@@ -325,3 +325,24 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 
 :type: string
 """
+
+REJECTED_REGISTRATION_SUBJECT = "Refus d'insription à la collective {event_title}"
+"""Email subject for rejected registration to an event
+
+:type: string
+"""
+
+REJECTED_REGISTRATION_MESSAGE = """
+Bonjour,
+
+{leader_name} vient de refuser votre inscription à la collective {event_title} du {event_date}.
+Lien vers l'événement:
+{link}
+
+Vous recevez cet e-mail en tant qu'adhérent inscrit à une collective.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+"""Email template content for rejected registration to an event
+
+:type: string
+"""

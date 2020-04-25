@@ -8,7 +8,7 @@ from .utils import mail
 from .utils.url import slugify
 from .models.auth import ConfirmationTokenType
 from .models.user import activity_supervisors
-
+from .context_processor import helpers_processor
 
 def send_new_event_notification(event):
     supervisors = activity_supervisors(event.activity_types)
@@ -75,3 +75,29 @@ def send_confirmation_email(email, name, token):
         subject="{} de compte Collectives".format(reason.capitalize()),
         message=message,
     )
+
+def send_reject_subscription_email(current_user, event, user):
+    try:
+        conf = current_app.config
+        message = conf["REJECTED_REGISTRATION_MESSAGE"].format(
+            leader_name=current_user.full_name(),
+            event_title=event.title,
+            event_date=helpers_processor()['format_date'](event.start),
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
+        )
+
+        subject=conf["REJECTED_REGISTRATION_SUBJECT"].format(
+            event_title=event.title
+        )
+        mail.send_mail(
+            subject=subject,
+            email=user.mail,
+            message=message,
+        )
+    except BaseException as err:
+        print("Mailer error: {}".format(err), file=stderr)
