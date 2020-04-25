@@ -171,8 +171,17 @@ def remove_user_role(user_id):
     )
 
 
+@blueprint.route("/roles/export/", methods=["GET"])
+def export_role_no_filter():
+    """ Default role export role which gives an error to the user,
+    since filters are required for export.
+    """
+    flash("Pas de filtres sélectionnés", "error")
+    return redirect(url_for("administration.administration"))
+
+
 @blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
-def export_role(raw_filters):
+def export_role(raw_filters=""):
     """ Create an Excell document with the contact information of roled users.
 
     Input is a string with id of role or activity. EG `r2-t1` for role 2 and type 1.
@@ -185,12 +194,16 @@ def export_role(raw_filters):
     query_filter = query_filter.filter(Role.user.has(User.id))
 
     filters = {i[0]: i[1:] for i in raw_filters.split("-")}
+    filename = ""
 
     if "r" in filters:
         query_filter = query_filter.filter(Role.role_id == RoleIds.get(filters["r"]))
+        filename += RoleIds.get(filters["r"]).display_name() + " "
     if "t" in filters:
         if filters["t"] == "none":
             filters["t"] = None
+        else:
+            filename += ActivityType.query.get(filters["t"]).name
         query_filter = query_filter.filter(Role.activity_id == filters["t"])
 
     roles = query_filter.all()
@@ -222,6 +235,6 @@ def export_role(raw_filters):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        attachment_filename="CAF Annecy - Export.xlsx",
+        attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
     )
