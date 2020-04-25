@@ -1,10 +1,13 @@
-from flask import flash, render_template, redirect, url_for
+from io import BytesIO
+from flask import flash, render_template, redirect, url_for, send_file
 from flask import current_app, Blueprint
 from flask_login import current_user, login_required
+from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
 from ..models import User, ActivityType, Role, RoleIds, db
 from ..utils.access import confidentiality_agreement, admin_required
+from ..utils.misc import deepgetattr
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 
@@ -165,4 +168,60 @@ def remove_user_role(user_id):
         user=user,
         form=form,
         title="Roles utilisateur",
+    )
+
+
+@blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
+def export_role(raw_filters):
+    """ Create an Excell document with the contact information of roled users.
+
+    Input is a string with id of role or activity. EG `r2-t1` for role 2 and type 1.
+
+    :param raw_filters: Roles filters to use.
+    :type raw_filters: string
+    """
+    query_filter = Role.query
+    # we remove role not linked anymore to a user
+    query_filter = query_filter.filter(Role.user.has(User.id))
+
+    filters = {i[0]: i[1:] for i in raw_filters.split("-")}
+
+    if "r" in filters:
+        query_filter = query_filter.filter(Role.role_id == RoleIds.get(filters["r"]))
+    if "t" in filters:
+        if filters["t"] == "none":
+            filters["t"] = None
+        query_filter = query_filter.filter(Role.activity_id == filters["t"])
+
+    roles = query_filter.all()
+
+    wb = Workbook()
+    ws = wb.active
+    FIELDS = {
+        "user.license": "Licence",
+        "user.first_name": "Prénom",
+        "user.last_name": "Nom",
+        "user.mail": "Email",
+        "user.phone": "Téléphone",
+        "activity_type.name": "Activité",
+        "name": "Role",
+    }
+    ws.append(list(FIELDS.values()))
+
+    for role in roles:
+        ws.append([deepgetattr(role, field, "-") for field in FIELDS])
+
+    # set column width
+    for i in range(ord("A"), ord("A") + len(FIELDS)):
+        ws.column_dimensions[chr(i)].width = 25
+
+    out = BytesIO()
+    wb.save(out)
+    out.seek(0)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        attachment_filename="CAF Annecy - Export.xlsx",
+        as_attachment=True,
     )
