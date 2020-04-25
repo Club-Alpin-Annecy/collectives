@@ -27,6 +27,7 @@ Code, participation, and issue reporting can be done on github: `https://github.
    howto
    configuration
    architecture
+   tests
 
    collectives
    models
