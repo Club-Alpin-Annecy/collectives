@@ -91,7 +91,7 @@ def send_reject_subscription_email(current_user, event, user):
             ),
         )
 
-        subject=conf["REJECTED_REGISTRATION_SUBJECT"].format(
+        subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(
             event_title=event.title
         )
         mail.send_mail(
