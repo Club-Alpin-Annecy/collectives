@@ -13,7 +13,7 @@ from ..models import RegistrationStatus, User, db
 from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
-from ..email_templates import send_reject_subscription_email
+from ..email_templates import send_reject_subscription_notification
 
 from ..helpers import current_time
 from ..utils.csv import process_stream
@@ -506,7 +506,7 @@ def reject_registration(reg_id):
     db.session.commit()
 
     # Send notification e-mail to user
-    send_reject_subscription_email(current_user, registration.event, registration.user)
+    send_reject_subscription_notification(current_user, registration.event, registration.user)
 
     return redirect(url_for("event.view_event", event_id=registration.event_id))
 

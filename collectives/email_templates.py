@@ -76,7 +76,7 @@ def send_confirmation_email(email, name, token):
         message=message,
     )
 
-def send_reject_subscription_email(current_user, event, user):
+def send_reject_subscription_notification(current_user, event, user):
     try:
         conf = current_app.config
         message = conf["REJECTED_REGISTRATION_MESSAGE"].format(
