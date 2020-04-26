@@ -97,10 +97,10 @@ def send_confirmation_email(email, name, token):
     )
 
 
-def send_reject_subscription_notification(leader_name, event, rejected_user_email):
+def send_reject_subscription_notification(rejector_name, event, rejected_user_email):
     """ Send a notification to user whom registration has been rejected
 
-    :param string leader_name: User name who rejects the subscription.
+    :param string rejector_name: User name who rejects the subscription.
     :param event: Event the registraton is rejected on.
     :type event: :py:class:`collectives.modes.event.Event`
     :param string rejected_user_email: User email for who registraton is rejected.
@@ -108,7 +108,7 @@ def send_reject_subscription_notification(leader_name, event, rejected_user_emai
     try:
         conf = current_app.config
         message = conf["REJECTED_REGISTRATION_MESSAGE"].format(
-            leader_name=leader_name,
+            rejector_name=rejector_name,
             event_title=event.title,
             event_date=helpers_processor()["format_date"](event.start),
             link=url_for(

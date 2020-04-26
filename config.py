@@ -335,7 +335,7 @@ REJECTED_REGISTRATION_SUBJECT = "Refus d'insription à la collective {event_titl
 REJECTED_REGISTRATION_MESSAGE = """
 Bonjour,
 
-{leader_name} vient de refuser votre inscription à la collective {event_title} du {event_date}.
+{rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
 Lien vers l'événement:
 {link}
 
