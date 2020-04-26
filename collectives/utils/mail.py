@@ -1,20 +1,14 @@
 """Module to handle mail
 
 This module handles mail sending using a SMTP server. Also, it can sign with
-DKIM. Conf are taken from app config:
+DKIM. Conf are taken from app :py:mod:`config`:
 
-:param SMTP_HOST: Hostname of SMTP server
-:type SMTP_HOST: string
-:param SMTP_PORT: Connexion port to SMTP server
-:type SMTP_PORT: string
-:param SMTP_ADDRESS: Login and return address. Also used to set DKIM domain
-:type SMTP_ADDRESS: string
-:param SMTP_PASSWORD: Password of SMTP server
-:type SMTP_PASSWORD: string
-:param DKIM_SELECTOR: DKIM selector, usually default
-:type DKIM_SELECTOR: string
-:param DKIM_KEY: DKIM private key as PEM format
-:type DKIM_KEY: string
+- :py:data:`config.SMTP_HOST`: Hostname of SMTP server
+- :py:data:`config.SMTP_PORT`: Connexion port to SMTP server
+- :py:data:`config.SMTP_ADDRESS`: Login and return address. Also used to set DKIM domain
+- :py:data:`config.SMTP_PASSWORD`: Password of SMTP server
+- :py:data:`config.DKIM_SELECTOR`: DKIM selector, usually default
+- :py:data:`config.DKIM_KEY`: DKIM private key as PEM format
 """
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -28,11 +22,25 @@ import dkim
 
 from flask import current_app
 
-# To use it:
-# send_mail(subject="test", email="user@example.org", message="TEST")
-
 
 def send_mail(**kwargs):
+    """  Send a mail.
+
+    Usage example:
+
+    .. code-block::
+
+        send_mail(subject="test", email="user@example.org", message="TEST")
+
+    :param \\**kwargs: See below
+    :Keyword Arguments:
+        * *subject* (``string``) --
+          Email subject
+        * *email* (``string``) --
+          Email Adress recipient
+        * *message* (``string``) --
+          Email body
+    """
     config = current_app.config
     s = smtplib.SMTP(host=config["SMTP_HOST"], port=config["SMTP_PORT"])
 

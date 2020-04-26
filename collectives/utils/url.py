@@ -1,8 +1,8 @@
+"""
+Module which contains various helping functions for url management.
+"""
 import re
 import unicodedata
-
-_slugify_strip_re = re.compile(r"[^\w\s-]")
-_slugify_hyphenate_re = re.compile(r"[-\s]+")
 
 
 def slugify(value):
@@ -13,6 +13,9 @@ def slugify(value):
 
     From Django's "django/template/defaultfilters.py".
     """
+    _slugify_strip_re = re.compile(r"[^\w\s-]")
+    _slugify_hyphenate_re = re.compile(r"[-\s]+")
+
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore")
     value = _slugify_strip_re.sub("", value.decode("ascii")).strip().lower()
     return _slugify_hyphenate_re.sub("-", value)

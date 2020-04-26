@@ -30,7 +30,7 @@ def create_app(config_filename="config"):
     :type config_filename: string
 
     :return: A flask application for collectives
-    :rtype: flask.Flask
+    :rtype: :py:class:`flask.Flask`
     """
     app = Flask(__name__, instance_relative_config=True)
 
