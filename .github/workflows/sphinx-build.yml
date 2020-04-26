@@ -22,12 +22,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-      - name: Install Sphinx
+      - name: Install Sphinx and docstr-coverage
         run: |
-          pip install Sphinx==3.0.1
+          pip install Sphinx==3.0.1  git+https://github.com/HunterMcGushion/docstr_coverage.git
       - name: Build Sphinx docs
         working-directory: doc
         env:
             SPHINXOPTS: -W  --keep-going
         run: |
           make html
+      - name: Check general doc
+        run: |
+          docstr-coverage . -e .env -F 40
+      - name: Check models doc
+        run: |
+          docstr-coverage collectives/models

@@ -13,6 +13,7 @@ from ..models import RegistrationStatus, User, db
 from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
+from ..email_templates import send_reject_subscription_notification
 
 from ..helpers import current_time
 from ..utils.csv import process_stream
@@ -23,7 +24,8 @@ from ..utils.access import confidentiality_agreement
 blueprint = Blueprint("event", __name__, url_prefix="/event")
 """ Event blueprint
 
-This blueprint contains all routes for avent display and management"""
+This blueprint contains all routes for event display and management
+"""
 
 
 def validate_event_leaders(activities, leaders, multi_activity_mode):
@@ -504,6 +506,12 @@ def reject_registration(reg_id):
     registration.status = RegistrationStatus.Rejected
     db.session.add(registration)
     db.session.commit()
+
+    # Send notification e-mail to user
+    send_reject_subscription_notification(
+        current_user.full_name(), registration.event, registration.user.mail
+    )
+
     return redirect(url_for("event.view_event", event_id=registration.event_id))
 
 

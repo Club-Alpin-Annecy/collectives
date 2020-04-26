@@ -22,8 +22,9 @@ function displayRole(role){
             </span>`;
 }
 
+var table;
 window.onload = function(){
-    var table = new Tabulator("#users-table",
+    table = new Tabulator("#users-table",
         {
           ajaxURL: '/api/users/',
           ajaxSorting:true,
@@ -67,4 +68,16 @@ window.onload = function(){
             },
 });
     console.log("Fin du chargement du tableau");
+}
+
+function exportXLXS(element){
+    allFilters = table.getFilters(true); 
+    filter = allFilters.filter(function(f){ return f['field'] == 'roles' });
+    
+    if(filter[0]['value'] == undefined)
+        alert('Vous devez sélectionner un filtre pour pouvoir exporter les rôles.');
+    else
+        document.location = element.href + filter[0]['value'];
+        
+    return false;
 }

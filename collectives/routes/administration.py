@@ -1,17 +1,19 @@
-from flask import flash, render_template, redirect, url_for
+from io import BytesIO
+from flask import flash, render_template, redirect, url_for, send_file
 from flask import current_app, Blueprint
 from flask_login import current_user, login_required
+from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
 from ..models import User, ActivityType, Role, RoleIds, db
 from ..utils.access import confidentiality_agreement, admin_required
+from ..utils.misc import deepgetattr
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
+""" Administration blueprint
 
-
-################################################################
-# ADMINISTRATION
-################################################################
+This blueprint contains all routes for administration. It is reserved to administrator with :py:func:`before_request`.
+"""
 
 
 @blueprint.before_request
@@ -19,12 +21,21 @@ blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 @admin_required()
 @confidentiality_agreement()
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all of the admin endpoints.
+
+    Protection is done by the decorator:
+
+    - check if user is logged :py:func:`flask_login.login_required`
+    - check if user is an admin :py:func:`collectives.utils.access.admin_required`
+    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    """
     pass
 
 
 @blueprint.route("/", methods=["GET", "POST"])
 def administration():
+    """ Route function fot administration home page.
+    """
     # Create the filter list
     filters = {"": ""}
     filters[f"tnone"] = f"Role General"
@@ -48,6 +59,13 @@ def administration():
 @blueprint.route("/users/add", methods=["GET", "POST"])
 @blueprint.route("/users/<user_id>", methods=["GET", "POST"])
 def manage_user(user_id=None):
+    """ Route for user management page.
+
+    This is the page for user modification. If it is a test user, more field are offered to the modification. This route is also used for test user creation.
+
+    :param user_id: ID managed user
+    :type user_id: string
+    """
     user = User() if user_id is None else User.query.get(user_id)
 
     # If we are operating on a 'normal' user, restrict fields
@@ -91,13 +109,18 @@ def manage_user(user_id=None):
 
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
 def delete_user(user_id):
+    """ Route to delete an user.
+
+    TODO
+    """
     flash("Suppression d'utilisateur non implémentée. ID " + user_id, "error")
     return redirect(url_for("administration.administration"))
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 def add_user_role(user_id):
-
+    """ Route for user roles management page.
+    """
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         flash("Utilisateur inexistant", "error")
@@ -145,6 +168,11 @@ def add_user_role(user_id):
 
 @blueprint.route("/roles/<user_id>/delete", methods=["POST"])
 def remove_user_role(user_id):
+    """ Route to delete a user role.
+
+    This route does the action, and then redirect to :py:func:`add_user_role`
+    """
+
     role = Role.query.filter_by(id=user_id).first()
     if role is None:
         flash("Role inexistant", "error")
@@ -165,4 +193,73 @@ def remove_user_role(user_id):
         user=user,
         form=form,
         title="Roles utilisateur",
+    )
+
+
+@blueprint.route("/roles/export/", methods=["GET"])
+def export_role_no_filter():
+    """ Default role export role which gives an error to the user,
+    since filters are required for export.
+    """
+    flash("Pas de filtres sélectionnés", "error")
+    return redirect(url_for("administration.administration"))
+
+
+@blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
+def export_role(raw_filters=""):
+    """ Create an Excell document with the contact information of roled users.
+
+    Input is a string with id of role or activity. EG `r2-t1` for role 2 and type 1.
+
+    :param raw_filters: Roles filters to use.
+    :type raw_filters: string
+    """
+    query_filter = Role.query
+    # we remove role not linked anymore to a user
+    query_filter = query_filter.filter(Role.user.has(User.id))
+
+    filters = {i[0]: i[1:] for i in raw_filters.split("-")}
+    filename = ""
+
+    if "r" in filters:
+        query_filter = query_filter.filter(Role.role_id == RoleIds.get(filters["r"]))
+        filename += RoleIds.get(filters["r"]).display_name() + " "
+    if "t" in filters:
+        if filters["t"] == "none":
+            filters["t"] = None
+        else:
+            filename += ActivityType.query.get(filters["t"]).name
+        query_filter = query_filter.filter(Role.activity_id == filters["t"])
+
+    roles = query_filter.all()
+
+    wb = Workbook()
+    ws = wb.active
+    FIELDS = {
+        "user.license": "Licence",
+        "user.first_name": "Prénom",
+        "user.last_name": "Nom",
+        "user.mail": "Email",
+        "user.phone": "Téléphone",
+        "activity_type.name": "Activité",
+        "name": "Role",
+    }
+    ws.append(list(FIELDS.values()))
+
+    for role in roles:
+        ws.append([deepgetattr(role, field, "-") for field in FIELDS])
+
+    # set column width
+    for i in range(ord("A"), ord("A") + len(FIELDS)):
+        ws.column_dimensions[chr(i)].width = 25
+
+    out = BytesIO()
+    wb.save(out)
+    out.seek(0)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
+        as_attachment=True,
     )
