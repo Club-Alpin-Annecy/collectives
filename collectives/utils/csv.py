@@ -18,7 +18,8 @@ def fill_from_csv(event, row, template):
     event.registration_open_time = convert_csv_time(row["debut_internet"])
     event.registration_close_time = convert_csv_time(row["fin_internet"])
     event.num_slots = int(row["places"])
-    event.num_online_slots = int(row["places_internet"])
+    if row["places_internet"].strip():
+        event.num_online_slots = int(row["places_internet"])
 
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
