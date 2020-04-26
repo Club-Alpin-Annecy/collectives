@@ -101,6 +101,8 @@ def validate_dates_and_slots(event):
     if not event.starts_before_ends():
         flash("La date de début doit être antérieure à la date de fin")
         valid = False
+    if event.num_online_slots is None:
+        event.num_online_slots = 0
     if event.num_online_slots > 0:
         if not event.has_defined_registration_date():
             flash(
