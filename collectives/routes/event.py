@@ -507,7 +507,7 @@ def reject_registration(reg_id):
 
     # Send notification e-mail to user
     send_reject_subscription_notification(
-        current_user, registration.event, registration.user
+        current_user.full_name(), registration.event, registration.user.mail
     )
 
     return redirect(url_for("event.view_event", event_id=registration.event_id))
