@@ -28,6 +28,7 @@ Code, participation, and issue reporting can be done on github: `https://github.
    configuration
    architecture
    tests
+   html
 
    collectives
    models
