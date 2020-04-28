@@ -1,4 +1,4 @@
-""" Module handle and convert markdown.
+""" Module handling Markdown rendering.
 
 Markdown is mainly used in event description.
 """

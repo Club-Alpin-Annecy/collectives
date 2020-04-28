@@ -9,11 +9,13 @@ from pysimplesoap.client import SoapClient
 from ..models import Gender
 from ..helpers import current_time
 
-# If a license has been renewed after RENEWAL_MONTH of year Y,
-# then it is valid until EXPIRY_MONTH of year Y+1; else it is
-# only valid until EXPITY_MONTH of year Y
+
 LICENSE_RENEWAL_MONTH = 9
 """ Month of license start.
+
+If a license has been renewed after RENEWAL_MONTH of year Y,
+then it is valid until EXPIRY_MONTH of year Y+1; else it is
+only valid until EXPITY_MONTH of year Y.
 
 :type: int
 """
@@ -25,7 +27,7 @@ LICENSE_EXPIRY_MONTH = 10
 
 
 class LicenseInfo:
-    """ Licence information as retrieve from FFCAM servers. """
+    """ Licence information as retrieved from FFCAM servers. """
 
     exists = False
     """ If licence exists.
@@ -129,7 +131,8 @@ class UserInfo:
     """
 
     is_test = False
-    """ Indicate if is a test result or one that comes from the server.
+    """ Indicates whether this object represents a test user or contains actual
+    data from the FFCAM server.
 
     :type: boolean """
 
