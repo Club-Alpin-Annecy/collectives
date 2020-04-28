@@ -38,7 +38,7 @@ def administration():
     """
     # Create the filter list
     filters = {"": ""}
-    filters[f"tnone"] = f"Role General"
+    filters["tnone"] = "Role General"
     for role in RoleIds:
         filters[f"r{role}"] = f"Role {role.display_name()}"
     for activity in ActivityType.get_all_types():
