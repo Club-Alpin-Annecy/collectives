@@ -10,7 +10,7 @@
 <!-- Logging Windows -->
 <div id="cover"></div>
 <div id="logger">
-  <form method="POST" action="{{ url_for('auth.login') }}">
+  <form method="POST" action="#">
     {{ form.hidden_tag() }}
     <h3><img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="head"/></h3>
 
@@ -20,8 +20,8 @@
     <br/>{{ form.submit() }}
 
     <p class="contact-link">
-      <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a> 
-      <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a> 
+      <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
+      <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
     </p>
 
     {% include 'contact_link.html' %}
