@@ -26,25 +26,28 @@ window.onload = function(){
                 // If eventsTable is not ready to be used: exit
                 if(eventsTable == undefined)
                     return 0;
-                if(sorters[0]['field'] != 'title')
-                    eventsTable.setGroupBy(sorters[0]['field']);
-                else
+                if(sorters[0]['field'] == 'title')
                     eventsTable.setGroupBy(false);
+                else if (sorters[0]['field'] == 'start')
+                    eventsTable.setGroupBy(function(data){
+                        return moment(data.start).format('dddd D MMMM YYYY').capitalize();
+                    });
+                else
+                    eventsTable.setGroupBy(sorters[0]['field']);
             },
-
             pagination : 'remote',
             paginationSize : 10,
             pageLoaded :  updatePageURL,
 
             initialSort: [ {column:"start", dir:"asc"}],
-            initialFilter: [{field:"end", type:">=", value:"now" }], 
+            initialFilter: [{field:"end", type:">=", value:"now" }],
   			columns:[
       			{title:"Titre", field:"title", sorter:"string"},
                 {title:"Date", field:"start", sorter:"string"},
   			],
   			    rowFormatter: eventRowFormatter,
             groupHeader:function(value, count, data, group){
-                return moment(value).format('dddd D MMMM YYYY').capitalize();
+                return value;
             },
             locale: true,
             locale:true,
@@ -68,7 +71,7 @@ window.onload = function(){
                 }
             },
   		});
-        
+
         document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
                     button.addEventListener('click', gotoEvents);
                 });
@@ -84,7 +87,7 @@ window.onload = function(){
             eventsTable.setPage(1);
             console.log('No page defined');
         }
-        
+
         refreshFilterDisplay();
 };
 
@@ -174,17 +177,17 @@ function displayLeader(user){
 
 
 function selectActivity(activity_id, element){
-    
+
 
     // Toggle filter
     currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
     console.log(currentActivityFilter.length);
-    
+
     // Display all activities
     if (false === activity_id && currentActivityFilter.length != 0)
         eventsTable.removeFilter(currentActivityFilter);
 
-    
+
     if (false !== activity_id){
         filter={field:"activity_type", type:"=", value: activity_id};
         if( currentActivityFilter.length ==0)
