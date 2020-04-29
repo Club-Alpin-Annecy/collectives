@@ -20,14 +20,12 @@ def send_new_event_notification(event):
     supervisors = activity_supervisors(event.activity_types)
     emails = [u.mail for u in supervisors]
     leader_names = [l.full_name() for l in event.leaders]
+    activity_names = [a.name for a in event.activity_types]
     conf = current_app.config
-    subject = conf["NEW_EVENT_SUBJECT"].format(
-        activity_name=event.title
-        )
     message = conf["NEW_EVENT_MESSAGE"].format(
         leader_name=",".join(leader_names),
-        event_date_range=helpers_processor()["format_datetime_range"](event.start, event.end),
-        event_description=event.description,
+        activity_name=",".join(activity_names),
+        event_title=event.title,
         link=url_for(
             "event.view_event",
             event_id=event.id,
@@ -36,7 +34,7 @@ def send_new_event_notification(event):
         ),
     )
     try:
-        mail.send_mail(subject=subject, email=emails, message=message)
+        mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
 
