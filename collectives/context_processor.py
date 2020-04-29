@@ -1,7 +1,7 @@
 """Helpers functions that are make available to Jinja
 """
-from .helpers import current_time
 from datetime import time
+from .helpers import current_time
 
 # Server may not have fr_FR locale installed, for convenience
 # simply define days of weeks and months names here
