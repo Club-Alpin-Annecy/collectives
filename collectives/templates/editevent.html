@@ -156,7 +156,7 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                     animate: false,
                     weekStart: 1,
                     locale: "fr",
-                    {% if not event.id  %}
+                    {% if not event.id %}
                     timeHours: 0,
                     timeMinutes: 0,
                     {% endif  %}

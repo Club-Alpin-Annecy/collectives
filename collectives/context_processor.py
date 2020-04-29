@@ -74,12 +74,10 @@ def helpers_processor():
             return "{} de {} à {}".format(
                 format_date(start), format_time(start), format_time(end)
             )
-        elif (
-            start.hour == 0 and start.minute == 0 and end.hour == 0 and end.minute == 0
-        ):
+        if start.hour == 0 and start.minute == 0 and end.hour == 0 and end.minute == 0:
             return "du {} au {}".format(format_date(start), format_date(end))
         return "du {} à {} au {} à {}".format(
-            format_date(start), format_time(start), format_date(end), format_time(end)
+            format_date(start), format_time(start), format_date(end), format_time(end),
         )
 
     def format_date_range(start, end):
