@@ -36,3 +36,6 @@ jobs:
       - name: Check models doc
         run: |
           docstr-coverage collectives/models
+      - name: Check utils doc
+        run: |
+          docstr-coverage collectives/utils

@@ -1,4 +1,4 @@
-"""Module to handle csv import
+""" Module to handle csv import
 """
 from datetime import datetime
 import codecs
@@ -10,7 +10,16 @@ from ..models import User, Event, db
 
 
 def fill_from_csv(event, row, template):
-    print(row, flush=True)
+    """ Fill an Event object attributes with parameter from a csv row.
+
+    :param event: The evet object to populate.
+    :type event: :py:class:`collectives.models.event.Event`
+    :param row: List of value from a csv file row
+    :type row: list(string)
+    :param template: Template for the event description. It can contains placeholders.
+    :type template: string
+    :return: Nothing
+    """
     event.title = row["titre"]
 
     event.start = convert_csv_time(row["debut2"])
@@ -32,12 +41,32 @@ def fill_from_csv(event, row, template):
 
 
 def convert_csv_time(date_time_str):
+    """ Convert a string in csv format to a datetime object.
+
+    :param date_time_str: Date to parse (eg: 31/12/2020 14:45).
+    :type date_time_str: string
+    :return: The parsed date
+    :rtype: :py:class:`datetime.datetime`
+    """
     return datetime.strptime(date_time_str, "%d/%m/%y %H:%M")
 
 
 def process_stream(base_stream, activity_type, description):
-    # First, we try to decode csv file as utf8
-    # If it fails, we try again as Windows encoding
+    """ Creates the events from a csv file.
+
+    Processing will first try to process it as an UTF8 encoded file. If it fails
+    on a decoding error, it will try as Windows encoding (iso-8859-1).
+
+    :param base_stream: the csv file as a stream.
+    :type base_stream: :py:class:`io.StringIO`
+    :param activity_type: The type of activity of the new events.
+    :type activity_type: :py:class:`collectives.models.activitytype.ActivityType`
+    :param description: Description template that will be used to generate new events
+                        description.
+    :type description: String
+    :return: The number of processed events, and the number of failed attempts
+    :rtype: (int, int)
+    """
     try:
         stream = codecs.iterdecode(base_stream, "utf8")
         events, processed, failed = csv_to_events(stream, description)
@@ -56,6 +85,17 @@ def process_stream(base_stream, activity_type, description):
 
 
 def csv_to_events(stream, description):
+    """ Decode the csv stream to populate events.
+
+    :param stream: the csv file as a stream.
+    :type stream: :py:class:`io.StringIO`
+    :param description: Description template that will be used to generate new events
+                        description.
+    :type description: String
+    :return: The new events, the number of processed events, and the number of
+            failed attempts
+    :rtype: list(:py:class:`collectives.models.event.Event`), int, int
+    """
     events = []
     processed = 0
     failed = []

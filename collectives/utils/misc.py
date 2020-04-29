@@ -5,7 +5,7 @@ import functools
 
 
 class NoDefault:
-    """ Dummy Class to know if default has been set in :py:function:`deepgetattr`
+    """ Dummy Class to know if default has been set in :py:func:`deepgetattr`
     """
 
     pass
