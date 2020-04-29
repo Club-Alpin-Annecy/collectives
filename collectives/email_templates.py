@@ -127,3 +127,27 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
         )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
+
+
+def send_deleted_event_notification(deletor_name, event, user_email):
+    """ Send a notification to user whom event has been cancelled
+
+    :param string rejector_name: User name who rejects the subscription.
+    :param event: Event the registraton is rejected on.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param string rejected_user_email: User email for who registraton is rejected.
+    """
+    try:
+        conf = current_app.config
+        message = conf["DELETED_EVENT_MESSAGE"].format(
+            deletor_name=deletor_name,
+            event_title=event.title,
+            event_date=helpers_processor()["format_date"](event.start),
+        )
+
+        subject = conf["DELETED_EVENT_SUBJECT"].format(event_title=event.title)
+        mail.send_mail(
+            subject=subject, email=user_email, message=message,
+        )
+    except BaseException as err:
+        print("Mailer error: {}".format(err), file=stderr)
