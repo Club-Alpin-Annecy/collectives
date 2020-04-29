@@ -169,7 +169,7 @@ def users():
         i += 1
 
     # Process first sorter only
-    if f"sorters[0][field]" in request.args:
+    if "sorters[0][field]" in request.args:
         sort_field = request.args.get("sorters[0][field]")
         sort_dir = request.args.get("sorters[0][dir]")
         order = desc(sort_field) if sort_dir == "desc" else sort_field
@@ -397,7 +397,7 @@ def events():
         i += 1
 
     # Process first sorter only
-    if f"sorters[0][field]" in request.args:
+    if "sorters[0][field]" in request.args:
         sort_field = request.args.get("sorters[0][field]")
         sort_dir = request.args.get("sorters[0][dir]")
         order = desc(sort_field) if sort_dir == "desc" else sort_field

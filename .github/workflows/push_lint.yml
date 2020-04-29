@@ -19,10 +19,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install -r requirements-tools.txt
     - name: Lint with pylint
       run: |
         pylint *.py collectives/*.py collectives/*/*.py
-        
+
     - name: Format with black
       run: |
         black --check *.py collectives

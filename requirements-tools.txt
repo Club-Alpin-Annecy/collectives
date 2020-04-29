@@ -1,0 +1,18 @@
+# This file contains tools useful to develop, but not to run the software
+flask-testing
+
+# See #233
+git+https://github.com/PyCQA/astroid#2.4
+
+pylint
+pylint-quotes
+pylint-flask-sqlalchemy
+
+black
+pytest
+
+Sphinx
+# We are using one of the latest option of docsr-coverage, thus it is loaded from
+# github.
+git+https://github.com/HunterMcGushion/docstr_coverage.git
+# docstr_coverage

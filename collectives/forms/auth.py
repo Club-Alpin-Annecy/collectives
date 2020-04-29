@@ -63,7 +63,7 @@ class PasswordResetForm(FlaskForm):
 
 class LegalAcceptation(FlaskForm):
     legal_accepted = BooleanField(
-        f"""Je reconnais avoir pris connaissance
+        """Je reconnais avoir pris connaissance
     des effets du traitement des données à caractère personnel dont je
     fais l'objet et accepte que ce traitement soit effectué dans les
     limites des finalités portées à ma connaissance et conformément
