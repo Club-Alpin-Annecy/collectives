@@ -286,15 +286,17 @@ Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 :type: string
 """
 
-NEW_EVENT_SUBJECT = "Notification de création d'événement"
+NEW_EVENT_SUBJECT = "Nouvelle collective '{activity_name}' créée"
 """Email subject for event creation
 
 :type: string
 """
 NEW_EVENT_MESSAGE = """
-Bonjour,
+L'initiateur {leader_name} propose une nouvelle collective {event_date_range}.
 
-Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
+Voici les détails :
+{event_description}
+
 Vous pouvez le consulter à l'adresse ci-dessous:
 {link}
 
