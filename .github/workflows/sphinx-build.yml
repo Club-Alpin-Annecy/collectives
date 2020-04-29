@@ -21,10 +21,9 @@ jobs:
       # I don't know where the "run" thing is documented.
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Install Sphinx and docstr-coverage
-        run: |
-          pip install Sphinx==3.0.1  git+https://github.com/HunterMcGushion/docstr_coverage.git
+          pip install -r requirements-tools.txt
       - name: Build Sphinx docs
         working-directory: doc
         env:

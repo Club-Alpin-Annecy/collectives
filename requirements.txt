@@ -12,11 +12,6 @@ flask-testing
 marshmallow-sqlalchemy
 Flask-Images
 markdown
-pylint
-pylint-quotes
-pylint-flask-sqlalchemy
-black
-pytest
 pysimplesoap
 # See Issue #98
 Werkzeug==0.16.1
