@@ -1,6 +1,7 @@
 """Helpers functions that are make available to Jinja
 """
 from .helpers import current_time
+from datetime import time
 
 # Server may not have fr_FR locale installed, for convenience
 # simply define days of weeks and months names here
@@ -62,19 +63,14 @@ def helpers_processor():
 
     def format_datetime_range(start, end):
         if start == end:
-            if (
-                start.hour == 0
-                and start.minute == 0
-                and end.hour == 0
-                and end.minute == 0
-            ):
+            if start.time() == time(0):
                 return "{}".format(format_date(start))
             return "{} à {}".format(format_date(start), format_time(start))
         if start.date() == end.date():
             return "{} de {} à {}".format(
                 format_date(start), format_time(start), format_time(end)
             )
-        if start.hour == 0 and start.minute == 0 and end.hour == 0 and end.minute == 0:
+        if start.time() == time(0) and end.time() == time(0):
             return "du {} au {}".format(format_date(start), format_date(end))
         return "du {} à {} au {} à {}".format(
             format_date(start), format_time(start), format_date(end), format_time(end),
