@@ -49,16 +49,16 @@
 
     {# We want to make sure pressing 'Enter' submits the whole form #}
     {# For this add a hidden submit button before 'update_leaders' #}
-    {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }} 
+    {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }}
 
     <h4>Activité et encadrants</h4>
       {{form.update_activity(value=0)}}
-      <div class="inline_field">     
+      <div class="inline_field">
          {{form.multi_activities_mode(onchange="javascript:updateActivity(this)") }}
-         {{form.multi_activities_mode.label}} 
+         {{form.multi_activities_mode.label}}
       </div>
       {% if form.multi_activities_mode.data %}
-         {{form.types.label}} : {{form.types(class="choices")}} 
+         {{form.types.label}} : {{form.types(class="choices")}}
       {% else %}
          {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
       {% endif %}
@@ -74,7 +74,7 @@
             {% endwith %}
             <br/>
             <div class="inline_field">
-              {{action.leader_id}}  
+              {{action.leader_id}}
               {% if form.can_remove_leader(event, user)  %}
                 <button class="button delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">
                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
@@ -94,7 +94,7 @@
       </div>
       {{ form.update_leaders(value=0) }}
     </fieldset>
-    
+
     <h4>Informations</h4>
      <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
      <label for="status">État : </label> {{ form.status }}<br/>
@@ -142,12 +142,12 @@
 <script>
 function updateActivity(element)
 {
-    document.getElementById('update_activity').value=1; 
+    document.getElementById('update_activity').value=1;
     element.form.submit();
 }
 function updateLeaders(element)
 {
-    document.getElementById('update_leaders').value=1; 
+    document.getElementById('update_leaders').value=1;
     element.form.submit();
 }
 
@@ -156,11 +156,15 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                     animate: false,
                     weekStart: 1,
                     locale: "fr",
+                    {% if not event.id  %}
+                    timeHours: 0,
+                    timeMinutes: 0,
+                    {% endif  %}
                     timeStepMinutes: 15,
                     timeSeconds: false,
                     closeButton: false,
                     startOpen: true,
-                    stayOpen: true, 
+                    stayOpen: true,
                     position: "#"+input.parentElement.id,
                     classNames:"form-tail-datetime default",
                 });
