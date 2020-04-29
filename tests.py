@@ -391,7 +391,8 @@ class TestImportCSV(ModelTest):
 
 
 class TestFormatDate(ModelTest):
-    def test_format_date(self):
+    @staticmethod
+    def test_format_date():
         # Null date
         date_test = None
         date_format = helpers_processor()["format_date"](date_test)
@@ -402,7 +403,8 @@ class TestFormatDate(ModelTest):
         date_format = helpers_processor()["format_date"](date_test)
         assert date_format == "dimanche 26 avril 2020"
 
-    def test_format_time(self):
+    @staticmethod
+    def test_format_time():
         # Null date
         date_test = None
         date_format = helpers_processor()["format_time"](date_test)
@@ -413,7 +415,8 @@ class TestFormatDate(ModelTest):
         date_format = helpers_processor()["format_time"](date_test)
         assert date_format == "18h00"
 
-    def test_format_datetime_range(self):
+    @staticmethod
+    def test_format_datetime_range():
         # le 26 avril
         start = datetime.datetime(2020, 4, 26, 0, 0, 0)
         end = datetime.datetime(2020, 4, 26, 0, 0, 0)
@@ -447,7 +450,8 @@ class TestFormatDate(ModelTest):
             == "du dimanche 26 avril 2020 à 8h00 au lundi 27 avril 2020 à 18h30"
         )
 
-    def test_format_date_range(self):
+    @staticmethod
+    def test_format_date_range():
         # le 26 avril de 8h à 18h -> le 26 avril
         start = datetime.datetime(2020, 4, 26, 8, 0, 0)
         end = datetime.datetime(2020, 4, 26, 18, 0, 0)
