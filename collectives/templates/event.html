@@ -74,7 +74,7 @@
 
             {% if event.has_edit_rights(current_user) %}
             <br/>
-            <form action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
+            <form action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscription d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               Refuser
             </form>
