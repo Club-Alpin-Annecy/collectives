@@ -352,36 +352,31 @@ class TestExtranetApi(flask_testing.TestCase):
 class TestImportCSV(ModelTest):
 
     # pylint: disable=C0301
-    csv = "TEST ,740020000001,mardi26,mardi 26 novembre 2019,26/11/19 7:00,mardi 26 novembre 2019,26/11/19 7:00,19/11/19 7:00,25/11/19 12:00, ,Aiguille des Calvaires,Aravis, ,2322,1200,F, , ,8,4"
+    csv = ",,,,,,,,,,,,,,,\nMr TEST,740020000001,26/11/2019 7:00,26/11/2019 7:00,Aiguille des Calvaires,Aravis,,2322,1200,F,,,8,4"
 
     def test_csv_import(self):
 
-        user1 = User(
-            mail="u1",
-            first_name="First",
-            last_name="User",
-            password="",
-            license="740020000001",
-            phone="",
-        )
-        db.session.add(user1)
-        db.session.commit()
+        create_test_user(user_license="740020000001")
 
         event = Event()
 
         output = StringIO(self.csv)
-
         events, processed, failed = csv_to_events(
             output, "{altitude}m-{denivele}m-{cotation}"
         )
+        assert len(events) == 1
         event = events[0]
         assert processed == 1
         assert failed == []
         assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
+        assert event.registration_open_time == datetime.datetime(2019, 11, 19, 7, 0, 0)
+        assert event.registration_close_time == datetime.datetime(
+            2019, 11, 25, 18, 0, 0
+        )
         assert "2322m-1200m-F" in event.rendered_description
-        assert event.leaders[0].first_name == "First"
+        assert event.leaders[0].license == "740020000001"
 
 
 class TestFormatDate(ModelTest):

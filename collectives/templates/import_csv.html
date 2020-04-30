@@ -55,10 +55,15 @@
     {{ form.description }}
     </div>
     <br/>
-    <p><b>Variables utilisables: </b> {{ conf['CSV_COLUMNS'] | join(', ')}}</p>
-    <br/>
     {{ form.hidden_tag() }}
-     <br/><input type="submit" value="Enregistrer"  />
+     <br/><input type="submit" value="Importer"  />
+    <h4>Description des colonnes</h4>
+    <p>Le fichier doit être au format CSV. Les colonnes doivent être séparées par une virgule ','. La 1ère ligne doit contenir le titre des colonnes:</p>
+    <ul>
+    {% for (key, column) in conf["CSV_COLUMNS"].items(): %}
+        <li><p align="left"><b>{{ key }}</b>: {{ column["description"] }}{% if column["optional"] == 1 %} (<i>optionnel</i>{% if column["default"] %}, valeur par défaut: {{ column["default"]}}{% endif %}){% endif %}</p></li>
+    {% endfor %}</ul>
+    <br/>
   </form>
 </div>
 <script>

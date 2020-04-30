@@ -233,7 +233,7 @@ Dénivelé: {denivele}m
 Distance: {distance}km
 Cotation: {cotation}
 
-Lieu et heure de départ: {debut2}
+Lieu et heure de départ:
 
 Matériel requis:
 """
@@ -243,19 +243,29 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
-CSV_COLUMNS = [ 'nom_encadrant', 'id_encadrant', 'unknown',
-                "debut1", "debut2", "fin1", "fin2",
-                "debut_internet","fin_internet", "pictogramme",
-                "titre", "secteur", "carte_IGN", "altitude", "denivele",
-                "cotation", "distance", "observations" ,
-                "places", "places_internet"]
-"""List of columns to import CSV files.
+CSV_COLUMNS = {
+    "nom_encadrant":  {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant"},
+    "id_encadrant":  {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant"},
+    "debut":  {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"},
+    "fin":  {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"},
+    "titre":  {"short_desc": "Titre de la collective", "description": "Titre de la collective"},
+    "secteur":  {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "optional": 1},
+    "carte_IGN":  {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "optional": 1},
+    "altitude":  {"short_desc": "Altitude (en m)",  "description": "Altitude du sommet (en m)", "optional": 1},
+    "denivele":  {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "optional": 1},
+    "cotation":  {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "optional": 1},
+    "distance":  {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "optional": 1},
+    "observations":  {"short_desc": "Observations", "description": "Observations et description de la collective", "optional": 1},
+    "places":  {"short_desc": "Nombre de places", "description": "Nombre de places"},
+    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "optional": 1, "default": 0},
+    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "optional": 1, "default": "7j avant la date de début de la collective à 7h"},
+    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "optional": 1, "default": "la veille de la date de début de la collective à 18h"},
+}
+"""Dictionnary of columns to import from CSV files.
 
-Ordered list of column. ``debut2`` and ``fin2`` are mandatory. These columns
-names will be used as variables during csv import and can be inserted in
-description using place holders.
+Ordered list of column. Dictionnary keys will be used as variables during csv import and can be inserted in description using place holders.
 
-:type: Array
+:type: dict
 """
 
 XLSX_TEMPLATE = os.path.join(basedir,

@@ -231,7 +231,7 @@ class EventForm(ModelForm, FlaskForm):
         Populates description field with event description template
         """
         description = current_app.config["DESCRIPTION_TEMPLATE"]
-        columns = {i: "" for i in current_app.config["CSV_COLUMNS"]}
+        columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}
 
         # Remove placeholders
         self.description.data = description.format(**columns)
