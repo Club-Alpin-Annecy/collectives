@@ -286,17 +286,15 @@ Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 :type: string
 """
 
-NEW_EVENT_SUBJECT = "Nouvelle collective '{activity_name}' créée"
+NEW_EVENT_SUBJECT = "Notification de création d'événement"
 """Email subject for event creation
 
 :type: string
 """
 NEW_EVENT_MESSAGE = """
-L'initiateur {leader_name} propose une nouvelle collective {event_date_range}.
+Bonjour,
 
-Voici les détails :
-{event_description}
-
+Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
 Vous pouvez le consulter à l'adresse ci-dessous:
 {link}
 
@@ -345,6 +343,25 @@ Vous recevez cet e-mail en tant qu'adhérent inscrit à une collective.
 Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 """
 """Email template content for rejected registration to an event
+
+:type: string
+"""
+
+DELETED_EVENT_SUBJECT = "Annulation de la collective '{event_title}'"
+"""Email subject for registered users when an event is deleted
+
+:type: string
+"""
+
+DELETED_EVENT_MESSAGE = """
+Bonjour,
+
+{deletor_name} vient d'annuler la collective '{event_title}' débutant le {event_date}.
+
+Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+"""Email template content for registered users when an event is deleted
 
 :type: string
 """

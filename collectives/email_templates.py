@@ -20,14 +20,12 @@ def send_new_event_notification(event):
     supervisors = activity_supervisors(event.activity_types)
     emails = [u.mail for u in supervisors]
     leader_names = [l.full_name() for l in event.leaders]
+    activity_names = [a.name for a in event.activity_types]
     conf = current_app.config
-    subject = conf["NEW_EVENT_SUBJECT"].format(
-        activity_name=event.title
-        )
     message = conf["NEW_EVENT_MESSAGE"].format(
         leader_name=",".join(leader_names),
-        event_date_range=helpers_processor()["format_datetime_range"](event.start, event.end),
-        event_description=event.description,
+        activity_name=",".join(activity_names),
+        event_title=event.title,
         link=url_for(
             "event.view_event",
             event_id=event.id,
@@ -36,7 +34,7 @@ def send_new_event_notification(event):
         ),
     )
     try:
-        mail.send_mail(subject=subject, email=emails, message=message)
+        mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
 
@@ -124,6 +122,29 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
         subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(event_title=event.title)
         mail.send_mail(
             subject=subject, email=rejected_user_email, message=message,
+        )
+    except BaseException as err:
+        print("Mailer error: {}".format(err), file=stderr)
+
+def send_deleted_event_notification(deletor_name, event, user_email):
+    """ Send a notification to user whom event has been cancelled
+
+    :param string rejector_name: User name who rejects the subscription.
+    :param event: Event the registraton is rejected on.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param string rejected_user_email: User email for who registraton is rejected.
+    """
+    try:
+        conf = current_app.config
+        message = conf["DELETED_EVENT_MESSAGE"].format(
+            deletor_name=deletor_name,
+            event_title=event.title,
+            event_date=helpers_processor()["format_date"](event.start),
+        )
+
+        subject = conf["DELETED_EVENT_SUBJECT"].format(event_title=event.title)
+        mail.send_mail(
+            subject=subject, email=user_email, message=message,
         )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
