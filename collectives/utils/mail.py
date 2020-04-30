@@ -32,11 +32,13 @@ def send_mail(**kwargs):
 
         send_mail(subject="test", email="user@example.org", message="TEST")
 
+    If email is a list, mails are sent as Cci.
+
     :param \\**kwargs: See below
     :Keyword Arguments:
         * *subject* (``string``) --
           Email subject
-        * *email* (``string``) --
+        * *email* (``string`` or ``list(string)``) --
           Email Adress recipient
         * *message* (``string``) --
           Email body
@@ -56,7 +58,7 @@ def send_mail(**kwargs):
 
     dest = kwargs["email"]
     if isinstance(dest, list):
-        msg["To"] = ",".join(dest)
+        msg["Bcc"] = ",".join(dest)
     else:
         msg["To"] = dest
 
