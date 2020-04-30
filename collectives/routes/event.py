@@ -14,7 +14,6 @@ from ..models.activitytype import activities_without_leader, leaders_without_act
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
-from ..email_templates import send_deleted_event_notification
 
 from ..helpers import current_time
 from ..utils.csv import process_stream
@@ -545,14 +544,6 @@ def delete_event(event_id):
     # Delete registrations, activities and leaders
     event.leaders.clear()
     event.activity_types.clear()
-    for registration in event.registrations:
-        if registration.status == RegistrationStatus.Active:
-            user = User.query.filter_by(id=registration.user_id).first()
-            # Send notification e-mail to each registered user
-            send_deleted_event_notification(
-                current_user.full_name(), event, user.mail
-            )
-
     event.registrations.clear()
     db.session.commit()
 
