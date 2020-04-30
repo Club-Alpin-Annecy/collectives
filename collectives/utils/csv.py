@@ -24,7 +24,7 @@ def fill_from_csv(event, row, template):
 
     csv_columns = current_app.config["CSV_COLUMNS"]
 
-    mandatory_column(row["titre"], csv_columns.get("titre")["short_desc"]),
+    mandatory_column(row["titre"], csv_columns.get("titre")["short_desc"])
     event.title = row["titre"].strip()
 
     # Subscription dates and slots
@@ -106,7 +106,7 @@ def convert_csv_time(date_time_str, column_name, mandatory=False):
         mandatory_column(date_time_str, column_name)
     try:
         return datetime.strptime(date_time_str, "%d/%m/%Y %H:%M")
-    except ValueError as e:
+    except ValueError:
         raise Exception(
             "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
                 date_time_str, column_name
@@ -122,19 +122,20 @@ def convert_csv_int(value_str, column_name, mandatory=False):
     :param string column_name: Column name
     :param boolean mandatory: Set if column value is mandatory
     :return: The parsed integer
-    :rtype: int`
+    :rtype: int
     """
     if mandatory:
         mandatory_column(value_str, column_name)
     if value_str.strip():
         try:
             return int(value_str)
-        except ValueError as e:
+        except ValueError:
             raise Exception(
                 "La valeur '{}' de la colonne '{}' doit être un entier".format(
                     value_str, column_name
                 )
             )
+    return None
 
 
 def mandatory_column(value_str, column_name):
@@ -199,7 +200,6 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-    fields = []
     reader = csv.DictReader(
         stream, delimiter=",", fieldnames=[*current_app.config["CSV_COLUMNS"]]
     )
