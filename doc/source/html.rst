@@ -94,7 +94,7 @@ Helpers
  See `Flask documentation about context processor <https://flask.palletsprojects.com/en/1.1.x/templating/#context-processors>`_
 
 Jinja uses its own set of functions. To add a useful function to Jinja template, you have to add it
-to :py:func:`collectives.context_processor.helpers_processor`.
+to :py:func:`collectives.utils.jinja.helpers_processor`.
 
 
 

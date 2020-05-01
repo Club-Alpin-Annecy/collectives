@@ -19,7 +19,7 @@ from ..forms.auth import (
 )
 from ..models import User, Role, RoleIds, db
 from ..models.auth import ConfirmationTokenType, ConfirmationToken
-from ..helpers import current_time
+from ..utils.time import current_time
 from ..utils import extranet
 from ..email_templates import send_confirmation_email
 

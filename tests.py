@@ -12,8 +12,8 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 
 # pylint: enable=C0301
 from collectives.api import find_users_by_fuzzy_name
-from collectives.context_processor import helpers_processor
-from collectives.helpers import current_time
+from collectives.utils.jinja import helpers_processor
+from collectives.utils.time import current_time
 from collectives.models.user import activity_supervisors
 from collectives.utils.csv import csv_to_events
 

@@ -15,7 +15,7 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
 
-from ..helpers import current_time
+from ..utils.time import current_time
 from ..utils.csv import process_stream
 from ..utils.url import slugify
 from ..utils.access import confidentiality_agreement
