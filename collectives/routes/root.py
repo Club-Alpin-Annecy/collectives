@@ -2,7 +2,7 @@ from flask import redirect, url_for, Blueprint
 from flask import current_app, render_template
 from flask_login import current_user, login_required
 from ..forms.auth import LegalAcceptation
-from ..helpers import current_time
+from ..utils.time import current_time
 from ..models import db
 
 blueprint = Blueprint("root", __name__)

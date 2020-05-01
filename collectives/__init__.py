@@ -13,10 +13,9 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-from . import models, api, context_processor, forms
+from . import models, api, forms
 from .routes import root, profile, auth, administration, event
-from .utils import extranet
-from .utils import init
+from .utils import extranet, init, jinja
 
 
 def create_app(config_filename="config"):
@@ -46,7 +45,7 @@ def create_app(config_filename="config"):
     profile.images.init_app(app)
     extranet.api.init_app(app)
 
-    app.context_processor(context_processor.helpers_processor)
+    app.context_processor(jinja.helpers_processor)
 
     _migrate = Migrate(app, models.db)
 

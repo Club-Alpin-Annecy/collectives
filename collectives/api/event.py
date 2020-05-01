@@ -9,7 +9,7 @@ from marshmallow import fields
 
 from ..models import Event, EventStatus, ActivityType
 from ..utils.url import slugify
-from ..helpers import current_time
+from ..utils.time import current_time
 from .common import blueprint, marshmallow, avatar_url
 
 
