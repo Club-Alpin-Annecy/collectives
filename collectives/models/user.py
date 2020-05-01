@@ -253,6 +253,14 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.registration.Registration`)
     """
 
+    payments = db.relationship(
+        "Payment", backref="creditor", foreign_keys="[Payment.creditor_id]", lazy=True
+    )
+    """ List of payments made by the user.
+
+    :type: list(:py:class:`collectives.models.payment.Payment`)
+    """
+
     @validates(
         "first_name",
         "last_name",
