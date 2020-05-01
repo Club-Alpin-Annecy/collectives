@@ -187,6 +187,12 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
+    payment_items = db.relationship("PaymentItem", backref="event", lazy=True)
+    """ List of payment items associated to this event.
+
+    :type: list(:py:class:`collectives.models.payment.PaymentItem`)
+    """
+
     def save_photo(self, file):
         """Save event photo from a raw file
 
@@ -433,13 +439,28 @@ class Event(db.Model):
             if registration.is_active()
         ]
 
+    def num_taken_slots(self):
+        """ Return the number of slots that have been taken
+        (registration is either active or pending)
+
+        :return: count of taken slots
+        :rtype: int
+        """
+        return len(
+            [
+                registration
+                for registration in self.registrations
+                if registration.is_holding_slot()
+            ]
+        )
+
     def has_free_slots(self):
         """ Check if this event is full.
 
         :return: True if there is less active registrations than available slots.
         :rtype: boolean
         """
-        return len(self.active_registrations()) < self.num_slots
+        return self.num_taken_slots() < self.num_slots
 
     def has_free_online_slots(self):
         """ Check if an user can self-register.
@@ -448,15 +469,15 @@ class Event(db.Model):
                 online slots.
         :rtype: boolean
         """
-        return len(self.active_registrations()) < self.num_online_slots
+        return self.num_taken_slots() < self.num_online_slots
 
     def free_slots(self):
         """ Calculate the amount of available slot for new registrations.
 
         :return: Number of free slots for this event.
         :rtype: int """
-        free = self.num_slots - len(self.active_registrations())
-        return 0 if free < 0 else free
+        free = self.num_slots - self.num_taken_slots()
+        return max(free, 0)
 
     def is_registered(self, user):
         """ Check if a user is registered to this event.
