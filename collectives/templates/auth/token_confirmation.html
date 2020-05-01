@@ -17,7 +17,7 @@
     {% for field in form%}
     {% for error in form.errors[field.name] %}
     <li>
-      <strong>Erreur: {{field.label}}:</strong> {{error}}
+      <strong>Erreur : {{field.label}}:</strong> {{error}}
     </li>
     {% endfor %}
     {% endfor %}

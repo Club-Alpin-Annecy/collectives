@@ -193,7 +193,7 @@ MAX_FILE_SIZE=2 * 1024 * 1024
 """ Max size to upload files.
 
 :type: int """
-MAX_FILE_SIZE_MESSAGE=f"Le fichier est trop gros pour être chargé sur le serveur: [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
+MAX_FILE_SIZE_MESSAGE=f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
 """ Error message if uploaded file is too big.
 
 This error message is only used in form validation on client. `[size]` is a
@@ -226,16 +226,16 @@ IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
 DESCRIPTION_TEMPLATE = """
 {observations}
 
-Secteur: {secteur}
-Carte IGN: {carte_IGN}
-Altitude max.: {altitude}m
-Dénivelé: {denivele}m
-Distance: {distance}km
-Cotation: {cotation}
+Secteur : {secteur}
+Carte IGN : {carte_IGN}
+Altitude max. : {altitude}m
+Dénivelé : {denivele}m
+Distance : {distance}km
+Cotation : {cotation}
 
-Lieu et heure de départ: {debut2}
+Lieu et heure de départ : {debut2}
 
-Matériel requis:
+Matériel requis :
 """
 """Default event description template.
 
@@ -274,7 +274,7 @@ TOKEN_DURATION = environ.get("TOKEN_DURATION") or 2
 CONFIRMATION_MESSAGE = """
 Bonjour {name},
 
-Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous:
+Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous :
 {link}
 
 Ce lien expirera après {expiry_hours} heures.
@@ -295,7 +295,7 @@ NEW_EVENT_MESSAGE = """
 Bonjour,
 
 Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
-Vous pouvez le consulter à l'adresse ci-dessous:
+Vous pouvez le consulter à l'adresse ci-dessous :
 {link}
 
 Vous recevez cet e-mail en tant que Responsable de l'activité.
@@ -315,7 +315,7 @@ SELF_UNREGISTER_MESSAGE = """
 Bonjour,
 
 '{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
-Lien vers l'événement:
+Lien vers l'événement :
 {link}
 
 Vous recevez cet e-mail en tant qu'encadrant d'une activité.
@@ -336,7 +336,7 @@ REJECTED_REGISTRATION_MESSAGE = """
 Bonjour,
 
 {rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
-Lien vers l'événement:
+Lien vers l'événement :
 {link}
 
 Vous recevez cet e-mail en tant qu'adhérent inscrit à une collective.

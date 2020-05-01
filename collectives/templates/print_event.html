@@ -8,9 +8,9 @@
 
         <div id="emergency">
             <ul>
-            <li><span class="what">Nivo météo:</span> <span class="phone">08 92 68 10 20</span></li>
-            <li><span class="what">Secours:   </span> <span class="phone">112</span></li>
-            <li><span class="what">CAF Annecy:</span> <span class="phone">04 50 09 82 09</span></li>
+            <li><span class="what">Nivo météo :</span> <span class="phone">08 92 68 10 20</span></li>
+            <li><span class="what">Secours :   </span> <span class="phone">112</span></li>
+            <li><span class="what">CAF Annecy :</span> <span class="phone">04 50 09 82 09</span></li>
             </ul>
         </div>
         
@@ -29,7 +29,7 @@
 
         <div id="info">
             <div id="leaders">
-                <h4>Encadrement : </h4>
+                <h4>Encadrement : </h4>
                 {%for leader in event.ranked_leaders()%}
                 <div class="leader {% if leader.id == event.main_leader_id %} main {% endif %}">
                     <span class="name">{{leader.full_name()}}</span>
@@ -41,8 +41,8 @@
             
             <div id="dates">
                 <ul>
-                    <li><span>Départ</span> : {{format_date(event.start)}}</li>
-                    <li><span>Retour</span> : {{format_date(event.end)}}</li>
+                    <li><span>Départ</span> : {{format_date(event.start)}}</li>
+                    <li><span>Retour</span> : {{format_date(event.end)}}</li>
                 </ul>
             </div>
         </div>
@@ -78,8 +78,8 @@
         </table>
 
         <div id="footer">
-            <h3 id="observations">Observations:</h3>
-            <h3 id="signature">Signature:</h3>
+            <h3 id="observations">Observations :</h3>
+            <h3 id="signature">Signature :</h3>
         </div>
 
     </body>

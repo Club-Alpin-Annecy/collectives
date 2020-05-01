@@ -382,7 +382,7 @@ def duplicate(event_id=None):
     event = Event.query.get(event_id)
 
     if event == None:
-        flash("Pas d'évènement à dupliquer", "error")
+        flash("Pas d'événement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
     form = EventForm(event, obj=event)
