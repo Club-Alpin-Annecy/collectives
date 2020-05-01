@@ -20,12 +20,17 @@ class RegistrationStatus(enum.IntEnum):
     """ Enum listing acceptable registration status. """
 
     Active = 0
-    """ Registred user is planned to be present. """
+    """ Registered user is plann to be present. """
 
     Rejected = 1
-    """ Registred user has been rejected by a leader.
+    """ Registered user has been rejected by a leader.
 
-    A rejected user shall not be count in occupied slots, nor be able to register again"""
+    A rejected user shall not be counted in occupied slots, nor be able to register again"""
+    PaymentPending = 2
+    """ User has initiated but not yet completed payment
+
+    This registration is temporarily holding up a spot, but may be removed after timeout
+    """
 
 
 class Registration(db.Model):
@@ -62,12 +67,30 @@ class Registration(db.Model):
 
     :type: :py:class:`collectives.models.registration.RegistrationLevels`"""
 
+    # Relationships
+
+    payments = db.relationship("Payment", backref="registration", lazy=True)
+    """ List of payments associated to this registration.
+
+    :type: list(:py:class:`collectives.models.payment.Payment`)
+    """
+
     def is_active(self):
         """Check if this registation is active.
 
         :return: Is :py:attr:`status` active ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.Active
+
+    def is_holding_slot(self):
+        """Check if this registation is holding a slot.
+
+        :return: Is :py:attr:`status` active or pending?
+        :rtype: boolean"""
+        return (
+            self.status == RegistrationStatus.Active
+            or self.status == RegistrationStatus.PaymentPending
+        )
 
     def is_rejected(self):
         """Check if this registation is rejected.
