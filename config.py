@@ -81,6 +81,18 @@ EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
 :type: string
 """
 
+PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or True
+"""Whether to enable the payment-related functionalities
+
+:type: bool
+"""
+
+PAYMENTS_MAX_PRICE = 10000
+"""Maximum price in euros for a payment option
+
+:type: int
+"""
+
 # Database
 basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = environ.get(
@@ -154,6 +166,13 @@ FAVICON = "caf/favicon.ico"
 
 TZ_NAME = "Europe/Paris"
 """Timezone to use for time comparisons
+
+:type: string
+"""
+
+BABEL_DEFAULT_LOCALE = "fr"
+""" Default locale used by flask-babel 
+(for formatting prices, dates, etc)
 
 :type: string
 """

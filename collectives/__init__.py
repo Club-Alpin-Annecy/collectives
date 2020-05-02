@@ -15,9 +15,8 @@ from flask_migrate import Migrate
 import werkzeug
 
 from . import models, api, forms
-from .routes import root, profile, auth, administration, event
+from .routes import root, profile, auth, administration, event, payment
 from .utils import extranet, init, jinja, error
-
 
 def create_app(config_filename="config"):
     """Flask application factory.
@@ -59,6 +58,7 @@ def create_app(config_filename="config"):
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
+        app.register_blueprint(payment.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

@@ -121,6 +121,13 @@
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
+          
+          {% if conf["PAYMENTS_ENABLED"] %}
+            <a class="button" href="{{ url_for('payment.edit_options', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+              Gestion des tarifs
+            </a>
+          {% endif %}
 
           {% if event.has_delete_rights(current_user) %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
