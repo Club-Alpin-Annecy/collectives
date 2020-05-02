@@ -385,7 +385,7 @@ def duplicate(event_id=None):
         flash("Pas d'évènement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
-    form = EventForm(event, obj=event)
+    form = EventForm(obj=event)
     form.setup_leader_actions()
     form.duplicate_photo.data = event_id
 
