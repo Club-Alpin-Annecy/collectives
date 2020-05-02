@@ -20,3 +20,4 @@ pymysql
 dkimpy
 email_validator
 openpyxl
+babel

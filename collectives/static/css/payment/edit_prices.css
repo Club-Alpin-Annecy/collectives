@@ -1,0 +1,31 @@
+form {
+    text-align:center;
+}
+
+#existing_prices {
+    width: 80%;
+    margin:auto;
+}
+
+#existing_prices input{
+    width:90%;
+    padding:0.5em;
+}
+
+#existing_prices input[type=number]{
+    width:5em;
+}
+
+#existing_prices input[type=checkbox]{
+    width:auto;
+    display:inline;
+}
+
+#existing_prices label{
+    display:inline;
+    font-weight: normal;
+}
+
+td.error-cell {
+    text-align:left;
+}

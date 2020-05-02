@@ -1,0 +1,91 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/payment/edit_prices.css') }}">
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}{{event.title}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <h3>{{event.title}}</h3>
+  <h4>Édition des tarifs</h4>
+  Pour rendre la collective payante, définissez un ou plusieurs tarifs.
+
+  <form method="POST">
+
+    <h5> Tarifs existants </h5>
+    {% if form.items %}
+    <table id="existing_prices">
+    <thead>
+      <th> Objet du paiement</th> 
+      <th> Intitulé du tarif </th> 
+      <th> Prix en euros </th> 
+      <th> Actif </th> 
+    </thead>
+    {% for field in form.items %}
+      <tr>
+        <td> {{ field.item_title() }} </td>
+        <td> {{ field.title() }} </td>
+        <td> 
+        {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
+         </td>
+        <td> {{ field.enabled() }} </td>
+        <td> {{field.price_id}} {{field.item_id}}  
+        {% if field.use_count %}
+          Utilisé {{field.use_count}} fois.
+        {% else %}
+          {{field.delete}}{{field.delete.label}} 
+        {% endif %}
+        </td>
+      </tr>
+      {% if field.errors %}
+      <tr> <td colspan="4" class="error-cell">
+        <ul class="form-errors">
+              {% for field_name, errors in field.errors.items() %}
+              {% for error in errors %}
+                <li>
+                <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
+                </li>
+              {% endfor %}
+              {% endfor %}
+        </ul>
+      </td> </tr>
+      {%endif%}
+    {% endfor %}
+    </table>
+    {%endif%}
+    Aucun tarif n'a été défini pour le moment.
+
+    <h5> Nouveau tarif </h5>
+
+    <ul class="form-errors">
+          {% for field_name, errors in form.new_item.errors.items() %}
+          {% for error in errors %}
+            <li>
+            <strong>Erreur: {{form.new_item[field_name].label}}:</strong> {{error}}
+            </li>
+          {% endfor %}
+          {% endfor %}
+    </ul>
+
+    <div class="field">{{ form.new_item.item_title.label }}<span class="help">Laissez vide pour ne pas créer de nouveau tarif</span></div>
+    {{ form.new_item.item_title}}
+    <div class="field">{{ form.new_item.title.label }}<span class="help">Par exemple «Adultes»</span></div>
+    {{ form.new_item.title}}
+
+    <div class="field">{{ form.new_item.amount.label }}<span class="help">{{ form.new_item.amount.description }}</span></div>
+    {{ form.new_item.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
+    {#{ form.new_item.amount()}#}
+
+    {{ form.hidden_tag() }}
+    <br />{{ form.submit() }}
+  </form>
+
+</div>
+{% endblock %}
+

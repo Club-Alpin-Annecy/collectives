@@ -7,7 +7,7 @@ on Internet.
 See `https://docs.python.org/3.8/library/functools.html <https://docs.python.org/3.8/library/functools.html>`_
 """
 from functools import wraps
-from flask import redirect, url_for, flash, abort
+from flask import redirect, url_for, flash, abort, current_app
 from flask_login import current_user
 
 
@@ -128,6 +128,37 @@ def admin_required(api=False):
             """
             message = "Réservé aux administrateurs"
             return current_user.is_admin(), message, url_for("event.index")
+
+        return access_requires(f, tester, api)
+
+    return innerF
+
+
+def payments_enabled(api=False):
+    """Decorator which checks whether the payment functionnality is enabled
+
+    :param api: If True and access is denied, trigger a 403. Otherwise return an error message
+    :type api: bool
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
+
+    def innerF(f):
+        """ Function that will wraps `f`.
+        """
+
+        def tester(*args, **kwargs):
+            """ Check if user is an admin.
+
+            It will also return everything required to display an error message if
+            check is failed.
+            """
+            message = "Fonctionnalité désactivée"
+            return (
+                current_app.config["PAYMENTS_ENABLED"],
+                message,
+                url_for("event.index"),
+            )
 
         return access_requires(f, tester, api)
 
