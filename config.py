@@ -289,11 +289,12 @@ CSV_COLUMNS = {
 """Dictionnary of columns to import from CSV files.
 
 Ordered list of columns. Dictionnary keys will be used as variables during csv import and can be inserted in description using place holders.\n
-Key is the column name. And for each column:\n
-- *short_desc*: is the human readable column name\n
-- *description*: is a long description of the column, to be used in a documentation\n
-- *type*: is the column value type (can be one of string, int or datetime)\n
-- *optional*: if set to 1, column value is optional\n
+Key is the column name. And for each column:
+
+- *short_desc*: is the human readable column name
+- *description*: is a long description of the column, to be used in a documentation
+- *type*: is the column value type (can be one of string, int or datetime)
+- *optional*: if set to 1, column value is optional
 - *default*: default value
 
 :type: dict
