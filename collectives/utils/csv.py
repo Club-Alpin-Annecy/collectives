@@ -51,7 +51,7 @@ def fill_from_csv(event, row, template):
                 hour=current_app.config["DEFAULT_REGISTRATION_OPENING_DATE_HOUR"],
                 minute=0,
             )
-        if row["debut_internet"] != None and row["fin_internet"].strip():
+        if row["fin_internet"] != None and row["fin_internet"].strip():
             event.registration_close_time = parse(row, "fin_internet")
         else:
             # Set default value
