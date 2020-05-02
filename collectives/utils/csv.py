@@ -191,7 +191,7 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-    fields = current_app.config["CSV_COLUMNS"].keys()
+    fields = [*current_app.config["CSV_COLUMNS"]]
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     next(reader, None)  # skip the headers
     for row in reader:
