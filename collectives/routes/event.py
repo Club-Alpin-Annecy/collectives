@@ -214,7 +214,7 @@ def manage_event(event_id=None):
     if not form.is_submitted():
         if event_id is None:
             form = EventForm()
-            form.set_default_description()
+            form.set_default_values()
         else:
             form = EventForm(obj=event)
         form.setup_leader_actions()
