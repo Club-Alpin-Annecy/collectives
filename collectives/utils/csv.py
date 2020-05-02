@@ -6,7 +6,7 @@ import csv
 
 from flask import current_app
 
-from ..context_processor import helpers_processor
+from .time import format_date
 from ..models import User, Event, db
 
 
@@ -22,49 +22,56 @@ def fill_from_csv(event, row, template):
     :return: Nothing
     """
 
-    csv_columns = current_app.config["CSV_COLUMNS"]
-
-    mandatory_column(row["titre"], csv_columns.get("titre")["short_desc"])
-    event.title = row["titre"].strip()
+    event.title = parse(row, "titre")
 
     # Subscription dates and slots
-    event.start = convert_csv_time(
-        row["debut"], csv_columns.get("debut")["short_desc"], True
-    )
-    event.end = convert_csv_time(row["fin"], csv_columns.get("fin")["short_desc"], True)
-    event.num_slots = convert_csv_int(
-        row["places"], csv_columns.get("places")["short_desc"], True
-    )
+    event.start = parse(row, "debut")
+    event.end = parse(row, "fin")
+    event.num_slots = parse(row, "places")
 
     # Online subscription dates and slots
     if row["places_internet"].strip():
-        event.num_online_slots = convert_csv_int(
-            row["places_internet"], csv_columns.get("places_internet")["short_desc"]
-        )
+        event.num_online_slots = parse(row, "places_internet")
         if event.num_online_slots > event.num_slots:
             raise Exception(
                 "Le nombre de places par internet doit être inférieur au nombre de places de la collective"
             )
-        event.registration_open_time = (
-            convert_csv_time(
-                row["debut_internet"], csv_columns.get("debut_internet")["short_desc"]
+        if row["debut_internet"] != None and row["debut_internet"].strip():
+            event.registration_open_time = parse(row, "debut_internet")
+        else:
+            # Set default value
+            event.registration_open_time = (
+                event.start
+                - timedelta(
+                    days=current_app.config[
+                        "DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS"
+                    ]
+                )
+            ).replace(
+                hour=current_app.config["DEFAULT_REGISTRATION_OPENING_DATE_HOUR"],
+                minute=0,
             )
-            if row["debut_internet"] != None and row["debut_internet"].strip()
-            else (event.start - timedelta(days=7)).replace(hour=7, minute=00)
-        )
-        event.registration_close_time = (
-            convert_csv_time(
-                row["fin_internet"], csv_columns.get("fin_internet")["short_desc"]
+        if row["debut_internet"] != None and row["fin_internet"].strip():
+            event.registration_close_time = parse(row, "fin_internet")
+        else:
+            # Set default value
+            event.registration_close_time = (
+                event.start
+                - timedelta(
+                    days=current_app.config[
+                        "DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS"
+                    ]
+                )
+            ).replace(
+                hour=current_app.config["DEFAULT_REGISTRATION_CLOSING_DATE_HOUR"],
+                minute=0,
             )
-            if row["debut_internet"] != None and row["fin_internet"].strip()
-            else (event.start - timedelta(days=1)).replace(hour=18, minute=00)
-        )
 
     # Description
-    convert_csv_int(row["altitude"], csv_columns.get("altitude")["short_desc"])
-    convert_csv_int(row["denivele"], csv_columns.get("denivele")["short_desc"])
-    convert_csv_int(row["distance"], csv_columns.get("distance")["short_desc"])
-    event.description = template.format(**row,)
+    parse(row, "altitude")
+    parse(row, "denivele")
+    parse(row, "distance")
+    event.description = template.format(**row)
     event.set_rendered_description(event.description)
 
     # Leader
@@ -82,9 +89,7 @@ def fill_from_csv(event, row, template):
     ).first():
         raise Exception(
             "La collective {} démarrant le {} et encadrée par {} existe déjà.".format(
-                event.title,
-                helpers_processor()["format_date"](event.start),
-                row["nom_encadrant"],
+                event.title, format_date(event.start), row["nom_encadrant"],
             )
         )
 
@@ -92,64 +97,50 @@ def fill_from_csv(event, row, template):
     event.main_leader_id = leader.id
 
 
-def convert_csv_time(date_time_str, column_name, mandatory=False):
-    """ Convert a string in csv format to a datetime object.
+def parse(row, column_name):
+    """ Parse a column value in csv format to an object depending on column type.
     Raise an exception if field is mandatory and is not set
 
-    :param string date_time_str: Date to parse (eg: 31/12/2020 14:45).
+    :param row: List of value from a csv file row
+    :type row: list(string)
     :param string column_name: Column name
-    :param boolean mandatory: Set if column value is mandatory
-    :return: The parsed date
-    :rtype: :py:class:`datetime.datetime`
+    :return: The parsed value
     """
-    if mandatory:
-        mandatory_column(date_time_str, column_name)
-    try:
-        return datetime.strptime(date_time_str, "%d/%m/%Y %H:%M")
-    except ValueError:
-        raise Exception(
-            "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
-                date_time_str, column_name
-            )
-        )
+    csv_columns = current_app.config["CSV_COLUMNS"]
+    column_short_desc = csv_columns[column_name]["short_desc"]
 
+    value_str = row[column_name].strip()
 
-def convert_csv_int(value_str, column_name, mandatory=False):
-    """ Convert a sting in csv format to an integer
-    Raise an exception if field is mandatory and is not set
-
-    :param string value_str: Integer to parse
-    :param string column_name: Column name
-    :param boolean mandatory: Set if column value is mandatory
-    :return: The parsed integer
-    :rtype: int
-    """
-    if mandatory:
-        mandatory_column(value_str, column_name)
-    if value_str.strip():
-        try:
-            return int(value_str)
-        except ValueError:
-            raise Exception(
-                "La valeur '{}' de la colonne '{}' doit être un entier".format(
-                    value_str, column_name
-                )
-            )
-    return None
-
-
-def mandatory_column(value_str, column_name):
-    """ Raise an exception if mandatory field is not defined
-
-    :param string value_str: Value to check
-    :param string column_name: Column name
-    """
-    if not value_str.strip():
+    # Check if mandatory column is well set
+    if not value_str and not csv_columns[column_name].get("optional", 0):
         raise Exception(
             "La colonne '{}' est obligatoire et n'est pas renseignée".format(
-                column_name
+                column_short_desc
             )
         )
+
+    column_type = csv_columns[column_name]["type"]
+    if column_type == "datetime":
+        try:
+            return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
+        except ValueError:
+            raise Exception(
+                "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
+                    value_str, column_short_desc
+                )
+            )
+    elif column_type == "int":
+        if value_str:
+            try:
+                return int(value_str)
+            except ValueError:
+                raise Exception(
+                    "La valeur '{}' de la colonne '{}' doit être un entier".format(
+                        value_str, column_name
+                    )
+                )
+
+    return value_str
 
 
 def process_stream(base_stream, activity_type, description):
@@ -200,9 +191,8 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-    reader = csv.DictReader(
-        stream, delimiter=",", fieldnames=[*current_app.config["CSV_COLUMNS"]]
-    )
+    fields = current_app.config["CSV_COLUMNS"].keys()
+    reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     next(reader, None)  # skip the headers
     for row in reader:
         processed += 1

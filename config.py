@@ -243,27 +243,58 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
+DEFAULT_ONLINE_SLOTS_NUMBER = environ.get("DEFAULT_ONLINE_SLOTS_NUMBER") or 0
+""" Default number of slots for online subscription to an event
+
+:type: int """
+
+DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS = environ.get("DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS") or 7
+""" Default number of days the online registration should start before the beginning of the event
+
+:type: int """
+
+DEFAULT_REGISTRATION_OPENING_DATE_HOUR = environ.get("DEFAULT_REGISTRATION_OPENING_DATE_HOUR") or 7
+""" Default hour of the day the online registration should start before the beginning of the event
+
+:type: int """
+
+DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS = environ.get("DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS") or 1
+""" Default number of days the online registration should end before the beginning of the event
+
+:type: int """
+
+DEFAULT_REGISTRATION_CLOSING_DATE_HOUR = environ.get("DEFAULT_REGISTRATION_CLOSING_DATE_HOUR") or 18
+""" Default hour of the day the online registration should end before the beginning of the event
+
+:type: int """
+
 CSV_COLUMNS = {
-    "nom_encadrant":  {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant"},
-    "id_encadrant":  {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant"},
-    "debut":  {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"},
-    "fin":  {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"},
-    "titre":  {"short_desc": "Titre de la collective", "description": "Titre de la collective"},
-    "secteur":  {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "optional": 1},
-    "carte_IGN":  {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "optional": 1},
-    "altitude":  {"short_desc": "Altitude (en m)",  "description": "Altitude du sommet (en m)", "optional": 1},
-    "denivele":  {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "optional": 1},
-    "cotation":  {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "optional": 1},
-    "distance":  {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "optional": 1},
-    "observations":  {"short_desc": "Observations", "description": "Observations et description de la collective", "optional": 1},
-    "places":  {"short_desc": "Nombre de places", "description": "Nombre de places"},
-    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "optional": 1, "default": 0},
-    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "optional": 1, "default": "7j avant la date de début de la collective à 7h"},
-    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "optional": 1, "default": "la veille de la date de début de la collective à 18h"},
+    "nom_encadrant":  {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant", "type": "string"},
+    "id_encadrant":  {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant", "type": "int"},
+    "debut":  {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
+    "fin":  {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
+    "titre":  {"short_desc": "Titre de la collective", "description": "Titre de la collective", "type": "string"},
+    "secteur":  {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "type": "string", "optional": 1},
+    "carte_IGN":  {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "type": "string", "optional": 1},
+    "altitude":  {"short_desc": "Altitude (en m)",  "description": "Altitude du sommet (en m)", "type": "int", "optional": 1},
+    "denivele":  {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "type": "int", "optional": 1},
+    "cotation":  {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "type": "int", "optional": 1},
+    "distance":  {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "type": "int", "optional": 1},
+    "observations":  {"short_desc": "Observations", "description": "Observations et description de la collective", "type": "string", "optional": 1},
+    "places":  {"short_desc": "Nombre de places", "description": "Nombre de places", "type": "int"},
+    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": "{}".format(DEFAULT_ONLINE_SLOTS_NUMBER) },
+    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS,DEFAULT_REGISTRATION_OPENING_DATE_HOUR)},
+    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS,DEFAULT_REGISTRATION_CLOSING_DATE_HOUR)},
 }
 """Dictionnary of columns to import from CSV files.
 
-Ordered list of column. Dictionnary keys will be used as variables during csv import and can be inserted in description using place holders.
+Ordered list of columns. Dictionnary keys will be used as variables during csv import and can be inserted in description using place holders.\n
+Key is the column name. And for each column:\n
+- *short_desc*: is the human readable column name\n
+- *description*: is a long description of the column, to be used in a documentation\n
+- *type*: is the column value type (can be one of string, int or datetime)\n
+- *optional*: if set to 1, column value is optional\n
+- *default*: default value
 
 :type: dict
 """
