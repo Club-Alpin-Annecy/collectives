@@ -83,6 +83,8 @@ class PaymentStatus(ChoiceEnum):
 
 
 class Payment(db.Model):
+    """ Datable model describing the details of a payment
+    """
 
     __tablename__ = "payments"
 
