@@ -186,10 +186,10 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
-    payment_options = db.relationship("PaymentOption", backref="event", lazy=True)
-    """ List of payment options associated to this event.
+    payment_items = db.relationship("PaymentItem", backref="event", lazy=True)
+    """ List of payment items associated to this event.
 
-    :type: list(:py:class:`collectives.models.payment.PaymentOption`)
+    :type: list(:py:class:`collectives.models.payment.PaymentItem`)
     """
 
     def save_photo(self, file):
