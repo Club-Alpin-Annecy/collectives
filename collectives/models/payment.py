@@ -32,8 +32,8 @@ class PaymentOption(db.Model):
 
     :type: string"""
 
-    price_in_cents = db.Column(db.Integer, nullable=False)
-    """ Price in euro cents
+    price = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
+    """ Price in euros
 
     :type: int"""
 
@@ -159,14 +159,14 @@ class Payment(db.Model):
     :type: str
     """
 
-    amount_charged_in_cents = db.Column(db.Integer, nullable=False)
-    """ Amount in euro cents to be paid by the user. Stored locally as the
+    amount_charged = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
+    """ Amount in euros to be paid by the user. Stored locally as the
     payment option price might have been updated.
 
     :type: int"""
 
-    amount_paid_in_cents = db.Column(db.Integer, nullable=False)
-    """ Amount in euro cents paid by the user if the payment has been approved.
+    amount_paid = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
+    """ Amount in euros paid by the user if the payment has been approved.
     For validation purposes
 
     :type: int"""
