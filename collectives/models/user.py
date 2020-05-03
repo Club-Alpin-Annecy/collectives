@@ -13,7 +13,7 @@ from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
 from .utils import ChoiceEnum
-from ..helpers import current_time
+from ..utils.time import current_time
 
 # Upload
 avatars = UploadSet("avatars", IMAGES)

@@ -11,7 +11,7 @@ import uuid
 from flask import current_app
 
 from .globals import db
-from ..helpers import current_time
+from ..utils.time import current_time
 
 
 class ConfirmationTokenType(enum.IntEnum):

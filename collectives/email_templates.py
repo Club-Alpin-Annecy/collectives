@@ -8,7 +8,7 @@ from .utils import mail
 from .utils.url import slugify
 from .models.auth import ConfirmationTokenType
 from .models.user import activity_supervisors
-from .context_processor import helpers_processor
+from .utils.time import format_date
 
 
 def send_new_event_notification(event):
@@ -110,7 +110,7 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
         message = conf["REJECTED_REGISTRATION_MESSAGE"].format(
             rejector_name=rejector_name,
             event_title=event.title,
-            event_date=helpers_processor()["format_date"](event.start),
+            event_date=format_date(event.start),
             link=url_for(
                 "event.view_event",
                 event_id=event.id,

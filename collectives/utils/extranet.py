@@ -7,7 +7,7 @@ import pysimplesoap
 from pysimplesoap.client import SoapClient
 
 from ..models import Gender
-from ..helpers import current_time
+from .time import current_time
 
 
 LICENSE_RENEWAL_MONTH = 9
