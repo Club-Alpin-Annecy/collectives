@@ -21,7 +21,7 @@ from ..utils.url import slugify
 from ..utils.access import confidentiality_agreement
 
 
-blueprint = Blueprint("event", __name__, url_prefix="/event")
+blueprint = Blueprint("event", __name__, url_prefix="/collectives")
 """ Event blueprint
 
 This blueprint contains all routes for event display and management
@@ -141,8 +141,6 @@ def validate_dates_and_slots(event):
 # Event management
 ##########################################################################
 @blueprint.route("/")
-@blueprint.route("/index")
-@blueprint.route("/list")
 def index():
     types = ActivityType.query.order_by("order", "name").all()
     return render_template(
@@ -151,7 +149,7 @@ def index():
 
 
 @blueprint.route("/<event_id>")
-@blueprint.route("/<event_id>/v/<name>")
+@blueprint.route("/<event_id>-<name>")
 @login_required
 def view_event(event_id, name=""):
     event = Event.query.filter_by(id=event_id).first()
@@ -558,7 +556,7 @@ def delete_event(event_id):
     return redirect(url_for("event.index"))
 
 
-@blueprint.route("/csv_import", methods=["GET", "POST"])
+@blueprint.route("/import", methods=["GET", "POST"])
 @login_required
 @confidentiality_agreement()
 def csv_import():
