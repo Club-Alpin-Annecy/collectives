@@ -35,8 +35,8 @@ class EventStatus(ChoiceEnum):
         :rtype: string
         """
         return {
-            cls.Confirmed: "Confirmée",
-            cls.Pending: "En attente",
+            cls.Confirmed: "Au programme",
+            cls.Pending: "Projet",
             cls.Cancelled: "Annulée",
         }
 
