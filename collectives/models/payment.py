@@ -74,7 +74,7 @@ class ItemPrice(db.Model):
     amount = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
     """ Charged amount in euros
 
-    :type: int"""
+    :type: :py:class:`decimal.Decimal`"""
 
     enabled = db.Column(db.Boolean, nullable=False)
     """ Whether this price is enabled.
@@ -228,10 +228,10 @@ class Payment(db.Model):
     payment item price might have been updated while the payment is
     being processed.
 
-    :type: int"""
+    :type: :py:class:`decimal.Decimal`"""
 
     amount_paid = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
     """ Amount in euros paid by the user if the payment has been approved.
     For validation purposes
 
-    :type: int"""
+    :type: :py:class:`decimal.Decimal`"""
