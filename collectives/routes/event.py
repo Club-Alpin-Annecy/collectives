@@ -168,6 +168,20 @@ def view_event(event_id, name=""):
         RegistrationForm() if event.has_edit_rights(current_user) else None
     )
 
+    # Detect OS and hide SMS action if not supported
+    useragent = request.user_agent
+    if useragent.platform in (
+        "android",
+        "blackberry",
+        "chromeos",
+        "ipad",
+        "iphone",
+        "symbian",
+    ):
+        mobileuser = True
+    else:
+        mobileuser = False
+
     return render_template(
         "event.html",
         conf=current_app.config,
@@ -176,6 +190,7 @@ def view_event(event_id, name=""):
         current_time=current_time(),
         current_user=current_user,
         register_user_form=register_user_form,
+        ismobile=mobileuser,
     )
 
 
