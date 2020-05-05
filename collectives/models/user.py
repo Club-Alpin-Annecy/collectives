@@ -12,6 +12,7 @@ from wtforms.validators import Email
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
+from .registration import Registration
 from .utils import ChoiceEnum
 from ..utils.time import current_time
 
@@ -530,4 +531,18 @@ def activity_supervisors(activities):
     query = query.filter(Role.activity_id.in_(activity_ids))
     query = query.filter(Role.role_id == RoleIds.ActivitySupervisor)
     query = query.filter(User.id == Role.user_id)
+    return query.all()
+
+
+def registered_users(event):
+    """
+    Returns all users registered for an event
+
+    :return: List of all users that are active (i.e. not rejected)
+    :rtype: Array
+    """
+    registration_ids = [r.id for r in event.registrations if r.is_active()]
+    query = db.session.query(User)
+    query = query.filter(Registration.id.in_(registration_ids))
+    query = query.filter(Registration.user_id == User.id)
     return query.all()

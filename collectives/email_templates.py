@@ -7,7 +7,7 @@ from flask import current_app, url_for
 from .utils import mail
 from .utils.url import slugify
 from .models.auth import ConfirmationTokenType
-from .models.user import activity_supervisors
+from .models.user import activity_supervisors, registered_users
 from .utils.time import format_date
 
 
@@ -122,6 +122,30 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
         subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(event_title=event.title)
         mail.send_mail(
             subject=subject, email=rejected_user_email, message=message,
+        )
+    except BaseException as err:
+        print("Mailer error: {}".format(err), file=stderr)
+
+
+def send_cancelled_event_notification(name, event):
+    """ Send a notification to user whom event has been cancelled
+
+    :param string name: User name who cancelled the event.
+    :param event: Event that has been cancelled.
+    """
+    try:
+        conf = current_app.config
+        message = conf["CANCELLED_EVENT_MESSAGE"].format(
+            initiator_name=name,
+            event_title=event.title,
+            event_date=format_date(event.start),
+        )
+
+        users = registered_users(event)
+        emails = [u.mail for u in users]
+        subject = conf["CANCELLED_EVENT_SUBJECT"].format(event_title=event.title)
+        mail.send_mail(
+            subject=subject, email=emails, message=message,
         )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
