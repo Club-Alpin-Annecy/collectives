@@ -2,30 +2,24 @@ from decimal import Decimal
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList, HiddenField
-from wtforms.validators import NumberRange
+from wtforms import (
+    SubmitField,
+    StringField,
+    DecimalField,
+    FormField,
+    FieldList,
+    HiddenField,
+)
+from wtforms.validators import NumberRange, DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..models.payment import PaymentOption
+from ..models.payment import ItemPrice
 
-class PaymentOptionForm(ModelForm):
-    class Meta:
-        include = ["title", "price"]
-
-    id = HiddenField()
-    delete = SubmitField("Supprimer")
-
-
-class PaymentOptionsForm(FlaskForm):
+class AmountForm(FlaskForm):
     class Meta:
         locales = ["fr"]
 
-    new_option = StringField(
-        "Nouveau tarif",
-        render_kw={"placeholder": "Nom..."},
-        description="Laisser vide pour ne pas ajouter de tarif.",
-    )
-    new_price = DecimalField(
+    amount = DecimalField(
         "Prix en euros",
         description="Par exemple «9,95»",
         validators=[
@@ -36,34 +30,74 @@ class PaymentOptionsForm(FlaskForm):
             )
         ],
         use_locale=True,
-        default=Decimal("0"),
+        number_format="#,##0.00",
+        default=Decimal(0),
     )
 
-    options = FieldList(FormField(PaymentOptionForm, default=PaymentOption()))
+    def update_max_amount(self):
+        # Update price range from config
+        self.amount.validators[0].max = current_app.config["PAYMENTS_MAX_PRICE"]
 
-    submit = SubmitField("Enregistrer")
+
+class ItemPriceForm(ModelForm, AmountForm):
+    class Meta:
+        model = ItemPrice
+        only = ["enabled", "title"]
+
+    item_title = StringField(validators=[DataRequired()])
+
+    delete = SubmitField("Supprimer")
+
+    price_id = HiddenField()
+    item_id = HiddenField()
 
     def __init__(self, *args, **kwargs):
         """ Overloaded  constructor
         """
-        super(PaymentOptionsForm, self).__init__(*args, **kwargs)
+        super(ItemPriceForm, self).__init__(*args, **kwargs)
 
         # Update price range from config
-        self.new_price.validators[0].max = current_app.config["PAYMENTS_MAX_PRICE"]
+        self.update_max_amount()
 
-    def setup_leader_actions(self):
+
+class NewItemPriceForm(AmountForm):
+    item_title = StringField("Objet du paiement")
+    title = StringField("Intitulé du tarif")
+
+
+class PaymentItemsForm(FlaskForm):
+
+    new_item = FormField(NewItemPriceForm)
+    items = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
+
+    submit = SubmitField("Enregistrer")
+
+    def populate_items(self, items):
         """
-        Setups form for all current options
+        Setups form for all current prices
         """
         # Remove all existing entries
-        while len(self.options) > 0:
-            self.options.pop_entry()
+        while len(self.items) > 0:
+            self.items.pop_entry()
 
         # Create new entries
-        for leader in self.current_leaders:
-            action_form = LeaderActionForm()
-            action_form.leader_id = leader.id
-            action_form.delete = False
-            self.leader_actions.append_entry(action_form)
+        for item in items:
+            self.append_item_entry(item)
 
+        for field_form in self.items:
+            field_form.update_max_amount()
 
+    def add_item(self, item):
+        """
+        Setups form for all current prices
+        """
+        self.append_item_entry(item)
+
+        for field_form in self.items:
+            field_form.update_max_amount()
+
+    def append_item_entry(self, item):
+        data = item.prices[0] if len(item.prices) > 0 else ItemPrice(item_id=item.id)
+        data.item_title = item.title
+        data.price_id = data.id
+        self.items.append_entry(data)

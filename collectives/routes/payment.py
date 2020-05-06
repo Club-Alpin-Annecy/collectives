@@ -7,11 +7,13 @@ from flask import Blueprint
 from flask import render_template, current_app, flash, redirect, url_for
 from flask_login import login_required, current_user
 
-from ..forms.payment import PaymentOptionsForm
+from ..forms.payment import PaymentItemsForm
 
 from ..utils.access import payments_enabled
+from ..helpers import current_time
+from ..models import db
 from ..models.event import Event
-from ..models.payment import PaymentOption
+from ..models.payment import PaymentItem, ItemPrice
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
@@ -33,14 +35,35 @@ def edit_options(event_id):
         flash("Accès refusé", "error")
         return redirect(url_for("event.view", event_id=event_id))
 
-    form = PaymentOptionsForm()
+    form = PaymentItemsForm()
 
-    if form.validate_on_submit():
-        # Add a new payment option
-        if form.new_option.data:
-            new_option = PaymentOption(title = form.new_price.data, price = form.new_price.data)
+    if not form.is_submitted():
+        form.populate_items(event.payment_items)
+        return render_template(
+            "payment/edit_options.html", conf=current_app.config, event=event, form=form
+        )
 
+    if not form.validate():
+        return render_template(
+            "payment/edit_options.html", conf=current_app.config, event=event, form=form
+        )
 
+    # Add a new payment option
+    if form.new_item.item_title.data:
+        new_price = ItemPrice(
+            amount=form.new_item.amount.data,
+            title=form.new_item.title.data,
+            enabled=True,
+            update_time=current_time(),
+        )
+        new_item = PaymentItem(title=form.new_item.item_title.data)
+        new_item.prices.append(new_price)
+        event.payment_items.append(new_item)
+        db.session.add(event)
+        db.session.commit()
+        
+        # Update fields with new item
+        form.add_item(new_item)
 
     return render_template(
         "payment/edit_options.html", conf=current_app.config, event=event, form=form
