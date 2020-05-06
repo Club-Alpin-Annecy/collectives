@@ -12,10 +12,11 @@ Typical usage example::
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+import werkzeug
 
 from . import models, api, forms
 from .routes import root, profile, auth, administration, event
-from .utils import extranet, init, jinja
+from .utils import extranet, init, jinja, error
 
 
 def create_app(config_filename="config"):
@@ -58,7 +59,12 @@ def create_app(config_filename="config"):
         app.register_blueprint(administration.blueprint)
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
-        # print(app.url_map)
+
+        # Error handling
+        app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)
+        app.register_error_handler(
+            werkzeug.exceptions.InternalServerError, error.server_error
+        )
 
         forms.configure_forms(app)
         forms.csrf.init_app(app)
