@@ -365,7 +365,7 @@ def manage_event(event_id=None):
 
     if event_id is None:
         # This is a new event, send notification to supervisor
-        send_new_event_notification(event)
+        send_new_event_notification(current_user.full_name(), event)
     else:
         # This is a modified event, send notification to supervisors if the event is cancelled
         if event.status == EventStatus.Cancelled:

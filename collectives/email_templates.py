@@ -11,21 +11,19 @@ from .models.user import activity_supervisors, registered_users
 from .utils.time import format_date
 
 
-def send_new_event_notification(event):
-    """ Send a notification to activity supervisor when a new event is created
+def send_new_event_notification(name, event):
+    """ Send a notification to activity supervisors when a new event is created
 
+    :param string name: User name
     :param event: The new created event.
     :type event: :py:class:`collectives.modes.event.Event`
     """
     supervisors = activity_supervisors(event.activity_types)
-    emails = [u.mail for u in supervisors]
-    leader_names = [l.full_name() for l in event.leaders]
-    activity_names = [a.name for a in event.activity_types]
     conf = current_app.config
     message = conf["NEW_EVENT_MESSAGE"].format(
-        leader_name=",".join(leader_names),
-        activity_name=",".join(activity_names),
-        event_title=event.title,
+        initiator_name=name,
+        event_date_start=format_date(event.start),
+        event_description=event.description,
         link=url_for(
             "event.view_event",
             event_id=event.id,
@@ -33,10 +31,18 @@ def send_new_event_notification(event):
             _external=True,
         ),
     )
-    try:
-        mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
-    except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
+    for activity in event.activity_types:
+        for supervisor in supervisors:
+            if supervisor.supervises_activity(activity.id):
+                try:
+                    subject = conf["NEW_EVENT_SUBJECT"].format(
+                        activity_type=activity.name
+                    )
+                    mail.send_mail(
+                        subject=subject, email=supervisor.mail, message=message
+                    )
+                except BaseException as err:
+                    print("Mailer error: {}".format(err), file=stderr)
 
 
 def send_unregister_notification(event, user):
