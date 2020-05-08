@@ -5,7 +5,6 @@ import functools
 from flask import request
 
 
-
 class NoDefault:
     """ Dummy Class to know if default has been set in :py:func:`deepgetattr`
     """
