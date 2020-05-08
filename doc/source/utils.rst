@@ -11,6 +11,11 @@ Module ``collectives.utils.csv``
 .. automodule:: collectives.utils.csv
     :members:
 
+Module ``collectives.utils.error``
+-------------------------------------
+.. automodule:: collectives.utils.error
+    :members:
+
 Module ``collectives.utils.extranet``
 -------------------------------------
 .. automodule:: collectives.utils.extranet
