@@ -35,7 +35,7 @@
     {% for field in form%}
     {% for error in form.errors[field.name] %}
     <li>
-      <strong>Erreur: {{field.label}}:</strong> {{error}}
+      <strong>Erreur : {{field.label}} :</strong> {{error}}
     </li>
     {% endfor %}
     {% endfor %}
@@ -58,12 +58,12 @@
          {{form.multi_activities_mode.label}}
       </div>
       {% if form.multi_activities_mode.data %}
-         {{form.types.label}} : {{form.types(class="choices")}}
+         {{form.types.label}} : {{form.types(class="choices")}}
       {% else %}
-         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
+         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
       {% endif %}
       <fieldset>
-      <legend>Encadrants:</legend>
+      <legend>Encadrants :</legend>
 
       <div id="encadrement">
         {% for action in form.leader_actions %}
@@ -96,25 +96,25 @@
     </fieldset>
 
     <h4>Informations</h4>
-     <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
-     <label for="status">État : </label> {{ form.status }}<br/>
-     <label for="num_slots">Nombre de participants : </label> {{ form.num_slots(size=4) }}<br/>
+     <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
+     <label for="status">État : </label> {{ form.status }}<br/>
+     <label for="num_slots">Nombre de participants : </label> {{ form.num_slots(size=4) }}<br/>
 
     <div class="dates">
       <h4>Dates</h4>
-      <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
-      <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
+      <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
+      <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
       <span id="starts_before_ends_error" class="date_error"><br/>
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention : "/>
           L'événement doit commencer avant de se terminer.
       </span>
     </div>
 
     <div class="dates">
       <h4>Inscriptions par internet</h4>
-      <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
-      <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
-      <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
+      <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
+      <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
+      <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
       <span id="halfregistration" class="date_error"><br/>
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
           Vous devez définir le début et la fin des inscriptions.
@@ -133,7 +133,7 @@
     <div id="editor">
     {{ form.description }}
     </div>
-    <label for="photo_file">Image de présentation : <br/>&#9432; Photo uniquement, d'une taille maximum de 2Mo</label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }} <br/>
+    <label for="photo_file">Image de présentation : <br/>&#9432; Photo uniquement, d'une taille maximum de 2Mo</label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }} <br/>
     <br/>
     {{ form.hidden_tag() }}
      <br/>{{ form.save_all }}

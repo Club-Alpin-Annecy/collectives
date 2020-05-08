@@ -84,7 +84,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-          <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un évènement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
+          <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
             <span class="name">S'inscrire</span>
@@ -123,7 +123,7 @@
           </a>
 
           {% if event.has_delete_rights(current_user) %}
-            <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
+            <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button delete-button">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
@@ -139,7 +139,7 @@
           <div class="contactinfos">
               <p class="inputGrow">
                   <label for="phonelist">
-                      Liste téléphonique :
+                      Liste téléphonique :
                   </label>
                   <input type="text"
                          value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | select | join(', ') }}"
@@ -155,7 +155,7 @@
               </p>
                <p class="inputGrow">
                   <label>
-                      Liste d'email :
+                      Liste d'email :
                   </label>
                   <input type="text"
                          value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"

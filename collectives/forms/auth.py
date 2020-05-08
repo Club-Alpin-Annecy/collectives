@@ -3,6 +3,7 @@
 This module contains form related to authentification such as login
 and account creation.
 """
+from flask import Markup
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, EqualTo, DataRequired
@@ -63,14 +64,17 @@ class PasswordResetForm(FlaskForm):
 
 class LegalAcceptation(FlaskForm):
     legal_accepted = BooleanField(
-        """Je reconnais avoir pris connaissance
+        Markup(
+            """
+    Je reconnais avoir pris connaissance
     des effets du traitement des données à caractère personnel dont je
     fais l'objet et accepte que ce traitement soit effectué dans les
     limites des finalités portées à ma connaissance et conformément
     au RGPD.<br/>
     Si vous souhaitez plus d'informations à ce sujet, nous vous invitons
     à consulter la page consacrée en cliquant
-    <a href="/legal">ICI</a>. """,
+    <a href="/legal">ICI</a>."""
+        ),
         validators=[DataRequired()],
     )
 

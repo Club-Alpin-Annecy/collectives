@@ -1,12 +1,12 @@
 {% if propose_activate %}
 <p class="contact-link">
-    Pas encore de compte ? <a href="{{url_for('auth.signup')}}">Activez le d'abord.</a> 
+    Pas encore de compte ? <a href="{{url_for('auth.signup')}}">Activez le d'abord.</a> 
 </p>
 {% endif %}
 
 {% if contact_reason %}
 <p class="contact-link">
-    Impossible de {{contact_reason}} ? 
+    Impossible de {{contact_reason}} ? 
     {% if propose_recover %}
       Vous souhaitez peut-être <a href="{{url_for('auth.recover')}}">récupérer un compte existant</a> ou contacter 
     {% else %}

@@ -26,7 +26,7 @@
             <div class="content">
                 <a href="{{ url_for('root.index')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/> Liste des collectives</a>
                 {% if current_user.can_create_events() %}
-                    <a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un évènement</a>
+                    <a href="{{ url_for('event.manage_event')}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/> Ajouter un événement</a>
                 {% endif %}
                 <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Profil adhérent</a>
                 {% if current_user.can_create_events() %}
@@ -99,7 +99,7 @@
          <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
         <div>
             <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
-            Version du site: {{conf['VERSION']}}
+            Version du site : {{conf['VERSION']}}
         </div>
     </div>
 </div>

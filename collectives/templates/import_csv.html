@@ -22,7 +22,7 @@
     {% for field in form%}
     {% for error in form.errors[field.name] %}
     <li>
-      <strong>Erreur: {{field.label}}:</strong> {{error}}
+      <strong>Erreur : {{field.label}}:</strong> {{error}}
     </li>
     {% endfor %}
     {% endfor %}
@@ -55,7 +55,7 @@
     {{ form.description }}
     </div>
     <br/>
-    <p><b>Variables utilisables: </b> {{ conf['CSV_COLUMNS'] | join(', ')}}</p>
+    <p><b>Variables utilisables : </b> {{ conf['CSV_COLUMNS'] | join(', ')}}</p>
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Enregistrer"  />
