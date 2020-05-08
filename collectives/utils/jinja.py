@@ -14,5 +14,5 @@ def helpers_processor():
     :rtype: dict(Function)
     """
     date_functions = dict(inspect.getmembers(custom_time, inspect.isfunction))
-    date_functions['isMobileUser'] = isMobileUser
+    date_functions["isMobileUser"] = isMobileUser
     return date_functions
