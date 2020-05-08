@@ -238,34 +238,20 @@ class EventForm(ModelForm, FlaskForm):
         # Remove placeholders
         self.description.data = description.format(**columns)
 
-        self.num_online_slots.data = current_app.config["DEFAULT_ONLINE_SLOTS_NUMBER"]
+        self.num_online_slots.data = current_app.config["DEFAULT_ONLINE_SLOTS"]
         if self.num_online_slots.data > 0:
+            # Default registration opening date
+            opening_delta = current_app.config["REGISTRATION_OPENING_DELTA_DAYS"]
+            opening_hour = current_app.config["REGISTRATION_OPENING_HOUR"]
             self.registration_open_time.data = (
-                current_time()
-                - timedelta(
-                    days=current_app.config[
-                        "DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS"
-                    ]
-                )
-            ).replace(
-                hour=current_app.config["DEFAULT_REGISTRATION_OPENING_DATE_HOUR"],
-                minute=0,
-                second=0,
-                microsecond=0,
-            )
+                current_time() - timedelta(days=opening_delta)
+            ).replace(hour=opening_hour, minute=0, second=0, microsecond=0)
+            # Default registration closing date
+            closing_delta = current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"]
+            closing_hour = current_app.config["REGISTRATION_CLOSING_HOUR"]
             self.registration_close_time.data = (
-                current_time()
-                - timedelta(
-                    days=current_app.config[
-                        "DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS"
-                    ]
-                )
-            ).replace(
-                hour=current_app.config["DEFAULT_REGISTRATION_CLOSING_DATE_HOUR"],
-                minute=0,
-                second=0,
-                microsecond=0,
-            )
+                current_time() - timedelta(days=closing_delta)
+            ).replace(hour=closing_hour, minute=0, second=0, microsecond=0)
 
     def current_activities(self):
         """

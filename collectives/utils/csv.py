@@ -42,30 +42,16 @@ def fill_from_csv(event, row, template):
             # Set default value
             event.registration_open_time = (
                 event.start
-                - timedelta(
-                    days=current_app.config[
-                        "DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS"
-                    ]
-                )
-            ).replace(
-                hour=current_app.config["DEFAULT_REGISTRATION_OPENING_DATE_HOUR"],
-                minute=0,
-            )
+                - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
+            ).replace(hour=current_app.config["REGISTRATION_OPENING_HOUR"], minute=0,)
         if row["fin_internet"] != None and row["fin_internet"].strip():
             event.registration_close_time = parse(row, "fin_internet")
         else:
             # Set default value
             event.registration_close_time = (
                 event.start
-                - timedelta(
-                    days=current_app.config[
-                        "DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS"
-                    ]
-                )
-            ).replace(
-                hour=current_app.config["DEFAULT_REGISTRATION_CLOSING_DATE_HOUR"],
-                minute=0,
-            )
+                - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
+            ).replace(hour=current_app.config["REGISTRATION_CLOSING_HOUR"], minute=0,)
 
     # Description
     parse(row, "altitude")
@@ -191,7 +177,7 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-    fields = [*current_app.config["CSV_COLUMNS"]]
+    fields = list(current_app.config["CSV_COLUMNS"].keys())
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     next(reader, None)  # skip the headers
     for row in reader:

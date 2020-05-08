@@ -243,27 +243,27 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
-DEFAULT_ONLINE_SLOTS_NUMBER = environ.get("DEFAULT_ONLINE_SLOTS_NUMBER") or 0
+DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
 :type: int """
 
-DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS = environ.get("DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS") or 7
+REGISTRATION_OPENING_DELTA_DAYS = environ.get("REGISTRATION_OPENING_DELTA_DAYS") or 7
 """ Default number of days the online registration should start before the beginning of the event
 
 :type: int """
 
-DEFAULT_REGISTRATION_OPENING_DATE_HOUR = environ.get("DEFAULT_REGISTRATION_OPENING_DATE_HOUR") or 7
+REGISTRATION_OPENING_HOUR = environ.get("REGISTRATION_OPENING_HOUR") or 7
 """ Default hour of the day the online registration should start before the beginning of the event
 
 :type: int """
 
-DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS = environ.get("DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS") or 1
+REGISTRATION_CLOSING_DELTA_DAYS = environ.get("REGISTRATION_CLOSING_DELTA_DAYS") or 1
 """ Default number of days the online registration should end before the beginning of the event
 
 :type: int """
 
-DEFAULT_REGISTRATION_CLOSING_DATE_HOUR = environ.get("DEFAULT_REGISTRATION_CLOSING_DATE_HOUR") or 18
+REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 """ Default hour of the day the online registration should end before the beginning of the event
 
 :type: int """
@@ -282,9 +282,9 @@ CSV_COLUMNS = {
     "distance":  {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "type": "int", "optional": 1},
     "observations":  {"short_desc": "Observations", "description": "Observations et description de la collective", "type": "string", "optional": 1},
     "places":  {"short_desc": "Nombre de places", "description": "Nombre de places", "type": "int"},
-    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": "{}".format(DEFAULT_ONLINE_SLOTS_NUMBER) },
-    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(DEFAULT_REGISTRATION_OPENING_DATE_DELTA_DAYS,DEFAULT_REGISTRATION_OPENING_DATE_HOUR)},
-    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(DEFAULT_REGISTRATION_CLOSING_DATE_DELTA_DAYS,DEFAULT_REGISTRATION_CLOSING_DATE_HOUR)},
+    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": "{}".format(DEFAULT_ONLINE_SLOTS) },
+    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(REGISTRATION_OPENING_DELTA_DAYS,REGISTRATION_OPENING_HOUR)},
+    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": "{}j avant la date de début de la collective à {}h".format(REGISTRATION_CLOSING_DELTA_DAYS,REGISTRATION_CLOSING_HOUR)},
 }
 """Dictionnary of columns to import from CSV files.
 
