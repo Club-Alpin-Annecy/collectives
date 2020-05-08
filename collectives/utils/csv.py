@@ -1,11 +1,12 @@
 """ Module to handle csv import
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import codecs
 import csv
 
 from flask import current_app
 
+from .time import format_date
 from ..models import User, Event, db
 
 
@@ -20,35 +21,112 @@ def fill_from_csv(event, row, template):
     :type template: string
     :return: Nothing
     """
-    event.title = row["titre"]
 
-    event.start = convert_csv_time(row["debut2"])
-    event.end = convert_csv_time(row["fin2"])
-    event.registration_open_time = convert_csv_time(row["debut_internet"])
-    event.registration_close_time = convert_csv_time(row["fin_internet"])
-    event.num_slots = int(row["places"])
+    event.title = parse(row, "titre")
+
+    # Subscription dates and slots
+    event.start = parse(row, "debut")
+    event.end = parse(row, "fin")
+    event.num_slots = parse(row, "places")
+
+    # Online subscription dates and slots
     if row["places_internet"].strip():
-        event.num_online_slots = int(row["places_internet"])
+        event.num_online_slots = parse(row, "places_internet")
+        if event.num_online_slots > event.num_slots:
+            raise Exception(
+                "Le nombre de places par internet doit être inférieur au nombre de places de la collective"
+            )
+        if row["debut_internet"] != None and row["debut_internet"].strip():
+            event.registration_open_time = parse(row, "debut_internet")
+        else:
+            # Set default value
+            event.registration_open_time = (
+                event.start
+                - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
+            ).replace(hour=current_app.config["REGISTRATION_OPENING_HOUR"], minute=0,)
+        if row["fin_internet"] != None and row["fin_internet"].strip():
+            event.registration_close_time = parse(row, "fin_internet")
+        else:
+            # Set default value
+            event.registration_close_time = (
+                event.start
+                - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
+            ).replace(hour=current_app.config["REGISTRATION_CLOSING_HOUR"], minute=0,)
 
+    # Description
+    parse(row, "altitude")
+    parse(row, "denivele")
+    parse(row, "distance")
+    event.description = template.format(**row)
+    event.set_rendered_description(event.description)
+
+    # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
-        raise Exception(f'Utilisateur {row["id_encadrant"]} inconnu')
+        raise Exception(
+            "L'encadrant {} (numéro de licence {}) n'a pas encore créé de compte".format(
+                row["nom_encadrant"], row["id_encadrant"]
+            )
+        )
+
+    # Check if event already exists in same activity
+    if Event.query.filter_by(
+        main_leader_id=leader.id, title=event.title, start=event.start
+    ).first():
+        raise Exception(
+            "La collective {} démarrant le {} et encadrée par {} existe déjà.".format(
+                event.title, format_date(event.start), row["nom_encadrant"],
+            )
+        )
+
     event.leaders = [leader]
     event.main_leader_id = leader.id
 
-    event.description = template.format(**row,)
-    event.set_rendered_description(event.description)
 
+def parse(row, column_name):
+    """ Parse a column value in csv format to an object depending on column type.
+    Raise an exception if field is mandatory and is not set
 
-def convert_csv_time(date_time_str):
-    """ Convert a string in csv format to a datetime object.
-
-    :param date_time_str: Date to parse (eg: 31/12/2020 14:45).
-    :type date_time_str: string
-    :return: The parsed date
-    :rtype: :py:class:`datetime.datetime`
+    :param row: List of value from a csv file row
+    :type row: list(string)
+    :param string column_name: Column name
+    :return: The parsed value
     """
-    return datetime.strptime(date_time_str, "%d/%m/%y %H:%M")
+    csv_columns = current_app.config["CSV_COLUMNS"]
+    column_short_desc = csv_columns[column_name]["short_desc"]
+
+    value_str = row[column_name].strip()
+
+    # Check if mandatory column is well set
+    if not value_str and not csv_columns[column_name].get("optional", 0):
+        raise Exception(
+            "La colonne '{}' est obligatoire et n'est pas renseignée".format(
+                column_short_desc
+            )
+        )
+
+    column_type = csv_columns[column_name]["type"]
+    if column_type == "datetime":
+        try:
+            return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
+        except ValueError:
+            raise Exception(
+                "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
+                    value_str, column_short_desc
+                )
+            )
+    elif column_type == "int":
+        if value_str:
+            try:
+                return int(value_str)
+            except ValueError:
+                raise Exception(
+                    "La valeur '{}' de la colonne '{}' doit être un entier".format(
+                        value_str, column_name
+                    )
+                )
+
+    return value_str
 
 
 def process_stream(base_stream, activity_type, description):
@@ -99,9 +177,9 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-
-    fields = current_app.config["CSV_COLUMNS"]
+    fields = list(current_app.config["CSV_COLUMNS"].keys())
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
+    next(reader, None)  # skip the headers
     for row in reader:
         processed += 1
 
@@ -111,6 +189,6 @@ def csv_to_events(stream, description):
             events.append(event)
         except Exception as e:
             failed.append(
-                f"Impossible d'importer la ligne {processed}: [{type(e).__name__}] {str(e)} {str(row)}"
+                f"Impossible d'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}"
             )
     return events, processed, failed

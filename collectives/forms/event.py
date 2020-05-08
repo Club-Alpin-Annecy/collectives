@@ -2,6 +2,7 @@
 """
 from operator import attrgetter
 
+from datetime import timedelta
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
@@ -15,6 +16,7 @@ from ..models import Registration
 from ..models import ActivityType
 from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
+from ..utils.time import current_time
 
 
 def available_leaders(leaders, activity_ids):
@@ -226,15 +228,30 @@ class EventForm(ModelForm, FlaskForm):
             action_form.delete = False
             self.leader_actions.append_entry(action_form)
 
-    def set_default_description(self):
+    def set_default_values(self):
         """
-        Populates description field with event description template
+        Populates optional online registration fields with default value and description field with event description template
         """
         description = current_app.config["DESCRIPTION_TEMPLATE"]
-        columns = {i: "" for i in current_app.config["CSV_COLUMNS"]}
+        columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}
 
         # Remove placeholders
         self.description.data = description.format(**columns)
+
+        self.num_online_slots.data = current_app.config["DEFAULT_ONLINE_SLOTS"]
+        if self.num_online_slots.data > 0:
+            # Default registration opening date
+            opening_delta = current_app.config["REGISTRATION_OPENING_DELTA_DAYS"]
+            opening_hour = current_app.config["REGISTRATION_OPENING_HOUR"]
+            self.registration_open_time.data = (
+                current_time() - timedelta(days=opening_delta)
+            ).replace(hour=opening_hour, minute=0, second=0, microsecond=0)
+            # Default registration closing date
+            closing_delta = current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"]
+            closing_hour = current_app.config["REGISTRATION_CLOSING_HOUR"]
+            self.registration_close_time.data = (
+                current_time() - timedelta(days=closing_delta)
+            ).replace(hour=closing_hour, minute=0, second=0, microsecond=0)
 
     def current_activities(self):
         """
