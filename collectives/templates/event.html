@@ -148,7 +148,7 @@
                          class="grow"
                          />
                    <input type="button" value="Copier" onclick="copyToClipboard('phonelist' )">
-                   {%if ismobile %}
+                   {%if isMobileUser() %}
                        <input type="button" value="Message" onclick="document.location.href='sms:' + document.getElementById('phonelist').value">
                    {% endif %}
 
