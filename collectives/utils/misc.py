@@ -2,6 +2,8 @@
 
 """
 import functools
+from flask import request
+
 
 
 class NoDefault:
@@ -32,3 +34,22 @@ def deepgetattr(obj, attr, default=NoDefault()):
         if not isinstance(default, NoDefault):
             return default
         raise exception
+
+
+def isMobileUser():
+    """ Read browser user agent from the request and return True if a mobile
+        browser is detected
+    """
+
+    useragent = request.user_agent
+    if useragent.platform in (
+        "android",
+        "blackberry",
+        "chromeos",
+        "ipad",
+        "iphone",
+        "symbian",
+    ):
+        return True
+
+    return False
