@@ -148,8 +148,8 @@ def index():
     )
 
 
-@blueprint.route("/<event_id>")
-@blueprint.route("/<event_id>-<name>")
+@blueprint.route("/<int:event_id>")
+@blueprint.route("/<int:event_id>-<name>")
 @login_required
 def view_event(event_id, name=""):
     event = Event.query.filter_by(id=event_id).first()
@@ -179,7 +179,7 @@ def view_event(event_id, name=""):
     )
 
 
-@blueprint.route("/<event_id>/print")
+@blueprint.route("/<int:event_id>/print")
 @login_required
 @confidentiality_agreement()
 def print_event(event_id):
@@ -200,7 +200,7 @@ def print_event(event_id):
 
 
 @blueprint.route("/add", methods=["GET", "POST"])
-@blueprint.route("/<event_id>/edit", methods=["GET", "POST"])
+@blueprint.route("/<int:event_id>/edit", methods=["GET", "POST"])
 @login_required
 @confidentiality_agreement()
 def manage_event(event_id=None):
@@ -369,7 +369,7 @@ def manage_event(event_id=None):
     return redirect(url_for("event.view_event", event_id=event.id))
 
 
-@blueprint.route("/<event_id>/duplicate", methods=["GET"])
+@blueprint.route("/<int:event_id>/duplicate", methods=["GET"])
 @login_required
 @confidentiality_agreement()
 def duplicate(event_id=None):
@@ -396,7 +396,7 @@ def duplicate(event_id=None):
     )
 
 
-@blueprint.route("/<event_id>/self_register", methods=["POST"])
+@blueprint.route("/<int:event_id>/self_register", methods=["POST"])
 @login_required
 def self_register(event_id):
     event = Event.query.filter_by(id=event_id).first()
@@ -422,7 +422,7 @@ def self_register(event_id):
     return redirect(url_for("event.view_event", event_id=event_id))
 
 
-@blueprint.route("/<event_id>/register_user", methods=["POST"])
+@blueprint.route("/<int:event_id>/register_user", methods=["POST"])
 @login_required
 def register_user(event_id):
     event = Event.query.filter_by(id=event_id).first()
@@ -463,7 +463,7 @@ def register_user(event_id):
     return redirect(url_for("event.view_event", event_id=event_id))
 
 
-@blueprint.route("/<event_id>/self_unregister", methods=["POST"])
+@blueprint.route("/<int:event_id>/self_unregister", methods=["POST"])
 @login_required
 def self_unregister(event_id):
     event = Event.query.filter_by(id=event_id).first()
@@ -530,7 +530,7 @@ def delete_registration(reg_id):
     return redirect(url_for("event.view_event", event_id=registration.event_id))
 
 
-@blueprint.route("/<event_id>/delete", methods=["POST"])
+@blueprint.route("/<int:event_id>/delete", methods=["POST"])
 @login_required
 def delete_event(event_id):
     event = Event.query.get(event_id)
