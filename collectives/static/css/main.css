@@ -593,3 +593,26 @@ form.inline input[type=submit] {
 @keyframes votre_animation{ to{
        transform: scale(1.4)
 }}
+
+#legal p{
+	text-justify:auto;
+	margin-bottom: 0cm;
+}
+
+#legal h5{
+	font-size: 1.1em
+}
+
+#legal ol{
+	padding: 1.5em;
+	margin-bottom: 1.5em
+}
+
+#legal ol li{
+	padding: 1em
+}
+
+#legal ul li{
+	padding: .2em
+}
+
