@@ -3,6 +3,7 @@
 
 {% block additionalhead %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/payment/edit_prices.css') }}">
 {% endblock %}
 
 {% block header %}
@@ -18,13 +19,13 @@
   <form method="POST">
 
     <h5> Tarifs existants </h5>
-
-    <table>
+    {% if form.items %}
+    <table id="existing_prices">
     <thead>
-      <th> Objet </th> 
+      <th> Objet du paiement</th> 
       <th> Intitulé du tarif </th> 
       <th> Prix en euros </th> 
-      <th> Activé </th> 
+      <th> Actif </th> 
     </thead>
     {% for field in form.items %}
       <tr>
@@ -34,10 +35,16 @@
         {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
          </td>
         <td> {{ field.enabled() }} </td>
-        <td> {{field.price_id}} {{field.item_id}} {{field.delete}}{{field.delete.label}} </td>
+        <td> {{field.price_id}} {{field.item_id}}  
+        {% if field.use_count %}
+          Utilisé {{field.use_count}} fois.
+        {% else %}
+          {{field.delete}}{{field.delete.label}} 
+        {% endif %}
+        </td>
       </tr>
       {% if field.errors %}
-      <tr> <td colspan="4">
+      <tr> <td colspan="4" class="error-cell">
         <ul class="form-errors">
               {% for field_name, errors in field.errors.items() %}
               {% for error in errors %}
@@ -51,6 +58,8 @@
       {%endif%}
     {% endfor %}
     </table>
+    {%endif%}
+    Aucun tarif n'a été défini pour le moment.
 
     <h5> Nouveau tarif </h5>
 

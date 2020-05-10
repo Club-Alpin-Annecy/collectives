@@ -9,12 +9,13 @@ from wtforms import (
     FormField,
     FieldList,
     HiddenField,
-    BooleanField
+    BooleanField,
 )
-from wtforms.validators import NumberRange, DataRequired
+from wtforms.validators import NumberRange, DataRequired, ValidationError
 from wtforms_alchemy import ModelForm
 
 from ..models.payment import ItemPrice, PaymentItem
+
 
 class AmountForm(FlaskForm):
     class Meta:
@@ -51,11 +52,12 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     price_id = HiddenField()
     item_id = HiddenField()
+    use_count = 0
 
     def get_item_and_price(self, event):
         item_id = int(self.item_id.data)
         price_id = int(self.price_id.data)
-        
+
         item = PaymentItem.query.get(item_id)
         price = ItemPrice.query.get(price_id)
         if item is None or price is None:
@@ -77,6 +79,10 @@ class NewItemPriceForm(AmountForm):
     item_title = StringField("Objet du paiement")
     title = StringField("Intitulé du tarif")
 
+    def validate_title(form, field):
+        if form.item_title.data and len(field.data) == 0:
+            raise ValidationError("L'intitulé du nouveau tarif ne doit pas être vide")
+
 
 class PaymentItemsForm(FlaskForm):
 
@@ -97,17 +103,10 @@ class PaymentItemsForm(FlaskForm):
         for item in items:
             self.append_item_entry(item)
 
-        for field_form in self.items:
+        for k, field_form in enumerate(self.items):
             field_form.update_max_amount()
-
-    def add_item(self, item):
-        """
-        Setups form for all current prices
-        """
-        self.append_item_entry(item)
-
-        for field_form in self.items:
-            field_form.update_max_amount()
+            if len(items[k].prices) > 0:
+                field_form.use_count = len(items[k].prices[0].payments)
 
     def append_item_entry(self, item):
         data = item.prices[0] if len(item.prices) > 0 else ItemPrice(item_id=item.id)

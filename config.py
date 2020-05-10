@@ -88,7 +88,7 @@ PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or True
 """
 
 PAYMENTS_MAX_PRICE = 10000
-"""Maximum price in euros for a payment option
+"""Maximum price in euros for a payment item
 
 :type: int
 """
@@ -166,13 +166,6 @@ FAVICON = "caf/favicon.ico"
 
 TZ_NAME = "Europe/Paris"
 """Timezone to use for time comparisons
-
-:type: string
-"""
-
-BABEL_DEFAULT_LOCALE = "fr"
-""" Default locale used by flask-babel 
-(for formatting prices, dates, etc)
 
 :type: string
 """
