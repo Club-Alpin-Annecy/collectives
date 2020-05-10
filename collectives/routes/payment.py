@@ -26,6 +26,11 @@ This blueprint contains all routes for event display and management
 @payments_enabled
 @blueprint.route("/<event_id>/edit_prices", methods=["GET", "POST"])
 def edit_prices(event_id):
+    """ Route for editing payment items and prices associated to an event
+
+    :param event_id: The primary key of the event we're editing the prices of
+    :type event_id: int
+    """
     event = Event.query.get(event_id)
     if event is None:
         flash("Événement inexistant", "error")
