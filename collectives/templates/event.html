@@ -123,7 +123,7 @@
           </a>
           
           {% if conf["PAYMENTS_ENABLED"] %}
-            <a class="button" href="{{ url_for('payment.edit_options', event_id=event.id)}}">
+            <a class="button" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
             </a>

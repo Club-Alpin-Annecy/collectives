@@ -24,8 +24,8 @@ This blueprint contains all routes for event display and management
 
 @login_required
 @payments_enabled
-@blueprint.route("/<event_id>/edit_options", methods=["GET", "POST"])
-def edit_options(event_id):
+@blueprint.route("/<event_id>/edit_prices", methods=["GET", "POST"])
+def edit_prices(event_id):
     event = Event.query.get(event_id)
     if event is None:
         flash("Événement inexistant", "error")
@@ -40,12 +40,12 @@ def edit_options(event_id):
     if not form.is_submitted():
         form.populate_items(event.payment_items)
         return render_template(
-            "payment/edit_options.html", conf=current_app.config, event=event, form=form
+            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
         )
 
     if not form.validate():
         return render_template(
-            "payment/edit_options.html", conf=current_app.config, event=event, form=form
+            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
         )
 
     # Add a new payment option
@@ -68,7 +68,7 @@ def edit_options(event_id):
             item, price = item_form.get_item_and_price(event)
         except ValueError:
             flash(f"Données incorrectes", "error")
-            return redirect(url_for("payment.edit_options", event_id=event_id))
+            return redirect(url_for("payment.edit_prices", event_id=event_id))
 
         if item_form.delete.data:
             if len(price.payments) > 0:
@@ -95,4 +95,4 @@ def edit_options(event_id):
             db.session.commit()
 
     # Redirect to same page to reset form data
-    return redirect(url_for("payment.edit_options", event_id=event_id))
+    return redirect(url_for("payment.edit_prices", event_id=event_id))
