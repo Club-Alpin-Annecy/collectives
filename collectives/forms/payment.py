@@ -9,11 +9,12 @@ from wtforms import (
     FormField,
     FieldList,
     HiddenField,
+    BooleanField
 )
 from wtforms.validators import NumberRange, DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..models.payment import ItemPrice
+from ..models.payment import ItemPrice, PaymentItem
 
 class AmountForm(FlaskForm):
     class Meta:
@@ -46,10 +47,22 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     item_title = StringField(validators=[DataRequired()])
 
-    delete = SubmitField("Supprimer")
+    delete = BooleanField("Supprimer")
 
     price_id = HiddenField()
     item_id = HiddenField()
+
+    def get_item_and_price(self, event):
+        item_id = int(self.item_id.data)
+        price_id = int(self.price_id.data)
+        
+        item = PaymentItem.query.get(item_id)
+        price = ItemPrice.query.get(price_id)
+        if item is None or price is None:
+            raise ValueError
+        if price.item_id != item.id or item.event_id != event.id:
+            raise ValueError
+        return item, price
 
     def __init__(self, *args, **kwargs):
         """ Overloaded  constructor

@@ -34,8 +34,21 @@
         {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
          </td>
         <td> {{ field.enabled() }} </td>
-        <td> {{field.price_id}} {{field.item_id}} {{field.delete}} </td>
+        <td> {{field.price_id}} {{field.item_id}} {{field.delete}}{{field.delete.label}} </td>
       </tr>
+      {% if field.errors %}
+      <tr> <td colspan="4">
+        <ul class="form-errors">
+              {% for field_name, errors in field.errors.items() %}
+              {% for error in errors %}
+                <li>
+                <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
+                </li>
+              {% endfor %}
+              {% endfor %}
+        </ul>
+      </td> </tr>
+      {%endif%}
     {% endfor %}
     </table>
 

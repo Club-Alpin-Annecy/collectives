@@ -76,7 +76,7 @@ class ItemPrice(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
-    enabled = db.Column(db.Boolean, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False, default=False)
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted
     one people have started paying them
