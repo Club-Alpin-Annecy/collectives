@@ -346,3 +346,24 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 
 :type: string
 """
+
+CANCELLED_EVENT_SUBJECT = "Annulation de la collective {event_title}"
+"""Email subject for registered users when an event is cancelled
+
+:type: string
+"""
+
+CANCELLED_EVENT_MESSAGE = """
+Bonjour,
+
+{originator_name} vient d'annuler la collective {event_title} débutant le {event_date}.
+Vous pouvez la consulter à l'adresse ci-dessous:
+{link}
+
+Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+"""Email template content for registered users when an event is cancelled
+
+:type: string
+"""

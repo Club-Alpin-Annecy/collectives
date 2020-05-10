@@ -8,12 +8,13 @@ from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms import EventForm, photos, RegistrationForm, CSVForm
-from ..models import Event, ActivityType, Registration, RegistrationLevels
+from ..models import Event, ActivityType, EventStatus, Registration, RegistrationLevels
 from ..models import RegistrationStatus, User, db
 from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
+from ..email_templates import send_cancelled_event_notification
 
 from ..utils.time import current_time
 from ..utils.csv import process_stream
@@ -209,6 +210,7 @@ def manage_event(event_id=None):
         return redirect(url_for("event.index"))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
+    current_status = event.status
     form = EventForm(CombinedMultiDict((request.files, request.form)))
 
     if not form.is_submitted():
@@ -365,6 +367,14 @@ def manage_event(event_id=None):
     if event_id is None:
         # This is a new event, send notification to supervisor
         send_new_event_notification(event)
+    else:
+        # This is a modified event and the status has changed from Confirmed to Cancelled.
+        # then, a notification is sent to supervisors
+        if (
+            current_status == EventStatus.Confirmed
+            and event.status == EventStatus.Cancelled
+        ):
+            send_cancelled_event_notification(current_user.full_name(), event)
 
     return redirect(url_for("event.view_event", event_id=event.id))
 
