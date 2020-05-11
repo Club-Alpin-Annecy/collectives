@@ -72,7 +72,7 @@ def edit_prices(event_id):
         try:
             item, price = item_form.get_item_and_price(event)
         except ValueError:
-            flash(f"Données incorrectes", "error")
+            flash("Données incorrectes", "error")
             return redirect(url_for("payment.edit_prices", event_id=event_id))
 
         if item_form.delete.data:

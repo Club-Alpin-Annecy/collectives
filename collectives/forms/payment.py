@@ -31,7 +31,7 @@ class AmountForm(FlaskForm):
             NumberRange(
                 min=0,
                 max=10000,
-                message=f"Le prix doit être compris entre %(min)s et %(max)s euros.",
+                message="Le prix doit être compris entre %(min)s et %(max)s euros.",
             )
         ],
         use_locale=True,
