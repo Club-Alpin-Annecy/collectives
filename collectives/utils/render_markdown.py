@@ -52,6 +52,10 @@ class UrifyExtension(Extension):
             """
 
             def replace(match):
+                """ Functor in charge of replacing URI regex matches
+                :param: match the matching fragments
+                :return: the reconstructed link string
+                """
                 href = match.group(2)
                 if len(href) < 4 or href[0:3] != "http":
                     # Add default protocol for links like 'www.domain.com'
