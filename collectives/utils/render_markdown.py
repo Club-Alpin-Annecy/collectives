@@ -57,7 +57,7 @@ class UrifyExtension(Extension):
                 :return: the reconstructed link string
                 """
                 href = match.group(2)
-                if len(href) < 4 or href[0:3] != "http":
+                if len(href) < 4 or href[0:4] != "http":
                     # Add default protocol for links like 'www.domain.com'
                     href = "//" + href
                 return f"{match.group(1)}[{match.group(2)}]({href})"
