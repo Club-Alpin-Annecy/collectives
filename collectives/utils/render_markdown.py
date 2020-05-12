@@ -9,7 +9,7 @@ from markdown.extensions import Extension
 
 # pylint: disable=C0301
 URI_REGEX = re.compile(
-    r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
+    r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:https?:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
 )
 """
  Regexp for detecting links.
@@ -50,7 +50,19 @@ class UrifyExtension(Extension):
             :return: Lines with standalone URL replaced by markdown link.
             :rtype: list(String)
             """
-            return [URI_REGEX.sub(r"\1[\2](\2)", line) for line in lines]
+
+            def replace(match):
+                """ Functor in charge of replacing URI regex matches
+                :param: match the matching fragments
+                :return: the reconstructed link string
+                """
+                href = match.group(2)
+                if len(href) < 4 or href[0:4] != "http":
+                    # Add default protocol for links like 'www.domain.com'
+                    href = "//" + href
+                return f"{match.group(1)}[{match.group(2)}]({href})"
+
+            return [URI_REGEX.sub(replace, line) for line in lines]
 
     def extendMarkdown(self, md):
         """ Fonction that will add the :py:class:`UrifyExtension` to the Markdown
