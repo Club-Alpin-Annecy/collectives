@@ -10,7 +10,7 @@ from flask_login import login_required, current_user
 from ..forms.payment import PaymentItemsForm
 
 from ..utils.access import payments_enabled
-from ..helpers import current_time
+from ..utils.time import current_time
 from ..models import db
 from ..models.event import Event
 from ..models.payment import PaymentItem, ItemPrice

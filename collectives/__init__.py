@@ -18,6 +18,7 @@ from . import models, api, forms
 from .routes import root, profile, auth, administration, event, payment
 from .utils import extranet, init, jinja, error
 
+
 def create_app(config_filename="config"):
     """Flask application factory.
 
