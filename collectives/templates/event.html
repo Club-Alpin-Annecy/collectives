@@ -56,7 +56,18 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
-        {% elif current_time < event.end %}
+        {% elif event.has_pending_payment(current_user) %}
+          <p>Votre inscription est en attente de paiement.
+          <ul>
+          {% for r in event.existing_registrations(current_user) %}
+            {% if r.is_pending_payment() %}
+              {% for payment in r.payments %}
+                <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          </ul></p>
+        {% elif current_time < event.start %}
         <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <a class="button" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
@@ -83,11 +94,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-          <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-            <span class="name">S'inscrire</span>
-          </form>
+          {% include 'event/self_register.html' %}
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>
         {% elif not event.has_free_online_slots() %}
@@ -125,6 +132,13 @@
             <a class="button" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
+            </a>
+          {% endif %}
+          
+          {% if event.requires_payment() %}
+            <a class="button" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+              Liste des paiements
             </a>
           {% endif %}
 
@@ -195,17 +209,22 @@
       <h5> Inscriptions refusées</h5>
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
-        <li>
-          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button" value="Supprimer" >
-          </form>
-        </li>
+        {{ macros.registration_admin_list_item(registration) }}
       {% else %}
         <li>Aucune inscription refusée.</li>
       {% endfor %}
       </ul>
+
+      {% if event.requires_payment() %}
+        <h5> Inscriptions en attente de paiement</h5>
+        <ul>
+        {% for registration in event.registrations if registration.is_pending_payment() %}
+          {{ macros.registration_admin_list_item(registration) }}
+        {% else %}
+          <li>Aucune inscription en attente de paiement.</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
 
     </div> <!-- .administration -->
     {% endif %}

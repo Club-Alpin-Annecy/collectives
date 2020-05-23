@@ -6,6 +6,7 @@ import inspect
 import html
 
 from . import time as custom_time
+from . import numbers
 from .misc import isMobileUser
 
 
@@ -15,10 +16,12 @@ def helpers_processor():
     :return: Dictionnary of :py:mod:`collectives.utils.time` functions.
     :rtype: dict(Function)
     """
-    date_functions = dict(inspect.getmembers(custom_time, inspect.isfunction))
-    date_functions["isMobileUser"] = isMobileUser
-    date_functions["version_link"] = version_link
-    return date_functions
+    helper_functions = dict(inspect.getmembers(custom_time, inspect.isfunction))
+    helper_functions.update(dict(inspect.getmembers(numbers, inspect.isfunction)))
+    helper_functions["isMobileUser"] = isMobileUser
+    helper_functions["version_link"] = version_link
+
+    return helper_functions
 
 
 def version_link(version):

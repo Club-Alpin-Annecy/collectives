@@ -21,3 +21,13 @@
   </span>
 </div>
 {%- endmacro %}
+
+{% macro registration_admin_list_item(registration) -%}
+   <li>
+     <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+     <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
+       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+     <input type="submit" class="button" value="Supprimer" >
+     </form>
+   </li>
+{%- endmacro %}

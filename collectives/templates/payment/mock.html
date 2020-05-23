@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Fausse page de paiement{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="panel">
+    <h4>
+    Paiement de "{{payment.item.title}} &mdash; {{payment.price.title}}" pour {{format_currency(payment.amount_charged)}}.
+    </h4>
+    <p>
+        Ceci est une fausse page de paiement permettant de générer les événements suivants:
+
+        <ul>
+            <li><a type="button" href="{{url_for('payment.accept_payment', payment_id=payment.id)}}">Paiement accepté</a></li>
+            <li><a type="button" href="{{url_for('payment.reject_payment', payment_id=payment.id)}}">Paiement refusé</a></li>
+            <li><a type="button" href="{{url_for('payment.timeout_payment', payment_id=payment.id)}}">Timeout</a></li>
+        </ul>
+    </p>
+</div>
+
+{% endblock %}

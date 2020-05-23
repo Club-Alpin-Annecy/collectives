@@ -4,6 +4,8 @@
 from .globals import db
 from .utils import ChoiceEnum
 
+from ..utils.time import current_time
+
 
 class PaymentItem(db.Model):
     """ Database model describing a paid item for a given event
@@ -117,6 +119,28 @@ class PaymentType(ChoiceEnum):
     """ Payment has been using a bank transfer
     """
 
+    @classmethod
+    def display_names(cls):
+        """
+        :return: a dict defining display names for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Online: "En ligne",
+            cls.Check: "Chèque",
+            cls.Cash: "Espèces",
+            cls.Card: "CB",
+            cls.Transfer: "Virement",
+        }
+
+    def display_name(self):
+        """
+        :return: display name of the enum value.
+        :rtype: string
+        """
+
+        return self.display_names()[self]
+
 
 class PaymentStatus(ChoiceEnum):
     """ Enum describing the current state of the payment at a high level
@@ -137,6 +161,28 @@ class PaymentStatus(ChoiceEnum):
     Expired = 4
     """ Payment has expired due to timeout
     """
+
+    @classmethod
+    def display_names(cls):
+        """
+        :return: a dict defining display names for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Initiated: "En cours",
+            cls.Approved: "Approuvé",
+            cls.Cancelled: "Annulé",
+            cls.Refused: "Refusé",
+            cls.Expired: "Inabouti",
+        }
+
+    def display_name(self):
+        """
+        :return: display name of the enum value.
+        :rtype: string
+        """
+
+        return self.display_names()[self]
 
 
 class Payment(db.Model):
@@ -235,3 +281,24 @@ class Payment(db.Model):
     For validation purposes
 
     :type: :py:class:`decimal.Decimal`"""
+
+    def __init__(self, registration=None, item_price=None):
+        """ Overloaded constructor.
+            Pre-fill a Payment object from an existing registration and item price
+        """
+
+        super().__init__()
+
+        if registration is not None and item_price is not None:
+            self.registration_id = registration.id
+            self.item_price_id = item_price.id
+            self.payment_item_id = item_price.item.id
+            self.creditor_id = registration.user.id
+            self.reporter_id = registration.user.id
+            self.amount_charged = item_price.amount
+            self.amount_paid = 0
+            self.payment_type = PaymentType.Online
+            self.status = PaymentStatus.Initiated
+            self.processor_token = ""
+            self.raw_metadata = ""
+            self.creation_time = current_time()

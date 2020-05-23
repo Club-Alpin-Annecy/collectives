@@ -7,10 +7,17 @@ from flask import current_app, Blueprint, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 
-from ..forms import EventForm, photos, RegistrationForm, CSVForm
+from ..forms import (
+    EventForm,
+    photos,
+    RegistrationForm,
+    CSVForm,
+)
+from ..forms.event import PaidSelfRegistrationForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels
 from ..models import RegistrationStatus, User, db
 from ..models.activitytype import activities_without_leader, leaders_without_activities
+from ..models.payment import ItemPrice, Payment
 from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
@@ -185,6 +192,13 @@ def view_event(event_id, name=""):
         RegistrationForm() if event.has_edit_rights(current_user) else None
     )
 
+    paid_self_register_form = (
+        PaidSelfRegistrationForm(event)
+        if event.requires_payment()
+        and event.can_self_register(current_user, current_time())
+        else None
+    )
+
     return render_template(
         "event.html",
         conf=current_app.config,
@@ -193,6 +207,7 @@ def view_event(event_id, name=""):
         current_time=current_time(),
         current_user=current_user,
         register_user_form=register_user_form,
+        paid_self_register_form=paid_self_register_form,
     )
 
 
@@ -452,15 +467,45 @@ def self_register(event_id):
         flash("Votre licence va expirer avant la fin de l'événement.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    registration = Registration(
-        user_id=current_user.id,
-        status=RegistrationStatus.Active,
-        level=RegistrationLevels.Normal,
-    )
+    if not event.requires_payment():
+        # Free event
+        registration = Registration(
+            user_id=current_user.id,
+            status=RegistrationStatus.Active,
+            level=RegistrationLevels.Normal,
+        )
 
-    event.registrations.append(registration)
-    db.session.commit()
+        event.registrations.append(registration)
+        db.session.commit()
 
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    # Paid event
+    form = PaidSelfRegistrationForm(event)
+    if form.validate_on_submit():
+
+        item_price = ItemPrice.query.get(form.item_price.data)
+        if item_price is None or item_price.item.event_id != event_id:
+            flash("Tarif invalide.", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+        registration = Registration(
+            user_id=current_user.id,
+            status=RegistrationStatus.PaymentPending,
+            level=RegistrationLevels.Normal,
+        )
+
+        event.registrations.append(registration)
+        db.session.commit()
+
+        payment = Payment(registration=registration, item_price=item_price)
+        db.session.add(payment)
+        db.session.commit()
+
+        # Goto to online payment page
+        return redirect(url_for("payment.request_payment", payment_id=payment.id))
+
+    # Form has not been submitted to terms not accepted, return to event page
     return redirect(url_for("event.view_event", event_id=event_id))
 
 
@@ -524,7 +569,7 @@ def self_unregister(event_id):
         ]
 
     if (
-        existing_registration is None
+        not existing_registration
         or existing_registration[0].status == RegistrationStatus.Rejected
     ):
         flash("Impossible de vous désinscrire, vous n'êtes pas inscrit.", "error")

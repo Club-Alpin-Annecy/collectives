@@ -4,16 +4,18 @@ This modules contains the /payment Blueprint
 """
 
 from flask import Blueprint
-from flask import render_template, current_app, flash, redirect, url_for
+from flask import render_template, current_app, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 
 from ..forms.payment import PaymentItemsForm
 
 from ..utils.access import payments_enabled
-from ..utils.time import current_time
+from ..utils.time import current_time, format_datetime
+from ..utils.numbers import format_currency
 from ..models import db
 from ..models.event import Event
-from ..models.payment import PaymentItem, ItemPrice
+from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus
+from ..models.registration import RegistrationStatus
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
@@ -101,3 +103,138 @@ def edit_prices(event_id):
 
     # Redirect to same page to reset form data
     return redirect(url_for("payment.edit_prices", event_id=event_id))
+
+
+@login_required
+@payments_enabled
+@blueprint.route("/<event_id>/list", methods=["GET"])
+def list_payments(event_id):
+    """ Route for listing all payments associated to an event
+
+    :param event_id: The primary key of the event we're listing the prices of
+    :type event_id: int
+    """
+    event = Event.query.get(event_id)
+    if event is None:
+        flash("Événement inexistant", "error")
+        return redirect(url_for("event.index"))
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.view", event_id=event_id))
+
+    return render_template(
+        "payment/payment_list.html", conf=current_app.config, event=event
+    )
+
+@payments_enabled
+@blueprint.route("/<payment_id>/details", methods=["GET"])
+def payment_details(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None:
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.index"))
+
+    event = payment.item.event
+    if event is None or not event.has_edit_rights(current_user):
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.view", event_id=event.id))
+
+    payment_dict = {
+        "Événement" : event.title,
+        "Objet du payment" : payment.item.title,
+        "Tarif" : payment.price.title,
+        "Adhérent" : payment.creditor.full_name(),
+        "Notifié par" : payment.reporter.full_name(),
+        "État" : payment.status.display_name(),
+        "Prix facturé" : format_currency(payment.amount_charged),
+        "Prix payé" : format_currency(payment.amount_paid),
+        "Type" : payment.payment_type.display_name(),
+        "Date de création" : format_datetime(payment.creation_time),
+        "Date de finalisation" : format_datetime(payment.finalization_time),
+        "Token" : payment.processor_token,
+        "Metadata" : payment.raw_metadata
+    }
+
+    return render_template(
+        "payment/payment_details.html", conf=current_app.config, payment=payment, payment_dict=payment_dict
+    )
+
+
+@login_required
+@payments_enabled
+@blueprint.route("/<payment_id>/pay", methods=["GET"])
+def request_payment(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+
+    return render_template(
+        "payment/mock.html", conf=current_app.config, payment=payment
+    )
+
+
+@payments_enabled
+@blueprint.route("/<payment_id>/accept", methods=["GET"])
+def accept_payment(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+
+    payment.status = PaymentStatus.Approved
+    payment.amount_paid = payment.amount_charged
+    payment.finalization_time = current_time()
+    db.session.add(payment)
+
+    if payment.registration is None:
+        # This should not be possible, but still check nonetheless
+        flash(
+            "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+            "warning",
+        )
+    else:
+        payment.registration.status = RegistrationStatus.Active
+        db.session.add(payment.registration)
+
+    db.session.commit()
+
+    return redirect(url_for("event.view_event", event_id=payment.item.event_id))
+
+
+@payments_enabled
+@blueprint.route("/<payment_id>/reject", methods=["GET"])
+def reject_payment(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+
+    payment.status = PaymentStatus.Refused
+    payment.finalization_time = current_time()
+    db.session.add(payment)
+
+    if payment.registration is not None:
+        db.session.delete(payment.registration)
+
+    db.session.commit()
+
+    return redirect(url_for("event.view_event", event_id=payment.item.event_id))
+
+
+@payments_enabled
+@blueprint.route("/<payment_id>/timeout", methods=["GET"])
+def timeout_payment(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+
+    payment.status = PaymentStatus.Expired
+    payment.finalization_time = current_time()
+    db.session.add(payment)
+
+    if payment.registration is not None:
+        db.session.delete(payment.registration)
+
+    db.session.commit()
+
+    # Return empty response
+    return dict(), 200

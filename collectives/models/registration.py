@@ -32,6 +32,26 @@ class RegistrationStatus(enum.IntEnum):
     This registration is temporarily holding up a spot, but may be removed after timeout
     """
 
+    @classmethod
+    def display_names(cls):
+        """
+        :return: a dict defining display names for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Active: "Administrateur",
+            cls.Rejected: "Modérateur",
+            cls.PaymentPending: "Président du club",
+        }
+
+    def display_name(self):
+        """
+        :return: display name of the enum value.
+        :rtype: string
+        """
+
+        return self.display_names()[self]
+
 
 class Registration(db.Model):
     """Object linking a user (participant) and an event.
@@ -98,3 +118,10 @@ class Registration(db.Model):
         :return: Is :py:attr:`status` rejected ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.Rejected
+
+    def is_pending_payment(self):
+        """Check if this registation is pending payment.
+
+        :return: Is :py:attr:`status` pending payment ?
+        :rtype: boolean"""
+        return self.status == RegistrationStatus.PaymentPending

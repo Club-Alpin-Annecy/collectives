@@ -13,5 +13,6 @@ import collectives.api.admin
 from collectives.api.autocomplete_user import find_users_by_fuzzy_name
 import collectives.api.event
 import collectives.api.userevent
+import collectives.api.payment
 
 from .common import blueprint, marshmallow
