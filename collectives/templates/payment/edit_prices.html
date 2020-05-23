@@ -1,11 +1,6 @@
 
 {% extends 'base.html' %}
 
-{% block additionalhead %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/payment/edit_prices.css') }}">
-{% endblock %}
-
 {% block header %}
   <h1>{% block title %}{{event.title}}{% endblock %}</h1>
 {% endblock %}

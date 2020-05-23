@@ -479,6 +479,20 @@ class Event(db.Model):
         free = self.num_slots - self.num_taken_slots()
         return max(free, 0)
 
+    def existing_registrations(self, user):
+        """
+        Returns all existing registrations of a given user for this event
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: List of existing registrations
+        :rtype: :py:class:`collectives.models.registration.Registration`
+        """
+        return [
+            registration
+            for registration in self.registrations
+            if registration.user_id == user.id
+        ]
+
     def is_registered(self, user):
         """ Check if a user is registered to this event.
 
@@ -491,12 +505,7 @@ class Event(db.Model):
         :return: True if user is registered.
         :rtype: boolean
         """
-        existing_registrations = [
-            registration
-            for registration in self.registrations
-            if registration.user_id == user.id
-        ]
-        return any(existing_registrations)
+        return any(self.existing_registrations(user))
 
     def is_registered_with_status(self, user, statuses):
         """ Check if a user is registered to this event with specific status.
@@ -527,6 +536,16 @@ class Event(db.Model):
         :rtype: boolean
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
+
+    def has_pending_payment(self, user):
+        """ Check if a user has a pending . payment this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``payment pending`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(user, [RegistrationStatus.PaymentPending])
 
     def can_self_register(self, user, time):
         """ Check if a user can self-register.
@@ -586,3 +605,10 @@ class Event(db.Model):
         if self.status == EventStatus.Confirmed or self.status == EventStatus.Cancelled:
             return True
         return self.has_edit_rights(user)
+
+    # Payment
+    def requires_payment(self):
+        """
+        :return: Whether this event requires payment.
+        :rtype: bool """
+        return any(self.payment_items)

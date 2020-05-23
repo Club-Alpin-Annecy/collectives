@@ -261,6 +261,14 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
+    reported_payments = db.relationship(
+        "Payment", backref="reporter", foreign_keys="[Payment.reporter_id]", lazy=True
+    )
+    """ List of payments reported by the user (that is, manually entered by the user).
+
+    :type: list(:py:class:`collectives.models.payment.Payment`)
+    """
+
     @validates(
         "first_name",
         "last_name",

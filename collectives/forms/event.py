@@ -9,6 +9,7 @@ from flask import current_app
 from flask_login import current_user
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
 from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultipleField
+from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
@@ -17,6 +18,7 @@ from ..models import ActivityType
 from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
 from ..utils.time import current_time
+from ..utils.numbers import format_currency
 
 
 def available_leaders(leaders, activity_ids):
@@ -287,3 +289,29 @@ class EventForm(ModelForm, FlaskForm):
         if len(self.current_leaders) <= 1:
             return False
         return event.can_remove_leader(current_user, leader)
+
+
+class PaidSelfRegistrationForm(FlaskForm):
+    """ Self-registration form for paid events
+    """
+
+    item_price = SelectField("Choix du tarif", coerce=int)
+    accept_payment_terms = BooleanField(
+        "J'ai lu et j'accepte les conditions générales de vente", [DataRequired()]
+    )
+
+    submit = SubmitField("S'inscrire et procéder au paiement en ligne")
+
+    def __init__(self, event, *args, **kwargs):
+        """ Overloaded  constructor
+        """
+        super().__init__(*args, **kwargs)
+
+        all_prices = []
+        for item in event.payment_items:
+            all_prices += item.prices
+
+        self.item_price.choices = [
+            (p.id, f"{p.item.title} — {p.title} ({format_currency(p.amount)})")
+            for p in all_prices
+        ]
