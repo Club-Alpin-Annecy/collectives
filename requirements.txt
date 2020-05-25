@@ -1,8 +1,10 @@
 flask
+flask-assets
 flask-login
 flask_sqlalchemy
 sqlalchemy-utils
 passlib
+pyscss
 flask-wtf
 WTForms-Alchemy
 # See #98
