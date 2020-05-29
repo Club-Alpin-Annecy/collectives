@@ -62,7 +62,6 @@ def create_app(config_filename="config"):
             "caf/icon/activity.css",
             "css/event/edit.css",
             "css/event/event.css",
-            "css/tail.datetime-harx-light.min.css",
             filters="pyscss",
             output="dist/css/all.css",
         )
