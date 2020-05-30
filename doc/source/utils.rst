@@ -41,6 +41,11 @@ Module ``collectives.utils.misc``
 .. automodule:: collectives.utils.misc
     :members:
 
+Module ``collectives.utils.numbers``
+------------------------------------
+.. automodule:: collectives.utils.numbers
+    :members:
+
 Module ``collectives.utils.render_markdown``
 ----------------------------------------------
 .. automodule:: collectives.utils.render_markdown

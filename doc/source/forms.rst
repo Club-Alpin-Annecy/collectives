@@ -16,6 +16,12 @@ Module ``collectives.forms.event``
     :members:
 
 
+module ``collectives.forms.payment``
+---------------------------------------
+.. automodule:: collectives.forms.payment
+    :members:
+
+
 Module ``collectives.forms.user``
 ---------------------------------------
 .. automodule:: collectives.forms.user

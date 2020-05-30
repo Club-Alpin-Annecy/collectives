@@ -2,6 +2,7 @@
 """
 import enum
 from .globals import db
+from .utils import ChoiceEnum
 
 
 class RegistrationLevels(enum.IntEnum):
@@ -16,7 +17,7 @@ class RegistrationLevels(enum.IntEnum):
     """ Participant that will help the event leader."""
 
 
-class RegistrationStatus(enum.IntEnum):
+class RegistrationStatus(ChoiceEnum):
     """ Enum listing acceptable registration status. """
 
     Active = 0
@@ -39,18 +40,10 @@ class RegistrationStatus(enum.IntEnum):
         :rtype: dict
         """
         return {
-            cls.Active: "Administrateur",
-            cls.Rejected: "Modérateur",
-            cls.PaymentPending: "Président du club",
+            cls.Active: "Active",
+            cls.Rejected: "Refusée",
+            cls.PaymentPending: "Attente de Paiement",
         }
-
-    def display_name(self):
-        """
-        :return: display name of the enum value.
-        :rtype: string
-        """
-
-        return self.display_names()[self]
 
 
 class Registration(db.Model):

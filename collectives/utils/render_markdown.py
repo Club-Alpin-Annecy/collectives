@@ -53,7 +53,8 @@ class UrifyExtension(Extension):
 
             def replace(match):
                 """ Functor in charge of replacing URI regex matches
-                :param: match the matching fragments
+                :param match: the matching fragments
+                :type match: :py:class: `re.Match`
                 :return: the reconstructed link string
                 """
                 href = match.group(2)

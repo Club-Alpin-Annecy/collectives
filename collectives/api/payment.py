@@ -57,7 +57,9 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    details_uri = fields.Function(lambda p: url_for("payment.payment_details", payment_id=p.id))
+    details_uri = fields.Function(
+        lambda p: url_for("payment.payment_details", payment_id=p.id)
+    )
     """ Uri at which the payment details are listed
 
     :type: string"""
@@ -74,7 +76,7 @@ class PaymentSchema(marshmallow.Schema):
             "creditor_name",
             "payment_type",
             "registration_status",
-            "details_uri"
+            "details_uri",
         )
 
 

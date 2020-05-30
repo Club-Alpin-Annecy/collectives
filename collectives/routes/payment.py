@@ -7,15 +7,14 @@ from flask import Blueprint
 from flask import render_template, current_app, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 
-from ..forms.payment import PaymentItemsForm
+from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
 
 from ..utils.access import payments_enabled
-from ..utils.time import current_time, format_datetime
-from ..utils.numbers import format_currency
+from ..utils.time import current_time
 from ..models import db
 from ..models.event import Event
 from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus
-from ..models.registration import RegistrationStatus
+from ..models.registration import RegistrationStatus, Registration
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
@@ -24,9 +23,19 @@ This blueprint contains all routes for event display and management
 """
 
 
+@blueprint.before_request
+@payments_enabled()
+def before_request():
+    """ Protect all of the payment endpoints.
+
+    Protection is done by the decorator:
+    - check if payments are enabled for the site :py:func:`collectives.utils.access.payments_enabled`
+    """
+    pass
+
+
 @login_required
-@payments_enabled
-@blueprint.route("/<event_id>/edit_prices", methods=["GET", "POST"])
+@blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
 def edit_prices(event_id):
     """ Route for editing payment items and prices associated to an event
 
@@ -40,7 +49,7 @@ def edit_prices(event_id):
 
     if not event.has_edit_rights(current_user):
         flash("Accès refusé", "error")
-        return redirect(url_for("event.view", event_id=event_id))
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     form = PaymentItemsForm()
 
@@ -106,8 +115,7 @@ def edit_prices(event_id):
 
 
 @login_required
-@payments_enabled
-@blueprint.route("/<event_id>/list", methods=["GET"])
+@blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
 def list_payments(event_id):
     """ Route for listing all payments associated to an event
 
@@ -121,15 +129,21 @@ def list_payments(event_id):
 
     if not event.has_edit_rights(current_user):
         flash("Accès refusé", "error")
-        return redirect(url_for("event.view", event_id=event_id))
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     return render_template(
         "payment/payment_list.html", conf=current_app.config, event=event
     )
 
-@payments_enabled
+
+@login_required
 @blueprint.route("/<payment_id>/details", methods=["GET"])
 def payment_details(payment_id):
+    """Route for displaying details about a given payment
+
+    :param payment_id: Payment primary key
+    :type payment_id: int
+    """
     payment = Payment.query.get(payment_id)
     if payment is None:
         flash("Accès refusé", "error")
@@ -138,33 +152,104 @@ def payment_details(payment_id):
     event = payment.item.event
     if event is None or not event.has_edit_rights(current_user):
         flash("Accès refusé", "error")
-        return redirect(url_for("event.view", event_id=event.id))
-
-    payment_dict = {
-        "Événement" : event.title,
-        "Objet du payment" : payment.item.title,
-        "Tarif" : payment.price.title,
-        "Adhérent" : payment.creditor.full_name(),
-        "Notifié par" : payment.reporter.full_name(),
-        "État" : payment.status.display_name(),
-        "Prix facturé" : format_currency(payment.amount_charged),
-        "Prix payé" : format_currency(payment.amount_paid),
-        "Type" : payment.payment_type.display_name(),
-        "Date de création" : format_datetime(payment.creation_time),
-        "Date de finalisation" : format_datetime(payment.finalization_time),
-        "Token" : payment.processor_token,
-        "Metadata" : payment.raw_metadata
-    }
+        return redirect(url_for("event.view_event", event_id=event.id))
 
     return render_template(
-        "payment/payment_details.html", conf=current_app.config, payment=payment, payment_dict=payment_dict
+        "payment/payment_details.html",
+        conf=current_app.config,
+        payment=payment,
+        event=event,
     )
 
 
 @login_required
-@payments_enabled
+@blueprint.route(
+    "/registration/<registration_id>/report_offline", methods=["GET", "POST"]
+)
+@blueprint.route(
+    "/<payment_id>/registration/<registration_id>/edit_offline", methods=["GET", "POST"]
+)
+def report_offline(registration_id, payment_id=None):
+    """ Route for entering/editing an offline payment
+
+    :param registration_id: The registration associated to the payment
+    :type registration_id: int
+    :param payment_id: If editing an existing payment, its primary key. Defaults to None
+    :type payment_id: int, optional
+    """
+    registration = Registration.query.get(registration_id)
+    if registration is None:
+        flash("Inscription invalide", "error")
+        return redirect(url_for("event.index"))
+
+    event = registration.event
+    if event is None or not event.has_edit_rights(current_user):
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.view_event", event_id=event.id))
+
+    payment = None
+    if payment_id is not None:
+        payment = Payment.query.get(payment_id)
+        if (
+            payment is None
+            or payment.registration_id != int(registration_id)
+            or not payment.is_offline()
+        ):
+            flash("Paiement invalide", "error")
+            return redirect(url_for("event.view_event", event_id=event.id))
+
+    form = OfflinePaymentForm(registration, obj=payment)
+
+    all_valid = False
+    if form.validate_on_submit():
+
+        item_price = ItemPrice.query.get(form.item_price.data)
+        if item_price is None or item_price.item.event_id != event.id:
+            flash("Tarif invalide.", "error")
+        else:
+            all_valid = True
+
+    if all_valid:
+
+        if payment is None:
+            payment = Payment(registration=registration, item_price=item_price)
+        else:
+            payment.item_price_id = item_price.id
+            payment.payment_item_id = item_price.item.id
+            payment.amount_charged = item_price.amount
+        form.populate_obj(payment)
+
+        payment.reporter_id = current_user.id
+        payment.finalization_time = current_time()
+        payment.status = PaymentStatus.Approved
+
+        db.session.add(payment)
+
+        if hasattr(form, "make_active") and form.make_active and form.make_active.data:
+            registration.status = RegistrationStatus.Active
+        db.session.add(registration)
+
+        db.session.commit()
+        return redirect(url_for("event.view_event", event_id=event.id))
+
+    return render_template(
+        "basicform.html",
+        conf=current_app.config,
+        form=form,
+        title="Paiement hors-ligne",
+        subtitle=f"Inscription de {registration.user.full_name()} à {event.title}",
+    )
+
+
+@login_required
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
 def request_payment(payment_id):
+    """Route for displaying the payment widget. For now display a mock page,
+    will be replaced with a real one once integration with Payline is complete
+
+    :param payment_id: The primary key of the payment being made
+    :type payment_id: int
+    """
     payment = Payment.query.get(payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
@@ -177,6 +262,13 @@ def request_payment(payment_id):
 @payments_enabled
 @blueprint.route("/<payment_id>/accept", methods=["GET"])
 def accept_payment(payment_id):
+    """Route the payment processor should redirect to once the payment
+    has been accepted.
+    TODO use Payline API to check the payment status
+
+    :param payment_id: The primary key of the payment being made
+    :type payment_id: int
+    """
     payment = Payment.query.get(payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
@@ -204,6 +296,13 @@ def accept_payment(payment_id):
 @payments_enabled
 @blueprint.route("/<payment_id>/reject", methods=["GET"])
 def reject_payment(payment_id):
+    """Route the payment processor should redirect to once the payment
+    has been rejected.
+    TODO use Payline API to check the payment status
+
+    :param payment_id: The primary key of the payment being made
+    :type payment_id: int
+    """
     payment = Payment.query.get(payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
@@ -223,6 +322,13 @@ def reject_payment(payment_id):
 @payments_enabled
 @blueprint.route("/<payment_id>/timeout", methods=["GET"])
 def timeout_payment(payment_id):
+    """Route the payment processor should redirect to once the payment
+    has expired.
+    TODO use Payline API to check the payment status
+
+    :param payment_id: The primary key of the payment being made
+    :type payment_id: int
+    """
     payment = Payment.query.get(payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
