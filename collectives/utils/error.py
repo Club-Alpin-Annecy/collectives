@@ -10,7 +10,7 @@ def not_found(e):
     :param e: exception which generated the error page
     :return: a redirection to index page
     """
-    if request.path.split("/")[1] == "static":
+    if request.path.startswith("/static"):
         return "404 Error : Not Found", 404
 
     # If there is a dot in the last part of the URL, it is a file, and there is
