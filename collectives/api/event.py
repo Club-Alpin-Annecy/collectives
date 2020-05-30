@@ -210,6 +210,8 @@ def events():
         order = desc(sort_field) if sort_dir == "desc" else sort_field
         query = query.order_by(order)
 
+    query = query.order_by(Event.id)
+
     paginated_events = query.paginate(page, size, False)
     data = EventSchema(many=True).dump(paginated_events.items)
     response = {"data": data, "last_page": paginated_events.pages}
