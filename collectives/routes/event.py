@@ -7,12 +7,9 @@ from flask import current_app, Blueprint, escape
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 
-from ..forms import (
-    EventForm,
-    photos,
-    RegistrationForm,
-    CSVForm,
-)
+from ..forms import EventForm, photos
+from ..forms import RegistrationForm, CSVForm
+
 from ..forms.event import PaidSelfRegistrationForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels
 from ..models import RegistrationStatus, User, db
@@ -192,12 +189,12 @@ def view_event(event_id, name=""):
         RegistrationForm() if event.has_edit_rights(current_user) else None
     )
 
-    paid_self_register_form = (
-        PaidSelfRegistrationForm(event)
-        if event.requires_payment()
-        and event.can_self_register(current_user, current_time())
-        else None
-    )
+    if event.requires_payment() and event.can_self_register(
+        current_user, current_time()
+    ):
+        paid_self_register_form = PaidSelfRegistrationForm(event)
+    else:
+        paid_self_register_form = None
 
     return render_template(
         "event.html",
@@ -537,6 +534,8 @@ def register_user(event_id):
         if error:
             flash(error, "error")
         else:
+            payment_required = event.requires_payment()
+
             # Check for existing user registration and reuse if it exists
             try:
                 registration = next(
@@ -547,7 +546,11 @@ def register_user(event_id):
                     level=RegistrationLevels.Normal, event=event, user=user
                 )
 
-            registration.status = RegistrationStatus.Active
+            if payment_required and registration.status != RegistrationStatus.Active:
+                registration.status = RegistrationStatus.PaymentPending
+            else:
+                registration.status = RegistrationStatus.Active
+
             db.session.add(registration)
             db.session.commit()
 

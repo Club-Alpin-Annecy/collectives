@@ -597,8 +597,8 @@ class Event(db.Model):
           they supervise
         - Leaders can see the events that they lead
 
-        :param: user The user for whom the test is made
-        :type: user :py:class:`collectives.models.user.User`
+        :param user: The user for whom the test is made
+        :type user: :py:class:`collectives.models.user.User`
         :return: Whether the event is visible
         :rtype: bool
         """

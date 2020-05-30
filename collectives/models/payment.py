@@ -1,6 +1,8 @@
 """Module defining payment-related models
 """
 
+from decimal import Decimal
+
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -44,6 +46,13 @@ class PaymentItem(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
+
+    def active_prices(self):
+        """
+        :return: All active prices associated to this item
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        return [p for p in self.prices if p.enabled]
 
 
 class ItemPrice(db.Model):
@@ -133,14 +142,6 @@ class PaymentType(ChoiceEnum):
             cls.Transfer: "Virement",
         }
 
-    def display_name(self):
-        """
-        :return: display name of the enum value.
-        :rtype: string
-        """
-
-        return self.display_names()[self]
-
 
 class PaymentStatus(ChoiceEnum):
     """ Enum describing the current state of the payment at a high level
@@ -175,14 +176,6 @@ class PaymentStatus(ChoiceEnum):
             cls.Refused: "Refusé",
             cls.Expired: "Inabouti",
         }
-
-    def display_name(self):
-        """
-        :return: display name of the enum value.
-        :rtype: string
-        """
-
-        return self.display_names()[self]
 
 
 class Payment(db.Model):
@@ -234,7 +227,15 @@ class Payment(db.Model):
 
     :type: int"""
 
-    payment_type = db.Column(db.Enum(PaymentType), nullable=False)
+    payment_type = db.Column(
+        db.Enum(PaymentType),
+        nullable=False,
+        info={
+            "choices": PaymentType.choices(),
+            "coerce": PaymentType.coerce,
+            "label": "Moyen de paiement",
+        },
+    )
     """ Payment type (online, cash, ...)
 
     :type: :py:class:`collectives.models.payment.PaymentType`"""
@@ -261,7 +262,11 @@ class Payment(db.Model):
     :type: str
     """
 
-    raw_metadata = db.Column(db.Text, nullable=False)
+    raw_metadata = db.Column(
+        db.Text,
+        nullable=False,
+        info={"label": "Précisions", "description": "Par ex. numéro de chèque"},
+    )
     """ Raw metadata concerning this payment as returned by the payment processor,
         or paymentr details if it had been made by cash/check
         To be refined.
@@ -276,11 +281,18 @@ class Payment(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
-    amount_paid = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
+    amount_paid = db.Column(
+        db.Numeric(precision=8, scale=2), nullable=False, info={"label": "Prix payé"}
+    )
     """ Amount in euros paid by the user if the payment has been approved.
     For validation purposes
 
     :type: :py:class:`decimal.Decimal`"""
+
+    def is_offline(self):
+        """ :return: whether this is an offline payment (Check, Card, etc)
+            :rtype: bool"""
+        return self.payment_type != PaymentType.Online
 
     def __init__(self, registration=None, item_price=None):
         """ Overloaded constructor.
@@ -296,7 +308,7 @@ class Payment(db.Model):
             self.creditor_id = registration.user.id
             self.reporter_id = registration.user.id
             self.amount_charged = item_price.amount
-            self.amount_paid = 0
+            self.amount_paid = Decimal(0)
             self.payment_type = PaymentType.Online
             self.status = PaymentStatus.Initiated
             self.processor_token = ""

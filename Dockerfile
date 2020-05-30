@@ -5,6 +5,7 @@ MAINTAINER Caf Annecy "digital@cafannecy.fr"
 # Python packages
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
+RUN pip install waitress
 
 WORKDIR /app
 

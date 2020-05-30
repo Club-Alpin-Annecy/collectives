@@ -14,6 +14,7 @@
 <div class="panel" id="administration">
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
+  {% if subtitle %}<h4>{{subtitle}}</h4>{% endif  %}
 
   <ul class="form-errors">
     {% for field in form%}

@@ -107,7 +107,8 @@ def format_time(value):
     :rtype: string """
     if value is None:
         return "N/A"
-    return u"{h}h{m:02d}".format(h=value.hour, m=value.minute)
+    return "{h}h{m:02d}".format(h=value.hour, m=value.minute)
+
 
 def format_datetime(value):
     """ Format a date + time. (eg "Samedi 16 février 2020 à 8h00").
@@ -117,6 +118,7 @@ def format_datetime(value):
     :return: Formatted date
     :rtype: string """
     return f"{format_date(value)} à {format_time(value)}"
+
 
 def format_datetime_range(start, end):
     """ Format a range of dates. (eg "Samedi 12 février 2018 à 08:00 au Dimanche
