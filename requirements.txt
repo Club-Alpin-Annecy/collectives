@@ -1,3 +1,4 @@
+cssmin
 flask
 flask-assets
 flask-login
