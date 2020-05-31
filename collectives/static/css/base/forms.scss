@@ -1,0 +1,88 @@
+input,
+textarea,
+[contenteditable] {
+  caret-color: $color-blue-primary-light;
+}
+
+form {
+    input {
+        outline: none;
+        border: none;
+        background: $color-gray-bg-light;
+        padding: $padding-input-default;
+        box-sizing: border-box;
+        line-height: 1;
+        &:focus {
+            border-bottom: 1px solid $color-gray-medium;
+        }
+    }
+}
+
+.form {
+    .controls {
+        display: flex;
+        & > * {
+            margin: 0 0.8rem;
+        }
+        & :first-child {
+            margin-left: 0;
+        }
+        & :last-child {
+            margin-right: 0;
+        }
+        input {
+            margin-right: $padding-horizontal-default;
+        }
+
+        .label-top {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    &.form-vertical {
+        display: flex;
+        flex-direction: column;
+        .controls {
+            margin: $padding-default;
+            line-height: 2*$padding-input-vertical-default + 1rem;
+        }
+        label {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            &:last-of-type {
+                input {
+                    margin-right: 0;
+                }
+            }
+        }
+
+        input {
+            align-self: center;
+
+        }
+
+
+        
+    }
+    // Input widths 
+    .input-25 {
+        width: 25%;
+    }
+    .input-33 {
+        width: 33.33333%;
+    }
+    .input-50 {
+        width: 50%;
+    }
+    .input-66 {
+        width: 66%;
+    }
+    .input-75 {
+        width: 75%;
+    }
+    .input-100 {
+        width: 100%;
+    }
+}

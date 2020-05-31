@@ -1,0 +1,98 @@
+@font-face {
+	font-family: 'DIN';
+	src: url('/static/fonts/DINWeb-Light.woff') format('woff');
+	font-weight: 300;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'DIN';
+	src: url('/static/fonts/DINWeb.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+} 
+
+@font-face {
+	font-family: 'DIN';
+	src: url('/static/fonts/DINWeb-Medium.woff') format('woff');
+	font-weight: 500;
+	font-style: normal;
+} 
+
+
+@font-face {
+	font-family: 'DIN';
+	src: url('/static/fonts/DINWeb-Bold.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+}
+
+// Default content
+body, html {
+	font-family: $font-family-primary;
+	font-size: $font-size-default;
+	font-weight: $font-weight-default;
+	line-height: $line-height-default;
+}
+
+
+// Headings
+
+.h-xxl, h1 {
+	font-size: $font-size-xxl;
+	font-weight: $font-weight-bold;
+	line-height: $line-height-xxl;
+	text-transform: uppercase;
+}
+
+.h-xl, h2 {
+	font-size: $font-size-xl;
+	font-weight: $font-weight-bold;
+	line-height: $line-height-xl;
+	text-transform: uppercase;
+}
+
+.h-l, h3 {
+	font-size: $font-size-l;
+	font-weight: $font-weight-bold;
+	line-height: $line-height-l;
+}
+
+.h-m, h4 {
+	font-size: $font-size-m;
+	font-weight: $font-weight-medium;
+	line-height: $line-height-m;
+	text-transform: uppercase;
+}
+
+.h-s, h5 {
+	font-size: $font-size-s;
+	font-weight: $font-weight-medium;
+	line-height: $line-height-s;
+}
+
+.h-xs, h6 {
+	font-size: $font-size-xs;
+	font-weight: $font-weight-medium;
+	line-height: $line-height-xs;
+}
+
+// Links 
+
+a, .link {
+	color: darken($color-blue-secondary-dark, 5%);
+	text-decoration: none;
+	transition: all .2s ease-in-out;
+	&:hover {
+		text-decoration: underline;
+		color: darken($color-blue-secondary-dark, 15%);
+	}
+}
+
+.link-danger {
+	color: $color-error-light;
+	text-decoration: none;
+	&:hover {
+		color: $color-error-dark;
+	}
+}
