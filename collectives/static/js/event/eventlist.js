@@ -251,7 +251,6 @@ function updatePageURL(){
 }
 
 function gotoEvents(event){
-    console.log(event);
     // if we are not on top during a load, do not mess with page position
     if(window.scrollY > 50 && event.type !== 'click')
         return 0;
