@@ -154,7 +154,7 @@ def index():
 def view_event(event_id, name=""):
     event = Event.query.filter_by(id=event_id).first()
 
-    if event is None:
+    if event is None or not event.is_visible_to(current_user):
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
 
