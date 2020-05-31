@@ -17,8 +17,10 @@
     &.button-secondary {
         color: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
+        background: $color-white;
         &:hover {
             color: $color-blue-primary-dark;
+            background: $color-white;
             border: 1px solid $color-blue-primary-dark;
         }
         &[disabled] {

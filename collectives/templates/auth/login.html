@@ -9,15 +9,22 @@
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
-<div id="logger">
-  <form method="POST" action="#">
+<div class="box">
+  <form method="POST" action="#" class="form form-vertical">
     {{ form.hidden_tag() }}
-    <h3><img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="head"/></h3>
-
-       {{ form.mail.label }} <br/> {{ form.mail(size=150) }}
-    <br/><br/>{{ form.password.label }} <br/> {{ form.password(size=256) }}
+    
+    <div class="controls">
+      <label for="{{ form.mail.id_for_label }}" class="label-top">Email
+        {{ form.mail(class="input-100") }}
+      </label>
+    </div>
+    <div class="controls">
+      <label for="{{ form.password.id_for_label }}" class="label-top">Mot de Passe
+        {{ form.password(class="input-100") }}
+      </label>
+    </div>
     <br/><br/>{{ form.remember_me() }} {{ form.remember_me.label }}
-    <br/>{{ form.submit() }}
+    <br/>{{ form.submit(class="button button-primary input-100") }}
 
     <p class="contact-link">
       <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
