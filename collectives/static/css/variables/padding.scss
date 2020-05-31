@@ -1,0 +1,24 @@
+$padding-vertical-default: 0.6rem; 
+$padding-horizontal-default: 1.3rem; 
+
+$padding-vertical-s: 0.4rem; // 6px
+$padding-horizontal-s: 1.3rem; //20px
+
+$padding-vertical-m: 0.8rem;
+$padding-horizontal-m: 1.9rem;
+
+
+$padding-default: $padding-vertical-default $padding-horizontal-default;
+
+$padding-sections: (2*$padding-vertical-default) $padding-horizontal-default;
+
+
+$padding-s: $padding-vertical-s $padding-horizontal-s;
+$padding-m: $padding-vertical-m $padding-horizontal-m;
+$padding-buttons-default: $padding-vertical-m $padding-horizontal-m;
+
+
+$padding-input-vertical-default: 0.8rem;
+$padding-input-horizontal-default: 1rem;
+
+$padding-input-default: $padding-input-vertical-default $padding-input-horizontal-default;

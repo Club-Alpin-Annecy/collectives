@@ -1,0 +1,13 @@
+$gl-colCount:	        12;
+$gl-gridName:	        'grid';
+$gl-colName:	        'column';
+$gl-attributeName:	    'class';
+$gl-gutter:	            1rem;
+$gl-gutter-vertical:	1rem;
+$gl-mq-width:	        'max-width';
+$gl-mq-list: (
+  lg: 80em,
+  md: 64em,
+  sm: 48em,
+  xs: 36em
+);

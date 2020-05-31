@@ -1,0 +1,88 @@
+// Base color names: Generated with namethatcolor (http://chir.ag/projects/name-that-color/) to avoid confusion
+// Assignment to their lightness levels is done below. When adding a new color, it needs to be named first
+
+//  Blues
+
+// Primary 
+$cerulean: #00A5CC;
+$blumine: #1D6989;
+
+$color-blue-primary-light: $cerulean;
+$color-blue-primary-dark: $blumine;
+
+// Secondary
+$shakespeare: #4BBEDB;
+$scooter: #39A9DC;
+
+$color-blue-secondary-light: $shakespeare;
+$color-blue-secondary-dark: $scooter;
+
+
+// Greens
+$forest-green: #41A62A;
+$vida-loca: #678713;
+
+$color-green-primary-light: $forest-green;
+$color-green-primary-dark: $vida-loca;
+
+$bay-leaf: #7AB581;
+$pistachio: #97BF0D;
+
+$color-green-secondary-light: $pistachio;
+$color-green-secondary-dark: $bay-leaf;
+
+
+// Oranges
+$tango: #EB691C;
+$tia-maria: #CD4913;
+
+$color-orange-primary-light: $tango;
+$color-orange-primary-dark: $tia-maria;
+
+
+$tangerine: #F29400;
+$selective-yellow: #F9B200;
+
+$color-orange-secondary-light: $selective-yellow;
+$color-orange-secondary-dark: $tangerine;
+
+// red
+$punch: #CC3024;
+$color-red-primary: $punch;
+
+// Success 
+$emerald: #2DCB48;
+$forest-green: #28B440;
+
+$color-success-light: $emerald;
+$color-success-dark: $forest-green;
+
+// Warning 
+$supernova: #FFCC00;
+$galliano: #E4B80B;
+
+$color-warning-light: $supernova;
+$color-warning-dark: $galliano;
+
+
+// Error
+$roof-terracotta: #B82B20;
+
+$color-error-light: $color-red-primary;
+$color-error-dark: $roof-terracotta;
+
+
+// Monochromatic-ish Hues
+$woodsmoke: #16181E;
+$dove-gray: #706F6F;
+$wild-sand: #F6F6F6;
+$solitude: #E1EDFF;
+
+$color-gray-bg-light: $wild-sand;
+$color-blue-bg-light: $solitude;
+$color-gray-dark: $woodsmoke;
+$color-gray-medium: $dove-gray;
+$color-black: #000;
+$color-white: #fff;
+
+
