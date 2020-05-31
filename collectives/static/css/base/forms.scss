@@ -4,6 +4,11 @@ textarea,
   caret-color: $color-blue-primary-light;
 }
 
+
+label {
+    font-weight: $font-weight-medium;
+}
+
 form {
     input {
         outline: none;

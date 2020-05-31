@@ -1,8 +1,9 @@
-.button, a.button {
+.button, a.button, input[type=button].button, input[type=submit].button{
     display: inline-block;
     padding: $padding-buttons-default;
     background: $color-white;
     text-transform: uppercase;
+    text-align: center;
     font-weight: $font-weight-medium;
     cursor: pointer;
     outline: none;
@@ -13,7 +14,7 @@
         text-decoration: none;
     }
 
-    &.button-secondary, &a.button-secondary {
+    &.button-secondary {
         color: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
         &:hover {
@@ -26,7 +27,7 @@
         }
     }
 
-    &.button-primary, &a.button-pimary {
+    &.button-primary {
         background: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
         color: $color-white;
@@ -42,7 +43,7 @@
         }
     }
 
-    &.button-danger, &a.button-danger {
+    &.button-danger {
         background: $color-white;
         border: 1px solid $color-error-dark;
         color: $color-error-dark;

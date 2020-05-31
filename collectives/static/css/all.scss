@@ -1,10 +1,3 @@
-@import 'variables/index';
-@import 'base/index';
-@import 'layout/index';
-@import 'vendor/bulma/grid/all';
-@import 'components/index';
-@import 'utilities/index';
-
 // Legacy css (to be cleaned up progressively)
 @import 'legacy/main';
 @import 'legacy/profile';
@@ -12,3 +5,11 @@
 @import 'legacy/activity';
 @import 'legacy/event/index';
 @import "legacy/payment/edit-prices";
+
+
+@import 'variables/index';
+@import 'base/index';
+@import 'layout/index';
+@import 'vendor/bulma/grid/all';
+@import 'components/index';
+@import 'utilities/index';
