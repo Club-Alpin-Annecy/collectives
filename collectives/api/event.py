@@ -33,8 +33,8 @@ def filter_hidden_events(query):
     removes Event with a status that the current use is not allowed to see
 
      - Moderators can see all events
-     - Normal users cannot see `Pending' events
-     - Activity supervisors can see `Pending' events for the activities that
+     - Normal users cannot see 'Pending' events
+     - Activity supervisors can see 'Pending' events for the activities that
        they supervise
      - Leaders can see the events that they lead
 

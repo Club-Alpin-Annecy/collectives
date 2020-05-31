@@ -551,9 +551,9 @@ class Event(db.Model):
         """ Checks whether this event is visible to an user
 
         - Moderators can see all events
-        - Normal users cannot see `Pending' events
-        - Activity supervisors can see `Pending' events for the activities that
-        they supervise
+        - Normal users cannot see 'Pending' events
+        - Activity supervisors can see 'Pending' events for the activities that
+          they supervise
         - Leaders can see the events that they lead
 
         :param: user The user for whom the test is made
