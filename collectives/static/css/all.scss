@@ -1,6 +1,7 @@
-@import "main";
-@import "profile";
-@import "administration";
-@import "activity";
-@import "event/_index";
-@import "payment/edit-prices";
+// Legacy css (to be cleaned up progressively)
+@import "legacy/main";
+@import "legacy/profile";
+@import "legacy/administration";
+@import "legacy/activity";
+@import "legacy/event/_index";
+@import "legacy/payment/edit-prices";
