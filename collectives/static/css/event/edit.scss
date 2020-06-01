@@ -37,6 +37,10 @@
   text-decoration: none;
 }
 
+#eventedit #editor .CodeMirror, .CodeMirror-scroll {
+	max-height: 40em;
+}
+
 #encadrement .useractionmenu{
   display:inline-block;
   text-align: center;
@@ -88,10 +92,10 @@
     text-align: center;
 }
 #eventedit .form-tail-datetime{
-    
+
     vertical-align: middle;
 }
-#eventedit .form-tail-datetime input{  
+#eventedit .form-tail-datetime input{
   width : 75px;
   margin-bottom: 0;
 }
