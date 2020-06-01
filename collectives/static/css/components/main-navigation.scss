@@ -8,7 +8,7 @@
     .main-navigation-container {
         display: flex;
         justify-content: space-between;
-        height: 50px;
+        height: 40px;
     }
 
     .main-navigation-container-primary {
@@ -22,10 +22,10 @@
     }
 
     .main-navigation-logo {
-        height: 50px;
+        height: 45px;
         img {
             vertical-align: middle;
-            height: 50px;
+            height: 45px;
             margin: 0px 0;
         }
     }
@@ -52,7 +52,7 @@
     }
 
     .user-image {
-        margin: 0 $padding-horizontal-default;
+        margin: 0 0 0 $padding-horizontal-default;
     }
 
     .legacy-icon {
