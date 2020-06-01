@@ -12,7 +12,7 @@ function roleFormatter(cell, formatterParams, onRendered){
     cell.getElement().style.height="auto";
     cell.getElement().style['white-space']="normal";
     cell.getElement().style.height="auto";
-    
+
     return cell.getValue().map(displayRole).join(' ');
 }
 
@@ -33,6 +33,7 @@ window.onload = function(){
 
           pagination : 'remote',
           paginationSize : 50,
+          paginationSizeSelector:[50, 100, 200],
 
           columns:[
             {field:"avatar_uri", formatter: 'image', formatterParams:{height: '1em'}},
@@ -54,7 +55,7 @@ window.onload = function(){
                         "error":"Erreur", //ajax error text
                     },
                     "pagination":{
-                        "page_size":"Evénements par page", //label for the page size select element
+                        "page_size":"Adhérents par page", //label for the page size select element
                         "first":"Début", //text for the first page button
                         "first_title":"Première Page", //tooltip text for the first page button
                         "last":"Fin",
@@ -71,13 +72,13 @@ window.onload = function(){
 }
 
 function exportXLXS(element){
-    allFilters = table.getFilters(true); 
+    allFilters = table.getFilters(true);
     filter = allFilters.filter(function(f){ return f['field'] == 'roles' });
-    
+
     if(filter[0]['value'] == undefined)
         alert('Vous devez sélectionner un filtre pour pouvoir exporter les rôles.');
     else
         document.location = element.href + filter[0]['value'];
-        
+
     return false;
 }
