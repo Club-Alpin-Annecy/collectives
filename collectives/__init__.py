@@ -55,14 +55,13 @@ def create_app(config_filename="config"):
     with app.app_context():
         # Initialize asset compilation
         assets = Environment(app)
+
+        filters = "pyscss"
+        if app.config["ENV"] == "production":
+            filters = "pyscss, cssmin"
         scss = Bundle(
-            "css/main.css",
-            "css/profile.css",
-            "css/administration.css",
-            "caf/icon/activity.css",
-            "css/event/edit.css",
-            "css/event/event.css",
-            filters="pyscss",
+            "css/all.scss",
+            filters=filters,
             output="dist/css/all.css",
         )
         assets.register("scss_all", scss)
