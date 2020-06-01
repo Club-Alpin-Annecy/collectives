@@ -40,7 +40,7 @@
 
       <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="submit" class="button" value="Effacer l'inscription">
+            <input type="submit" class="button button-danger" value="Effacer l'inscription">
       </form>
 </li>
 {%- endmacro %}

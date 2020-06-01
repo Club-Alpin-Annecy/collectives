@@ -127,14 +127,14 @@
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
-          
+
           {% if conf["PAYMENTS_ENABLED"] %}
             <a class="button" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
             </a>
           {% endif %}
-          
+
           {% if event.requires_payment() %}
             <a class="button" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
@@ -209,9 +209,6 @@
       <h5> Inscriptions refusées</h5>
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
-<<<<<<< HEAD
-        {{ macros.registration_admin_list_item(registration) }}
-=======
         <li>
           <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
           <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
@@ -219,7 +216,6 @@
           <input type="submit" class="button button-danger" value="Supprimer" >
           </form>
         </li>
->>>>>>> Update action buttons
       {% else %}
         <li>Aucune inscription refusée.</li>
       {% endfor %}

@@ -1,142 +1,62 @@
-<!DOCTYPE html><html>
-<head>
-    <title>Collectives {% block title %}{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% assets "scss_all" %}
-        <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
-    {% endassets %}
-    <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
-    <script type="text/javascript">
-        function getServerLocalTime(){ 
-            return '{{server_local_time()}}'; 
-        }
-        
-        function checkFileFieldSize(element){
-            var maxSize = parseInt("{{ conf['MAX_FILE_SIZE']}}");
-            var maxSizeFileMessage = "{{conf['MAX_FILE_SIZE_MESSAGE']}}";
-            if (element.files[0].size > maxSize)  {
-                alert(maxSizeFileMessage.replace('[size]', (element.files[0].size / 1024 / 1024).toFixed(2)));
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Collectives {% block title %}{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {% assets "scss_all" %}
+            <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
+        {% endassets %}
+        <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+        <script type="text/javascript">
+            function getServerLocalTime(){
+                return '{{server_local_time()}}';
             }
-        }
-    </script>
-    {% block additionalhead %}{% endblock %}
-</head>
-<body>
-<header class="main-navigation layout-row">
-    <div class="layout-container main-navigation-container">
-        <div class="main-navigation-container-primary">
-            <a href="{{ url_for('root.index')}}" class="main-navigation-logo">
-                <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ conf['TITLE'] }}" title="{{ conf['TITLE'] }}">
-            </a>
 
-            {% if current_user.is_authenticated %}
-                
-                <!-- <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton legacy-icon" alt="Bouton du menu" title="Menu"/> -->
-                <ul class="main-navigation-menu">
-                    <li>
-                        <a href="{{ url_for('root.index')}}" class="main-navigation-menu-link">
-                            <img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}" class="legacy-icon"/> Liste des collectives
-                        </a>
-                    </li>
-                    {% if current_user.can_create_events() %}
-                        <li>
-                            <a href="{{ url_for('event.manage_event')}}" class="main-navigation-menu-link"><img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"  class="legacy-icon"/> Ajouter un événement</a>
-                        </li>
-                    {% endif %}
-                    <li>
-                        <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}" class="main-navigation-menu-link"><img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"  class="legacy-icon"/> Profil adhérent</a>
-                    </li>
-                    {% if current_user.can_create_events() %}
-                        <li>
-                            <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}" class="main-navigation-menu-link">
-                                <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"  class="legacy-icon"/>Profil encadrant
-                            </a>
-                        </li>
-                    {% endif %}
-                    {% if current_user.get_supervised_activities() != [] %}
-                        <li>
-                            <a href="{{ url_for('event.csv_import')}}" class="main-navigation-menu-link">
-                                <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  class="legacy-icon"/>Import CSV
-                            </a>
-                        </li>
-                    {% endif %}
-                    {% if current_user.is_admin() %}
-                        <li>
-                            <a href="{{ url_for('administration.administration')}}" class="main-navigation-menu-link"><img src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"  class="legacy-icon"/> Administration</a>
-                        </li>
-                    {% endif %}
-                </ul>
-                
-            {% endif %}
+            function checkFileFieldSize(element){
+                var maxSize = parseInt("{{ conf['MAX_FILE_SIZE']}}");
+                var maxSizeFileMessage = "{{conf['MAX_FILE_SIZE_MESSAGE']}}";
+                if (element.files[0].size > maxSize)  {
+                    alert(maxSizeFileMessage.replace('[size]', (element.files[0].size / 1024 / 1024).toFixed(2)));
+                }
+            }
+        </script>
+        {% block additionalhead %}{% endblock %}
+    </head>
+    <body>
+        {%include 'partials/main-navigation.html' %}
+        <div id="playground">
+
+            {% block content %}{% endblock %}
+
         </div>
-        <div class="main-navigation-container-secondary">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('profile.show_user', user_id=current_user.id)}}">
-                    <div id="identity" class="item">
-                        {% if current_user.avatar %}
-                            <div class="user-image">
-                                <img src="{{ url_for('images.crop', filename=current_user.avatar, width=80, height=80) }}" alt="{{ current_user.full_name() }} " title="{{ current_user.full_name() }} ">
-                            </div>
-                        {% else %}
-                            <div class="user-image user-image-default" title="{{ current_user.full_name() }} ">
-                                <svg viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd"
-                                        d="M5.79091 0.000488281C7.71202 0.000488281 9.27879 1.56726 9.27879 3.48837C9.27879 5.40948 7.71202 6.97625 5.79091 6.97625C3.8698 6.97625 2.30303 5.40948 2.30303 3.48837C2.30303 1.56726 3.8698 0.000488281 5.79091 0.000488281ZM5.79091 6.90958C8.98048 6.90958 11.5818 9.51091 11.5485 12.7338L10.3636 12.7005C10.3636 10.1685 8.32293 8.12776 5.79091 8.12776C3.25889 8.12776 1.21818 10.1685 1.18485 12.7338L0 12.7005C0 9.51091 2.60134 6.90958 5.79091 6.90958ZM5.79091 1.21867C4.53186 1.21867 3.52121 2.22931 3.52121 3.48837C3.52121 4.74742 4.53186 5.75806 5.79091 5.75806C7.04996 5.75806 8.06061 4.74742 8.06061 3.48837C8.06061 2.22931 7.04996 1.21867 5.79091 1.21867Z" />
-                                </svg>
-                            </div>
-                        {% endif %}
-                    </div>
-                </a>
-                <div class="item" id="logout">
-                    <a href="{{ url_for('auth.logout') }}" title="Déconnexion" >
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}" alt="Déconnexion"/>
-                    </a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div id="messages">
+                <div class="innermessages">
+                    <img
+                                    src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                                    class="close"
+                                    onclick= "this.parentNode.parentNode.style.display='none'"
+                                />
+                    <h3>Message</h3>
+                {% for category, message in messages %}
+                <p class="{{category}} message">{{ message }}</p>
+                {% endfor %}
                 </div>
-            {% else %}
-                <div id="identity" class="item">
-                    <a href="{{ url_for('auth.login') }}" class="button button-secondary"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}"/>  Se connecter </a>
+                <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+            </div>
+        {% endif %}
+        {% endwith %}
+
+
+        <div id="footer">
+            <div class="container">
+                <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
+                <div>
+                    <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
+                    Version du site : {{ version_link(conf['VERSION'])|safe }}
                 </div>
-                <div id="identity" class="item">
-                    <a href="{{ url_for('auth.signup') }}" class="button button-secondary"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"/> Activer son compte </a>
-                </div>
-            {% endif %}
+            </div>
         </div>
-    </div>
-</header>   
-
-<div id="playground">
-
-    {% block content %}{% endblock %}
-
-</div>
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div id="messages">
-        <div class="innermessages">
-            <img
-                            src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                            class="close"
-                            onclick= "this.parentNode.parentNode.style.display='none'"
-                        />
-            <h3>Message</h3>
-        {% for category, message in messages %}
-          <p class="{{category}} message">{{ message }}</p>
-        {% endfor %}
-        </div>
-        <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
-    </div>
-  {% endif %}
-{% endwith %}
-
-
-<div id="footer">
-    <div class="container">
-         <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
-        <div>
-            <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
-            Version du site : {{ version_link(conf['VERSION'])|safe }}
-        </div>
-    </div>
-</div>
-</body>
+    </body>
 </html>
