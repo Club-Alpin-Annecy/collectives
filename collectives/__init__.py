@@ -59,11 +59,7 @@ def create_app(config_filename="config"):
         filters = "pyscss"
         if app.config["ENV"] == "production":
             filters = "pyscss, cssmin"
-        scss = Bundle(
-            "css/all.scss",
-            filters=filters,
-            output="dist/css/all.css",
-        )
+        scss = Bundle("css/all.scss", filters=filters, output="dist/css/all.css")
         assets.register("scss_all", scss)
 
         # Register blueprints
