@@ -9,31 +9,36 @@
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
-<div class="box">
-  <form method="POST" action="#" class="form form-vertical">
-    {{ form.hidden_tag() }}
-    
-    <div class="controls">
-      <label for="{{ form.mail.id_for_label }}" class="label-top">Email
-        {{ form.mail(class="input-100") }}
-      </label>
+<div class="login-form">
+    <div class="box">
+
+        <form method="POST" action="#" class="form form-vertical">
+            <div class="controls">
+                <h3>Connexion</h3>
+            </div>
+            {{ form.hidden_tag() }}
+            <div class="controls">
+            <label for="{{ form.mail.id_for_label }}" class="label-top">Email
+                {{ form.mail(class="input-100") }}
+            </label>
+            </div>
+            <div class="controls">
+            <label for="{{ form.password.id_for_label }}" class="label-top">Mot de Passe
+                {{ form.password(class="input-100") }}
+            </label>
+            </div>
+            <div class="controls">
+                {{ form.remember_me() }} {{ form.remember_me.label }}
+            </div>
+            <div class="controls">
+                {{ form.submit(class="button button-primary input-100") }}
+            </div>
+            <p class="contact-link">
+            <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
+            <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+            </p>
+            {% include 'contact_link.html' %}
+        </form>
     </div>
-    <div class="controls">
-      <label for="{{ form.password.id_for_label }}" class="label-top">Mot de Passe
-        {{ form.password(class="input-100") }}
-      </label>
-    </div>
-    <br/><br/>{{ form.remember_me() }} {{ form.remember_me.label }}
-    <br/>{{ form.submit(class="button button-primary input-100") }}
-
-    <p class="contact-link">
-      <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
-      <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
-    </p>
-
-    {% include 'contact_link.html' %}
-  </form>
-
-
 </div>
 {% endblock %}
