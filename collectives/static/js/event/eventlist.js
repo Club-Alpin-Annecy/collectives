@@ -37,6 +37,7 @@ window.onload = function(){
             },
             pagination : 'remote',
             paginationSize : 10,
+            paginationSizeSelector:[10, 25, 50, 100],
             pageLoaded :  updatePageURL,
 
             initialSort: [ {column:"start", dir:"asc"}],
@@ -58,7 +59,7 @@ window.onload = function(){
                         "error":"Erreur", //ajax error text
                     },
                     "pagination":{
-                        "page_size":"Evénements par page", //label for the page size select element
+                        "page_size":"Collectives par page", //label for the page size select element
                         "first":"Début", //text for the first page button
                         "first_title":"Première Page", //tooltip text for the first page button
                         "last":"Fin",
