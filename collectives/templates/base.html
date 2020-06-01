@@ -48,15 +48,6 @@
         {% endif %}
         {% endwith %}
 
-
-        <div id="footer">
-            <div class="container">
-                <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo"/>
-                <div>
-                    <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br/><br/>
-                    Version du site : {{ version_link(conf['VERSION'])|safe }}
-                </div>
-            </div>
-        </div>
+        {%include 'partials/main-footer.html' %}
     </body>
 </html>
