@@ -546,3 +546,21 @@ class Event(db.Model):
         :return: The status of the event.
         :rtype: string """
         return EventStatus(self.status).display_name()
+
+    def is_visible_to(self, user):
+        """ Checks whether this event is visible to an user
+
+        - Moderators can see all events
+        - Normal users cannot see 'Pending' events
+        - Activity supervisors can see 'Pending' events for the activities that
+          they supervise
+        - Leaders can see the events that they lead
+
+        :param: user The user for whom the test is made
+        :type: user :py:class:`collectives.models.user.User`
+        :return: Whether the event is visible
+        :rtype: bool
+        """
+        if self.status == EventStatus.Confirmed or self.status == EventStatus.Cancelled:
+            return True
+        return self.has_edit_rights(user)

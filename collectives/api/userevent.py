@@ -6,11 +6,11 @@ import json
 
 from flask_login import current_user, login_required
 
-from ..models import db, User, Event, EventStatus
+from ..models import db, User, Event
 from ..models import Registration, RegistrationStatus
 
 from .common import blueprint
-from .event import EventSchema
+from .event import EventSchema, filter_hidden_events
 
 
 @blueprint.route("/user/<user_id>/events")
@@ -32,11 +32,12 @@ def user_events(user_id):
         return "[]", 403, {"content-type": "application/json"}
 
     query = db.session.query(Event)
+    query = filter_hidden_events(query)
+
     query = query.filter(Registration.user_id == user_id)
     query = query.filter(Registration.status == RegistrationStatus.Active)
     query = query.filter(Event.id == Registration.event_id)
-    query = query.filter(Event.status == EventStatus.Confirmed)
-    query = query.order_by(Event.start)
+    query = query.order_by(Event.start, Event.id)
 
     result = query.all()
     response = EventSchema(many=True).dump(result)
@@ -64,8 +65,10 @@ def leader_events(leader_id):
         return "[]", 403, {"content-type": "application/json"}
 
     query = db.session.query(Event)
+    query = filter_hidden_events(query)
+
     query = query.filter(Event.leaders.contains(leader))
-    query = query.order_by(Event.start)
+    query = query.order_by(Event.start, Event.id)
 
     result = query.all()
     response = EventSchema(many=True).dump(result)
