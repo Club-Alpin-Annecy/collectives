@@ -134,7 +134,7 @@
     <label for="photo_file">Image de présentation : <br/>&#9432; Photo uniquement, d'une taille maximum de 2Mo</label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }} <br/>
     <br/>
     {{ form.hidden_tag() }}
-     <br/>{{ form.save_all }}
+     <br/>{{ form.save_all(class="button button-primary") }}
   </form>
 </div>
 <script>

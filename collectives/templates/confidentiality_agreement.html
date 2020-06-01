@@ -47,7 +47,7 @@
 
   {% if current_user.confidentiality_agreement_signature_date == None %}
           <form action="#" method="post"><br/><br/>
-              <input type="submit" name="" value="SIGNER">
+              <input type="submit" name="" value="SIGNER" class="button button-primary">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           </form>
   {% else %}

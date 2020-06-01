@@ -70,7 +70,7 @@
         {% elif current_time < event.start %}
         <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <a class="button" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+          <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
         {% endif %}
       {% endif %}
@@ -145,7 +145,7 @@
           {% if event.has_delete_rights(current_user) %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="button delete-button">
+              <button type="submit" class="button button-danger delete-button">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
                 Supprimer
               </button>
@@ -209,7 +209,17 @@
       <h5> Inscriptions refusées</h5>
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
+<<<<<<< HEAD
         {{ macros.registration_admin_list_item(registration) }}
+=======
+        <li>
+          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-danger" value="Supprimer" >
+          </form>
+        </li>
+>>>>>>> Update action buttons
       {% else %}
         <li>Aucune inscription refusée.</li>
       {% endfor %}
