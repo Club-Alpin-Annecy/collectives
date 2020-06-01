@@ -3,7 +3,7 @@
 
 //  Blues
 
-// Primary 
+// Primary
 $cerulean: #00A5CC;
 $blumine: #1D6989;
 
@@ -50,14 +50,14 @@ $color-orange-secondary-dark: $tangerine;
 $punch: #CC3024;
 $color-red-primary: $punch;
 
-// Success 
+// Success
 $emerald: #2DCB48;
 $forest-green: #28B440;
 
 $color-success-light: $emerald;
 $color-success-dark: $forest-green;
 
-// Warning 
+// Warning
 $supernova: #FFCC00;
 $galliano: #E4B80B;
 
@@ -82,6 +82,7 @@ $color-gray-bg-light: $wild-sand;
 $color-blue-bg-light: $solitude;
 $color-gray-dark: $woodsmoke;
 $color-gray-medium: $dove-gray;
+$color-gray-light: lighten($dove-gray, 50%);
 $color-black: #000;
 $color-white: #fff;
 

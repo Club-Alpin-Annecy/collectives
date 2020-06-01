@@ -1,10 +1,18 @@
-<div id="footer">
-    <div class="container">
-        <img src="{{ url_for('static', filename='caf/picto_caf_annecy_blanc.png') }}" class="logo" />
-        <div>
-            <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a
-                href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br /><br />
-            Version du site : {{ version_link(conf['VERSION'])|safe }}
+<div class="main-footer">
+    <div class="layout-container main-footer-container">
+        <div class="columns">
+            <div class="column is-3">
+                <a href="{{ url_for('root.index')}}" class="main-footer-navigation-logo">
+                    <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ conf['TITLE'] }}"
+                        title="{{ conf['TITLE'] }}">
+                </a>
+            </div>
+            <div class="column">
+                <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a
+                    href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br /><br />
+                Version du site : {{ version_link(conf['VERSION'])|safe }}
+            </div>
+
         </div>
     </div>
 </div>
