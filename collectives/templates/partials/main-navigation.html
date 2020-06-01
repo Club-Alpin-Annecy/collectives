@@ -7,54 +7,60 @@
             </a>
 
             {% if current_user.is_authenticated %}
-
-            <!-- <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton legacy-icon" alt="Bouton du menu" title="Menu"/> -->
-            <ul class="main-navigation-menu">
-                <li>
-                    <a href="{{ url_for('root.index')}}" class="main-navigation-menu-link">
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"
-                            class="legacy-icon" /> Liste des collectives
-                    </a>
-                </li>
-                {% if current_user.can_create_events() %}
-                <li>
-                    <a href="{{ url_for('event.manage_event')}}" class="main-navigation-menu-link"><img
-                            src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
-                            class="legacy-icon" /> Ajouter un événement</a>
-                </li>
-                {% endif %}
-                <li>
-                    <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"
-                        class="main-navigation-menu-link"><img
-                            src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
-                            class="legacy-icon" /> Profil adhérent</a>
-                </li>
-                {% if current_user.can_create_events() %}
-                <li>
-                    <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"
-                        class="main-navigation-menu-link">
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
-                            class="legacy-icon" />Profil encadrant
-                    </a>
-                </li>
-                {% endif %}
-                {% if current_user.get_supervised_activities() != [] %}
-                <li>
-                    <a href="{{ url_for('event.csv_import')}}" class="main-navigation-menu-link">
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
-                            class="legacy-icon" />Import CSV
-                    </a>
-                </li>
-                {% endif %}
-                {% if current_user.is_admin() %}
-                <li>
-                    <a href="{{ url_for('administration.administration')}}" class="main-navigation-menu-link"><img
-                            src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}" class="legacy-icon" />
-                        Administration</a>
-                </li>
-                {% endif %}
-            </ul>
-
+                <div class="menu-dropdown menu-dropdown-left">
+                    <div class="menu-dropdown-trigger main-navigation-menu">
+                        <div class="main-navigation-menu-link">
+                            <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton legacy-icon" alt="Bouton du menu" title="Menu"/> Menu
+                        </div>
+                    </div>
+                    <div class="menu-dropdown-container">
+                        <ul>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('root.index')}}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"
+                                        class="legacy-icon" /> Liste des collectives
+                                </a>
+                            </li>
+                            {% if current_user.can_create_events() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
+                                        class="legacy-icon" /> Ajouter un événement</a>
+                            </li class="menu-dropdown-item">
+                            {% endif %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"
+                                    class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
+                                        class="legacy-icon" /> Profil adhérent</a>
+                            </li>
+                            {% if current_user.can_create_events() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"
+                                    class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
+                                        class="legacy-icon" />Profil encadrant
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.get_supervised_activities() != [] %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('event.csv_import')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
+                                        class="legacy-icon" />Import CSV
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if current_user.is_admin() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('administration.administration')}}" class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}" class="legacy-icon" />
+                                    Administration</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
             {% endif %}
         </div>
         <div class="main-navigation-container-secondary">

@@ -13,7 +13,7 @@
 
     .main-navigation-container-primary {
         display: flex;
-        flex-direction: row;
+        flex-direction: row-reverse;
     }
 
     .main-navigation-container-secondary {
@@ -37,16 +37,15 @@
         height: 100%;
         margin: 0;
         line-height: 2.5rem;
-        li {
-            .main-navigation-menu-link {
-                height: 100%;
-                padding: 0 $padding-horizontal-xs;
-                font-weight: $font-weight-medium;
-                color: $color-blue-primary-light;
-                &:hover {
-                    color: $color-blue-primary-dark;
-                    text-decoration: none;
-                }
+ 
+        .main-navigation-menu-link {
+            height: 100%;
+            padding: 0 $padding-horizontal-xs;
+            font-weight: $font-weight-medium;
+            color: $color-blue-primary-light;
+            &:hover {
+                color: $color-blue-primary-dark;
+                text-decoration: none;
             }
         }
     }
