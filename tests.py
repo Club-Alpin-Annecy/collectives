@@ -28,7 +28,7 @@ def create_test_user(email="test", user_license=""):
         password="",
         license=user_license,
         enabled=True,
-        phone="",
+        phone="azertyuiopazertyuiopazertyuiop",
     )
     db.session.add(user)
     db.session.commit()
@@ -57,7 +57,6 @@ class ModelTest(flask_testing.TestCase):
         db.create_all()
 
     def tearDown(self):
-
         db.session.remove()
         db.drop_all()
 
@@ -101,6 +100,14 @@ def make_registration(user):
     return Registration(
         user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal
     )
+
+
+class UserTest(ModelTest):
+    @staticmethod
+    def test_truncate():
+        user = create_test_user()
+        assert user.phone == "azertyuiopazertyuio…"
+        assert user.first_name == "Test"
 
 
 class TestRoles(ModelTest):
