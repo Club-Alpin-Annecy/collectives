@@ -56,9 +56,9 @@ def create_app(config_filename="config"):
         # Initialize asset compilation
         assets = Environment(app)
 
-        filters = "pyscss"
+        filters = "libsass"
         if app.config["ENV"] == "production":
-            filters = "pyscss, cssmin"
+            filters = "libsass, cssmin"
         scss = Bundle("css/all.scss", filters=filters, output="dist/css/all.css")
         assets.register("scss_all", scss)
 
