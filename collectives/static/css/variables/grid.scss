@@ -3,10 +3,6 @@ $column-gap: 0.75rem !default;
 $variable-columns: true !default;
 $tile-spacing: 0.75rem !default;
 
-// pyCSS is DUMB and we have to initialize local iteration variables as a global due to some weird case with @imports 
-// ┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻ (I think lost 1 hour figuring that out)
-$i: 0;
-
 // Spacing
 
 $block-spacing: 1.5rem !default;
