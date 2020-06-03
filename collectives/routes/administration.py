@@ -222,7 +222,7 @@ def export_role(raw_filters=""):
 
     :param raw_filters: Roles filters to use.
     :type raw_filters: string
-    :return: The Excell file with the roles.
+    :return: The Excel file with the roles.
     """
     query_filter = Role.query
     # we remove role not linked anymore to a user

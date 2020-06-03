@@ -58,7 +58,7 @@ def sync_user(user, force):
 
     :param user: User to synchronize
     :type user: :py:class:`collectives.models.user.User`
-    :param force: if True, do synchronisation even if licence has not be just renewed.
+    :param force: if True, do synchronisation even if licence has been recently renewed.
     :type force: boolean
     """
     if user.enabled and not user.is_test:
@@ -91,9 +91,9 @@ def create_confirmation_token(license_number, user):
 def login():
     """ Route for user login page.
 
-    If authentification is failed, there is a timeout : :py:data:`config.AUTH_FAILURE_WAIT`
+    If authentification has failed, there is a timeout : :py:data:`config.AUTH_FAILURE_WAIT`
     If confidentiality agreement or legal text has not been signed, a reminder is
-    sent to user if login is succesfull.
+    shown to user if login is succesful.
     """
     form = LoginForm()
 
@@ -168,7 +168,7 @@ def logout():
 
 
 def render_confirmation_form(form, is_recover):
-    """ Route to call render_template with right option for email confirmation webpage.
+    """ Render template with right options for email confirmation webpage.
 
     :param form: Confirmation form which will be used to generate web page.
     :type form: :py:class:`collectives.form.auth.PasswordResetForm` or
@@ -251,7 +251,7 @@ def process_confirmation(token_uuid):
 
 
 def render_signup_form(form, is_recover):
-    """ Route to render_template with right option for signup or password reset webpage.
+    """ Render template with right options for signup or password reset webpage.
 
     It is a page where the user can set its new password.
 

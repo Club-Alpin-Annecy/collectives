@@ -572,8 +572,7 @@ def reject_registration(reg_id):
 def delete_registration(reg_id):
     """ Route for a leader to delete a user participation.
 
-    It technically deletes the registration record in the database. It is mandatory
-    to register again a rejected user.
+    It technically deletes the registration record in the database.
 
     :param int reg_id: Primary key of the registration.
     """
