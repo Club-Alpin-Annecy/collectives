@@ -1,3 +1,7 @@
+""" Module for profile related route
+
+This modules contains the /profile Blueprint
+"""
 from datetime import datetime
 
 from flask import flash, render_template, redirect, url_for, request
@@ -23,7 +27,10 @@ def before_request():
 
 @blueprint.route("/user/<user_id>", methods=["GET"])
 def show_user(user_id):
+    """ Route to show detail of a regular user.
 
+    :param int user_id: Primary key of the user.
+    """
     if int(user_id) != current_user.id:
         if not current_user.has_any_role():
             flash("Non autorisé", "error")
@@ -45,6 +52,10 @@ def show_user(user_id):
 
 @blueprint.route("/organizer/<leader_id>", methods=["GET"])
 def show_leader(leader_id):
+    """ Route to show leader details of a user.
+
+    :param int user_id: Primary key of the user.
+    """
     user = User.query.filter_by(id=leader_id).first()
 
     # For now allow getting information about any user with roles
@@ -63,6 +74,7 @@ def show_leader(leader_id):
 
 @blueprint.route("/user/edit", methods=["GET", "POST"])
 def update_user():
+    """ Route to update current user information    """
 
     form = UserForm(obj=current_user)
 
@@ -96,12 +108,14 @@ def update_user():
 
 @blueprint.route("/user/force_sync", methods=["POST"])
 def force_user_sync():
+    """ Route to force user synchronisation with extranet """
     sync_user(current_user, True)
     return redirect(url_for("profile.show_user", user_id=current_user.id))
 
 
 @blueprint.route("/user/confidentiality", methods=["GET", "POST"])
 def confidentiality_agreement():
+    """ Route to show confidentiality agreement. """
     if (
         request.method == "POST"
         and current_user.confidentiality_agreement_signature_date == None

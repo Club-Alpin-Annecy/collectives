@@ -1,3 +1,5 @@
+""" Module for user authentification routes. """
+
 import sqlite3
 import uuid, datetime
 from sys import stderr
@@ -11,12 +13,8 @@ from werkzeug.urls import url_parse
 import sqlalchemy.exc
 from sqlalchemy import or_
 
-from ..forms.auth import (
-    LoginForm,
-    AccountCreationForm,
-    PasswordResetForm,
-    AccountActivationForm,
-)
+from ..forms.auth import LoginForm, AccountCreationForm
+from ..forms.auth import PasswordResetForm, AccountActivationForm
 from ..models import User, Role, RoleIds, db
 from ..models.auth import ConfirmationTokenType, ConfirmationToken
 from ..utils.time import current_time
@@ -28,11 +26,23 @@ login_manager.login_view = "auth.login"
 login_manager.login_message = "Merci de vous connecter pour accéder à cette page"
 
 blueprint = Blueprint("auth", __name__, url_prefix="/auth")
+""" Authentification blueprint
 
+This blueprint contains all routes for authentification actions.
+"""
 
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
+    """ Flask-login user loader.
+
+    See also: `flask_login.LoginManager.user_loader
+    <https://flask-login.readthedocs.io/en/latest/#flask_login.LoginManager.user_loader>`_
+
+    :param string user_id: primary of the user in sql
+    :return: current user or None
+    :rtype: :py:class:`collectives.models.user.User`
+    """
     user = User.query.get(int(user_id))
     if user is None or not user.is_active:
         # License has expired, log-out user
@@ -41,9 +51,15 @@ def load_user(user_id):
 
 
 def sync_user(user, force):
-    """
-    Synchronize user info from extranet if license has been renewed,
-    or if 'force' is True
+    """ Synchronize user info from extranet.
+
+    Synchronization is done if license has been renewed or if 'force' is True. Test users
+    cannot be synchronized.
+
+    :param user: User to synchronize
+    :type user: :py:class:`collectives.models.user.User`
+    :param force: if True, do synchronisation even if licence has been recently renewed.
+    :type force: boolean
     """
     if user.enabled and not user.is_test:
         # Check whether the license has been renewed
@@ -60,17 +76,25 @@ def sync_user(user, force):
 
 
 def create_confirmation_token(license_number, user):
+    """ Create a token for email confirmation.
+
+    :return: New confirmation token saved into database.
+    :rtype: :py:class:`collectives.models.auth.ConfirmationToken`
+    """
     token = ConfirmationToken(license_number, user)
     db.session.add(token)
     db.session.commit()
     return token
 
 
-##########################################################################
-#   LOGIN
-##########################################################################
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
+    """ Route for user login page.
+
+    If authentification has failed, there is a timeout : :py:data:`config.AUTH_FAILURE_WAIT`
+    If confidentiality agreement or legal text has not been signed, a reminder is
+    shown to user if login is succesful.
+    """
     form = LoginForm()
 
     # If no login is provided, display regular login interface
@@ -137,11 +161,22 @@ def login():
 @blueprint.route("/logout")
 @login_required
 def logout():
+    """ Route for logout user page.
+    """
     logout_user()
     return redirect(url_for("auth.login"))
 
 
 def render_confirmation_form(form, is_recover):
+    """ Render template with right options for email confirmation webpage.
+
+    :param form: Confirmation form which will be used to generate web page.
+    :type form: :py:class:`collectives.form.auth.PasswordResetForm` or
+                :py:class:`collectives.form.auth.AccountActivationForm`
+    :param is_recover: True if we are resetting the password.
+    :type is_recover: boolean
+    :return: Email confirmation webpage
+    """
     action = "Récupération " if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
     form.submit.label.text = "{} le compte".format(reason.capitalize())
@@ -155,6 +190,10 @@ def render_confirmation_form(form, is_recover):
 
 @blueprint.route("/process_confirmation/<token_uuid>", methods=["GET", "POST"])
 def process_confirmation(token_uuid):
+    """  Route for email confirmation regarding account recovering or creation.
+
+    :param string token_uuid: Confirmation UUID token sent to user by email.
+    """
     token = ConfirmationToken.query.filter_by(uuid=token_uuid).first()
 
     # Check token validaty
@@ -212,6 +251,17 @@ def process_confirmation(token_uuid):
 
 
 def render_signup_form(form, is_recover):
+    """ Render template with right options for signup or password reset webpage.
+
+    It is a page where the user can set its new password.
+
+    :param form: Form which will be used to generate information web page.
+    :type form: :py:class:`collectives.form.auth.LoginForm` or
+                :py:class:`collectives.form.auth.AccountCreationForm`
+    :param is_recover: True if we are resetting the password.
+    :type is_recover: boolean
+    :return: Email confirmation webpage
+    """
     action = "Récupération" if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
     form.submit.label.text = "{} le compte".format(reason.capitalize())
@@ -232,6 +282,12 @@ def render_signup_form(form, is_recover):
 @blueprint.route("/signup", methods=["GET", "POST"])
 @blueprint.route("/recover", endpoint="recover", methods=["GET", "POST"])
 def signup():
+    """ Route to sign up ou reset password.
+
+    This webpage will ask for personnal information (date of birth, license ID, email)
+    to create an account or reset a password. If the information matches a user or
+    a potential user, a confirmation email is sent.
+    """
     if current_user.is_authenticated:
         flash("Vous êtes déjà connecté", "warning")
         return redirect(url_for("event.index"))
@@ -311,6 +367,9 @@ def signup():
 
 # Init: Setup admin (if db is ready)
 def init_admin(app):
+    """ Create an ``admin`` account if it does not exists. Enforce its password.
+
+    Password is :py:data:`config:ADMINPWD` """
     try:
         user = User.query.filter_by(mail="admin").first()
         if user is None:

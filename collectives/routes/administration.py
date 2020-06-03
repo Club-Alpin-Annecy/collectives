@@ -1,3 +1,7 @@
+""" Module for all administration routes.
+
+All routes are protected by :py:fun:`before_request` which protect acces to admin only.
+ """
 from io import BytesIO
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import current_app, Blueprint
@@ -34,7 +38,7 @@ def before_request():
 
 @blueprint.route("/", methods=["GET", "POST"])
 def administration():
-    """ Route function fot administration home page.
+    """ Route for administration home page.
     """
     # Create the filter list
     filters = {"": ""}
@@ -170,7 +174,8 @@ def add_user_role(user_id):
 def remove_user_role(user_id):
     """ Route to delete a user role.
 
-    This route does the action, and then redirect to :py:func:`add_user_role`
+    :return: redirection to role management page
+    :rtype: string
     """
 
     role = Role.query.filter_by(id=user_id).first()
@@ -198,8 +203,12 @@ def remove_user_role(user_id):
 
 @blueprint.route("/roles/export/", methods=["GET"])
 def export_role_no_filter():
-    """ Default role export role which gives an error to the user,
-    since filters are required for export.
+    """ Default role export route.
+
+    In case an user makes a role export without a filter, give him an error since
+    filters are required for export.
+
+    :return: redirection to administration home page
     """
     flash("Pas de filtres sélectionnés", "error")
     return redirect(url_for("administration.administration"))
@@ -213,6 +222,7 @@ def export_role(raw_filters=""):
 
     :param raw_filters: Roles filters to use.
     :type raw_filters: string
+    :return: The Excel file with the roles.
     """
     query_filter = Role.query
     # we remove role not linked anymore to a user

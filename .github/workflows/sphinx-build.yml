@@ -32,7 +32,7 @@ jobs:
           make html
       - name: Check general doc coverage
         run: |
-          docstr-coverage . -e .env -F 59
+          docstr-coverage .  -e ".env|migrations|instance|doc" -F 73
       - name: Check models doc coverage
         run: |
           docstr-coverage collectives/models
@@ -42,3 +42,6 @@ jobs:
       - name: Check api doc coverage
         run: |
           docstr-coverage collectives/api
+      - name: Check routes doc coverage
+        run: |
+          docstr-coverage collectives/routes
