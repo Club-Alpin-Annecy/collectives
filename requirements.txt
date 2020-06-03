@@ -5,7 +5,7 @@ flask-login
 flask_sqlalchemy
 sqlalchemy-utils
 passlib
-pyscss
+libsass
 flask-wtf
 WTForms-Alchemy
 # See #98
