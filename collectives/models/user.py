@@ -6,6 +6,7 @@ from datetime import date, datetime
 
 from flask_login import UserMixin
 from sqlalchemy_utils import PasswordType
+from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
 
@@ -251,6 +252,32 @@ class User(db.Model, UserMixin):
 
     :type: list(:py:class:`collectives.models.registration.Registration`)
     """
+
+    @validates(
+        "first_name",
+        "last_name",
+        "license",
+        "license_category",
+        "phone",
+        "emergency_contact_name",
+        "emergency_contact_phone",
+    )
+    def truncate_string(self, key, value):
+        """ Truncates too long string.
+
+        Sometimes, espacially with extranet, a value might be too long. This function
+        truncates it to not throw an error. The function automatically extract key max
+        length. It adds … in the end.
+
+        :param string key: argument name to check.
+        :param string value: argument value to check.
+        :return: Truncated string.
+        :rtype: string
+        """
+        max_len = getattr(self.__class__, key).prop.columns[0].type.length
+        if value and len(value) > max_len:
+            return value[: max_len - 1] + "…"
+        return value
 
     def save_avatar(self, file):
         """ Save an image as user avatar.
