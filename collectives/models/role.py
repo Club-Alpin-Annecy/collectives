@@ -8,13 +8,14 @@ class RoleIds(ChoiceEnum):
     """ Enum listing the type of a role
 
     Global roles are not related to an activity and are website wide:
-    * Moderator
-    * Administrator
-    * President
+
+    - Moderator
+    - Administrator
+    - President
 
     Activity related roles:
-    * EventLeader : can lead an event of this activity type
-    * ActivitySupervisor : supervises a whole activity
+    - EventLeader : can lead an event of this activity type
+    - ActivitySupervisor : supervises a whole activity
     """
 
     # Global roles

@@ -29,11 +29,15 @@ This blueprint contains all routes for event display and management
 
 
 def validate_event_leaders(activities, leaders, multi_activity_mode):
-    """
-    Check whether all activities have a valid leader, display error if not the case
-    :param multi_activity_mode: If `False`, check that all `leaders` can lead the
+    """ Check whether all activities have a valid leader, display error if not.
+
+    :param bool multi_activity_mode: If `False`, check that all `leaders` can lead the
     (single) activitie in `activities`. If `True`, check that each activity in
-    `activities` can be lead by one of the `leaders`
+    `activities` can be lead by one of the `leaders`.
+    :param activities: List of activities to check.
+    :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
+    :param activities: List of leaders.
+    :type activities: list(:py:class:`collectives.models.user.User`)
     :return: whether all tests succeeded
     :rtype: bool
     """
@@ -93,9 +97,15 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
 
 
 def validate_dates_and_slots(event):
-    """
+    """ Validate event form for dates and events.
+
     Checks whether the various dates an numbers of slots in the event
-    are valid; display an error message if not
+    are valid:
+
+    - Event start is before event end
+    - Registration are set if there is online slots
+    - Registration is before event...
+
     :return: whether all tests succeeded
     :rtype: bool
     """
@@ -137,11 +147,10 @@ def validate_dates_and_slots(event):
     return valid
 
 
-##########################################################################
-# Event management
-##########################################################################
 @blueprint.route("/")
 def index():
+    """ Event and website home page.
+    """
     types = ActivityType.query.order_by("order", "name").all()
     return render_template(
         "index.html", conf=current_app.config, types=types, photos=photos
@@ -152,6 +161,14 @@ def index():
 @blueprint.route("/<int:event_id>-<name>")
 @login_required
 def view_event(event_id, name=""):
+    """ Display a specific event.
+
+    If event name is not behind the event id, client will be redirected to an URL
+    with both.
+
+    :param int event_id: ID of the event to display.
+    :param string name: Name of the event, only for URL cosmetic purpose.
+    """
     event = Event.query.filter_by(id=event_id).first()
 
     if event is None or not event.is_visible_to(current_user):
@@ -183,6 +200,13 @@ def view_event(event_id, name=""):
 @login_required
 @confidentiality_agreement()
 def print_event(event_id):
+    """ Display an event summary webpage to be printed.
+
+    Only accessible to a user with edit right on this page (at least the leader). It
+    contains personnal information on subscribed users.
+
+    :param int event_id: Primary key of the event to print.
+    """
     event = Event.query.get(event_id)
 
     if event is None or not event.has_edit_rights(current_user):
@@ -204,6 +228,12 @@ def print_event(event_id):
 @login_required
 @confidentiality_agreement()
 def manage_event(event_id=None):
+    """ Event creation and modification page.
+
+    If an ``event_id`` is given, it is a modification of an existing event.
+
+    :param int event_id: Primary key of the event to manage.
+    """
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
@@ -373,6 +403,14 @@ def manage_event(event_id=None):
 @login_required
 @confidentiality_agreement()
 def duplicate(event_id=None):
+    """ Event duplication.
+
+    This page does not duplicates the event but create a new event form with field
+    prefilled with antoher event data. When user will click on "Submit", it will act as
+    a duplication.
+
+    :param int event_id: Primary key of the event to duplicate.
+    """
     if not current_user.can_create_events():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
@@ -399,6 +437,10 @@ def duplicate(event_id=None):
 @blueprint.route("/<int:event_id>/self_register", methods=["POST"])
 @login_required
 def self_register(event_id):
+    """ Route for a user to subscribe to an event.
+
+    :param int event_id: Primary key of the event to manage.
+    """
     event = Event.query.filter_by(id=event_id).first()
 
     now = current_time()
@@ -425,6 +467,10 @@ def self_register(event_id):
 @blueprint.route("/<int:event_id>/register_user", methods=["POST"])
 @login_required
 def register_user(event_id):
+    """ Route to register a user.
+
+    :param int event_id: Primary key of the event to manage.
+    """
     event = Event.query.filter_by(id=event_id).first()
 
     if not (event and event.has_edit_rights(current_user)):
@@ -466,6 +512,10 @@ def register_user(event_id):
 @blueprint.route("/<int:event_id>/self_unregister", methods=["POST"])
 @login_required
 def self_unregister(event_id):
+    """ Route for a user to self unregister.
+
+    :param int event_id: Primary key of the event to manage.
+    """
     event = Event.query.filter_by(id=event_id).first()
 
     if event.end > current_time():
@@ -492,6 +542,10 @@ def self_unregister(event_id):
 @blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
 @login_required
 def reject_registration(reg_id):
+    """ Route for a leader to reject a user participation to the event.
+
+    :param int reg_id: Primary key of the registration.
+    """
     registration = Registration.query.filter_by(id=reg_id).first()
     if registration is None:
         flash("Inscription inexistante", "error")
@@ -516,6 +570,13 @@ def reject_registration(reg_id):
 @blueprint.route("/registrations/<reg_id>/delete", methods=["POST"])
 @login_required
 def delete_registration(reg_id):
+    """ Route for a leader to delete a user participation.
+
+    It technically deletes the registration record in the database. It is mandatory
+    to register again a rejected user.
+
+    :param int reg_id: Primary key of the registration.
+    """
     registration = Registration.query.filter_by(id=reg_id).first()
     if registration is None:
         flash("Inscription inexistante", "error")
@@ -533,6 +594,10 @@ def delete_registration(reg_id):
 @blueprint.route("/<int:event_id>/delete", methods=["POST"])
 @login_required
 def delete_event(event_id):
+    """ Route to completely delete an event.
+
+    :param int event_id: Primary key of the event to delete.
+    """
     event = Event.query.get(event_id)
 
     if not (event and event.has_delete_rights(current_user)):
@@ -560,6 +625,8 @@ def delete_event(event_id):
 @login_required
 @confidentiality_agreement()
 def csv_import():
+    """ Route to create several events from a csv file.
+    """
     activities = current_user.get_supervised_activities()
     if activities == []:
         flash("Fonction non autorisée.", "error")
