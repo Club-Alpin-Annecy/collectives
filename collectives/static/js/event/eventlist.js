@@ -119,7 +119,7 @@ function eventRowFormatter(row){
                     html += `<span class="activity ${activity['short']} type"></span>`;
         html += `</div>`;
 
-        html += `<div class="section">
+        html += `<div class="section section-photo">
                     <img src="${data.photo_uri}" class="photo"/>
                  </div>`;
 
