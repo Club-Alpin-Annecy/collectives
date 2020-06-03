@@ -40,6 +40,7 @@
         font-weight: $font-weight-medium;
         padding: $padding-m;
         text-decoration: none;
+        min-width: 100%;
         &.active {
             border-left: 3px $color-blue-primary-light solid;
         }
