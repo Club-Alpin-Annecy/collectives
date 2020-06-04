@@ -141,7 +141,12 @@ LOGO = "caf/caf-gris.png"
 
 :type: string
 """
-run = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE, check=False)
+run = subprocess.run(
+    ["git", "describe", "--tags"],
+    stdout=subprocess.PIPE,
+    check=False,
+    cwd=os.path.dirname(__file__),
+)
 VERSION = run.stdout.decode("utf-8")
 # FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
