@@ -1,6 +1,5 @@
 """Module to handle connexions to Payline.
 """
-from datetime import datetime, date
 from sys import stderr
 
 import pysimplesoap
@@ -8,44 +7,144 @@ from pysimplesoap.client import SoapClient
 
 import base64
 
-from ..models import Gender
-from .time import current_time
-
-
 class PaymentAcceptance:
+    """ result returned after payline payment request
+    """
+
     code = ""
+    """ return code
+
+    :type :string
+    """
     short_message = ""
+    """ short message of transaction status
+    i.e. : ACCEPTED, REFUSED, ERROR...
+
+    :type :string
+    """
     long_message = ""
+    """ long message of transaction status details
+
+    :type :string
+    """
     token = ""
+    """ Time stamped token that identifies the merchant's web payment request
+
+    :type :string
+    """
     redirect_url = ""
+    """ URL on which the shopper's browser
+    must be redirected to make the payment.
+
+    :type :string
+    """
 
 
 class PaymentDetails:
 
     code = ""
+    """ return code
+
+    :type :string
+    """
+
     short_message = ""
+    """ short message of transaction status details
+
+    :type :string
+    """
     long_message = ""
+    """ long message of transaction status details
+
+    :type :string
+    """
+
     partner_code = ""
+    """ Return code from partner (payment method) and SAA acquirer
+
+    :type :string
+    """
     partner_code_label = ""
+    """ Description of the partner error code
+
+    :type :string
+    """
 
     transaction = {}
+    """Transaction Information
+
+    :type :dictionnary
+    """
     transaction["id"] = ""
+    """Unique Payline transaction identifier
+
+    :type :string
+    """
     transaction["date"] = ""
+    """ Date and time of Payline transaction
+
+    :type :string
+    """
     transaction["is_duplicated"] = ""
+    """ This indicator is returned by Payline in case of transaction duplicated
+
+    :type :string
+    """
     transaction["is_possible_fraud"] = ""
+    """ This indicator is calculated according to the criteria
+    defined by the merchant
+
+    :type :string
+    """
     transaction["fraud_result"] = ""
+    """ Fraud Details
+
+    :type :string
+    """
     transaction["explanation"] = ""
+    """ Reason for refusal in case of fraud
+
+    :type :string
+    """
     transaction["3DSecure"] = ""
+    """ This indicator is returned by Payline during 3DSecure transactions
+
+    :type :string
+    """
     transaction["soft_descriptor"] = ""
+    """
+    Information displayed on the account statement of the buyer,
+    limited with certain payment method.
+    This information will be displayed on the payment ticket.
+
+    :type :string
+    """
     transaction["score"] = ""
+    """ Fraud scoring value : Score from 0 to 10
+
+    :type :string
+    """
 
     authorization = {}
+    """ authorization information
+
+    :type :dictionnary
+    """
     authorization["number"] = ""
+    """ Authorization number issued by the acquirer authorization server.
+    This field is filled in if the authorization request is granted.
+
+    :type :string
+    """
     authorization["date"] = ""
+    """ Date and time of authorization : Format : dd/mm/yyyy HH24:MI
+
+    :type :string
+    """
 
 
 class PaylineApi:
-    """ SOAP Client to process payment with payline, refer to Payline docs 
+    """ SOAP Client to process payment with payline, refer to Payline docs
     """
 
     soap_client = None
@@ -59,21 +158,69 @@ class PaylineApi:
 
     :type: :py:class:`flask.Flask`
     """
-    web_payment_info = None
 
     encoded_auth = ""
+    """ authentication string for http http_header
+
+    :type :string
+    """
 
     payline_version = ""
+    """ version of Payline API used
+
+    :type :string
+    """
     payline_currency = ""
+    """ payment currency : euro = 978
+
+    :type :string
+    """
+
     payline_mode = ""
+    """ payment mode, Full or Differed :Full = CPT
+
+    :type :string
+    """
+
     payline_contract_number = ""
+    """ payline contract number
+
+    :type :string
+    """
+
     payline_return_url = ""
+    """ redirect url after a payment form is validated by user
+
+    :type :string
+    """
     payline_cancel_url = ""
+    """ redirect url after a payment form is cancelled by user
+
+    :type :string
+    """
     payline_notification_url = ""
-    PAYLINE_merchant_name = ""
+    """ redirect url after no action is performed by user
+
+    :type :string
+    """
+    payline_merchant_id = ""
+    """ Payline merchant id refer to payline account
+
+    :type :string
+    """
+    Payline_merchant_name = ""
+    """ Payline merchant name
+
+    :type :string
+    """
+    payline_access_key = ""
+    """ Payline access key (to be set in payline backoffice)
+
+    :type :string
+    """
 
     def init_app(self, app):
-        """ Initialize the extranet with the app.
+        """ Initialize the payline with the app.
 
         :param app: Current app.
         :type app: :py:class:`flask.Flask`
@@ -119,13 +266,13 @@ class PaylineApi:
             raise err
 
     def doWebPayment(self, order_info, buyer_info):
-        """
+        """ Ask Payline to Initialize payment
         """
 
         payment_response = PaymentAcceptance()
 
         if self.disabled():
-            # Dev mode, every license is valid
+            # Dev mode, every payment is valid with fake token
             payment_response.code = "0000"
             payment_response.short_message = "ACCEPTED"
             payment_response.token = "123456789"
@@ -171,12 +318,12 @@ class PaylineApi:
             print("Extranet API error: {}".format(err), file=stderr)
 
     def getWebPaymentDetails(self, token):
-        """
+        """ Get details for a payment transaction by token
         """
         payment_details_response = PaymentDetails()
 
         if self.disabled():
-            # Dev mode, every license is valid
+            # Dev mode, every payment is valid
             payment_details_response.code = "0000"
             payment_details_response.short_message = "ACCEPTED"
             payment_details_response.long_message = "ACCEPTED"
@@ -242,7 +389,7 @@ class PaylineApi:
             ]
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            print("Payline API error: {}".format(err), file=stderr)
 
     def disabled(self):
         """ Check if soap client has been initialized.
