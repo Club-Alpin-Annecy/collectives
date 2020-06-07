@@ -251,16 +251,21 @@ class ExtranetApi:
             result = response["verifierUnAdherentReturn"]
 
             if result["existe"] == 1:
-                info.exists = True
-                info.renewal_date = datetime.strptime(
-                    result["inscription"], "%Y-%m-%d"
-                ).date()
-            return info
+                try:
+                    info.renewal_date = datetime.strptime(
+                        result["inscription"], "%Y-%m-%d"
+                    ).date()
+                    info.exists = True
+                except ValueError:
+                    # Date parsing as failed, this happens for exprired licenses
+                    # which return '0000-00-00' as date
+                    # In that case simply return an invalid license
+                    pass
 
         except pysimplesoap.client.SoapFault as err:
             print("Extranet API error: {}".format(err), file=stderr)
 
-        return LicenseInfo()
+        return info
 
     def fetch_user_info(self, license_number):
         """ Get user information on a license from FFCAM server.
