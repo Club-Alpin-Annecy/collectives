@@ -3,93 +3,93 @@ var locale = window.navigator.userLanguage || window.navigator.language;
 var eventsTable;
 moment.locale(locale);
 String.prototype.capitalize = function() {
-  return this.charAt(0).toUpperCase() + this.slice(1)
+    return this.charAt(0).toUpperCase() + this.slice(1)
 }
 
 window.onload = function(){
 
-  		eventsTable = new Tabulator("#eventstable", {
-  			layout:"fitColumns",
-  			//ajaxURL: '/api/events/',
-            ajaxSorting:true,
-            ajaxFiltering:true,
-  			resizableColumns:false,
+    eventsTable = new Tabulator("#eventstable", {
+        layout:"fitColumns",
+        //ajaxURL: '/api/events/',
+        ajaxSorting:true,
+        ajaxFiltering:true,
+        resizableColumns:false,
 
-            persistence:{
-                sort: true, //persist column sorting
-                filter: true, //persist filter sorting
-                page: false, // /!\ page persistence does not work with remote pagination
-            },
+        persistence:{
+            sort: true, //persist column sorting
+            filter: true, //persist filter sorting
+            page: false, // /!\ page persistence does not work with remote pagination
+        },
 
-            // Activate grouping only if we sort by start date
-            dataSorting : function(sorters){
-                // If eventsTable is not ready to be used: exit
-                if(eventsTable == undefined)
-                    return 0;
-                if(sorters[0]['field'] == 'title')
-                    eventsTable.setGroupBy(false);
-                else if (sorters[0]['field'] == 'start')
-                    eventsTable.setGroupBy(function(data){
-                        return moment(data.start).format('dddd D MMMM YYYY').capitalize();
-                    });
-                else
-                    eventsTable.setGroupBy(sorters[0]['field']);
-            },
-            pagination : 'remote',
-            paginationSize : 10,
-            paginationSizeSelector:[10, 25, 50, 100],
-            pageLoaded :  updatePageURL,
-
-            initialSort: [ {column:"start", dir:"asc"}],
-            initialFilter: [{field:"end", type:">=", value:"now" }],
-  			columns:[
-      			{title:"Titre", field:"title", sorter:"string"},
-                {title:"Date", field:"start", sorter:"string"},
-  			],
-  			    rowFormatter: eventRowFormatter,
-            groupHeader:function(value, count, data, group){
-                return value;
-            },
-            locale: true,
-            locale:true,
-            langs:{
-                "fr":{
-                    "ajax":{
-                        "loading":"Chargement", //ajax loader text
-                        "error":"Erreur", //ajax error text
-                    },
-                    "pagination":{
-                        "page_size":"Collectives par page", //label for the page size select element
-                        "first":"Début", //text for the first page button
-                        "first_title":"Première Page", //tooltip text for the first page button
-                        "last":"Fin",
-                        "last_title":"Dernière Page",
-                        "prev":"Précédente",
-                        "prev_title":"Page Précédente",
-                        "next":"Suivante",
-                        "next_title":"Page Suivante",
-                    }
-                }
-            },
-  		});
-
-        document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
-                    button.addEventListener('click', gotoEvents);
+        // Activate grouping only if we sort by start date
+        dataSorting : function(sorters){
+            // If eventsTable is not ready to be used: exit
+            if(eventsTable == undefined)
+                return 0;
+            if(sorters[0]['field'] == 'title')
+                eventsTable.setGroupBy(false);
+            else if (sorters[0]['field'] == 'start')
+                eventsTable.setGroupBy(function(data){
+                    return moment(data.start).format('dddd D MMMM YYYY').capitalize();
                 });
+            else
+                eventsTable.setGroupBy(sorters[0]['field']);
+        },
+        pagination : 'remote',
+        paginationSize : 10,
+        paginationSizeSelector:[10, 25, 50, 100],
+        pageLoaded :  updatePageURL,
 
-        // Try to extract and set page
-        var page = document.location.toString().split('#p')[1];
-        eventsTable.modules.ajax.setUrl('/api/events/');
-        if(! isNaN(page) ){
-            eventsTable.setMaxPage(page); // We extends max page to avoid an error
-            eventsTable.setPage(page);
-        }
-        else{
-            eventsTable.setPage(1);
-            console.log('No page defined');
-        }
+        initialSort: [ {column:"start", dir:"asc"}],
+        initialFilter: [{field:"end", type:">=", value:"now" }],
+        columns:[
+            {title:"Titre", field:"title", sorter:"string"},
+            {title:"Date", field:"start", sorter:"string"},
+        ],
+        rowFormatter: eventRowFormatter,
+        groupHeader:function(value, count, data, group){
+            return value;
+        },
+        locale: true,
+        locale:true,
+        langs:{
+            "fr":{
+                "ajax":{
+                    "loading":"Chargement", //ajax loader text
+                    "error":"Erreur", //ajax error text
+                },
+                "pagination":{
+                    "page_size":"Collectives par page", //label for the page size select element
+                    "first":"Début", //text for the first page button
+                    "first_title":"Première Page", //tooltip text for the first page button
+                    "last":"Fin",
+                    "last_title":"Dernière Page",
+                    "prev":"Précédente",
+                    "prev_title":"Page Précédente",
+                    "next":"Suivante",
+                    "next_title":"Page Suivante",
+                }
+            }
+        },
+    });
 
-        refreshFilterDisplay();
+   document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
+       button.addEventListener('click', gotoEvents);
+   });
+
+   // Try to extract and set page
+   var page = document.location.toString().split('#p')[1];
+   eventsTable.modules.ajax.setUrl('/api/events/');
+   if(! isNaN(page) ){
+       eventsTable.setMaxPage(page); // We extends max page to avoid an error
+       eventsTable.setPage(page);
+   }
+   else{
+       eventsTable.setPage(1);
+       console.log('No page defined');
+   }
+
+   refreshFilterDisplay();
 };
 
 function eventRowFormatter(row){
@@ -258,7 +258,7 @@ function gotoEvents(event){
 
     var position = document.querySelector('#eventlist').getBoundingClientRect().top +  window.scrollY - 60;
     window.scrollTo(    {
-            top: position,
-            behavior: 'smooth'
-        });
+        top: position,
+        behavior: 'smooth'
+    });
 }
