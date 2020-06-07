@@ -1,7 +1,7 @@
 # Syntax reference for this file:
 # https://help.github.com/en/articles/workflow-syntax-for-github-actions
 
-name: sphinx
+name: Documentation
 on: [push]
 
 # https://gist.github.com/c-bata/ed5e7b7f8015502ee5092a3e77937c99
