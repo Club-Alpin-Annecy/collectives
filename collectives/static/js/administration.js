@@ -49,7 +49,7 @@ window.onload = function(){
 
             locale:true,
             langs:{
-                "fr":{
+                "fr-fr":{
                     "ajax":{
                         "loading":"Chargement", //ajax loader text
                         "error":"Erreur", //ajax error text
