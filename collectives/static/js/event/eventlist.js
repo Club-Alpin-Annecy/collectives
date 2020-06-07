@@ -77,6 +77,10 @@ window.onload = function(){
        button.addEventListener('click', gotoEvents);
    });
 
+   document.querySelectorAll('.tabulator-pages').forEach(function(buttons){
+       buttons.addEventListener('click', gotoEvents);
+   });
+
    // Try to extract and set page
    var page = document.location.toString().split('#p')[1];
    eventsTable.modules.ajax.setUrl('/api/events/');
