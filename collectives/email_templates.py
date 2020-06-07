@@ -148,8 +148,9 @@ def send_cancelled_event_notification(name, event):
         )
         subject = conf["CANCELLED_EVENT_SUBJECT"].format(event_title=event.title)
         emails = [r.user.mail for r in event.active_registrations()]
-        mail.send_mail(
-            subject=subject, email=emails, message=message,
-        )
+        if emails:
+            mail.send_mail(
+                subject=subject, email=emails, message=message,
+            )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
