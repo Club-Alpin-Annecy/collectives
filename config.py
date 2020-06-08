@@ -144,6 +144,20 @@ DKIM_SELECTOR = "default"
 :type: string
 """
 
+# Payline
+PAYLINE_WSDL = (
+    environ.get("PAYLINE_WSDL")
+    or f"file://{os.path.join(basedir, 'collectives/utils/payline.wsdl')}"
+)
+
+PAYLINE_MERCHANT_ID = environ.get("PAYLINE_MERCHANT_ID") or ""
+PAYLINE_ACCESS_KEY = environ.get("PAYLINE_ACCESS_KEY") or ""
+PAYLINE_CONTRACT_NUMBER = environ.get("PAYLINE_CONTRACT_NUMBER") or ""
+PAYLINE_MERCHANT_NAME = environ.get("PAYLINE_MERCHANT_NAME") or "CAF Annecy"
+
+PAYLINE_CURRENCY = environ.get("PAYLINE_CURRENCY") or "978"  # Default to euros
+PAYLINE_COUNTRY = environ.get("PAYLINE_COUNTRY") or "FR"  # Default to France
+
 # Page information
 TITLE = "Collectives CAF Annecy"
 """Website title

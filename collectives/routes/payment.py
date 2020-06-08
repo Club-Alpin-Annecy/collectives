@@ -344,3 +344,27 @@ def timeout_payment(payment_id):
 
     # Return empty response
     return dict(), 200
+
+@payments_enabled
+@blueprint.route("/<payment_id>/process", methods=["GET"])
+def process(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+    return ""
+
+@payments_enabled
+@blueprint.route("/<payment_id>/process", methods=["GET"])
+def cancel(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+    return ""
+
+@payments_enabled
+@blueprint.route("/<payment_id>/process", methods=["GET"])
+def notify(payment_id):
+    payment = Payment.query.get(payment_id)
+    if payment is None or payment.status != PaymentStatus.Initiated:
+        abort(500)
+    return ""
