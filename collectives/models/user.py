@@ -48,7 +48,6 @@ class Gender(ChoiceEnum):
             cls.Unknown: "Inconnu",
         }
 
-
 # Models
 class User(db.Model, UserMixin):
     """ Class to manage user.

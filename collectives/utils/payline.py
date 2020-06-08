@@ -1,13 +1,35 @@
 """Module to handle connexions to Payline.
 """
 from sys import stderr
+import base64
+import json
+
+from flask import url_for
 
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 
-import base64
 
-class PaymentAcceptance:
+PAYLINE_VERSION = 24
+""" Version of payline API
+:type: int
+"""
+
+PAYMENT_ACTION = 101
+"""
+Payment action, as per https://docs.payline.com/display/DT/Codes+-+Action
+101 stand for "Authorization and Capture"
+:type: int
+"""
+
+PAYMENT_MODE = "CPT"
+"""Payment mode, as per https://docs.payline.com/display/DT/Codes+-+Mode
+CPT stand for "Full"
+:type: string
+"""
+
+
+class PaymentResult:
     """ result returned after payline payment request
     """
 
@@ -19,37 +41,6 @@ class PaymentAcceptance:
     short_message = ""
     """ short message of transaction status
     i.e. : ACCEPTED, REFUSED, ERROR...
-
-    :type :string
-    """
-    long_message = ""
-    """ long message of transaction status details
-
-    :type :string
-    """
-    token = ""
-    """ Time stamped token that identifies the merchant's web payment request
-
-    :type :string
-    """
-    redirect_url = ""
-    """ URL on which the shopper's browser
-    must be redirected to make the payment.
-
-    :type :string
-    """
-
-
-class PaymentDetails:
-
-    code = ""
-    """ return code
-
-    :type :string
-    """
-
-    short_message = ""
-    """ short message of transaction status details
 
     :type :string
     """
@@ -70,77 +61,84 @@ class PaymentDetails:
     :type :string
     """
 
-    transaction = {}
-    """Transaction Information
+class PaymentRequest:
+    result = PaymentResult()
 
-    :type :dictionnary
-    """
-    transaction["id"] = ""
-    """Unique Payline transaction identifier
+    token = ""
+    """ Time stamped token that identifies the merchant's web payment request
 
     :type :string
     """
-    transaction["date"] = ""
-    """ Date and time of Payline transaction
-
-    :type :string
-    """
-    transaction["is_duplicated"] = ""
-    """ This indicator is returned by Payline in case of transaction duplicated
-
-    :type :string
-    """
-    transaction["is_possible_fraud"] = ""
-    """ This indicator is calculated according to the criteria
-    defined by the merchant
-
-    :type :string
-    """
-    transaction["fraud_result"] = ""
-    """ Fraud Details
-
-    :type :string
-    """
-    transaction["explanation"] = ""
-    """ Reason for refusal in case of fraud
-
-    :type :string
-    """
-    transaction["3DSecure"] = ""
-    """ This indicator is returned by Payline during 3DSecure transactions
-
-    :type :string
-    """
-    transaction["soft_descriptor"] = ""
-    """
-    Information displayed on the account statement of the buyer,
-    limited with certain payment method.
-    This information will be displayed on the payment ticket.
-
-    :type :string
-    """
-    transaction["score"] = ""
-    """ Fraud scoring value : Score from 0 to 10
+    redirect_url = ""
+    """ URL on which the shopper's browser
+    must be redirected to make the payment.
 
     :type :string
     """
 
-    authorization = {}
-    """ authorization information
+class PaymentDetails:
 
-    :type :dictionnary
-    """
-    authorization["number"] = ""
-    """ Authorization number issued by the acquirer authorization server.
-    This field is filled in if the authorization request is granted.
+    result = PaymentResult()
 
-    :type :string
-    """
-    authorization["date"] = ""
-    """ Date and time of authorization : Format : dd/mm/yyyy HH24:MI
+    response = {}
+    response["transaction"] = {}
+    response["authorization"] = {}
 
-    :type :string
+    def raw_metadata(self):
+        return json.dumps(self.response)
+
+    @property
+    def authorization(self):
+        return self.response["authorization"]
+
+    @property
+    def transaction(self):
+        return self.response["transaction"]
+
+
+class OrderInfo:
+    amount_in_cents = 0
+    """ Amount in smallest currency unit (e.g euro cents)
+        :type: int
     """
+
+    payment_id = 0
+    """ Primary key of related database Payment entry
+        :type: int
+    """
+
+    date = "1970/1/1"
+
+    details = ""
+
+    def unique_ref(self):
+        return f"order_{self.payment_id}"
+
+    def __init__(self, payment=None):
+        if payment is not None:
+            self.amount = payment.amount
+            self.payment_id = payment.id
+            self.date = payment.creation_date
+            self.amount_in_cents = (payment.amount_charged * 100).to_integral_exact
+            self.date = payment.creation_date.strftime("%Y/%m/%d, %H:%M:%S")
+            self.details = f"{payment.item.event.title} -- {payment.item.title} -- {payment.price.title}"
+
+
+class BuyerInfo:
+    title = ""
+    lastName = ""
+    firstName = ""
+    email = ""
+    mobilePhone = ""
+    birthDate = ""
+
+    def __init__(self, user=None):
+        if user is not None:
+            self.firstName = user.first_name
+            self.lastName = user.last_name
+            self.email = user.mail
+            self.mobilePhone = user.phone
+            self.birthDate = user.date_of_birth.strftime("%Y/%m/%d")
 
 
 class PaylineApi:
@@ -165,19 +163,8 @@ class PaylineApi:
     :type :string
     """
 
-    payline_version = ""
-    """ version of Payline API used
-
-    :type :string
-    """
     payline_currency = ""
     """ payment currency : euro = 978
-
-    :type :string
-    """
-
-    payline_mode = ""
-    """ payment mode, Full or Differed :Full = CPT
 
     :type :string
     """
@@ -188,33 +175,26 @@ class PaylineApi:
     :type :string
     """
 
-    payline_return_url = ""
-    """ redirect url after a payment form is validated by user
-
-    :type :string
-    """
-    payline_cancel_url = ""
-    """ redirect url after a payment form is cancelled by user
-
-    :type :string
-    """
-    payline_notification_url = ""
-    """ redirect url after no action is performed by user
-
-    :type :string
-    """
     payline_merchant_id = ""
     """ Payline merchant id refer to payline account
 
     :type :string
     """
-    Payline_merchant_name = ""
+
+    payline_merchant_name = ""
     """ Payline merchant name
 
     :type :string
     """
+
     payline_access_key = ""
     """ Payline access key (to be set in payline backoffice)
+
+    :type :string
+    """
+
+    payline_country = ""
+    """ Payline country code
 
     :type :string
     """
@@ -235,27 +215,21 @@ class PaylineApi:
             return
 
         config = self.app.config
-        if config["PAYMENT_DISABLE"]:
+        if config["PAYMENTS_ENABLED"]:
             print("Warning: Payment API disabled, using mock API", file=stderr)
             return
-        else:
-            self.payline_merchant_id = config["PAYLINE_MERCHANT_ID"]
-            self.payline_access_key = config["PAYLINE_ACCESS_KEY"]
-            encoded_auth = base64.b64encode(
-                self.payline_merchant_id.encode() + b':' + self.payline_access_key.encode()
-            ).decode("utf-8")
-            self.payline_version = config["PAYLINE_VERSION"]
-            self.payline_currency = config["PAYLINE_CURRENCY"]
-            self.payline_action = config["PAYLINE_ACTION"]
-            self.payline_mode = config["PAYLINE_MODE"]
-            self.payline_contract_number = config["PAYLINE_CONTRACT_NUMBER"]
-            self.payline_return_url = config["PAYLINE_RETURN_URL"]
-            self.payline_cancel_url = config["PAYLINE_CANCEL_URL"]
-            self.payline_notification_url = config["PAYLINE_NOTIFICATION_URL"]
-            self.payline_merchant_name = config["PAYLINE_MERCHANT_NAME"]
+
+        self.payline_merchant_id = config["PAYLINE_MERCHANT_ID"]
+        self.payline_access_key = config["PAYLINE_ACCESS_KEY"]
+        encoded_auth = base64.b64encode(
+            self.payline_merchant_id.encode() + b':' + self.payline_access_key.encode()
+        ).decode("utf-8")
+        self.payline_currency = config["PAYLINE_CURRENCY"]
+        self.payline_contract_number = config["PAYLINE_CONTRACT_NUMBER"]
+        self.payline_merchant_name = config["PAYLINE_MERCHANT_NAME"]
+        self.payline_country = config["PAYLINE_COUNTRY"]
 
         try:
-            """wsdl='file:C:/temp/payline.wsdl'"""
             soap_client = SoapClient(
                 wsdl='file:./collectives/utils/payline.wsdl',
                 http_headers={'Authorization': 'Basic %s' % encoded_auth, 'Content-Type':'text/plain'}
@@ -271,34 +245,43 @@ class PaylineApi:
         """ Ask Payline to Initialize payment
         """
         self.init()
-        payment_response = PaymentAcceptance()
+
+        payment_response = PaymentRequest()
 
         if self.disabled():
             # Dev mode, every payment is valid with fake token
-            payment_response.code = "0000"
-            payment_response.short_message = "ACCEPTED"
+            payment_response.result.code = "00000"
+            payment_response.result.short_message = "ACCEPTED"
             payment_response.token = "123456789"
 
             return payment_response
 
         try:
             response = self.soap_client.doWebPayment(
-                version=self.payline_version,
+                version=PAYLINE_VERSION,
                 payment={
-                    "amount": order_info.amount,
+                    "amount": order_info.amount_in_cents,
                     "currency": self.payline_currency,
-                    "action": self.payline_action,
-                    "mode": self.payline_mode,
-                    "contractNumber": self.payline_contract_number
+                    "action": PAYMENT_ACTION,
+                    "mode": PAYMENT_MODE,
+                    "contractNumber": self.payline_contract_number,
                 },
-                returnURL=self.payline_return_url,
-                cancelURL=self.payline_cancel_url,
-                notificationURL=self.payline_notification_url,
+                returnURL=url_for(
+                    "payment.process", payment_id=order_info.payment_id, _external=True
+                ),
+                cancelURL=url_for(
+                    "payment.cancel", payment_id=order_info.payment_id, _external=True
+                ),
+                notificationURL=url_for(
+                    "payment.notify", payment_id=order_info.payment_id, _external=True
+                ),
                 order={
-                    "ref": order_info.ref,
-                    "amount": order_info.amount,
+                    "ref": order_info.unique_ref(),
+                    "amount": order_info.amount_in_cents,
                     "currency": self.payline_currency,
-                    "date": order_info.date
+                    "date": order_info.date,
+                    "details": order_info.details,
+                    "country": self.payline_country,
                 },
                 selectedContractList={"selectedContract": self.payline_contract_number},
                 buyer={
@@ -309,19 +292,22 @@ class PaylineApi:
                     "mobilePhone": buyer_info.mobilePhone,
                     "birthDate": buyer_info.birthDate
                 },
-                merchantName=self.payline_merchant_name
+                merchantName=self.payline_merchant_name,
+                securityMode="SSL"
             )
 
-            payment_response.code = response["result"]["code"]
-            payment_response.short_message = response["result"]["shortMessage"]
-            payment_response.long_message = response["result"]["longMessage"]
+            payment_response.result.code = response["result"]["code"]
+            payment_response.result.long_message = response["result"]["longMessage"]
+            payment_response.result.short_message = response["result"]["shortMessage"]
             payment_response.token = response["token"]
             payment_response.redirect_url = response["redirectURL"]
 
             return payment_response
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            print("Payment API error: {}".format(err), file=stderr)
+
+        return payment_response
 
     def getWebPaymentDetails(self, token):
         """ Get details for a payment transaction by token
@@ -331,20 +317,20 @@ class PaylineApi:
 
         if self.disabled():
             # Dev mode, every payment is valid
-            payment_details_response.code = "0000"
-            payment_details_response.short_message = "ACCEPTED"
-            payment_details_response.long_message = "ACCEPTED"
-            payment_details_response.partner_code = ""
-            payment_details_response.partner_code_label = ""
+            payment_details_response.result.code = "0000"
+            payment_details_response.result.short_message = "ACCEPTED"
+            payment_details_response.result.long_message = "ACCEPTED"
+            payment_details_response.result.partner_code = ""
+            payment_details_response.result.partner_code_label = ""
 
             payment_details_response.transaction["id"] = "12345678"
             payment_details_response.transaction["date"] = "02/05/2020 22:00:00"
-            payment_details_response.transaction["is_duplicated"] = "0"
-            payment_details_response.transcation["is_possible_fraud"] = "0"
-            payment_details_response.transaction["fraud_result"] = ""
+            payment_details_response.transaction["isDuplicated"] = "0"
+            payment_details_response.transcation["isPossibleFraud"] = "0"
+            payment_details_response.transaction["fraudResult"] = ""
             payment_details_response.transaction["explanation"] = ""
-            payment_details_response.transaction["3DSecure"] = "N"
-            payment_details_response.transaction["soft_descriptor"] = ""
+            payment_details_response.transaction["threeDSecure"] = "N"
+            payment_details_response.transaction["softDescriptor"] = ""
             payment_details_response.transaction["score"] = ""
 
             payment_details_response.authorization["number"] = "A55A"
@@ -353,48 +339,21 @@ class PaylineApi:
 
         try:
             response = self.soap_client.getWebPaymentDetails(
-                version=self.payline_version, token=token
+                version=PAYLINE_VERSION, token=token
             )
 
-            payment_details_response.code = response["result"]["code"]
-            payment_details_response.short_message = response["result"]["shortMessage"]
-            payment_details_response.long_message = response["result"]["longMessage"]
+            payment_details_response.result.code = response["result"]["code"]
+            payment_details_response.result.short_message = response["result"]["shortMessage"]
+            payment_details_response.result.long_message = response["result"]["longMessage"]
 
-            payment_details_response.transaction["id"] = response["transaction"]["id"]
-            payment_details_response.transaction["date"] = response["transaction"][
-                "date"
-            ]
-            payment_details_response.transaction["is_duplicated"] = response[
-                "transaction"
-            ]["isDuplicated"]
-            payment_details_response.transaction["is_possible_fraud"] = response[
-                "transaction"
-            ]["isPossibleFraud"]
-            payment_details_response.transaction["fraud_result"] = response[
-                "transaction"
-            ]["fraudResult"]
-            payment_details_response.transaction["explanation"] = response[
-                "transaction"
-            ]["explanation"]
-            payment_details_response.transaction["3DSecure"] = response["transaction"][
-                "threeDSecure"
-            ]
-
-            payment_details_response.transaction["score"] = response["transaction"][
-                "score"
-            ]
-
-            payment_details_response.authorization["number"] = response[
-                "authorization"
-            ]["number"]
-            payment_details_response.authorization["date"] = response["authorization"][
-                "date"
-            ]
+            payment_details_response.response = response
 
             return payment_details_response
 
         except pysimplesoap.client.SoapFault as err:
             print("Payline API error: {}".format(err), file=stderr)
+
+        return payment_details_response
 
     def disabled(self):
         """ Check if soap client has been initialized.

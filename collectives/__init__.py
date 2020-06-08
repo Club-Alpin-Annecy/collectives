@@ -18,7 +18,7 @@ import werkzeug
 
 from . import models, api, forms
 from .routes import root, profile, auth, administration, event, payment
-from .utils import extranet, init, jinja, error
+from .utils import extranet, init, jinja, error, payline
 
 
 def create_app(config_filename="config"):
@@ -47,6 +47,7 @@ def create_app(config_filename="config"):
     api.marshmallow.init_app(app)
     profile.images.init_app(app)
     extranet.api.init_app(app)
+    payline.api.init_app(app)
 
     app.context_processor(jinja.helpers_processor)
 
