@@ -431,6 +431,16 @@ class User(db.Model, UserMixin):
         """
         return self.has_role([RoleIds.ActivitySupervisor])
 
+    def is_technician(self):
+        """ Check if user has a technician role.
+
+        See :py:attr:`collectives.models.role.RoleIds.Technician`
+
+        :return: True if user has a technician role.
+        :rtype: boolean
+        """
+        return self.has_role([RoleIds.Administrator, RoleIds.Technician])
+
     def can_create_events(self):
         """ Check if user has a role which allow him to creates events.
 

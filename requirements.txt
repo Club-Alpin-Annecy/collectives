@@ -21,3 +21,5 @@ dkimpy
 email_validator
 openpyxl
 babel
+flask-statistics
+anonymizeip

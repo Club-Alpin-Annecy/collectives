@@ -8,7 +8,7 @@ See `https://docs.python.org/3.8/library/functools.html <https://docs.python.org
 """
 from functools import wraps
 from flask import redirect, url_for, flash, abort, current_app
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 
 def access_requires(f, test, api=False):
@@ -132,6 +132,52 @@ def admin_required(api=False):
         return access_requires(f, tester, api)
 
     return innerF
+
+
+def technician_required(api=False):
+    """Decorator which check if user is a technician.
+
+    :param f: The function of the endpoint that will be protected
+    :type f: function
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
+
+    def innerF(f):
+        """ Function that will wraps `f`.
+
+        :param f: function to protect.
+        :type f: function
+        :return: the protected (decorated) `f` function
+        :rtype: function
+        """
+
+        def tester(*args, **kwargs):
+            """ Check if user is a technician.
+
+            It will also return everything required to display an error message if
+            check is failed.
+
+            :param *args: Argument for `f` functions. Not used here.
+            :type *args: list
+            :param **kwargs: Argument for `f` functions. Not used here.
+            :type **kwargs: dictionnary
+            :return: True if user is a technician, plus error message, plus URL fallback
+            :rtype: boolean, String, String
+            """
+            message = "Réservé aux techniciens du site"
+            return current_user.is_technician(), message, url_for("event.index")
+
+        return access_requires(f, tester, api)
+
+    return innerF
+
+
+@login_required
+@technician_required()
+def technician_required_f():
+    """ Function to limit access to technician only. """
+    pass
 
 
 def payments_enabled(api=False):

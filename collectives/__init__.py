@@ -11,14 +11,15 @@ Typical usage example::
 
 from flask import Flask
 from flask_assets import Environment, Bundle
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+from flask_statistics import Statistics
 import werkzeug
 
 
 from . import models, api, forms
 from .routes import root, profile, auth, administration, event, payment
-from .utils import extranet, init, jinja, error
+from .utils import extranet, init, jinja, error, access, statistics
 
 
 def create_app(config_filename="config"):
@@ -90,6 +91,13 @@ def create_app(config_filename="config"):
         # Create admin user
         auth.init_admin(app)
         init.activity_types(app)
+        Statistics(
+            app,
+            models.db,
+            models.Request,
+            access.technician_required_f,
+            disable_f=statistics.disable_f,
+        )
 
         return app
 

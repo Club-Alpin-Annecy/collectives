@@ -12,6 +12,7 @@ class RoleIds(ChoiceEnum):
     - Moderator
     - Administrator
     - President
+    - Technician
 
     Activity related roles:
     - EventLeader : can lead an event of this activity type
@@ -22,6 +23,7 @@ class RoleIds(ChoiceEnum):
     Moderator = 1
     Administrator = 2
     President = 3
+    Technician = 4
     # Activity-related roles
     EventLeader = 10
     ActivitySupervisor = 11
@@ -37,6 +39,7 @@ class RoleIds(ChoiceEnum):
             cls.Administrator: "Administrateur",
             cls.Moderator: "Modérateur",
             cls.President: "Président du club",
+            cls.Technician: "Technicien du site",
             cls.EventLeader: "Initiateur",
             cls.ActivitySupervisor: "Responsable d'activité",
         }

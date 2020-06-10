@@ -8,6 +8,7 @@ from flask_login import current_user, login_required
 from ..forms.auth import LegalAcceptation
 from ..utils.time import current_time
 from ..models import db
+from ..utils import statistics
 
 blueprint = Blueprint("root", __name__)
 
@@ -34,3 +35,9 @@ def legal_accept():
     db.session.add(current_user)
     db.session.commit()
     return redirect(url_for("root.legal"))
+
+
+@blueprint.route("/legal/stats/<status>")
+def stat_cookie(status):
+    """ Route to set statistics refusal cookie """
+    return statistics.set_disable_cookie(status)

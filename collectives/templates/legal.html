@@ -23,7 +23,11 @@
         </form>
     {% endif %}
 
-
+    <h4>Gestion des cookies de statistiques</h4>
+    <p>
+        Le suivi statistique et anonyme des utilisateurs est détaillé <u><a href="#statistics" >ci-dessous</a></u>. Votre suivi est <b>{% if is_cookie_disabled() %}désactivé{% else %}activé{% endif %}</b>.
+        <a class="button" href="{{ url_for('root.stat_cookie', status='agree' if is_cookie_disabled() else 'disagree' )}}">{{ 'Accepter' if is_cookie_disabled() else 'Refuser' }}</a>.
+    </p>
     {% include 'legal_text.html' %}
 
 </div>
