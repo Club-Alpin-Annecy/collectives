@@ -30,7 +30,10 @@ class AccountCreationForm(ModelForm, OrderedForm):
     license = StringField(
         label="Numéro de licence",
         description=LicenseValidator().help_string(),
-        render_kw={"placeholder": LicenseValidator().sample_value()},
+        render_kw={
+            "placeholder": LicenseValidator().sample_value(),
+            "pattern": LicenseValidator().pattern(),
+        },
         validators=[LicenseValidator()],
     )
 

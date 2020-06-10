@@ -1,4 +1,6 @@
-"""Module containing custom WTForms validators
+"""Module containing custom WTForms validators.
+
+See `WTForms documentation <https://wtforms.readthedocs.io/en/latest/validators/#custom-validators>`_
 """
 import re
 
@@ -7,28 +9,55 @@ from wtforms_alchemy import Unique
 
 
 class LicenseValidator:
+    """ WTForm Validator for license fields """
+
     prefix = "7400"
+    """ Prefix for every licence.
+
+    :type: string """
+
     length = 12
+    """ Length of the license number.
+
+    Type: string """
 
     def __call__(self, form, field):
-        val = field.data
-        if not (
-            len(val) == self.length and val.isdigit() and val.startswith(self.prefix)
-        ):
-            raise ValidationError(
-                (
-                    "Le numéro de licence doit contenir 12 chiffres "
-                    + "et commecer par '{}'".format(self.prefix)
-                )
-            )
+        """ Validates the license field data.
+
+        :param form: Form of the field.
+        :type form: :py:class:`wtforms.form.Form`
+        :param field: The license field.
+        :type: :py:class:`wtforms.Field`
+        :return: True if data is OK.
+        :rtype: boolean
+        """
+        if not re.match(self.pattern(), field.data):
+            error_message = f"Le numéro de licence doit contenir 12 chiffres et commencer par '{self.prefix}'"
+            raise ValidationError(error_message)
 
     def help_string(self):
+        """ Generate an help sentence.
+
+        :return: an help sentence.
+        :rtype: string  """
         return "{len} chiffres commencant par '{pref}'".format(
             len=self.length, pref=self.prefix
         )
 
     def sample_value(self):
+        """ Generate a sample value (place holder).
+
+        :return: a place holder
+        :rtype: string  """
         return self.prefix + "X" * (self.length - len(self.prefix))
+
+    def pattern(self):
+        """ Construct the pattern attribute to validate license.
+
+        :return: A regex pattern to validate a license.
+        :rtype: String
+        """
+        return f"^{self.prefix}[0-9]{{{self.length - len(self.prefix)}}}$"
 
 
 class PasswordValidator:
