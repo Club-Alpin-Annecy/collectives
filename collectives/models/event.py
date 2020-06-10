@@ -171,6 +171,7 @@ class Event(db.Model):
         secondary=event_activity_types,
         lazy="subquery",
         backref=db.backref("events", lazy=True),
+        order_by="asc(ActivityType.id)",
     )
     """Types of activity of this Event
 
