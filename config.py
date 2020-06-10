@@ -215,6 +215,12 @@ FAVICON = "caf/favicon.ico"
 :type: string
 """
 
+STATISTICS_ENABLED = True
+"""Enable flask-statistics to track website user.
+
+:type: boolean
+"""
+
 TZ_NAME = "Europe/Paris"
 """Timezone to use for time comparisons
 
