@@ -81,7 +81,7 @@ EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
 :type: string
 """
 
-PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or True
+PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or False
 """Whether to enable the payment-related functionalities
 
 :type: bool

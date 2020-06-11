@@ -105,7 +105,7 @@ class NewItemPriceForm(AmountForm):
     def validate_title(form, field):
         """ Validates that if a new item is created, then the
             title field is not empty.
-            See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators   
+            See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
          """
         if form.item_title.data and len(field.data) == 0:
             raise ValidationError("L'intitulé du nouveau tarif ne doit pas être vide")
