@@ -123,6 +123,7 @@ class PaymentItemsForm(FlaskForm):
     def populate_items(self, items):
         """
         Setups form for all current prices
+
         :param items: list of payment items for which to create a form entry
         :type items: list[:py:class:`collectives.models.payment.PaymentItem`]
         """
