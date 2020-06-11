@@ -240,12 +240,13 @@ class PaylineApi:
             return
         else:
             self.payline_merchant_id = config["PAYLINE_MERCHANT_ID"]
-            self.payline_access_key = config["PAYLINE_ACCESS.KEY"]
+            self.payline_access_key = config["PAYLINE_ACCESS_KEY"]
             encoded_auth = base64.b64encode(
-                self.payline_merchant_id + ":" + self.payline_access_key
+                self.payline_merchant_id.encode() + b':' + self.payline_access_key.encode()
             ).decode("utf-8")
             self.payline_version = config["PAYLINE_VERSION"]
             self.payline_currency = config["PAYLINE_CURRENCY"]
+            self.payline_action = config["PAYLINE_ACTION"]
             self.payline_mode = config["PAYLINE_MODE"]
             self.payline_contract_number = config["PAYLINE_CONTRACT_NUMBER"]
             self.payline_return_url = config["PAYLINE_RETURN_URL"]
@@ -254,9 +255,10 @@ class PaylineApi:
             self.payline_merchant_name = config["PAYLINE_MERCHANT_NAME"]
 
         try:
+            """wsdl='file:C:/temp/payline.wsdl'"""
             soap_client = SoapClient(
-                wsdl=config["PAYLINE_WSDL"],
-                http_headers={"Authorization": "Basic %s" % encoded_auth},
+                wsdl='file:./collectives/utils/payline.wsdl',
+                http_headers={'Authorization': 'Basic %s' % encoded_auth, 'Content-Type':'text/plain'}
             )
             self.soap_client = soap_client
 
@@ -268,7 +270,7 @@ class PaylineApi:
     def doWebPayment(self, order_info, buyer_info):
         """ Ask Payline to Initialize payment
         """
-
+        self.init()
         payment_response = PaymentAcceptance()
 
         if self.disabled():
@@ -283,19 +285,20 @@ class PaylineApi:
             response = self.soap_client.doWebPayment(
                 version=self.payline_version,
                 payment={
-                    "amount": 100,
+                    "amount": order_info.amount,
                     "currency": self.payline_currency,
-                    "action": self.payline_currency,
+                    "action": self.payline_action,
                     "mode": self.payline_mode,
-                    "contractNumber": self.payline_contract_number,
+                    "contractNumber": self.payline_contract_number
                 },
                 returnURL=self.payline_return_url,
                 cancelURL=self.payline_cancel_url,
+                notificationURL=self.payline_notification_url,
                 order={
                     "ref": order_info.ref,
                     "amount": order_info.amount,
                     "currency": self.payline_currency,
-                    "date": order_info.date,
+                    "date": order_info.date
                 },
                 selectedContractList={"selectedContract": self.payline_contract_number},
                 buyer={
@@ -304,15 +307,18 @@ class PaylineApi:
                     "firstName": buyer_info.firstName,
                     "email": buyer_info.email,
                     "mobilePhone": buyer_info.mobilePhone,
-                    "birthDate": buyer_info.birthDate,
+                    "birthDate": buyer_info.birthDate
                 },
-                merchantName=self.payline_merchant_name,
+                merchantName=self.payline_merchant_name
             )
 
-            payment_response.code = response["code"]
-            payment_response.long_message = response["long_message"]
+            payment_response.code = response["result"]["code"]
+            payment_response.short_message = response["result"]["shortMessage"]
+            payment_response.long_message = response["result"]["longMessage"]
             payment_response.token = response["token"]
-            payment_response.redirect_url = response["redirect_url"]
+            payment_response.redirect_url = response["redirectURL"]
+
+            return payment_response
 
         except pysimplesoap.client.SoapFault as err:
             print("Extranet API error: {}".format(err), file=stderr)
@@ -320,6 +326,7 @@ class PaylineApi:
     def getWebPaymentDetails(self, token):
         """ Get details for a payment transaction by token
         """
+        self.init()
         payment_details_response = PaymentDetails()
 
         if self.disabled():
@@ -349,11 +356,9 @@ class PaylineApi:
                 version=self.payline_version, token=token
             )
 
-            payment_details_response.code = response["code"]
-            payment_details_response.short_message = response["short_message"]
-            payment_details_response.long_message = response["long_message"]
-            payment_details_response.partner_code = response["partner_code"]
-            payment_details_response.partner_code_label = response["partner_code_label"]
+            payment_details_response.code = response["result"]["code"]
+            payment_details_response.short_message = response["result"]["shortMessage"]
+            payment_details_response.long_message = response["result"]["longMessage"]
 
             payment_details_response.transaction["id"] = response["transaction"]["id"]
             payment_details_response.transaction["date"] = response["transaction"][
@@ -361,22 +366,20 @@ class PaylineApi:
             ]
             payment_details_response.transaction["is_duplicated"] = response[
                 "transaction"
-            ]["is_duplicated"]
-            payment_details_response.transcation["is_possible_fraud"] = response[
+            ]["isDuplicated"]
+            payment_details_response.transaction["is_possible_fraud"] = response[
                 "transaction"
-            ]["is_possible_fraud"]
+            ]["isPossibleFraud"]
             payment_details_response.transaction["fraud_result"] = response[
                 "transaction"
-            ]["fraud_result"]
+            ]["fraudResult"]
             payment_details_response.transaction["explanation"] = response[
                 "transaction"
             ]["explanation"]
             payment_details_response.transaction["3DSecure"] = response["transaction"][
-                "3DSecure"
+                "threeDSecure"
             ]
-            payment_details_response.transaction["soft_descriptor"] = response[
-                "transaction"
-            ]["soft_descriptor"]
+
             payment_details_response.transaction["score"] = response["transaction"][
                 "score"
             ]
@@ -387,6 +390,8 @@ class PaylineApi:
             payment_details_response.authorization["date"] = response["authorization"][
                 "date"
             ]
+
+            return payment_details_response
 
         except pysimplesoap.client.SoapFault as err:
             print("Payline API error: {}".format(err), file=stderr)
