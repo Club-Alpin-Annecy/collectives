@@ -43,6 +43,7 @@
         method="POST"
         onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
         enctype="multipart/form-data"
+        class="form"
   >
 
     {# We want to make sure pressing 'Enter' submits the whole form #}
@@ -50,16 +51,20 @@
     {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }}
 
     <h4>Activité et encadrants</h4>
+    <div class="controls">
       {{form.update_activity(value=0)}}
       <div class="inline_field">
          {{form.multi_activities_mode(onchange="javascript:updateActivity(this)") }}
          {{form.multi_activities_mode.label}}
       </div>
+    </div>
+    <div class="controls">
       {% if form.multi_activities_mode.data %}
          {{form.types.label}} : {{form.types(class="choices")}}
       {% else %}
          {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
       {% endif %}
+    </div>
       <fieldset>
       <legend>Encadrants :</legend>
 

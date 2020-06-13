@@ -28,23 +28,26 @@
     {% endfor %}
   </div>
 
-  <form action="" method="POST" enctype="multipart/form-data">
+  <form action="" method="POST" enctype="multipart/form-data" class="form">
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-            <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+            <div class="controls">
+                <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
 
-            {% if field.type == "PasswordField" %}
-                {{ field(autocomplete="new-password", title=field.description) }}
-            {% elif field.type == "FileField" %}
-                {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
-            {% else %}
-                {{ field(title=field.description) }}
-            {% endif %}
-
+                {% if field.type == "PasswordField" %}
+                    {{ field(autocomplete="new-password", title=field.description) }}
+                {% elif field.type == "FileField" %}
+                    {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
+                {% else %}
+                    {{ field(title=field.description) }}
+                {% endif %}
+            </div>
         {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
+    <div class="controls">
     <br />{{ form.submit(class="button button-primary") }}
+    </div>
   </form>
 
   {% include 'contact_link.html' %}
