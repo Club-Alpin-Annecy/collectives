@@ -62,7 +62,7 @@
       {% if form.multi_activities_mode.data %}
          {{form.types.label}} : {{form.types(class="choices")}}
       {% else %}
-         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}<br/>
+         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}
       {% endif %}
     </div>
       <fieldset>
@@ -75,11 +75,11 @@
             {% with leader_info=True %}
               {{ macros.usericon(user, leader_info, user_info) }}
             {% endwith %}
-            <br/>
+
             <div class="inline_field">
               {{action.leader_id}}
               {% if form.can_remove_leader(event, user)  %}
-                <button class="button delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">
+                <button class="button button-danger delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">
                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
                   Supprimer
                 </button>
@@ -91,55 +91,68 @@
           {% endwith %}
         {% endfor %}
       </div>
-      <div>
+      <div class="controls">
         {{ form.add_leader.label }}
-        {{ form.add_leader(title=form.add_leader.description, onchange="javascript:updateLeaders(this);") }}<br />
+        {{ form.add_leader(title=form.add_leader.description, onchange="javascript:updateLeaders(this);") }}
       </div>
       {{ form.update_leaders(value=0) }}
     </fieldset>
 
     <h4>Informations</h4>
-     <label for="title">Titre : </label> {{ form.title(size=200) }}<br/>
-     <label for="status">État : </label> {{ form.status }}<br/>
-     <label for="num_slots">Nombre de participants : </label> {{ form.num_slots(size=4) }}<br/>
+    <div class="controls">
+      <label for="title">Titre : </label> {{ form.title(size=200) }}
+    </div>
+    <div class="controls">
+      <label for="status">État : </label> {{ form.status }}
+    </div>
+    <div class="controls">
+      <label for="num_slots">Nombre de participants : </label> {{ form.num_slots(size=4) }}
+    </div>
 
     <div class="dates">
       <h4>Dates</h4>
-      <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
-      <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
-      <span id="starts_before_ends_error" class="date_error"><br/>
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention : "/>
-          L'événement doit commencer avant de se terminer.
-      </span>
+
+      <div class="controls">
+        <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
+        <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
+      </div>
+        <span id="starts_before_ends_error" class="date_error flash flash-error">
+            L'événement doit commencer avant de se terminer.
+        </span>
+
     </div>
 
     <div class="dates">
       <h4>Inscriptions par internet</h4>
-      <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}<br/>
-      <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
-      <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
-      <span id="halfregistration" class="date_error"><br/>
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+      <div class="controls">
+        <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
+      </div>
+      <div class="controls">
+        <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
+        <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
+      </div>
+      <span id="halfregistration" class="date_error flash flash-error">
           Vous devez définir le début et la fin des inscriptions.
       </span>
-      <span id="closes_before_starts_error" class="date_error"><br/>
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+      <span id="closes_before_starts_error" class="date_error flash flash-error">
           Les inscriptions par internet doivent se terminer avant le début de l'événement
       </span>
-      <span id="opens_before_closes_error" class="date_error"><br/>
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"  alt="Attention: "/>
+      <span id="opens_before_closes_error" class="date_error flash flash-error">
           Les inscriptions par internet doivent débuter avant de se terminer.
       </span>
     </div>
 
     <h4>Description</h4>
     <div id="editor">
-    {{ form.description }}
+        {{ form.description }}
     </div>
-    <label for="photo_file">Image de présentation : <br/>&#9432; Photo uniquement, d'une taille maximum de 2Mo</label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }} <br/>
-    <br/>
+    <div class="controls">
+        <label for="photo_file">Image de présentation :<span class="label-help">&#9432; Photo uniquement, d'une taille maximum de 2Mo</span></label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }}
+    </div>
     {{ form.hidden_tag() }}
-     <br/>{{ form.save_all(class="button button-primary") }}
+    <div class="controls">
+    {{ form.save_all(class="button button-primary") }}
+    </div>
   </form>
 </div>
 <script>
