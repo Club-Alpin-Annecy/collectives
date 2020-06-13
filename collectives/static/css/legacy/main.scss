@@ -127,13 +127,13 @@
 	vertical-align: middle;
 }
 #messages .error::before{
-	content: url("../img/icon/ionicon/md-close-circle.svg");
+	content: url("/static/img/icon/ionicon/md-close-circle.svg");
 }
 #messages .warning::before{
-	content: url("../img/icon/ionicon/md-alert.svg");
+	content: url("/static/img/icon/ionicon/md-alert.svg");
 }
 #messages .success::before{
-	content: url("../img/icon/ionicon/md-checkmark-circle.svg");
+	content: url("/static/img/icon/ionicon/md-checkmark-circle.svg");
 }
 
 /* HEADER */
