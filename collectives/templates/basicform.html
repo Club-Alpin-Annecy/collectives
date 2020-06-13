@@ -16,15 +16,17 @@
   <h3>{{ title }}</h3>
   {% if subtitle %}<h4>{{subtitle}}</h4>{% endif  %}
 
-  <ul class="form-errors">
+  <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
-    <li>
-      <strong>Erreur : {{field.label}}:</strong> {{error}}
-    </li>
+
+    <div class="flash flash-error">
+        <strong>Erreur : {{field.label}}:</strong> {{error}}
+    </div>
+
     {% endfor %}
     {% endfor %}
-  </ul>
+  </div>
 
   <form action="" method="POST" enctype="multipart/form-data">
     {% for field in form %}

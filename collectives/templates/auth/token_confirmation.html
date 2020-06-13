@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block additionalhead %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}"> -->
 {% endblock %}
 
 {% block header %}
@@ -13,15 +13,17 @@
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
 
-  <ul class="form-errors">
+  <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
-    <li>
-      <strong>Erreur : {{field.label}}:</strong> {{error}}
-    </li>
+
+        <div class="flash flash-error">
+            <strong>Erreur : {{field.label}}:</strong> {{error}}
+        </div>
+
     {% endfor %}
     {% endfor %}
-  </ul>
+    </div>
 
   <form action="" method="POST" enctype="multipart/form-data">
       <h4>Mot de passe</h4>

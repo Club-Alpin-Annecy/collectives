@@ -46,32 +46,32 @@
     </h3>
     <div id="filters">
         <div>
-            
+
             <input
                     type="checkbox"
                     onchange="togglePastActivities(this)"
                     autocomplete="off"
                     id="pastcheckbox"
-                    class="button"
+                    class="button button-secondary"
                     />
             <label class="checkbox" for="pastcheckbox"> Passées </label>
-            
+
             <input
                     type="checkbox"
                     onchange="toggleConfirmedOnly(!this.checked)"
                     autocomplete="off"
                     checked="1"
                     id="cancelledcheckbox"
-                    class="button"
+                    class="button button-secondary"
                     />
             <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
-             
+
             <div class="select" >
                     <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
                     <input type="checkbox" id="select_display"/>
                     <label for="select_display"><label>Sélectionner votre activité</label></label>
                     <label for="select_display" class="closer"></label>
-                    
+
                     <input type="radio" name="activity" id="select_all" checked/>
                     <label for="select_all" onclick="selectActivity(false);">
                         <label for="select_display">
@@ -80,14 +80,14 @@
                     </label>
                     {% for type in types %}
                         <input type="radio" name="activity" id="select_{{type.short}}"/>
-                        <label for="select_{{type.short}}" onclick="selectActivity('{{type.short}}');"> 
+                        <label for="select_{{type.short}}" onclick="selectActivity('{{type.short}}');">
                             <label for="select_display">
-                                <span class="activity {{type.short}} s30px"></span> 
+                                <span class="activity {{type.short}} s30px"></span>
                                 {{type.name}}
                             </label>
                         </label>
                     {% endfor %}
-                
+
             </div>
         </div>
     </div>

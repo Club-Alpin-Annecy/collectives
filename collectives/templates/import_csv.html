@@ -17,20 +17,20 @@
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
 
-  <ul class="form-errors">
+  <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
-    <li>
+    <div class="flash flash-error">
       <strong>Erreur : {{field.label}}:</strong> {{error}}
-    </li>
+    </div>
     {% endfor %}
     {% endfor %}
-  </ul>
-  <ul class="form-errors">
+  </div>
+  <div class="form-errors">
     {% for message in failed%}
-    <li>{{message}}</li>
+    <div class="flash flash-error">{{message}}</div>
     {% endfor %}
-  </ul>
+  </div>
 
 
   <form action=""

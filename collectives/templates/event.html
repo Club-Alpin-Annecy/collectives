@@ -112,31 +112,31 @@
       <div class="administration">
       <h4>Administration</h4>
 
-      <h5>
-          <a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}">
+      <div>
+          <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
               Editer
           </a>
 
-          <a class="button" href="{{ url_for('event.duplicate', event_id=event.id)}}">
+          <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
               Dupliquer
           </a>
 
-          <a class="button" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
+          <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
 
           {% if conf["PAYMENTS_ENABLED"] %}
-            <a class="button" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
+            <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
             </a>
           {% endif %}
 
           {% if event.requires_payment() %}
-            <a class="button" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+            <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Liste des paiements
             </a>
@@ -145,7 +145,7 @@
           {% if event.has_delete_rights(current_user) %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="button button-danger delete-button">
+              <button type="submit" class="button button-danger">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
                 Supprimer
               </button>
@@ -153,7 +153,7 @@
             </form>
           {% endif %}
 
-      </h5>
+        </div>
       <h5>Coordonnées du groupe</h5>
       {% if current_user.has_signed_ca() %}
           <div class="contactinfos">

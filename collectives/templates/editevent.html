@@ -29,15 +29,15 @@
 <div class="panel" id="eventedit">
   <!-- Logging Windows -->
   <h3>Rédaction d'activité</h3>
-  <ul class="form-errors">
+  <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
-    <li>
+    <div class="flash flash-error">
       <strong>Erreur : {{field.label}} :</strong> {{error}}
-    </li>
+    </div>
     {% endfor %}
     {% endfor %}
-  </ul>
+  </div>
   <form
         action="{{ action }}"
         method="POST"
