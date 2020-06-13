@@ -22,50 +22,6 @@
   color:  rgb(235,105,28);
 }
 
-/* LOGIN PLACE */
-#logger{
-
-	width: 50%;
-	position: absolute;
-	top: 50%;
-	right:0;
-	transform: translate(  0px, -50%);
-	z-index: 400;
-
-	background-color: white;
-	color: black;
-
-	padding: 10px 30px;
-	border-radius: 20px 0 0 20px;
-
-	font-size: 1em;
-
-}
-/* Mobile Adjustment : smaller motto*/
-@media only screen and (max-width:1000px) {
-	#logger{
-		width: 85%;
-		top: 40%;
-	}
-}
-
-
-#logger h3
-{
-	text-align: center;
-	height:0;
-}
-#logger .head{
-	height: 75px;
-	background-color: white;
-	border-radius: 68px;
-	position: relative;
-	top: -80px;
-	padding: 20px;
-	z-index: -1;
-}
-
-
 .contact-link{
 	text-align: justify;
 }
