@@ -33,11 +33,22 @@
             <div class="controls">
                 {{ form.submit(class="button button-primary input-100") }}
             </div>
-            <p class="contact-link">
-            <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
-            <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
-            </p>
-            {% include 'contact_link.html' %}
+            <div class="controls">
+                <p class="contact-link">
+                    <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+                </p>
+            </div>
+            <hr class="separator">
+            <div class="controls">
+                <h5>Pas encore de compte?</h5>
+            </div>
+            <div class="controls">
+                <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
+            </div>
+            <hr class="separator">
+            <div class="controls">
+                {% include 'contact_link.html' %}
+            </div>
         </form>
     </div>
 </div>
