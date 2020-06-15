@@ -146,7 +146,7 @@
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button button-danger">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
                 Supprimer
               </button>
 
@@ -200,7 +200,9 @@
       <h5> Inscrire un adhérent </h5>
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
       <div id="user-search-data" class="form-search search-data">
-        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        <p>
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
       </div>
@@ -213,7 +215,7 @@
           <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
           <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-danger" value="Supprimer" >
+          <input type="submit" class="button button-danger button-small" value="Supprimer" >
           </form>
         </li>
       {% else %}
