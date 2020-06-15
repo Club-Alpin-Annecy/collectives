@@ -41,6 +41,10 @@
 	max-height: 40em;
 }
 
+.CodeMirror-fullscreen {
+    z-index: 20;
+}
+
 #encadrement .useractionmenu{
   display:inline-block;
   text-align: center;
