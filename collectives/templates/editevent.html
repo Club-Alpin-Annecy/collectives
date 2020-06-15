@@ -60,9 +60,9 @@
     </div>
     <div class="controls">
       {% if form.multi_activities_mode.data %}
-         {{form.types.label}} : {{form.types(class="choices")}}
+        <label for="{{form.types.id_for_label}}">Activités:</label> {{form.types(class="choices")}}
       {% else %}
-         {{form.type.label}} : {{ form.type(onchange="javascript:updateActivity(this)") }}
+        <label for="{{form.type.id_for_label}}">Activités:</label> {{ form.type(onchange="javascript:updateActivity(this)") }}
       {% endif %}
     </div>
       <fieldset>
