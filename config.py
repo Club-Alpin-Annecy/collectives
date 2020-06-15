@@ -149,14 +149,46 @@ PAYLINE_WSDL = (
     environ.get("PAYLINE_WSDL")
     or f"file://{os.path.join(basedir, 'collectives/utils/payline.wsdl')}"
 )
+"""Path to WDSL file describing Payline SOAP api
+
+:type: string
+"""
 
 PAYLINE_MERCHANT_ID = environ.get("PAYLINE_MERCHANT_ID") or ""
+"""Payline merchant id, refer to payline account.
+If left empty the payline API will operate in mock mode.
+
+:type: string
+"""
 PAYLINE_ACCESS_KEY = environ.get("PAYLINE_ACCESS_KEY") or ""
+""" Payline access key (to be set in payline backoffice)
+
+:type: string
+"""
 PAYLINE_CONTRACT_NUMBER = environ.get("PAYLINE_CONTRACT_NUMBER") or ""
+""" Payline contract number
+
+:type: string
+"""
 PAYLINE_MERCHANT_NAME = environ.get("PAYLINE_MERCHANT_NAME") or "CAF Annecy"
+""" Payline merchant name
+
+:type: string
+"""
 
 PAYLINE_CURRENCY = environ.get("PAYLINE_CURRENCY") or "978"  # Default to euros
+""" Code of the currency to be used for payments, '978' means euros
+See https://docs.payline.com/display/DT/Codes+-+Currency
+
+:type: string
+"""
+
 PAYLINE_COUNTRY = environ.get("PAYLINE_COUNTRY") or "FR"  # Default to France
+""" Code of the country in which the order are being made
+See https://docs.payline.com/display/DT/Codes+-+Country
+
+:type: string
+"""
 
 # Page information
 TITLE = "Collectives CAF Annecy"

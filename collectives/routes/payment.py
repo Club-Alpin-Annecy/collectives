@@ -3,11 +3,12 @@
 This modules contains the /payment Blueprint
 """
 
-from flask import Blueprint
+from flask import Blueprint, request
 from flask import render_template, current_app, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 
 from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
+from ..utils import payline
 
 from ..utils.access import payments_enabled
 from ..utils.time import current_time
@@ -15,6 +16,7 @@ from ..models import db
 from ..models.event import Event
 from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus
 from ..models.registration import RegistrationStatus, Registration
+
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
@@ -254,117 +256,137 @@ def request_payment(payment_id):
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
 
+    order_info = payline.OrderInfo(payment)
+    buyer_info = payline.BuyerInfo(current_user)
+
+    payment_request = payline.api.doWebPayment(order_info, buyer_info)
+
+    if payment_request is not None:
+        if payment_request.result.payment_status() != PaymentStatus.Approved:
+            # Payment request has not been accepted, log error
+            current_app.logger.error(
+                "Payment request error: %s", payment_request.result.__dict__
+            )
+            flash(
+                "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+            )
+            return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+
+        payment.processor_token = payment_request.token
+        db.session.add(payment)
+        db.session.commit()
+        return redirect(payment_request.redirect_url)
+
+    flash(
+        "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+    )
+    return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+
+
+@blueprint.route("/do_mock_payment/<token>", methods=["GET"])
+def do_mock_payment(token):
+    """Route for rendering a fake payment page for testing the workflow
+    without making real API calls
+
+    :param token: The unique string identifying the payment
+    :type token: string
+    """
+    payment = Payment.query.filter_by(processor_token=token).first()
+    if payment is None:
+        abort(500)
+
+    amount = payline.OrderInfo(payment).amount_in_cents
+
     return render_template(
-        "payment/mock.html", conf=current_app.config, payment=payment
+        "payment/mock.html", conf=current_app.config, payment=payment, amount=amount
     )
 
 
-@payments_enabled
-@blueprint.route("/<payment_id>/accept", methods=["GET"])
-def accept_payment(payment_id):
-    """Route the payment processor should redirect to once the payment
-    has been accepted.
-    TODO use Payline API to check the payment status
+def finalize_payment(payment, details):
+    """Finalize a payment using data return by payment processor.
+    Update the associated registration if necessary.
 
-    :param payment_id: The primary key of the payment being made
-    :type payment_id: int
+    :param payment: The payment database entry
+    :type payment: :py:class:`collectives.models.payment.Payment`
+    :param details: The payment processor response
+    :type details: :py:class:`collectives.utils.paylive.PaymentDetails`
     """
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(500)
-
-    payment.status = PaymentStatus.Approved
-    payment.amount_paid = payment.amount_charged
+    payment.status = details.result.payment_status()
     payment.finalization_time = current_time()
-    db.session.add(payment)
+    payment.amount_paid = details.amount()
+    payment.raw_metadata = details.raw_metadata()
 
-    if payment.registration is None:
-        # This should not be possible, but still check nonetheless
-        flash(
-            "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
-            "warning",
-        )
+    if payment.status == PaymentStatus.Approved:
+        if payment.registration is None:
+            # This should not be possible, but still check nonetheless
+            flash(
+                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+                "warning",
+            )
+        else:
+            flash(
+                "Votre paiement a été accepté, votre inscription est désormais confirmée."
+            )
+            payment.registration.status = RegistrationStatus.Active
+            db.session.add(payment.registration)
     else:
-        payment.registration.status = RegistrationStatus.Active
-        db.session.add(payment.registration)
+        if payment.registration is not None:
+            flash(
+                "Votre paiement a été refusé ou annulé, votre inscription a été supprimée."
+            )
+            db.session.delete(payment.registration)
 
-    db.session.commit()
-
-    return redirect(url_for("event.view_event", event_id=payment.item.event_id))
-
-
-@payments_enabled
-@blueprint.route("/<payment_id>/reject", methods=["GET"])
-def reject_payment(payment_id):
-    """Route the payment processor should redirect to once the payment
-    has been rejected.
-    TODO use Payline API to check the payment status
-
-    :param payment_id: The primary key of the payment being made
-    :type payment_id: int
-    """
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(500)
-
-    payment.status = PaymentStatus.Refused
-    payment.finalization_time = current_time()
     db.session.add(payment)
-
-    if payment.registration is not None:
-        db.session.delete(payment.registration)
-
     db.session.commit()
-
-    return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
 
 @payments_enabled
-@blueprint.route("/<payment_id>/timeout", methods=["GET"])
-def timeout_payment(payment_id):
-    """Route the payment processor should redirect to once the payment
-    has expired.
-    TODO use Payline API to check the payment status
+@blueprint.route("/process", methods=["GET", "POST"])
+@blueprint.route("/cancel", endpoint="cancel", methods=["GET", "POST"])
+@blueprint.route("/notify", endpoint="notify", methods=["GET", "POST"])
+def process():
+    """ Route for fetching the result of a payment after a user has
+    completed or cancelled the process, or upon notification from the
+    payment processor after a timeout has expired.
 
-    :param payment_id: The primary key of the payment being made
-    :type payment_id: int
+    The route has several URLs, but the logic for updating the registration
+    does not depend on how it was accessed.
+    However, the name of the parameter containing the token is different
+    for 'notify' requests, where it is called `token` rather than `paylinetoken`
+
+    :return: Redirection to event page or simple HTTP code for notify
     """
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
+
+    # Notify calls are made by a server, do not serve them real pages
+    is_notify = "notify" in request.endpoint
+    param = "token" if is_notify else "paylinetoken"
+
+    token = request.args.get(param)
+    if token is None:
+        # Try to get the token from POST parameters as well
+        token = request.form.get(param)
+
+    if token is None:
         abort(500)
 
-    payment.status = PaymentStatus.Expired
-    payment.finalization_time = current_time()
-    db.session.add(payment)
-
-    if payment.registration is not None:
-        db.session.delete(payment.registration)
-
-    db.session.commit()
-
-    # Return empty response
-    return dict(), 200
-
-@payments_enabled
-@blueprint.route("/<payment_id>/process", methods=["GET"])
-def process(payment_id):
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
+    payment = Payment.query.filter_by(processor_token=token).first()
+    if payment is None:
         abort(500)
-    return ""
 
-@payments_enabled
-@blueprint.route("/<payment_id>/process", methods=["GET"])
-def cancel(payment_id):
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(500)
-    return ""
+    if payment.status != PaymentStatus.Initiated:
+        # Payment has already been finalized
+        if is_notify:
+            # Return empty response
+            return dict(), 200
+        flash("Le paiement a déjà été finalisé")
+        return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
-@payments_enabled
-@blueprint.route("/<payment_id>/process", methods=["GET"])
-def notify(payment_id):
-    payment = Payment.query.get(payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(500)
-    return ""
+    details = payline.api.getWebPaymentDetails(token)
+    if details is not None:
+        if details.result.payment_status() != PaymentStatus.Initiated:
+            finalize_payment(payment, details)
+
+    if is_notify:
+        # Return empty response
+        return dict(), 200
+    return redirect(url_for("event.view_event", event_id=payment.item.event_id))

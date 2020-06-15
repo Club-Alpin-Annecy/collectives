@@ -1,7 +1,7 @@
-
 from collectives import create_app
 
 from collectives.utils import payline
+
 
 def test_dowebpayment():
 
@@ -10,6 +10,7 @@ def test_dowebpayment():
     order.payment_id = 2
     order.amount_in_cents = "10000"
     order.date = "05/05/2020 00:05"
+    order.details = {"details": {"ref": "12"}}
 
     buyer = payline.BuyerInfo()
 
@@ -22,15 +23,28 @@ def test_dowebpayment():
 
     doWebPaymentResponse = payline.api.doWebPayment(order, buyer)
     if not doWebPaymentResponse is None:
-        print('token : %s, URL de paiement : %s' % (doWebPaymentResponse.token, doWebPaymentResponse.redirect_url))
+        print(
+            "token : %s, URL de paiement : %s"
+            % (doWebPaymentResponse.token, doWebPaymentResponse.redirect_url)
+        )
 
         input("appuyer sur une touche lorsque le paiement est validé")
 
-        getWebPaymentDetailsResponse = payline.api.getWebPaymentDetails(doWebPaymentResponse.token)
+        getWebPaymentDetailsResponse = payline.api.getWebPaymentDetails(
+            doWebPaymentResponse.token
+        )
 
         if not getWebPaymentDetailsResponse is None:
-            print('%s %s %s' % (getWebPaymentDetailsResponse.result.short_message, getWebPaymentDetailsResponse.authorization["number"], getWebPaymentDetailsResponse.authorization["date"]))
+            print(
+                "%s %s %s"
+                % (
+                    getWebPaymentDetailsResponse.result.short_message,
+                    getWebPaymentDetailsResponse.authorization["number"],
+                    getWebPaymentDetailsResponse.authorization["date"],
+                )
+            )
             print(getWebPaymentDetailsResponse.raw_metadata())
+
 
 if __name__ == "__main__":
     app = create_app()

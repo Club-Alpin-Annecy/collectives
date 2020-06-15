@@ -18,9 +18,9 @@
         Ceci est une fausse page de paiement permettant de générer les événements suivants:
 
         <ul>
-            <li><a type="button" href="{{url_for('payment.accept_payment', payment_id=payment.id)}}">Paiement accepté</a></li>
-            <li><a type="button" href="{{url_for('payment.reject_payment', payment_id=payment.id)}}">Paiement refusé</a></li>
-            <li><a type="button" href="{{url_for('payment.timeout_payment', payment_id=payment.id)}}">Timeout</a></li>
+            <li><a type="button" href="{{url_for('payment.process')}}?paylinetoken={{payment.processor_token}}&message=ACCEPTED&amount={{amount}}">Paiement accepté</a></li>
+            <li><a type="button" href="{{url_for('payment.cancel')}}?paylinetoken={{payment.processor_token}}&message=REFUSED&amount=0">Paiement refusé</a></li>
+            <li><a type="button" href="{{url_for('payment.notify')}}?token={{payment.processor_token}}&message=CANCELLED&amount=0">Timeout</a></li>
         </ul>
     </p>
 </div>
