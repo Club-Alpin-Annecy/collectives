@@ -53,11 +53,15 @@
     width: 200px;
 }
 #eventlist #eventstable h4{
-    font-size: 200%;
+    font-size: 160%;
     margin: 0;
 }
+
+#eventlist #eventstable .tabulator-table {
+    width: 100%;
+}
 #eventlist #eventstable .row div div{
-    font-size: 150%;
+    font-size: 120%;
 }
 #eventlist #eventstable .activities{
     height: 130px;
