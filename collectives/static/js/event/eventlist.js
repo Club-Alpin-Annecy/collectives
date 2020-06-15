@@ -50,8 +50,8 @@ window.onload = function(){
         groupHeader:function(value, count, data, group){
             return value;
         },
-        locale: true,
-        locale:true,
+
+        locale: 'fr-fr',
         langs:{
             "fr-fr":{
                 "ajax":{
