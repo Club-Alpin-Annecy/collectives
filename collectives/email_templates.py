@@ -132,6 +132,7 @@ def send_cancelled_event_notification(name, event):
 
     :param string name: User name who cancelled the event.
     :param event: Event that has been cancelled.
+    :type event: :py:class:`collectives.modes.event.Event`
     """
     try:
         conf = current_app.config
