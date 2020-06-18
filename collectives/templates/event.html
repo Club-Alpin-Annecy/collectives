@@ -70,7 +70,7 @@
         {% elif current_time < event.start %}
         <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <a class="button" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+          <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
         {% endif %}
       {% endif %}
@@ -112,31 +112,31 @@
       <div class="administration">
       <h4>Administration</h4>
 
-      <h5>
-          <a class="button" href="{{ url_for('event.manage_event', event_id=event.id)}}">
+      <div>
+          <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
               Editer
           </a>
 
-          <a class="button" href="{{ url_for('event.duplicate', event_id=event.id)}}">
+          <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
               Dupliquer
           </a>
 
-          <a class="button" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
+          <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
-          
+
           {% if conf["PAYMENTS_ENABLED"] %}
-            <a class="button" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
+            <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
             </a>
           {% endif %}
-          
+
           {% if event.requires_payment() %}
-            <a class="button" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+            <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Liste des paiements
             </a>
@@ -145,15 +145,15 @@
           {% if event.has_delete_rights(current_user) %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <button type="submit" class="button delete-button">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash-white.svg') }}"/>
+              <button type="submit" class="button button-danger">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
                 Supprimer
               </button>
 
             </form>
           {% endif %}
 
-      </h5>
+        </div>
       <h5>Coordonnées du groupe</h5>
       {% if current_user.has_signed_ca() %}
           <div class="contactinfos">
@@ -200,7 +200,9 @@
       <h5> Inscrire un adhérent </h5>
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
       <div id="user-search-data" class="form-search search-data">
-        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        <p>
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
       </div>
@@ -209,7 +211,13 @@
       <h5> Inscriptions refusées</h5>
       <ul>
       {% for registration in event.registrations if registration.is_rejected() %}
-        {{ macros.registration_admin_list_item(registration) }}
+        <li>
+          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-danger button-small" value="Supprimer" >
+          </form>
+        </li>
       {% else %}
         <li>Aucune inscription refusée.</li>
       {% endfor %}

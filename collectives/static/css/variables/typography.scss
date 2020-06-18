@@ -1,0 +1,34 @@
+// Font families
+$font-family-primary: 'DIN', 'San Francisco', sans-serif;
+$font-family-secondary: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+
+// Font Weights
+$font-weight-default: 400;
+$font-weight-light: 300;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+
+// Font sizes
+// `px` only used once here for the base size, please use `rem`s for everything else
+$font-size-default: 16px;
+
+$font-size-xs: 0.875rem; // 14px
+$font-size-s: 1rem; // 16px
+$font-size-m: 1.125rem; // 18px
+$font-size-l: 1.5rem; // 24px
+$font-size-xl: 2rem; // 32px
+$font-size-xxl: 2.5rem; // 40px
+
+// Line-heights
+$line-height-default: 1.5;
+
+// Reminder for those not familiar: Line-heights decrease as size increases. That's fine.
+
+$line-height-xs: 1.5;
+$line-height-s: 1.5;
+$line-height-m: 1.5;
+$line-height-l: 1.3;
+$line-height-xl: 1.2;
+$line-height-xxl: 1.2;

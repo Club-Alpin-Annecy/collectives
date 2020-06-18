@@ -31,23 +31,23 @@
     </div>
 
     {% if user == current_user %}
-        <a class="button" href="{{url_for('profile.update_user')}}">
+        <a class="button button-secondary" href="{{url_for('profile.update_user')}}">
              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
             Modifier mes paramètres
         </a>
-        <a class="button" href="{{url_for('root.legal')}}">
+        <a class="button button-secondary" href="{{url_for('root.legal')}}">
              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt=""/>
             Mentions légales
         </a>
         {% if current_user.has_any_role() %}
-            <a class="button" href="{{url_for('profile.confidentiality_agreement')}}">
+            <a class="button button-secondary" href="{{url_for('profile.confidentiality_agreement')}}">
                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
                 Charte RGPD
             </a>
         {% endif %}
 
     {% elif current_user.is_admin() %}
-        <a class="button" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
+        <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
     {% endif %}
 
 
@@ -94,7 +94,7 @@
             Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/mesinfos/">https://extranet-clubalpin.com/mesinfos/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
             Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
         </p>
-        <input type="submit" value="Resynchroniser mes informations FFCAM">
+        <input type="submit" value="Resynchroniser mes informations FFCAM" class="button button-secondary">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
     {% endif %}

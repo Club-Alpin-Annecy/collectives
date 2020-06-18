@@ -9,24 +9,47 @@
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
-<div id="logger">
-  <form method="POST" action="#">
-    {{ form.hidden_tag() }}
-    <h3><img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="head"/></h3>
+<div class="login-form">
+    <div class="box">
 
-       {{ form.mail.label }} <br/> {{ form.mail(size=150) }}
-    <br/><br/>{{ form.password.label }} <br/> {{ form.password(size=256) }}
-    <br/><br/>{{ form.remember_me() }} {{ form.remember_me.label }}
-    <br/>{{ form.submit() }}
-
-    <p class="contact-link">
-      <a href="{{url_for('auth.signup')}}">Pas encore de compte ?</a>
-      <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
-    </p>
-
-    {% include 'contact_link.html' %}
-  </form>
-
-
+        <form method="POST" action="#" class="form form-vertical">
+            <div class="controls">
+                <h3>Connexion</h3>
+            </div>
+            {{ form.hidden_tag() }}
+            <div class="controls">
+            <label for="{{ form.mail.id_for_label }}" class="label-top">Email
+                {{ form.mail(class="input-100") }}
+            </label>
+            </div>
+            <div class="controls">
+            <label for="{{ form.password.id_for_label }}" class="label-top">Mot de Passe
+                {{ form.password(class="input-100") }}
+            </label>
+            </div>
+            <div class="controls">
+                {{ form.remember_me() }} {{ form.remember_me.label }}
+            </div>
+            <div class="controls">
+                {{ form.submit(class="button button-primary input-100") }}
+            </div>
+            <div class="controls">
+                <p class="contact-link">
+                    <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+                </p>
+            </div>
+            <hr class="separator">
+            <div class="controls">
+                <h5>Pas encore de compte?</h5>
+            </div>
+            <div class="controls">
+                <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
+            </div>
+            <hr class="separator">
+            <div class="controls">
+                {% include 'contact_link.html' %}
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

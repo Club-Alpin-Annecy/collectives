@@ -1,0 +1,25 @@
+.user-image {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px $color-blue-primary-light solid;
+    img {
+        width: 100%;
+    }
+
+    &.user-image-default {
+        text-align: center;
+        background: $color-white;
+        svg {
+            margin: 0 auto;
+            height: 15px;
+            padding: 12px 0;
+            fill: $color-blue-primary-light;
+        }
+    }
+    &.user-image-empty {
+        background: $color-white;
+        border: 1px $color-blue-primary-light dashed;
+    }
+}

@@ -1,0 +1,9 @@
+.login-form {
+    padding: 40px 20px;
+    margin: 0 auto;
+    max-width: 48em;
+    position: relative;
+    z-index: 5;
+    // We're overlaying this on the #cover element
+    top: -90vh;
+}

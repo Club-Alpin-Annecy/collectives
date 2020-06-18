@@ -18,7 +18,7 @@
                   <div class="leftalign">{{ form.legal_accepted.label(class="leftalign") }}<span class="help">{{ form.legal_accepted.description }}</span></div>
 
             </div>
-            <input type="submit" value="Accepter">
+            <input type="submit" value="Accepter" class="button button-primary">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         </form>
     {% endif %}

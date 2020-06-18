@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block additionalhead %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/administration.css') }}">
+
 {% endblock %}
 
 {% block header %}
@@ -13,17 +13,19 @@
   <!-- Logging Windows -->
   <h3>{{ title }}</h3>
 
-  <ul class="form-errors">
+  <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
-    <li>
-      <strong>Erreur : {{field.label}}:</strong> {{error}}
-    </li>
-    {% endfor %}
-    {% endfor %}
-  </ul>
 
-  <form action="" method="POST" enctype="multipart/form-data">
+        <div class="flash flash-error">
+            <strong>Erreur : {{field.label}}:</strong> {{error}}
+        </div>
+
+    {% endfor %}
+    {% endfor %}
+    </div>
+
+  <form action="" method="POST" enctype="multipart/form-data" class="form form-vertical">
       <h4>Mot de passe</h4>
       <br/>
       <div class="field">{{ form.password.label }}<span class="help">{{ form.password.description }}</span></div>
@@ -42,7 +44,7 @@
       {% endif %}
 
     {{ form.hidden_tag() }}
-    <br /><br /><br /><br />{{ form.submit() }}
+    <br /><br /><br /><br />{{ form.submit(class="button button-primary") }}
   </form>
 
   {% include 'contact_link.html' %}

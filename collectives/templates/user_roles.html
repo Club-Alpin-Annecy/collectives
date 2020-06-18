@@ -18,7 +18,7 @@
   {% endif %}
         <form class="inline" action="{{url_for('administration.remove_user_role', user_id=role.id)}}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button" value="Supprimer" >
+          <input type="submit" class="button button-danger" value="Supprimer" >
         </form>
   </li>
   {% endfor %}
@@ -33,7 +33,7 @@
         {% endif %}
     {% endfor %}
     {{ form.hidden_tag() }}
-     <br/>{{ form.submit() }}
+     <br/>{{ form.submit(class="button button-primary") }}
   </form>
 </div>
 {% endblock %}

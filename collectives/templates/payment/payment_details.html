@@ -20,7 +20,7 @@
 
   {% if payment.is_offline() and payment.registration %}
   <p>
-    <a class="button" href="{{ url_for('payment.report_offline', registration_id = payment.registration_id, payment_id=payment.id)}}">
+    <a class="button button-secondary" href="{{ url_for('payment.report_offline', registration_id = payment.registration_id, payment_id=payment.id)}}">
         <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
         Editer le paiement hors-ligne
     </a>

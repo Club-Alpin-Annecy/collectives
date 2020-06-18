@@ -1,0 +1,65 @@
+.button, a.button, input[type=button].button, input[type=submit].button{
+    display: inline-block;
+    padding: $padding-buttons-default;
+    background: $color-white;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    outline: none;
+    transition: all .15s ease-in-out;
+    box-sizing: border-box;
+    line-height: 1.15;
+
+    &:hover {
+        text-decoration: none;
+    }
+
+    &.button-secondary {
+        color: $color-blue-primary-light;
+        border: 1px solid $color-blue-primary-light;
+        background: $color-white;
+        &:hover {
+            color: $color-blue-primary-dark;
+            background: $color-white;
+            border: 1px solid $color-blue-primary-dark;
+        }
+        &[disabled] {
+            cursor: not-allowed;
+
+        }
+    }
+
+    &.button-primary {
+        background: $color-blue-primary-light;
+        border: 1px solid $color-blue-primary-light;
+        color: $color-white;
+        &:hover {
+            color: $color-white;
+            background: $color-blue-primary-dark;
+            border: 1px solid $color-blue-primary-dark;
+        }
+        &[disabled] {
+            cursor: not-allowed;
+            background: lighten($color-blue-primary-dark, 45%);
+            border: 1px solid lighten($color-blue-primary-dark, 45%);
+        }
+    }
+
+    &.button-danger {
+        background: $color-white;
+        border: 1px solid $color-error-dark;
+        color: $color-error-dark;
+        &:hover {
+            background: $color-error-light;
+            color: $color-white;
+            border: 1px solid $color-error-light;
+        }
+    }
+
+    &.button-small {
+        padding: $padding-s;
+        font-size: $font-size-xs;
+    }
+}
+

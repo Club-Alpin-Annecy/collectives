@@ -41,6 +41,10 @@
 	max-height: 40em;
 }
 
+.CodeMirror-fullscreen {
+    z-index: 20;
+}
+
 #encadrement .useractionmenu{
   display:inline-block;
   text-align: center;
@@ -79,9 +83,6 @@
 #eventedit span.date_error
 {
   display: none;
-  font-weight: bold;
-  color: red;
-  font-size: 150%;
 }
 
 #eventedit .datetimepicker{
