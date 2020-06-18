@@ -25,7 +25,6 @@ def app():
     app = create_app()
     app.config.update(settings_override)
 
-
     with app.app_context():
         db.init_app(app)
         db.create_all()
@@ -33,8 +32,8 @@ def app():
 
         yield app
 
-        os.close(TESTDB_FD)
-        os.unlink(TESTDB_PATH)
+        db.session.remove()
+        db.drop_all()
 
 
 @pytest.fixture(scope='module')
@@ -52,7 +51,6 @@ class AuthActions(object):
             data={'mail': 'admin', 'password': 'foobar2'}
         )
         return response.headers['Location']
-
 
     def logout(self):
         response = self._client.get('/auth/logout')
