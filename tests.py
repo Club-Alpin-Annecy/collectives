@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import unittest
 import datetime
 from os import environ
@@ -174,8 +175,10 @@ class TestEvents(ModelTest):
         activity1 = create_test_activity("1")
         activity2 = create_test_activity("2")
 
-        user1.roles.append(Role(role_id=RoleIds.EventLeader, activity_id=activity1.id))
-        user2.roles.append(Role(role_id=RoleIds.EventLeader, activity_id=activity2.id))
+        user1.roles.append(
+            Role(role_id=RoleIds.EventLeader, activity_id=activity1.id))
+        user2.roles.append(
+            Role(role_id=RoleIds.EventLeader, activity_id=activity2.id))
         db.session.commit()
 
         event = make_event()
@@ -378,7 +381,8 @@ class TestImportCSV(ModelTest):
         assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
-        assert event.registration_open_time == datetime.datetime(2019, 11, 19, 7, 0, 0)
+        assert event.registration_open_time == datetime.datetime(
+            2019, 11, 19, 7, 0, 0)
         assert event.registration_close_time == datetime.datetime(
             2019, 11, 25, 18, 0, 0
         )
