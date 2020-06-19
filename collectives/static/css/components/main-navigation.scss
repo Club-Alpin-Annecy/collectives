@@ -19,6 +19,11 @@
     .main-navigation-container-secondary {
         display: flex;
         flex-direction: row;
+        .button {
+            @include mobile {
+                font-size: 0.8rem;
+            }
+        }
     }
 
     .main-navigation-logo {

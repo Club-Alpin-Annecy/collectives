@@ -62,7 +62,7 @@ def create_app(config_filename="config"):
         scss = Bundle(
             "css/all.scss",
             filters=filters,
-            depends=("/collectives/static/css/**/*.scss"),
+            depends=("/static/css/**/*.scss"),
             output="dist/css/all.css",
         )
         assets.register("scss_all", scss)
