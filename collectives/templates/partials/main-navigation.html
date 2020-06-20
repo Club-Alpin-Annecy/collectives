@@ -28,12 +28,6 @@
                                         class="legacy-icon" /> Ajouter un événement</a>
                             </li class="menu-dropdown-item">
                             {% endif %}
-                            <li class="menu-dropdown-item">
-                                <a href="{{ url_for('profile.show_user', user_id = current_user.id)}}"
-                                    class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
-                                        class="legacy-icon" /> Profil adhérent</a>
-                            </li>
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"
