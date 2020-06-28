@@ -1,9 +1,10 @@
 .main-navigation {
-    position: relative;
+    position: sticky;
     background: $color-white;
     box-shadow: $box-shadow-m;
     height: 78px;
-    z-index: 10;
+    z-index: $z-index-l;
+    top: 0;
 
     .main-navigation-container {
         display: flex;
@@ -42,7 +43,7 @@
         height: 100%;
         margin: 0;
         line-height: 2.5rem;
- 
+
         .main-navigation-menu-link {
             height: 100%;
             padding: 0 $padding-horizontal-xs;
@@ -66,6 +67,3 @@
         vertical-align: text-bottom;
     }
 }
-
-
-
