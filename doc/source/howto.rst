@@ -27,7 +27,7 @@ For Windows, Linux and probably Mac:
 2. Clone the repository in any folder: ``git clone git@github.com:Club-Alpin-Annecy/collectives-flask2.git``
 3. Install all the pip in a console: ``pip3 install -r requirements.txt``
 4. If needed, modify the configuration in ``instance/config.py``
-5. Run it : ``./run-test.py``
+5. Run it : ``./run.py``
 6. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
 
 Docker Installation
