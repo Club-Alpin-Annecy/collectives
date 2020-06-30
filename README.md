@@ -40,7 +40,8 @@ website: https://doc.collectives.cafannecy.fr
 Install required test dependencies with pip:
     `pip install -r requirements-tools.txt`
 run the tests:
-    `./tests.py`
+- `python tests.py` to run Unit Tests
+- `pytest` to run Integration Tests
 
 # Contributing
 Refer to the CODING file.
