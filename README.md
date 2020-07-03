@@ -10,11 +10,12 @@ It is based on Flask.
 # Installation
 
 1. Unzip the package from the source.
-2. Install Python (this app has been tested with Python 3.8)
-3. Install required pip
+2. Install Python (this app has been tested with Python 3.8) and pip3
+3. Install required dependencies with pip
     `pip install -r requirements.txt`
-4. (Development server at http://localhost:5000)
-    `./run-test.py`
+4. Run the development server (it will be available at http://localhost:5000)
+    `./run.py`
+    (do not run this in production)
 
 ## Configuration
 Instance specific configuration can be included in `instance/config.py`
@@ -34,7 +35,13 @@ More detailed documentation can be found in ``doc`` folder or on the doc
 website: https://doc.collectives.cafannecy.fr
 
 # Tests
-:hammer_and_wrench: [TODO] :hammer_and_wrench:
+:hammer_and_wrench: [WIP] :hammer_and_wrench:
+
+Install required test dependencies with pip:
+    `pip install -r requirements-tools.txt`
+run the tests:
+- `python tests.py` to run Unit Tests
+- `pytest` to run Integration Tests
 
 # Contributing
 Refer to the CODING file.

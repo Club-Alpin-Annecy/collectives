@@ -6,6 +6,9 @@ uploads
 /collectives/static/.webassets-cache
 /collectives/static/dist/*
 
+# Test DB
+collectives/testdb.sqlite
+
 .env
 .coverage
 
