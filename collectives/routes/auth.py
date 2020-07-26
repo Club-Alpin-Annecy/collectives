@@ -336,9 +336,20 @@ def signup():
     user = existing_user if existing_user else User()
     form.populate_obj(user)
     user_info = extranet.api.fetch_user_info(license_number)
-    if not (
-        user.date_of_birth == user_info.date_of_birth
-        and user.mail.lower() == user_info.email.lower()
+
+    if user_info.email == None:
+        flash(
+            """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au club.
+            Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
+            compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
+            fait, vous pourrez alors activer votre compte""",
+            "error",
+        )
+        return render_signup_form(form, is_recover)
+
+    if (
+        user.date_of_birth != user_info.date_of_birth
+        or user.mail.lower() != user_info.email.lower()
     ):
         flash("E-mail et/ou date de naissance incorrecte", "error")
         return render_signup_form(form, is_recover)
