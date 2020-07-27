@@ -13,7 +13,7 @@
         {{paid_self_register_form.accept_payment_terms}}
         {{paid_self_register_form.accept_payment_terms.label}}
         </div>
-        {{paid_self_register_form.submit}}
+        {{paid_self_register_form.submit(class="button button-primary")}}
     </form>
 {% else %}
     <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">

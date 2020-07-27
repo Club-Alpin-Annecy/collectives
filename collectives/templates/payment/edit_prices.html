@@ -27,14 +27,14 @@
         <td> {{ field.item_title() }} </td>
         <td> {{ field.title() }} </td>
         <td>
-        {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
+        {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
          </td>
         <td> {{ field.enabled() }} </td>
         <td> {{field.price_id}} {{field.item_id}}
         {% if field.use_count %}
           Utilisé {{field.use_count}} fois.
         {% else %}
-          {{field.delete}}{{field.delete.label}}
+          {{field.delete}} {{field.delete.label}}
         {% endif %}
         </td>
       </tr>
@@ -75,11 +75,11 @@
     {{ form.new_item.title}}
 
     <div class="field">{{ form.new_item.amount.label }}<span class="help">{{ form.new_item.amount.description }}</span></div>
-    {{ form.new_item.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.05")}}
+    {{ form.new_item.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
     {#{ form.new_item.amount()}#}
 
     {{ form.hidden_tag() }}
-    <br />{{ form.submit() }}
+    <br />{{ form.submit(class="button button-primary") }}
   </form>
 
 </div>
