@@ -1,4 +1,5 @@
 cssmin
+itsdangerous=1.1.*
 flask
 flask-assets
 flask-login
