@@ -294,7 +294,7 @@ class EventForm(ModelForm, FlaskForm):
 class PaidSelfRegistrationForm(FlaskForm):
     """Self-registration form for paid events"""
 
-    item_price = SelectField("Choix du tarif", coerce=int)
+    item_price = RadioField("Choix du tarif", coerce=int, validators=[DataRequired()])
     accept_payment_terms = BooleanField(
         "J'ai lu et j'accepte les conditions générales de vente", [DataRequired()]
     )
