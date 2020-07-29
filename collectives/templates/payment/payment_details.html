@@ -1,6 +1,6 @@
 {% macro details_row(title, value) -%}
   <tr>
-      <td class="key">{{title}}</td>
+      <td class="key"><strong>{{title}}</strong></td>
       <td class="value">{{value}}</td>
   </tr>
 {%- endmacro %}
@@ -17,6 +17,7 @@
 {% block content %}
 <div class="panel" id="administration">
   <h4>Détails du paiement</h4>
+  <p><a class="button button-secondary" href="{{url_for('payment.list_payments', event_id=event.id)}}">Retour à la liste des paiements</a></p>
 
   {% if payment.is_offline() and payment.registration %}
   <p>
@@ -28,7 +29,6 @@
   {%endif%}
 
   <table id="payment_details">
-    {{ details_row("Test", payment.item.title) }}
     {{ details_row("Événement", event.title) }}
     {{ details_row("Objet du paiement", payment.item.title) }}
     {{ details_row("Tarif", payment.price.title) }}
@@ -36,15 +36,24 @@
     {% if payment.registration %}
       {{ details_row("Inscription associée", payment.registration.status.display_name()) }}
     {% endif %}
-    {{ details_row("Notifié par", payment.reporter.full_name()) }}
+    {{ details_row("Saisi par", payment.reporter.full_name()) }}
     {{ details_row("État", payment.status.display_name()) }}
     {{ details_row("Prix facturé", format_currency(payment.amount_charged)) }}
     {{ details_row("Prix payé", format_currency(payment.amount_paid)) }}
     {{ details_row("Type", payment.payment_type.display_name()) }}
     {{ details_row("Date de création", format_datetime(payment.creation_time)) }}
     {{ details_row("Date de finalisation", format_datetime(payment.finalization_time)) }}
-    {{ details_row("Token", payment.processor_token) }}
-    {{ details_row("Metadata", payment.raw_metadata) }}
+    
+    {% if payment.is_offline() %}
+      {{ details_row("Précisions", payment.raw_metadata) }}
+    {% else %}
+      {{ details_row("Référence", payment.processor_order_ref) }}
+      {% if current_user.is_admin() and not payment.is_offline() %}
+        {{ details_row("Token", payment.processor_token) }}
+        {{ details_row("Metadata", payment.raw_metadata) }}
+      {% endif %}  
+    {% endif %}  
+
   </table>
 
 </div>

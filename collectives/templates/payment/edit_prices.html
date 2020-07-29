@@ -8,6 +8,8 @@
 {% block content %}
 <div class="panel" id="administration">
   <h3>{{event.title}}</h3>
+  <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
+
   <h4>Édition des tarifs</h4>
   Pour rendre la collective payante, définissez un ou plusieurs tarifs.
 

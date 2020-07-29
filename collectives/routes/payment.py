@@ -273,6 +273,7 @@ def request_payment(payment_id):
             return redirect(url_for("event.view_event", event_id=payment.item.event.id))
 
         payment.processor_token = payment_request.token
+        payment.processor_order_ref = order_info.unique_ref()
         db.session.add(payment)
         db.session.commit()
         return redirect(payment_request.redirect_url)

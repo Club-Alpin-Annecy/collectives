@@ -55,6 +55,24 @@ class ActivityType(db.Model):
                 return True
         return False
 
+    def trigram(self):
+        """" Assembles a 3 letters activity code by gathering
+        first letters from activity name words
+        This is not guarranteed to generate unique codes for
+        arbitrary inputs, for works well in practice for our activities.
+
+        :return: 3 uppercase laters, e.g. 'SDR' for 'Ski de rando'
+        :rtype: string
+        """
+        tokens = self.name.split(" ")
+        if len(tokens) >= 3:
+            tri = tokens[0][0]+tokens[1][0]+tokens[2][0]
+        elif len(tokens) >= 2:
+            tri = tokens[0][0:2]+tokens[1][0]
+        else:
+            tri = tokens[0][0:3]
+        return tri.upper()
+
     @classmethod
     def get_all_types(cls):
         """List all activity_types in database

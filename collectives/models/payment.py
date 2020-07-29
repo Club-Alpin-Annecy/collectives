@@ -254,7 +254,12 @@ class Payment(db.Model):
 
     processor_token = db.Column(db.String(256), index=True, nullable=False)
     """ Unique identifier of this payment for the payment processor.
-        To be refined.
+
+    :type: str
+    """
+
+    processor_order_ref = db.Column(db.String(256))
+    """ Human-readable order identifier for the payment processor.
 
     :type: str
     """
@@ -265,7 +270,7 @@ class Payment(db.Model):
         info={"label": "Précisions", "description": "Par ex. numéro de chèque"},
     )
     """ Raw metadata concerning this payment as returned by the payment processor,
-        or paymentr details if it had been made by cash/check
+        or payment details if it had been made by cash/check
         To be refined.
 
     :type: str
@@ -290,6 +295,7 @@ class Payment(db.Model):
         """:return: whether this is an offline payment (Check, Card, etc)
         :rtype: bool"""
         return self.payment_type != PaymentType.Online
+
 
     def __init__(self, registration=None, item_price=None):
         """Overloaded constructor.
