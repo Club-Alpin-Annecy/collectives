@@ -34,7 +34,7 @@
           <a class="button button-secondary" href="{{url_for('payment.payment_details', payment_id=p.id)}}"> {{p.item.title}}</a>
         {% endfor%}
       {% elif registration.is_pending_payment() %}
-      <a href="{{url_for('payment.report_offline', registration_id=registration.id)}}">Notifier un paiement
+      <a href="{{url_for('payment.report_offline', registration_id=registration.id)}}" class="button button-secondary">Saisir un paiement
             hors-ligne</a>
       {% endif %}
 
