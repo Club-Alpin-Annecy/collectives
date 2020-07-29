@@ -56,6 +56,11 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
+    amount_paid = fields.Function(lambda p: format_currency(p.amount_paid))
+    """ Amount paid as string
+
+    :type: string"""
+
     details_uri = fields.Function(
         lambda p: url_for("payment.payment_details", payment_id=p.id)
     )
@@ -72,6 +77,7 @@ class PaymentSchema(marshmallow.Schema):
             "item_title",
             "price_title",
             "amount_charged",
+            "amount_paid",
             "creditor_name",
             "payment_type",
             "registration_status",

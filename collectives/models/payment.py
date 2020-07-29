@@ -296,7 +296,6 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.payment_type != PaymentType.Online
 
-
     def __init__(self, registration=None, item_price=None):
         """Overloaded constructor.
         Pre-fill a Payment object from an existing registration and item price

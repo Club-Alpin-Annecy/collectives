@@ -66,9 +66,9 @@ class ActivityType(db.Model):
         """
         tokens = self.name.split(" ")
         if len(tokens) >= 3:
-            tri = tokens[0][0]+tokens[1][0]+tokens[2][0]
+            tri = tokens[0][0] + tokens[1][0] + tokens[2][0]
         elif len(tokens) >= 2:
-            tri = tokens[0][0:2]+tokens[1][0]
+            tri = tokens[0][0:2] + tokens[1][0]
         else:
             tri = tokens[0][0:3]
         return tri.upper()

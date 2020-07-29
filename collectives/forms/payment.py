@@ -2,17 +2,9 @@ from decimal import Decimal
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import (
-    SubmitField,
-    StringField,
-    DecimalField,
-    FormField,
-    FieldList,
-    HiddenField,
-    BooleanField,
-    SelectField,
-)
-from wtforms.validators import NumberRange, DataRequired, ValidationError
+from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList
+from wtforms import HiddenField, BooleanField, SelectField
+from wtforms.validators import NumberRange, DataRequired, ValidationError, Optional
 from wtforms_alchemy import ModelForm
 
 from .order import OrderedForm
@@ -149,6 +141,7 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
     class Meta:
         model = Payment
         only = ["amount_paid", "raw_metadata", "payment_type"]
+        field_args = {"raw_metadata": {"validators": [Optional()]}}
         locales = ["fr"]
 
     amount_paid = DecimalField(
