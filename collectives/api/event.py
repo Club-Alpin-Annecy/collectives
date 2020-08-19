@@ -211,7 +211,7 @@ def events():
             query_filter = Event.activity_types.any(short=value)
         elif field == "end":
             if filter_type == ">=":
-                query_filter = Event.end >= current_time()
+                query_filter = Event.end >= current_time().date()
         elif field == "status":
             if filter_type == "=":
                 query_filter = Event.status == value
