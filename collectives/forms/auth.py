@@ -42,7 +42,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
     submit = SubmitField("Activer le compte")
 
     def __init__(self, *args, **kwargs):
-        super(AccountCreationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.mail.description = "Utilisée lors de votre inscription au club"
 
 

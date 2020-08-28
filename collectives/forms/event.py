@@ -147,7 +147,7 @@ class EventForm(ModelForm, FlaskForm):
         It is different from passing obj=event, which would populate all form fields
         from event data.
         """
-        super(EventForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if "obj" in kwargs:
             # Reading from an existing event

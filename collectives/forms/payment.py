@@ -89,7 +89,7 @@ class ItemPriceForm(ModelForm, AmountForm):
     def __init__(self, *args, **kwargs):
         """ Overloaded  constructor
         """
-        super(ItemPriceForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Update price range from config
         self.update_max_amount()

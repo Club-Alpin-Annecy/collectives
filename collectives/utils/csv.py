@@ -109,22 +109,22 @@ def parse(row, column_name):
     if column_type == "datetime":
         try:
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
-        except ValueError:
+        except ValueError as err:
             raise Exception(
                 "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
                     value_str, column_short_desc
                 )
-            )
+            ) from err
     elif column_type == "int":
         if value_str:
             try:
                 return int(value_str)
-            except ValueError:
+            except ValueError as err:
                 raise Exception(
                     "La valeur '{}' de la colonne '{}' doit être un entier".format(
                         value_str, column_name
                     )
-                )
+                ) from err
 
     return value_str
 

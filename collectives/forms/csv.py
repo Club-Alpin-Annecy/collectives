@@ -13,5 +13,5 @@ class CSVForm(FlaskForm):
     type = SelectField("Type d'activité", choices=[])
 
     def __init__(self, activity_choices, *args, **kwargs):
-        super(CSVForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.type.choices = activity_choices

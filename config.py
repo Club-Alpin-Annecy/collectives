@@ -223,7 +223,6 @@ TZ_NAME = "Europe/Paris"
 
 # Event type:
 # fmt: off
-# pylint: disable=C0326
 TYPES = {
     1:  {"short": "ski_alpin",     "name": "Ski et surf en station"},
     2:  {"short": "escalade",      "name": "Escalade"},
