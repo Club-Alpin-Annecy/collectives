@@ -1,7 +1,7 @@
 """ Module for user authentification routes. """
 
 import sqlite3
-import uuid, datetime
+import uuid, datetime, traceback
 from sys import stderr
 
 from flask import flash, render_template, redirect, url_for, request
@@ -62,17 +62,20 @@ def sync_user(user, force):
     :type force: boolean
     """
     if user.enabled and not user.is_test:
-        # Check whether the license has been renewed
-        license_info = extranet.api.check_license(user.license)
-        if not license_info.exists:
-            return
+        try:
+            # Check whether the license has been renewed
+            license_info = extranet.api.check_license(user.license)
+            if not license_info.exists:
+                return
 
-        if force or license_info.expiry_date() > user.license_expiry_date:
-            # License has been renewd, sync user data from API
-            user_info = extranet.api.fetch_user_info(user.license)
-            extranet.sync_user(user, user_info, license_info)
-            db.session.add(user)
-            db.session.commit()
+            if force or license_info.expiry_date() > user.license_expiry_date:
+                # License has been renewd, sync user data from API
+                user_info = extranet.api.fetch_user_info(user.license)
+                extranet.sync_user(user, user_info, license_info)
+                db.session.add(user)
+                db.session.commit()
+        except Exception:
+            traceback.print_exc()
 
 
 def create_confirmation_token(license_number, user):
