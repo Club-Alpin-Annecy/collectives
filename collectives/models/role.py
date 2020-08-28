@@ -5,7 +5,7 @@ from .globals import db
 
 
 class RoleIds(ChoiceEnum):
-    """ Enum listing the type of a role
+    """Enum listing the type of a role
 
     Global roles are not related to an activity and are website wide:
 
@@ -42,7 +42,7 @@ class RoleIds(ChoiceEnum):
         }
 
     def relates_to_activity(self):
-        """ Check if this role needs an activity.
+        """Check if this role needs an activity.
 
         See :py:class:`RoleIds` Global roles vs Event related roles.
 
@@ -89,7 +89,7 @@ class RoleIds(ChoiceEnum):
 
 
 class Role(db.Model):
-    """ Role for a specific user.
+    """Role for a specific user.
 
     These objects are linked to :py:class:`collectives.models.user.User` and
     sometimes to a :py:class:`collectives.models.activitytype.ActivityType`.
@@ -130,7 +130,7 @@ class Role(db.Model):
 
     @property
     def name(self):
-        """ Returns the name of the role.
+        """Returns the name of the role.
 
         :return: name of the role.
         :rtype: string

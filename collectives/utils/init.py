@@ -7,7 +7,7 @@ from ..models import ActivityType, db
 
 
 def activity_types(app):
-    """ Initialize activity types
+    """Initialize activity types
 
     Get activity types defined in Flask application configuration (TYPES)
     and load it in the database. This function should be called once at app

@@ -27,7 +27,7 @@ def before_request():
 
 @blueprint.route("/user/<user_id>", methods=["GET"])
 def show_user(user_id):
-    """ Route to show detail of a regular user.
+    """Route to show detail of a regular user.
 
     :param int user_id: Primary key of the user.
     """
@@ -52,7 +52,7 @@ def show_user(user_id):
 
 @blueprint.route("/organizer/<leader_id>", methods=["GET"])
 def show_leader(leader_id):
-    """ Route to show leader details of a user.
+    """Route to show leader details of a user.
 
     :param int user_id: Primary key of the user.
     """

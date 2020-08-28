@@ -11,7 +11,7 @@ from .misc import isMobileUser
 
 
 def helpers_processor():
-    """ Function used by Jinja to access utils fonctions.
+    """Function used by Jinja to access utils fonctions.
 
     :return: Dictionnary of :py:mod:`collectives.utils.time` functions.
     :rtype: dict(Function)
@@ -25,7 +25,7 @@ def helpers_processor():
 
 
 def version_link(version):
-    """ Convert a git version to an http link.
+    """Convert a git version to an http link.
 
     Meanwhile, it also sanitize the version since it will be included as html in the
     page.

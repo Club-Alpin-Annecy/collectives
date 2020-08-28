@@ -22,8 +22,7 @@ from ..utils.numbers import format_currency
 
 
 class AmountForm(FlaskForm):
-    """Form component for inputting an amount in euros
-    """
+    """Form component for inputting an amount in euros"""
 
     class Meta:
         locales = ["fr"]
@@ -51,8 +50,7 @@ class AmountForm(FlaskForm):
 
 
 class ItemPriceForm(ModelForm, AmountForm):
-    """ Form associated to the :py:class:`collectives.models.payment.ItemPrice` model
-    """
+    """Form associated to the :py:class:`collectives.models.payment.ItemPrice` model"""
 
     class Meta:
         model = ItemPrice
@@ -87,8 +85,7 @@ class ItemPriceForm(ModelForm, AmountForm):
         return item, price
 
     def __init__(self, *args, **kwargs):
-        """ Overloaded  constructor
-        """
+        """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 
         # Update price range from config
@@ -96,24 +93,22 @@ class ItemPriceForm(ModelForm, AmountForm):
 
 
 class NewItemPriceForm(AmountForm):
-    """ Form component for inputting a new item and price
-    """
+    """Form component for inputting a new item and price"""
 
     item_title = StringField("Objet du paiement")
     title = StringField("Intitulé du tarif")
 
     def validate_title(form, field):
-        """ Validates that if a new item is created, then the
-            title field is not empty.
-            See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
-         """
+        """Validates that if a new item is created, then the
+        title field is not empty.
+        See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
+        """
         if form.item_title.data and len(field.data) == 0:
             raise ValidationError("L'intitulé du nouveau tarif ne doit pas être vide")
 
 
 class PaymentItemsForm(FlaskForm):
-    """ Form for editing payment items and prices
-    """
+    """Form for editing payment items and prices"""
 
     new_item = FormField(NewItemPriceForm)
     items = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
@@ -149,8 +144,7 @@ class PaymentItemsForm(FlaskForm):
 
 
 class OfflinePaymentForm(ModelForm, OrderedForm):
-    """Form for notifying an offline payment
-    """
+    """Form for notifying an offline payment"""
 
     class Meta:
         model = Payment
@@ -184,8 +178,7 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
     field_order = ["item_price", "amount_paid", "payment_type", "*", "make_active"]
 
     def __init__(self, registration, *args, **kwargs):
-        """ Overloaded  constructor
-        """
+        """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 
         # Remove 'Online' from payment type options

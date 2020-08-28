@@ -24,7 +24,7 @@ from flask import current_app
 
 
 def send_mail(**kwargs):
-    """  Send a mail.
+    """Send a mail.
 
     Usage example:
 

@@ -30,7 +30,7 @@ def access_requires(f, test, api=False):
     @wraps(test)
     @wraps(api)
     def decorated_function(*args, **kwargs):
-        """ The function that will decorate and protect.
+        """The function that will decorate and protect.
 
         `f` is the protected function.
         `test` is the check to allow or refuse access.
@@ -64,7 +64,7 @@ def confidentiality_agreement(api=False):
     """
 
     def innerF(f):
-        """ Function that will wraps `f`.
+        """Function that will wraps `f`.
 
         :param f: function to protect.
         :type f: function
@@ -73,7 +73,7 @@ def confidentiality_agreement(api=False):
         """
 
         def tester(*args, **kwargs):
-            """ Check if user has signed ca.
+            """Check if user has signed ca.
 
             It will also return everything required to display an error message if
             check is failed.
@@ -105,7 +105,7 @@ def admin_required(api=False):
     """
 
     def innerF(f):
-        """ Function that will wraps `f`.
+        """Function that will wraps `f`.
 
         :param f: function to protect.
         :type f: function
@@ -114,7 +114,7 @@ def admin_required(api=False):
         """
 
         def tester(*args, **kwargs):
-            """ Check if user is an admin.
+            """Check if user is an admin.
 
             It will also return everything required to display an error message if
             check is failed.
@@ -144,11 +144,10 @@ def payments_enabled(api=False):
     """
 
     def innerF(f):
-        """ Function that will wraps `f`.
-        """
+        """Function that will wraps `f`."""
 
         def tester(*args, **kwargs):
-            """ Check if user is an admin.
+            """Check if user is an admin.
 
             It will also return everything required to display an error message if
             check is failed.

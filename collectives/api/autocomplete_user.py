@@ -35,7 +35,7 @@ class AutocompleteUserSchema(marshmallow.Schema):
 
 
 def find_users_by_fuzzy_name(q, limit=8):
-    """ Find user for autocomplete from a part of their full name.
+    """Find user for autocomplete from a part of their full name.
 
     Comparison are case insensitive.
 

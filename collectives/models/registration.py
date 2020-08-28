@@ -6,9 +6,9 @@ from .utils import ChoiceEnum
 
 
 class RegistrationLevels(enum.IntEnum):
-    """ Enum listing acceptable registration levels.
+    """Enum listing acceptable registration levels.
 
-    A registration level is type of event participant, such as a co-leader or a regular participant. """
+    A registration level is type of event participant, such as a co-leader or a regular participant."""
 
     Normal = 0
     """ Normal participant, no specific power. """

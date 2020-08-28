@@ -12,7 +12,7 @@ from .utils.time import format_date
 
 
 def send_new_event_notification(event):
-    """ Send a notification to activity supervisor when a new event is created
+    """Send a notification to activity supervisor when a new event is created
 
     :param event: The new created event.
     :type event: :py:class:`collectives.modes.event.Event`
@@ -40,7 +40,7 @@ def send_new_event_notification(event):
 
 
 def send_unregister_notification(event, user):
-    """ Send a notification to leaders when a user unregisters from an event
+    """Send a notification to leaders when a user unregisters from an event
 
     :param event: Event on which user unregisters.
     :type event: :py:class:`collectives.modes.event.Event`
@@ -70,7 +70,7 @@ def send_unregister_notification(event, user):
 
 
 def send_confirmation_email(email, name, token):
-    """ Send an email to user to confirm his account activation
+    """Send an email to user to confirm his account activation
 
     :param string email: Address where to send the email
     :param string name: User name
@@ -98,7 +98,7 @@ def send_confirmation_email(email, name, token):
 
 
 def send_reject_subscription_notification(rejector_name, event, rejected_user_email):
-    """ Send a notification to user whom registration has been rejected
+    """Send a notification to user whom registration has been rejected
 
     :param string rejector_name: User name who rejects the subscription.
     :param event: Event the registraton is rejected on.
@@ -121,14 +121,16 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
 
         subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(event_title=event.title)
         mail.send_mail(
-            subject=subject, email=rejected_user_email, message=message,
+            subject=subject,
+            email=rejected_user_email,
+            message=message,
         )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
 
 
 def send_cancelled_event_notification(name, event):
-    """ Send a notification to user whom event has been cancelled
+    """Send a notification to user whom event has been cancelled
 
     :param string name: User name who cancelled the event.
     :param event: Event that has been cancelled.
@@ -151,7 +153,9 @@ def send_cancelled_event_notification(name, event):
         emails = [r.user.mail for r in event.active_registrations()]
         if emails:
             mail.send_mail(
-                subject=subject, email=emails, message=message,
+                subject=subject,
+                email=emails,
+                message=message,
             )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)

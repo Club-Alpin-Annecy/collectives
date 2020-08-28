@@ -22,7 +22,7 @@ class LicenseValidator:
     Type: string """
 
     def __call__(self, form, field):
-        """ Validates the license field data.
+        """Validates the license field data.
 
         :param form: Form of the field.
         :type form: :py:class:`wtforms.form.Form`
@@ -36,23 +36,23 @@ class LicenseValidator:
             raise ValidationError(error_message)
 
     def help_string(self):
-        """ Generate an help sentence.
+        """Generate an help sentence.
 
         :return: an help sentence.
-        :rtype: string  """
+        :rtype: string"""
         return "{len} chiffres commencant par '{pref}'".format(
             len=self.length, pref=self.prefix
         )
 
     def sample_value(self):
-        """ Generate a sample value (place holder).
+        """Generate a sample value (place holder).
 
         :return: a place holder
-        :rtype: string  """
+        :rtype: string"""
         return self.prefix + "X" * (self.length - len(self.prefix))
 
     def pattern(self):
-        """ Construct the pattern attribute to validate license.
+        """Construct the pattern attribute to validate license.
 
         :return: A regex pattern to validate a license.
         :rtype: String

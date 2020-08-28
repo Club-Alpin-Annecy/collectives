@@ -14,7 +14,7 @@ from .common import blueprint, marshmallow, avatar_url
 
 
 def photo_uri(event):
-    """ Generate an URI for event image using Flask-Images.
+    """Generate an URI for event image using Flask-Images.
 
     Returned images are thumbnail of 200x130 px.
 

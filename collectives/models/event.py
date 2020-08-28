@@ -62,7 +62,7 @@ event_activity_types = db.Table(
 
 
 class Event(db.Model):
-    """ Class of an event.
+    """Class of an event.
 
     An event is an object a a determined start and end, related to
     actitivity types, leaders and user subscriptions. Description are stored
@@ -220,7 +220,7 @@ class Event(db.Model):
 
     # Date validation
     def has_defined_registration_date(self):
-        """ Check if this event has online registration date
+        """Check if this event has online registration date
 
         An event should not be created with online slot defined but without
         registration dates (open and close).
@@ -234,7 +234,7 @@ class Event(db.Model):
         return True
 
     def starts_before_ends(self):
-        """ Check if this event has right date order.
+        """Check if this event has right date order.
 
         An event end should be after the start.
 
@@ -244,7 +244,7 @@ class Event(db.Model):
         return self.start <= self.end
 
     def opens_before_closes(self):
-        """ Check if this event has right registration date order.
+        """Check if this event has right registration date order.
 
         An event registration end should be after the registration start.
 
@@ -255,7 +255,7 @@ class Event(db.Model):
         return self.registration_open_time <= self.registration_close_time
 
     def opens_before_ends(self):
-        """ Check if this event opens registration before its end.
+        """Check if this event opens registration before its end.
 
         An event end should be after the registration start.
 
@@ -266,7 +266,7 @@ class Event(db.Model):
         return self.registration_open_time <= self.end
 
     def closes_before_starts(self):
-        """ Check if this event closes registrations before starting.
+        """Check if this event closes registrations before starting.
         This should be the case for "normal" events, see #159
 
         :return: Is :py:attr:`registration_close_time` anterior to
@@ -276,7 +276,7 @@ class Event(db.Model):
         return self.registration_close_time <= self.start
 
     def has_valid_slots(self):
-        """ Check if this event does not have more online slots than overall
+        """Check if this event does not have more online slots than overall
         slots.
 
         :return: True if event has a good configuration of num_slots.
@@ -350,7 +350,7 @@ class Event(db.Model):
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
         :return: True if user is a leader.
-        :rtype: boolean """
+        :rtype: boolean"""
         return user in self.leaders
 
     def is_supervisor(self, user):
@@ -364,7 +364,7 @@ class Event(db.Model):
         return any([a for a in self.activity_types if user.supervises_activity(a.id)])
 
     def has_edit_rights(self, user):
-        """ Check if a user can edit this event.
+        """Check if a user can edit this event.
 
         Returns true if either:
          - event is WIP (not created yet)
@@ -385,7 +385,7 @@ class Event(db.Model):
         return self.is_leader(user) or self.is_supervisor(user)
 
     def has_delete_rights(self, user):
-        """ Check if a user can delete this event.
+        """Check if a user can delete this event.
 
         Returns true if either:
          - user supervises any of this event activities
@@ -414,7 +414,7 @@ class Event(db.Model):
 
     # Registrations
     def is_registration_open_at_time(self, time):
-        """ Check if online registration for this event is open.
+        """Check if online registration for this event is open.
 
         :param time: Time that will be checked (usually, current time).
         :type time: :py:class:`datetime.datetime`
@@ -425,7 +425,7 @@ class Event(db.Model):
         return self.registration_open_time <= time <= self.registration_close_time
 
     def active_registrations(self):
-        """ Returns all actives registrations.
+        """Returns all actives registrations.
 
         See :py:meth:`collectives.models.registration.Registration.is_active`
 
@@ -440,7 +440,7 @@ class Event(db.Model):
         ]
 
     def num_taken_slots(self):
-        """ Return the number of slots that have been taken
+        """Return the number of slots that have been taken
         (registration is either active or pending)
 
         :return: count of taken slots
@@ -455,7 +455,7 @@ class Event(db.Model):
         )
 
     def has_free_slots(self):
-        """ Check if this event is full.
+        """Check if this event is full.
 
         :return: True if there is less active registrations than available slots.
         :rtype: boolean
@@ -463,7 +463,7 @@ class Event(db.Model):
         return self.num_taken_slots() < self.num_slots
 
     def has_free_online_slots(self):
-        """ Check if an user can self-register.
+        """Check if an user can self-register.
 
         :return: True if there is less active registrations than available
                 online slots.
@@ -472,10 +472,10 @@ class Event(db.Model):
         return self.num_taken_slots() < self.num_online_slots
 
     def free_slots(self):
-        """ Calculate the amount of available slot for new registrations.
+        """Calculate the amount of available slot for new registrations.
 
         :return: Number of free slots for this event.
-        :rtype: int """
+        :rtype: int"""
         free = self.num_slots - self.num_taken_slots()
         return max(free, 0)
 
@@ -494,7 +494,7 @@ class Event(db.Model):
         ]
 
     def is_registered(self, user):
-        """ Check if a user is registered to this event.
+        """Check if a user is registered to this event.
 
         Note:
         - leader is not considered as registered.
@@ -508,7 +508,7 @@ class Event(db.Model):
         return any(self.existing_registrations(user))
 
     def is_registered_with_status(self, user, statuses):
-        """ Check if a user is registered to this event with specific status.
+        """Check if a user is registered to this event with specific status.
 
         Note:
         - leader is not considered as registered.
@@ -528,7 +528,7 @@ class Event(db.Model):
         return any(existing_registrations)
 
     def is_rejected(self, user):
-        """ Check if a user is rejected on this event.
+        """Check if a user is rejected on this event.
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -538,7 +538,7 @@ class Event(db.Model):
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
     def has_pending_payment(self, user):
-        """ Check if a user has a pending . payment this event.
+        """Check if a user has a pending . payment this event.
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -548,7 +548,7 @@ class Event(db.Model):
         return self.is_registered_with_status(user, [RegistrationStatus.PaymentPending])
 
     def can_self_register(self, user, time):
-        """ Check if a user can self-register.
+        """Check if a user can self-register.
 
         An user can self-register if:
           - he has no current registration with this event.
@@ -571,25 +571,25 @@ class Event(db.Model):
 
     # Status
     def is_confirmed(self):
-        """ Check if this event is confirmed.
+        """Check if this event is confirmed.
 
         See: :py:class:`EventStatus`
 
         :return: True if this event has ``Confirmed`` status.
-        :rtype: boolean """
+        :rtype: boolean"""
         return self.status == EventStatus.Confirmed
 
     def status_string(self):
-        """ Get the event status as a string to display.
+        """Get the event status as a string to display.
 
         See: :py:meth:`EventStatus.display_name`
 
         :return: The status of the event.
-        :rtype: string """
+        :rtype: string"""
         return EventStatus(self.status).display_name()
 
     def is_visible_to(self, user):
-        """ Checks whether this event is visible to an user
+        """Checks whether this event is visible to an user
 
         - Moderators can see all events
         - Normal users cannot see 'Pending' events
@@ -610,5 +610,5 @@ class Event(db.Model):
     def requires_payment(self):
         """
         :return: Whether this event requires payment.
-        :rtype: bool """
+        :rtype: bool"""
         return any(self.payment_items)

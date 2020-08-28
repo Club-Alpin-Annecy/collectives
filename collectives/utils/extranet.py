@@ -40,7 +40,7 @@ class LicenseInfo:
     """
 
     def expiry_date(self):
-        """ Get licence expiration date.
+        """Get licence expiration date.
 
         Licence expire at the start of the month `LICENSE_EXPIRY_MONTH` which follow
         the renewal date.
@@ -58,7 +58,7 @@ class LicenseInfo:
         return date(year, LICENSE_EXPIRY_MONTH, 1)
 
     def is_valid_at_time(self, time):
-        """ Check if license is valid at a given date.
+        """Check if license is valid at a given date.
 
         :param time: Date to test license validity.
         :type time: :py:class:`datetime.date`
@@ -138,7 +138,7 @@ class UserInfo:
 
 
 def sync_user(user, user_info, license_info):
-    """ Populate a user object with user and license info from FFCAM servers.
+    """Populate a user object with user and license info from FFCAM servers.
 
     :param user: User to populate.
     :type user: :py:class:`collectives.models.user.User`
@@ -163,8 +163,7 @@ def sync_user(user, user_info, license_info):
 
 
 class ExtranetApi:
-    """ SOAP Client to retrieve information from FFCAM servers.
-    """
+    """SOAP Client to retrieve information from FFCAM servers."""
 
     soap_client = None
     """ SOAP client object user to connect to FFCAM client.
@@ -185,7 +184,7 @@ class ExtranetApi:
     """
 
     def init_app(self, app):
-        """ Initialize the extranet with the app.
+        """Initialize the extranet with the app.
 
         :param app: Current app.
         :type app: :py:class:`flask.Flask`
@@ -193,8 +192,7 @@ class ExtranetApi:
         self.app = app
 
     def init(self):
-        """ Initialize the SOAP Client using `app` config.
-        """
+        """Initialize the SOAP Client using `app` config."""
         if not self.soap_client is None:
             # Already initialized
             return
@@ -218,7 +216,7 @@ class ExtranetApi:
             raise err
 
     def disabled(self):
-        """ Check if soap client has been initialized.
+        """Check if soap client has been initialized.
 
         If soap client has not been initialized, it means we are in dev mode.
 
@@ -228,7 +226,7 @@ class ExtranetApi:
         return self.soap_client is None
 
     def check_license(self, license_number):
-        """ Get information on a license from FFCAM server.
+        """Get information on a license from FFCAM server.
 
         :param license_number: License to get information about.
         :type license_number: string
@@ -268,7 +266,7 @@ class ExtranetApi:
         return info
 
     def fetch_user_info(self, license_number):
-        """ Get user information on a license from FFCAM server.
+        """Get user information on a license from FFCAM server.
 
         :param license_number: User license to get information about.
         :type license_number: string

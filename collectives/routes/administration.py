@@ -25,7 +25,7 @@ This blueprint contains all routes for administration. It is reserved to adminis
 @admin_required()
 @confidentiality_agreement()
 def before_request():
-    """ Protect all of the admin endpoints.
+    """Protect all of the admin endpoints.
 
     Protection is done by the decorator:
 
@@ -38,8 +38,7 @@ def before_request():
 
 @blueprint.route("/", methods=["GET", "POST"])
 def administration():
-    """ Route for administration home page.
-    """
+    """Route for administration home page."""
     # Create the filter list
     filters = {"": ""}
     filters["tnone"] = "Role General"
@@ -63,7 +62,7 @@ def administration():
 @blueprint.route("/users/add", methods=["GET", "POST"])
 @blueprint.route("/users/<user_id>", methods=["GET", "POST"])
 def manage_user(user_id=None):
-    """ Route for user management page.
+    """Route for user management page.
 
     This is the page for user modification. If it is a test user, more field are offered to the modification. This route is also used for test user creation.
 
@@ -113,7 +112,7 @@ def manage_user(user_id=None):
 
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
 def delete_user(user_id):
-    """ Route to delete an user.
+    """Route to delete an user.
 
     TODO
     """
@@ -123,8 +122,7 @@ def delete_user(user_id):
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 def add_user_role(user_id):
-    """ Route for user roles management page.
-    """
+    """Route for user roles management page."""
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         flash("Utilisateur inexistant", "error")
@@ -172,7 +170,7 @@ def add_user_role(user_id):
 
 @blueprint.route("/roles/<user_id>/delete", methods=["POST"])
 def remove_user_role(user_id):
-    """ Route to delete a user role.
+    """Route to delete a user role.
 
     :return: redirection to role management page
     :rtype: string
@@ -203,7 +201,7 @@ def remove_user_role(user_id):
 
 @blueprint.route("/roles/export/", methods=["GET"])
 def export_role_no_filter():
-    """ Default role export route.
+    """Default role export route.
 
     In case an user makes a role export without a filter, give him an error since
     filters are required for export.
@@ -216,7 +214,7 @@ def export_role_no_filter():
 
 @blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
 def export_role(raw_filters=""):
-    """ Create an Excell document with the contact information of roled users.
+    """Create an Excell document with the contact information of roled users.
 
     Input is a string with id of role or activity. EG `r2-t1` for role 2 and type 1.
 

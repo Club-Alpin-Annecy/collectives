@@ -35,7 +35,7 @@ CPT stands for "Full"
 
 
 class PaymentResult:
-    """ Result returned after payline API requests. Gives information
+    """Result returned after payline API requests. Gives information
     about whether the request has succeeded, or why it has not
     """
 
@@ -58,7 +58,7 @@ class PaymentResult:
     """
 
     def __init__(self, response=None):
-        """ Constructor from an optional SOAP response dictionary
+        """Constructor from an optional SOAP response dictionary
 
         :param response: Result object from SOAP response
         :type response: dict
@@ -192,7 +192,7 @@ class PaymentDetails:
 
 
 class OrderInfo:
-    """ Class describing an order for a payment request.
+    """Class describing an order for a payment request.
     Will usually be constructed from a :py:class:`collectives.models.payment.Payment` object
     """
 
@@ -231,7 +231,7 @@ class OrderInfo:
         return f"order_{self.payment_id}"
 
     def __init__(self, payment=None):
-        """ Constructor from an optional payment object
+        """Constructor from an optional payment object
 
         :param payment: Payment database entry, defaults to None
         :type payment: :py:class:`collectives.models.payment.Payment`, optional
@@ -249,8 +249,7 @@ class OrderInfo:
 
 
 class BuyerInfo:
-    """ Information about the user making the payment
-    """
+    """Information about the user making the payment"""
 
     title = ""
     """ Title, e.g. 'M.', 'Mme.', etc
@@ -284,7 +283,7 @@ class BuyerInfo:
     """
 
     def __init__(self, user=None):
-        """ Constructor from an optional user object
+        """Constructor from an optional user object
 
         :param payment: User database entry, defaults to None
         :type payment: :py:class:`collectives.models.user.User`, optional
@@ -302,8 +301,7 @@ class BuyerInfo:
 
 
 class PaylineApi:
-    """ SOAP Client to process payment with payline, refer to Payline docs
-    """
+    """SOAP Client to process payment with payline, refer to Payline docs"""
 
     soap_client = None
     """ SOAP client object user to connect to Payline client.
@@ -360,7 +358,7 @@ class PaylineApi:
     """
 
     def init_app(self, app):
-        """ Initialize the payline with the app.
+        """Initialize the payline with the app.
 
         :param app: Current app.
         :type app: :py:class:`flask.Flask`
@@ -368,8 +366,7 @@ class PaylineApi:
         self.app = app
 
     def init(self):
-        """ Initialize the SOAP Client using `app` config.
-        """
+        """Initialize the SOAP Client using `app` config."""
         if not self.soap_client is None:
             # Already initialized
             return
@@ -477,7 +474,7 @@ class PaylineApi:
         return None
 
     def getWebPaymentDetails(self, token):
-        """ Returns the details about a payment that has been previously initiated
+        """Returns the details about a payment that has been previously initiated
 
         :param token: The unique identifer returned by the :py:meth:`doWebPayment()` call
         :type token: string
@@ -518,7 +515,7 @@ class PaylineApi:
         return None
 
     def disabled(self):
-        """ Check if soap client has been initialized.
+        """Check if soap client has been initialized.
 
         If soap client has not been initialized, it means we are in dev mode.
 
