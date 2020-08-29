@@ -4,7 +4,7 @@ from .globals import db
 
 
 class ActivityType(db.Model):
-    """ Class of the type of activity.
+    """Class of the type of activity.
 
     An activity type can be a sport (climbing, hiking) or another occupation
     (training). Persistence is done with SQLAlchemy and in the table
@@ -57,7 +57,7 @@ class ActivityType(db.Model):
 
     @classmethod
     def get_all_types(cls):
-        """ List all activity_types in database
+        """List all activity_types in database
 
         :return: list of types
         :rtype: list(:py:class:`ActivityType`)"""

@@ -28,7 +28,7 @@ This blueprint contains all routes for event display and management
 @blueprint.before_request
 @payments_enabled()
 def before_request():
-    """ Protect all of the payment endpoints.
+    """Protect all of the payment endpoints.
 
     Protection is done by the decorator:
     - check if payments are enabled for the site :py:func:`collectives.utils.access.payments_enabled`
@@ -39,7 +39,7 @@ def before_request():
 @login_required
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
 def edit_prices(event_id):
-    """ Route for editing payment items and prices associated to an event
+    """Route for editing payment items and prices associated to an event
 
     :param event_id: The primary key of the event we're editing the prices of
     :type event_id: int
@@ -119,7 +119,7 @@ def edit_prices(event_id):
 @login_required
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
 def list_payments(event_id):
-    """ Route for listing all payments associated to an event
+    """Route for listing all payments associated to an event
 
     :param event_id: The primary key of the event we're listing the prices of
     :type event_id: int
@@ -172,7 +172,7 @@ def payment_details(payment_id):
     "/<payment_id>/registration/<registration_id>/edit_offline", methods=["GET", "POST"]
 )
 def report_offline(registration_id, payment_id=None):
-    """ Route for entering/editing an offline payment
+    """Route for entering/editing an offline payment
 
     :param registration_id: The registration associated to the payment
     :type registration_id: int
@@ -345,7 +345,7 @@ def finalize_payment(payment, details):
 @blueprint.route("/cancel", endpoint="cancel", methods=["GET", "POST"])
 @blueprint.route("/notify", endpoint="notify", methods=["GET", "POST"])
 def process():
-    """ Route for fetching the result of a payment after a user has
+    """Route for fetching the result of a payment after a user has
     completed or cancelled the process, or upon notification from the
     payment processor after a timeout has expired.
 

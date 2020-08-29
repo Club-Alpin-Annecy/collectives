@@ -34,7 +34,7 @@ This blueprint contains all routes for authentification actions.
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
-    """ Flask-login user loader.
+    """Flask-login user loader.
 
     See also: `flask_login.LoginManager.user_loader
     <https://flask-login.readthedocs.io/en/latest/#flask_login.LoginManager.user_loader>`_
@@ -51,7 +51,7 @@ def load_user(user_id):
 
 
 def sync_user(user, force):
-    """ Synchronize user info from extranet.
+    """Synchronize user info from extranet.
 
     Synchronization is done if license has been renewed or if 'force' is True. Test users
     cannot be synchronized.
@@ -76,7 +76,7 @@ def sync_user(user, force):
 
 
 def create_confirmation_token(license_number, user):
-    """ Create a token for email confirmation.
+    """Create a token for email confirmation.
 
     :return: New confirmation token saved into database.
     :rtype: :py:class:`collectives.models.auth.ConfirmationToken`
@@ -89,7 +89,7 @@ def create_confirmation_token(license_number, user):
 
 @blueprint.route("/login", methods=["GET", "POST"])
 def login():
-    """ Route for user login page.
+    """Route for user login page.
 
     If authentification has failed, there is a timeout : :py:data:`config.AUTH_FAILURE_WAIT`
     If confidentiality agreement or legal text has not been signed, a reminder is
@@ -161,14 +161,13 @@ def login():
 @blueprint.route("/logout")
 @login_required
 def logout():
-    """ Route for logout user page.
-    """
+    """Route for logout user page."""
     logout_user()
     return redirect(url_for("auth.login"))
 
 
 def render_confirmation_form(form, is_recover):
-    """ Render template with right options for email confirmation webpage.
+    """Render template with right options for email confirmation webpage.
 
     :param form: Confirmation form which will be used to generate web page.
     :type form: :py:class:`collectives.form.auth.PasswordResetForm` or
@@ -190,7 +189,7 @@ def render_confirmation_form(form, is_recover):
 
 @blueprint.route("/process_confirmation/<token_uuid>", methods=["GET", "POST"])
 def process_confirmation(token_uuid):
-    """  Route for email confirmation regarding account recovering or creation.
+    """Route for email confirmation regarding account recovering or creation.
 
     :param string token_uuid: Confirmation UUID token sent to user by email.
     """
@@ -251,7 +250,7 @@ def process_confirmation(token_uuid):
 
 
 def render_signup_form(form, is_recover):
-    """ Render template with right options for signup or password reset webpage.
+    """Render template with right options for signup or password reset webpage.
 
     It is a page where the user can set its new password.
 
@@ -282,7 +281,7 @@ def render_signup_form(form, is_recover):
 @blueprint.route("/signup", methods=["GET", "POST"])
 @blueprint.route("/recover", endpoint="recover", methods=["GET", "POST"])
 def signup():
-    """ Route to sign up ou reset password.
+    """Route to sign up ou reset password.
 
     This webpage will ask for personnal information (date of birth, license ID, email)
     to create an account or reset a password. If the information matches a user or
@@ -378,9 +377,9 @@ def signup():
 
 # Init: Setup admin (if db is ready)
 def init_admin(app):
-    """ Create an ``admin`` account if it does not exists. Enforce its password.
+    """Create an ``admin`` account if it does not exists. Enforce its password.
 
-    Password is :py:data:`config:ADMINPWD` """
+    Password is :py:data:`config:ADMINPWD`"""
     try:
         user = User.query.filter_by(mail="admin").first()
         if user is None:

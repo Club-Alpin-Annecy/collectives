@@ -6,14 +6,13 @@ from flask import request
 
 
 class NoDefault:
-    """ Dummy Class to know if default has been set in :py:func:`deepgetattr`
-    """
+    """Dummy Class to know if default has been set in :py:func:`deepgetattr`"""
 
     pass
 
 
 def deepgetattr(obj, attr, default=NoDefault()):
-    """ Recurses through an attribute chain to get the ultimate value.
+    """Recurses through an attribute chain to get the ultimate value.
 
     Example: `deepgetattr(role, 'user.first_name')`
 
@@ -36,8 +35,8 @@ def deepgetattr(obj, attr, default=NoDefault()):
 
 
 def isMobileUser():
-    """ Read browser user agent from the request and return True if a mobile
-        browser is detected
+    """Read browser user agent from the request and return True if a mobile
+    browser is detected
     """
 
     useragent = request.user_agent

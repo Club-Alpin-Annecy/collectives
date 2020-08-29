@@ -147,7 +147,7 @@ class EventForm(ModelForm, FlaskForm):
         It is different from passing obj=event, which would populate all form fields
         from event data.
         """
-        super(EventForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if "obj" in kwargs:
             # Reading from an existing event
@@ -292,8 +292,7 @@ class EventForm(ModelForm, FlaskForm):
 
 
 class PaidSelfRegistrationForm(FlaskForm):
-    """ Self-registration form for paid events
-    """
+    """Self-registration form for paid events"""
 
     item_price = SelectField("Choix du tarif", coerce=int)
     accept_payment_terms = BooleanField(
@@ -303,8 +302,7 @@ class PaidSelfRegistrationForm(FlaskForm):
     submit = SubmitField("S'inscrire et procéder au paiement en ligne")
 
     def __init__(self, event, *args, **kwargs):
-        """ Overloaded  constructor
-        """
+        """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 
         all_prices = []

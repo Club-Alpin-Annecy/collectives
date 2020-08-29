@@ -32,7 +32,7 @@ class OrderedForm(FlaskForm):
 
     def __iter__(self):
         sort_fields(self)
-        return super(OrderedForm, self).__iter__()
+        return super().__iter__()
 
 
 class OrderedModelForm(FlaskForm, ModelForm):
@@ -42,4 +42,4 @@ class OrderedModelForm(FlaskForm, ModelForm):
 
     def __iter__(self):
         sort_fields(self)
-        return super(OrderedModelForm, self).__iter__()
+        return super().__iter__()

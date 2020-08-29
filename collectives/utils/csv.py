@@ -11,7 +11,7 @@ from ..models import User, Event, db
 
 
 def fill_from_csv(event, row, template):
-    """ Fill an Event object attributes with parameter from a csv row.
+    """Fill an Event object attributes with parameter from a csv row.
 
     :param event: The evet object to populate.
     :type event: :py:class:`collectives.models.event.Event`
@@ -43,7 +43,10 @@ def fill_from_csv(event, row, template):
             event.registration_open_time = (
                 event.start
                 - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
-            ).replace(hour=current_app.config["REGISTRATION_OPENING_HOUR"], minute=0,)
+            ).replace(
+                hour=current_app.config["REGISTRATION_OPENING_HOUR"],
+                minute=0,
+            )
         if row["fin_internet"] != None and row["fin_internet"].strip():
             event.registration_close_time = parse(row, "fin_internet")
         else:
@@ -51,7 +54,10 @@ def fill_from_csv(event, row, template):
             event.registration_close_time = (
                 event.start
                 - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
-            ).replace(hour=current_app.config["REGISTRATION_CLOSING_HOUR"], minute=0,)
+            ).replace(
+                hour=current_app.config["REGISTRATION_CLOSING_HOUR"],
+                minute=0,
+            )
 
     # Description
     parse(row, "altitude")
@@ -75,7 +81,9 @@ def fill_from_csv(event, row, template):
     ).first():
         raise Exception(
             "La collective {} démarrant le {} et encadrée par {} existe déjà.".format(
-                event.title, format_date(event.start), row["nom_encadrant"],
+                event.title,
+                format_date(event.start),
+                row["nom_encadrant"],
             )
         )
 
@@ -84,7 +92,7 @@ def fill_from_csv(event, row, template):
 
 
 def parse(row, column_name):
-    """ Parse a column value in csv format to an object depending on column type.
+    """Parse a column value in csv format to an object depending on column type.
     Raise an exception if field is mandatory and is not set
 
     :param row: List of value from a csv file row
@@ -109,28 +117,28 @@ def parse(row, column_name):
     if column_type == "datetime":
         try:
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
-        except ValueError:
+        except ValueError as err:
             raise Exception(
                 "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
                     value_str, column_short_desc
                 )
-            )
+            ) from err
     elif column_type == "int":
         if value_str:
             try:
                 return int(value_str)
-            except ValueError:
+            except ValueError as err:
                 raise Exception(
                     "La valeur '{}' de la colonne '{}' doit être un entier".format(
                         value_str, column_name
                     )
-                )
+                ) from err
 
     return value_str
 
 
 def process_stream(base_stream, activity_type, description):
-    """ Creates the events from a csv file.
+    """Creates the events from a csv file.
 
     Processing will first try to process it as an UTF8 encoded file. If it fails
     on a decoding error, it will try as Windows encoding (iso-8859-1).
@@ -163,7 +171,7 @@ def process_stream(base_stream, activity_type, description):
 
 
 def csv_to_events(stream, description):
-    """ Decode the csv stream to populate events.
+    """Decode the csv stream to populate events.
 
     :param stream: the csv file as a stream.
     :type stream: :py:class:`io.StringIO`

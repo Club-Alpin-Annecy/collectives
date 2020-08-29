@@ -10,8 +10,8 @@ from ..utils.time import current_time
 
 
 class PaymentItem(db.Model):
-    """ Database model describing a paid item for a given event
-        E.g. 'Pass', 'Pass + transport', ...
+    """Database model describing a paid item for a given event
+    E.g. 'Pass', 'Pass + transport', ...
     """
 
     __tablename__ = "payment_items"
@@ -56,11 +56,11 @@ class PaymentItem(db.Model):
 
 
 class ItemPrice(db.Model):
-    """ Database model describing prices for a payment item
-        E.g. 'Youth ', 'Early bird', ...
+    """Database model describing prices for a payment item
+    E.g. 'Youth ', 'Early bird', ...
 
-        :todo: Add constraint on license type
-        :todo: Add constraint on date range
+    :todo: Add constraint on license type
+    :todo: Add constraint on date range
     """
 
     __tablename__ = "item_prices"
@@ -109,8 +109,7 @@ class ItemPrice(db.Model):
 
 
 class PaymentType(ChoiceEnum):
-    """ Enum describing the type of payment
-    """
+    """Enum describing the type of payment"""
 
     Online = 0
     """ Payment has been made through the online payment processor
@@ -144,8 +143,7 @@ class PaymentType(ChoiceEnum):
 
 
 class PaymentStatus(ChoiceEnum):
-    """ Enum describing the current state of the payment at a high level
-    """
+    """Enum describing the current state of the payment at a high level"""
 
     Initiated = 0
     """ Payment has been initiated, waiting for a response from the processor
@@ -179,8 +177,7 @@ class PaymentStatus(ChoiceEnum):
 
 
 class Payment(db.Model):
-    """ Datable model describing the details of a payment
-    """
+    """Datable model describing the details of a payment"""
 
     __tablename__ = "payments"
 
@@ -290,13 +287,13 @@ class Payment(db.Model):
     :type: :py:class:`decimal.Decimal`"""
 
     def is_offline(self):
-        """ :return: whether this is an offline payment (Check, Card, etc)
-            :rtype: bool"""
+        """:return: whether this is an offline payment (Check, Card, etc)
+        :rtype: bool"""
         return self.payment_type != PaymentType.Online
 
     def __init__(self, registration=None, item_price=None):
-        """ Overloaded constructor.
-            Pre-fill a Payment object from an existing registration and item price
+        """Overloaded constructor.
+        Pre-fill a Payment object from an existing registration and item price
         """
 
         super().__init__()

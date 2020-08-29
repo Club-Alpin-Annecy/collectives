@@ -43,7 +43,7 @@ class UrifyExtension(Extension):
         """ A preprocessor for :py:class:`UrifyExtension` """
 
         def run(self, lines):
-            """ Takes all lines and add a link on standalone URL.
+            """Takes all lines and add a link on standalone URL.
 
             :param lines: All lines where a URL could be found.
             :type lines: list(String)
@@ -52,7 +52,7 @@ class UrifyExtension(Extension):
             """
 
             def replace(match):
-                """ Functor in charge of replacing URI regex matches
+                """Functor in charge of replacing URI regex matches
                 :param match: the matching fragments
                 :type match: :py:class: `re.Match`
                 :return: the reconstructed link string
@@ -66,7 +66,7 @@ class UrifyExtension(Extension):
             return [URI_REGEX.sub(replace, line) for line in lines]
 
     def extendMarkdown(self, md):
-        """ Fonction that will add the :py:class:`UrifyExtension` to the Markdown
+        """Fonction that will add the :py:class:`UrifyExtension` to the Markdown
         preprocessor.
 
         :param md: Markdown processor object.
@@ -113,7 +113,7 @@ class PrependBlankLineExtension(Extension):
             return result
 
     def extendMarkdown(self, md):
-        """ Fonction that will add the :py:class:`PrependBlankLineExtension` to the Markdown
+        """Fonction that will add the :py:class:`PrependBlankLineExtension` to the Markdown
         preprocessor.
 
         :param md: Markdown processor object.

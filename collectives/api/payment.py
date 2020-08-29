@@ -17,8 +17,7 @@ from ..utils.numbers import format_currency
 
 
 class PaymentSchema(marshmallow.Schema):
-    """Schema representing payment data for use in tabulator listings
-    """
+    """Schema representing payment data for use in tabulator listings"""
 
     status = fields.Function(lambda p: p.status.display_name())
     """ Display name of the payment status
@@ -84,7 +83,7 @@ class PaymentSchema(marshmallow.Schema):
 @login_required
 @payments_enabled(True)
 def list_payments(event_id):
-    """ Api endpoint for listing all payments associated to an event
+    """Api endpoint for listing all payments associated to an event
 
     :param event_id: The primary key of the event we're listing the payments of
     :type event_id: int

@@ -4,9 +4,7 @@ import enum
 
 
 class ChoiceEnum(enum.IntEnum):
-    """Enum with additionnal methods which is easy to get lists from.
-
-    """
+    """Enum with additionnal methods which is easy to get lists from."""
 
     @classmethod
     def choices(cls):

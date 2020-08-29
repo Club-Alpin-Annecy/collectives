@@ -16,7 +16,7 @@ from .event import EventSchema, filter_hidden_events
 @blueprint.route("/user/<user_id>/events")
 @login_required
 def user_events(user_id):
-    """ Get all event of a user.
+    """Get all event of a user.
 
     Users without roles can only see their own events.
 
@@ -49,7 +49,7 @@ def user_events(user_id):
 @blueprint.route("/leader/<leader_id>/events")
 @login_required
 def leader_events(leader_id):
-    """ Get all event of a leader.
+    """Get all event of a leader.
 
     :param int user_id: ID of the user.
     :return: A tuple:

@@ -34,7 +34,7 @@ This blueprint contains all routes for event display and management
 
 
 def validate_event_leaders(activities, leaders, multi_activity_mode):
-    """ Check whether all activities have a valid leader, display error if not.
+    """Check whether all activities have a valid leader, display error if not.
 
     :param bool multi_activity_mode: If `False`, check that all `leaders` can lead the
     (single) activitie in `activities`. If `True`, check that each activity in
@@ -102,7 +102,7 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
 
 
 def validate_dates_and_slots(event):
-    """ Validate event form for dates and events.
+    """Validate event form for dates and events.
 
     Checks whether the various dates an numbers of slots in the event
     are valid:
@@ -154,8 +154,7 @@ def validate_dates_and_slots(event):
 
 @blueprint.route("/")
 def index():
-    """ Event and website home page.
-    """
+    """Event and website home page."""
     types = ActivityType.query.order_by("order", "name").all()
     return render_template(
         "index.html", conf=current_app.config, types=types, photos=photos
@@ -166,7 +165,7 @@ def index():
 @blueprint.route("/<int:event_id>-<name>")
 @login_required
 def view_event(event_id, name=""):
-    """ Display a specific event.
+    """Display a specific event.
 
     If event name is not behind the event id, client will be redirected to an URL
     with both.
@@ -213,7 +212,7 @@ def view_event(event_id, name=""):
 @login_required
 @confidentiality_agreement()
 def print_event(event_id):
-    """ Display an event summary webpage to be printed.
+    """Display an event summary webpage to be printed.
 
     Only accessible to a user with edit right on this page (at least the leader). It
     contains personnal information on subscribed users.
@@ -241,7 +240,7 @@ def print_event(event_id):
 @login_required
 @confidentiality_agreement()
 def manage_event(event_id=None):
-    """ Event creation and modification page.
+    """Event creation and modification page.
 
     If an ``event_id`` is given, it is a modification of an existing event.
 
@@ -325,7 +324,9 @@ def manage_event(event_id=None):
     if has_removed_leaders or int(form.update_leaders.data):
         # Check that the set of leaders is valid for current activities
         if validate_event_leaders(
-            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
+            tentative_activities,
+            tentative_leaders,
+            form.multi_activities_mode.data,
         ):
             form.set_current_leaders(tentative_leaders)
             form.update_choices()
@@ -359,7 +360,9 @@ def manage_event(event_id=None):
     # Check that the leaders are still valid
     if has_new_activity or has_changed_leaders:
         if not validate_event_leaders(
-            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
+            tentative_activities,
+            tentative_leaders,
+            form.multi_activities_mode.data,
         ):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form
@@ -425,7 +428,7 @@ def manage_event(event_id=None):
 @login_required
 @confidentiality_agreement()
 def duplicate(event_id=None):
-    """ Event duplication.
+    """Event duplication.
 
     This page does not duplicates the event but create a new event form with field
     prefilled with antoher event data. When user will click on "Submit", it will act as
@@ -459,7 +462,7 @@ def duplicate(event_id=None):
 @blueprint.route("/<int:event_id>/self_register", methods=["POST"])
 @login_required
 def self_register(event_id):
-    """ Route for a user to subscribe to an event.
+    """Route for a user to subscribe to an event.
 
     :param int event_id: Primary key of the event to manage.
     """
@@ -519,7 +522,7 @@ def self_register(event_id):
 @blueprint.route("/<int:event_id>/register_user", methods=["POST"])
 @login_required
 def register_user(event_id):
-    """ Route to register a user.
+    """Route to register a user.
 
     :param int event_id: Primary key of the event to manage.
     """
@@ -570,7 +573,7 @@ def register_user(event_id):
 @blueprint.route("/<int:event_id>/self_unregister", methods=["POST"])
 @login_required
 def self_unregister(event_id):
-    """ Route for a user to self unregister.
+    """Route for a user to self unregister.
 
     :param int event_id: Primary key of the event to manage.
     """
@@ -600,7 +603,7 @@ def self_unregister(event_id):
 @blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
 @login_required
 def reject_registration(reg_id):
-    """ Route for a leader to reject a user participation to the event.
+    """Route for a leader to reject a user participation to the event.
 
     :param int reg_id: Primary key of the registration.
     """
@@ -628,7 +631,7 @@ def reject_registration(reg_id):
 @blueprint.route("/registrations/<reg_id>/delete", methods=["POST"])
 @login_required
 def delete_registration(reg_id):
-    """ Route for a leader to delete a user participation.
+    """Route for a leader to delete a user participation.
 
     It technically deletes the registration record in the database.
 
@@ -651,7 +654,7 @@ def delete_registration(reg_id):
 @blueprint.route("/<int:event_id>/delete", methods=["POST"])
 @login_required
 def delete_event(event_id):
-    """ Route to completely delete an event.
+    """Route to completely delete an event.
 
     :param int event_id: Primary key of the event to delete.
     """
@@ -682,8 +685,7 @@ def delete_event(event_id):
 @login_required
 @confidentiality_agreement()
 def csv_import():
-    """ Route to create several events from a csv file.
-    """
+    """Route to create several events from a csv file."""
     activities = current_user.get_supervised_activities()
     if activities == []:
         flash("Fonction non autorisée.", "error")

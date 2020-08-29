@@ -24,7 +24,7 @@ class ConfirmationTokenType(enum.IntEnum):
 
 
 class ConfirmationToken(db.Model):
-    """ Class of a Token
+    """Class of a Token
 
     A confirmation token is a way to check the mail address of a user. An UUID
     is sent to an email address and user has to be able to access the email
