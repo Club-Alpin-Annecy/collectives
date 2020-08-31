@@ -14,16 +14,6 @@ def is_static():
     return request.path.startswith("/static") or request.path.startswith("/imgsizer")
 
 
-def has_disable_cookie():
-    """Check if current brower has a statistics agreement cookie.
-
-    Cookie content is irrelevant.
-
-    :return: True if it has cookie.
-    :rtype: boolean"""
-    return COOKIE_NAME in request.cookies
-
-
 def is_tracking_disabled():
     """Check if current brower disabled tracking.
 
