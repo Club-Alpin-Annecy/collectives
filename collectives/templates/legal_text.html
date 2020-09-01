@@ -1,3 +1,21 @@
+{# ========= LEGAL TEXT VERSIONNING =============
+    When a significant modification to the legal text has been made, please:
+        - update the versionning manifest in this file
+        - update the CURRENT_LEGAL_TEXT_VERSION  in config.py
+
+    Versions are simple numbers without dots (eg v1 v2 v3 v4)
+
+#}
+<h4>Versionnement des mentions légales:</h4>
+<p>
+    <ul>
+        {% if conf['STATISTICS_ENABLED'] %}
+            <li><b>v2</b> : (version actuelle) Ajout de <a href="#statistiics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
+        {% endif %}
+        <li><b>v1</b> : Document initial</li>
+    </ul>
+</p>
+
 <h4>Identité</h4>
     <p>
         <b>Club Alpin Français d'Annecy</b><br/>

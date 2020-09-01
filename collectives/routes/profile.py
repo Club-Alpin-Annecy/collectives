@@ -6,9 +6,10 @@ from datetime import datetime
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
-from flask_login import current_user, login_required
+from flask_login import current_user
 from flask_images import Images
 
+from ..utils.access import valid_user
 from ..forms import UserForm
 from ..models import User, db
 from .auth import sync_user
@@ -19,7 +20,7 @@ blueprint = Blueprint("profile", __name__, url_prefix="/profile")
 
 
 @blueprint.before_request
-@login_required
+@valid_user()
 def before_request():
     """ Protect all profile from unregistered access """
     pass

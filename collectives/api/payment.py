@@ -4,11 +4,11 @@
 import json
 
 from flask import abort, url_for
-from flask_login import login_required, current_user
+from flask_login import current_user
 from marshmallow import fields
 
 from .common import blueprint, marshmallow
-from ..utils.access import payments_enabled
+from ..utils.access import payments_enabled, valid_user
 
 from ..models import db
 from ..models.event import Event
@@ -80,7 +80,7 @@ class PaymentSchema(marshmallow.Schema):
 
 
 @blueprint.route("/payments/<event_id>/list", methods=["GET"])
-@login_required
+@valid_user(True)
 @payments_enabled(True)
 def list_payments(event_id):
     """Api endpoint for listing all payments associated to an event

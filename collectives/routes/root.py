@@ -32,6 +32,8 @@ def legal():
 def legal_accept():
     """ Route to accept site legal terms """
     current_user.legal_text_signature_date = current_time()
+    version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+    current_user.legal_text_signed_version = version
     db.session.add(current_user)
     db.session.commit()
     return redirect(url_for("root.legal"))

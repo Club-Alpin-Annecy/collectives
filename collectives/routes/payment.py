@@ -5,12 +5,12 @@ This modules contains the /payment Blueprint
 
 from flask import Blueprint, request
 from flask import render_template, current_app, flash, redirect, url_for, abort
-from flask_login import login_required, current_user
+from flask_login import current_user
 
 from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
 from ..utils import payline
 
-from ..utils.access import payments_enabled
+from ..utils.access import payments_enabled, valid_user
 from ..utils.time import current_time
 from ..models import db
 from ..models.event import Event
@@ -36,7 +36,7 @@ def before_request():
     pass
 
 
-@login_required
+@valid_user()
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
 def edit_prices(event_id):
     """Route for editing payment items and prices associated to an event
@@ -116,7 +116,7 @@ def edit_prices(event_id):
     return redirect(url_for("payment.edit_prices", event_id=event_id))
 
 
-@login_required
+@valid_user()
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
 def list_payments(event_id):
     """Route for listing all payments associated to an event
@@ -138,7 +138,7 @@ def list_payments(event_id):
     )
 
 
-@login_required
+@valid_user()
 @blueprint.route("/<payment_id>/details", methods=["GET"])
 def payment_details(payment_id):
     """Route for displaying details about a given payment
@@ -164,7 +164,7 @@ def payment_details(payment_id):
     )
 
 
-@login_required
+@valid_user()
 @blueprint.route(
     "/registration/<registration_id>/report_offline", methods=["GET", "POST"]
 )
@@ -243,7 +243,7 @@ def report_offline(registration_id, payment_id=None):
     )
 
 
-@login_required
+@valid_user()
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
 def request_payment(payment_id):
     """Route for displaying the payment widget. For now display a mock page,

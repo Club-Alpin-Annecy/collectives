@@ -393,6 +393,8 @@ def init_admin(app):
             user.first_name = "Compte"
             user.last_name = "Administrateur"
             user.confidentiality_agreement_signature_date = datetime.datetime.now()
+            version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+            user.legal_text_signed_version = version
             user.legal_text_signature_date = datetime.datetime.now()
             user.password = app.config["ADMINPWD"]
             admin_role = Role(user=user, role_id=int(RoleIds.Administrator))

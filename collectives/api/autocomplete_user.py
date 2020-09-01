@@ -7,13 +7,13 @@ Especially used for user registration by leader in events.
 import json
 
 from flask import request, abort
-from flask_login import current_user, login_required
+from flask_login import current_user
 from sqlalchemy.sql import text
 from marshmallow import fields
 
 from ..models import db, User
 
-from ..utils.access import confidentiality_agreement
+from ..utils.access import confidentiality_agreement, valid_user
 from .common import blueprint, marshmallow
 
 
@@ -66,7 +66,7 @@ def find_users_by_fuzzy_name(q, limit=8):
 
 
 @blueprint.route("/users/autocomplete/")
-@login_required
+@valid_user(True)
 @confidentiality_agreement(True)
 def autocomplete_users():
     """API endpoint to list users for autocomplete.
