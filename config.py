@@ -238,25 +238,25 @@ TZ_NAME = "Europe/Paris"
 # Event type:
 # fmt: off
 TYPES = {
-    1:  {"short": "ski_alpin",     "name": "Ski et surf en station", "trigram" : "SSS"},
-    2:  {"short": "escalade",      "name": "Escalade",               "trigram" : "ESC"},
-    3:  {"short": "ski_rando",     "name": "Ski de randonnée",       "trigram" : "SDR"},  
-    4:  {"short": "trail",         "name": "Trail",                  "trigram" : "TRL"},
-    5:  {"short": "canyon",        "name": "Canyon",                 "trigram" : "CAN"},
-    6:  {"short": "raquette",      "name": "Randonnée raquettes",    "trigram" : "RAQ"},
-    7:  {"short": "snow_rando",    "name": "Snow de randonnée",      "trigram" : "SPT"},
-    8:  {"short": "cascade_glace", "name": "Cascade de glace",       "trigram" : "CDG"},
-    9:  {"short": "alpinisme",     "name": "Alpinisme",              "trigram" : "ALP"},
-    10: {"short": "parapente",     "name": "Parapente",              "trigram" : "PRP"},
-    11: {"short": "randonnee",     "name": "Randonnée montagne",     "trigram" : "RAN"},
-    12: {"short": "cyclisme",      "name": "VTT",                    "trigram" : "VTT"},
-    13: {"short": "formation",     "name": "Formation",              "trigram" : "FOR"},
-    14: {"short": "soiree",        "name": "Soirée", "order": 99,       "trigram" : "TEF"},
-    15: {"short": "none",          "name": "Non classé", "order": 100,  "trigram" : "NCL" },
-    16: {"short": "slackline",     "name": "Slackline",                 "trigram" : "SLK"},
-    17: {"short": "marche_nordique","name": "Marche nordique",          "trigram" : "MAN"},
-    18: {"short": "ski_fond",      "name": "Ski de fond et rando nordique" , "trigram" : "SFN"},
-    20: {"short": "jeune",         "name": "Jeunes",                         "trigram" : "JUN"},
+    1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "SSS"},
+    2:  {"short": "escalade", "name": "Escalade", "trigram" : "ESC"},
+    3:  {"short": "ski_rando", "name": "Ski de randonnée", "trigram" : "SDR"},
+    4:  {"short": "trail", "name": "Trail", "trigram" : "TRL"},
+    5:  {"short": "canyon", "name": "Canyon", "trigram" : "CAN"},
+    6:  {"short": "raquette", "name": "Randonnée raquettes", "trigram" : "RAQ"},
+    7:  {"short": "snow_rando", "name": "Snow de randonnée", "trigram" : "SPT"},
+    8:  {"short": "cascade_glace", "name": "Cascade de glace", "trigram" : "CDG"},
+    9:  {"short": "alpinisme", "name": "Alpinisme", "trigram" : "ALP"},
+    10: {"short": "parapente", "name": "Parapente", "trigram" : "PRP"},
+    11: {"short": "randonnee", "name": "Randonnée montagne", "trigram" : "RAN"},
+    12: {"short": "cyclisme", "name": "VTT", "trigram" : "VTT"},
+    13: {"short": "formation", "name": "Formation", "trigram" : "FOR"},
+    14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "TEF"},
+    15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL"},
+    16: {"short": "slackline", "name": "Slackline", "trigram" : "SLK"},
+    17: {"short": "marche_nordique", "name": "Marche nordique", "trigram" : "MAN"},
+    18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "SFN"},
+    20: {"short": "jeune", "name": "Jeunes", "trigram" : "JUN"},
 }
 """List of event type
 
@@ -267,11 +267,11 @@ a hash. ``short`` is the name of the icon.
 """
 
 # Technical stuff
-MAX_FILE_SIZE=2 * 1024 * 1024
+MAX_FILE_SIZE = 2 * 1024 * 1024
 """ Max size to upload files.
 
 :type: int """
-MAX_FILE_SIZE_MESSAGE=f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
+MAX_FILE_SIZE_MESSAGE = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
 """ Error message if uploaded file is too big.
 
 This error message is only used in form validation on client. `[size]` is a
@@ -347,22 +347,22 @@ REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 :type: int """
 
 CSV_COLUMNS = {
-    "nom_encadrant":  {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant", "type": "string"},
-    "id_encadrant":  {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant", "type": "int"},
-    "debut":  {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
-    "fin":  {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
-    "titre":  {"short_desc": "Titre de la collective", "description": "Titre de la collective", "type": "string"},
-    "secteur":  {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "type": "string", "optional": 1},
-    "carte_IGN":  {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "type": "string", "optional": 1},
-    "altitude":  {"short_desc": "Altitude (en m)",  "description": "Altitude du sommet (en m)", "type": "int", "optional": 1},
-    "denivele":  {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "type": "int", "optional": 1},
-    "cotation":  {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "type": "int", "optional": 1},
-    "distance":  {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "type": "int", "optional": 1},
-    "observations":  {"short_desc": "Observations", "description": "Observations et description de la collective", "type": "string", "optional": 1},
-    "places":  {"short_desc": "Nombre de places", "description": "Nombre de places", "type": "int"},
-    "places_internet":  {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": str(DEFAULT_ONLINE_SLOTS) },
-    "debut_internet":  {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h"},
-    "fin_internet":  {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h"},
+    "nom_encadrant": {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant", "type": "string"},
+    "id_encadrant": {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant", "type": "int"},
+    "debut": {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
+    "fin": {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
+    "titre": {"short_desc": "Titre de la collective", "description": "Titre de la collective", "type": "string"},
+    "secteur": {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "type": "string", "optional": 1},
+    "carte_IGN": {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "type": "string", "optional": 1},
+    "altitude": {"short_desc": "Altitude (en m)", "description": "Altitude du sommet (en m)", "type": "int", "optional": 1},
+    "denivele": {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "type": "int", "optional": 1},
+    "cotation": {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "type": "int", "optional": 1},
+    "distance": {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "type": "int", "optional": 1},
+    "observations": {"short_desc": "Observations", "description": "Observations et description de la collective", "type": "string", "optional": 1},
+    "places": {"short_desc": "Nombre de places", "description": "Nombre de places", "type": "int"},
+    "places_internet": {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": str(DEFAULT_ONLINE_SLOTS)},
+    "debut_internet": {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h"},
+    "fin_internet": {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h"},
 }
 """Dictionnary of columns to import from CSV files.
 
