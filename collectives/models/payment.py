@@ -258,7 +258,7 @@ class Payment(db.Model):
     :type: str
     """
 
-    processor_order_ref = db.Column(db.String(256))
+    processor_order_ref = db.Column(db.String(32))
     """ Human-readable order identifier for the payment processor.
 
     :type: str

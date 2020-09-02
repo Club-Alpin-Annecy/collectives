@@ -234,7 +234,7 @@ class OrderInfo:
         # Date with format YYYYMMDD
         date_str = self.payment.creation_time.strftime("%Y%m%d")
         # Activity trigram
-        activity_str = self.payment.item.event.activity_types[0].trigram()
+        activity_str = self.payment.item.event.activity_types[0].trigram
         # Rolling id making sure we can't get the same ref for distinct orders
         rolling_id = self.payment.id % 10000
 
