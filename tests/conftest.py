@@ -33,7 +33,8 @@ def app():
 
         yield app
 
-        os.close(TESTDB_FD)
+        db.session.remove()
+        db.session.close()
         os.unlink(TESTDB_PATH)
 
 

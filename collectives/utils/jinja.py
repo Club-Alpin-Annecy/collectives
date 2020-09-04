@@ -8,6 +8,7 @@ import html
 from . import time as custom_time
 from . import numbers
 from .misc import isMobileUser
+from . import statistics
 
 
 def helpers_processor():
@@ -20,6 +21,7 @@ def helpers_processor():
     helper_functions.update(dict(inspect.getmembers(numbers, inspect.isfunction)))
     helper_functions["isMobileUser"] = isMobileUser
     helper_functions["version_link"] = version_link
+    helper_functions["is_tracking_disabled"] = statistics.is_tracking_disabled
 
     return helper_functions
 

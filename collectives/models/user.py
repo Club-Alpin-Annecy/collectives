@@ -5,6 +5,7 @@ import os
 from datetime import date, datetime
 
 from flask_login import UserMixin
+from flask import current_app
 from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
@@ -240,6 +241,19 @@ class User(db.Model, UserMixin):
 
     :type: :py:class:`datetime.datetime`"""
 
+    legal_text_signed_version = db.Column(
+        db.Integer,
+        nullable=True,
+        info={"label": "Version des mentions légales signées"},
+    )
+    """ Date of the signature of the legal terms.
+
+    All user must sign the legal term at account creation. If it has not been
+    signed (usually test account), `confidentiality_agreement_signature_date`
+    is null.
+
+    :type: :py:class:`datetime.datetime`"""
+
     # Relationships
     roles = db.relationship("Role", backref="user", lazy=True)
     """ List of granted roles within this site for this user. (eg administrator)
@@ -429,6 +443,16 @@ class User(db.Model, UserMixin):
         """
         return self.has_role([RoleIds.ActivitySupervisor])
 
+    def is_technician(self):
+        """Check if user has a technician role.
+
+        See :py:attr:`collectives.models.role.RoleIds.Technician`
+
+        :return: True if user has a technician role.
+        :rtype: boolean
+        """
+        return self.has_role([RoleIds.Administrator, RoleIds.Technician])
+
     def can_create_events(self):
         """Check if user has a role which allow him to creates events.
 
@@ -492,12 +516,17 @@ class User(db.Model, UserMixin):
         return self.confidentiality_agreement_signature_date is not None
 
     def has_signed_legal_text(self):
-        """Check if user has signed the legal text.
+        """Check if user has signed the current legal text.
 
         :return: True if user has signed it.
         :rtype: boolean
         """
-        return self.legal_text_signature_date is not None
+        is_signed = self.legal_text_signature_date is not None
+
+        current_version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+        is_good_signed_version = self.legal_text_signed_version == current_version
+
+        return is_signed and is_good_signed_version
 
     def supervises_activity(self, activity_id):
         """Check if user supervises a specific activity.

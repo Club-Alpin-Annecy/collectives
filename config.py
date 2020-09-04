@@ -215,6 +215,20 @@ FAVICON = "caf/favicon.ico"
 :type: string
 """
 
+STATISTICS_ENABLED = True
+"""Enable flask-statistics to track website user.
+
+:type: boolean
+"""
+
+CURRENT_LEGAL_TEXT_VERSION = 1
+"""Current version of the legal text.
+
+If a user has signed an earlier version, its signature will not be considered
+valid.
+
+:type: int"""
+
 TZ_NAME = "Europe/Paris"
 """Timezone to use for time comparisons
 

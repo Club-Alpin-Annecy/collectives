@@ -9,7 +9,7 @@
     <h3>Mentions légales</h3>
 
 
-    {% if current_user.legal_text_signature_date %}
+    {% if current_user.has_signed_legal_text() %}
         <p>Vous avez accepté ces mentions légales le {{current_user.legal_text_signature_date.strftime("%d/%m/%Y à %H:%M")}}</p>
     {% elif  current_user.is_authenticated  %}
         <form action="{{ url_for('root.legal_accept')}}" method="post">
@@ -23,6 +23,13 @@
         </form>
     {% endif %}
 
+    {% if conf['STATISTICS_ENABLED'] %}
+        <h4>Gestion des cookies de statistiques</h4>
+        <p>
+            Le suivi statistique et anonyme des utilisateurs est détaillé <u><a href="#statistics" >ci-dessous</a></u>. Votre suivi est <b>{% if is_tracking_disabled() %}désactivé{% else %}activé{% endif %}</b>.
+            <a class="button" href="{{ url_for('root.stat_cookie', status='agree' if is_tracking_disabled() else 'disagree' )}}">{{ 'Accepter' if is_tracking_disabled() else 'Refuser' }}</a>.
+        </p>
+    {% endif %}
 
     {% include 'legal_text.html' %}
 

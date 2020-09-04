@@ -4,17 +4,18 @@ Event schema is the one from :py:class:`collectives.api.event.EventSchema`
 """
 import json
 
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from ..models import db, User, Event
 from ..models import Registration, RegistrationStatus
 
 from .common import blueprint
 from .event import EventSchema, filter_hidden_events
+from ..utils.access import valid_user
 
 
 @blueprint.route("/user/<user_id>/events")
-@login_required
+@valid_user(True)
 def user_events(user_id):
     """Get all event of a user.
 
@@ -47,7 +48,7 @@ def user_events(user_id):
 
 # Get all lead events of a leader
 @blueprint.route("/leader/<leader_id>/events")
-@login_required
+@valid_user(True)
 def leader_events(leader_id):
     """Get all event of a leader.
 

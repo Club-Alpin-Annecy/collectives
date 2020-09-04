@@ -4,7 +4,7 @@ This modules contains the /event Blueprint
 """
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
-from flask_login import current_user, login_required
+from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms import EventForm, photos
@@ -23,7 +23,7 @@ from ..email_templates import send_cancelled_event_notification
 from ..utils.time import current_time
 from ..utils.csv import process_stream
 from ..utils.url import slugify
-from ..utils.access import confidentiality_agreement
+from ..utils.access import confidentiality_agreement, valid_user
 
 
 blueprint = Blueprint("event", __name__, url_prefix="/collectives")
@@ -163,7 +163,7 @@ def index():
 
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
-@login_required
+@valid_user()
 def view_event(event_id, name=""):
     """Display a specific event.
 
@@ -209,7 +209,7 @@ def view_event(event_id, name=""):
 
 
 @blueprint.route("/<int:event_id>/print")
-@login_required
+@valid_user()
 @confidentiality_agreement()
 def print_event(event_id):
     """Display an event summary webpage to be printed.
@@ -237,7 +237,7 @@ def print_event(event_id):
 
 @blueprint.route("/add", methods=["GET", "POST"])
 @blueprint.route("/<int:event_id>/edit", methods=["GET", "POST"])
-@login_required
+@valid_user()
 @confidentiality_agreement()
 def manage_event(event_id=None):
     """Event creation and modification page.
@@ -425,7 +425,7 @@ def manage_event(event_id=None):
 
 
 @blueprint.route("/<int:event_id>/duplicate", methods=["GET"])
-@login_required
+@valid_user()
 @confidentiality_agreement()
 def duplicate(event_id=None):
     """Event duplication.
@@ -460,7 +460,7 @@ def duplicate(event_id=None):
 
 
 @blueprint.route("/<int:event_id>/self_register", methods=["POST"])
-@login_required
+@valid_user()
 def self_register(event_id):
     """Route for a user to subscribe to an event.
 
@@ -520,7 +520,7 @@ def self_register(event_id):
 
 
 @blueprint.route("/<int:event_id>/register_user", methods=["POST"])
-@login_required
+@valid_user()
 def register_user(event_id):
     """Route to register a user.
 
@@ -571,7 +571,7 @@ def register_user(event_id):
 
 
 @blueprint.route("/<int:event_id>/self_unregister", methods=["POST"])
-@login_required
+@valid_user()
 def self_unregister(event_id):
     """Route for a user to self unregister.
 
@@ -601,7 +601,7 @@ def self_unregister(event_id):
 
 
 @blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
-@login_required
+@valid_user()
 def reject_registration(reg_id):
     """Route for a leader to reject a user participation to the event.
 
@@ -629,7 +629,7 @@ def reject_registration(reg_id):
 
 
 @blueprint.route("/registrations/<reg_id>/delete", methods=["POST"])
-@login_required
+@valid_user()
 def delete_registration(reg_id):
     """Route for a leader to delete a user participation.
 
@@ -652,7 +652,7 @@ def delete_registration(reg_id):
 
 
 @blueprint.route("/<int:event_id>/delete", methods=["POST"])
-@login_required
+@valid_user()
 def delete_event(event_id):
     """Route to completely delete an event.
 
@@ -682,7 +682,7 @@ def delete_event(event_id):
 
 
 @blueprint.route("/import", methods=["GET", "POST"])
-@login_required
+@valid_user()
 @confidentiality_agreement()
 def csv_import():
     """Route to create several events from a csv file."""

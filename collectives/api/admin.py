@@ -3,12 +3,11 @@
 """
 
 from flask import url_for, request
-from flask_login import login_required
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from ..models import db, User, RoleIds, Role
-from ..utils.access import confidentiality_agreement, admin_required
+from ..utils.access import confidentiality_agreement, admin_required, valid_user
 from .common import blueprint, marshmallow, avatar_url
 
 
@@ -102,7 +101,7 @@ class UserSchema(marshmallow.Schema):
 
 
 @blueprint.route("/users/")
-@login_required
+@valid_user(True)
 @admin_required(True)
 @confidentiality_agreement(True)
 def users():

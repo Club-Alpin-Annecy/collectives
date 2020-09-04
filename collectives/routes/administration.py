@@ -5,12 +5,12 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
 from io import BytesIO
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import current_app, Blueprint
-from flask_login import current_user, login_required
+from flask_login import current_user
 from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
 from ..models import User, ActivityType, Role, RoleIds, db
-from ..utils.access import confidentiality_agreement, admin_required
+from ..utils.access import confidentiality_agreement, admin_required, valid_user
 from ..utils.misc import deepgetattr
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
@@ -21,7 +21,7 @@ This blueprint contains all routes for administration. It is reserved to adminis
 
 
 @blueprint.before_request
-@login_required
+@valid_user()
 @admin_required()
 @confidentiality_agreement()
 def before_request():
@@ -29,7 +29,7 @@ def before_request():
 
     Protection is done by the decorator:
 
-    - check if user is logged :py:func:`flask_login.login_required`
+    - check if user is valid :py:func:`collectives.utils.access.valid_user`
     - check if user is an admin :py:func:`collectives.utils.access.admin_required`
     - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
     """
