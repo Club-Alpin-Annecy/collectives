@@ -43,8 +43,9 @@ window.onload = function(){
         initialSort: [ {column:"start", dir:"asc"}],
         initialFilter: [{field:"end", type:">=", value:"now" }],
         columns:[
-            {title:"Titre", field:"title", sorter:"string"},
+            {title:"Titre", field:"title", sorter:"string", headerFilter:true},
             {title:"Date", field:"start", sorter:"string"},
+            {title:"Encadrant", field:"leaders", headerSort:false, headerFilter:true},
         ],
         rowFormatter: eventRowFormatter,
         groupHeader:function(value, count, data, group){
@@ -68,6 +69,9 @@ window.onload = function(){
                     "prev_title":"Page Précédente",
                     "next":"Suivante",
                     "next_title":"Page Suivante",
+                },
+                'headerFilters':{
+                    "default":"Recherche 🔍",
                 }
             }
         },
@@ -94,6 +98,8 @@ window.onload = function(){
    }
 
    refreshFilterDisplay();
+
+   autocompleteLeaders();
 };
 
 function eventRowFormatter(row){
@@ -265,4 +271,56 @@ function gotoEvents(event){
         top: position,
         behavior: 'smooth'
     });
+}
+
+
+// Functions to set up autocomplete of leaders
+function autocompleteLeaders()
+{
+    new window.autoComplete({
+        selector: getLeaderHeaderFilter(),
+        minChars: 2,
+        source: sourceLeaderAutocomplete,
+        renderItem: renderItemLeaderAutocomplete,
+        onSelect: onSelectLeaderAutocomplete
+    });
+}
+
+function getLeaderHeaderFilter() {
+    return document.querySelector('div[tabulator-field="leaders"] input[type="search"]');
+}
+
+function sourceLeaderAutocomplete(term, suggest) {
+    loadResultsLeaderAutocomplete(term,
+        function (data) {
+            const matches = []
+            data.forEach((user) => {
+                matches.push({ full_name: user.full_name, id: user.id });
+            });
+            suggest(matches)
+        });
+}
+
+function loadResultsLeaderAutocomplete(term, then) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/leaders/autocomplete/?q=' + encodeURIComponent(term));
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            then(JSON.parse(xhr.responseText));
+        }
+    };
+    xhr.send();
+}
+function renderItemLeaderAutocomplete (item) {
+    let icon;
+    if (item.type === 'user') {
+        icon = '<i class="fab fa-github"></i>';
+    }
+    return `<div class="autocomplete-suggestion" data-val="${item.full_name}" data-id="${item.id}"><span>${item.full_name}</span></div>`
+};
+
+function onSelectLeaderAutocomplete(e, term, item) {
+    const searchInput = document.querySelector('div[tabulator-field="leaders"] input[type="search"]');
+    searchInput.value = item.getAttribute('data-val');
 }
