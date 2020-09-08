@@ -48,6 +48,14 @@
     <h3>
         Collectives du club
     </h3>
+    {% if current_user.is_authenticated %}
+    <p class="align-center">
+        <a class="button button-secondary" href="{{url_for('profile.my_events')}}#">
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}"  alt=""/>
+            Voir mes collectives
+        </a>
+    </p>
+    {% endif %}
     <div id="filters">
         <div>
 

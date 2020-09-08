@@ -47,7 +47,18 @@ def show_user(user_id):
     user = User.query.filter_by(id=user_id).first()
 
     return render_template(
-        "profile.html", conf=current_app.config, title="Profil adhérent", user=user
+        "profile/user.html", conf=current_app.config, title="Profil adhérent", user=user
+    )
+
+
+@blueprint.route("/my_events", methods=["GET"])
+def my_events():
+    """Route to show all events of the current user."""
+    return render_template(
+        "profile/my_events.html",
+        conf=current_app.config,
+        title="Mes collectives",
+        user=current_user,
     )
 
 
@@ -66,9 +77,9 @@ def show_leader(leader_id):
         return redirect(url_for("event.index"))
 
     return render_template(
-        "leader_profile.html",
+        "profile/leader.html",
         conf=current_app.config,
-        title="Profil adhérent",
+        title="Profil Encadrant",
         user=user,
     )
 

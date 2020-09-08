@@ -2,36 +2,34 @@ var locale = window.navigator.userLanguage || window.navigator.language;
 var eventstable;
 moment.locale(locale);
 
-window.onload = function(){
-    var common_options = {
-        layout:"fitDataFill",
-        ajaxURL: ajaxURL, // URL is defined in template
 
-        paginationSize : 10,
-        initialSort: [ {column:"start", dir:"asc"}],
-        initialFilter: [
-            {field:"end", type:">", value:  getServerLocalTime()}
-        ],
-        columns:[
-            {title: "Type",         field:"activity_types", formatter: typesFormatter     },
-            {title: "État",         field:"status",         sorter:"string"                 },
-            {title: "Titre",        field:"title",          sorter:"string"                 },
-            {title: "Date",         field:"start",          sorter:"string",             formatter:"datetime",
-                    formatterParams:{   outputFormat:"dddd D MMMM YYYY", invalidPlaceholder:"(invalid date)",}  },
-            {title: "Participants", field: "occupied_slots" },
-            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter     }
-        ],
-        rowClick: function(e, row){ document.location= row.getData().view_uri},
-    };
+const common_options = {
+    layout:"fitDataFill",
+     // URL is defined in template
 
+    paginationSize : 10,
+    initialSort: [ {column:"start", dir:"asc"}],
+    initialFilter: [
+        {field:"end", type:">", value:  getServerLocalTime()}
+    ],
+    columns:[
+        {title: "Type",         field:"activity_types", formatter: typesFormatter     },
+        {title: "État",         field:"status",         sorter:"string"                 },
+        {title: "Titre",        field:"title",          sorter:"string"                 },
+        {title: "Date",         field:"start",          sorter:"string",             formatter:"datetime",
+                formatterParams:{   outputFormat:"dddd D MMMM YYYY", invalidPlaceholder:"(invalid date)",}  },
+        {title: "Participants", field: "occupied_slots" },
+        {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter     }
+    ],
+    rowClick: function(e, row){ document.location= row.getData().view_uri},
+};
 
-    var eventstable= new Tabulator("#eventstable",
-                    Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:">", value:getServerLocalTime() }
-                            ]}));
-    var pasteventstable= new Tabulator("#pasteventstable",
-                    Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:"<", value:getServerLocalTime()  }
+function createEventTable(selector, ajaxURL, isFuture){
+    var past = isFuture ? "<" : ">";
+    return new Tabulator(selector,
+                    Object.assign(common_options, {   ajaxURL: ajaxURL,
+                                initialFilter: [
+                                {field:"end", type: past, value:getServerLocalTime() }
                             ]}));
 }
 

@@ -9,6 +9,10 @@
 
   <script>
       var ajaxURL= '/api/user/{{user.id}}/events';
+      window.onload = function(){
+          createEventTable("#eventstable", ajaxURL, true);
+          createEventTable("#pasteventstable", ajaxURL, false);
+      }
   </script>
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

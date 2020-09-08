@@ -80,6 +80,11 @@
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" class="legacy-icon" /> Mon Profil
                                 </a>
                             </li>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.my_events')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="legacy-icon" /> Mes collectives
+                                </a>
+                            </li>
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"

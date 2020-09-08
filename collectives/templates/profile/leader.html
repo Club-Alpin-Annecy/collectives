@@ -9,6 +9,10 @@
 
   <script>
       var ajaxURL= '/api/leader/{{user.id}}/events';
+      window.onload = function(){
+          createEventTable("#eventstable", ajaxURL, true);
+          createEventTable("#pasteventstable", ajaxURL, false);
+      }
   </script>
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
@@ -20,7 +24,7 @@
 {% block content %}
 <div class="panel" id="eventdetail">
     <h3>{{user.full_name()}}</h3>
-    
+
     <div><img src="{%   if user.avatar
                                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
                         else
@@ -29,7 +33,7 @@
                 alt="Avatar de l'utilisateur"
                 class="avatar big float_right" />
     </div>
-    
+
     <h4>Rôles</h4>
     <ul>
         {% for role in user.roles %}
