@@ -109,7 +109,7 @@ def autocomplete_leaders():
     :rtype: (string, int, dict)
     """
 
-    q = request.args.get("q")
+    q = request.args.get("q").lower()
     if q is None or (len(q) < 2):
         found_users = []
     else:

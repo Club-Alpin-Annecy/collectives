@@ -295,7 +295,7 @@ function sourceLeaderAutocomplete(term, suggest) {
         function (data) {
             const matches = []
             data.forEach((user) => {
-                matches.push({ full_name: user.full_name, id: user.id });
+                matches.push({ full_name: user.full_name });
             });
             suggest(matches)
         });
