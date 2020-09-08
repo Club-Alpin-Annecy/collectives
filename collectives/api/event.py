@@ -4,10 +4,10 @@
 import json
 from flask import url_for, request
 from flask_login import current_user
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, func
 from marshmallow import fields
 
-from ..models import Event, EventStatus, ActivityType
+from ..models import Event, EventStatus, ActivityType, User
 from ..utils.url import slugify
 from ..utils.time import current_time
 from .common import blueprint, marshmallow, avatar_url
@@ -209,6 +209,12 @@ def events():
         query_filter = None
         if field == "activity_type":
             query_filter = Event.activity_types.any(short=value)
+        if field == "leaders":
+            query_filter = Event.leaders.any(
+                func.lower(User.first_name + " " + User.last_name).like(f"%{value}%")
+            )
+        if field == "title":
+            query_filter = Event.title.like(f"%{value}%")
         elif field == "end":
             if filter_type == ">=":
                 query_filter = Event.end >= current_time().date()

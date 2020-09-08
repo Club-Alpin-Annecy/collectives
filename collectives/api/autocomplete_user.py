@@ -9,6 +9,7 @@ import json
 from flask import request, abort
 from flask_login import current_user
 from sqlalchemy.sql import text
+from sqlalchemy import func
 from marshmallow import fields
 
 from ..models import db, User
@@ -88,6 +89,34 @@ def autocomplete_users():
         found_users = []
     else:
         found_users = find_users_by_fuzzy_name(q)
+
+    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    return content, 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/leaders/autocomplete/")
+def autocomplete_leaders():
+    """API endpoint to list leaders for autocomplete.
+
+    At least 2 characters are required to make a name search.
+
+    :return: A tuple:
+
+        - JSON containing information describe in AutocompleteUserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+
+    q = request.args.get("q").lower()
+    if q is None or (len(q) < 2):
+        found_users = []
+    else:
+        query = db.session.query(User)
+        condition = func.lower(User.first_name + " " + User.last_name).like(f"%{q}%")
+        query = query.filter(condition)
+        query = query.filter(User.led_events)
+        found_users = query.limit(8)
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
     return content, 200, {"content-type": "application/json"}
