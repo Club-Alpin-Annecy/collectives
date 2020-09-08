@@ -95,7 +95,6 @@ def autocomplete_users():
 
 
 @blueprint.route("/leaders/autocomplete/")
-@valid_user(True)
 def autocomplete_leaders():
     """API endpoint to list leaders for autocomplete.
 
