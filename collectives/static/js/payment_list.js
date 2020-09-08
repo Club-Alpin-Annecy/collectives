@@ -10,7 +10,7 @@ window.onload = function(){
             {title:"État", field:"status", widthGrow:1, headerFilter:true},
             {title:"Objet", field:"item_title", widthGrow:2, headerFilter:true},
             {title:"Tarif", field:"price_title", widthGrow:2, headerFilter:true},
-            {title:"Prix", field:"amount_charged", widthGrow:1},
+            {title:"Payé", field:"amount_paid", widthGrow:1},
             {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true},
             {title:"Adhérent", field:"creditor_name", widthGrow:2, headerFilter:true},
             {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true},

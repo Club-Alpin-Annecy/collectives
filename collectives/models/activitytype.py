@@ -28,6 +28,14 @@ class ActivityType(db.Model):
     :type: string
     """
 
+    trigram = db.Column(db.String(3), nullable=False)
+    """ Three-letter code.
+
+    Mainly used to identify activity type in payment order references
+
+    :type: string
+    """
+
     order = db.Column(db.Integer, nullable=False)
     """ Order to display this activity
 

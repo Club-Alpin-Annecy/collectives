@@ -560,6 +560,9 @@ def register_user(event_id):
                 )
 
             if payment_required and registration.status != RegistrationStatus.Active:
+                flash(
+                    f"La collective est payante: l'inscription de {user.full_name()} ne sera définitive qu'après saisie des informations de paiement en bas de page."
+                )
                 registration.status = RegistrationStatus.PaymentPending
             else:
                 registration.status = RegistrationStatus.Active

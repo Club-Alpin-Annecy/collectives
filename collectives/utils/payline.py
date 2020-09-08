@@ -202,10 +202,10 @@ class OrderInfo:
     :type: int
     """
 
-    payment_id = 0
-    """ Primary key of related database Payment entry
+    payment = 0
+    """ Related database Payment entry
 
-    :type: int
+    :type: :py:class:`collectives.models.payment.Payment`
     """
 
     date = "01/01/1970 13:25"
@@ -228,7 +228,17 @@ class OrderInfo:
         :return: An unique reference for the order
         :rtype: string
         """
-        return f"order_{self.payment_id}"
+        if self.payment is None:
+            return str(uuid.uuid4())
+
+        # Date with format YYYYMMDD
+        date_str = self.payment.creation_time.strftime("%Y%m%d")
+        # Activity trigram
+        activity_str = self.payment.item.event.activity_types[0].trigram
+        # Rolling id making sure we can't get the same ref for distinct orders
+        rolling_id = self.payment.id % 10000
+
+        return f"CAF{date_str}{activity_str}{rolling_id:04}"
 
     def __init__(self, payment=None):
         """Constructor from an optional payment object
@@ -237,7 +247,7 @@ class OrderInfo:
         :type payment: :py:class:`collectives.models.payment.Payment`, optional
         """
         if payment is not None:
-            self.payment_id = payment.id
+            self.payment = payment
             self.amount_in_cents = (payment.amount_charged * 100).to_integral_exact()
             self.date = payment.creation_time.strftime("%d/%m/%Y %H:%M")
             item_details = {

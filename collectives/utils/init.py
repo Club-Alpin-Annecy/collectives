@@ -26,7 +26,8 @@ def activity_types(app):
 
             activity_type.name = atype["name"]
             activity_type.short = atype["short"]
-            # if order doesn't exists, use id
+            activity_type.trigram = atype["trigram"]
+            # if order is not specified, default to '50'
             activity_type.order = atype.get("order", 50)
             db.session.add(activity_type)
 

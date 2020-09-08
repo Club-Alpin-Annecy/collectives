@@ -7,7 +7,12 @@
     <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
-        {{paid_self_register_form.item_price.label}} {{paid_self_register_form.item_price}}
+            {{paid_self_register_form.item_price.label}} :
+            <ul class="radio_fields">
+            {% for option in paid_self_register_form.item_price %}
+                <li>{{option(required=1)}} {{option.label}} </li>
+            {% endfor %}
+            </ul>
         </div>
         <div>
         {{paid_self_register_form.accept_payment_terms}}
