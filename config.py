@@ -12,6 +12,8 @@ import os
 from os import environ
 import subprocess
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 FLASK_ENV = environ.get("FLASK_ENV")
 """What environment the app is running in.
@@ -39,6 +41,13 @@ Secret key can also be set in instance/config.py
 
 :type: string
 """
+
+LOGGING_CONFIGURATION = f"{basedir}/logging.cfg"
+"""Logging configuration file path.
+
+File syntax is described here: `here <https://docs.python.org/3/library/logging.config.html#logging-config-fileformat>`_
+
+:type: string"""
 
 ADMINPWD = environ.get("ADMINPWD") or "foobar2"
 """Password for admin account
@@ -94,7 +103,6 @@ PAYMENTS_MAX_PRICE = 10000
 """
 
 # Database
-basedir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_DATABASE_URI = environ.get(
     "SQLALCHEMY_DATABASE_URI"
 ) or "sqlite:///" + os.path.join(basedir, "app.db")
