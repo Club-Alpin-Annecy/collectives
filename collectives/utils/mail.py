@@ -14,6 +14,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email
 import smtplib
+import threading
 
 # pylint: disable=E0001
 import dkim
@@ -75,4 +76,4 @@ def send_mail(**kwargs):
         )
         msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
 
-    s.send_message(msg)
+    threading.Thread(target=s.send_message, args=(msg,)).start()
