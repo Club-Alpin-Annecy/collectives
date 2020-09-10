@@ -61,13 +61,17 @@ def create_app(config_filename="config"):
         filters = "libsass"
         if app.config["ENV"] == "production":
             filters = "libsass, cssmin"
+            assets.auto_build = False
+            assets.debug = False
         scss = Bundle(
             "css/all.scss",
             filters=filters,
             depends=("/static/css/**/*.scss"),
             output="dist/css/all.css",
         )
+
         assets.register("scss_all", scss)
+        scss.build()
 
         # Register blueprints
         app.register_blueprint(root.blueprint)
