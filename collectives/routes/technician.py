@@ -2,7 +2,7 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
-import glob, logging, os.path, os
+import logging, os.path, os
 from flask import current_app, Blueprint, render_template, send_from_directory
 
 from ..utils.access import confidentiality_agreement, technician_required, valid_user
@@ -36,7 +36,6 @@ def list_logs():
     all_children = os.listdir(log_dir())
     files = [file for file in all_children if ".log" in file]
 
-    print(glob.glob(""))
     return render_template(
         "technician/logs.html",
         title="Liste des logs",
