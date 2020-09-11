@@ -65,6 +65,8 @@ class ConfirmationToken(db.Model):
 
     :type: :py:class:`collectives.models.auth.ConfirmationTokenType`"""
 
+    failed = db.Column(db.Boolean(), default=False, nullable=False)
+
     def __init__(self, user_license, existing_user):
         """Token constructor
 

@@ -21,10 +21,20 @@ import dkim
 
 # pylint: enable=E0001
 
-from flask import current_app
+import flask
 
 
 def send_mail(**kwargs):
+    """ Wrapper for :py:func:`send_mail_threaded`"""
+    threading.Thread(
+        target=send_mail_threaded,
+        # pylint: disable=W0212
+        args=(flask.current_app._get_current_object(),),
+        kwargs=kwargs,
+    ).start()
+
+
+def send_mail_threaded(app, **kwargs):
     """Send a mail.
 
     Usage example:
@@ -43,8 +53,11 @@ def send_mail(**kwargs):
           Email Adress recipient
         * *message* (``string``) --
           Email body
+        * *error_action* (``string``) --
+          Message to send to user in case of error.
     """
-    config = current_app.config
+
+    config = app.config
     s = smtplib.SMTP(host=config["SMTP_HOST"], port=config["SMTP_PORT"])
 
     s.starttls()
@@ -76,4 +89,12 @@ def send_mail(**kwargs):
         )
         msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
 
-    threading.Thread(target=s.send_message, args=(msg,)).start()
+    try:
+        s.send_message(msg)
+    except Exception as e:
+        dest = kwargs["email"]
+        app.logger.exception(f"Unable to send mail to {dest}")
+
+        if "error_action" in kwargs:
+            with app.app_context():
+                kwargs["error_action"](e)
