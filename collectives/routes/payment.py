@@ -3,6 +3,8 @@
 This modules contains the /payment Blueprint
 """
 
+from decimal import Decimal
+
 from flask import Blueprint, request
 from flask import render_template, current_app, flash, redirect, url_for, abort
 from flask_login import current_user
@@ -14,7 +16,7 @@ from ..utils.access import payments_enabled, valid_user
 from ..utils.time import current_time
 from ..models import db
 from ..models.event import Event
-from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus
+from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus, PaymentType
 from ..models.registration import RegistrationStatus, Registration
 
 
@@ -246,8 +248,9 @@ def report_offline(registration_id, payment_id=None):
 @valid_user()
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
 def request_payment(payment_id):
-    """Route for displaying the payment widget. For now display a mock page,
-    will be replaced with a real one once integration with Payline is complete
+    """Route for displaying the Payline payment widget.
+    If Payline is not confugred properly display a mock payment page.
+    If the item is free approve the payment immediately with a 0.0 cash transaction
 
     :param payment_id: The primary key of the payment being made
     :type payment_id: int
@@ -256,6 +259,23 @@ def request_payment(payment_id):
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(500)
 
+    # If the item is free, approve the payment immediately
+    if payment.amount_charged == Decimal(0.0):
+        payment.payment_type = PaymentType.Cash
+        payment.status = PaymentStatus.Approved
+        payment.finalization_time = current_time()
+        payment.amount_paid = Decimal(0.0)
+        if payment.registration is not None:
+            flash("Votre inscription est désormais confirmée.")
+            payment.registration.status = RegistrationStatus.Active
+            db.session.add(payment.registration)
+
+        db.session.add(payment)
+        db.session.commit()
+
+        return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+
+    # Redirect to the payment processor page
     order_info = payline.OrderInfo(payment)
     buyer_info = payline.BuyerInfo(current_user)
 
