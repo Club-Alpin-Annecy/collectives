@@ -1,5 +1,6 @@
 """ Module to handle HTTP errors """
 
+import logging
 from flask import redirect, url_for, flash, request, render_template
 
 
@@ -26,7 +27,10 @@ def server_error(e):
     # pylint: disable=unused-argument
     """Return a very simple error page.
 
+    Note: in collectives, this function is only active in non debug mode.
+
     :param e: exception which generated the error page
     :return: ``error.html page`` with a 500 error code
     """
+    logging.exception(e)
     return render_template("error.html"), 500

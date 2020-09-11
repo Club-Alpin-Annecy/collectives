@@ -9,16 +9,17 @@ Typical usage example::
   collectives.create_app().run(debug=True)
 """
 
-from flask import Flask
+from logging.config import fileConfig
+import werkzeug
+
+from flask import Flask, current_app
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_statistics import Statistics
-import werkzeug
-
 
 from . import models, api, forms
-from .routes import root, profile, auth, administration, event, payment
+from .routes import root, profile, auth, administration, event, payment, technician
 from .utils import extranet, init, jinja, error, access, payline, statistics
 
 
@@ -41,6 +42,8 @@ def create_app(config_filename="config"):
     app.config.from_object(config_filename)
     app.config.from_pyfile("config.py")
     # To get one variable, tape app.config['MY_VARIABLE']
+
+    fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
 
     # Initialize plugins
     models.db.init_app(app)
@@ -81,6 +84,7 @@ def create_app(config_filename="config"):
         app.register_blueprint(auth.blueprint)
         app.register_blueprint(event.blueprint)
         app.register_blueprint(payment.blueprint)
+        app.register_blueprint(technician.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

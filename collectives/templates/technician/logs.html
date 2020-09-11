@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}{{ title }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <!-- Logging Windows -->
+  <h3>{{ title }}</h3>
+  {% if subtitle %}<h4>{{subtitle}}</h4>{% endif  %}
+
+  {% for log in logs %}
+  <p>- <a href="{{ url_for('technician.get_log', file_name=log)}}">{{log}}</a></p>
+  {% endfor %}
+
+  {% include 'contact_link.html' %}
+
+</div>
+{% endblock %}
