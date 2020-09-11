@@ -27,6 +27,7 @@
   <h4>Paiement associés à la collective</h4>
   <div id="payments-table"></div>
 
+  <p><a class="button button-primary" href="{{url_for('payment.export_payments', event_id=event.id)}}">Export XLSX des paiements validés</a></p>
 </div>
 {% endblock %}
 
