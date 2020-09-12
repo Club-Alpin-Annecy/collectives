@@ -249,8 +249,8 @@ def report_offline(registration_id, payment_id=None):
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
 def request_payment(payment_id):
     """Route for displaying the Payline payment widget.
-    If Payline is not confugred properly display a mock payment page.
-    If the item is free approve the payment immediately with a 0.0 cash transaction
+    If Payline is not configured properly display a mock payment page.
+    If the item is free approve the payment immediately with a 0.0 "Cash" transaction.
 
     :param payment_id: The primary key of the payment being made
     :type payment_id: int
