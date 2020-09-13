@@ -41,6 +41,11 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
+    event_title = fields.Function(lambda p: p.item.event.title)
+    """ Title of the event associated to payment item
+
+    :type: string"""
+
     price_title = fields.Function(lambda p: p.price.title)
     """ Title of the item price
 
@@ -60,6 +65,24 @@ class PaymentSchema(marshmallow.Schema):
     """ Amount paid as string
 
     :type: string"""
+
+    creation_time = fields.Function(lambda p: p.creation_time.strftime("%d/%m/%y"))
+    """ Time at which the payment has been created
+
+    :type: string"""
+
+    finalization_time = fields.Function(
+        lambda p: p.finalization_time.strftime("%d/%m/%y")
+        if p.finalization_time
+        else None
+    )
+    """ Time at which the payment has been finalized
+
+    :type: string"""
+
+
+class EventPaymentSchema(PaymentSchema):
+    """Specialization of PaymentSchema for listing the payments associated to an event"""
 
     details_uri = fields.Function(
         lambda p: url_for("payment.payment_details", payment_id=p.id)
@@ -82,6 +105,35 @@ class PaymentSchema(marshmallow.Schema):
             "payment_type",
             "registration_status",
             "details_uri",
+            "creation_time",
+        )
+
+
+class MyPaymentSchema(PaymentSchema):
+    """Specialization of PaymentSchema for listing the payments associated to the current user"""
+
+    details_uri = fields.Function(
+        lambda p: url_for("event.view_event", event_id=p.item.event.id)
+    )
+    """ Uri of the event associated to the payment
+
+    :type: string"""
+
+    class Meta:
+        """ Fields to expose """
+
+        fields = (
+            "id",
+            "event_title",
+            "item_title",
+            "price_title",
+            "amount_charged",
+            "amount_paid",
+            "payment_type",
+            "registration_status",
+            "details_uri",
+            "creation_time",
+            "finalization_time",
         )
 
 
@@ -105,7 +157,26 @@ def list_payments(event_id):
     query = query.filter(PaymentItem.event_id == event_id)
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
 
-    result = query.all()
-    response = PaymentSchema(many=True).dump(result)
+    result = query.order_by(Payment.id).all()
+    response = EventPaymentSchema(many=True).dump(result)
+
+    return json.dumps(response), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/payments/my/<status_code>", methods=["GET"])
+@valid_user(True)
+@payments_enabled(True)
+def my_payments(status_code):
+    """Api endpoint for listing all payments associated to the current user
+    with a given status
+
+    :param status_code: The code corresponding to the desired payment status
+    :type status_code: string
+    """
+
+    query = Payment.query.filter_by(creditor_id=current_user.id, status=status_code)
+
+    result = query.order_by(Payment.id.desc()).all()
+    response = MyPaymentSchema(many=True).dump(result)
 
     return json.dumps(response), 200, {"content-type": "application/json"}
