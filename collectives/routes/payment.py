@@ -88,36 +88,38 @@ def edit_prices(event_id):
         db.session.commit()
 
     # Update or delete items
-    for item_form in form.items:
-        try:
-            item, price = item_form.get_item_and_price(event)
-        except ValueError:
-            flash("Données incorrectes", "error")
-            return redirect(url_for("payment.edit_prices", event_id=event_id))
+    try:
+        for item_form in form.items:
+            item = item_form.get_item(event)
+            for price_form in item_form.item_prices:
+                price = price_form.get_price(item)
+                if price_form.delete.data:
+                    if len(price.payments) > 0:
+                        flash(
+                            f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
+                            "warning",
+                        )
+                        continue
 
-        if item_form.delete.data:
-            if len(price.payments) > 0:
-                flash(
-                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
-                    "warning",
-                )
-                continue
+                    db.session.delete(price)
+                    if len(item.prices) == 0:
+                        db.session.delete(item)
 
-            db.session.delete(price)
-            if len(item.prices) == 0:
-                db.session.delete(item)
+                    db.session.commit()
+                else:
+                    item.title = item_form.title.data
+                    price.title = price_form.title.data
+                    price.enabled = price_form.enabled.data
+                    if price.amount != price_form.amount.data:
+                        price.amount = price_form.amount.data
+                        price.update_time = current_time()
+                    db.session.add(item)
+                    db.session.add(price)
+                    db.session.commit()
 
-            db.session.commit()
-        else:
-            item.title = item_form.item_title.data
-            price.title = item_form.title.data
-            price.enabled = item_form.enabled.data
-            if price.amount != item_form.amount.data:
-                price.amount = item_form.amount.data
-                price.update_time = current_time()
-            db.session.add(item)
-            db.session.add(price)
-            db.session.commit()
+    except ValueError:
+        flash("Données incorrectes", "error")
+        return redirect(url_for("payment.edit_prices", event_id=event_id))
 
     # Redirect to same page to reset form data
     return redirect(url_for("payment.edit_prices", event_id=event_id))

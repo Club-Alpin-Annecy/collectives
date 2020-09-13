@@ -48,15 +48,46 @@ class ItemPriceForm(ModelForm, AmountForm):
         model = ItemPrice
         only = ["enabled", "title"]
 
-    item_title = StringField(validators=[DataRequired()])
-
     delete = BooleanField("Supprimer")
 
     price_id = HiddenField()
-    item_id = HiddenField()
     use_count = 0
 
-    def get_item_and_price(self, event):
+    def get_price(self, item):
+        """
+        :param event: Event to which the payment item belongs
+        :type event: :py:class:`collectives.models.event.Event`
+        :return: Returns both the price and its parent item from which this form was created
+                 If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+        """
+
+        price_id = int(self.price_id.data)
+        price = ItemPrice.query.get(price_id)
+        if price is None:
+            raise ValueError
+        if price.item_id != item.id:
+            raise ValueError
+        return price
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded  constructor"""
+        super().__init__(*args, **kwargs)
+
+        # Update price range from config
+        self.update_max_amount()
+
+class PaymentItemForm(ModelForm):
+    """Form for editing a single payment item and associated prices"""
+
+    class Meta:
+        model = PaymentItem
+        only = ["title"]
+
+    item_id = HiddenField()
+    item_prices = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
+
+    def get_item(self, event):
         """
         :param event: Event to which the payment item belongs
         :type event: :py:class:`collectives.models.event.Event`
@@ -66,23 +97,34 @@ class ItemPriceForm(ModelForm, AmountForm):
         """
 
         item_id = int(self.item_id.data)
-        price_id = int(self.price_id.data)
-
         item = PaymentItem.query.get(item_id)
-        price = ItemPrice.query.get(price_id)
-        if item is None or price is None:
+        if item is None:
             raise ValueError
-        if price.item_id != item.id or item.event_id != event.id:
+        if item.event_id != event.id:
             raise ValueError
-        return item, price
+        return item
 
-    def __init__(self, *args, **kwargs):
-        """Overloaded  constructor"""
-        super().__init__(*args, **kwargs)
+    def populate_prices(self, item):
+        """
+        Setups form for all current prices
 
-        # Update price range from config
-        self.update_max_amount()
+        :param item: payment item for which to create a form entry
+        :type item: :py:class:`collectives.models.payment.PaymentItem`
+        """
+        # Remove all existing entries
+        while len(self.item_prices) > 0:
+            self.item_prices.pop_entry()
 
+        # Create new entries
+        for price in item.prices:
+            self.item_prices.append_entry(price)
+
+        # Update fields
+        for k, field_form in enumerate(self.item_prices):
+            field_form.update_max_amount()
+            price = item.prices[k]
+            field_form.price_id.data = price.id
+            field_form.use_count = len(price.payments)
 
 class NewItemPriceForm(AmountForm):
     """Form component for inputting a new item and price"""
@@ -103,7 +145,7 @@ class PaymentItemsForm(FlaskForm):
     """Form for editing payment items and prices"""
 
     new_item = FormField(NewItemPriceForm)
-    items = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
+    items = FieldList(FormField(PaymentItemForm, default=PaymentItem()))
 
     submit = SubmitField("Enregistrer")
 
@@ -120,20 +162,13 @@ class PaymentItemsForm(FlaskForm):
 
         # Create new entries
         for item in items:
-            if len(item.prices) > 0:
-                data = item.prices[0]
-            else:
-                data = ItemPrice(item_id=item.id)
-            data.item_title = item.title
-            data.price_id = data.id
-            self.items.append_entry(data)
+            self.items.append_entry(item)
 
         # Update fields
         for k, field_form in enumerate(self.items):
-            field_form.update_max_amount()
-            if len(items[k].prices) > 0:
-                field_form.use_count = len(items[k].prices[0].payments)
-
+            item = items[k]
+            field_form.item_id.data = item.id
+            field_form.populate_prices(item)
 
 class OfflinePaymentForm(ModelForm, OrderedForm):
     """Form for notifying an offline payment"""

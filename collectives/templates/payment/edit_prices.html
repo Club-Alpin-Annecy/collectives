@@ -19,40 +19,44 @@
     {% if form.items %}
     <table id="existing_prices">
     <thead>
-      <th> Objet du paiement</th>
+      <th> Objet du paiement </th>
       <th> Intitulé du tarif </th>
       <th> Prix en euros </th>
       <th> Actif </th>
     </thead>
-    {% for field in form.items %}
-      <tr>
-        <td> {{ field.item_title() }} </td>
-        <td> {{ field.title() }} </td>
-        <td>
-        {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
-         </td>
-        <td> {{ field.enabled() }} </td>
-        <td> {{field.price_id}} {{field.item_id}}
-        {% if field.use_count %}
-          Utilisé {{field.use_count}} fois.
-        {% else %}
-          {{field.delete}} {{field.delete.label}}
-        {% endif %}
-        </td>
-      </tr>
-      {% if field.errors %}
-      <tr> <td colspan="4" class="error-cell">
-        <div class="form-errors">
-            {% for field_name, errors in field.errors.items() %}
-            {% for error in errors %}
-            <div class="flash flash-error">
-                <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
-            </div>
-            {% endfor %}
-            {% endfor %}
-        </div>
-      </td> </tr>
-      {%endif%}
+    {% for item_form in form.items %}
+      {{item_form.item_id}}
+    
+      {% for field in item_form.item_prices %}
+        <tr>
+          <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
+          <td> {{ field.title() }} </td>
+          <td>
+          {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+          </td>
+          <td> {{ field.enabled() }} </td>
+          <td> {{field.price_id}} 
+          {% if field.use_count %}
+            Utilisé {{field.use_count}} fois.
+          {% else %}
+            {{field.delete}} {{field.delete.label}}
+          {% endif %}
+          </td>
+        </tr>
+        {% if field.errors %}
+        <tr> <td colspan="4" class="error-cell">
+          <div class="form-errors">
+              {% for field_name, errors in field.errors.items() %}
+              {% for error in errors %}
+              <div class="flash flash-error">
+                  <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
+              </div>
+              {% endfor %}
+              {% endfor %}
+          </div>
+        </td> </tr>
+        {%endif%}
+      {% endfor %}
     {% endfor %}
     </table>
     {%else%}

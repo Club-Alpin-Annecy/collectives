@@ -28,7 +28,7 @@ class PaymentItem(db.Model):
 
     :type: int"""
 
-    title = db.Column(db.String(256), nullable=False)
+    title = db.Column(db.String(256), nullable=False, info = {"label" : "Objet du paiement"})
     """ Display title for this payment option
 
     :type: string"""
