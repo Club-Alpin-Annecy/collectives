@@ -82,6 +82,22 @@ class ItemPrice(db.Model):
 
     :type: string"""
 
+    license_types = db.Column(db.String(256))
+    """ List of comma-separated license-types to which this price applies.
+    If the list is NULL or left empty, then the price applies to all licence types
+
+    :type: string"""
+
+    start_date = db.Column(db.Date())
+    """ Date at which this price will start to be available
+
+    :type: :py:class:`datetime.date`"""
+
+    end_date = db.Column(db.Date())
+    """ Date at which this price will stop to be available
+
+    :type: :py:class:`datetime.date`"""
+
     amount = db.Column(db.Numeric(precision=8, scale=2), nullable=False)
     """ Charged amount in euros
 
