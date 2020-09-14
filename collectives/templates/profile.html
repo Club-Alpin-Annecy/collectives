@@ -99,6 +99,18 @@
     </form>
     {% endif %}
 
+    <h4>Diplômes</h4>
+    <div  >
+    {% for diploma in user.diplomas %}
+        <div class="is-inline-block">
+            <span class="activity {{diploma.type.activity.short}} s30px" title="{{diploma.type.activity.name}}"> </span> <b>{{ diploma.type.title }}</b>
+            {% if diploma.obtention %} <br/>  - Obtenu le {{diploma.obtention}} {% endif%}
+            {% if diploma.expiration %} <br/> - Expire le {{diploma.expiration}} {% endif%}
+        </div>
+    {% endfor %}
+    </div>
+
+
     <h4>Sorties à venir</h4>
     <div id="eventstable">
     </div>

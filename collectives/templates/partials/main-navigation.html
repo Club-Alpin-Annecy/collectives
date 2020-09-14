@@ -35,6 +35,12 @@
                                         class="legacy-icon" />Import CSV
                                 </a>
                             </li>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('diploma.index')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"
+                                        class="legacy-icon" />Gestion des dipômes
+                                </a>
+                            </li>
                             {% endif %}
                             {% if current_user.is_admin() %}
                             <li class="menu-dropdown-item">

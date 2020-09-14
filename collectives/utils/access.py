@@ -223,6 +223,50 @@ def technician_required(api=False):
     return innerF
 
 
+def supervisor_required(api=False):
+    """Decorator which check if user is a supervisor.
+
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
+
+    def innerF(f):
+        """Function that will wraps `f`.
+
+        :param f: function to protect.
+        :type f: function
+        :return: the protected (decorated) `f` function
+        :rtype: function
+        """
+
+        def tester(*args, **kwargs):
+            """Check if user is a supervisor.
+
+            It will also return everything required to display an error message if
+            check is failed.
+
+            :param *args: Argument for `f` functions. Not used here.
+            :type *args: list
+            :param **kwargs: Argument for `f` functions. Not used here.
+            :type **kwargs: dictionnary
+            :return: True if user is a technician, plus error message, plus URL fallback
+            :rtype: boolean, String, String
+            """
+            message = "Accès non autorisé. Réservé aux responsables d'activité"
+            current_app.logger.warn(
+                f"is supe: {flask_login.current_user.is_supervisor()}"
+            )
+            return (
+                flask_login.current_user.is_supervisor(),
+                message,
+                url_for("event.index"),
+            )
+
+        return access_requires(f, tester, api)
+
+    return innerF
+
+
 @flask_login.login_required
 @technician_required()
 def technician_required_f():

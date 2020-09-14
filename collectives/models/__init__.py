@@ -13,3 +13,4 @@ from .user import User, Gender, avatars
 from .auth import ConfirmationToken, ConfirmationTokenType
 from .payment import PaymentItem, ItemPrice, PaymentStatus, Payment
 from .request import Request
+from .diploma import Diploma, DiplomaType

@@ -20,6 +20,7 @@ from flask_statistics import Statistics
 
 from . import models, api, forms
 from .routes import root, profile, auth, administration, event, payment, technician
+from .routes import diploma
 from .utils import extranet, init, jinja, error, access, payline, statistics
 
 
@@ -85,6 +86,7 @@ def create_app(config_filename="config"):
         app.register_blueprint(event.blueprint)
         app.register_blueprint(payment.blueprint)
         app.register_blueprint(technician.blueprint)
+        app.register_blueprint(diploma.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

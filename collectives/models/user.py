@@ -282,6 +282,11 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
+    diplomas = db.relationship("Diploma", back_populates="user", lazy=True)
+    """ List of diplomas of the user.
+
+    :type: list(:py:class:`collectives.models.diploma.Diploma`)"""
+
     @validates(
         "first_name",
         "last_name",
@@ -441,7 +446,7 @@ class User(db.Model, UserMixin):
         :return: True if user supervises at least one activity.
         :rtype: boolean
         """
-        return self.has_role([RoleIds.ActivitySupervisor])
+        return self.has_role([RoleIds.ActivitySupervisor, RoleIds.Administrator])
 
     def is_technician(self):
         """Check if user has a technician role.

@@ -1,0 +1,67 @@
+
+{% extends 'base.html' %}
+
+{% import 'macros/basicform.html' as basicform with context %}
+
+{% block additionalhead %}
+
+  {# Tabulator: for tables#}
+  <link href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+
+  <script src="{{ url_for('static', filename='js/diploma/index.js') }}"></script>
+
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Gestion des diplômes{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="diploma">
+  <h3>Gestion des diplômes</h3>
+
+  <h4>Types de diplômes</h4>
+  <a  class="button button-secondary" href="{{url_for('diploma.edit_type')}}">
+      <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"  alt="+"/>
+      Ajout d'un type
+  </a>
+  {% for diploma_type in diploma_types %}
+    <div>
+        <a class="button" href="{{ url_for('diploma.edit_type', type_id=diploma_type.id)}}" >
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt="Editer"/>
+        </a>
+        <form
+            id="form-delete-{{diploma_type.id}}"
+            method="post"
+            action="{{ url_for('diploma.delete_type', type_id=diploma_type.id)}}"
+            style="display:inline-block"
+            onsubmit="confirm('Continuer engendrera la suppression irréversible de tous les diplômes de ce type. Êtes-vous sûr de vouloir le faire?')"
+        >
+            <a class="button" onclick="document.getElementById('form-delete-{{diploma_type.id}}').submit();">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"  alt="Supprimer"/>
+            </a>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </form>
+        <span class="activity {{diploma_type.activity.short}} s30px"></span>
+                <b>{{diploma_type.title}}</b> [{{diploma_type.reference}}]
+
+
+    </div>
+  {% endfor %}
+
+  <h4>Attribuer un diplôme</h4>
+  {{ basicform.display(form) }}
+
+  <h4>Listes des diplômes</h4>
+  <div id="diplomastable"></div>
+
+  <form action="{{url_for('diploma.delete', diploma_id='')}}" style="display:none;" id="delete_form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% macro errors(form) -%}
+<div class="form-errors">
+  {% for field in form%}
+      {% for error in form.errors[field.name] %}
+
+      <div class="flash flash-error">
+          <strong>Erreur : {{field.label}}:</strong> {{error}}
+      </div>
+
+      {% endfor %}
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro display(form) -%}
+<div  id="administration">
+    <form action="{{ getattr(form.Meta, 'action', '' ) }}" method="POST" enctype="multipart/form-data" class="form">
+      {% for field in form %}
+          {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+              <div class="controls">
+                  {% if field.widget.__class__.__name__ != "HiddenInput" %}
+                        <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+                  {% endif %}
+                  {% if field.type == "PasswordField" %}
+                      {{ field(autocomplete="new-password", title=field.description) }}
+                  {% elif field.type == "FileField" %}
+                      {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
+                  {% else %}
+                      {{ field(title=field.description) }}
+                  {% endif %}
+              </div>
+          {% endif %}
+      {% endfor %}
+      {{ form.hidden_tag() }}
+      <div class="controls">
+      <br />{{ form.submit(class="button button-primary") }}
+      </div>
+    </form>
+</div>
+<script>
+  // Some browsers do not support HTML5 date pickers yet
+  // Use tail instead for those cases
+  // See https://stackoverflow.com/questions/18020950/how-to-make-input-type-date-supported-on-all-browsers-any-alternatives
+  var dateInput = document.querySelector("input[type='date']");
+  if (dateInput && dateInput.type != 'date') {
+    tail.DateTime("input[type=date]", {
+      weekStart: 1,
+      timeFormat: false
+    });
+  }
+</script>
+{%- endmacro %}

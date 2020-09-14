@@ -49,6 +49,8 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.user.User`
     """
 
+    diploma_types = db.relationship("DiplomaType", backref="activity_types", lazy=True)
+
     def can_be_led_by(self, users):
         """Check if at least anyone in a list can lead an event
         of this activity
