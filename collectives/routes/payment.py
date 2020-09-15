@@ -12,7 +12,7 @@ from flask_login import current_user
 
 from openpyxl import Workbook
 
-from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
+from ..forms.payment import PaymentItemsForm, OfflinePaymentForm, NewItemPriceForm
 from ..utils import payline
 
 from ..utils.access import payments_enabled, valid_user
@@ -60,69 +60,82 @@ def edit_prices(event_id):
         flash("Accès refusé", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    form = PaymentItemsForm()
-
-    if not form.is_submitted():
-        form.populate_items(event.payment_items)
-        return render_template(
-            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
-        )
-
-    if not form.validate():
-        return render_template(
-            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
-        )
+    # Only populate the form corresponding to the submit button
+    # that gas been clicked
 
     # Add a new payment option
-    if form.new_item.item_title.data:
-        new_price = ItemPrice(
-            amount=form.new_item.amount.data,
-            title=form.new_item.title.data,
-            enabled=True,
-            update_time=current_time(),
-        )
-        new_item = PaymentItem(title=form.new_item.item_title.data)
-        new_item.prices.append(new_price)
-        event.payment_items.append(new_item)
-        db.session.add(event)
-        db.session.commit()
+    if "add" in request.form:
+        new_item_form = NewItemPriceForm()
+        if new_item_form.validate():
+            new_price = ItemPrice(
+                amount=new_item_form.amount.data,
+                title=new_item_form.title.data,
+                enabled=True,
+                update_time=current_time(),
+            )
+            new_item = PaymentItem(title=new_item_form.item_title.data)
+            new_item.prices.append(new_price)
+            event.payment_items.append(new_item)
+            db.session.add(event)
+            db.session.commit()
+
+            # Reset form data
+            new_item_form = NewItemPriceForm(formdata=None)
+    else:
+        new_item_form = NewItemPriceForm(formdata=None)
 
     # Update or delete items
-    try:
-        for item_form in form.items:
-            item = item_form.get_item(event)
-            for price_form in item_form.item_prices:
-                price = price_form.get_price(item)
-                if price_form.delete.data:
-                    if len(price.payments) > 0:
-                        flash(
-                            f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
-                            "warning",
-                        )
-                        continue
-
-                    db.session.delete(price)
-                    if len(item.prices) == 0:
-                        db.session.delete(item)
-
-                    db.session.commit()
-                else:
+    if "update" in request.form:
+        form = PaymentItemsForm()
+        if form.validate():
+            try:
+                for item_form in form.items:
+                    item = item_form.get_item(event)
                     item.title = item_form.title.data
-                    price.title = price_form.title.data
-                    price.enabled = price_form.enabled.data
-                    if price.amount != price_form.amount.data:
-                        price.amount = price_form.amount.data
-                        price.update_time = current_time()
                     db.session.add(item)
-                    db.session.add(price)
                     db.session.commit()
 
-    except ValueError:
-        flash("Données incorrectes", "error")
-        return redirect(url_for("payment.edit_prices", event_id=event_id))
+                    for price_form in item_form.item_prices:
+                        price = price_form.get_price(item)
+                        if price_form.delete.data:
+                            if len(price.payments) > 0:
+                                flash(
+                                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
+                                    "warning",
+                                )
+                                continue
 
-    # Redirect to same page to reset form data
-    return redirect(url_for("payment.edit_prices", event_id=event_id))
+                            db.session.delete(price)
+                            if len(item.prices) == 0:
+                                db.session.delete(item)
+
+                            db.session.commit()
+                        else:
+                            price.title = price_form.title.data
+                            price.enabled = price_form.enabled.data
+                            if price.amount != price_form.amount.data:
+                                price.amount = price_form.amount.data
+                                price.update_time = current_time()
+                            db.session.add(price)
+                            db.session.commit()
+
+            except ValueError:
+                flash("Données incorrectes", "error")
+
+            # Reset form data
+            form = PaymentItemsForm(formdata=None)
+            form.populate_items(event.payment_items)
+    else:
+        form = PaymentItemsForm(formdata=None)
+        form.populate_items(event.payment_items)
+
+    return render_template(
+        "payment/edit_prices.html",
+        conf=current_app.config,
+        event=event,
+        form=form,
+        new_item_form=new_item_form,
+    )
 
 
 @valid_user()

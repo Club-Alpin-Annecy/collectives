@@ -13,10 +13,10 @@
   <h4>Édition des tarifs</h4>
   Pour rendre la collective payante, définissez un ou plusieurs tarifs.
 
-  <form method="POST">
+  <h5> Tarifs existants </h5>
+  {% if form.items %}
 
-    <h5> Tarifs existants </h5>
-    {% if form.items %}
+    <form method="POST">
     <table id="existing_prices">
     <thead>
       <th> Objet du paiement </th>
@@ -59,34 +59,39 @@
       {% endfor %}
     {% endfor %}
     </table>
+
+    {{ form.hidden_tag() }}
+    <br />{{ form.update(class="button button-primary") }}
+    </form>
     {%else%}
       Aucun tarif n'a été défini pour le moment.
     {%endif%}
 
     <h5> Nouveau tarif </h5>
+    <form method="POST">
 
     <div class="form-errors">
-        {% for field_name, errors in form.new_item.errors.items() %}
+        {% for field_name, errors in new_item_form.errors.items() %}
         {% for error in errors %}
         <div class="flash flash-error">
-            <strong>Erreur: {{form.new_item[field_name].label}}:</strong> {{error}}
+            <strong>Erreur: {{new_item_form[field_name].label}}:</strong> {{error}}
         </div>
         {% endfor %}
         {% endfor %}
     </div>
 
-    <div class="field">{{ form.new_item.item_title.label }}<span class="help">Laissez vide pour ne pas créer de nouveau tarif</span></div>
-    {{ form.new_item.item_title}}
-    <div class="field">{{ form.new_item.title.label }}<span class="help">Par exemple «Adultes»</span></div>
-    {{ form.new_item.title}}
+    <div class="field">{{ new_item_form.item_title.label }}<span class="help">Laissez vide pour ne pas créer de nouveau tarif</span></div>
+    {{ new_item_form.item_title}}
+    <div class="field">{{ new_item_form.title.label }}<span class="help">Par exemple «Adultes»</span></div>
+    {{ new_item_form.title}}
 
-    <div class="field">{{ form.new_item.amount.label }}<span class="help">{{ form.new_item.amount.description }}</span></div>
-    {{ form.new_item.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
-    {#{ form.new_item.amount()}#}
-
-    {{ form.hidden_tag() }}
-    <br />{{ form.submit(class="button button-primary") }}
-  </form>
+    <div class="field">{{ new_item_form.amount.label }}<span class="help">{{ new_item_form.amount.description }}</span></div>
+    {{ new_item_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+    {#{ new_item_form.amount()}#}
+    
+    {{ new_item_form.hidden_tag() }}
+    <br />{{ new_item_form.add(class="button button-primary") }}
+    </form>
 
 </div>
 {% endblock %}

@@ -132,6 +132,8 @@ class NewItemPriceForm(AmountForm):
     item_title = StringField("Objet du paiement")
     title = StringField("Intitulé du tarif")
 
+    add = SubmitField("Ajouter le tarif")
+
     def validate_title(form, field):
         """Validates that if a new item is created, then the
         title field is not empty.
@@ -144,10 +146,9 @@ class NewItemPriceForm(AmountForm):
 class PaymentItemsForm(FlaskForm):
     """Form for editing payment items and prices"""
 
-    new_item = FormField(NewItemPriceForm)
     items = FieldList(FormField(PaymentItemForm, default=PaymentItem()))
 
-    submit = SubmitField("Enregistrer")
+    update = SubmitField("Enregistrer")
 
     def populate_items(self, items):
         """
