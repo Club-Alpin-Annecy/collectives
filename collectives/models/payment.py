@@ -77,7 +77,7 @@ class ItemPrice(db.Model):
 
     :type: int"""
 
-    title = db.Column(db.String(256), nullable=False)
+    title = db.Column(db.String(256), nullable=False, info = {"label" : "Intitulé du tarif"})
     """ Subtitle for this price
 
     :type: string"""
@@ -103,7 +103,7 @@ class ItemPrice(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
-    enabled = db.Column(db.Boolean, nullable=False, default=False)
+    enabled = db.Column(db.Boolean, nullable=False, default=False, info = {"label" : "Activer le tarif"})
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted
     one people have started paying them

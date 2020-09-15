@@ -126,21 +126,29 @@ class PaymentItemForm(ModelForm):
             field_form.price_id.data = price.id
             field_form.use_count = len(price.payments)
 
-class NewItemPriceForm(AmountForm):
+class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
+    
+    class Meta:
+        model = ItemPrice
+        only = ["enabled", "title"]
 
-    item_title = StringField("Objet du paiement")
-    title = StringField("Intitulé du tarif")
+    item_title = StringField("Intitulé du nouvel objet")
+    existing_item = SelectField("Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int)
 
     add = SubmitField("Ajouter le tarif")
-
-    def validate_title(form, field):
+    
+    def validate_item_title(form, field):
         """Validates that if a new item is created, then the
-        title field is not empty.
+        new item title field is not empty.
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
-        if form.item_title.data and len(field.data) == 0:
-            raise ValidationError("L'intitulé du nouveau tarif ne doit pas être vide")
+        if not form.existing_item.data and len(field.data) == 0:
+            raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
+
+    def __init__(self, items, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.existing_item.choices += [(i.id, i.title) for i in items]
 
 
 class PaymentItemsForm(FlaskForm):

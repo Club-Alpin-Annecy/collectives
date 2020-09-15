@@ -65,29 +65,37 @@ def edit_prices(event_id):
 
     # Add a new payment option
     if "add" in request.form:
-        new_item_form = NewItemPriceForm()
-        if new_item_form.validate():
+        new_price_form = NewItemPriceForm(event.payment_items)
+        if new_price_form.validate():
+
             new_price = ItemPrice(
-                amount=new_item_form.amount.data,
-                title=new_item_form.title.data,
-                enabled=True,
                 update_time=current_time(),
             )
-            new_item = PaymentItem(title=new_item_form.item_title.data)
-            new_item.prices.append(new_price)
-            event.payment_items.append(new_item)
-            db.session.add(event)
+            new_price_form.populate_obj(new_price)
+
+            if new_price_form.existing_item.data:
+                new_price.item_id = new_price_form.existing_item.data
+            else:
+                new_item = PaymentItem(title=new_price_form.item_title.data)
+                new_item.prices.append(new_price)
+                event.payment_items.append(new_item)
+                db.session.add(event)
+                db.session.add(new_item)
+            db.session.add(new_price)
             db.session.commit()
 
             # Reset form data
-            new_item_form = NewItemPriceForm(formdata=None)
+            new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
     else:
-        new_item_form = NewItemPriceForm(formdata=None)
+        new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
 
     # Update or delete items
     if "update" in request.form:
         form = PaymentItemsForm()
         if form.validate():
+
+            has_deleted_items = False
+
             try:
                 for item_form in form.items:
                     item = item_form.get_item(event)
@@ -108,6 +116,7 @@ def edit_prices(event_id):
                             db.session.delete(price)
                             if len(item.prices) == 0:
                                 db.session.delete(item)
+                                has_deleted_items = True
 
                             db.session.commit()
                         else:
@@ -125,6 +134,10 @@ def edit_prices(event_id):
             # Reset form data
             form = PaymentItemsForm(formdata=None)
             form.populate_items(event.payment_items)
+
+            # If we have deleted items, make sure to remove them from the new price form
+            if has_deleted_items:
+                new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
     else:
         form = PaymentItemsForm(formdata=None)
         form.populate_items(event.payment_items)
@@ -134,7 +147,7 @@ def edit_prices(event_id):
         conf=current_app.config,
         event=event,
         form=form,
-        new_item_form=new_item_form,
+        new_price_form=new_price_form,
     )
 
 

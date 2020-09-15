@@ -1,6 +1,11 @@
 
 {% extends 'base.html' %}
 
+{% block additionalhead %}
+  <script src="{{ url_for('static', filename='js/payment/edit_prices.js') }}"></script>
+  <script> window.onload = updateNewItemTitleVisibility(); </script>
+{% endblock %}
+
 {% block header %}
   <h1>{% block title %}{{event.title}}{% endblock %}</h1>
 {% endblock %}
@@ -71,26 +76,32 @@
     <form method="POST">
 
     <div class="form-errors">
-        {% for field_name, errors in new_item_form.errors.items() %}
+        {% for field_name, errors in new_price_form.errors.items() %}
         {% for error in errors %}
         <div class="flash flash-error">
-            <strong>Erreur: {{new_item_form[field_name].label}}:</strong> {{error}}
+            <strong>Erreur: {{new_price_form[field_name].label}}:</strong> {{error}}
         </div>
         {% endfor %}
         {% endfor %}
     </div>
 
-    <div class="field">{{ new_item_form.item_title.label }}<span class="help">Laissez vide pour ne pas créer de nouveau tarif</span></div>
-    {{ new_item_form.item_title}}
-    <div class="field">{{ new_item_form.title.label }}<span class="help">Par exemple «Adultes»</span></div>
-    {{ new_item_form.title}}
+    <div class="field">{{ new_price_form.existing_item.label }}<span class="help">Ajouter le tarif à un objet existant ou créer un nouvel objet</span></div>
+    {{ new_price_form.existing_item(onchange="updateNewItemTitleVisibility();")}}
+    <div id = "new-item-title">
+      <div class="field">{{ new_price_form.item_title.label }}<span class="help">Par exemple «Nuitée en refuge»</span></div>
+      {{ new_price_form.item_title}}
+    </div>
+    <div class="field">{{ new_price_form.title.label }}<span class="help">Par exemple «Adultes»</span></div>
+    {{ new_price_form.title}}
 
-    <div class="field">{{ new_item_form.amount.label }}<span class="help">{{ new_item_form.amount.description }}</span></div>
-    {{ new_item_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
-    {#{ new_item_form.amount()}#}
+    <div class="field">{{ new_price_form.amount.label }}<span class="help">{{ new_price_form.amount.description }}</span></div>
+    {{ new_price_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+    {#{ new_price_form.amount()}#}
+
+    {{ new_price_form.enabled }} {{new_price_form.enabled.label}}
     
-    {{ new_item_form.hidden_tag() }}
-    <br />{{ new_item_form.add(class="button button-primary") }}
+    {{ new_price_form.hidden_tag() }}
+    <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
 
 </div>
