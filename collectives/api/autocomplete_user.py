@@ -116,7 +116,8 @@ def autocomplete_leaders():
         condition = func.lower(User.first_name + " " + User.last_name).like(f"%{q}%")
         query = query.filter(condition)
         query = query.filter(User.led_events)
-        found_users = query.limit(8)
+        found_users = query.order_by(User.id).all()
+        found_users = found_users[0:8]
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
     return content, 200, {"content-type": "application/json"}
