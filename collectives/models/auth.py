@@ -23,6 +23,17 @@ class ConfirmationTokenType(enum.IntEnum):
     """Token to recover the lost password of an account"""
 
 
+class TokenEmailStatus(enum.IntEnum):
+    """ Enum Status for this token"""
+
+    Pending = 0
+    """Token will be sent"""
+    Success = 1
+    """Token has been succesfully sent"""
+    Failed = 2
+    """Token has failed during its expedition"""
+
+
 class ConfirmationToken(db.Model):
     """Class of a Token
 
@@ -65,7 +76,10 @@ class ConfirmationToken(db.Model):
 
     :type: :py:class:`collectives.models.auth.ConfirmationTokenType`"""
 
-    failed = db.Column(db.Boolean(), default=False, nullable=False)
+    status = db.Column(db.Enum(TokenEmailStatus), nullable=False)
+    """Sending status of this token.
+
+    :type: :py:class:`collectives.models.auth.TokenEmailStatus`"""
 
     def __init__(self, user_license, existing_user):
         """Token constructor
@@ -85,6 +99,7 @@ class ConfirmationToken(db.Model):
             hours=current_app.config["TOKEN_DURATION"]
         )
         self.user_license = user_license
+        self.status = TokenEmailStatus.Pending
 
         if existing_user:
             self.token_type = ConfirmationTokenType.RecoverAccount

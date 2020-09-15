@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+    <meta http-equiv="refresh" content="2">
+
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Vérification d'email{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="">
+  <!-- Logging Windows -->
+  <h3>Vérification d'email</h3>
+  <p>Un e-mail de confirmation est en train de vous être envoyé. Merci de patienter.</p>
+  <p>Cela peut prendre jusqu'à 30 secondes.</p>
+
+  {% include 'contact_link.html' %}
+
+</div>
+{% endblock %}

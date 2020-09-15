@@ -4,7 +4,7 @@ import sqlite3
 import uuid, datetime, traceback
 
 from flask import flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint, Markup, make_response, request
+from flask import current_app, Blueprint, Markup
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 from werkzeug.urls import url_parse
@@ -15,7 +15,7 @@ from sqlalchemy import or_
 from ..forms.auth import LoginForm, AccountCreationForm
 from ..forms.auth import PasswordResetForm, AccountActivationForm
 from ..models import User, Role, RoleIds, db
-from ..models.auth import ConfirmationTokenType, ConfirmationToken
+from ..models.auth import ConfirmationTokenType, ConfirmationToken, TokenEmailStatus
 from ..utils.time import current_time
 from ..utils import extranet
 from ..email_templates import send_confirmation_email
@@ -29,13 +29,6 @@ blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
 This blueprint contains all routes for authentification actions.
 """
-
-
-@blueprint.before_request
-def before_request():
-    """Make tasks relative to auth such as :py:func:`check_failed_token`"""
-    check_failed_token()
-
 
 # Flask-login user loader
 @login_manager.user_loader
@@ -368,44 +361,49 @@ def signup():
 
     # Send confirmation email with link to token
     send_confirmation_email(user_info.email, user_info.first_name, token)
-    flash(
-        (
-            "Un e-mail de confirmation va vous être envoyé et "
-            + " devrait vous parvenir sous quelques minutes. "
-            + "Pensez à vérifier vos courriers indésirables."
-        ),
-        "success",
-    )
-    response = make_response(redirect(url_for("auth.login")))
-    response.set_cookie(
-        "confirmation_token", token.user_license, expires=token.expiry_date
-    )
-    return response
+
+    return redirect(url_for(".check_token", license_number=license_number))
 
 
-def check_failed_token():
+@blueprint.route("/check_token/<license_number>", methods=["GET"])
+def check_token(license_number):
     """Check if a failed token is waiting for this user.
 
     If there is a failed token, an error is displayed and the token is deleted.
     """
-    if not "confirmation_token" in request.cookies:
-        return
 
-    token_user_license = request.cookies.get("confirmation_token")
-    token = (
-        ConfirmationToken.query.filter(ConfirmationToken.failed == True)
-        .filter(ConfirmationToken.user_license == token_user_license)
-        .first()
+    token = ConfirmationToken.query.filter(
+        ConfirmationToken.user_license == license_number
+    ).order_by(ConfirmationToken.expiry_date.desc()).first()
+
+    error_message = (
+        "L'envoi de votre email de confirmation de boite mail a échoué."
+        + " Merci de contacter le support à digital@cafannecy.fr"
     )
+
     if token == None:
-        return
+        current_app.logger.err(f"Cannot find a token for license {license_number}")
+        flash(
+            error_message,
+            "error",
+        )
+        return redirect(url_for(".login"))
 
-    flash(
-        "L'envoi de votre email de confirmation de boite mail a échoué. Merci de contacter le support à digital@cafannecy.fr",
-        "error",
-    )
-    db.session.delete(token)
-    db.session.commit()
+    if token.status is TokenEmailStatus.Pending:
+        return render_template("auth/check_token.html", conf=current_app.config)
+
+    if token.status is TokenEmailStatus.Failed:
+        flash(error_message, "error")
+
+    if token.status is TokenEmailStatus.Success:
+        flash(
+            "Un e-mail de confirmation vous a été envoyé et "
+            + " devrait vous parvenir sous quelques minutes. "
+            + "Pensez à vérifier vos courriers indésirables.",
+            "success",
+        )
+
+    return redirect(url_for(".login"))
 
 
 # Init: Setup admin (if db is ready)
