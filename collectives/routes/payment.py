@@ -4,16 +4,21 @@ This modules contains the /payment Blueprint
 """
 
 from decimal import Decimal
+from io import BytesIO
 
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from flask import render_template, current_app, flash, redirect, url_for, abort
 from flask_login import current_user
+
+from openpyxl import Workbook
 
 from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
 from ..utils import payline
 
 from ..utils.access import payments_enabled, valid_user
 from ..utils.time import current_time
+from ..utils.misc import deepgetattr
+from ..utils.url import slugify
 from ..models import db
 from ..models.event import Event
 from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus, PaymentType
@@ -137,6 +142,75 @@ def list_payments(event_id):
 
     return render_template(
         "payment/payment_list.html", conf=current_app.config, event=event
+    )
+
+
+@valid_user()
+@blueprint.route("/event/<event_id>/export_payments", methods=["GET"])
+def export_payments(event_id):
+    """Create an Excel document listing all approved payments associated to an event
+
+    :param event_id: The primary key of the event we're listing the prices of
+    :type event_id: int
+    :return: The Excel file with the payments.
+    """
+
+    # Check that the user is allowed to retrieve the payments
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(403)
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    # Fetch all associated payments
+    query = db.session.query(Payment)
+    query = query.filter(Payment.status == PaymentStatus.Approved)
+    query = query.filter(PaymentItem.event_id == event_id)
+    query = query.filter(PaymentItem.id == Payment.payment_item_id)
+    payments = query.all()
+
+    # Create the excel document
+    wb = Workbook()
+    ws = wb.active
+    FIELDS = {
+        "creditor.license": "Licence",
+        "creditor.first_name": "Prénom",
+        "creditor.last_name": "Nom",
+        "creditor.mail": "Email",
+        "creditor.phone": "Téléphone",
+        "item.title": "Objet",
+        "price.title": "Tarif",
+        "amount_paid": "Prix payé",
+        "finalization_time": "Date",
+        "payment_type_str": "Type",
+        "processor_order_ref": "Référence",
+    }
+    ws.append(list(FIELDS.values()))
+
+    for payment in payments:
+        payment.payment_type_str = payment.payment_type.display_name()
+        ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
+
+    # set column width
+    for c in "BCDEFGI":
+        ws.column_dimensions[c].width = 25
+    for c in "AHJK":
+        ws.column_dimensions[c].width = 16
+
+    out = BytesIO()
+    wb.save(out)
+    out.seek(0)
+
+    time_str = current_time().strftime("%d_%m_%Y %H_%M")
+    filename = (
+        f"CAF Annecy - Export paiements {slugify(event.title)} au {time_str}.xlsx"
+    )
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        attachment_filename=filename,
+        as_attachment=True,
     )
 
 
