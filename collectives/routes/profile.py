@@ -129,3 +129,11 @@ def confidentiality_agreement():
     return render_template(
         "confidentiality_agreement.html", conf=current_app.config, title="Charte RGPD"
     )
+
+
+@blueprint.route("/my_payments", methods=["GET"])
+def my_payments():
+    """Route to show payments associated to the current user"""
+    return render_template(
+        "profile/my_payments.html", conf=current_app.config, title="Mes paiements"
+    )

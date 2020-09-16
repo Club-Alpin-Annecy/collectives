@@ -1,19 +1,18 @@
 
-var table;
-window.onload = function(){
-    table = new Tabulator("#payments-table",
+function createMyPaymentsTable(id, url, finalized)
+{
+    new Tabulator(id,
         {
-          ajaxURL: `/api/payments/${getEventId()}/list`,
+          ajaxURL:url,
           layout:"fitColumns",
 
           columns:[
-            {title:"État", field:"status", widthGrow:1, headerFilter:true},
+            {title:"Date", field:(finalized ? "finalization_time" : "creation_time"), widthGrow:1, headerFilter:true},
+            {title:"Événement", field:"event_title", widthGrow:2, headerFilter:true},
             {title:"Objet", field:"item_title", widthGrow:2, headerFilter:true},
             {title:"Tarif", field:"price_title", widthGrow:2, headerFilter:true},
-            {title:"Payé", field:"amount_paid", widthGrow:1},
+            {title:"Prix", field:(finalized ? "amount_paid" : "amount_charged"), widthGrow:1},
             {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true},
-            {title:"Adhérent", field:"creditor_name", widthGrow:2, headerFilter:true},
-            {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true},
             ],
 
         rowClick:function(e, row){
@@ -28,7 +27,7 @@ window.onload = function(){
                     "error":"Erreur", //ajax error text
                 },
             }
-        },
-});
+        }
+    });
 }
 

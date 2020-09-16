@@ -94,6 +94,13 @@
                                 </a>
                             </li>
                             {% endif %}
+                            {% if conf["PAYMENTS_ENABLED"] %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.my_payments')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" /> Mes paiements
+                                </a>
+                            </li>
+                            {% endif %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('auth.logout') }}" title="Déconnexion" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}"  class="legacy-icon" alt="Déconnexion" /> Déconnexion
