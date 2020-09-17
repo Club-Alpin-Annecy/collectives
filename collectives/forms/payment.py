@@ -4,7 +4,7 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList
 from wtforms import HiddenField, BooleanField, SelectField
-from wtforms.validators import NumberRange, DataRequired, ValidationError, Optional
+from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm
 
 from .order import OrderedForm
@@ -16,9 +16,6 @@ from ..utils.numbers import format_currency
 class AmountForm(FlaskForm):
     """Form component for inputting an amount in euros"""
 
-    class Meta:
-        locales = ["fr"]
-
     amount = DecimalField(
         "Prix en euros",
         description="Par exemple «9,95»",
@@ -29,7 +26,6 @@ class AmountForm(FlaskForm):
                 message="Le prix doit être compris entre %(min)s et %(max)s euros.",
             )
         ],
-        use_locale=True,
         number_format="#,##0.00",
         default=Decimal(0),
     )
@@ -46,7 +42,7 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     class Meta:
         model = ItemPrice
-        only = ["enabled", "title"]
+        only = ["enabled", "title", "start_date", "end_date", "license_types"]
 
     delete = BooleanField("Supprimer")
 
@@ -131,7 +127,7 @@ class NewItemPriceForm(ModelForm, AmountForm):
     
     class Meta:
         model = ItemPrice
-        only = ["enabled", "title"]
+        only = ["enabled", "title", "start_date", "end_date", "license_types"]
 
     item_title = StringField("Intitulé du nouvel objet")
     existing_item = SelectField("Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int)

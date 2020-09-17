@@ -82,18 +82,18 @@ class ItemPrice(db.Model):
 
     :type: string"""
 
-    license_types = db.Column(db.String(256))
+    license_types = db.Column(db.String(256), info = {"label" : "Types de licence"})
     """ List of comma-separated license-types to which this price applies.
     If the list is NULL or left empty, then the price applies to all licence types
 
     :type: string"""
 
-    start_date = db.Column(db.Date())
+    start_date = db.Column(db.Date(), info = {"label" : "Date de début"})
     """ Date at which this price will start to be available
 
     :type: :py:class:`datetime.date`"""
 
-    end_date = db.Column(db.Date())
+    end_date = db.Column(db.Date(), info = {"label" : "Date de fin"})
     """ Date at which this price will stop to be available
 
     :type: :py:class:`datetime.date`"""

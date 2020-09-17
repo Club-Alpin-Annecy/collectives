@@ -8,7 +8,7 @@ from io import BytesIO
 
 from flask import Blueprint, request, send_file
 from flask import render_template, current_app, flash, redirect, url_for, abort
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from openpyxl import Workbook
 
@@ -42,9 +42,8 @@ def before_request():
     """
     pass
 
-
-@valid_user()
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
+@valid_user()
 def edit_prices(event_id):
     """Route for editing payment items and prices associated to an event
 
@@ -122,9 +121,13 @@ def edit_prices(event_id):
                         else:
                             price.title = price_form.title.data
                             price.enabled = price_form.enabled.data
+                            price.start_date = price_form.start_date.data
+                            price.end_date = price_form.end_date.data
+                            price.license_types = price_form.license_types.data
                             if price.amount != price_form.amount.data:
                                 price.amount = price_form.amount.data
                                 price.update_time = current_time()
+                                
                             db.session.add(price)
                             db.session.commit()
 
@@ -151,8 +154,8 @@ def edit_prices(event_id):
     )
 
 
-@valid_user()
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
+@valid_user()
 def list_payments(event_id):
     """Route for listing all payments associated to an event
 
@@ -173,8 +176,8 @@ def list_payments(event_id):
     )
 
 
-@valid_user()
 @blueprint.route("/event/<event_id>/export_payments", methods=["GET"])
+@valid_user()
 def export_payments(event_id):
     """Create an Excel document listing all approved payments associated to an event
 
@@ -242,8 +245,8 @@ def export_payments(event_id):
     )
 
 
-@valid_user()
 @blueprint.route("/<payment_id>/details", methods=["GET"])
+@valid_user()
 def payment_details(payment_id):
     """Route for displaying details about a given payment
 
@@ -301,13 +304,13 @@ def payment_receipt(payment_id):
     )
 
 
-@valid_user()
 @blueprint.route(
     "/registration/<registration_id>/report_offline", methods=["GET", "POST"]
 )
 @blueprint.route(
     "/<payment_id>/registration/<registration_id>/edit_offline", methods=["GET", "POST"]
 )
+@valid_user()
 def report_offline(registration_id, payment_id=None):
     """Route for entering/editing an offline payment
 
@@ -380,8 +383,8 @@ def report_offline(registration_id, payment_id=None):
     )
 
 
-@valid_user()
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
+@valid_user()
 def request_payment(payment_id):
     """Route for displaying the Payline payment widget.
     If Payline is not configured properly display a mock payment page.
@@ -496,7 +499,6 @@ def finalize_payment(payment, details):
     db.session.commit()
 
 
-@payments_enabled
 @blueprint.route("/process", methods=["GET", "POST"])
 @blueprint.route("/cancel", endpoint="cancel", methods=["GET", "POST"])
 @blueprint.route("/notify", endpoint="notify", methods=["GET", "POST"])

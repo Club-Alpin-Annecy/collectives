@@ -2,8 +2,14 @@
 {% extends 'base.html' %}
 
 {% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/payment/edit_prices.js') }}"></script>
-  <script> window.onload = updateNewItemTitleVisibility(); </script>
+  <script> window.onload = function() {
+    updateNewItemTitleVisibility(); 
+    dateInputsFallback(tail);
+  };
+  </script>
 {% endblock %}
 
 {% block header %}
@@ -27,6 +33,9 @@
       <th> Objet du paiement </th>
       <th> Intitulé du tarif </th>
       <th> Prix en euros </th>
+      <th> Licences </th>
+      <th> Début </th>
+      <th> Fin </th>
       <th> Actif </th>
     </thead>
     {% for item_form in form.items %}
@@ -39,6 +48,9 @@
           <td>
           {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
           </td>
+          <td> {{ field.license_types() }} </td>
+          <td> {{ field.start_date() }} </td>
+          <td> {{ field.end_date() }} </td>
           <td> {{ field.enabled() }} </td>
           <td> {{field.price_id}} 
           {% if field.use_count %}
@@ -97,13 +109,28 @@
     <div class="field">{{ new_price_form.amount.label }}<span class="help">{{ new_price_form.amount.description }}</span></div>
     {{ new_price_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
     {#{ new_price_form.amount()}#}
+ 
+    <fieldset>
+    <legend>Conditions pour bénéficier du tarif</legend>
+    <p class="help">
+      Les conditions suivantes sont optionnelles; si elles sont laissées vide, le tarif s'appliquera sans restrictions.
+      Pour chaque "Objet de paiement", l'adhérent se verra proposer uniquement le tarif le plus bas auquel il a accès.
+    </span>
+
+    <div class="field">{{ new_price_form.license_types.label }}<span class="help">Séparés par des espaces. Par exemple «J1 J2 E1 E2» pour un tarif «Jeunes».</span></div>
+    {{ new_price_form.license_types}}
+    <div class="field">{{ new_price_form.start_date.label }}<span class="help">Date à partir de laquelle le tarif sera proposé.</span></div>
+    {{ new_price_form.start_date}}
+    <div class="field">{{ new_price_form.end_date.label }}<span class="help">Date jusqu'à laquelle le tarif sera proposé</span></div>
+    {{ new_price_form.end_date}}
+    </fieldset>
 
     {{ new_price_form.enabled }} {{new_price_form.enabled.label}}
-    
+
     {{ new_price_form.hidden_tag() }}
     <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
-
 </div>
+
 {% endblock %}
 
