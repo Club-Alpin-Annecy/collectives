@@ -1,12 +1,14 @@
 """Templates for mails
 """
 from sys import stderr
+from functools import wraps
 
 from flask import current_app, url_for
 
 from .utils import mail
 from .utils.url import slugify
-from .models.auth import ConfirmationTokenType
+from .models import db
+from .models.auth import ConfirmationTokenType, TokenEmailStatus
 from .models.user import activity_supervisors
 from .utils.time import format_date
 
@@ -90,10 +92,33 @@ def send_confirmation_email(email, name, token):
         ),
     )
 
+    @wraps(token)
+    # pylint: disable=W0613
+    def has_failed(e):
+        """Mark and register this token as failed.
+
+        :param e: current exceptions
+        :type e: :py:class:`Exception`"""
+        token.status = TokenEmailStatus.Failed
+        db.session.add(token)
+        db.session.commit()
+
+    @wraps(token)
+    def has_succeed():
+        """Mark and register this token as success.
+
+        :param e: current exceptions
+        :type e: :py:class:`Exception`"""
+        token.status = TokenEmailStatus.Success
+        db.session.add(token)
+        db.session.commit()
+
     mail.send_mail(
         email=email,
         subject="{} de compte Collectives".format(reason.capitalize()),
         message=message,
+        error_action=has_failed,
+        success_action=has_succeed,
     )
 
 

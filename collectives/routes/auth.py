@@ -2,7 +2,6 @@
 
 import sqlite3
 import uuid, datetime, traceback
-from sys import stderr
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, Markup
@@ -16,7 +15,7 @@ from sqlalchemy import or_
 from ..forms.auth import LoginForm, AccountCreationForm
 from ..forms.auth import PasswordResetForm, AccountActivationForm
 from ..models import User, Role, RoleIds, db
-from ..models.auth import ConfirmationTokenType, ConfirmationToken
+from ..models.auth import ConfirmationTokenType, ConfirmationToken, TokenEmailStatus
 from ..utils.time import current_time
 from ..utils import extranet
 from ..email_templates import send_confirmation_email
@@ -360,22 +359,54 @@ def signup():
     # generate confirmation token
     token = create_confirmation_token(license_number, existing_user)
 
-    try:
-        # Send confirmation email with link to token
-        send_confirmation_email(user_info.email, user_info.first_name, token)
+    # Send confirmation email with link to token
+    send_confirmation_email(user_info.email, user_info.first_name, token)
+
+    return redirect(url_for(".check_token", license_number=license_number))
+
+
+@blueprint.route("/check_token/<license_number>", methods=["GET"])
+def check_token(license_number):
+    """Check if a failed token is waiting for this user.
+
+    If there is a failed token, an error is displayed and the token is deleted.
+    """
+
+    token = (
+        ConfirmationToken.query.filter(ConfirmationToken.user_license == license_number)
+        .order_by(ConfirmationToken.expiry_date.desc())
+        .first()
+    )
+
+    error_message = (
+        "L'envoi de votre email de confirmation de boite mail a échoué."
+        + " Merci de  réessayer dans quelques heures ou de contacter le support"
+        + " à digital@cafannecy.fr si le problème persiste."
+    )
+
+    if token == None:
+        current_app.logger.err(f"Cannot find a token for license {license_number}")
         flash(
-            (
-                "Un e-mail de confirmation vous a été envoyé et "
-                + " devrait vous parvenir sous quelques minutes. "
-                + "Pensez à vérifier vos courriers indésirables."
-            ),
+            error_message,
+            "error",
+        )
+        return redirect(url_for(".login"))
+
+    if token.status is TokenEmailStatus.Pending:
+        return render_template("auth/check_token.html", conf=current_app.config)
+
+    if token.status is TokenEmailStatus.Failed:
+        flash(error_message, "error")
+
+    if token.status is TokenEmailStatus.Success:
+        flash(
+            "Un e-mail de confirmation vous a été envoyé et "
+            + " devrait vous parvenir sous quelques minutes. "
+            + "Pensez à vérifier vos courriers indésirables.",
             "success",
         )
-        return redirect(url_for("auth.login"))
-    except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
-        flash("Erreur lors de l'envoi de l'e-mail de confirmation", "error")
-    return render_signup_form(form, is_recover)
+
+    return redirect(url_for(".login"))
 
 
 # Init: Setup admin (if db is ready)
