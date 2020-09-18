@@ -307,7 +307,9 @@ class PaidSelfRegistrationForm(FlaskForm):
 
         all_prices = []
         for item in event.payment_items:
-            all_prices += item.active_prices()
+            price = item.cheapest_price_for_user_now(current_user)
+            if price:
+                all_prices.append(price)
 
         self.item_price.choices = [
             (p.id, f"{p.item.title} — {p.title} ({format_currency(p.amount)})")

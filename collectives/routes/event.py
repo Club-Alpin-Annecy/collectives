@@ -530,7 +530,12 @@ def self_register(event_id):
     if form.validate_on_submit():
 
         item_price = ItemPrice.query.get(form.item_price.data)
-        if item_price is None or item_price.item.event_id != event_id:
+        if (
+            item_price is None
+            or item_price.item.event_id != event_id
+            or not item_price.is_available_to_user(current_user)
+            or not item_price.is_available_at_date(current_time().date())
+        ):
             flash("Tarif invalide.", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 

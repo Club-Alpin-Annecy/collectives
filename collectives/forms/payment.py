@@ -124,7 +124,7 @@ class PaymentItemForm(ModelForm):
 
 class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
-    
+
     class Meta:
         model = ItemPrice
         only = ["enabled", "title", "start_date", "end_date", "license_types"]
@@ -133,7 +133,7 @@ class NewItemPriceForm(ModelForm, AmountForm):
     existing_item = SelectField("Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int)
 
     add = SubmitField("Ajouter le tarif")
-    
+
     def validate_item_title(form, field):
         """Validates that if a new item is created, then the
         new item title field is not empty.
@@ -224,7 +224,7 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
         # List all available prices
         all_prices = []
         for item in registration.event.payment_items:
-            all_prices += item.active_prices()
+            all_prices += item.available_prices_to_user(registration.user)
 
         self.item_price.choices = [
             (p.id, f"{p.item.title} — {p.title} ({format_currency(p.amount)})")

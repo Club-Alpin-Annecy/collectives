@@ -28,7 +28,9 @@ class PaymentItem(db.Model):
 
     :type: int"""
 
-    title = db.Column(db.String(256), nullable=False, info = {"label" : "Objet du paiement"})
+    title = db.Column(
+        db.String(256), nullable=False, info={"label": "Objet du paiement"}
+    )
     """ Display title for this payment option
 
     :type: string"""
@@ -54,6 +56,54 @@ class PaymentItem(db.Model):
         """
         return [p for p in self.prices if p.enabled]
 
+    def available_prices_to_user(self, user):
+        """Returns all prices that are available to a given user
+        at any point in time
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+
+        :return: List of available prices
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        return [
+            p
+            for p in self.active_prices()
+            if p.is_available_to_user(user)
+        ]
+
+
+    def available_prices_to_user_now(self, user):
+        """Returns all prices that are available to a given user
+        at the current time
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+
+        :return: List of available prices
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        current_date = current_time().date()
+        return [
+            p
+            for p in self.available_prices_to_user(user)
+            if p.is_available_at_date(current_date)
+        ]
+    
+    def cheapest_price_for_user_now(self, user):
+        """Returns the cheapest price available to a given user
+        at the current time
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+
+        :return: List of available prices
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        available_prices = self.available_prices_to_user_now(user)
+        if len(available_prices) == 0:
+            return None
+        return min(available_prices, key = lambda p: p.amount)
 
 class ItemPrice(db.Model):
     """Database model describing prices for a payment item
@@ -77,23 +127,25 @@ class ItemPrice(db.Model):
 
     :type: int"""
 
-    title = db.Column(db.String(256), nullable=False, info = {"label" : "Intitulé du tarif"})
+    title = db.Column(
+        db.String(256), nullable=False, info={"label": "Intitulé du tarif"}
+    )
     """ Subtitle for this price
 
     :type: string"""
 
-    license_types = db.Column(db.String(256), info = {"label" : "Types de licence"})
+    license_types = db.Column(db.String(256), info={"label": "Catégories de licence"})
     """ List of comma-separated license-types to which this price applies.
     If the list is NULL or left empty, then the price applies to all licence types
 
     :type: string"""
 
-    start_date = db.Column(db.Date(), info = {"label" : "Date de début"})
+    start_date = db.Column(db.Date(), info={"label": "Date de début"})
     """ Date at which this price will start to be available
 
     :type: :py:class:`datetime.date`"""
 
-    end_date = db.Column(db.Date(), info = {"label" : "Date de fin"})
+    end_date = db.Column(db.Date(), info={"label": "Date de fin"})
     """ Date at which this price will stop to be available
 
     :type: :py:class:`datetime.date`"""
@@ -103,7 +155,9 @@ class ItemPrice(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
-    enabled = db.Column(db.Boolean, nullable=False, default=False, info = {"label" : "Activer le tarif"})
+    enabled = db.Column(
+        db.Boolean, nullable=False, default=False, info={"label": "Activer le tarif"}
+    )
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted
     one people have started paying them
@@ -122,6 +176,42 @@ class ItemPrice(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
+
+    def is_available_at_date(self, date):
+        """Returns whether this price is available at a given time
+
+        :param date:  The date at which to do the check
+        :type date: :py:class:`datetime.Date`
+
+        :return: True if the date is between start and end date or those
+        dates are not defined
+        :rtype: bool
+        """
+        if not self.enabled:
+            return False
+        if self.start_date and self.start_date > date:
+            return False
+        if self.end_date and self.end_date < date:
+            return False
+        return True
+
+    def is_available_to_user(self, user):
+        """Returns whether this price is available to an user
+        at any point in time
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+
+        :return: True if the user license belongs to the license
+        types string (or no license types are provided)
+        :rtype: bool
+        """
+        if not self.enabled:
+            return False
+        if not self.license_types:
+            return True
+        license_types = self.license_types.split()
+        return len(license_types) == 0 or user.license_category in license_types
 
 
 class PaymentType(ChoiceEnum):

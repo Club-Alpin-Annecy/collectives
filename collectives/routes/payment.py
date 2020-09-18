@@ -8,7 +8,7 @@ from io import BytesIO
 
 from flask import Blueprint, request, send_file
 from flask import render_template, current_app, flash, redirect, url_for, abort
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from openpyxl import Workbook
 
@@ -41,6 +41,7 @@ def before_request():
     - check if payments are enabled for the site :py:func:`collectives.utils.access.payments_enabled`
     """
     pass
+
 
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
 @valid_user()
@@ -127,7 +128,7 @@ def edit_prices(event_id):
                             if price.amount != price_form.amount.data:
                                 price.amount = price_form.amount.data
                                 price.update_time = current_time()
-                                
+
                             db.session.add(price)
                             db.session.commit()
 
@@ -346,7 +347,11 @@ def report_offline(registration_id, payment_id=None):
     if form.validate_on_submit():
 
         item_price = ItemPrice.query.get(form.item_price.data)
-        if item_price is None or item_price.item.event_id != event.id:
+        if (
+            item_price is None
+            or item_price.item.event_id != event.id
+            or not item_price.is_available_to_user(registration.user)
+        ):
             flash("Tarif invalide.", "error")
         else:
             all_valid = True
