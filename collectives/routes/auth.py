@@ -372,13 +372,16 @@ def check_token(license_number):
     If there is a failed token, an error is displayed and the token is deleted.
     """
 
-    token = ConfirmationToken.query.filter(
-        ConfirmationToken.user_license == license_number
-    ).order_by(ConfirmationToken.expiry_date.desc()).first()
+    token = (
+        ConfirmationToken.query.filter(ConfirmationToken.user_license == license_number)
+        .order_by(ConfirmationToken.expiry_date.desc())
+        .first()
+    )
 
     error_message = (
         "L'envoi de votre email de confirmation de boite mail a échoué."
-        + " Merci de contacter le support à digital@cafannecy.fr"
+        + " Merci de  réessayer dans quelques heures ou de contacter le support"
+        + " à digital@cafannecy.fr si le problème persiste."
     )
 
     if token == None:
