@@ -66,12 +66,7 @@ class PaymentItem(db.Model):
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        return [
-            p
-            for p in self.active_prices()
-            if p.is_available_to_user(user)
-        ]
-
+        return [p for p in self.active_prices() if p.is_available_to_user(user)]
 
     def available_prices_to_user_now(self, user):
         """Returns all prices that are available to a given user
@@ -89,7 +84,7 @@ class PaymentItem(db.Model):
             for p in self.available_prices_to_user(user)
             if p.is_available_at_date(current_date)
         ]
-    
+
     def cheapest_price_for_user_now(self, user):
         """Returns the cheapest price available to a given user
         at the current time
@@ -103,7 +98,8 @@ class PaymentItem(db.Model):
         available_prices = self.available_prices_to_user_now(user)
         if len(available_prices) == 0:
             return None
-        return min(available_prices, key = lambda p: p.amount)
+        return min(available_prices, key=lambda p: p.amount)
+
 
 class ItemPrice(db.Model):
     """Database model describing prices for a payment item

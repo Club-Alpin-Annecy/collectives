@@ -73,6 +73,7 @@ class ItemPriceForm(ModelForm, AmountForm):
         # Update price range from config
         self.update_max_amount()
 
+
 class PaymentItemForm(ModelForm):
     """Form for editing a single payment item and associated prices"""
 
@@ -122,6 +123,7 @@ class PaymentItemForm(ModelForm):
             field_form.price_id.data = price.id
             field_form.use_count = len(price.payments)
 
+
 class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
 
@@ -130,7 +132,9 @@ class NewItemPriceForm(ModelForm, AmountForm):
         only = ["enabled", "title", "start_date", "end_date", "license_types"]
 
     item_title = StringField("Intitulé du nouvel objet")
-    existing_item = SelectField("Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int)
+    existing_item = SelectField(
+        "Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int
+    )
 
     add = SubmitField("Ajouter le tarif")
 
@@ -174,6 +178,7 @@ class PaymentItemsForm(FlaskForm):
             item = items[k]
             field_form.item_id.data = item.id
             field_form.populate_prices(item)
+
 
 class OfflinePaymentForm(ModelForm, OrderedForm):
     """Form for notifying an offline payment"""

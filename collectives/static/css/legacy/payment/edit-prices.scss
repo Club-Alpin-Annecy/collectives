@@ -1,5 +1,5 @@
 #existing_prices {
-    width: 80%;
+    width: 100%;
     margin:auto;
 }
 
@@ -24,4 +24,8 @@
 
 td.error-cell {
     text-align:left;
+}
+
+td.actions{
+   min-width:8em;
 }
