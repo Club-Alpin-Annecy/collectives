@@ -296,6 +296,15 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.payment_type != PaymentType.Online
 
+    def has_receipt(self):
+        """:return: whether this payment has an associated receipt
+                    (i.e. if it is an approved online payment)
+        :rtype: bool"""
+        return (
+            self.payment_type == PaymentType.Online
+            and self.status == PaymentStatus.Approved
+        )
+
     def __init__(self, registration=None, item_price=None):
         """Overloaded constructor.
         Pre-fill a Payment object from an existing registration and item price

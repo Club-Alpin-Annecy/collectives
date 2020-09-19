@@ -119,6 +119,15 @@ class MyPaymentSchema(PaymentSchema):
 
     :type: string"""
 
+    receipt_uri = fields.Function(
+        lambda p: url_for("payment.payment_receipt", payment_id=p.id)
+        if p.has_receipt()
+        else None
+    )
+    """ Uri of the receipt associated to the approved online payment
+
+    :type: string"""
+
     class Meta:
         """ Fields to expose """
 
@@ -132,6 +141,7 @@ class MyPaymentSchema(PaymentSchema):
             "payment_type",
             "registration_status",
             "details_uri",
+            "receipt_uri",
             "creation_time",
             "finalization_time",
         )

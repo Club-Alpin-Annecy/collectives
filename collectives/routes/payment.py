@@ -240,6 +240,39 @@ def payment_details(payment_id):
     )
 
 
+@blueprint.route("/<payment_id>/receipt", methods=["GET"])
+@valid_user()
+def payment_receipt(payment_id):
+    """Route for printing user receipt for a given payment
+
+    :param payment_id: Payment primary key
+    :type payment_id: int
+    """
+
+    payment = Payment.query.get(payment_id)
+    if (
+        payment is None
+        or payment.item.event is None
+        or payment.creditor != current_user
+    ):
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.index"))
+    event = payment.item.event
+
+    if not payment.has_receipt():
+        flash("Recu indisponible pour ce paiement", "error")
+        return redirect(url_for("event.view_event", event_id=event.id))
+
+    activity_names = [at.name for at in event.activity_types]
+    return render_template(
+        "payment/receipt.html",
+        conf=current_app.config,
+        payment=payment,
+        event=event,
+        activity_names=activity_names,
+    )
+
+
 @valid_user()
 @blueprint.route(
     "/registration/<registration_id>/report_offline", methods=["GET", "POST"]
