@@ -390,6 +390,17 @@ def manage_event(event_id=None):
     event.activity_types = tentative_activities
     event.leaders = tentative_leaders
 
+    # Remove registration associated to leaders (#327)
+    if has_changed_leaders:
+        for leader in event.leaders:
+            leader_registrations = event.existing_registrations(leader)
+            if any(leader_registrations):
+                flash(
+                    f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été ajouté(e) comme encadrant(e)."
+                )
+            for registration in leader_registrations:
+                db.session.delete(registration)
+
     event.set_rendered_description(event.description)
 
     # We have to save new event before add the photo, or id is not defined
