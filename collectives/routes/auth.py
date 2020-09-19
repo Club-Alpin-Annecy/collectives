@@ -219,7 +219,10 @@ def process_confirmation(token_uuid):
     license_number = token.user_license
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
-        flash("Licence inexistante ou expirée", "error")
+        flash(
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
+            "error",
+        )
         return render_confirmation_form(form, is_recover)
 
     # Fetch extranet data
@@ -330,7 +333,10 @@ def signup():
     license_number = form.license.data
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
-        flash("Licence inexistante ou expirée", "error")
+        flash(
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
+            "error",
+        )
         return render_signup_form(form, is_recover)
 
     # Fetch extranet data and check against user-provided info
