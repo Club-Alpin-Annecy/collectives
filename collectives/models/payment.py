@@ -179,8 +179,7 @@ class ItemPrice(db.Model):
         :param date:  The date at which to do the check
         :type date: :py:class:`datetime.Date`
 
-        :return: True if the date is between start and end date or those
-        dates are not defined
+        :return: True if the date is between start and end date or those dates are not defined
         :rtype: bool
         """
         if not self.enabled:
@@ -199,7 +198,7 @@ class ItemPrice(db.Model):
         :type user: :py:class:`collectives.models.user.User`
 
         :return: True if the user license belongs to the license
-        types string (or no license types are provided)
+                 types string (or no license types are provided)
         :rtype: bool
         """
         if not self.enabled:
