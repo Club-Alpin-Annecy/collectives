@@ -244,6 +244,8 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         paid_self_register_form=paid_self_register_form,
+        normal_level=int(RegistrationLevels.Normal),
+        coleader_level=int(RegistrationLevels.CoLeader)
     )
 
 
@@ -682,6 +684,46 @@ def reject_registration(reg_id):
     send_reject_subscription_notification(
         current_user.full_name(), registration.event, registration.user.mail
     )
+
+    return redirect(url_for("event.view_event", event_id=registration.event_id))
+
+
+@blueprint.route("/registrations/<reg_id>/level/<reg_level>", methods=["POST"])
+@valid_user()
+def change_registration_level(reg_id, reg_level):
+    """Route for a leader to change the registration level of an attendee
+
+    :param int reg_id: Primary key of the registration.
+    :param reg_level: Desired registration level.
+    :type reg_level: :py:class:`collectives.model.registration.RegistrationLevels`
+    """
+    registration = Registration.query.filter_by(id=reg_id).first()
+    if registration is None:
+        flash("Inscription inexistante", "error")
+        return redirect(url_for("event.index"))
+
+    if not registration.event.has_edit_rights(current_user):
+        flash("Non autorisé", "error")
+        return redirect(url_for("event.index"))
+
+    reg_level = int(reg_level)
+    try:
+        level = RegistrationLevels(reg_level)
+    except ValueError:
+        flash("Données incorrectes", "error")
+        return redirect(url_for("event.index"))
+
+    if level == RegistrationLevels.CoLeader:
+        if not registration.event.can_be_coleader(registration.user):
+            flash(
+                "L'utilisateur n'est pas initiateur en formation. Merci de vous rapprocher du responsable d'activité",
+                "error",
+            )
+            return redirect(url_for("event.view_event", event_id=registration.event.id))
+
+    registration.level = reg_level
+    db.session.add(registration)
+    db.session.commit()
 
     return redirect(url_for("event.view_event", event_id=registration.event_id))
 

@@ -489,6 +489,18 @@ class User(db.Model, UserMixin):
         """
         return all(self.can_lead_activity(a.id) for a in activities)
 
+    def can_colead_any_activity(self, activities):
+        """Check if user has a role which allow him to co-lead any of the specified activities.
+
+        :param activities: Activities which will be tested.
+        :type activities: list(int)
+        :return: True if user is a trainee for at least one activity
+        :rtype: boolean
+        """
+        return any(
+            a for a in activities if self.has_role_for_activity([RoleIds.Trainee], a.id)
+        )
+
     def can_read_other_users(self):
         """Check if user can see another user profile.
 

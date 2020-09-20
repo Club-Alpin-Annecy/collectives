@@ -3,7 +3,7 @@
 from flask_uploads import UploadSet, IMAGES
 
 from .globals import db
-from .registration import RegistrationStatus
+from .registration import RegistrationStatus, RegistrationLevels
 from .utils import ChoiceEnum
 from .activitytype import activities_without_leader
 
@@ -432,12 +432,46 @@ class Event(db.Model):
         :return: All registration of this event which are active
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
-        # pylint: disable=C0301
         return [
             registration
             for registration in self.registrations
             if registration.is_active()
         ]
+
+    def active_registrations_with_level(self, level):
+        """
+        :return Active registrations with a given registration level.
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [
+            registration
+            for registration in self.active_registrations()
+            if registration.level == level
+        ]
+
+    def active_normal_registrations(self):
+        """
+        :return Active registrations with a "normal" level.
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return self.active_registrations_with_level(RegistrationLevels.Normal)
+
+    def coleaders(self):
+        """
+        :return Active registrations with a "Co-leader" level.
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return self.active_registrations_with_level(RegistrationLevels.CoLeader)
+
+    def can_be_coleader(self, user):
+        """Check if user has a role which allow him to co-lead any of the event activities.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is a trainee for at least one activity
+        :rtype: boolean
+        """
+        return user.can_colead_any_activity(self.activity_types)
 
     def num_taken_slots(self):
         """Return the number of slots that have been taken

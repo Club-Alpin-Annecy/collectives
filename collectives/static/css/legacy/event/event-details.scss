@@ -128,22 +128,33 @@ span.event-status {
     display: inline-block;
 }
 
-#eventdetail .useractionmenu form {
+#eventdetail .useractionmenu div.popover{
     display: none;
     position: absolute;
-    bottom: -15px;
-    width: 80px;
-    background-color: red;
+    top: 50px;
+    z-index: 500;
+}
+
+#eventdetail .useractionmenu:hover div.popover {
+    display: block;
+}
+
+#eventdetail .useractionmenu form{
+    display:inline-block;
     text-align: center;
     color: white;
     font-weight: bold;
-    padding: 5px 2px;
+    padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
-    z-index: 500;
 }
-#eventdetail .useractionmenu:hover form {
-    display: inline-block;
+
+#eventdetail .useractionmenu form.delete {
+    background-color: red;
+}
+
+#eventdetail .useractionmenu form.update {
+    background-color: #006880;
 }
 
 #eventdetail .selfsubscribe {

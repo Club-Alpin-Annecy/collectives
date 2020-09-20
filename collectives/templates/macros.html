@@ -16,7 +16,7 @@
             <span class="license-tag youth">-25</span>
             {% endif %}
             <a href="{{url_for('profile.show_user', user_id=user.id)}}"
-                  alt="Avatar de {{user.abbrev_name()}}">{{user.abbrev_name().title()}}</a>
+                  alt="Avatar de {{user.abbrev_name()}}">{{user.full_name().title()}}</a>
             {% else %}
             {{user.abbrev_name().title()}}
             {% endif %}
