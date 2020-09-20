@@ -2,8 +2,9 @@
 """
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
+from flask_login import current_user
 from wtforms import PasswordField, SubmitField
-from wtforms import SelectField, BooleanField
+from wtforms import SelectField, BooleanField, HiddenField
 from wtforms.validators import EqualTo
 from wtforms_alchemy import ModelForm
 
@@ -104,4 +105,19 @@ class RoleForm(ModelForm, FlaskForm):
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
             (a.id, a.name) for a in ActivityType.query.all()
+        ]
+
+
+class AddTraineeForm(FlaskForm):
+
+    user_id = HiddenField()
+    activity_type = SelectField("Activité", choices=[])
+    submit = SubmitField("Ajouter un initiateur en formation")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        activity_list = current_user.get_supervised_activities()
+        self.activity_type.choices = [
+            (a.id, a.name) for a in activity_list
         ]

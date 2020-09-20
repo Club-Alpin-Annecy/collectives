@@ -9,6 +9,7 @@ from flask_login import current_user
 from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
+from ..forms.user import AddTraineeForm
 from ..models import User, ActivityType, Role, RoleIds, db
 from ..utils.access import confidentiality_agreement, admin_required, valid_user
 from ..utils.misc import deepgetattr
@@ -22,7 +23,6 @@ This blueprint contains all routes for administration. It is reserved to adminis
 
 @blueprint.before_request
 @valid_user()
-@admin_required()
 @confidentiality_agreement()
 def before_request():
     """Protect all of the admin endpoints.
@@ -37,6 +37,7 @@ def before_request():
 
 
 @blueprint.route("/", methods=["GET", "POST"])
+@admin_required()
 def administration():
     """Route for administration home page."""
     # Create the filter list
@@ -61,6 +62,7 @@ def administration():
 
 @blueprint.route("/users/add", methods=["GET", "POST"])
 @blueprint.route("/users/<user_id>", methods=["GET", "POST"])
+@admin_required()
 def manage_user(user_id=None):
     """Route for user management page.
 
@@ -111,6 +113,7 @@ def manage_user(user_id=None):
 
 
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
+@admin_required()
 def delete_user(user_id):
     """Route to delete an user.
 
@@ -121,6 +124,7 @@ def delete_user(user_id):
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
+@admin_required()
 def add_user_role(user_id):
     """Route for user roles management page."""
     user = User.query.filter_by(id=user_id).first()
@@ -169,6 +173,7 @@ def add_user_role(user_id):
 
 
 @blueprint.route("/roles/<user_id>/delete", methods=["POST"])
+@admin_required()
 def remove_user_role(user_id):
     """Route to delete a user role.
 
@@ -200,6 +205,7 @@ def remove_user_role(user_id):
 
 
 @blueprint.route("/roles/export/", methods=["GET"])
+@admin_required()
 def export_role_no_filter():
     """Default role export route.
 
@@ -213,6 +219,7 @@ def export_role_no_filter():
 
 
 @blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
+@admin_required()
 def export_role(raw_filters=""):
     """Create an Excell document with the contact information of roled users.
 
@@ -270,4 +277,22 @@ def export_role(raw_filters=""):
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
+    )
+
+@blueprint.route("/users/add_trainee", methods=["POST"])
+def add_trainee():
+    return redirect(url_for("administration.trainees"))
+
+@blueprint.route("/users/remove_trainee", methods=["POST"])
+def remove_trainee():
+    return redirect(url_for("administration.trainees"))
+
+@blueprint.route("/users/trainees", methods=["GET"])
+def manage_trainees():
+    add_trainee_form = AddTraineeForm()
+    return render_template(
+        "trainees.html",
+        conf=current_app.config,
+        add_trainee_form=add_trainee_form,
+        title="Initiateurs en formation",
     )

@@ -1,0 +1,43 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+  {# Tabulator: for tables#}
+  <link href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.min.js"></script>
+
+  {# Autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+
+  {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Initiateurs en formation{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <h3>Administration</h3>
+  <h4>Initiateurs en formation</h4>
+
+  <div class="action">
+      <form action="{{url_for('administration.add_trainee')}}" id="user-search-form" method="POST" >
+      <div id="user-search-data" class="form-search search-data">
+        {{ add_trainee_form.activity_type.label }}
+        {{ add_trainee_form.activity_type }}
+        <p>
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+        </p>
+        {{ add_trainee_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
+        {{ add_trainee_form.hidden_tag() }}
+        {{ add_trainee_form.submit(class="button button-primary") }}
+      </div>
+      </form>
+  </div>
+  <div id="trainees-table"></div>
+</div>
+{% endblock %}
