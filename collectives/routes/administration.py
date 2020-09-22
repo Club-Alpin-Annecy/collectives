@@ -279,13 +279,66 @@ def export_role(raw_filters=""):
         as_attachment=True,
     )
 
+
 @blueprint.route("/users/add_trainee", methods=["POST"])
 def add_trainee():
-    return redirect(url_for("administration.trainees"))
 
-@blueprint.route("/users/remove_trainee", methods=["POST"])
-def remove_trainee():
-    return redirect(url_for("administration.trainees"))
+    add_trainee_form = AddTraineeForm()
+    if add_trainee_form.validate_on_submit():
+        role = Role(role_id=RoleIds.Trainee)
+        add_trainee_form.populate_obj(role)
+
+        supervised_activity_ids = [
+            a.id for a in current_user.get_supervised_activities()
+        ]
+        if role.activity_id not in supervised_activity_ids:
+            flash("Activité invalide", "error")
+            return redirect(url_for("administration.manage_trainees"))
+
+        user = User.query.get(role.user_id)
+        if user is None:
+            flash("Utilisateur invalide", "error")
+            return redirect(url_for("administration.manage_trainees"))
+
+        if user.has_role_for_activity(
+            [RoleIds.Trainee, RoleIds.ActivitySupervisor, RoleIds.EventLeader],
+            role.activity_id,
+        ):
+            flash(
+                "L'utilisateur est déjà initiateur ou initiateur en formation pour cette activité",
+                "error",
+            )
+            return redirect(url_for("administration.manage_trainees"))
+
+        db.session.add(role)
+        db.session.commit()
+        add_trainee_form = AddTraineeForm(formdata=None)
+
+    return render_template(
+        "trainees.html",
+        conf=current_app.config,
+        add_trainee_form=add_trainee_form,
+        title="Initiateurs en formation",
+    )
+
+
+@blueprint.route("/users/remove_trainee/<role_id>", methods=["POST"])
+def remove_trainee(role_id):
+
+    role = Role.query.get(role_id)
+    if role is None or role.role_id != RoleIds.Trainee:
+        flash("Role invalide", "error")
+        return redirect(url_for("administration.manage_trainees"))
+
+    if role.activity_type not in current_user.get_supervised_activities():
+        flash("Non autorisé", "error")
+        return redirect(url_for("administration.manage_trainees"))
+
+    db.session.delete(role)
+    db.session.commit()
+
+    return redirect(url_for("administration.manage_trainees"))
+
 
 @blueprint.route("/users/trainees", methods=["GET"])
 def manage_trainees():

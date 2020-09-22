@@ -13,6 +13,9 @@
 
   {# Specific for this page #}
   <script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+  <script>
+      window.onload = function() { loadTraineesTable('{{url_for("api.trainees")}}', '{{csrf_token()}}');}
+  </script>
 {% endblock %}
 
 {% block header %}
@@ -25,13 +28,23 @@
   <h4>Initiateurs en formation</h4>
 
   <div class="action">
+
+        <div class="form-errors">
+            {% for field in add_trainee_form%}
+            {% for error in add_trainee_form.errors[field.name] %}
+
+            <div class="flash flash-error">
+                <strong>Erreur : {{field.label}}:</strong> {{error}}
+            </div>
+
+            {% endfor %}
+            {% endfor %}
+        </div>
+
       <form action="{{url_for('administration.add_trainee')}}" id="user-search-form" method="POST" >
-      <div id="user-search-data" class="form-search search-data">
-        {{ add_trainee_form.activity_type.label }}
-        {{ add_trainee_form.activity_type }}
-        <p>
-            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
-        </p>
+        <div id="user-search-data" class="form-search search-data">
+        {{ add_trainee_form.activity_id }}
+        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
         {{ add_trainee_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ add_trainee_form.hidden_tag() }}
         {{ add_trainee_form.submit(class="button button-primary") }}

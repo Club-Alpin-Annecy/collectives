@@ -583,7 +583,7 @@ class User(db.Model, UserMixin):
         :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
         """
         if self.is_admin() or self.has_role([RoleIds.President]):
-            return ActivityType.query.all()
+            return ActivityType.query.order_by(ActivityType.order).all()
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
