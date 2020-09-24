@@ -245,7 +245,7 @@ def view_event(event_id, name=""):
         register_user_form=register_user_form,
         paid_self_register_form=paid_self_register_form,
         normal_level=int(RegistrationLevels.Normal),
-        coleader_level=int(RegistrationLevels.CoLeader)
+        coleader_level=int(RegistrationLevels.CoLeader),
     )
 
 

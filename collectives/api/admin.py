@@ -168,11 +168,9 @@ def users():
 
 
 class TraineeRoleSchema(marshmallow.Schema):
-    """Schema of a user to be used to extract API information.
+    """Schema for a "Trainee" role
 
-    This class is a ``marshmallow`` schema which automatically gets its
-    structure from the ``User`` class. Plus, we add some useful information
-    or link. This schema is only used for administration listing.
+    Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
     delete_uri = fields.Function(
@@ -188,7 +186,9 @@ class TraineeRoleSchema(marshmallow.Schema):
     :type: string
     """
 
-    activity_type = fields.Function(lambda role: ActivityTypeSchema().dump(role.activity_type))
+    activity_type = fields.Function(
+        lambda role: ActivityTypeSchema().dump(role.activity_type)
+    )
     """ List of roles of the User.
 
     Roles are encoded as JSON.

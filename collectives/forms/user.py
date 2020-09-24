@@ -15,6 +15,8 @@ from .validators import UniqueValidator, PasswordValidator
 
 
 class AvatarForm:
+    """Form component adding an avatar field"""
+
     avatar_file = FileField(
         "Nouvelle photo de profil",
         validators=[FileAllowed(photos, "Image uniquement!")],
@@ -27,6 +29,8 @@ class AvatarForm:
 
 
 class ConfirmPasswordForm:
+    """Form component adding password and password confirmation fields"""
+
     password = PasswordField(
         label="Nouveau mot de passe",
         description="Laisser vide pour conserver l'actuel",
@@ -42,6 +46,8 @@ class ConfirmPasswordForm:
 
 
 class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+    """Form for admins to edit test users info"""
+
     class Meta:
         model = User
         # Avatar is selected/modified by another field
@@ -65,6 +71,8 @@ class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
 
 
 class AdminUserForm(OrderedModelForm, AvatarForm):
+    """Form for admins to edit real users info"""
+
     class Meta:
         model = User
         # User should not be able to change a protected parameter
@@ -80,6 +88,8 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
 
 
 class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+    """Form for users to edit their own info"""
+
     class Meta:
         model = User
         # User should not be able to change a protected parameter
@@ -90,11 +100,14 @@ class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     field_order = ["*", "avatar_file", "remove_avatar", "password", "confirm"]
 
     def __init__(self, *args, **kwargs):
+        """Overloaded constructor"""
         OrderedModelForm.__init__(self, *args, **kwargs)
         AvatarForm.__init__(self, kwargs.get("obj"))
 
 
 class RoleForm(ModelForm, FlaskForm):
+    """Form for administrators to add roles to users"""
+
     class Meta:
         model = Role
 
@@ -102,6 +115,7 @@ class RoleForm(ModelForm, FlaskForm):
     submit = SubmitField("Ajouter")
 
     def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
             (a.id, a.name) for a in ActivityType.query.all()
@@ -109,12 +123,14 @@ class RoleForm(ModelForm, FlaskForm):
 
 
 class AddTraineeForm(FlaskForm):
+    """Form for supervisors to add "Trainee" role to users"""
 
     user_id = HiddenField()
     activity_id = SelectField("Activité", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Ajouter un initiateur en formation")
 
     def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
         super().__init__(*args, **kwargs)
 
         activity_list = current_user.get_supervised_activities()

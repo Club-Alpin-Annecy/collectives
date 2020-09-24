@@ -181,7 +181,8 @@ def add_user_role(user_id):
                 (
                     r
                     for r in user.roles
-                    if r.role_id == RoleIds.Trainee and r.activity_id == role.activity_id
+                    if r.role_id == RoleIds.Trainee
+                    and r.activity_id == role.activity_id
                 ),
                 None,
             )
@@ -314,6 +315,7 @@ def export_role(raw_filters=""):
 
 @blueprint.route("/users/add_trainee", methods=["POST"])
 def add_trainee():
+    """Route for an activity supervisor to add a "Trainee" role" """
 
     add_trainee_form = AddTraineeForm()
     if add_trainee_form.validate_on_submit():
@@ -356,6 +358,11 @@ def add_trainee():
 
 @blueprint.route("/users/remove_trainee/<role_id>", methods=["POST"])
 def remove_trainee(role_id):
+    """Route for an activity supervisor to remove a "Trainee" role
+
+    :param role_id: Id of role to delete
+    :type role_id: int
+    """
 
     role = Role.query.get(role_id)
     if role is None or role.role_id != RoleIds.Trainee:
@@ -374,6 +381,8 @@ def remove_trainee(role_id):
 
 @blueprint.route("/users/trainees", methods=["GET"])
 def manage_trainees():
+    """Route for activity supervisors to access the Trainees management form"""
+
     add_trainee_form = AddTraineeForm()
     return render_template(
         "trainees.html",
