@@ -98,7 +98,7 @@ class RoleForm(ModelForm, FlaskForm):
     class Meta:
         model = Role
 
-    activity_type_id = SelectField("Activité", choices=[])
+    activity_type_id = SelectField("Activité", choices=[], coerce=int)
     submit = SubmitField("Ajouter")
 
     def __init__(self, *args, **kwargs):

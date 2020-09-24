@@ -144,20 +144,52 @@ def add_user_role(user_id):
 
     role = Role()
     form.populate_obj(role)
-    role_id = RoleIds(int(role.role_id))
 
+    role_id = role.role_id
+    is_valid = True
+
+    # Check that the role does not already exist
     if role_id.relates_to_activity():
-        role.activity_type = ActivityType.query.filter_by(
-            id=form.activity_type_id.data
-        ).first()
-        role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
+        role.activity_type = ActivityType.query.get(form.activity_type_id.data)
+        if role.activity_type is None:
+            flash("Ce rôle doit être associé à une activité")
+            is_valid = False
+        else:
+            role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
     else:
         role.activity_type = None
         role_exists = user.has_role([role_id])
 
     if role_exists:
         flash("Role déjà associé à l'utilisateur", "error")
-    else:
+        is_valid = False
+
+    if is_valid:
+        if role_id == RoleIds.Trainee:
+            # Cannot add a "trainee" role to a leader/supervisor
+            if user.has_role_for_activity(
+                [RoleIds.EventLeader, RoleIds.ActivitySupervisor], role.activity_id
+            ):
+                flash(
+                    "Impossible d'ajouter le rôle 'Initiateur en formation' à un initiateur",
+                    "error",
+                )
+                is_valid = False
+        elif role_id in [RoleIds.ActivitySupervisor, RoleIds.EventLeader]:
+            # Adding an EventLeader role removes the Trainee role
+            trainee_role = next(
+                (
+                    r
+                    for r in user.roles
+                    if r.role_id == RoleIds.Trainee and r.activity_id == role.activity_id
+                ),
+                None,
+            )
+            if trainee_role:
+                db.session.delete(trainee_role)
+                db.session.commit()
+
+    if is_valid:
         user.roles.append(role)
         db.session.add(role)
         db.session.commit()
