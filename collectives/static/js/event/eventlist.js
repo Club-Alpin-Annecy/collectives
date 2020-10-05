@@ -6,8 +6,7 @@ String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1)
 }
 
-window.onload = function(){
-
+function buildEventsTable() {
     eventsTable = new Tabulator("#eventstable", {
         layout:"fitColumns",
         //ajaxURL: '/api/events/',
@@ -100,7 +99,7 @@ window.onload = function(){
    refreshFilterDisplay();
 
    autocompleteLeaders();
-};
+}
 
 function eventRowFormatter(row){
     try {
@@ -187,17 +186,15 @@ function displayLeader(user){
 }
 
 
-function selectActivity(activity_id, element){
+function selectActivity(activity_id){
 
 
     // Toggle filter
     currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
-    console.log(currentActivityFilter.length);
 
     // Display all activities
     if (false === activity_id && currentActivityFilter.length != 0)
         eventsTable.removeFilter(currentActivityFilter);
-
 
     if (false !== activity_id){
         filter={field:"activity_type", type:"=", value: activity_id};
@@ -212,9 +209,9 @@ function selectActivity(activity_id, element){
     refreshFilterDisplay();
 }
 
-function togglePastActivities(element){
+function filterFutureOnly(futureOnly){
 
-    if ( ! element.checked){
+    if (futureOnly){
         eventsTable.addFilter( [{field:"end", type:">=", value:"now" }]);
     }else{
         endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
@@ -223,7 +220,7 @@ function togglePastActivities(element){
 
 }
 
-function toggleConfirmedOnly(confirmedOnly){
+function filterConfirmedOnly(confirmedOnly){
 
     if (confirmedOnly){
         eventsTable.addFilter( [{field:"status", type: "!=", value:  'Cancelled'  }]);

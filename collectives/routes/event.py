@@ -153,11 +153,35 @@ def validate_dates_and_slots(event):
 
 
 @blueprint.route("/")
-def index():
-    """Event and website home page."""
+@blueprint.route("/category/<int:activity_type_id>")
+@blueprint.route("/category/<int:activity_type_id>-<name>")
+def index(activity_type_id=None, name=""):
+    """Event and website home page.
+
+    :param int activity_type_id: Optional, ID of the activity_type to filter on.
+    :param string title: Name of the activity type, only for URL cosmetic purpose.
+    """
     types = ActivityType.query.order_by("order", "name").all()
+
+    filtered_activity = None
+    if activity_type_id:
+        filtered_activity = ActivityType.query.get(activity_type_id)
+        # If name is empty, redirect to a more meaningful URL
+        if name == "":
+            return redirect(
+                url_for(
+                    "event.index",
+                    activity_type_id=filtered_activity.id,
+                    name=slugify(filtered_activity.name),
+                )
+            )
+
     return render_template(
-        "index.html", conf=current_app.config, types=types, photos=photos
+        "index.html",
+        conf=current_app.config,
+        types=types,
+        photos=photos,
+        filtered_activity=filtered_activity,
     )
 
 
