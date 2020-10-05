@@ -22,6 +22,19 @@
 
   <script src="{{ url_for('static', filename='js/event/eventlist.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+
+  <script>
+      window.onload = function() {
+          buildEventsTable();
+      
+          {% if filtered_activity %}
+            filterConfirmedOnly(false);
+            filterFutureOnly(true);
+            selectActivity('{{filtered_activity.short}}');
+          {% endif %}
+      }
+  </script>
+
 {% endblock %}
 
 {% block content %}
@@ -53,7 +66,7 @@
 
             <input
                     type="checkbox"
-                    onchange="togglePastActivities(this)"
+                    onchange="filterFutureOnly(this.checked)"
                     autocomplete="off"
                     id="pastcheckbox"
                     class="button button-secondary"
@@ -62,7 +75,7 @@
 
             <input
                     type="checkbox"
-                    onchange="toggleConfirmedOnly(!this.checked)"
+                    onchange="filterConfirmedOnly(!this.checked)"
                     autocomplete="off"
                     checked="1"
                     id="cancelledcheckbox"
