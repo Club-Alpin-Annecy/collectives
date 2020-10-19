@@ -8,19 +8,20 @@
 <div class="panel" id="legal">
     <h3>Mentions légales</h3>
 
+    {% if  current_user.is_authenticated  %}
+        {% if current_user.has_signed_legal_text() %}
+            <p>Vous avez accepté ces mentions légales le {{current_user.legal_text_signature_date.strftime("%d/%m/%Y à %H:%M")}}</p>
+        {% else %}
+            <form action="{{ url_for('root.legal_accept')}}" method="post">
+                <div class="flex">
+                      <div>{{ form.legal_accepted(title=form.legal_accepted.description) }}</div>
+                      <div class="leftalign">{{ form.legal_accepted.label(class="leftalign") }}<span class="help">{{ form.legal_accepted.description }}</span></div>
 
-    {% if current_user.has_signed_legal_text() %}
-        <p>Vous avez accepté ces mentions légales le {{current_user.legal_text_signature_date.strftime("%d/%m/%Y à %H:%M")}}</p>
-    {% elif  current_user.is_authenticated  %}
-        <form action="{{ url_for('root.legal_accept')}}" method="post">
-            <div class="flex">
-                  <div>{{ form.legal_accepted(title=form.legal_accepted.description) }}</div>
-                  <div class="leftalign">{{ form.legal_accepted.label(class="leftalign") }}<span class="help">{{ form.legal_accepted.description }}</span></div>
-
-            </div>
-            <input type="submit" value="Accepter" class="button button-primary">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        </form>
+                </div>
+                <input type="submit" value="Accepter" class="button button-primary">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </form>
+        {% endif %}
     {% endif %}
 
     {% if conf['STATISTICS_ENABLED'] %}
