@@ -4,7 +4,7 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList
 from wtforms import HiddenField, BooleanField, SelectField
-from wtforms.validators import NumberRange, DataRequired, ValidationError, Optional
+from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm
 
 from .order import OrderedForm
@@ -16,9 +16,6 @@ from ..utils.numbers import format_currency
 class AmountForm(FlaskForm):
     """Form component for inputting an amount in euros"""
 
-    class Meta:
-        locales = ["fr"]
-
     amount = DecimalField(
         "Prix en euros",
         description="Par exemple «9,95»",
@@ -29,7 +26,6 @@ class AmountForm(FlaskForm):
                 message="Le prix doit être compris entre %(min)s et %(max)s euros.",
             )
         ],
-        use_locale=True,
         number_format="#,##0.00",
         default=Decimal(0),
     )
@@ -46,17 +42,14 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     class Meta:
         model = ItemPrice
-        only = ["enabled", "title"]
-
-    item_title = StringField(validators=[DataRequired()])
+        only = ["enabled", "title", "start_date", "end_date", "license_types"]
 
     delete = BooleanField("Supprimer")
 
     price_id = HiddenField()
-    item_id = HiddenField()
     use_count = 0
 
-    def get_item_and_price(self, event):
+    def get_price(self, item):
         """
         :param event: Event to which the payment item belongs
         :type event: :py:class:`collectives.models.event.Event`
@@ -65,16 +58,13 @@ class ItemPriceForm(ModelForm, AmountForm):
         :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
         """
 
-        item_id = int(self.item_id.data)
         price_id = int(self.price_id.data)
-
-        item = PaymentItem.query.get(item_id)
         price = ItemPrice.query.get(price_id)
-        if item is None or price is None:
+        if price is None:
             raise ValueError
-        if price.item_id != item.id or item.event_id != event.id:
+        if price.item_id != item.id:
             raise ValueError
-        return item, price
+        return price
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -84,28 +74,89 @@ class ItemPriceForm(ModelForm, AmountForm):
         self.update_max_amount()
 
 
-class NewItemPriceForm(AmountForm):
+class PaymentItemForm(ModelForm):
+    """Form for editing a single payment item and associated prices"""
+
+    class Meta:
+        model = PaymentItem
+        only = ["title"]
+
+    item_id = HiddenField()
+    item_prices = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
+
+    def get_item(self, event):
+        """
+        :param event: Event to which the payment item belongs
+        :type event: :py:class:`collectives.models.event.Event`
+        :return: Returns both the price and its parent item from which this form was created
+                 If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+        """
+
+        item_id = int(self.item_id.data)
+        item = PaymentItem.query.get(item_id)
+        if item is None:
+            raise ValueError
+        if item.event_id != event.id:
+            raise ValueError
+        return item
+
+    def populate_prices(self, item):
+        """
+        Setups form for all current prices
+
+        :param item: payment item for which to create a form entry
+        :type item: :py:class:`collectives.models.payment.PaymentItem`
+        """
+        # Remove all existing entries
+        while len(self.item_prices) > 0:
+            self.item_prices.pop_entry()
+
+        # Create new entries
+        for price in item.prices:
+            self.item_prices.append_entry(price)
+
+        # Update fields
+        for k, field_form in enumerate(self.item_prices):
+            field_form.update_max_amount()
+            price = item.prices[k]
+            field_form.price_id.data = price.id
+            field_form.use_count = len(price.payments)
+
+
+class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
 
-    item_title = StringField("Objet du paiement")
-    title = StringField("Intitulé du tarif")
+    class Meta:
+        model = ItemPrice
+        only = ["enabled", "title", "start_date", "end_date", "license_types"]
 
-    def validate_title(form, field):
+    item_title = StringField("Intitulé du nouvel objet")
+    existing_item = SelectField(
+        "Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int
+    )
+
+    add = SubmitField("Ajouter le tarif")
+
+    def validate_item_title(form, field):
         """Validates that if a new item is created, then the
-        title field is not empty.
+        new item title field is not empty.
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
-        if form.item_title.data and len(field.data) == 0:
-            raise ValidationError("L'intitulé du nouveau tarif ne doit pas être vide")
+        if not form.existing_item.data and len(field.data) == 0:
+            raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
+
+    def __init__(self, items, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.existing_item.choices += [(i.id, i.title) for i in items]
 
 
 class PaymentItemsForm(FlaskForm):
     """Form for editing payment items and prices"""
 
-    new_item = FormField(NewItemPriceForm)
-    items = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
+    items = FieldList(FormField(PaymentItemForm, default=PaymentItem()))
 
-    submit = SubmitField("Enregistrer")
+    update = SubmitField("Enregistrer")
 
     def populate_items(self, items):
         """
@@ -120,19 +171,13 @@ class PaymentItemsForm(FlaskForm):
 
         # Create new entries
         for item in items:
-            if len(item.prices) > 0:
-                data = item.prices[0]
-            else:
-                data = ItemPrice(item_id=item.id)
-            data.item_title = item.title
-            data.price_id = data.id
-            self.items.append_entry(data)
+            self.items.append_entry(item)
 
         # Update fields
         for k, field_form in enumerate(self.items):
-            field_form.update_max_amount()
-            if len(items[k].prices) > 0:
-                field_form.use_count = len(items[k].prices[0].payments)
+            item = items[k]
+            field_form.item_id.data = item.id
+            field_form.populate_prices(item)
 
 
 class OfflinePaymentForm(ModelForm, OrderedForm):
@@ -184,7 +229,7 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
         # List all available prices
         all_prices = []
         for item in registration.event.payment_items:
-            all_prices += item.active_prices()
+            all_prices += item.available_prices_to_user(registration.user)
 
         self.item_price.choices = [
             (p.id, f"{p.item.title} — {p.title} ({format_currency(p.amount)})")

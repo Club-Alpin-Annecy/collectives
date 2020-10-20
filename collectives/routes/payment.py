@@ -12,7 +12,7 @@ from flask_login import current_user
 
 from openpyxl import Workbook
 
-from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
+from ..forms.payment import PaymentItemsForm, OfflinePaymentForm, NewItemPriceForm
 from ..utils import payline
 
 from ..utils.access import payments_enabled, valid_user
@@ -43,8 +43,8 @@ def before_request():
     pass
 
 
-@valid_user()
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
+@valid_user()
 def edit_prices(event_id):
     """Route for editing payment items and prices associated to an event
 
@@ -60,71 +60,103 @@ def edit_prices(event_id):
         flash("Accès refusé", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    form = PaymentItemsForm()
-
-    if not form.is_submitted():
-        form.populate_items(event.payment_items)
-        return render_template(
-            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
-        )
-
-    if not form.validate():
-        return render_template(
-            "payment/edit_prices.html", conf=current_app.config, event=event, form=form
-        )
+    # Only populate the form corresponding to the submit button
+    # that gas been clicked
 
     # Add a new payment option
-    if form.new_item.item_title.data:
-        new_price = ItemPrice(
-            amount=form.new_item.amount.data,
-            title=form.new_item.title.data,
-            enabled=True,
-            update_time=current_time(),
-        )
-        new_item = PaymentItem(title=form.new_item.item_title.data)
-        new_item.prices.append(new_price)
-        event.payment_items.append(new_item)
-        db.session.add(event)
-        db.session.commit()
+    if "add" in request.form:
+        new_price_form = NewItemPriceForm(event.payment_items)
+        if new_price_form.validate():
+
+            new_price = ItemPrice(
+                update_time=current_time(),
+            )
+            new_price_form.populate_obj(new_price)
+
+            if new_price_form.existing_item.data:
+                new_price.item_id = new_price_form.existing_item.data
+            else:
+                new_item = PaymentItem(title=new_price_form.item_title.data)
+                new_item.prices.append(new_price)
+                event.payment_items.append(new_item)
+                db.session.add(event)
+                db.session.add(new_item)
+            db.session.add(new_price)
+            db.session.commit()
+
+            # Reset form data
+            new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
+    else:
+        new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
 
     # Update or delete items
-    for item_form in form.items:
-        try:
-            item, price = item_form.get_item_and_price(event)
-        except ValueError:
-            flash("Données incorrectes", "error")
-            return redirect(url_for("payment.edit_prices", event_id=event_id))
+    if "update" in request.form:
+        form = PaymentItemsForm()
+        if form.validate():
 
-        if item_form.delete.data:
-            if len(price.payments) > 0:
-                flash(
-                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
-                    "warning",
-                )
-                continue
+            has_deleted_items = False
 
-            db.session.delete(price)
-            if len(item.prices) == 0:
-                db.session.delete(item)
+            try:
+                for item_form in form.items:
+                    item = item_form.get_item(event)
+                    item.title = item_form.title.data
+                    db.session.add(item)
+                    db.session.commit()
 
-            db.session.commit()
-        else:
-            item.title = item_form.item_title.data
-            price.title = item_form.title.data
-            price.enabled = item_form.enabled.data
-            if price.amount != item_form.amount.data:
-                price.amount = item_form.amount.data
-                price.update_time = current_time()
-            db.session.add(item)
-            db.session.add(price)
-            db.session.commit()
+                    for price_form in item_form.item_prices:
+                        price = price_form.get_price(item)
+                        if price_form.delete.data:
+                            if len(price.payments) > 0:
+                                flash(
+                                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
+                                    "warning",
+                                )
+                                continue
 
-    # Redirect to same page to reset form data
-    return redirect(url_for("payment.edit_prices", event_id=event_id))
+                            db.session.delete(price)
+                            if len(item.prices) == 0:
+                                db.session.delete(item)
+                                has_deleted_items = True
+
+                            db.session.commit()
+                        else:
+                            price.title = price_form.title.data
+                            price.enabled = price_form.enabled.data
+                            price.start_date = price_form.start_date.data
+                            price.end_date = price_form.end_date.data
+                            price.license_types = price_form.license_types.data
+                            if price.amount != price_form.amount.data:
+                                price.amount = price_form.amount.data
+                                price.update_time = current_time()
+
+                            db.session.add(price)
+                            db.session.commit()
+
+            except ValueError:
+                flash("Données incorrectes", "error")
+
+            # Reset form data
+            form = PaymentItemsForm(formdata=None)
+            form.populate_items(event.payment_items)
+
+            # If we have deleted items, make sure to remove them from the new price form
+            if has_deleted_items:
+                new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
+    else:
+        form = PaymentItemsForm(formdata=None)
+        form.populate_items(event.payment_items)
+
+    return render_template(
+        "payment/edit_prices.html",
+        conf=current_app.config,
+        event=event,
+        form=form,
+        new_price_form=new_price_form,
+    )
 
 
-@valid_user()
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
+@valid_user()
 def list_payments(event_id):
     """Route for listing all payments associated to an event
 
@@ -145,8 +177,8 @@ def list_payments(event_id):
     )
 
 
-@valid_user()
 @blueprint.route("/event/<event_id>/export_payments", methods=["GET"])
+@valid_user()
 def export_payments(event_id):
     """Create an Excel document listing all approved payments associated to an event
 
@@ -214,8 +246,8 @@ def export_payments(event_id):
     )
 
 
-@valid_user()
 @blueprint.route("/<payment_id>/details", methods=["GET"])
+@valid_user()
 def payment_details(payment_id):
     """Route for displaying details about a given payment
 
@@ -273,13 +305,13 @@ def payment_receipt(payment_id):
     )
 
 
-@valid_user()
 @blueprint.route(
     "/registration/<registration_id>/report_offline", methods=["GET", "POST"]
 )
 @blueprint.route(
     "/<payment_id>/registration/<registration_id>/edit_offline", methods=["GET", "POST"]
 )
+@valid_user()
 def report_offline(registration_id, payment_id=None):
     """Route for entering/editing an offline payment
 
@@ -315,7 +347,11 @@ def report_offline(registration_id, payment_id=None):
     if form.validate_on_submit():
 
         item_price = ItemPrice.query.get(form.item_price.data)
-        if item_price is None or item_price.item.event_id != event.id:
+        if (
+            item_price is None
+            or item_price.item.event_id != event.id
+            or not item_price.is_available_to_user(registration.user)
+        ):
             flash("Tarif invalide.", "error")
         else:
             all_valid = True
@@ -352,8 +388,8 @@ def report_offline(registration_id, payment_id=None):
     )
 
 
-@valid_user()
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
+@valid_user()
 def request_payment(payment_id):
     """Route for displaying the Payline payment widget.
     If Payline is not configured properly display a mock payment page.
@@ -468,7 +504,6 @@ def finalize_payment(payment, details):
     db.session.commit()
 
 
-@payments_enabled
 @blueprint.route("/process", methods=["GET", "POST"])
 @blueprint.route("/cancel", endpoint="cancel", methods=["GET", "POST"])
 @blueprint.route("/notify", endpoint="notify", methods=["GET", "POST"])

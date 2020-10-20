@@ -1,6 +1,17 @@
 
 {% extends 'base.html' %}
 
+{% block additionalhead %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/payment/edit_prices.js') }}"></script>
+  <script> window.onload = function() {
+    updateNewItemTitleVisibility(); 
+    dateInputsFallback(tail);
+  };
+  </script>
+{% endblock %}
+
 {% block header %}
   <h1>{% block title %}{{event.title}}{% endblock %}</h1>
 {% endblock %}
@@ -13,77 +24,116 @@
   <h4>Édition des tarifs</h4>
   Pour rendre la collective payante, définissez un ou plusieurs tarifs.
 
-  <form method="POST">
+  <h5> Tarifs existants </h5>
+  {% if form.items %}
 
-    <h5> Tarifs existants </h5>
-    {% if form.items %}
+    <form method="POST">
     <table id="existing_prices">
     <thead>
-      <th> Objet du paiement</th>
+      <th> Objet du paiement </th>
       <th> Intitulé du tarif </th>
       <th> Prix en euros </th>
+      <th> Licences </th>
+      <th> Début </th>
+      <th> Fin </th>
       <th> Actif </th>
     </thead>
-    {% for field in form.items %}
-      <tr>
-        <td> {{ field.item_title() }} </td>
-        <td> {{ field.title() }} </td>
-        <td>
-        {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
-         </td>
-        <td> {{ field.enabled() }} </td>
-        <td> {{field.price_id}} {{field.item_id}}
-        {% if field.use_count %}
-          Utilisé {{field.use_count}} fois.
-        {% else %}
-          {{field.delete}} {{field.delete.label}}
-        {% endif %}
-        </td>
-      </tr>
-      {% if field.errors %}
-      <tr> <td colspan="4" class="error-cell">
-        <div class="form-errors">
-            {% for field_name, errors in field.errors.items() %}
-            {% for error in errors %}
-            <div class="flash flash-error">
-                <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
-            </div>
-            {% endfor %}
-            {% endfor %}
-        </div>
-      </td> </tr>
-      {%endif%}
+    {% for item_form in form.items %}
+      {{item_form.item_id}}
+    
+      {% for field in item_form.item_prices %}
+        <tr>
+          <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
+          <td> {{ field.title() }} </td>
+          <td>
+          {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+          </td>
+          <td> {{ field.license_types() }} </td>
+          <td> {{ field.start_date() }} </td>
+          <td> {{ field.end_date() }} </td>
+          <td> {{ field.enabled() }} </td>
+          <td class="actions"> {{field.price_id}} 
+          {% if field.use_count %}
+            Utilisé {{field.use_count}} fois.
+          {% else %}
+            {{field.delete}}&nbsp;{{field.delete.label}}
+          {% endif %}
+          </td>
+        </tr>
+        {% if field.errors %}
+        <tr> <td colspan="4" class="error-cell">
+          <div class="form-errors">
+              {% for field_name, errors in field.errors.items() %}
+              {% for error in errors %}
+              <div class="flash flash-error">
+                  <strong>Erreur: {{field[field_name].label}}:</strong> {{error}}
+              </div>
+              {% endfor %}
+              {% endfor %}
+          </div>
+        </td> </tr>
+        {%endif%}
+      {% endfor %}
     {% endfor %}
     </table>
+
+    {{ form.hidden_tag() }}
+    <br />{{ form.update(class="button button-primary") }}
+    </form>
     {%else%}
       Aucun tarif n'a été défini pour le moment.
     {%endif%}
 
     <h5> Nouveau tarif </h5>
+    <form method="POST">
 
     <div class="form-errors">
-        {% for field_name, errors in form.new_item.errors.items() %}
+        {% for field_name, errors in new_price_form.errors.items() %}
         {% for error in errors %}
         <div class="flash flash-error">
-            <strong>Erreur: {{form.new_item[field_name].label}}:</strong> {{error}}
+            <strong>Erreur: {{new_price_form[field_name].label}}:</strong> {{error}}
         </div>
         {% endfor %}
         {% endfor %}
     </div>
 
-    <div class="field">{{ form.new_item.item_title.label }}<span class="help">Laissez vide pour ne pas créer de nouveau tarif</span></div>
-    {{ form.new_item.item_title}}
-    <div class="field">{{ form.new_item.title.label }}<span class="help">Par exemple «Adultes»</span></div>
-    {{ form.new_item.title}}
+    <div class="field">{{ new_price_form.existing_item.label }}<span class="help">Ajouter le tarif à un objet existant ou créer un nouvel objet</span></div>
+    {{ new_price_form.existing_item(onchange="updateNewItemTitleVisibility();")}}
+    <div id = "new-item-title">
+      <div class="field">{{ new_price_form.item_title.label }}<span class="help">Par exemple «Nuitée en refuge»</span></div>
+      {{ new_price_form.item_title}}
+    </div>
+    <div class="field">{{ new_price_form.title.label }}<span class="help">Par exemple «Adultes»</span></div>
+    {{ new_price_form.title}}
 
-    <div class="field">{{ form.new_item.amount.label }}<span class="help">{{ form.new_item.amount.description }}</span></div>
-    {{ form.new_item.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
-    {#{ form.new_item.amount()}#}
+    <div class="field">{{ new_price_form.amount.label }}<span class="help">{{ new_price_form.amount.description }}</span></div>
+    {{ new_price_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+    {#{ new_price_form.amount()}#}
 
-    {{ form.hidden_tag() }}
-    <br />{{ form.submit(class="button button-primary") }}
-  </form>
+    <div class="field">
+    {{ new_price_form.enabled }} 
+    </div>
+    {{new_price_form.enabled.label}}
+ 
+    <fieldset>
+    <legend>Conditions pour bénéficier du tarif</legend>
+    <p class="help">
+      Les conditions suivantes sont optionnelles; si elles sont laissées vide, le tarif s'appliquera sans restrictions.
+      Pour chaque "Objet de paiement", l'adhérent se verra proposer uniquement le tarif le plus bas auquel il a accès.
+    </span>
 
+    <div class="field">{{ new_price_form.license_types.label }}<span class="help">Séparés par des espaces. Par exemple «J1 J2 E1 E2» pour un tarif «Jeunes».</span></div>
+    {{ new_price_form.license_types}}
+    <div class="field">{{ new_price_form.start_date.label }}<span class="help">Date à partir de laquelle le tarif sera proposé.</span></div>
+    {{ new_price_form.start_date}}
+    <div class="field">{{ new_price_form.end_date.label }}<span class="help">Date jusqu'à laquelle le tarif sera proposé</span></div>
+    {{ new_price_form.end_date}}
+    </fieldset>
+
+    {{ new_price_form.hidden_tag() }}
+    <br />{{ new_price_form.add(class="button button-primary") }}
+    </form>
 </div>
+
 {% endblock %}
 
