@@ -154,7 +154,8 @@ def validate_dates_and_slots(event):
 
 @blueprint.route("/")
 @blueprint.route("/category/<int:activity_type_id>")
-@blueprint.route("/category/<int:activity_type_id>-<name>")
+@blueprint.route("/category/<int:activity_type_id>-<string:name>")
+@blueprint.route("/category/<string:name>")
 def index(activity_type_id=None, name=""):
     """Event and website home page.
 
@@ -167,7 +168,21 @@ def index(activity_type_id=None, name=""):
     if activity_type_id:
         filtered_activity = ActivityType.query.get(activity_type_id)
         # If name is empty, redirect to a more meaningful URL
-        if name == "":
+        if filtered_activity and not name:
+            return redirect(
+                url_for(
+                    "event.index",
+                    activity_type_id=filtered_activity.id,
+                    name=slugify(filtered_activity.name),
+                )
+            )
+    elif name:
+        filtered_name = slugify(name).replace("-", " ")
+        filtered_activity = ActivityType.query.filter(
+            ActivityType.name.ilike(f"%{filtered_name}%")
+        ).first()
+        # Redirect to a more robust URL
+        if filtered_activity:
             return redirect(
                 url_for(
                     "event.index",
