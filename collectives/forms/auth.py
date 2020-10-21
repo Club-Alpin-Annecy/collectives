@@ -9,7 +9,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..models import User
+from ..models import User, db
 from .order import OrderedForm
 from .validators import UniqueValidator, PasswordValidator, LicenseValidator
 
@@ -34,7 +34,10 @@ class AccountCreationForm(ModelForm, OrderedForm):
             "placeholder": LicenseValidator().sample_value(),
             "pattern": LicenseValidator().pattern(),
         },
-        validators=[LicenseValidator()],
+        validators=[
+            LicenseValidator(),
+            UniqueValidator(User.license, get_session=lambda: db.session),
+        ],
     )
 
     field_order = ["mail", "license", "*"]
@@ -43,7 +46,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mail.description = "Utilisée lors de votre inscription au club"
+        self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
 
 class PasswordResetForm(FlaskForm):
