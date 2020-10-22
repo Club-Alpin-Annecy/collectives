@@ -8,14 +8,14 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
-
+from wtforms_alchemy.utils import strip_string
 from ..models import User, db
 from .order import OrderedForm
 from .validators import UniqueValidator, PasswordValidator, LicenseValidator
 
 
 class LoginForm(FlaskForm):
-    mail = StringField("Email", validators=[DataRequired()])
+    mail = StringField("Email", validators=[DataRequired()], filters=[strip_string])
     password = PasswordField("Mot de passe", validators=[DataRequired()])
     remember_me = BooleanField("Se souvenir de la connexion")
     submit = SubmitField("Login")
@@ -26,6 +26,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
         model = User
         only = ["mail", "license", "date_of_birth"]
         unique_validator = UniqueValidator
+        strip_string_fields = True
 
     license = StringField(
         label="Numéro de licence",
