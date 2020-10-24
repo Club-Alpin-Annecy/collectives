@@ -110,7 +110,9 @@ SQLALCHEMY_DATABASE_URI = environ.get(
 
 Set URL for SQLAlchemy database.
 Can be sqlite: ``sqlite:///app.db``
-or mysql: ``mysql+pymysql://username:password@localhost/db_name``
+or mysql: ``mysql+pymysql://username:password@localhost/db_name?charset=utf8mb4``
+
+NB: When using mysql, charset must be specified to allow UTF8 character in test field.
 
 :type: string
 """
