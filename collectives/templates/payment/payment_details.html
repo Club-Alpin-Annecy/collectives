@@ -32,7 +32,7 @@
     {{ details_row("Événement", event.title) }}
     {{ details_row("Objet du paiement", payment.item.title) }}
     {{ details_row("Tarif", payment.price.title) }}
-    {{ details_row("Adhérent", payment.creditor.full_name()) }}
+    {{ details_row("Adhérent", payment.buyer.full_name()) }}
     {% if payment.registration %}
       {{ details_row("Inscription associée", payment.registration.status.display_name()) }}
     {% endif %}

@@ -13,7 +13,7 @@ function createPaymentsTable(url)
             {title:"Tarif", field:"price_title", widthGrow:2, headerFilter:true},
             {title:"Payé", field:"amount_paid", widthGrow:1},
             {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true},
-            {title:"Adhérent", field:"creditor_name", widthGrow:2, headerFilter:true},
+            {title:"Adhérent", field:"buyer_name", widthGrow:2, headerFilter:true},
             {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true},
             ],
 

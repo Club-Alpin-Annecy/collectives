@@ -267,7 +267,7 @@ class User(db.Model, UserMixin):
     """
 
     payments = db.relationship(
-        "Payment", backref="creditor", foreign_keys="[Payment.creditor_id]", lazy=True
+        "Payment", backref="buyer", foreign_keys="[Payment.buyer_id]", lazy=True
     )
     """ List of payments made by the user.
 

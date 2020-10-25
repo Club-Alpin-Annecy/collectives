@@ -51,7 +51,7 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    creditor_name = fields.Function(lambda p: p.creditor.full_name())
+    buyer_name = fields.Function(lambda p: p.buyer.full_name())
     """ Full name of the user associated to this payment
 
     :type: string"""
@@ -101,7 +101,7 @@ class EventPaymentSchema(PaymentSchema):
             "price_title",
             "amount_charged",
             "amount_paid",
-            "creditor_name",
+            "buyer_name",
             "payment_type",
             "registration_status",
             "details_uri",
@@ -184,7 +184,7 @@ def my_payments(status_code):
     :type status_code: string
     """
 
-    query = Payment.query.filter_by(creditor_id=current_user.id, status=status_code)
+    query = Payment.query.filter_by(buyer_id=current_user.id, status=status_code)
 
     result = query.order_by(Payment.id.desc()).all()
     response = MyPaymentSchema(many=True).dump(result)

@@ -261,6 +261,9 @@ class PaymentStatus(ChoiceEnum):
     Expired = 4
     """ Payment has expired due to timeout
     """
+    Refunded = 5
+    """ Payment has been refunded to the user
+    """
 
     @classmethod
     def display_names(cls):
@@ -310,7 +313,7 @@ class Payment(db.Model):
 
     :type: int"""
 
-    creditor_id = db.Column(
+    buyer_id = db.Column(
         db.Integer, db.ForeignKey("users.id"), index=True, nullable=False
     )
     """ Primary key of the user making this payment
@@ -320,7 +323,7 @@ class Payment(db.Model):
 
     reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     """ Primary key of the user reporting this payment
-    For online payments this should be similar to creditor_id, for manual payments this
+    For online payments this should be similar to buyer, for manual payments this
     would be the id of the leader/admin who reported the payment
 
     :type: int"""
@@ -417,7 +420,7 @@ class Payment(db.Model):
             self.registration_id = registration.id
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
-            self.creditor_id = registration.user.id
+            self.buyer_id = registration.user.id
             self.reporter_id = registration.user.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal(0)

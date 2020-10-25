@@ -205,11 +205,11 @@ def export_payments(event_id):
     wb = Workbook()
     ws = wb.active
     FIELDS = {
-        "creditor.license": "Licence",
-        "creditor.first_name": "Prénom",
-        "creditor.last_name": "Nom",
-        "creditor.mail": "Email",
-        "creditor.phone": "Téléphone",
+        "buyer.license": "Licence",
+        "buyer.first_name": "Prénom",
+        "buyer.last_name": "Nom",
+        "buyer.mail": "Email",
+        "buyer.phone": "Téléphone",
         "item.title": "Objet",
         "price.title": "Tarif",
         "amount_paid": "Prix payé",
@@ -285,7 +285,7 @@ def payment_receipt(payment_id):
     if (
         payment is None
         or payment.item.event is None
-        or payment.creditor != current_user
+        or payment.buyer != current_user
     ):
         flash("Accès refusé", "error")
         return redirect(url_for("event.index"))
