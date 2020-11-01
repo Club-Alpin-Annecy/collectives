@@ -3,13 +3,18 @@
 """
 import json
 
-from flask import url_for, request 
+from flask import url_for, request
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from ..models import db, User, RoleIds, Role
-from ..utils.access import confidentiality_agreement, admin_required, valid_user, activity_supervisor_required
+from ..utils.access import (
+    confidentiality_agreement,
+    admin_required,
+    valid_user,
+    activity_supervisor_required,
+)
 from .common import blueprint, marshmallow, avatar_url
 from .event import ActivityTypeSchema
 

@@ -1,6 +1,6 @@
 """ Module for activity supervision routes.
 
-Restricted to activity supervisor, adminstrators, and President. 
+Restricted to activity supervisor, adminstrators, and President.
  """
 
 from flask import flash, render_template, redirect, url_for
@@ -11,14 +11,21 @@ from ..forms.csv import CSVForm
 from ..forms.user import AddTraineeForm
 from ..models import User, Role, RoleIds, ActivityType, db
 
-from ..utils.access import confidentiality_agreement, valid_user, activity_supervisor_required
+from ..utils.access import (
+    confidentiality_agreement,
+    valid_user,
+    activity_supervisor_required,
+)
 from ..utils.csv import process_stream
 
-blueprint = Blueprint("activity_supervision", __name__, url_prefix="/activity_supervision")
+blueprint = Blueprint(
+    "activity_supervision", __name__, url_prefix="/activity_supervision"
+)
 """ Activity supervision blueprint
 
 This blueprint contains all routes for activity supervision.
 """
+
 
 @blueprint.before_request
 @valid_user()
@@ -33,6 +40,7 @@ def before_request():
     - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
+
 
 @blueprint.route("/add_trainee", methods=["POST"])
 def add_trainee():

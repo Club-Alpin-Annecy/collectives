@@ -9,7 +9,6 @@ from flask_login import current_user
 from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
-from ..forms.user import AddTraineeForm
 from ..models import User, ActivityType, Role, RoleIds, db
 from ..utils.access import confidentiality_agreement, admin_required, valid_user
 from ..utils.misc import deepgetattr
@@ -131,6 +130,7 @@ class RoleValidationException(Exception):
         :type message: string
         """
         self.message = message
+        super().__init__(self)
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])

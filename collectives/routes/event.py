@@ -775,4 +775,3 @@ def delete_event(event_id):
 
     flash("Événement supprimé", "success")
     return redirect(url_for("event.index"))
-

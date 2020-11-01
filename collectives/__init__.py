@@ -19,7 +19,16 @@ from flask_migrate import Migrate
 from flask_statistics import Statistics
 
 from . import models, api, forms
-from .routes import root, profile, auth, administration, event, payment, technician, activity_supervison
+from .routes import (
+    root,
+    profile,
+    auth,
+    administration,
+    event,
+    payment,
+    technician,
+    activity_supervison,
+)
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline, statistics
 
