@@ -356,6 +356,11 @@ class Payment(db.Model):
 
     :type: :py:class:`datetime.datetime`"""
 
+    refund_time = db.Column(db.DateTime)
+    """ Timestamp at which the payment was refunded
+
+    :type: :py:class:`datetime.datetime`"""
+
     processor_token = db.Column(db.String(256), index=True, nullable=False)
     """ Unique identifier of this payment for the payment processor.
 
@@ -376,6 +381,14 @@ class Payment(db.Model):
     """ Raw metadata concerning this payment as returned by the payment processor,
         or payment details if it had been made by cash/check
         To be refined.
+
+    :type: str
+    """
+
+    refund_metadata = db.Column(
+        db.Text
+    )
+    """ Raw metadata concerning this payment refund transaction.
 
     :type: str
     """

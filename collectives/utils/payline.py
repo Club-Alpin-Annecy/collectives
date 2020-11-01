@@ -190,6 +190,79 @@ class PaymentDetails:
         """
         return self.response["payment"]
 
+    @staticmethod
+    def from_metadata(raw_metadata):
+        """
+        Constructs a PaymentDetails object from a metadata string
+
+        :param: raw_metadata Json-encoded metadata string
+        :type: raw_metadata string
+        :return: Payment details
+        :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
+        """
+        response = json.loads(raw_metadata)
+        return PaymentDetails(response)
+
+    def __init__(self, response):
+        """
+        Constructor from response dictionnary
+
+        :param: response Dictionnary containing API call result
+        :type: response dict
+        """
+        self.result = PaymentResult(response["result"])
+        self.response = response
+
+
+class RefundDetails:
+    """
+    Class wrapping the results of a "do refund" API request
+    """
+
+    result = PaymentResult()
+    """
+    Whether the request has succeeded, or why it has not
+
+    :type: :py:class:`collectives.utils.payline.PaymentResult`
+    """
+
+    response = {}
+    """ Dictionary containing the raw SOAP api response for
+    a payment details query.
+    See https://docs.payline.com/display/DT/Webservice+-+doRefundResponse
+
+    :type: dict
+    """
+
+    response["transaction"] = {}
+
+    def raw_metadata(self):
+        """
+        :return: the raw response dictionary as a Json string
+        :rtype: string
+        """
+        return json.dumps(self.response)
+
+    @property
+    def transaction(self):
+        """
+        See https://docs.payline.com/display/DT/Object+-+transaction
+
+        :return: The dictionary corresponding to the "transaction" par of the response
+        :rtype: dict
+        """
+        return self.response["transaction"]
+
+    def __init__(self, response):
+        """
+        Constructor from response dictionnary
+
+        :param: response Dictionnary containing API call result
+        :type: response dict
+        """
+        self.result = PaymentResult(response["result"])
+        self.response = response
+
 
 class OrderInfo:
     """Class describing an order for a payment request.
@@ -492,32 +565,56 @@ class PaylineApi:
         :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
         """
         self.init()
-        payment_details_response = PaymentDetails()
 
         if self.disabled():
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount")
-            payment_details_response.result.code = "00000"
-            payment_details_response.result.short_message = message
-            payment_details_response.result.long_message = message
-
-            payment_details_response.transaction["id"] = "12345678"
-            payment_details_response.transaction["date"] = "02/05/2020 22:00:00"
-
-            payment_details_response.authorization["number"] = "A55A"
-            payment_details_response.payment["amount"] = amount
-            return payment_details_response
+            response = {
+                "result": {
+                    "code": "00000",
+                    "short_message": message,
+                    "long_message": message,
+                },
+                "transaction": {"id": "12345678", "date": "02/05/2020 22:00:00"},
+                "authorization": {"number": "A55A"},
+                "payment": {"amount": amount},
+            }
+            return PaymentDetails(response)
 
         try:
             response = self.soap_client.getWebPaymentDetails(
                 version=PAYLINE_VERSION, token=token
             )
+            return PaymentDetails(response)
 
-            payment_details_response.result = PaymentResult(response["result"])
-            payment_details_response.response = response
+        except pysimplesoap.client.SoapFault as err:
+            current_app.logger.error("Payment API error: %s", err)
 
-            return payment_details_response
+        return None
+
+    def doRefund(self, payment_details):
+        self.init()
+
+        if self.disabled():
+            # Dev mode, refund always succeeds
+            response = {
+                "result": {
+                    "code": "00000",
+                    "short_message": "Transaction accepted",
+                    "long_message": "Transaction accepted",
+                },
+                "transaction": {"id": "12345678", "date": "02/05/2020 22:00:00"},
+            }
+            return RefundDetails(response)
+
+        try:
+            response = self.soap_client.doRefund(
+                version=PAYLINE_VERSION,
+                transactionID=payment_details.transaction["id"],
+                payment=payment_details.payment,
+            )
+            return RefundDetails(response)
 
         except pysimplesoap.client.SoapFault as err:
             current_app.logger.error("Payment API error: %s", err)
