@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html>
     <head>
         <title>Justificatif the paiement &mdash; {{event.title}}</title>
@@ -13,15 +13,15 @@
             <li class="email">{{payment.creditor.mail}}</li>
             </ul>
         </div>
-        
-        <div id="logo"><img src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
+
+        <div id="logo"><img alt="logo" src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
 
         <p>
             Annecy, le {{format_date(payment.finalization_time)}}
         </p>
 
         <h1 class="title"> Justificatif de paiement nº&nbsp;{{payment.processor_order_ref}} </h1>
-            
+
         <h3>
             Collective «{{event.title}}» {{format_date_range(event.start, event.end)}}
         </h3>

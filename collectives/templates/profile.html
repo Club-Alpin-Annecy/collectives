@@ -1,3 +1,4 @@
+<!--htmlhint doctype-first:false -->
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
@@ -32,16 +33,16 @@
 
     {% if user == current_user %}
         <a class="button button-secondary" href="{{url_for('profile.update_user')}}">
-             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt="create icon"/>
             Modifier mes paramètres
         </a>
         <a class="button button-secondary" href="{{url_for('root.legal')}}">
-             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt=""/>
+             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt="document icon"/>
             Mentions légales
         </a>
         {% if current_user.has_any_role() %}
             <a class="button button-secondary" href="{{url_for('profile.confidentiality_agreement')}}">
-                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt="ribbon icon"/>
                 Charte RGPD
             </a>
         {% endif %}
@@ -55,33 +56,33 @@
 
     <table id="profile_info">
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt="ribbon icon"/> Licence :</td>
             <td>Catégorie {{user.license_category}}</td>
         </tr>
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt="clock icon"/> Expiration :</td>
             <td>{{format_date(user.license_expiry_date)}}</td>
         </tr>
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/>Genre :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt="people icon"/>Genre :</td>
             <td> {{user.get_gender_name()}}</td>
         </tr>
         {% if user == current_user %}
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt=""/> Date de naissance :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt="calendar icon"/> Date de naissance :</td>
             <td>{{format_date(user.date_of_birth)}}</td>
         </tr>
         {% endif %}
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt=""/> Email :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt="email icon"/> Email :</td>
             <td><a href="mailto:{{user.mail}}">{{user.mail}}</a></td>
         </tr>
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt=""/> Téléphone :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt="phone icon"/> Téléphone :</td>
             <td> {{user.phone | default("Non renseigné", true)}}</td>
         </tr>
         <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}"/> Contact d'urgence :</td>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}" alt="warning icon"/> Contact d'urgence :</td>
             <td>{{user.emergency_contact_name}} au {{user.emergency_contact_phone}}</td>
         </tr>
     </table>
@@ -89,7 +90,7 @@
     {% if user == current_user and not user.is_test %}
     <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
+            <img class="icon" alt="notice icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
             Ces données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au Club Alpin Français d'Annecy. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
             Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/mesinfos/">https://extranet-clubalpin.com/mesinfos/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
             Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.

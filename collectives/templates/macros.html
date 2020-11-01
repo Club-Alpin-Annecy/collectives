@@ -1,6 +1,7 @@
+<!--htmlhint doctype-first:false -->
 {% macro usericon(user, leader_info=None, user_info=None) -%}
 <div class="usericon">
-      <img class="avatar" src="{% if user.avatar
+      <img class="avatar" alt="user avatar" src="{% if user.avatar
                       %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
                 else
                       %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%

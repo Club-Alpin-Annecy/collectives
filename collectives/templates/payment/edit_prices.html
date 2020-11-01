@@ -1,4 +1,5 @@
 
+<!--htmlhint doctype-first:false -->
 {% extends 'base.html' %}
 
 {% block additionalhead %}
@@ -120,7 +121,7 @@
     <p class="help">
       Les conditions suivantes sont optionnelles; si elles sont laissées vide, le tarif s'appliquera sans restrictions.
       Pour chaque "Objet de paiement", l'adhérent se verra proposer uniquement le tarif le plus bas auquel il a accès.
-    </span>
+    </p>
 
     <div class="field">{{ new_price_form.license_types.label }}<span class="help">Séparés par des espaces. Par exemple «J1 J2 E1 E2» pour un tarif «Jeunes».</span></div>
     {{ new_price_form.license_types}}
