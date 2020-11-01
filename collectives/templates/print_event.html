@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>{{event.title}} -- Fiche collective</title>
@@ -14,7 +15,7 @@
             </ul>
         </div>
         
-        <div id="logo"><img src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
+        <div id="logo"><img alt="logo" src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
 
         <div id="title">
             <h2>Collective de {{','.join(activity_names)}} &mdash; </h2>

@@ -1,3 +1,4 @@
+<!--htmlhint doctype-first:false -->
 {% macro details_row(title, value) -%}
   <tr>
       <td class="key"><strong>{{title}}</strong></td>
@@ -22,7 +23,7 @@
   {% if payment.is_offline() and payment.registration %}
   <p>
     <a class="button button-secondary" href="{{ url_for('payment.report_offline', registration_id = payment.registration_id, payment_id=payment.id)}}">
-        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
+        <img class="icon" alt="create icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
         Editer le paiement hors-ligne
     </a>
   </p>

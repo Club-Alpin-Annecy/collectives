@@ -4,9 +4,12 @@
         <title>Collectives {% block title %}{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% assets "scss_all" %}
-            <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
+            <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}">
         {% endassets %}
         <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+        {% block additionalhead %}{% endblock %}
+    </head>
+    <body>
         <script type="text/javascript">
             function getServerLocalTime(){
                 return '{{server_local_time()}}';
@@ -21,9 +24,6 @@
             }
         </script>
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-        {% block additionalhead %}{% endblock %}
-    </head>
-    <body>
         {%include 'partials/main-navigation.html' %}
         <div id="playground">
 
@@ -34,11 +34,10 @@
         {% if messages %}
             <div id="messages">
                 <div class="innermessages">
-                    <img
-                                    src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                                    class="close"
-                                    onclick= "this.parentNode.parentNode.style.display='none'"
-                                />
+                    <img alt="close icon"
+                         src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                         class="close"
+                         onclick= "this.parentNode.parentNode.style.display='none'" />
                     <h3>Message</h3>
                 {% for category, message in messages %}
                 <p class="{{category}} message">{{ message }}</p>

@@ -1,4 +1,4 @@
-
+<!--htmlhint doctype-first:false -->
 {% extends 'base.html' %}
 
 {% block additionalhead %}
@@ -23,11 +23,11 @@
   <h5>{{count['total']}} utilisateurs dont {{count['enable']}} activés</h5>
   <div class="action">
       <a href="{{url_for('administration.manage_user')}}" class="button button-secondary">
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/>
+          <img class="icon" alt="add icon" src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/>
           Ajouter un utilisateur
       </a>
       <a onclick="return exportXLXS(this)" class="button button-secondary" href="{{ url_for('administration.export_role', raw_filters='') }}">
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
+          <img class="icon" alt="copy icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
           Exporter les utilisateurs du rôle
       </a>
   </div>

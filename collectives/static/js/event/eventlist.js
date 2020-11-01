@@ -125,7 +125,7 @@ function eventRowFormatter(row){
         html += `</div>`;
 
         html += `<div class="section section-photo">
-                    <img src="${data.photo_uri}" class="photo"/>
+                    <img alt="Event picture" src="${data.photo_uri}" class="photo"/>
                  </div>`;
 
         var status_string = ''
@@ -137,7 +137,7 @@ function eventRowFormatter(row){
                      ${escapeHTML(data.title)}
                      </h4>
                      <div class="date">
-                         <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
+                         <img alt="calendar icon" src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
                          ${localInterval(data.start, data.end)}
                      </div>
 
@@ -178,7 +178,7 @@ function slots(nb, css){
         css = '';
     if( ! Number.isInteger(nb) || nb < 0)
         return '';
-    var slot = `<img src="/static/img/icon/ionicon/md-contact.svg" class="icon ${css}"/>`;
+    var slot = `<img alt="contact icon" src="/static/img/icon/ionicon/md-contact.svg" class="icon ${css}"/>`;
     return (new Array(nb)).fill( slot ).join('');
 }
 function displayLeader(user){

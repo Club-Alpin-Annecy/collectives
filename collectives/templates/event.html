@@ -1,4 +1,4 @@
-
+<!--htmlhint doctype-first:false -->
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
@@ -30,12 +30,12 @@
         {{event.title}}
       </h3>
 
-      <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+      <h5 class="date"> <img alt="calendar icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
         {{ format_datetime_range(event.start, event.end) | capitalize}}
       </h5>
 
 
-    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
+    <img class="photo" alt="event picture" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
     <div id="encadrement">
       <h5>Encadrement</h5>
@@ -70,7 +70,7 @@
         {% elif current_time < event.start %}
         <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+          <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" alt="exit icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
         </form><br/><br/>
         {% endif %}
       {% endif %}
@@ -114,39 +114,39 @@
 
       <div>
           <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
-              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
+              <img class="icon" alt="create icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
               Editer
           </a>
 
           <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
-              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
+              <img class="icon" alt="copy icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
               Dupliquer
           </a>
 
           <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
+            <img class="icon" alt="exit icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
 
           {% if conf["PAYMENTS_ENABLED"] %}
             <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
-              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+              <img class="icon" alt="trash icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
             </a>
           {% endif %}
 
           {% if event.requires_payment() %}
             <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+              <img class="icon" alt="outline cash icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Liste des paiements
             </a>
           {% endif %}
 
           {% if event.has_delete_rights(current_user) %}
-            <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
+            <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression&nbsp;?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button button-danger">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
+                <img class="icon" alt="trash icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
                 Supprimer
               </button>
 
@@ -191,7 +191,7 @@
           <p>
               Vous ne pouvez pas voir les coordonnées des participants car vous n'avez pas signé la
               <a href="{{url_for('profile.confidentiality_agreement')}}">
-                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt="ribbon icon"/>
                   Charte RGPD
               </a>
           </p>

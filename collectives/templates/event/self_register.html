@@ -1,3 +1,4 @@
+<!--htmlhint doctype-first:false -->
 {% if event.requires_payment() %}
     <p>
         Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
@@ -23,7 +24,7 @@
 {% else %}
     <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
+        <img class="avatar" alt="add icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
         <span class="name">S'inscrire</span>
     </form>
 {% endif %}

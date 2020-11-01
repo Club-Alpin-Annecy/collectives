@@ -1,4 +1,5 @@
 
+<!--htmlhint doctype-first:false -->
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
@@ -41,9 +42,10 @@
 
 
 <div id="cover">
-    <div><img src="{{ url_for('static', filename='caf/esprit club alpin.png') }}" class="motto"/>
+    <div><img alt="FFCAM banner" src="{{ url_for('static', filename='caf/esprit club alpin.png') }}" class="motto"/>
         <br/>
         <img
+            alt="arrow icon"
             src="{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}"
             class="arrow"
             onclick="gotoEvents()"
