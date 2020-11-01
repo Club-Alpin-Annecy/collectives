@@ -243,8 +243,6 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         paid_self_register_form=paid_self_register_form,
-        normal_level=int(RegistrationLevels.Normal),
-        coleader_level=int(RegistrationLevels.CoLeader),
     )
 
 
@@ -687,7 +685,7 @@ def reject_registration(reg_id):
     return redirect(url_for("event.view_event", event_id=registration.event_id))
 
 
-@blueprint.route("/registrations/<reg_id>/level/<reg_level>", methods=["POST"])
+@blueprint.route("/registrations/<reg_id>/level/<int:reg_level>", methods=["POST"])
 @valid_user()
 def change_registration_level(reg_id, reg_level):
     """Route for a leader to change the registration level of an attendee
@@ -705,7 +703,6 @@ def change_registration_level(reg_id, reg_level):
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
-    reg_level = int(reg_level)
     try:
         level = RegistrationLevels(reg_level)
     except ValueError:

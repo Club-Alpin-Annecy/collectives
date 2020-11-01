@@ -56,7 +56,7 @@
 
             {% if event.has_edit_rights(current_user) %}
             <div class="popover">
-              <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=normal_level)}}" method="post" onclick="this.submit();">
+              <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" method="post" onclick="this.submit();">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 Enlever des co-encadrants
               </form>
@@ -108,7 +108,7 @@
                 Refuser
               </form>
               {% if event.can_be_coleader(registration.user) %}
-                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=coleader_level)}}" method="post" onclick="this.submit();">
+                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                   Co-encadrant en formation
                 </form>
