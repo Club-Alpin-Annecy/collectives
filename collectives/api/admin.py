@@ -3,13 +3,13 @@
 """
 import json
 
-from flask import url_for, request, abort
+from flask import url_for, request 
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from ..models import db, User, RoleIds, Role
-from ..utils.access import confidentiality_agreement, admin_required, valid_user
+from ..utils.access import confidentiality_agreement, admin_required, valid_user, activity_supervisor_required
 from .common import blueprint, marshmallow, avatar_url
 from .event import ActivityTypeSchema
 
@@ -174,7 +174,7 @@ class TraineeRoleSchema(marshmallow.Schema):
     """
 
     delete_uri = fields.Function(
-        lambda role: url_for("administration.remove_trainee", role_id=role.id)
+        lambda role: url_for("activity_supervision.remove_trainee", role_id=role.id)
     )
     """ URI to delete this user (WIP)
 
@@ -207,6 +207,7 @@ class TraineeRoleSchema(marshmallow.Schema):
 
 @blueprint.route("/trainees/")
 @valid_user(True)
+@activity_supervisor_required(True)
 @confidentiality_agreement(True)
 def trainees():
     """API endpoint to list current trainees
@@ -222,8 +223,6 @@ def trainees():
     """
 
     supervised_activities = current_user.get_supervised_activities()
-    if len(supervised_activities) == 0:
-        abort(403)
 
     query = db.session.query(Role)
     query = query.filter_by(role_id=RoleIds.Trainee)

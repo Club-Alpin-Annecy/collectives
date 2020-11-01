@@ -180,6 +180,51 @@ def admin_required(api=False):
     return innerF
 
 
+def activity_supervisor_required(api=False):
+    """Decorator which check if user supervises activities.
+
+    I.e. user has ActivitySupervisor, Administrator, or President roles
+
+    :param f: The function of the endpoint that will be protected
+    :type f: function
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
+
+    def innerF(f):
+        """Function that will wraps `f`.
+
+        :param f: function to protect.
+        :type f: function
+        :return: the protected (decorated) `f` function
+        :rtype: function
+        """
+
+        def tester(*args, **kwargs):
+            """Check if user supervises activities.
+
+            It will also return everything required to display an error message if
+            check is failed.
+
+            :param *args: Argument for `f` functions. Not used here.
+            :type *args: list
+            :param **kwargs: Argument for `f` functions. Not used here.
+            :type **kwargs: dictionnary
+            :return: True if user supervises activities, plus error message, plus URL fallback
+            :rtype: boolean, String, String
+            """
+            message = "Réservé aux responsables d'activité"
+            return (
+                flask_login.current_user.get_supervised_activities(),
+                message,
+                url_for("event.index"),
+            )
+
+        return access_requires(f, tester, api)
+
+    return innerF
+
+
 def technician_required(api=False):
     """Decorator which check if user is a technician.
 

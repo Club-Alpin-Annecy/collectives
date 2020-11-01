@@ -8,7 +8,7 @@ from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms import EventForm, photos
-from ..forms import RegistrationForm, CSVForm
+from ..forms import RegistrationForm
 
 from ..forms.event import PaidSelfRegistrationForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels, EventStatus
@@ -21,7 +21,6 @@ from ..email_templates import send_reject_subscription_notification
 from ..email_templates import send_cancelled_event_notification
 
 from ..utils.time import current_time
-from ..utils.csv import process_stream
 from ..utils.url import slugify
 from ..utils.access import confidentiality_agreement, valid_user
 
@@ -780,41 +779,3 @@ def delete_event(event_id):
     flash("Événement supprimé", "success")
     return redirect(url_for("event.index"))
 
-
-@blueprint.route("/import", methods=["GET", "POST"])
-@valid_user()
-@confidentiality_agreement()
-def csv_import():
-    """Route to create several events from a csv file."""
-    activities = current_user.get_supervised_activities()
-    if activities == []:
-        flash("Fonction non autorisée.", "error")
-        return redirect(url_for("event.index"))
-
-    choices = [(str(a.id), a.name) for a in activities]
-    form = CSVForm(choices)
-
-    if not form.is_submitted():
-        form.description.data = current_app.config["DESCRIPTION_TEMPLATE"]
-
-    failed = []
-    if form.validate_on_submit():
-        activity_type = ActivityType.query.get(form.type.data)
-
-        file = form.csv_file.data
-        processed, failed = process_stream(
-            file.stream, activity_type, form.description.data
-        )
-
-        flash(
-            f"Importation de {processed-len(failed)} éléments sur {processed}",
-            "message",
-        )
-
-    return render_template(
-        "import_csv.html",
-        conf=current_app.config,
-        form=form,
-        failed=failed,
-        title="Création d'event par CSV",
-    )

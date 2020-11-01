@@ -1,17 +1,16 @@
 """Add Trainee role
 
 Revision ID: b651e4fc5685
-Revises: b8e4572a4af9
+Revises: 5a9ba75de4d1
 Create Date: 2020-09-20 19:03:50.504567
 
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
 revision = 'b651e4fc5685'
-down_revision = 'b8e4572a4af9'
+down_revision = '5a9ba75de4d1'
 branch_labels = None
 depends_on = None
 

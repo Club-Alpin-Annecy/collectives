@@ -30,13 +30,13 @@
                             {% endif %}
                             {% if current_user.get_supervised_activities() | length %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('event.csv_import')}}" class="menu-dropdown-item-link">
+                                <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
                                         class="legacy-icon" />Import CSV
                                 </a>
                             </li>
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('administration.manage_trainees')}}" class="menu-dropdown-item-link">
+                                <a href="{{ url_for('activity_supervision.manage_trainees')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"
                                         class="legacy-icon" />Initiateurs en formation 
                                 </a>

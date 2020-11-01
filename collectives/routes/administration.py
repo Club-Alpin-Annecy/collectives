@@ -23,6 +23,7 @@ This blueprint contains all routes for administration. It is reserved to adminis
 
 @blueprint.before_request
 @valid_user()
+@admin_required()
 @confidentiality_agreement()
 def before_request():
     """Protect all of the admin endpoints.
@@ -37,7 +38,6 @@ def before_request():
 
 
 @blueprint.route("/", methods=["GET", "POST"])
-@admin_required()
 def administration():
     """Route for administration home page."""
     # Create the filter list
@@ -62,7 +62,6 @@ def administration():
 
 @blueprint.route("/users/add", methods=["GET", "POST"])
 @blueprint.route("/users/<user_id>", methods=["GET", "POST"])
-@admin_required()
 def manage_user(user_id=None):
     """Route for user management page.
 
@@ -113,7 +112,6 @@ def manage_user(user_id=None):
 
 
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
-@admin_required()
 def delete_user(user_id):
     """Route to delete an user.
 
@@ -124,7 +122,6 @@ def delete_user(user_id):
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
-@admin_required()
 def add_user_role(user_id):
     """Route for user roles management page."""
     user = User.query.filter_by(id=user_id).first()
@@ -206,7 +203,6 @@ def add_user_role(user_id):
 
 
 @blueprint.route("/roles/<user_id>/delete", methods=["POST"])
-@admin_required()
 def remove_user_role(user_id):
     """Route to delete a user role.
 
@@ -238,7 +234,6 @@ def remove_user_role(user_id):
 
 
 @blueprint.route("/roles/export/", methods=["GET"])
-@admin_required()
 def export_role_no_filter():
     """Default role export route.
 
@@ -252,7 +247,6 @@ def export_role_no_filter():
 
 
 @blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
-@admin_required()
 def export_role(raw_filters=""):
     """Create an Excell document with the contact information of roled users.
 
@@ -312,81 +306,3 @@ def export_role(raw_filters=""):
         as_attachment=True,
     )
 
-
-@blueprint.route("/users/add_trainee", methods=["POST"])
-def add_trainee():
-    """Route for an activity supervisor to add a "Trainee" role" """
-
-    add_trainee_form = AddTraineeForm()
-    if add_trainee_form.validate_on_submit():
-        role = Role(role_id=RoleIds.Trainee)
-        add_trainee_form.populate_obj(role)
-
-        supervised_activity_ids = [
-            a.id for a in current_user.get_supervised_activities()
-        ]
-        if role.activity_id not in supervised_activity_ids:
-            flash("Activité invalide", "error")
-            return redirect(url_for("administration.manage_trainees"))
-
-        user = User.query.get(role.user_id)
-        if user is None:
-            flash("Utilisateur invalide", "error")
-            return redirect(url_for("administration.manage_trainees"))
-
-        if user.has_role_for_activity(
-            [RoleIds.Trainee, RoleIds.ActivitySupervisor, RoleIds.EventLeader],
-            role.activity_id,
-        ):
-            flash(
-                "L'utilisateur est déjà initiateur ou initiateur en formation pour cette activité",
-                "error",
-            )
-            return redirect(url_for("administration.manage_trainees"))
-
-        db.session.add(role)
-        db.session.commit()
-        add_trainee_form = AddTraineeForm(formdata=None)
-
-    return render_template(
-        "trainees.html",
-        conf=current_app.config,
-        add_trainee_form=add_trainee_form,
-        title="Initiateurs en formation",
-    )
-
-
-@blueprint.route("/users/remove_trainee/<role_id>", methods=["POST"])
-def remove_trainee(role_id):
-    """Route for an activity supervisor to remove a "Trainee" role
-
-    :param role_id: Id of role to delete
-    :type role_id: int
-    """
-
-    role = Role.query.get(role_id)
-    if role is None or role.role_id != RoleIds.Trainee:
-        flash("Role invalide", "error")
-        return redirect(url_for("administration.manage_trainees"))
-
-    if role.activity_type not in current_user.get_supervised_activities():
-        flash("Non autorisé", "error")
-        return redirect(url_for("administration.manage_trainees"))
-
-    db.session.delete(role)
-    db.session.commit()
-
-    return redirect(url_for("administration.manage_trainees"))
-
-
-@blueprint.route("/users/trainees", methods=["GET"])
-def manage_trainees():
-    """Route for activity supervisors to access the Trainees management form"""
-
-    add_trainee_form = AddTraineeForm()
-    return render_template(
-        "trainees.html",
-        conf=current_app.config,
-        add_trainee_form=add_trainee_form,
-        title="Initiateurs en formation",
-    )
