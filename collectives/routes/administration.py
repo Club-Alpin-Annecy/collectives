@@ -121,6 +121,18 @@ def delete_user(user_id):
     return redirect(url_for("administration.administration"))
 
 
+class RoleValidationException(Exception):
+    """Exception class of new user role validation"""
+
+    def __init__(self, message):
+        """Exception constructor
+
+        :param message: Message to be displayed to the user
+        :type message: string
+        """
+        self.message = message
+
+
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 def add_user_role(user_id):
     """Route for user roles management page."""
@@ -143,54 +155,43 @@ def add_user_role(user_id):
     form.populate_obj(role)
 
     role_id = role.role_id
-    is_valid = True
 
-    # Check that the role does not already exist
-    if role_id.relates_to_activity():
-        role.activity_type = ActivityType.query.get(form.activity_type_id.data)
-        if role.activity_type is None:
-            flash("Ce rôle doit être associé à une activité")
-            is_valid = False
-        else:
+    try:
+        # Check that the role does not already exist
+        if role_id.relates_to_activity():
+            role.activity_type = ActivityType.query.get(form.activity_type_id.data)
+            if role.activity_type is None:
+                raise RoleValidationException(
+                    "Ce rôle doit être associé à une activité"
+                )
             role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
-    else:
-        role.activity_type = None
-        role_exists = user.has_role([role_id])
+        else:
+            role.activity_type = None
+            role_exists = user.has_role([role_id])
 
-    if role_exists:
-        flash("Role déjà associé à l'utilisateur", "error")
-        is_valid = False
+        if role_exists:
+            raise RoleValidationException("Role déjà associé à l'utilisateur")
 
-    if is_valid:
         if role_id == RoleIds.Trainee:
             # Cannot add a "trainee" role to a leader/supervisor
-            if user.has_role_for_activity(
-                [RoleIds.EventLeader, RoleIds.ActivitySupervisor], role.activity_id
-            ):
-                flash(
-                    "Impossible d'ajouter le rôle 'Initiateur en formation' à un initiateur",
-                    "error",
+            if user.has_role_for_activity([RoleIds.EventLeader], role.activity_id):
+                raise RoleValidationException(
+                    "Impossible d'ajouter le rôle 'Initiateur en formation' à un initiateur"
                 )
-                is_valid = False
-        elif role_id in [RoleIds.ActivitySupervisor, RoleIds.EventLeader]:
+        elif role_id == RoleIds.EventLeader:
             # Adding an EventLeader role removes the Trainee role
-            trainee_role = next(
-                (
-                    r
-                    for r in user.roles
-                    if r.role_id == RoleIds.Trainee
-                    and r.activity_id == role.activity_id
-                ),
-                None,
-            )
-            if trainee_role:
-                db.session.delete(trainee_role)
-                db.session.commit()
+            trainee_roles = [
+                r
+                for r in user.roles
+                if r.role_id == RoleIds.Trainee and r.activity_id == role.activity_id
+            ]
+            if trainee_roles:
+                db.session.delete(trainee_roles[0])
 
-    if is_valid:
         user.roles.append(role)
-        db.session.add(role)
         db.session.commit()
+    except RoleValidationException as err:
+        flash(err.message, "error")
 
     form = RoleForm()
     return render_template(
@@ -305,4 +306,3 @@ def export_role(raw_filters=""):
         attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
     )
-

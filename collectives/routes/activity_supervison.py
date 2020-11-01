@@ -56,7 +56,7 @@ def add_trainee():
             return redirect(url_for(".manage_trainees"))
 
         if user.has_role_for_activity(
-            [RoleIds.Trainee, RoleIds.ActivitySupervisor, RoleIds.EventLeader],
+            [RoleIds.Trainee, RoleIds.EventLeader],
             role.activity_id,
         ):
             flash(

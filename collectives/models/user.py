@@ -483,7 +483,7 @@ class User(db.Model, UserMixin):
         See :py:meth:`can_lead_activity`
 
         :param activities: Activities which will be tested.
-        :type activities: list(int)
+        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
         :return: True if user can lead all the activities.
         :rtype: boolean
         """
@@ -493,7 +493,7 @@ class User(db.Model, UserMixin):
         """Check if user has a role which allow him to co-lead any of the specified activities.
 
         :param activities: Activities which will be tested.
-        :type activities: list(int)
+        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
         :return: True if user is a trainee for at least one activity
         :rtype: boolean
         """
@@ -578,7 +578,7 @@ class User(db.Model, UserMixin):
     def get_supervised_activities(self):
         """Get activities the user supervises.
 
-        Admin supervises all.
+        Admin and President supervise all.
 
         :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
         """
