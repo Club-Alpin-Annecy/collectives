@@ -203,15 +203,15 @@ def add_user_role(user_id):
     )
 
 
-@blueprint.route("/roles/<user_id>/delete", methods=["POST"])
-def remove_user_role(user_id):
+@blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
+def remove_user_role(role_id):
     """Route to delete a user role.
 
     :return: redirection to role management page
     :rtype: string
     """
 
-    role = Role.query.filter_by(id=user_id).first()
+    role = Role.query.get(role_id)
     if role is None:
         flash("Role inexistant", "error")
         return redirect(url_for("administration.administration"))
