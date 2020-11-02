@@ -1,0 +1,9 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "indentation": 4,
+    "no-descending-specificity": null,
+    "at-rule-no-unknown": null,
+    "declaration-block-single-line-max-declarations": null
+  }
+}
