@@ -19,5 +19,6 @@ jobs:
       env:
         # Only check the last commit
         VALIDATE_ALL_CODEBASE: false
+        FILTER_REGEX_EXCLUDE: "bulma/.*|tail.datetime-harx-light.min.css"
         DEFAULT_BRANCH: master
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
