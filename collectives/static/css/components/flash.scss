@@ -1,21 +1,24 @@
 .flash {
     padding: $padding-default;
     margin: 0 0 $padding-horizontal-default;
+
     &.flash-success {
         background: lighten($color-success-light, 45%);
         color: $color-success-dark;
     }
+
     &.flash-info {
         background: lighten($color-blue-primary-dark, 60%);
         color: $color-blue-primary-dark;
     }
+
     &.flash-warning {
-        background:  lighten($color-warning-light, 40%);
+        background: lighten($color-warning-light, 40%);
         color: darken($color-warning-dark, 10%);
     }
-     &.flash-error {
+
+    &.flash-error {
         background: lighten($color-error-light, 45%);
         color: $color-error-dark;
     }
 }
-

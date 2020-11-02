@@ -1,5 +1,6 @@
 .menu-dropdown {
     position: relative;
+
     .menu-dropdown-trigger {
         cursor: pointer;
     }
@@ -10,10 +11,9 @@
         min-width: 18em;
         background: $color-white;
         box-shadow: $box-shadow-default;
-        display: flex;
         flex-direction: column;
-
         display: none;
+
         ul {
             list-style: none;
             margin: 0;
@@ -31,6 +31,7 @@
         display: flex;
         box-sizing: border-box;
         border-bottom: 1px solid $color-gray-bg-light;
+
         &:last-of-type {
             border-bottom: none;
         }
@@ -41,22 +42,21 @@
         padding: $padding-m;
         text-decoration: none;
         min-width: 100%;
+
         &.active {
             border-left: 3px $color-blue-primary-light solid;
         }
     }
 
-
     &.menu-dropdown-right {
         .menu-dropdown-container {
-            right: 0px;
+            right: 0;
         }
     }
 
-
     &.menu-dropdown-left {
         .menu-dropdown-container {
-            left: 0px;
+            left: 0;
         }
     }
 }

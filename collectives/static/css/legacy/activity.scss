@@ -1,195 +1,238 @@
-span.activity{
-  background: url("/static/caf/icon/Pictos-FFCAM_Mdlt2.png")  0 0 no-repeat;
-  background-size: 600px;
-  height: 60px;
-  width: 60px;
-  display: inline-block;
-  vertical-align: middle;
-  position: relative;
-  bottom: .1em;
+span.activity {
+    background: url("/static/caf/icon/Pictos-FFCAM_Mdlt2.png")  0 0 no-repeat;
+    background-size: 600px;
+    height: 60px;
+    width: 60px;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    bottom: 0.1em;
 }
 
-span.activity.s30px{
-  background-size: 300px;
-  height: 30px !important;
-  width: 30px !important;
-}
-span.activity.s20px{
-  background-size: 200px;
-  height: 20px !important;
-  width: 20px !important;
-}
-span.activity.s90px{
-  background-size: 900px;
-  height: 90px !important;
-  width: 90px !important;
+span.activity.s30px {
+    background-size: 300px;
+    height: 30px !important;
+    width: 30px !important;
 }
 
-.icon0_0{
+span.activity.s20px {
+    background-size: 200px;
+    height: 20px !important;
+    width: 20px !important;
+}
+
+span.activity.s90px {
+    background-size: 900px;
+    height: 90px !important;
+    width: 90px !important;
+}
+
+.icon0_0 {
     background-position: 0% 0%;
 }
 
-.icon1_0, span.activity.sac{
+.icon1_0,
+span.activity.sac {
     background-position: 11.11% 0%;
 }
 
-.icon2_0, span.activity.mountain{
+.icon2_0,
+span.activity.mountain {
     background-position: 22.22% 0%;
 }
 
-.icon3_0, span.activity.formation{
+.icon3_0,
+span.activity.formation {
     background-position: 33.33% 0%;
 }
 
-.icon4_0, span.activity.nivologie{
+.icon4_0,
+span.activity.nivologie {
     background-position: 44.44% 0%;
 }
 
-.icon5_0, span.activity.jeune{
+.icon5_0,
+span.activity.jeune {
     background-position: 55.55% 0%;
 }
 
-.icon6_0, span.activity.ski_rando{
+.icon6_0,
+span.activity.ski_rando {
     background-position: 66.66% 0%;
 }
 
-.icon7_0, span.activity.speleo{
+.icon7_0,
+span.activity.speleo {
     background-position: 77.77% 0%;
 }
 
-.icon8_0, span.activity.snow_rando{
+.icon8_0,
+span.activity.snow_rando {
     background-position: 88.88% 0%;
 }
 
-.icon9_0, span.activity.cyclisme{
+.icon9_0,
+span.activity.cyclisme {
     background-position: 100% 0%;
 }
 
-.icon0_1, span.activity.sourire{
+.icon0_1,
+span.activity.sourire {
     background-position: 0% 11.11%;
 }
 
-.icon1_1, span.activity.wingsuit{
+.icon1_1,
+span.activity.wingsuit {
     background-position: 11.11% 11.11%;
 }
 
-.icon2_1, span.activity.orientation{
+.icon2_1,
+span.activity.orientation {
     background-position: 22.22% 11.11%;
 }
 
-.icon3_1, span.activity.ski_alpin{
+.icon3_1,
+span.activity.ski_alpin {
     background-position: 33.33% 11.11%;
 }
 
-.icon4_1, span.activity.medical{
+.icon4_1,
+span.activity.medical {
     background-position: 44.44% 11.11%;
 }
 
-.icon5_1, span.activity.caf{
+.icon5_1,
+span.activity.caf {
     background-position: 55.55% 11.11%;
 }
 
-.icon6_1, span.activity.parapente{
+.icon6_1,
+span.activity.parapente {
     background-position: 66.66% 11.11%;
 }
 
-.icon7_1, span.activity.nature{
+.icon7_1,
+span.activity.nature {
     background-position: 77.77% 11.11%;
 }
 
-.icon8_1, span.activity.ski_fond, span.activity.ski_nordique{
+.icon8_1,
+span.activity.ski_fond,
+span.activity.ski_nordique {
     background-position: 88.88% 11.11%;
 }
 
-.icon9_1, span.activity.randonnee{
+.icon9_1,
+span.activity.randonnee {
     background-position: 100% 11.11%;
 }
 
-.icon0_2, span.activity.raquette{
+.icon0_2,
+span.activity.raquette {
     background-position: 0% 22.22%;
 }
 
-.icon1_2, span.activity.escalade{
+.icon1_2,
+span.activity.escalade {
     background-position: 11.11% 22.22%;
 }
 
-.icon2_2, span.activity.canyon{
+.icon2_2,
+span.activity.canyon {
     background-position: 22.22% 22.22%;
 }
 
-.icon3_2, span.activity.alpinisme{
+.icon3_2,
+span.activity.alpinisme {
     background-position: 33.33% 22.22%;
 }
 
-.icon4_2, span.activity.expedition{
+.icon4_2,
+span.activity.expedition {
     background-position: 44.44% 22.22%;
 }
 
-.icon5_2, span.activity.telemark{
+.icon5_2,
+span.activity.telemark {
     background-position: 55.55% 22.22%;
 }
 
-.icon6_2, span.activity.voyage{
+.icon6_2,
+span.activity.voyage {
     background-position: 66.66% 22.22%;
 }
 
-.icon7_2, span.activity.cascade_glace{
+.icon7_2,
+span.activity.cascade_glace {
     background-position: 77.77% 22.22%;
 }
 
-.icon8_2, span.activity.equipement{
+.icon8_2,
+span.activity.equipement {
     background-position: 88.88% 22.22%;
 }
 
-.icon9_2, span.activity.none{
+.icon9_2,
+span.activity.none {
     background-position: 100% 22.22%;
 }
 
-.icon0_3, span.activity.slackline{
+.icon0_3,
+span.activity.slackline {
     background-position: 0% 33.33%;
 }
 
-.icon1_3, span.activity.informatique{
+.icon1_3,
+span.activity.informatique {
     background-position: 11.11% 33.33%;
 }
 
-.icon2_3, span.activity.soiree{
+.icon2_3,
+span.activity.soiree {
     background-position: 22.22% 33.33%;
 }
 
-.icon3_3, span.activity.trail{
+.icon3_3,
+span.activity.trail {
     background-position: 33.33% 33.33%;
 }
 
-.icon4_3, span.activity.viaferrata{
+.icon4_3,
+span.activity.viaferrata {
     background-position: 44.44% 33.33%;
 }
 
-.icon5_3, span.activity.marche_nordique{
+.icon5_3,
+span.activity.marche_nordique {
     background-position: 55.55% 33.33%;
 }
 
-
-.icon9_9, span.activity.role11{
+.icon9_9,
+span.activity.role11 {
     background-position: 99.99% 99.99%;
 }
 
-.icon8_9, span.activity.role10{
+.icon8_9,
+span.activity.role10 {
     background-position: 88.88% 99.99%;
 }
 
-.icon7_9, span.activity.role2{
+.icon7_9,
+span.activity.role2 {
     background-position: 77.77% 99.99%;
 }
 
-.icon6_9, span.activity.role3{
+.icon6_9,
+span.activity.role3 {
     background-position: 66.66% 99.99%;
 }
 
-.icon5_9, span.activity.role1{
+.icon5_9,
+span.activity.role1 {
     background-position: 55.55% 99.99%;
 }
 
-.icon4_9, span.activity.role4{
+.icon4_9,
+span.activity.role4 {
     background-position: 44.44% 99.99%;
 }

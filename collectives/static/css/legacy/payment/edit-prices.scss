@@ -1,31 +1,31 @@
 #existing_prices {
     width: 100%;
-    margin:auto;
+    margin: auto;
 }
 
-#existing_prices input{
-    width:90%;
-    padding:0.5em;
+#existing_prices input {
+    width: 90%;
+    padding: 0.5em;
 }
 
-#existing_prices input[type=number]{
-    width:5em;
+#existing_prices input[type=number] {
+    width: 5em;
 }
 
-#existing_prices input[type=checkbox]{
-    width:auto;
-    display:inline;
+#existing_prices input[type=checkbox] {
+    width: auto;
+    display: inline;
 }
 
-#existing_prices label{
-    display:inline;
+#existing_prices label {
+    display: inline;
     font-weight: normal;
 }
 
 td.error-cell {
-    text-align:left;
+    text-align: left;
 }
 
-td.actions{
-   min-width:8em;
+td.actions {
+    min-width: 8em;
 }
