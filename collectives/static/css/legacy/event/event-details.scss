@@ -7,6 +7,7 @@
 #eventlist #filters input.button {
     display: none;
 }
+
 #eventlist #filters input.button + label {
     height: 40px;
     border: 2px solid rgb(29, 105, 137);
@@ -18,6 +19,7 @@
     color: grey;
     cursor: pointer;
 }
+
 #eventlist #filters input.button:checked + label {
     color: white;
     background-color: rgb(29, 105, 137);
@@ -35,9 +37,11 @@
     white-space: normal;
     align-items: center;
 }
+
 #eventlist #eventstable .row:hover {
     text-decoration: none;
 }
+
 #eventlist #eventstable .row .section {
     margin: 0 20px;
 }
@@ -52,6 +56,7 @@
     height: 130px;
     width: 200px;
 }
+
 #eventlist #eventstable h4 {
     font-size: 160%;
     margin: 0;
@@ -60,15 +65,18 @@
 #eventlist #eventstable .tabulator-table {
     width: 100%;
 }
+
 #eventlist #eventstable .row div div {
     font-size: 120%;
 }
+
 #eventlist #eventstable .activities {
     height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
+
 #eventlist #eventstable .activity {
     margin: 1px;
 }
@@ -91,18 +99,22 @@ span.event-status {
     font-size: 20px;
     margin: 0.5em 20px;
 }
+
 #eventdetail .slots {
     text-align: left;
 }
+
 #eventdetail .photo {
     width: 50%;
     margin: 2em auto;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     display: block;
 }
+
 #eventdetail .type {
     float: right;
 }
+
 #eventdetail #description {
     text-align: justify;
     max-width: 1000px;
@@ -142,6 +154,7 @@ span.event-status {
     border-radius: 5px;
     z-index: 500;
 }
+
 #eventdetail .useractionmenu:hover form {
     display: inline-block;
 }
@@ -159,7 +172,7 @@ span.event-status {
 }
 
 #eventdetail .administration {
-    background-color: #cccccc;
+    background-color: #ccc;
     margin-top: 5em;
     padding: 20px 10px;
 }
@@ -183,6 +196,7 @@ span.event-status {
 #description a {
     text-decoration: underline;
 }
+
 #description a:hover {
     text-decoration: none;
 }
@@ -209,6 +223,7 @@ span.event-status {
     position: relative;
     color: rgb(29, 105, 137);
 }
+
 .select input[type="checkbox"] {
     height: 100%;
     width: 100%;
@@ -218,9 +233,11 @@ span.event-status {
     left: 0;
     z-index: $z-index-m;
 }
+
 .select input[type="checkbox"]:checked + .message {
     display: block;
 }
+
 .select input[type="radio"] {
     display: none;
 }
@@ -246,10 +263,12 @@ span.event-status {
     z-index: $z-index-m;
     position: relative;
 }
+
 .select input[type="checkbox"]:checked ~ label {
     display: block;
     border-top: none;
 }
+
 .select input[type="radio"]:checked + label {
     display: block;
     background-color: #e0e0e0;
@@ -267,13 +286,13 @@ span.event-status {
 }
 
 ul.radio_fields {
-    margin-top:0.25em;
+    margin-top: 0.25em;
 }
 
 ul.radio_fields li {
-    list-style:none;
+    list-style: none;
 }
 
 ul.radio_fields li label {
-  font-weight:normal;
+    font-weight: normal;
 }

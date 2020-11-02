@@ -1,4 +1,7 @@
-.button, a.button, input[type=button].button, input[type=submit].button{
+.button,
+a.button,
+input[type=button].button,
+input[type=submit].button {
     display: inline-block;
     padding: $padding-buttons-default;
     background: $color-white;
@@ -7,7 +10,7 @@
     font-weight: $font-weight-medium;
     cursor: pointer;
     outline: none;
-    transition: all .15s ease-in-out;
+    transition: all 0.15s ease-in-out;
     box-sizing: border-box;
     line-height: 1.15;
 
@@ -19,14 +22,15 @@
         color: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
         background: $color-white;
+
         &:hover {
             color: $color-blue-primary-dark;
             background: $color-white;
             border: 1px solid $color-blue-primary-dark;
         }
+
         &[disabled] {
             cursor: not-allowed;
-
         }
     }
 
@@ -34,11 +38,13 @@
         background: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
         color: $color-white;
+
         &:hover {
             color: $color-white;
             background: $color-blue-primary-dark;
             border: 1px solid $color-blue-primary-dark;
         }
+
         &[disabled] {
             cursor: not-allowed;
             background: lighten($color-blue-primary-dark, 45%);
@@ -50,6 +56,7 @@
         background: $color-white;
         border: 1px solid $color-error-dark;
         color: $color-error-dark;
+
         &:hover {
             background: $color-error-light;
             color: $color-white;
@@ -62,4 +69,3 @@
         font-size: $font-size-xs;
     }
 }
-

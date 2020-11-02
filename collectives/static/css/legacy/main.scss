@@ -1,298 +1,315 @@
-.panel{
-	max-width: 1100px;
-	margin: auto;
-	min-height: 100vh;
-	padding: 60px 10px 20px;
+.panel {
+    max-width: 1100px;
+    margin: auto;
+    min-height: 100vh;
+    padding: 60px 10px 20px;
     background-color: white;
 }
 
-.panel h3{
-	margin: 0 0 1em;
-	text-align: left;
-	text-transform: uppercase;
-	font-size: 3em;
-	font-weight: bolder;
+.panel h3 {
+    margin: 0 0 1em;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 3em;
+    font-weight: bolder;
 }
 
-.panel h4{
-  text-align: left;
-  font-size: 1.5em;
-  margin:auto;
-  margin-top: 2em;
-  color:  rgb(235,105,28);
+.panel h4 {
+    text-align: left;
+    font-size: 1.5em;
+    margin: auto;
+    margin-top: 2em;
+    color: rgb(235, 105, 28);
 }
 
-.contact-link{
-	text-align: justify;
-}
-.contact-link a{
-	text-decoration: underline;
-}
-.contact-link a:hover{
-	text-decoration: none;
+.contact-link {
+    text-align: justify;
 }
 
+.contact-link a {
+    text-decoration: underline;
+}
+
+.contact-link a:hover {
+    text-decoration: none;
+}
 
 /* Flash panel for messages */
-#messages{
-	height: 100vh;
-	width: 100vw;
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	z-index: 3000;
-}
-#messages .innermessages{
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translateX(-50%) translateY(-50%);
-	background-color: white;
-	border-radius: 20px;
-	padding: 50px 30px;
-	min-width: 60vw;
-	max-width: 600px;
-	z-index: 3000;
-}
-#messages .veil{
-	background-color: rgba(0, 0, 10, 0.5);
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100vh;
-	width: 100vw;
-	z-index: 2500;
-}
-#messages h3{
-	font-size: 30px;
-	font-weight: bold;
-	margin-top: 0;
-}
-#messages .close{
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	cursor: pointer;
-	height: 30px;
+#messages {
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
 }
 
-#messages .message::before{
-	height: 2em;
-	width: 2em;
-	margin-right: 7px;
-	display: inline-block;
-	vertical-align: middle;
-}
-#messages .error::before{
-	content: url("/static/img/icon/ionicon/md-close-circle.svg");
-}
-#messages .warning::before{
-	content: url("/static/img/icon/ionicon/md-alert.svg");
-}
-#messages .success::before{
-	content: url("/static/img/icon/ionicon/md-checkmark-circle.svg");
+#messages .innermessages {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: white;
+    border-radius: 20px;
+    padding: 50px 30px;
+    min-width: 60vw;
+    max-width: 600px;
+    z-index: 3000;
 }
 
+#messages .veil {
+    background-color: rgba(0, 0, 10, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: 2500;
+}
 
+#messages h3 {
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 0;
+}
+
+#messages .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    height: 30px;
+}
+
+#messages .message::before {
+    height: 2em;
+    width: 2em;
+    margin-right: 7px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#messages .error::before {
+    content: url("/static/img/icon/ionicon/md-close-circle.svg");
+}
+
+#messages .warning::before {
+    content: url("/static/img/icon/ionicon/md-alert.svg");
+}
+
+#messages .success::before {
+    content: url("/static/img/icon/ionicon/md-checkmark-circle.svg");
+}
 
 /* Generic css classes across the site */
-.user{
-	float: left;
-	width: 80px;
-	text-align: center;
-	padding: 5px;
-}
-.user:hover{
-	background-color: rgba(0,0,0, .1);
-}
-.user .avatar{
-	margin:auto;
-	height: 60px;
-	width: 60px;
-	background-size: cover;
-	border-radius: 5px;
-	background-color: white;
+.user {
+    float: left;
+    width: 80px;
+    text-align: center;
+    padding: 5px;
 }
 
-.avatar{
-	border-radius: 5px;
-	background-color: white;
-	height: 30px;
-	width: 30px;
-}
-.avatar.big{
-	height: 200px;
-	width: 200px;
+.user:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* User icon display*/
+.avatar {
+    border-radius: 5px;
+    background-color: white;
+    height: 30px;
+    width: 30px;
+}
+
+.avatar.big {
+    height: 200px;
+    width: 200px;
+}
+
+.user .avatar {
+    margin: auto;
+    height: 60px;
+    width: 60px;
+    background-size: cover;
+    border-radius: 5px;
+    background-color: white;
+}
+
+/* User icon display */
 .usericon {
-	position: relative;
-	min-width: 150px;
-	height: 60px;
-	display: inline-block;
-	margin : 10px 20px;
-	padding-right: 15px;
-
-	background: #F5F5F5;
-	border: 2px solid #006880;
-	border-left: none;
-	box-sizing: border-box;
-	border-radius: 30px;
-
-	font-size: 20px;
-}
-.usericon img.avatar{
-	width: 60px;
-	height: 60px;
-	border-radius: 30px;
-	position: relative;
-	top: -2px;
-	left: -2px;
-	background-color: #CDCDCD;
-	vertical-align: middle;
+    position: relative;
+    min-width: 150px;
+    height: 60px;
+    display: inline-block;
+    margin: 10px 20px;
+    padding-right: 15px;
+    background: #f5f5f5;
+    border: 2px solid #006880;
+    border-left: none;
+    box-sizing: border-box;
+    border-radius: 30px;
+    font-size: 20px;
 }
 
-.usericon .name a{
-	color: #121F22 !important;
+.usericon img.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    position: relative;
+    top: -2px;
+    left: -2px;
+    background-color: #cdcdcd;
+    vertical-align: middle;
 }
 
-.usericon span.license-tag{
-	border-radius: 5px;
-	padding: 2px;
-}
-.usericon span.youth{
-	background-color:orange;
-}
-.usericon span.minor{
-	background-color:orangered;
+.usericon .name a {
+    color: #121f22 !important;
 }
 
-.tag{
-	border-radius: 5px;
-	display: inline-block;
-	padding: 3px 5px;
+.usericon span.license-tag {
+    border-radius: 5px;
+    padding: 2px;
 }
 
-.tag.red{
-	color: white;
-	background-color: red;
+.usericon span.youth {
+    background-color: orange;
 }
 
-img.icon{
-	height: 1em;
+.usericon span.minor {
+    background-color: orangered;
+}
+
+.tag {
+    border-radius: 5px;
+    display: inline-block;
+    padding: 3px 5px;
+}
+
+.tag.red {
+    color: white;
+    background-color: red;
+}
+
+img.icon {
+    height: 1em;
 }
 
 /* UTILS */
+
 /* class used to cancel a float */
-.breaker{
-	clear: both;
-}
-.float_left{
-	float: left;
-}
-.float_right{
-	float: right;
+.breaker {
+    clear: both;
 }
 
-form p{
-	text-align:left;
+.float_left {
+    float: left;
 }
 
-form.inline{
+.float_right {
+    float: right;
+}
+
+form p {
+    text-align: left;
+}
+
+form.inline {
     display: inline;
-	text-align:left;
+    text-align: left;
 }
 
-form input, form select{
-  display: inline-block;
-  text-align: left;
-  vertical-align: top;
+form input,
+form select {
+    display: inline-block;
+    text-align: left;
+    vertical-align: top;
 }
 
 /* Class for the cover image (skiing man) */
-#cover{
-	margin: 0;
-  	background-image: url("/static/caf/dsc_2983_2.jpg");
-  	background-position: left;
-  	background-size: cover;
-	height: 100vh;
-	display: flex;
-	flex-direction: row;
-	text-align: center;
-	align-items: center;
-	position: relative;
-	overflow: hidden;
-}
-#cover::before{
-       content: "";
-       z-index: 5;
-       display: block;
-       position: absolute;
-       border-bottom: 15vh solid white;
-       border-left: 100vw solid  transparent;
-       bottom: 0;
-	   margin: 0;
-	   width: 0;
+#cover {
+    margin: 0;
+    background-image: url("/static/caf/dsc_2983_2.jpg");
+    background-position: left;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
 }
 
-#cover div{
-	width: 100%;
+#cover::before {
+    content: "";
+    z-index: 5;
+    display: block;
+    position: absolute;
+    border-bottom: 15vh solid white;
+    border-left: 100vw solid  transparent;
+    bottom: 0;
+    margin: 0;
+    width: 0;
 }
-#cover  .motto{
-	max-width: 90%;
 
+#cover div {
+    width: 100%;
 }
-#cover  .arrow{
-	width: 6em	;
-	filter: invert(1); /* Make arrow white */
-	animation: votre_animation 1.5s infinite;
-	animation-direction: alternate;
-	animation-timing-function: ease-in-out;
-	cursor: pointer;
+
+#cover .motto {
+    max-width: 90%;
+}
+
+#cover .arrow {
+    width: 6em;
+    filter: invert(1); /* Make arrow white */
+    animation: votre_animation 1.5s infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+    cursor: pointer;
 }
 
 /* use flexbox to have a label in front of an input on the same line,
- but the input can take up to the rest of the space*/
-.inputGrow{
-	display: flex;
-}
-.inputGrow .grow{
-	flex-grow: 20;
+ but the input can take up to the rest of the space */
+.inputGrow {
+    display: flex;
 }
 
-
-.flex{
-	display: flex;
+.inputGrow .grow {
+    flex-grow: 20;
 }
 
-.leftalign{
-	text-align: left !important;
+.flex {
+    display: flex;
 }
 
-@keyframes votre_animation{ to{
-       transform: scale(1.4)
-}}
-
-#legal p{
-	text-justify:auto;
-	margin-bottom: 0cm;
+.leftalign {
+    text-align: left !important;
 }
 
-#legal h5{
-	font-size: 1.1em
+@keyframes votre_animation {
+    to {
+        transform: scale(1.4);
+    }
 }
 
-#legal ol{
-	padding: 1.5em;
-	margin-bottom: 1.5em
+#legal p {
+    text-justify: auto;
+    margin-bottom: 0;
 }
 
-#legal ol li{
-	padding: 1em
+#legal h5 {
+    font-size: 1.1em;
 }
 
-#legal ul li{
-	padding: .2em
+#legal ol {
+    padding: 1.5em;
+    margin-bottom: 1.5em;
 }
 
+#legal ol li {
+    padding: 1em;
+}
+
+#legal ul li {
+    padding: 0.2em;
+}

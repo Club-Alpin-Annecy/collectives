@@ -1,107 +1,109 @@
 
-
-#eventedit form{
-  padding: 10px 20px;
+#eventedit form {
+    padding: 10px 20px;
 }
 
-#eventedit label{
-  width : 30%;
-  margin-bottom: 1em;
-}
-#eventedit input, #eventedit select{
-  width : 40%;
-  margin-bottom: 1em;
+#eventedit label {
+    width: 30%;
+    margin-bottom: 1em;
 }
 
+#eventedit input,
+#eventedit select {
+    width: 40%;
+    margin-bottom: 1em;
+}
 
 #eventedit input[type=submit] {
-	margin: 8px 0;
-	width: 50%;
+    margin: 8px 0;
+    width: 50%;
 }
-
 
 #eventedit #editor {
-  width: 80%;
-  margin: 1em auto;
-	text-align: left;
+    width: 80%;
+    margin: 1em auto;
+    text-align: left;
 }
 
-#eventedit #description{
-  height: 40em;
+#eventedit #description {
+    height: 40em;
 }
 
-#editor a{
-  text-decoration: underline;
-}
-#editor a:hover{
-  text-decoration: none;
+#editor a {
+    text-decoration: underline;
 }
 
-.CodeMirror, .CodeMirror-scroll {
-	max-height: 40em;
+#editor a:hover {
+    text-decoration: none;
+}
+
+.CodeMirror,
+.CodeMirror-scroll {
+    max-height: 40em;
 }
 
 .CodeMirror-fullscreen {
     z-index: 20;
 }
 
-#encadrement .useractionmenu{
-  display:inline-block;
-  text-align: center;
-  position: relative;
-  margin-bottom:0.5em;
+#encadrement .useractionmenu {
+    display: inline-block;
+    text-align: center;
+    position: relative;
+    margin-bottom: 0.5em;
 }
 
 #encadrement .useractionmenu .delete {
-  color:white;
-  background-color: darkred;
-  padding:5px;
-  font-weight:normal;
+    color: white;
+    background-color: darkred;
+    padding: 5px;
+    font-weight: normal;
 }
 
 #encadrement .useractionmenu .delete:hover {
-  background-color: red;
+    background-color: red;
 }
 
-#eventedit form div.inline_field{
-  width:100%;
+#eventedit form div.inline_field {
+    width: 100%;
 }
 
-#eventedit form div.inline_field label{
-  font-weight: normal;
-  display: inline;
-  text-align: left;
-  margin:auto;
+#eventedit form div.inline_field label {
+    font-weight: normal;
+    display: inline;
+    text-align: left;
+    margin: auto;
 }
 
-#eventedit form div.inline_field input{
-  width:auto;
-  margin:auto;
-  vertical-align: middle;
+#eventedit form div.inline_field input {
+    width: auto;
+    margin: auto;
+    vertical-align: middle;
 }
 
-#eventedit span.date_error
-{
-  display: none;
+#eventedit span.date_error {
+    display: none;
 }
 
-#eventedit .datetimepicker{
+#eventedit .datetimepicker {
     display: inline-block !important;
 }
-#eventedit .datetimepicker label{
+
+#eventedit .datetimepicker label {
     width: 100%;
     text-align: center;
 }
-#eventedit .form-tail-datetime{
 
+#eventedit .form-tail-datetime {
     vertical-align: middle;
 }
-#eventedit .form-tail-datetime input{
-  width : 75px;
-  margin-bottom: 0;
+
+#eventedit .form-tail-datetime input {
+    width: 75px;
+    margin-bottom: 0;
 }
 
 #eventedit div.choices {
-  display:inline-block;
-  width:40%;
+    display: inline-block;
+    width: 40%;
 }

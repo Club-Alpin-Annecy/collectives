@@ -1,13 +1,16 @@
 .main-footer {
     box-shadow: $box-shadow-default;
     background: $color-white;
+
     .main-footer-container {
         padding-top: $padding-vertical-l;
         padding-bottom: $padding-vertical-l;
     }
+
     .main-footer-navigation-logo {
         display: block;
         border-right: 1px solid $color-gray-light;
+
         img {
             width: 12em;
         }
