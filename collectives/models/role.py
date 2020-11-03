@@ -15,8 +15,9 @@ class RoleIds(ChoiceEnum):
     - Technician
 
     Activity related roles:
-    - EventLeader : can lead an event of this activity type
-    - ActivitySupervisor : supervises a whole activity
+    - EventLeader: can lead an event of this activity type
+    - ActivitySupervisor: supervises a whole activity
+    - Trainee: Currently training to become a leader for an activity
     """
 
     # Global roles
@@ -27,6 +28,7 @@ class RoleIds(ChoiceEnum):
     # Activity-related roles
     EventLeader = 10
     ActivitySupervisor = 11
+    Trainee = 12
 
     @classmethod
     def display_names(cls):
@@ -42,6 +44,7 @@ class RoleIds(ChoiceEnum):
             cls.Technician: "Technicien du site",
             cls.EventLeader: "Initiateur",
             cls.ActivitySupervisor: "Responsable d'activité",
+            cls.Trainee: "Initiateur en formation",
         }
 
     def relates_to_activity(self):
@@ -53,7 +56,7 @@ class RoleIds(ChoiceEnum):
         :rtype: boolean
         """
         cls = self.__class__
-        return self.value in [cls.ActivitySupervisor, cls.EventLeader]
+        return self.value in [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee]
 
     @classmethod
     def all_moderator_roles(cls):

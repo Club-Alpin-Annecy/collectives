@@ -483,11 +483,23 @@ class User(db.Model, UserMixin):
         See :py:meth:`can_lead_activity`
 
         :param activities: Activities which will be tested.
-        :type activities: list(int)
+        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
         :return: True if user can lead all the activities.
         :rtype: boolean
         """
         return all(self.can_lead_activity(a.id) for a in activities)
+
+    def can_colead_any_activity(self, activities):
+        """Check if user has a role which allow him to co-lead any of the specified activities.
+
+        :param activities: Activities which will be tested.
+        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
+        :return: True if user is a trainee for at least one activity
+        :rtype: boolean
+        """
+        return any(
+            a for a in activities if self.has_role_for_activity([RoleIds.Trainee], a.id)
+        )
 
     def can_read_other_users(self):
         """Check if user can see another user profile.
@@ -566,12 +578,12 @@ class User(db.Model, UserMixin):
     def get_supervised_activities(self):
         """Get activities the user supervises.
 
-        Admin supervises all.
+        Admin and President supervise all.
 
         :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
         """
-        if self.is_admin():
-            return ActivityType.query.all()
+        if self.is_admin() or self.has_role([RoleIds.President]):
+            return ActivityType.query.order_by(ActivityType.order).all()
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]

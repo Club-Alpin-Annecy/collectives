@@ -120,6 +120,19 @@ def delete_user(user_id):
     return redirect(url_for("administration.administration"))
 
 
+class RoleValidationException(Exception):
+    """Exception class of new user role validation"""
+
+    def __init__(self, message):
+        """Exception constructor
+
+        :param message: Message to be displayed to the user
+        :type message: string
+        """
+        self.message = message
+        super().__init__(self)
+
+
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 def add_user_role(user_id):
     """Route for user roles management page."""
@@ -140,23 +153,45 @@ def add_user_role(user_id):
 
     role = Role()
     form.populate_obj(role)
-    role_id = RoleIds(int(role.role_id))
 
-    if role_id.relates_to_activity():
-        role.activity_type = ActivityType.query.filter_by(
-            id=form.activity_type_id.data
-        ).first()
-        role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
-    else:
-        role.activity_type = None
-        role_exists = user.has_role([role_id])
+    role_id = role.role_id
 
-    if role_exists:
-        flash("Role déjà associé à l'utilisateur", "error")
-    else:
+    try:
+        # Check that the role does not already exist
+        if role_id.relates_to_activity():
+            role.activity_type = ActivityType.query.get(form.activity_type_id.data)
+            if role.activity_type is None:
+                raise RoleValidationException(
+                    "Ce rôle doit être associé à une activité"
+                )
+            role_exists = user.has_role_for_activity([role_id], role.activity_type.id)
+        else:
+            role.activity_type = None
+            role_exists = user.has_role([role_id])
+
+        if role_exists:
+            raise RoleValidationException("Role déjà associé à l'utilisateur")
+
+        if role_id == RoleIds.Trainee:
+            # Cannot add a "trainee" role to a leader/supervisor
+            if user.has_role_for_activity([RoleIds.EventLeader], role.activity_id):
+                raise RoleValidationException(
+                    "Impossible d'ajouter le rôle 'Initiateur en formation' à un initiateur"
+                )
+        elif role_id == RoleIds.EventLeader:
+            # Adding an EventLeader role removes the Trainee role
+            trainee_roles = [
+                r
+                for r in user.roles
+                if r.role_id == RoleIds.Trainee and r.activity_id == role.activity_id
+            ]
+            if trainee_roles:
+                db.session.delete(trainee_roles[0])
+
         user.roles.append(role)
-        db.session.add(role)
         db.session.commit()
+    except RoleValidationException as err:
+        flash(err.message, "error")
 
     form = RoleForm()
     return render_template(
@@ -168,15 +203,15 @@ def add_user_role(user_id):
     )
 
 
-@blueprint.route("/roles/<user_id>/delete", methods=["POST"])
-def remove_user_role(user_id):
+@blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
+def remove_user_role(role_id):
     """Route to delete a user role.
 
     :return: redirection to role management page
     :rtype: string
     """
 
-    role = Role.query.filter_by(id=user_id).first()
+    role = Role.query.get(role_id)
     if role is None:
         flash("Role inexistant", "error")
         return redirect(url_for("administration.administration"))

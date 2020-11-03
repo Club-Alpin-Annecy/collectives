@@ -1,14 +1,22 @@
 """ API for user list in administration page.
 
 """
+import json
 
 from flask import url_for, request
+from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from ..models import db, User, RoleIds, Role
-from ..utils.access import confidentiality_agreement, admin_required, valid_user
+from ..utils.access import (
+    confidentiality_agreement,
+    admin_required,
+    valid_user,
+    activity_supervisor_required,
+)
 from .common import blueprint, marshmallow, avatar_url
+from .event import ActivityTypeSchema
 
 
 class RoleSchema(marshmallow.Schema):
@@ -162,3 +170,71 @@ def users():
     response = {"data": data, "last_page": paginated_users.pages}
 
     return response, 200, {"content-type": "application/json"}
+
+
+class TraineeRoleSchema(marshmallow.Schema):
+    """Schema for a "Trainee" role
+
+    Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
+    """
+
+    delete_uri = fields.Function(
+        lambda role: url_for("activity_supervision.remove_trainee", role_id=role.id)
+    )
+    """ URI to delete this user (WIP)
+
+    :type: string
+    """
+    user = fields.Function(lambda role: UserSchema().dump(role.user))
+    """ URI to a resized version (30px) of user avatar
+
+    :type: string
+    """
+
+    activity_type = fields.Function(
+        lambda role: ActivityTypeSchema().dump(role.activity_type)
+    )
+    """ List of roles of the User.
+
+    Roles are encoded as JSON.
+
+    :type: list(dict())"""
+
+    class Meta:
+        """ Fields to expose """
+
+        fields = (
+            "user",
+            "activity_type",
+            "delete_uri",
+        )
+
+
+@blueprint.route("/trainees/")
+@valid_user(True)
+@activity_supervisor_required(True)
+@confidentiality_agreement(True)
+def trainees():
+    """API endpoint to list current trainees
+
+    Only available to administrators and activity supervisors
+
+    :return: A tuple:
+
+        - JSON containing information describe in UserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+
+    supervised_activities = current_user.get_supervised_activities()
+
+    query = db.session.query(Role)
+    query = query.filter_by(role_id=RoleIds.Trainee)
+    query = query.filter(Role.activity_id.in_(a.id for a in supervised_activities))
+    query = query.join(Role.user)
+    query = query.order_by(User.last_name, User.first_name, User.id)
+
+    response = TraineeRoleSchema(many=True).dump(query.all())
+
+    return json.dumps(response), 200, {"content-type": "application/json"}
