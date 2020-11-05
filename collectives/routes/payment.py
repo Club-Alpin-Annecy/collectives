@@ -108,7 +108,8 @@ def edit_prices(event_id):
                         if price_form.delete.data:
                             if len(price.payments) > 0:
                                 flash(
-                                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
+                                    f'Impossible de supprimer le tarif "{item.title} {price.title}"'
+                                    'car il a déjà été utilisé',
                                     "warning",
                                 )
                                 continue
@@ -484,7 +485,8 @@ def finalize_payment(payment, details):
         if payment.registration is None:
             # This should not be possible, but still check nonetheless
             flash(
-                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+                "L'inscription associée à ce paiement a été supprimée."
+                "Veuillez vous rapprocher de l'encadrant de la collective concernée.",
                 "warning",
             )
         else:

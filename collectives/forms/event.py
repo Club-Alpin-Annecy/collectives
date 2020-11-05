@@ -206,8 +206,8 @@ class EventForm(ModelForm, FlaskForm):
             self.types.data = [self.type.data]
 
         self.main_leader_id.choices = []
-        for l in self.current_leaders:
-            self.main_leader_id.choices.append((l.id, "Responsable"))
+        for leader in self.current_leaders:
+            self.main_leader_id.choices.append((leader.id, "Responsable"))
 
         if self.main_leader_id.raw_data is None:
             if self.source_event is None or self.source_event.main_leader_id is None:
@@ -232,7 +232,8 @@ class EventForm(ModelForm, FlaskForm):
 
     def set_default_values(self):
         """
-        Populates optional online registration fields with default value and description field with event description template
+        Populates optional online registration fields with default value and description field
+        with event description template
         """
         description = current_app.config["DESCRIPTION_TEMPLATE"]
         columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}

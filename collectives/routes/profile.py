@@ -80,7 +80,7 @@ def update_user():
     form = UserForm(obj=current_user)
 
     if not form.validate_on_submit():
-        form.password.data = None
+        form.password.data is None
         return render_template(
             "basicform.html",
             conf=current_app.config,
@@ -119,7 +119,7 @@ def confidentiality_agreement():
     """ Route to show confidentiality agreement. """
     if (
         request.method == "POST"
-        and current_user.confidentiality_agreement_signature_date == None
+        and current_user.confidentiality_agreement_signature_date is None
     ):
         current_user.confidentiality_agreement_signature_date = datetime.now()
         db.session.add(current_user)

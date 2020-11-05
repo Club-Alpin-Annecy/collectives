@@ -2,7 +2,9 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
-import logging, os.path, os
+import logging
+import os
+import os.path
 from flask import current_app, Blueprint, render_template, send_from_directory
 
 from ..utils.access import confidentiality_agreement, technician_required, valid_user
@@ -25,7 +27,8 @@ def before_request():
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
     - check if user is an admin :py:func:`collectives.utils.access.technician_required`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+        :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
 

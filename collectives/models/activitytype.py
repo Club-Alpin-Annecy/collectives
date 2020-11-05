@@ -101,4 +101,4 @@ def leaders_without_activities(activities, leaders):
     :return: True if leaders can lead all activities.
     :rtype: boolean
     """
-    return [l for l in leaders if not l.can_lead_activities(activities)]
+    return [leader for leader in leaders if not leader.can_lead_activities(activities)]

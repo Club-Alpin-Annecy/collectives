@@ -351,7 +351,7 @@ def manage_event(event_id=None):
 
     # Check that the main leader still exists
     event.main_leader_id = int(form.main_leader_id.data)
-    if not any(l.id == event.main_leader_id for l in tentative_leaders):
+    if not any(leader.id == event.main_leader_id for leader in tentative_leaders):
         flash("Un encadrant responsable doit être défini")
 
         return render_template(
@@ -435,7 +435,8 @@ def manage_event(event_id=None):
             leader_registrations = event.existing_registrations(leader)
             if any(leader_registrations):
                 flash(
-                    f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été ajouté(e) comme encadrant(e)."
+                    f"{leader.full_name()} a été désinscrit(e) de l'événement car"
+                    "il/elle a été ajouté(e) comme encadrant(e)."
                 )
             for registration in leader_registrations:
                 db.session.delete(registration)
@@ -454,7 +455,7 @@ def manage_event(event_id=None):
         db.session.commit()
     elif form.duplicate_photo.data != "":
         duplicated_event = Event.query.get(form.duplicate_photo.data)
-        if duplicated_event != None:
+        if duplicated_event is not None:
             event.photo = duplicated_event.photo
             db.session.add(event)
             db.session.commit()
@@ -492,7 +493,7 @@ def duplicate(event_id=None):
 
     event = Event.query.get(event_id)
 
-    if event == None:
+    if event is None:
         flash("Pas d'événement à dupliquer", "error")
         return redirect(url_for("event.index"))
 
@@ -616,7 +617,8 @@ def register_user(event_id):
 
             if payment_required and registration.status != RegistrationStatus.Active:
                 flash(
-                    f"La collective est payante: l'inscription de {user.full_name()} ne sera définitive qu'après saisie des informations de paiement en bas de page."
+                    f"La collective est payante : l'inscription de {user.full_name()} "
+                    "ne sera définitive qu'après saisie des informations de paiement en bas de page."
                 )
                 registration.status = RegistrationStatus.PaymentPending
             else:

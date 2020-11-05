@@ -21,7 +21,7 @@ def send_new_event_notification(event):
     """
     supervisors = activity_supervisors(event.activity_types)
     emails = [u.mail for u in supervisors]
-    leader_names = [l.full_name() for l in event.leaders]
+    leader_names = [leader.full_name() for leader in event.leaders]
     activity_names = [a.name for a in event.activity_types]
     conf = current_app.config
     message = conf["NEW_EVENT_MESSAGE"].format(
@@ -50,7 +50,7 @@ def send_unregister_notification(event, user):
     :type user: :py:class:`collectives.models.user.User`
     """
     try:
-        leader_emails = [l.mail for l in event.leaders]
+        leader_emails = [leader.mail for leader in event.leaders]
         conf = current_app.config
         message = conf["SELF_UNREGISTER_MESSAGE"].format(
             user_name=user.full_name(),

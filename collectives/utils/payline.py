@@ -377,7 +377,7 @@ class PaylineApi:
 
     def init(self):
         """Initialize the SOAP Client using `app` config."""
-        if not self.soap_client is None:
+        if self.soap_client is not None:
             # Already initialized
             return
 

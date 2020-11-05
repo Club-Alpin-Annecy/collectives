@@ -1,7 +1,9 @@
 """ Module for user authentification routes. """
 
+import datetime
 import sqlite3
-import uuid, datetime, traceback
+import traceback
+import uuid
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, Markup
@@ -29,6 +31,7 @@ blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
 This blueprint contains all routes for authentification actions.
 """
+
 
 # Flask-login user loader
 @login_manager.user_loader
@@ -220,7 +223,8 @@ def process_confirmation(token_uuid):
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
         flash(
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de "
+            "pouvoir créer ou récupérer votre compte.",
             "error",
         )
         return render_confirmation_form(form, is_recover)
@@ -334,7 +338,8 @@ def signup():
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
         flash(
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
+            "de pouvoir créer ou récupérer votre compte.",
             "error",
         )
         return render_signup_form(form, is_recover)
@@ -344,7 +349,7 @@ def signup():
     form.populate_obj(user)
     user_info = extranet.api.fetch_user_info(license_number)
 
-    if user_info.email == None:
+    if user_info.email is None:
         flash(
             """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au club.
             Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
@@ -390,7 +395,7 @@ def check_token(license_number):
         + " à digital@cafannecy.fr si le problème persiste."
     )
 
-    if token == None:
+    if token is None:
         current_app.logger.err(f"Cannot find a token for license {license_number}")
         flash(
             error_message,
