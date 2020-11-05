@@ -31,7 +31,8 @@ def before_request():
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
     - check if user is an admin :py:func:`collectives.utils.access.admin_required`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+        :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
 
@@ -52,7 +53,7 @@ def administration():
 
     count = {}
     count["total"] = User.query.count()
-    count["enable"] = User.query.filter(User.enabled == True).count()
+    count["enable"] = User.query.filter(User.enabled is True).count()
 
     return render_template(
         "administration.html", conf=current_app.config, filters=filters, count=count
@@ -64,7 +65,8 @@ def administration():
 def manage_user(user_id=None):
     """Route for user management page.
 
-    This is the page for user modification. If it is a test user, more field are offered to the modification. This route is also used for test user creation.
+    This is the page for user modification. If it is a test user, more field are offered to the modification.
+    This route is also used for test user creation.
 
     :param user_id: ID managed user
     :type user_id: string
@@ -74,7 +76,7 @@ def manage_user(user_id=None):
     # If we are operating on a 'normal' user, restrict fields
     # Else allow editing everything
     FormClass = AdminUserForm
-    if user.is_test or user_id == None:
+    if user.is_test or user_id is None:
         FormClass = AdminTestUserForm
 
     form = FormClass() if user_id is None else FormClass(obj=user)
@@ -95,7 +97,7 @@ def manage_user(user_id=None):
     form.populate_obj(user)
     # Commit this object will create the id if it
     # is a user creation
-    if user_id == None:
+    if user_id is None:
         db.session.add(user)
         db.session.commit()
 

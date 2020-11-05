@@ -301,11 +301,11 @@ class Event(db.Model):
         """
         main_leader = None
         other_leaders = []
-        for l in self.leaders:
-            if l.id == self.main_leader_id:
-                main_leader = l
+        for leader in self.leaders:
+            if leader.id == self.main_leader_id:
+                main_leader = leader
             else:
-                other_leaders.append(l)
+                other_leaders.append(leader)
         if main_leader is None:
             return other_leaders
         return [main_leader] + other_leaders

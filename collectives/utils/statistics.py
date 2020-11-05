@@ -37,7 +37,7 @@ def set_disable_cookie(content, next_page=None):
     :param string next_page: url to which user should be redirected after cookie setting.
     :return: Page response with redirection and cookie setting.
     """
-    if next_page == None:
+    if next_page is None:
         next_page = url_for("root.legal")
     resp = make_response(redirect(next_page))
     expire_date = datetime.datetime.now() + datetime.timedelta(days=365)

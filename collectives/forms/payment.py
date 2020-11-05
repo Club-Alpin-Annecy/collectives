@@ -55,7 +55,8 @@ class ItemPriceForm(ModelForm, AmountForm):
         :type event: :py:class:`collectives.models.event.Event`
         :return: Returns both the price and its parent item from which this form was created
                  If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
-        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`,
+            :py:class:`collectives.models.payment.ItemPrice`)
         """
 
         price_id = int(self.price_id.data)
@@ -90,7 +91,8 @@ class PaymentItemForm(ModelForm):
         :type event: :py:class:`collectives.models.event.Event`
         :return: Returns both the price and its parent item from which this form was created
                  If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
-        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`,
+            :py:class:`collectives.models.payment.ItemPrice`)
         """
 
         item_id = int(self.item_id.data)

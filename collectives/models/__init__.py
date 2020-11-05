@@ -4,6 +4,7 @@ This module contains other submodules for ``collectives`` model.
 Persistence is made by SQLAlchemy. This module exposes most important
 submodules classes by importing them. It also create the ``db`` object
 """
+# flake8: noqa: F401
 from .globals import db
 from .event import Event, EventStatus, photos
 from .activitytype import ActivityType

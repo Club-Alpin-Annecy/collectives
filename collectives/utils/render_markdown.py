@@ -7,9 +7,11 @@ import markdown
 from markdown.preprocessors import Preprocessor
 from markdown.extensions import Extension
 
-# pylint: disable=C0301
 URI_REGEX = re.compile(
-    r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:https?:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
+    r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)'
+    r'((?:https?:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)'
+    r'(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+'
+    r'(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
 )
 """
  Regexp for detecting links.

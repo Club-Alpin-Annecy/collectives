@@ -8,6 +8,7 @@ Typical usage example::
   import collectives
   collectives.create_app().run(debug=True)
 """
+# flake8: noqa: F401
 
 from logging.config import fileConfig
 import werkzeug
@@ -55,7 +56,7 @@ def create_app(config_filename="config"):
 
     app.context_processor(jinja.helpers_processor)
 
-    _migrate = Migrate(app, models.db)
+    Migrate(app, models.db)
 
     with app.app_context():
         # Initialize asset compilation

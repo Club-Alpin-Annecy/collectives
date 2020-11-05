@@ -7,6 +7,7 @@ This module is initialized by the application factory, and contains the
 ``/api`` blueprint.
 
 """
+# flake8: noqa: F401
 
 
 import collectives.api.admin

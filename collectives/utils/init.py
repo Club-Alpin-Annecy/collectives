@@ -21,7 +21,7 @@ def activity_types(app):
     try:
         for (aid, atype) in app.config["TYPES"].items():
             activity_type = ActivityType.query.get(aid)
-            if activity_type == None:
+            if activity_type is None:
                 activity_type = ActivityType(id=aid)
 
             activity_type.name = atype["name"]

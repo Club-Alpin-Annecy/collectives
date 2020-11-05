@@ -67,7 +67,7 @@
                     <td>{{loop.index}}</td>
                     <td>{{reg.user.license}}</td>
                     <td>{{reg.user.full_name()}}</td>
-                    <td>{{reg.user.phone if reg.user.phone != None else 'Non renseigné'}}</td>
+                    <td>{{reg.user.phone if reg.user.phone is not None else 'Non renseigné'}}</td>
                     <td>{{reg.user.mail}}</td>
                     <td>{{'{} ({})'.format(reg.user.emergency_contact_name, reg.user.emergency_contact_phone)}}</td>
                     <td class="presence"><input type="checkbox"></td>

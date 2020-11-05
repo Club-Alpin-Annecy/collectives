@@ -36,7 +36,7 @@ def fill_from_csv(event, row, template):
             raise Exception(
                 "Le nombre de places par internet doit être inférieur au nombre de places de la collective"
             )
-        if row["debut_internet"] != None and row["debut_internet"].strip():
+        if row["debut_internet"] is not None and row["debut_internet"].strip():
             event.registration_open_time = parse(row, "debut_internet")
         else:
             # Set default value
@@ -47,7 +47,7 @@ def fill_from_csv(event, row, template):
                 hour=current_app.config["REGISTRATION_OPENING_HOUR"],
                 minute=0,
             )
-        if row["fin_internet"] != None and row["fin_internet"].strip():
+        if row["fin_internet"] is not None and row["fin_internet"].strip():
             event.registration_close_time = parse(row, "fin_internet")
         else:
             # Set default value
@@ -119,7 +119,8 @@ def parse(row, column_name):
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
         except ValueError as err:
             raise Exception(
-                "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
+                "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm"
+                "(ex: 31/12/2020 14:45)".format(
                     value_str, column_short_desc
                 )
             ) from err
