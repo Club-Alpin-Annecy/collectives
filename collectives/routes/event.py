@@ -363,9 +363,7 @@ def manage_event(event_id=None):
     if has_removed_leaders or int(form.update_leaders.data):
         # Check that the set of leaders is valid for current activities
         if validate_event_leaders(
-            tentative_activities,
-            tentative_leaders,
-            form.multi_activities_mode.data,
+            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
         ):
             form.set_current_leaders(tentative_leaders)
             form.update_choices()
@@ -399,9 +397,7 @@ def manage_event(event_id=None):
     # Check that the leaders are still valid
     if has_new_activity or has_changed_leaders:
         if not validate_event_leaders(
-            tentative_activities,
-            tentative_leaders,
-            form.multi_activities_mode.data,
+            tentative_activities, tentative_leaders, form.multi_activities_mode.data,
         ):
             return render_template(
                 "editevent.html", conf=current_app.config, event=event, form=form

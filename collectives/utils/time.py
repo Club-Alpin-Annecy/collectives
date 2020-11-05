@@ -94,9 +94,7 @@ def format_date_short(value):
     if value is None:
         return "N/A"
     return "{}. {} {}".format(
-        fr_week_days[value.weekday()][0:3],
-        value.day,
-        fr_short_months[value.month - 1],
+        fr_week_days[value.weekday()][0:3], value.day, fr_short_months[value.month - 1],
     )
 
 
@@ -147,10 +145,7 @@ def format_datetime_range(start, end):
     if start.time() == time(0) and end.time() == time(0):
         return "du {} au {}".format(format_date(start), format_date(end))
     return "du {} à {} au {} à {}".format(
-        format_date(start),
-        format_time(start),
-        format_date(end),
-        format_time(end),
+        format_date(start), format_time(start), format_date(end), format_time(end),
     )
 
 

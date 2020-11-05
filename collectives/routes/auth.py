@@ -398,8 +398,7 @@ def check_token(license_number):
     if token is None:
         current_app.logger.err(f"Cannot find a token for license {license_number}")
         flash(
-            error_message,
-            "error",
+            error_message, "error",
         )
         return redirect(url_for(".login"))
 
