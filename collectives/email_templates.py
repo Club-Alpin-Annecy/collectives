@@ -146,9 +146,7 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
 
         subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(event_title=event.title)
         mail.send_mail(
-            subject=subject,
-            email=rejected_user_email,
-            message=message,
+            subject=subject, email=rejected_user_email, message=message,
         )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)
@@ -178,9 +176,7 @@ def send_cancelled_event_notification(name, event):
         emails = [r.user.mail for r in event.active_registrations()]
         if emails:
             mail.send_mail(
-                subject=subject,
-                email=emails,
-                message=message,
+                subject=subject, email=emails, message=message,
             )
     except BaseException as err:
         print("Mailer error: {}".format(err), file=stderr)

@@ -68,9 +68,7 @@ def edit_prices(event_id):
         new_price_form = NewItemPriceForm(event.payment_items)
         if new_price_form.validate():
 
-            new_price = ItemPrice(
-                update_time=current_time(),
-            )
+            new_price = ItemPrice(update_time=current_time(),)
             new_price_form.populate_obj(new_price)
 
             if new_price_form.existing_item.data:
@@ -109,7 +107,7 @@ def edit_prices(event_id):
                             if len(price.payments) > 0:
                                 flash(
                                     f'Impossible de supprimer le tarif "{item.title} {price.title}"'
-                                    'car il a déjà été utilisé',
+                                    "car il a déjà été utilisé",
                                     "warning",
                                 )
                                 continue
