@@ -5,7 +5,8 @@ DKIM. Conf are taken from app :py:mod:`config`:
 
 - :py:data:`config.SMTP_HOST`: Hostname of SMTP server
 - :py:data:`config.SMTP_PORT`: Connexion port to SMTP server
-- :py:data:`config.SMTP_ADDRESS`: Login and return address. Also used to set DKIM domain
+- :py:data:`config.SMTP_ADDRESS`: Sender address. Also used to set DKIM domain
+- :py:data:`config.SMTP_LOGIN`: Login of SMTP server
 - :py:data:`config.SMTP_PASSWORD`: Password of SMTP server
 - :py:data:`config.DKIM_SELECTOR`: DKIM selector, usually default
 - :py:data:`config.DKIM_KEY`: DKIM private key as PEM format
@@ -63,7 +64,7 @@ def send_mail_threaded(app, **kwargs):
         s = smtplib.SMTP(host=config["SMTP_HOST"], port=config["SMTP_PORT"])
 
         s.starttls()
-        s.login(config["SMTP_ADDRESS"], config["SMTP_PASSWORD"])
+        s.login(config["SMTP_LOGIN"] or config["SMTP_ADDRESS"], config["SMTP_PASSWORD"])
 
         msg = MIMEMultipart()
 
