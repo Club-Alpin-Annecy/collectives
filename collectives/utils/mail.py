@@ -64,7 +64,7 @@ def send_mail_threaded(app, **kwargs):
         s = smtplib.SMTP(host=config["SMTP_HOST"], port=config["SMTP_PORT"])
 
         s.starttls()
-        s.login(config["SMTP_LOGIN"], config["SMTP_PASSWORD"])
+        s.login(config["SMTP_LOGIN"] or config["SMTP_ADDRESS"], config["SMTP_PASSWORD"])
 
         msg = MIMEMultipart()
 

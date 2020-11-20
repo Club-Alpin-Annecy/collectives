@@ -136,7 +136,7 @@ Will be used as a reply address
 
 :type: string
 """
-SMTP_LOGIN = environ.get("SMTP_LOGIN") or "noreply@example.org"
+SMTP_LOGIN = environ.get("SMTP_LOGIN") or None
 """SMTP login to be used
 
 :type: string
