@@ -130,12 +130,19 @@ SMTP_PORT = environ.get("SMTP_PORT") or 25
 :type: int
 """
 SMTP_ADDRESS = environ.get("SMTP_ADDRESS") or "noreply@example.org"
-"""Sending address to send adminsitration mails
+"""Sending address to send administration mails
 
-Will be used as a reply address and a SMTP login
+Will be used as a reply address
+
+:type: string
+"""
+SMTP_LOGIN = environ.get("SMTP_LOGIN") or "noreply@example.org"
+"""SMTP login to be used
+
+:type: string
 """
 SMTP_PASSWORD = environ.get("SMTP_PASSWORD") or ""
-"""SMTP password to be used along SMTP_ADDRESS as login
+"""SMTP password to be used along SMTP_LOGIN as login
 
 :type: string
 """
