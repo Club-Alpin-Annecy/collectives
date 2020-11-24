@@ -94,6 +94,14 @@ class PaymentResult:
 
         return PaymentStatus.Initiated
 
+    def is_accepted(self):
+        """ Checks whether the call was successful
+
+        :return: True if successful (return message 'ACCEPTED'), False for any other
+        :rtype: bool
+        """
+        return self.payment_status() == PaymentStatus.Approved
+
 
 class PaymentRequest:
     """
@@ -573,8 +581,8 @@ class PaylineApi:
             response = {
                 "result": {
                     "code": "00000",
-                    "short_message": message,
-                    "long_message": message,
+                    "shortMessage": message,
+                    "longMessage": message,
                 },
                 "transaction": {"id": "12345678", "date": "02/05/2020 22:00:00"},
                 "authorization": {"number": "A55A"},
@@ -601,8 +609,8 @@ class PaylineApi:
             response = {
                 "result": {
                     "code": "00000",
-                    "short_message": "Transaction accepted",
-                    "long_message": "Transaction accepted",
+                    "shortMessage": "ACCEPTED",
+                    "longMessage": "Transaction accepted",
                 },
                 "transaction": {"id": "12345678", "date": "02/05/2020 22:00:00"},
             }

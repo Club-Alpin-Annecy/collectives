@@ -282,11 +282,7 @@ def payment_receipt(payment_id):
     """
 
     payment = Payment.query.get(payment_id)
-    if (
-        payment is None
-        or payment.item.event is None
-        or payment.buyer != current_user
-    ):
+    if payment is None or payment.item.event is None or payment.buyer != current_user:
         flash("Accès refusé", "error")
         return redirect(url_for("event.index"))
     event = payment.item.event
@@ -553,3 +549,56 @@ def process():
         # Return empty response
         return dict(), 200
     return redirect(url_for("event.view_event", event_id=payment.item.event_id))
+
+
+@blueprint.route("/refund_all/<event_id>", methods=["POST"])
+def refund_all(event_id):
+    """Route for refunding all online payments associated to an event
+
+    :param event_id: Id of event
+    :type event_id: int
+
+    :return: Redirection to event page
+    """
+
+    # Check that the user is allowed to modify this event
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(403)
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    # Fetch all associated approved online payments
+    query = db.session.query(Payment)
+    query = query.filter(Payment.status == PaymentStatus.Approved)
+    query = query.filter(Payment.payment_type == PaymentType.Online)
+    query = query.filter(PaymentItem.event_id == event_id)
+    query = query.filter(PaymentItem.id == Payment.payment_item_id)
+    payments = query.all()
+
+    success_count = 0
+
+    # For each payment, do refund call
+    for payment in payments:
+        details = payline.PaymentDetails.from_metadata(payment.raw_metadata)
+        refund_details = payline.api.doRefund(details)
+
+        if refund_details is not None and refund_details.result.is_accepted():
+            # Successful refund, update payment
+            payment.status = PaymentStatus.Refunded
+            payment.refund_time = current_time()
+            payment.refund_metadata = refund_details.raw_metadata()
+            db.session.add(payment)
+            success_count += 1
+        else:
+            # Do not update payment, warn user
+            flash(
+                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº {payment.processor_order_ref}.",
+                "error",
+            )
+
+    if success_count > 0:
+        flash(f"Remboursement effectué pour {success_count}/{len(payments)} paiements")
+        db.session.commit()
+
+    return redirect(url_for("event.view_event", event_id=event_id))
