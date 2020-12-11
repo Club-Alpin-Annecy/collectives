@@ -80,6 +80,15 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
+    refund_time = fields.Function(
+        lambda p: p.refund_time.strftime("%d/%m/%y")
+        if p.refund_time
+        else None
+    )
+    """ Time at which the payment has been refunded
+
+    :type: string"""
+
 
 class EventPaymentSchema(PaymentSchema):
     """Specialization of PaymentSchema for listing the payments associated to an event"""
@@ -128,6 +137,15 @@ class MyPaymentSchema(PaymentSchema):
 
     :type: string"""
 
+    refund_receipt_uri = fields.Function(
+        lambda p: url_for("payment.refund_receipt", payment_id=p.id)
+        if p.has_refund_receipt()
+        else None
+    )
+    """ Uri of the receipt associated to the refunded online payment
+
+    :type: string"""
+
     class Meta:
         """ Fields to expose """
 
@@ -142,8 +160,10 @@ class MyPaymentSchema(PaymentSchema):
             "registration_status",
             "details_uri",
             "receipt_uri",
+            "refund_receipt_uri",
             "creation_time",
             "finalization_time",
+            "refund_time",
         )
 
 

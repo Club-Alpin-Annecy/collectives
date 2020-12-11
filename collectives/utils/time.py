@@ -117,8 +117,10 @@ def format_datetime(value):
 
     :param value: Date to format
     :type value: :py:class:`datetime.datetime`
-    :return: Formatted date
+    :return: Formatted date or 'N/A' if value is None
     :rtype: string"""
+    if value is None:
+        return "N/A"
     return f"{format_date(value)} à {format_time(value)}"
 
 

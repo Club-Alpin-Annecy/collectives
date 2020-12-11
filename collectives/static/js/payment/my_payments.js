@@ -19,25 +19,45 @@ function makeCellClickedCallback(state) {
     };
 }
 
-function tableColumns(finalized, state) {
+function tableColumns(payment_status, state) {
+    var date_field = '';
+    var receipt_uri_field = '';
+    var amount_field = '';
+    switch (payment_status) {
+        case 'Initiated':
+            date_field = 'creation_time';
+            amount_field = 'amount_charged';
+            break;
+        case 'Approved':
+            date_field = 'finalization_time';
+            amount_field = 'amount_paid';
+            receipt_uri_field = 'receipt_uri';
+            break;
+        case 'Refunded':
+            date_field = 'refund_time';
+            amount_field = 'amount_paid';
+            receipt_uri_field = 'refund_receipt_uri';
+            break;
+    }
+
     var columns = [
-        { title: "Date", field: (finalized ? "finalization_time" : "creation_time"), widthGrow: 1, headerFilter: true },
+        { title: "Date", field: date_field, widthGrow: 1, headerFilter: true },
         { title: "Événement", field: "event_title", widthGrow: 2, headerFilter: true },
         { title: "Objet", field: "item_title", widthGrow: 2, headerFilter: true },
         { title: "Tarif", field: "price_title", widthGrow: 2, headerFilter: true },
-        { title: "Prix", field: (finalized ? "amount_paid" : "amount_charged"), widthGrow: 1 },
+        { title: "Prix", field: amount_field, widthGrow: 1 },
         { title: "Type", field: "payment_type", widthGrow: 1, headerFilter: true },
     ];
 
-    if (finalized) {
+    if (receipt_uri_field) {
         columns.push(
-            { title: "Justificatif", field: "receipt_uri", formatter: actionFormatter, formatterParams: { 'icon': 'document', 'method': 'GET', 'alt': 'Justificatif' }, cellClick: makeCellClickedCallback(state), headerSort: false }
+            { title: "Justificatif", field: receipt_uri_field, formatter: actionFormatter, formatterParams: { 'icon': 'document', 'method': 'GET', 'alt': 'Justificatif' }, cellClick: makeCellClickedCallback(state), headerSort: false }
         );
     }
     return columns;
 }
 
-function createMyPaymentsTable(id, url, finalized) {
+function createMyPaymentsTable(id, url, payment_status) {
 
     // Hack to prevent Tabulator rowClick() event from firing
     // once a cellClick() has been processed
@@ -49,7 +69,7 @@ function createMyPaymentsTable(id, url, finalized) {
         {
             ajaxURL: url,
             layout: "fitColumns",
-            columns: tableColumns(finalized, state),
+            columns: tableColumns(payment_status, state),
 
             rowClick: function (e, row) {
                 if (state.cellClicked) return;

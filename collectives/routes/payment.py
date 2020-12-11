@@ -196,7 +196,7 @@ def export_payments(event_id):
 
     # Fetch all associated payments
     query = db.session.query(Payment)
-    query = query.filter(Payment.status == PaymentStatus.Approved)
+    query = query.filter(Payment.status.in_([PaymentStatus.Approved, PaymentStatus.Refunded]))
     query = query.filter(PaymentItem.event_id == event_id)
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
     payments = query.all()
@@ -214,6 +214,8 @@ def export_payments(event_id):
         "price.title": "Tarif",
         "amount_paid": "Prix payé",
         "finalization_time": "Date",
+        "payment_status_str": "État",
+        "refund_time": "Date de remboursement",
         "payment_type_str": "Type",
         "processor_order_ref": "Référence",
     }
@@ -221,12 +223,13 @@ def export_payments(event_id):
 
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
+        payment.payment_status_str = payment.status.display_name()
         ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
 
     # set column width
-    for c in "BCDEFGI":
+    for c in "BCDEFGIK":
         ws.column_dimensions[c].width = 25
-    for c in "AHJK":
+    for c in "AHJLM":
         ws.column_dimensions[c].width = 16
 
     out = BytesIO()
@@ -273,13 +276,18 @@ def payment_details(payment_id):
 
 
 @blueprint.route("/<payment_id>/receipt", methods=["GET"])
+@blueprint.route(
+    "/<payment_id>/refund_receipt", endpoint="refund_receipt", methods=["GET"]
+)
 @valid_user()
 def payment_receipt(payment_id):
-    """Route for printing user receipt for a given payment
+    """Route for printing user receipt / refund receipt for a given payment
 
     :param payment_id: Payment primary key
     :type payment_id: int
     """
+
+    is_refund = "refund" in request.endpoint
 
     payment = Payment.query.get(payment_id)
     if payment is None or payment.item.event is None or payment.buyer != current_user:
@@ -287,13 +295,18 @@ def payment_receipt(payment_id):
         return redirect(url_for("event.index"))
     event = payment.item.event
 
-    if not payment.has_receipt():
+    if is_refund:
+        if not payment.has_refund_receipt():
+            flash("Justificatif de remboursement indisponible pour ce paiement", "error")
+            return redirect(url_for("event.view_event", event_id=event.id))
+    elif not payment.has_receipt():
         flash("Recu indisponible pour ce paiement", "error")
         return redirect(url_for("event.view_event", event_id=event.id))
 
     activity_names = [at.name for at in event.activity_types]
+    template = "payment/refund_receipt.html" if is_refund else "payment/receipt.html"
     return render_template(
-        "payment/receipt.html",
+        template,
         conf=current_app.config,
         payment=payment,
         event=event,

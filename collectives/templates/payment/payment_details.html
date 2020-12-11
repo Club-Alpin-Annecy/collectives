@@ -43,6 +43,7 @@
     {{ details_row("Type", payment.payment_type.display_name()) }}
     {{ details_row("Date de création", format_datetime(payment.creation_time)) }}
     {{ details_row("Date de finalisation", format_datetime(payment.finalization_time)) }}
+    {{ details_row("Date de remboursement", format_datetime(payment.refund_time)) }}
     
     {% if payment.is_offline() %}
       {{ details_row("Précisions", payment.raw_metadata) }}

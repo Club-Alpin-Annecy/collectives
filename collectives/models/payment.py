@@ -277,6 +277,7 @@ class PaymentStatus(ChoiceEnum):
             cls.Cancelled: "Annulé",
             cls.Refused: "Refusé",
             cls.Expired: "Inabouti",
+            cls.Refunded: "Remboursé",
         }
 
 
@@ -420,6 +421,15 @@ class Payment(db.Model):
         return (
             self.payment_type == PaymentType.Online
             and self.status == PaymentStatus.Approved
+        )
+
+    def has_refund_receipt(self):
+        """:return: whether this payment has an associated refund receipt
+                    (i.e. if it is a refunded online payment)
+        :rtype: bool"""
+        return (
+            self.payment_type == PaymentType.Online
+            and self.status == PaymentStatus.Refunded
         )
 
     def __init__(self, registration=None, item_price=None):
