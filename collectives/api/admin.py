@@ -9,12 +9,8 @@ from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from ..models import db, User, RoleIds, Role
-from ..utils.access import (
-    confidentiality_agreement,
-    admin_required,
-    valid_user,
-    activity_supervisor_required,
-)
+from ..utils.access import valid_user, user_is, confidentiality_agreement
+
 from .common import blueprint, marshmallow, avatar_url
 from .event import ActivityTypeSchema
 
@@ -110,7 +106,7 @@ class UserSchema(marshmallow.Schema):
 
 @blueprint.route("/users/")
 @valid_user(True)
-@admin_required(True)
+@user_is("is_hotline", True)
 @confidentiality_agreement(True)
 def users():
     """API endpoint to list users
@@ -212,7 +208,7 @@ class TraineeRoleSchema(marshmallow.Schema):
 
 @blueprint.route("/trainees/")
 @valid_user(True)
-@activity_supervisor_required(True)
+@user_is("is_supervisor", True)
 @confidentiality_agreement(True)
 def trainees():
     """API endpoint to list current trainees

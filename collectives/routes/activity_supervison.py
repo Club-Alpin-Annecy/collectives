@@ -11,11 +11,7 @@ from ..forms.csv import CSVForm
 from ..forms.user import AddTraineeForm
 from ..models import User, Role, RoleIds, ActivityType, db
 
-from ..utils.access import (
-    confidentiality_agreement,
-    valid_user,
-    activity_supervisor_required,
-)
+from ..utils.access import confidentiality_agreement, valid_user, user_is
 from ..utils.csv import process_stream
 
 blueprint = Blueprint(
@@ -30,7 +26,7 @@ This blueprint contains all routes for activity supervision.
 @blueprint.before_request
 @valid_user()
 @confidentiality_agreement()
-@activity_supervisor_required()
+@user_is("is_supervisor")
 def before_request():
     """Protect all of the admin endpoints.
 
