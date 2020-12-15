@@ -10,7 +10,8 @@ from openpyxl import Workbook
 
 from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
 from ..models import User, ActivityType, Role, RoleIds, db
-from ..utils.access import confidentiality_agreement, admin_required, valid_user
+from ..utils.access import confidentiality_agreement, user_is, valid_user
+
 from ..utils.misc import deepgetattr
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
@@ -22,7 +23,7 @@ This blueprint contains all routes for administration. It is reserved to adminis
 
 @blueprint.before_request
 @valid_user()
-@admin_required()
+@user_is("is_hotline")
 @confidentiality_agreement()
 def before_request():
     """Protect all of the admin endpoints.
@@ -59,12 +60,14 @@ def administration():
     )
 
 
-@blueprint.route("/users/add", methods=["GET", "POST"])
-@blueprint.route("/users/<user_id>", methods=["GET", "POST"])
+@blueprint.route("/users/add", methods=["GET"])
+@blueprint.route("/users/<user_id>", methods=["GET"])
 def manage_user(user_id=None):
-    """Route for user management page.
+    """Route for user display page.
 
-    This is the page for user modification. If it is a test user, more field are offered to the modification. This route is also used for test user creation.
+    This is the page for user detail display. If it is a test user, more field are
+    offered to the display. This route is also used for test user creation and
+    modification.
 
     :param user_id: ID managed user
     :type user_id: string
@@ -110,7 +113,20 @@ def manage_user(user_id=None):
     return redirect(url_for("administration.administration"))
 
 
+@blueprint.route("/users/add", methods=["POST"])
+@blueprint.route("/users/<user_id>", methods=["POST"])
+@user_is("is_admin")
+def manage_user_post(user_id=None):
+    """Route for user management page.
+
+    :param user_id: ID managed user
+    :type user_id: string
+    """
+    return manage_user(user_id)
+
+
 @blueprint.route("/users/<user_id>/delete", methods=["POST"])
+@user_is("is_admin")
 def delete_user(user_id):
     """Route to delete an user.
 
@@ -134,6 +150,7 @@ class RoleValidationException(Exception):
 
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
+@user_is("is_admin")
 def add_user_role(user_id):
     """Route for user roles management page."""
     user = User.query.filter_by(id=user_id).first()
@@ -204,6 +221,7 @@ def add_user_role(user_id):
 
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
+@user_is("is_admin")
 def remove_user_role(role_id):
     """Route to delete a user role.
 

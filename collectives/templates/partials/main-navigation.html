@@ -42,7 +42,7 @@
                                 </a>
                             </li>
                             {% endif %}
-                            {% if current_user.is_admin() %}
+                            {% if current_user.is_hotline() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('administration.administration')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}" class="legacy-icon" />

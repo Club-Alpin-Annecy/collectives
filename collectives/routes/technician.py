@@ -5,7 +5,7 @@ All routes are protected by :py:fun:`before_request` which protect acces to tech
 import logging, os.path, os
 from flask import current_app, Blueprint, render_template, send_from_directory
 
-from ..utils.access import confidentiality_agreement, technician_required, valid_user
+from ..utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint
@@ -16,7 +16,7 @@ This blueprint contains all routes for technicians. It is reserved to technician
 
 @blueprint.before_request
 @valid_user()
-@technician_required()
+@user_is("is_technician")
 @confidentiality_agreement()
 def before_request():
     """Protect all of the technicians endpoints.
