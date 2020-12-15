@@ -1,5 +1,7 @@
 """Module to describe the type of activity.
 """
+from sqlalchemy.orm import validates
+
 from .globals import db
 
 
@@ -28,7 +30,7 @@ class ActivityType(db.Model):
     :type: string
     """
 
-    trigram = db.Column(db.String(3), nullable=False)
+    trigram = db.Column(db.String(8), nullable=False)
     """ Three-letter code.
 
     Mainly used to identify activity type in payment order references
@@ -48,6 +50,23 @@ class ActivityType(db.Model):
 
     :type: :py:class:`collectives.models.user.User`
     """
+
+    @validates("trigram")
+    def truncate_string(self, key, value):
+        """Truncates a string to the max SQL field length
+
+        In contrast to one may naively think, trigrams may be longer than three letters.
+        Make sure the value is truncated before trying to insert it in base
+
+        :param string key: name of field to validate
+        :param string value: tentative value
+        :return: Truncated string.
+        :rtype: string
+        """
+        max_len = getattr(self.__class__, key).prop.columns[0].type.length
+        if value and len(value) > max_len:
+            return value[:max_len]
+        return value
 
     def can_be_led_by(self, users):
         """Check if at least anyone in a list can lead an event
