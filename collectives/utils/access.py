@@ -76,7 +76,7 @@ def user_is(method, api=False, **kwargs):
     :rtype: function
     """
 
-    message = kwargs.get("message", "Non authorisé. Droits insuffisants")
+    message = kwargs.get("message", "Non autorisé. Droits insuffisants")
     url = kwargs.get("url", "event.index")
 
     def innerF(f):

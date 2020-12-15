@@ -454,11 +454,11 @@ class User(db.Model, UserMixin):
         return self.has_role([RoleIds.Administrator, RoleIds.Technician])
 
     def is_hotline(self):
-        """Check if user has a technician role.
+        """Check if user has a hotline role.
 
         See :py:attr:`collectives.models.role.RoleIds.Hotline`
 
-        :return: True if user has a technician role.
+        :return: True if user has a hotline role.
         :rtype: boolean
         """
         return self.has_role([RoleIds.Administrator, RoleIds.Hotline])
