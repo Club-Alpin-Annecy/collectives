@@ -342,7 +342,13 @@ class Payment(db.Model):
 
     :type: :py:class:`collectives.models.payment.PaymentType`"""
 
-    status = db.Column(db.Enum(PaymentStatus), nullable=False)
+    status = db.Column(db.Enum(PaymentStatus), nullable=False,
+        info={
+            "choices": PaymentStatus.choices(),
+            "coerce": PaymentStatus.coerce,
+            "label": "État du paiement",
+        },
+    )
     """ Current status of the payment
 
     :type: :py:class:`collectives.models.payment.PaymentStatus`"""

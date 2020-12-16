@@ -376,8 +376,10 @@ def report_offline(registration_id, payment_id=None):
         form.populate_obj(payment)
 
         payment.reporter_id = current_user.id
-        payment.finalization_time = current_time()
-        payment.status = PaymentStatus.Approved
+        if payment.status == PaymentStatus.Refunded:
+            payment.refund_time = current_time()
+        else:
+            payment.finalization_time = current_time()
 
         db.session.add(payment)
 
@@ -386,7 +388,7 @@ def report_offline(registration_id, payment_id=None):
         db.session.add(registration)
 
         db.session.commit()
-        return redirect(url_for("event.view_event", event_id=event.id))
+        return redirect(url_for(".list_payments", event_id=event.id))
 
     return render_template(
         "basicform.html",
