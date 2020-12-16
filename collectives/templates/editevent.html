@@ -149,6 +149,11 @@
     <div class="controls">
         <label for="photo_file">Image de présentation :<span class="label-help">&#9432; Photo uniquement, d'une taille maximum de 2Mo</span></label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }}
     </div>
+    <div id="editor">
+        <label for="{{form.tag_list.id_for_label}}">Labels:</label>{{ form.tag_list }}
+    </div>
+
+
     {{ form.hidden_tag() }}
     <div class="controls">
     {{ form.save_all(class="button button-primary") }}

@@ -14,11 +14,12 @@ from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
 from ..models import Registration
-from ..models import ActivityType
+from ..models import ActivityType, EventTagTypes
 from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
 from ..utils.time import current_time
 from ..utils.numbers import format_currency
+from .utils import MultiCheckboxField
 
 
 def available_leaders(leaders, activity_ids):
@@ -137,6 +138,8 @@ class EventForm(ModelForm, FlaskForm):
 
     multi_activities_mode = BooleanField("Sortie multi-activités")
 
+    tag_list = MultiCheckboxField("Labels", choices=EventTagTypes.choices(), coerce=int)
+
     source_event = None
     current_leaders = []
     main_leader_fields = []
@@ -159,6 +162,7 @@ class EventForm(ModelForm, FlaskForm):
             self.type.data = int(activities[0].id)
             self.types.data = [a.id for a in activities]
             self.set_current_leaders(self.source_event.leaders)
+            self.tag_list.data = [int(tag) for tag in self.source_event.tags]
         else:
             self.set_current_leaders([])
 
@@ -176,11 +180,7 @@ class EventForm(ModelForm, FlaskForm):
             self.current_leaders.append(current_user)
 
     def update_choices(self):
-        """
-        Updates possible choices for activity and new leader select fields
-        :param event: Event being currently edited
-        :type event: :py:class:`collectives.modes.event.Event`
-        """
+        """Updates possible choices for activity and new leader select fields"""
         activity_ids = (
             []
             if self.multi_activities_mode.data or not self.type.data

@@ -193,6 +193,19 @@ class Event(db.Model):
     :type: list(:py:class:`collectives.models.payment.PaymentItem`)
     """
 
+    tag_ref = db.relationship(
+        "EventTag", backref="event", lazy=True, cascade="all, delete-orphan"
+    )
+    """ List of tags associated to this event.
+
+    :type: list(:py:class:`collectives.models.event_tag.EventTag`)
+    """
+
+    @property
+    def tags(self):
+        """ Direct list of the tag types of this event. """
+        return [t.type for t in self.tag_ref]
+
     def save_photo(self, file):
         """Save event photo from a raw file
 

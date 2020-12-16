@@ -13,6 +13,7 @@ from ..forms import RegistrationForm
 from ..forms.event import PaidSelfRegistrationForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels, EventStatus
 from ..models import RegistrationStatus, User, db
+from ..models import EventTag
 from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..models.payment import ItemPrice, Payment
 from ..email_templates import send_new_event_notification
@@ -440,6 +441,13 @@ def manage_event(event_id=None):
                 db.session.delete(registration)
 
     event.set_rendered_description(event.description)
+
+    # Update tags (brute option: purge all and create new)
+    tags = list(event.tag_ref)
+    for tag in tags:
+        event.tag_ref.remove(tag)
+    for tag in form.tag_list.data:
+        event.tag_ref.append(EventTag(tag))
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)

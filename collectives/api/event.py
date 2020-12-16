@@ -90,6 +90,15 @@ class UserSimpleSchema(marshmallow.Schema):
         fields = ("id", "name", "avatar_uri")
 
 
+class EventTagIdsSchema(marshmallow.Schema):
+    """ Schema used to describe an event tag """
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("css", "name")
+
+
 class ActivityTypeSchema(marshmallow.Schema):
     """ Schema to describe activity types """
 
@@ -147,6 +156,10 @@ class EventSchema(marshmallow.Schema):
     """ Current status event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
+    tags = fields.Function(lambda event: EventTagIdsSchema(many=True).dump(event.tags))
+    """ Tags this event.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
 
     class Meta:
         """Fields to expose"""
@@ -168,6 +181,7 @@ class EventSchema(marshmallow.Schema):
             "activity_types",
             "is_confirmed",
             "status",
+            "tags",
         )
 
 
