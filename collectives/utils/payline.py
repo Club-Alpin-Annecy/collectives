@@ -283,7 +283,7 @@ class OrderInfo:
     :type: int
     """
 
-    payment = 0
+    payment = None
     """ Related database Payment entry
 
     :type: :py:class:`collectives.models.payment.Payment`
@@ -394,8 +394,14 @@ class BuyerInfo:
 class PaylineApi:
     """SOAP Client to process payment with payline, refer to Payline docs"""
 
-    soap_client = None
-    """ SOAP client object user to connect to Payline client.
+    webpayment_client = None
+    """ SOAP client object to connect to Payline WebPaymentAPI.
+
+    :type: :py:class:`pysimplesoap.client.SoapClient`
+    """
+    
+    directpayment_client = None
+    """ SOAP client object to connect to Payline DirectPaymentAPI.
 
     :type: :py:class:`pysimplesoap.client.SoapClient`
     """
@@ -458,7 +464,7 @@ class PaylineApi:
 
     def init(self):
         """Initialize the SOAP Client using `app` config."""
-        if not self.soap_client is None:
+        if not self.webpayment_client is None:
             # Already initialized
             return
 
@@ -478,18 +484,25 @@ class PaylineApi:
         self.payline_country = config["PAYLINE_COUNTRY"]
 
         try:
-            soap_client = SoapClient(
+            self.webpayment_client= SoapClient(
                 wsdl=config["PAYLINE_WSDL"],
                 http_headers={
                     "Authorization": "Basic %s" % encoded_auth,
                     "Content-Type": "text/plain",
                 },
             )
-            self.soap_client = soap_client
+            self.directpayment_client= SoapClient(
+                wsdl=config["PAYLINE_DIRECTPAYMENT_WSDL"],
+                http_headers={
+                    "Authorization": "Basic %s" % encoded_auth,
+                    "Content-Type": "text/plain",
+                },
+            )
 
         except pysimplesoap.client.SoapFault as err:
             print("Extranet API error: {}".format(err), file=stderr)
-            self.soap_client = None
+            self.webpayment_client = None
+            self.directpayment_client = None
             raise err
 
     def doWebPayment(self, order_info, buyer_info):
@@ -519,7 +532,7 @@ class PaylineApi:
             return payment_response
 
         try:
-            response = self.soap_client.doWebPayment(
+            response = self.webpayment_client.doWebPayment(
                 version=PAYLINE_VERSION,
                 payment={
                     "amount": order_info.amount_in_cents,
@@ -591,7 +604,7 @@ class PaylineApi:
             return PaymentDetails(response)
 
         try:
-            response = self.soap_client.getWebPaymentDetails(
+            response = self.webpayment_client.getWebPaymentDetails(
                 version=PAYLINE_VERSION, token=token
             )
             return PaymentDetails(response)
@@ -617,11 +630,20 @@ class PaylineApi:
             return RefundDetails(response)
 
         try:
-            response = self.soap_client.doRefund(
+            # First try reset in case payment has not been debited yet
+            response = self.directpayment_client.doReset(
                 version=PAYLINE_VERSION,
-                transactionID=payment_details.transaction["id"],
-                payment=payment_details.payment,
+                transactionID=payment_details.transaction["id"]
             )
+
+            # If payment has already been debited, try full refund
+            if(response["result"]["code"] == "01917"):
+                response = self.directpayment_client.doRefund(
+                    version=PAYLINE_VERSION,
+                    transactionID=payment_details.transaction["id"],
+                    payment=payment_details.payment,
+                )
+
             return RefundDetails(response)
 
         except pysimplesoap.client.SoapFault as err:
@@ -637,7 +659,7 @@ class PaylineApi:
         :return: True if PaylineApi is disabled.
         :rtype: boolean
         """
-        return self.soap_client is None
+        return self.webpayment_client is None
 
 
 api = PaylineApi()

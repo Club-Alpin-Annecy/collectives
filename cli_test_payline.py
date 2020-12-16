@@ -21,6 +21,7 @@ def test_dowebpayment():
     buyer.mobilePhone = "0600000000"
     buyer.birthDate = "1980-01-20"
 
+
     doWebPaymentResponse = payline.api.doWebPayment(order, buyer)
     if not doWebPaymentResponse is None:
         print(
@@ -44,6 +45,13 @@ def test_dowebpayment():
                 )
             )
             print(getWebPaymentDetailsResponse.raw_metadata())
+
+
+            # Try refund
+            refundResponse = payline.api.doRefund(getWebPaymentDetailsResponse)
+
+            if not refundResponse is None:
+                print(refundResponse.raw_metadata())
 
 
 if __name__ == "__main__":

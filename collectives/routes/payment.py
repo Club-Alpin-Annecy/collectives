@@ -607,8 +607,12 @@ def refund_all(event_id):
             success_count += 1
         else:
             # Do not update payment, warn user
+            if refund_details is not None:
+                error_str = f"Erreur {refund_details.result.code} {refund_details.result.long_message}"
+            else:
+                error_str = "API indisponible"
             flash(
-                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº {payment.processor_order_ref}.",
+                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº {payment.processor_order_ref}: {error_str}.",
                 "error",
             )
 
