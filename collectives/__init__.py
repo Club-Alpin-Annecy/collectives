@@ -18,6 +18,8 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_statistics import Statistics
 
+from click import pass_context
+
 from . import models, api, forms
 from .routes import (
     root,
@@ -31,6 +33,45 @@ from .routes import (
 )
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline, statistics
+
+
+@pass_context
+def is_running_migration(ctx):
+    """Detects whether we are running a migration command
+
+    :param ctx: The current click context
+    :type ctx: :py:class:`cli.Context`
+    :return: True if running  a migration
+    :rtype: False
+    """
+    while ctx is not None:
+        if ctx.command and ctx.command.name == "db":
+            return True
+        ctx = ctx.parent
+    return False
+
+
+def populate_db(app):
+    """Populates the database with admin account and activities,
+    if and only if we're not currently running a db migration command
+
+    :param app: The Flask application
+    :type app: :py:class:`flask.Application`
+    """
+    try:
+        # pylint: disable=E1120
+        running_migration = is_running_migration()
+    except RuntimeError:
+        # There is no active CLI context
+        running_migration = False
+
+    if running_migration:
+        print("Migration detected, skipping populating database")
+        return
+
+    print("Populating database with initial values")
+    auth.init_admin(app)
+    init.activity_types(app)
 
 
 def create_app(config_filename="config"):
@@ -108,9 +149,7 @@ def create_app(config_filename="config"):
         # Initialize DB
         # models.db.create_all()
 
-        # Create admin user
-        auth.init_admin(app)
-        init.activity_types(app)
+        populate_db(app)
 
         if app.config["STATISTICS_ENABLED"]:
             Statistics(
