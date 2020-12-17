@@ -53,7 +53,7 @@ def is_running_migration(ctx):
 
 def populate_db(app):
     """Populates the database with admin account and activities,
-    if an only if we're not currently running a db migration command
+    if and only if we're not currently running a db migration command
 
     :param app: The Flask application
     :type app: :py:class:`flask.Application`
