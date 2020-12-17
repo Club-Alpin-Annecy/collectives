@@ -132,7 +132,7 @@ function eventRowFormatter(row){
         if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
 
 
-        html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['css']} type" title="${tag['name']}"></span> ${tag['name']} `)
+        html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
         html_tags = html_tags.join(' - ')
 
         html += `<div class="section">

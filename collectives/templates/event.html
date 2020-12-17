@@ -32,7 +32,7 @@
       {% if event.tags %}
       <h5>
           {% for tag in event.tags %}
-               <span class="activity s30px {{tag.css}}" title="{{tag.name}}" ></span> {{tag.name}}
+               <span class="activity s30px {{tag.short}}" title="{{tag.name}}" ></span> {{tag.name}}
           {% endfor %}
           <br/><br/>
       </h5>

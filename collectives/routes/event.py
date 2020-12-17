@@ -443,11 +443,9 @@ def manage_event(event_id=None):
     event.set_rendered_description(event.description)
 
     # Update tags (brute option: purge all and create new)
-    tags = list(event.tag_ref)
-    for tag in tags:
-        event.tag_ref.remove(tag)
+    event.tag_refs.clear()
     for tag in form.tag_list.data:
-        event.tag_ref.append(EventTag(tag))
+        event.tag_refs.append(EventTag(tag))
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)

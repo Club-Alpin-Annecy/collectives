@@ -14,7 +14,7 @@ from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
 from ..models import Registration
-from ..models import ActivityType, EventTagTypes
+from ..models import ActivityType, EventTag
 from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
 from ..utils.time import current_time
@@ -138,7 +138,7 @@ class EventForm(ModelForm, FlaskForm):
 
     multi_activities_mode = BooleanField("Sortie multi-activités")
 
-    tag_list = MultiCheckboxField("Labels", choices=EventTagTypes.choices(), coerce=int)
+    tag_list = MultiCheckboxField("Labels", coerce=int)
 
     source_event = None
     current_leaders = []
@@ -162,7 +162,7 @@ class EventForm(ModelForm, FlaskForm):
             self.type.data = int(activities[0].id)
             self.types.data = [a.id for a in activities]
             self.set_current_leaders(self.source_event.leaders)
-            self.tag_list.data = [int(tag) for tag in self.source_event.tags]
+            self.tag_list.data = [tag.type for tag in self.source_event.tag_refs]
         else:
             self.set_current_leaders([])
 
@@ -214,6 +214,8 @@ class EventForm(ModelForm, FlaskForm):
                 self.main_leader_id.default = self.current_leaders[0].id
                 self.main_leader_id.process([])
         self.main_leader_fields = list(self.main_leader_id)
+
+        self.tag_list.choices = EventTag.choices()
 
     def setup_leader_actions(self):
         """
