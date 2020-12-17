@@ -196,7 +196,9 @@ def export_payments(event_id):
 
     # Fetch all associated payments
     query = db.session.query(Payment)
-    query = query.filter(Payment.status.in_([PaymentStatus.Approved, PaymentStatus.Refunded]))
+    query = query.filter(
+        Payment.status.in_([PaymentStatus.Approved, PaymentStatus.Refunded])
+    )
     query = query.filter(PaymentItem.event_id == event_id)
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
     payments = query.all()
@@ -297,7 +299,9 @@ def payment_receipt(payment_id):
 
     if is_refund:
         if not payment.has_refund_receipt():
-            flash("Justificatif de remboursement indisponible pour ce paiement", "error")
+            flash(
+                "Justificatif de remboursement indisponible pour ce paiement", "error"
+            )
             return redirect(url_for("event.view_event", event_id=event.id))
     elif not payment.has_receipt():
         flash("Recu indisponible pour ce paiement", "error")

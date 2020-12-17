@@ -342,7 +342,9 @@ class Payment(db.Model):
 
     :type: :py:class:`collectives.models.payment.PaymentType`"""
 
-    status = db.Column(db.Enum(PaymentStatus), nullable=False,
+    status = db.Column(
+        db.Enum(PaymentStatus),
+        nullable=False,
         info={
             "choices": PaymentStatus.choices(),
             "coerce": PaymentStatus.coerce,
@@ -392,9 +394,7 @@ class Payment(db.Model):
     :type: str
     """
 
-    refund_metadata = db.Column(
-        db.Text
-    )
+    refund_metadata = db.Column(db.Text)
     """ Raw metadata concerning this payment refund transaction.
 
     :type: str

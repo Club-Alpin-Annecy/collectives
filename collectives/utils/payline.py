@@ -95,7 +95,7 @@ class PaymentResult:
         return PaymentStatus.Initiated
 
     def is_accepted(self):
-        """ Checks whether the call was successful
+        """Checks whether the call was successful
 
         :return: True if successful (return message 'ACCEPTED'), False for any other
         :rtype: bool
@@ -399,7 +399,7 @@ class PaylineApi:
 
     :type: :py:class:`pysimplesoap.client.SoapClient`
     """
-    
+
     directpayment_client = None
     """ SOAP client object to connect to Payline DirectPaymentAPI.
 
@@ -484,14 +484,14 @@ class PaylineApi:
         self.payline_country = config["PAYLINE_COUNTRY"]
 
         try:
-            self.webpayment_client= SoapClient(
+            self.webpayment_client = SoapClient(
                 wsdl=config["PAYLINE_WSDL"],
                 http_headers={
                     "Authorization": "Basic %s" % encoded_auth,
                     "Content-Type": "text/plain",
                 },
             )
-            self.directpayment_client= SoapClient(
+            self.directpayment_client = SoapClient(
                 wsdl=config["PAYLINE_DIRECTPAYMENT_WSDL"],
                 http_headers={
                     "Authorization": "Basic %s" % encoded_auth,
@@ -615,6 +615,16 @@ class PaylineApi:
         return None
 
     def doRefund(self, payment_details):
+        """Tries to refund a previously approved online payment.
+
+        Will first try a 'reset' call (cancel immediately the payment if it has not
+        been debited yet), and if this fail will try a full 'refund' call.
+
+        :param payment_details: The payment details as returned by :py:meth:`getWebPaymentDetails`
+        :type token: :py:class:`collectives.utils.payline.PaymentDetails`
+        :return: An object representing the response details, or None if the API call failed
+        :rtype: :py:class:`collectives.utils.payline.RefundDetails`
+        """
         self.init()
 
         if self.disabled():
@@ -632,12 +642,11 @@ class PaylineApi:
         try:
             # First try reset in case payment has not been debited yet
             response = self.directpayment_client.doReset(
-                version=PAYLINE_VERSION,
-                transactionID=payment_details.transaction["id"]
+                version=PAYLINE_VERSION, transactionID=payment_details.transaction["id"]
             )
 
             # If payment has already been debited, try full refund
-            if(response["result"]["code"] == "01917"):
+            if response["result"]["code"] == "01917":
                 response = self.directpayment_client.doRefund(
                     version=PAYLINE_VERSION,
                     transactionID=payment_details.transaction["id"],

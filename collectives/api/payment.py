@@ -81,9 +81,7 @@ class PaymentSchema(marshmallow.Schema):
     :type: string"""
 
     refund_time = fields.Function(
-        lambda p: p.refund_time.strftime("%d/%m/%y")
-        if p.refund_time
-        else None
+        lambda p: p.refund_time.strftime("%d/%m/%y") if p.refund_time else None
     )
     """ Time at which the payment has been refunded
 
