@@ -52,6 +52,9 @@
       {% if current_user.is_admin() and not payment.is_offline() %}
         {{ details_row("Token", payment.processor_token) }}
         {{ details_row("Metadata", payment.raw_metadata) }}
+        {% if payment.refund_metadata %}
+         {{ details_row("Metadata du remboursement", payment.refund_metadata) }}
+        {% endif %}
       {% endif %}  
     {% endif %}  
 

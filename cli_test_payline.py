@@ -1,5 +1,6 @@
-from collectives import create_app
+import sys
 
+from collectives import create_app
 from collectives.utils import payline
 
 
@@ -53,9 +54,15 @@ def test_dowebpayment():
             if not refundResponse is None:
                 print(refundResponse.raw_metadata())
 
+def getPaymentDetails(token):
+    details = payline.api.getWebPaymentDetails(token)
+    print(details.raw_metadata())
 
 if __name__ == "__main__":
     app = create_app()
     app.config["SERVER_NAME"] = "localhost"
     with app.app_context():
-        test_dowebpayment()
+        if len(sys.argv) > 1:
+            getPaymentDetails(sys.argv[1])
+        else:
+           test_dowebpayment()
