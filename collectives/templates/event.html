@@ -29,6 +29,14 @@
         {% endif %}
         {{event.title}}
       </h3>
+      {% if event.tags %}
+      <h5>
+          {% for tag in event.tags %}
+               <span class="activity s30px {{tag.short}}" title="{{tag.name}}" ></span> {{tag.name}}
+          {% endfor %}
+          <br/><br/>
+      </h5>
+      {% endif %}
 
       <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
         {{ format_datetime_range(event.start, event.end) | capitalize}}

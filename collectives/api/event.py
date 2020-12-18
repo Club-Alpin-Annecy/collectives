@@ -147,6 +147,10 @@ class EventSchema(marshmallow.Schema):
     """ Current status event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
+    tags = fields.Function(lambda event: event.tags)
+    """ Tags this event.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
 
     class Meta:
         """Fields to expose"""
@@ -168,6 +172,7 @@ class EventSchema(marshmallow.Schema):
             "activity_types",
             "is_confirmed",
             "status",
+            "tags",
         )
 
 

@@ -14,6 +14,7 @@ window.onload = function(){
         ],
         columns:[
             {title: "Type",         field:"activity_types", formatter: typesFormatter     },
+            {title: "Tags",         field:"tags",           formatter: tagsFormatter     },
             {title: "État",         field:"status",         sorter:"string"                 },
             {title: "Titre",        field:"title",          sorter:"string"                 },
             {title: "Date",         field:"start",          sorter:"string",             formatter:"datetime",
@@ -42,5 +43,10 @@ function leadersFormatter(cell, formatterParams, onRendered){
 
 function typesFormatter(cell, formatterParams, onRendered){
     var names = cell.getValue().map((activity) => `<span class="activity ${activity['short']} s30px"></span>`);
+    return names.join(' ');
+}
+
+function tagsFormatter(cell, formatterParams, onRendered){
+    var names = cell.getValue().map((tag) => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> `);
     return names.join(' ');
 }

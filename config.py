@@ -283,6 +283,13 @@ a hash. ``short`` is the name of the icon.
 :type: dict
 """
 
+EVENT_TAGS = {
+    1:  {"short": "green_transport", "name": "Mobilité douce"},
+    2:  {"short": "mountain_protection", "name": "Connaissance et protection de la montagne"},
+    3:  {"short": "trip", "name": "Séjour"},
+    4:  {"short": "training", "name": "Formation"},
+}
+
 # Technical stuff
 MAX_FILE_SIZE = 2 * 1024 * 1024
 """ Max size to upload files.

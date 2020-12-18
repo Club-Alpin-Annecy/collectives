@@ -131,6 +131,10 @@ function eventRowFormatter(row){
         var status_string = ''
         if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
 
+
+        html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
+        html_tags = html_tags.join(' - ')
+
         html += `<div class="section">
                      <h4>
                      ${status_string}
@@ -148,6 +152,7 @@ function eventRowFormatter(row){
                         ${slots(data.num_slots - data.free_slots)}
                         ${slots(data.free_slots, 'free_slot')}
                      </div>
+                     <div>${html_tags}</div>
                  </div>
                  <div class="breaker"></div>`;
         divRow.innerHTML = html;
