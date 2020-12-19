@@ -5,6 +5,7 @@ This modules contains the /event Blueprint
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
+from sqlalchemy import or_, func
 from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms import EventForm, photos
@@ -20,6 +21,7 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
 from ..email_templates import send_cancelled_event_notification
+from ..api.event import filter_hidden_events
 
 from ..utils.time import current_time
 from ..utils.url import slugify
@@ -156,47 +158,63 @@ def validate_dates_and_slots(event):
 @blueprint.route("/category/<int:activity_type_id>")
 @blueprint.route("/category/<int:activity_type_id>-<string:name>")
 @blueprint.route("/category/<string:name>")
-def index(activity_type_id=None, name=""):
+def index(activity_type_id=None, name=None):
     """Event and website home page.
 
     :param int activity_type_id: Optional, ID of the activity_type to filter on.
     :param string title: Name of the activity type, only for URL cosmetic purpose.
     """
+    params = {}
+    params["page"] = int(request.args.get("page", 1))
+    params["size"] = int(request.args.get("size", 10))
+    params["confirmed_only"] = request.args.get("confirmed_only", "False") == "True"
+    params["past"] = request.args.get("past", "False") == "True"
+    params["search"] = request.args.get("search", None)
+
     types = ActivityType.query.order_by("order", "name").all()
 
-    filtered_activity = None
+    query = Event.query
+    # Display pending events only to relevant persons
+    query = filter_hidden_events(query)
+
+    if params["confirmed_only"]:
+        query = query.filter(Event.status == EventStatus.Confirmed)
+    if not params["past"]:
+        query = query.filter(Event.end >= current_time().date())
+
+    # Activity filtering
     if activity_type_id:
+        query = query.filter(Event.activity_types.any(id=activity_type_id))
         filtered_activity = ActivityType.query.get(activity_type_id)
-        # If name is empty, redirect to a more meaningful URL
-        if filtered_activity and not name:
-            return redirect(
-                url_for(
-                    "event.index",
-                    activity_type_id=filtered_activity.id,
-                    name=slugify(filtered_activity.name),
-                )
-            )
     elif name:
-        filtered_name = slugify(name).replace("-", " ")
+        query = query.filter(Event.activity_types.any(short=name))
         filtered_activity = ActivityType.query.filter(
-            ActivityType.name.ilike(f"%{filtered_name}%")
+            ActivityType.short == name
         ).first()
-        # Redirect to a more robust URL
-        if filtered_activity:
-            return redirect(
-                url_for(
-                    "event.index",
-                    activity_type_id=filtered_activity.id,
-                    name=slugify(filtered_activity.name),
-                )
-            )
+    else:
+        filtered_activity = None
+
+    if params["search"]:
+        title_search = Event.title.like(f"%{params['search']}%")
+
+        user_full = User.first_name + " " + User.last_name
+        user_search = func.lower(user_full).like(f"%{params['search']}%")
+        user_search = Event.leaders.any(user_search)
+
+        query = query.filter(or_(title_search, user_search))
+
+    query = query.order_by(Event.start).order_by(Event.id)
+    pagination = query.paginate(params["page"], params["size"], False)
 
     return render_template(
         "index.html",
         conf=current_app.config,
         types=types,
         photos=photos,
+        params=params,
+        request_args=request.args,
         filtered_activity=filtered_activity,
+        pagination=pagination,
     )
 
 

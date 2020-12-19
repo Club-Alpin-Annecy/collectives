@@ -21,6 +21,9 @@
   margin-top: 2em;
   color:  rgb(235,105,28);
 }
+.panel h4 a{
+	color: inherit;
+}
 
 .contact-link{
 	text-align: justify;
@@ -193,6 +196,10 @@ img.icon{
 }
 .float_right{
 	float: right;
+}
+
+.inline_block{
+    display: inline-block;
 }
 
 form p{

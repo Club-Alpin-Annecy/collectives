@@ -1,0 +1,87 @@
+{% macro eventcell(event) -%}
+<div class="row" onclick="handleEventClick">
+    <div class="activities section">
+    {% for  activity in event.activity_types %}
+                <span class="activity {{activity['short']}} type"></span>
+    {% endfor %}
+    </div>
+
+    <div class="section section-photo">
+        <img src="{{event.photo_thumbnail}}" class="photo"/>
+    </div>
+
+    <div class="section">
+         <h4>
+            {% if not event.is_confirmed() %}
+                <span class="event-status">{{event.status.display_name()}}</span>
+            {% endif %}
+            <a href="{{url_for("event.view_event", event_id = event.id )}}" class="main">
+                {{event.title}}
+            </a>
+         </h4>
+         <div class="date">
+             <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
+            {{ format_datetime_range(event.start, event.end)}}
+         </div>
+
+         <div class="leader">
+             Par
+             {% for leader in event.leaders %}
+                  <a href="{{url_for('profile.show_leader', leader_id=leader.id)}}" >
+                      {{ leader.full_name() }}
+                  </a>
+                  {{ " et " if not loop.last }}
+             {% endfor %}
+         </div>
+         <div class="slots">
+             {{ slots(event.num_slots - event.free_slots()) }}
+             {{ slots(event.free_slots(), 'free_slot') }}
+         </div>
+         <div>
+             {% for tag in event.tags %}
+                <span class="activity s30px {{tag['short']}} type" title="{{tag['name']}}"></span> {{tag['name']}}
+             {% endfor %}
+         </div>
+     </div>
+     <div class="breaker"></div>
+</div>
+{%- endmacro %}
+
+{% macro slots(nb, css = '') -%}
+    {% for i in range(nb) -%}
+        <img src="/static/img/icon/ionicon/md-contact.svg" class="icon {{css}}"/>
+    {%- endfor %}
+{%- endmacro %}
+
+{% macro event_pagination(pagination, request_args) -%}
+<form class="pagination" action="{{ url_for_keep_params("event.index") }}#eventlist">
+        {% for key, value in request_args.items() %}
+            {% if key != "size" %}
+                <input type="hidden" value="{{ value }}" name="{{key}}"/>
+            {% endif %}
+        {% endfor %}
+
+        <select name="size" class="float_right" autocomplete="off" onchange="this.form.submit()">
+            {% for i in [5, 10, 20, 50, 100] %}
+                <option value="{{i}}" {{ 'selected' if i == pagination.per_page  }}> {{i}} par page </option>
+            {% endfor %}
+        </select>
+
+    {% if pagination.has_prev %}
+        <a href="{{ url_for_keep_params("event.index", page=pagination.page-1) }}#eventlist">&laquo;</a>
+    {% endif %}
+
+    {%- for page in pagination.iter_pages() %}
+        {% if page %}
+              <a href="{{ url_for_keep_params("event.index", page=page) }}#eventlist" class="{{ 'active' if  page == pagination.page }}">{{ page }}</a>
+        {% else %}
+            <a class=ellipsis>…</a>
+        {% endif %}
+    {%- endfor %}
+    {% if pagination.has_next %}
+        <a href="{{ url_for_keep_params("event.index", page=pagination.page+1) }}#eventlist">&raquo;</a>
+    {% endif %}
+
+    <div class="breaker"></div>
+</form>
+{%- endmacro %}

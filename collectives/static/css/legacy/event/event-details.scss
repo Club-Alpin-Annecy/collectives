@@ -1,13 +1,10 @@
 #eventlist #filters {
     background: white;
     padding: 20px;
-    text-align: right;
+    text-align: center;
 }
 
-#eventlist #filters input.button {
-    display: none;
-}
-#eventlist #filters input.button + label {
+#eventlist #filters a.button {
     height: 40px;
     border: 2px solid rgb(29, 105, 137);
     font-size: 20px;
@@ -18,14 +15,27 @@
     color: grey;
     cursor: pointer;
 }
-#eventlist #filters input.button:checked + label {
+#eventlist #filters a.button.checked, #eventlist #filters form input[type="submit"] {
     color: white;
     background-color: rgb(29, 105, 137);
     font-weight: bold;
 }
+#eventlist #filters form {
+    display: inline-block;
+    border: 2px solid rgb(29, 105, 137);
+    height: 40px;
+    overflow: hidden;
+    margin: 5px 0;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+#eventlist #filters form input{
+    height: 100%;
+}
 
 #eventlist #eventstable {
-    min-height: 2200px;
+    border-top: 1px solid #cccccc;
 }
 
 #eventlist #eventstable .row {
@@ -34,9 +44,12 @@
     flex-direction: row;
     white-space: normal;
     align-items: center;
+    cursor: pointer;
+    border-bottom: 1px solid #cccccc;
 }
 #eventlist #eventstable .row:hover {
     text-decoration: none;
+    background-color: #eeeeee;
 }
 #eventlist #eventstable .row .section {
     margin: 0 20px;
@@ -57,14 +70,11 @@
     margin: 0;
 }
 
-#eventlist #eventstable .tabulator-table {
-    width: 100%;
-}
 #eventlist #eventstable .row div div {
     font-size: 120%;
 }
 #eventlist #eventstable .activities {
-    height: 130px;
+    min-height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -75,6 +85,30 @@
 
 #eventlist #eventstable .slots .free_slot {
     opacity: 0.5;
+}
+
+.pagination {
+  text-align: center;
+  margin: 1em auto;
+}
+.pagination a {
+  color: black;
+  padding: 8px 16px;
+  text-decoration: none;
+  color:  #1d6989;
+  border: 1px solid #1d6989; /* Gray */
+  margin: 0 4px;
+}
+.pagination a.active {
+  background-color: #1d6989;
+  color: white;
+  border-color: #1d6989;
+}
+.pagination a:hover:not(.active) {
+    background-color: #dddddd;
+}
+.pagination a:hover{
+    text-decoration: inherit;
 }
 
 span.event-status {
@@ -209,6 +243,8 @@ span.event-status {
     line-height: 40px;
     display: inline-block;
     z-index: $z-index-m;
+    margin: 5px 0;
+    box-sizing: border-box;
 }
 
 .select .chevrons {
@@ -220,20 +256,12 @@ span.event-status {
     position: relative;
     color: rgb(29, 105, 137);
 }
-.select input[type="checkbox"] {
-    height: 100%;
-    width: 100%;
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: $z-index-m;
-}
-.select input[type="checkbox"]:checked + .message {
-    display: block;
-}
-.select input[type="radio"] {
+
+.select #select_display ~ .cell, .select #select_display{
     display: none;
+}
+.select #select_display:checked ~ .cell , .select #select_display:checked ~ .closer {
+    display: block;
 }
 
 .select label.closer {
@@ -243,11 +271,12 @@ span.event-status {
     height: 100vh;
     width: 100vw;
     background: none;
+    display: none;
     z-index: $z-index-m;
 }
 
-.select label {
-    display: none;
+.select .cell {
+    display: block;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
@@ -256,26 +285,16 @@ span.event-status {
     cursor: pointer;
     z-index: $z-index-m;
     position: relative;
-}
-.select input[type="checkbox"]:checked ~ label {
-    display: block;
-    border-top: none;
-}
-.select input[type="radio"]:checked + label {
-    display: block;
-    background-color: #e0e0e0;
+    text-decoration: none;
+    padding: 0px 5px;
+    color:  rgb(29, 105, 137);
 }
 
-.select input[type="checkbox"]:not(:checked) ~ label {
-    background-color: white !important;
+.select .cell:hover{
+    background-color: #eeeeee;
 }
 
-.select label label {
-    display: block;
-    border: none;
-    background: none;
-    padding: 0 10px;
-}
+
 
 ul.radio_fields {
     margin-top:0.25em;

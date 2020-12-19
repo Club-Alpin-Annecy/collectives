@@ -4,6 +4,8 @@ This module should not contains other functions than :py:func:`helpers_processor
 """
 import inspect
 import html
+from flask import request, url_for
+
 
 from . import time as custom_time
 from . import numbers
@@ -22,6 +24,7 @@ def helpers_processor():
     helper_functions["isMobileUser"] = isMobileUser
     helper_functions["version_link"] = version_link
     helper_functions["is_tracking_disabled"] = statistics.is_tracking_disabled
+    helper_functions["url_for_keep_params"] = url_for_keep_params
 
     return helper_functions
 
@@ -47,3 +50,17 @@ def version_link(version):
     ] = f'<a href="https://github.com/Club-Alpin-Annecy/collectives/releases/tag/{parts[0]}">{parts[0]}</a>'
 
     return "-".join(parts)
+
+
+def url_for_keep_params(endpoint, **kwargs):
+    """Build an url but keep current parameters.
+
+    Useful to reload the same page but changing only one parameter.
+
+    :param string endpoint: The require endpint (see :py:func:`flask.url_for`)
+    :param dict kwargs: the parameters to be overriden
+    :return: the url required
+    :rtype: string
+    """
+    args = {**request.view_args, **request.args, **kwargs}
+    return url_for(endpoint, **args)

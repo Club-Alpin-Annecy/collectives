@@ -13,21 +13,6 @@ from ..utils.time import current_time
 from .common import blueprint, marshmallow, avatar_url
 
 
-def photo_uri(event):
-    """Generate an URI for event image using Flask-Images.
-
-    Returned images are thumbnail of 200x130 px.
-
-    :param event: Event which will be used to get the image.
-    :type event: :py:class:`collectives.models.event.Event`
-    :return: The URL to the thumbnail
-    :rtype: string
-    """
-    if event.photo is not None:
-        return url_for("images.crop", filename=event.photo, width=200, height=130)
-    return url_for("static", filename="img/icon/ionicon/md-images.svg")
-
-
 def filter_hidden_events(query):
     """Update a SQLAlchemy query object with a filter that
     removes Event with a status that the current use is not allowed to see
@@ -102,12 +87,6 @@ class ActivityTypeSchema(marshmallow.Schema):
 class EventSchema(marshmallow.Schema):
     """ Schema used to describe event in index page."""
 
-    photo_uri = fields.Function(photo_uri)
-    """ URI of the event image thumnail.
-
-    See also: :py:func:`photo_uri`
-
-    :type: :py:class:`marshmallow.fields.Function`"""
     free_slots = fields.Function(lambda event: event.free_slots())
     """ Number of free user slots for this event.
 
@@ -164,7 +143,7 @@ class EventSchema(marshmallow.Schema):
             "num_online_slots",
             "registration_open_time",
             "registration_close_time",
-            "photo_uri",
+            "photo_thumbnail",
             "view_uri",
             "free_slots",
             "occupied_slots",

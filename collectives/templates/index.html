@@ -2,19 +2,14 @@
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
+{% import 'event/macros.html' as event_macros with context %}
+
 
 {% block header %}
   {% block title %}Liste{% endblock %}
 {% endblock %}
 
 {% block additionalhead %}
-
-
-  {# Tabulator: for tables#}
-  <link href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.js"></script>
-
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
   {# Autocomplete for leader lookup #}
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
@@ -25,13 +20,9 @@
 
   <script>
       window.onload = function() {
-          buildEventsTable();
-      
-          {% if filtered_activity %}
-            filterConfirmedOnly(false);
-            filterFutureOnly(true);
-            selectActivity('{{filtered_activity.short}}');
-          {% endif %}
+          gotoEvents(0);
+          prepareEventClick();
+          autocompleteLeaders();
       }
   </script>
 
@@ -64,51 +55,63 @@
     <div id="filters">
         <div>
 
-            <input
-                    type="checkbox"
-                    onchange="filterFutureOnly(!this.checked)"
-                    autocomplete="off"
-                    id="pastcheckbox"
-                    class="button button-secondary"
-                    />
-            <label class="checkbox" for="pastcheckbox"> Passées </label>
+            <a      id="pastcheckbox"
+                    href="{{ url_for_keep_params("event.index", past=not params['past']) }}#eventlist"
+                    class="button button-secondary {{ "checked" if params['past'] }}"
+                    >Passées</a>
+            <a      id="cancelledcheckbox"
+                    href="{{ url_for_keep_params("event.index", confirmed_only=not params['confirmed_only']) }}#eventlist"
+                    class="button button-secondary {{ "checked" if not params['confirmed_only'] }}"
+                    >Annulées</a>
+            <form action="{{ url_for_keep_params("event.index") }}#eventlist">
+                {% for key, value in request_args.items() %}
+                    {% if key != "search" %}
+                        <input type="hidden" value="{{ value }}" name="{{key}}"/>
+                    {% endif %}
+                {% endfor %}
 
-            <input
-                    type="checkbox"
-                    onchange="filterConfirmedOnly(!this.checked)"
-                    autocomplete="off"
-                    checked="1"
-                    id="cancelledcheckbox"
-                    class="button button-secondary"
-                    />
-            <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
-
+                <input type="text" value="{{ params['search'] if params['search'] }}" placeholder="Recherche" name="search"/>
+                <input type="submit" value="GO">
+            </form>
             <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_display"/>
-                    <label for="select_display"><label>Sélectionner votre activité</label></label>
+                    <label for="select_display" class="cell" >
+                            <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
+                            {% if filtered_activity %}
+                                <span class="activity {{filtered_activity.short}} s30px"></span>
+                                {{filtered_activity.name}}
+                            {% else %}
+                                Toutes activités
+                            {% endif %}
+                    </label>
+
+                    <input type="checkbox" id="select_display" autocomplete="off"/>
                     <label for="select_display" class="closer"></label>
 
-                    <input type="radio" name="activity" id="select_all" checked/>
-                    <label for="select_all" onclick="selectActivity(false);">
-                        <label for="select_display">
-                            Toutes activités
-                        </label>
-                    </label>
-                    {% for type in types %}
-                        <input type="radio" name="activity" id="select_{{type.short}}"/>
-                        <label for="select_{{type.short}}" onclick="selectActivity('{{type.short}}');">
-                            <label for="select_display">
-                                <span class="activity {{type.short}} s30px"></span>
-                                {{type.name}} 
-                            </label>
-                        </label>
-                    {% endfor %}
+                    {% if filtered_activity != None %}
+                        <a href="{{url_for_keep_params("event.index", name=None, activity_type_id=None, page=None) }}#eventlist" class="cell" >
+                                    Toutes activités
+                        </a>
+                    {% endif %}
 
+                    {% for type in types %}
+                        {% if type.id != filtered_activity.id %}
+                            <a href="{{url_for_keep_params("event.index", name=type.short, page=None) }}#eventlist" class="cell" >
+                                        <span class="activity {{type.short}} s30px"></span>
+                                        {{type.name}}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
             </div>
         </div>
     </div>
-    <div id="eventstable"></div>
+
+    {{ event_macros.event_pagination(pagination, request_args) }}
+    <div id="eventstable">
+        {% for event in pagination.items %}
+            {{ event_macros.eventcell(event) }}
+        {% endfor %}
+    </div>
+    {{ event_macros.event_pagination(pagination, request_args) }}
 </div>
 
 {% endblock %}

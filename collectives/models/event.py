@@ -2,6 +2,7 @@
 """
 from flask_uploads import UploadSet, IMAGES
 from sqlalchemy.orm import validates
+from flask import url_for
 
 from .globals import db
 from .registration import RegistrationStatus, RegistrationLevels
@@ -233,6 +234,19 @@ class Event(db.Model):
         if file is not None:
             filename = photos.save(file, name="event-" + str(self.id) + ".")
             self.photo = filename
+
+    @property
+    def photo_thumbnail(self, **kwargs):
+        """Generate an URI for event image using Flask-Images.
+
+        Returned images are thumbnail of 200x130 px.
+
+        :return: The URL to the thumbnail
+        :rtype: string
+        """
+        if self.photo is not None:
+            return url_for("images.crop", filename=self.photo, width=200, height=130)
+        return url_for("static", filename="img/icon/ionicon/md-images.svg")
 
     def set_rendered_description(self, description):
         """Render description and returns it.
