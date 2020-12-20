@@ -4,7 +4,7 @@
     text-align: center;
 }
 
-#eventlist #filters a.button {
+#eventlist #filters .button {
     height: 40px;
     border: 2px solid rgb(29, 105, 137);
     font-size: 20px;
@@ -15,7 +15,7 @@
     color: grey;
     cursor: pointer;
 }
-#eventlist #filters a.button.checked, #eventlist #filters form input[type="submit"] {
+#eventlist #filters .button.checked, #eventlist #filters form img {
     color: white;
     background-color: rgb(29, 105, 137);
     font-weight: bold;

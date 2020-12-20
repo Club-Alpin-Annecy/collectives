@@ -8,7 +8,7 @@ from flask import request, url_for
 
 
 from . import time as custom_time
-from . import numbers
+from . import numbers, url
 from .misc import isMobileUser
 from . import statistics
 
@@ -25,6 +25,7 @@ def helpers_processor():
     helper_functions["version_link"] = version_link
     helper_functions["is_tracking_disabled"] = statistics.is_tracking_disabled
     helper_functions["url_for_keep_params"] = url_for_keep_params
+    helper_functions["slugify"] = url.slugify
 
     return helper_functions
 
@@ -57,7 +58,7 @@ def url_for_keep_params(endpoint, **kwargs):
 
     Useful to reload the same page but changing only one parameter.
 
-    :param string endpoint: The require endpint (see :py:func:`flask.url_for`)
+    :param string endpoint: The require endpoint (see :py:func:`flask.url_for`)
     :param dict kwargs: the parameters to be overriden
     :return: the url required
     :rtype: string

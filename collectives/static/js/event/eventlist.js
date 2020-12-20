@@ -1,5 +1,8 @@
 
 function prepareEventClick(){
+    if(document.querySelector("#eventstable .row") == null)
+        return false;
+
     document.querySelector("#eventstable .row").addEventListener("click", handleEventClick);
     document.querySelector("#eventstable .row a").addEventListener("click", (e) => e.stopPropagation());
 }

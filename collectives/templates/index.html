@@ -63,15 +63,17 @@
                     href="{{ url_for_keep_params("event.index", confirmed_only=not params['confirmed_only']) }}#eventlist"
                     class="button button-secondary {{ "checked" if not params['confirmed_only'] }}"
                     >Annulées</a>
-            <form action="{{ url_for_keep_params("event.index") }}#eventlist">
+            <form action="{{ url_for_keep_params("event.index") }}#eventlist" id="search_form">
                 {% for key, value in request_args.items() %}
                     {% if key != "search" %}
                         <input type="hidden" value="{{ value }}" name="{{key}}"/>
                     {% endif %}
                 {% endfor %}
 
-                <input type="text" value="{{ params['search'] if params['search'] }}" placeholder="Recherche" name="search"/>
-                <input type="submit" value="GO">
+                <input type="text" value="{{ params['search'] if params['search'] }}" placeholder="Encadrant / Titre" name="search"/>
+                <a class="button button-secondary checked" onclick="document.getElementById('search_form').submit();">
+                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/search-sharp.svg')}}"/>
+                </a>
             </form>
             <div class="select" >
                     <label for="select_display" class="cell" >
@@ -95,7 +97,7 @@
 
                     {% for type in types %}
                         {% if type.id != filtered_activity.id %}
-                            <a href="{{url_for_keep_params("event.index", name=type.short, page=None) }}#eventlist" class="cell" >
+                            <a href="{{url_for_keep_params("event.index", name=slugify(type.name), page=None) }}#eventlist" class="cell" >
                                         <span class="activity {{type.short}} s30px"></span>
                                         {{type.name}}
                             </a>
@@ -105,13 +107,22 @@
         </div>
     </div>
 
-    {{ event_macros.event_pagination(pagination, request_args) }}
-    <div id="eventstable">
-        {% for event in pagination.items %}
-            {{ event_macros.eventcell(event) }}
-        {% endfor %}
-    </div>
-    {{ event_macros.event_pagination(pagination, request_args) }}
+    {% if pagination.total > 0 %}
+
+        {{ event_macros.event_pagination(pagination, request_args) }}
+        <div id="eventstable">
+            {% for event in pagination.items %}
+                {{ event_macros.eventcell(event) }}
+            {% endfor %}
+        </div>
+
+        {{ event_macros.event_pagination(pagination, request_args) }}
+
+        <div>{{pagination.total}} collectives correspondent aux critères de recherche.</div>
+
+    {% else %}
+        <h4> Aucune collective correspond à vos critères de recherches.</h4>
+    {% endif %}
 </div>
 
 {% endblock %}

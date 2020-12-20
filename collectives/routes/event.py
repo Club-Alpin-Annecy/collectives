@@ -5,7 +5,7 @@ This modules contains the /event Blueprint
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
-from sqlalchemy import or_, func
+from sqlalchemy import or_
 from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms import EventForm, photos
@@ -21,7 +21,7 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
 from ..email_templates import send_cancelled_event_notification
-from ..api.event import filter_hidden_events
+from ..utils.event import filter_hidden_events
 
 from ..utils.time import current_time
 from ..utils.url import slugify
@@ -187,10 +187,11 @@ def index(activity_type_id=None, name=None):
         query = query.filter(Event.activity_types.any(id=activity_type_id))
         filtered_activity = ActivityType.query.get(activity_type_id)
     elif name:
-        query = query.filter(Event.activity_types.any(short=name))
-        filtered_activity = ActivityType.query.filter(
-            ActivityType.short == name
-        ).first()
+        filtered_name = slugify(name).replace("-", " ")
+        name_filter = ActivityType.name.ilike(f"%{filtered_name}%")
+
+        query = query.filter(Event.activity_types.any(name_filter))
+        filtered_activity = ActivityType.query.filter(name_filter).first()
     else:
         filtered_activity = None
 
@@ -198,7 +199,7 @@ def index(activity_type_id=None, name=None):
         title_search = Event.title.like(f"%{params['search']}%")
 
         user_full = User.first_name + " " + User.last_name
-        user_search = func.lower(user_full).like(f"%{params['search']}%")
+        user_search = user_full.ilike(f"%{params['search']}%")
         user_search = Event.leaders.any(user_search)
 
         query = query.filter(or_(title_search, user_search))
