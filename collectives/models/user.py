@@ -441,7 +441,7 @@ class User(db.Model, UserMixin):
         :return: True if user supervises at least one activity.
         :rtype: boolean
         """
-        return self.has_role([RoleIds.ActivitySupervisor])
+        return len(self.get_supervised_activities()) > 0
 
     def is_technician(self):
         """Check if user has a technician role.
