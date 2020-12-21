@@ -13,8 +13,19 @@
 
   {# Specific for this page #}
   <script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
-      window.onload = function() { loadTraineesTable('{{url_for("api.trainees")}}', '{{csrf_token()}}');}
+      window.onload = function () {
+        loadTraineesTable('{{url_for("api.trainees")}}', '{{csrf_token()}}');
+      
+        const searchInput = document.getElementById('user-search');
+        setupAutoComplete(
+          searchInput, 
+          '{{url_for("api.autocomplete_users")}}',
+          function(item) { return item.full_name; },
+          function(id, val) { return onSelectAutocomplete(id, val);}
+          )
+      };
   </script>
 {% endblock %}
 
