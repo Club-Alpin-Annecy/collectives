@@ -166,7 +166,16 @@ PAYLINE_WSDL = (
     environ.get("PAYLINE_WSDL")
     or f"file://{os.path.join(basedir, 'collectives/utils/payline.wsdl')}"
 )
-"""Path to WDSL file describing Payline SOAP api
+"""Path to WDSL file describing Payline WebPayment SOAP API
+
+:type: string
+"""
+
+PAYLINE_DIRECTPAYMENT_WSDL = (
+    environ.get("PAYLINE_DIRECTPAYMENT_WSDL")
+    or f"file://{os.path.join(basedir, 'collectives/utils/payline_directpayment.wsdl')}"
+)
+"""Path to WDSL file describing Payline DirectPayment SOAP API
 
 :type: string
 """

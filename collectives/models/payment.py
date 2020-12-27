@@ -261,6 +261,9 @@ class PaymentStatus(ChoiceEnum):
     Expired = 4
     """ Payment has expired due to timeout
     """
+    Refunded = 5
+    """ Payment has been refunded to the user
+    """
 
     @classmethod
     def display_names(cls):
@@ -274,6 +277,7 @@ class PaymentStatus(ChoiceEnum):
             cls.Cancelled: "Annulé",
             cls.Refused: "Refusé",
             cls.Expired: "Inabouti",
+            cls.Refunded: "Remboursé",
         }
 
 
@@ -310,7 +314,7 @@ class Payment(db.Model):
 
     :type: int"""
 
-    creditor_id = db.Column(
+    buyer_id = db.Column(
         db.Integer, db.ForeignKey("users.id"), index=True, nullable=False
     )
     """ Primary key of the user making this payment
@@ -320,7 +324,7 @@ class Payment(db.Model):
 
     reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     """ Primary key of the user reporting this payment
-    For online payments this should be similar to creditor_id, for manual payments this
+    For online payments this should be similar to buyer, for manual payments this
     would be the id of the leader/admin who reported the payment
 
     :type: int"""
@@ -338,7 +342,15 @@ class Payment(db.Model):
 
     :type: :py:class:`collectives.models.payment.PaymentType`"""
 
-    status = db.Column(db.Enum(PaymentStatus), nullable=False)
+    status = db.Column(
+        db.Enum(PaymentStatus),
+        nullable=False,
+        info={
+            "choices": PaymentStatus.choices(),
+            "coerce": PaymentStatus.coerce,
+            "label": "État du paiement",
+        },
+    )
     """ Current status of the payment
 
     :type: :py:class:`collectives.models.payment.PaymentStatus`"""
@@ -350,6 +362,11 @@ class Payment(db.Model):
 
     finalization_time = db.Column(db.DateTime)
     """ Timestamp at which the payment was finalized (approved/cancelled)
+
+    :type: :py:class:`datetime.datetime`"""
+
+    refund_time = db.Column(db.DateTime)
+    """ Timestamp at which the payment was refunded
 
     :type: :py:class:`datetime.datetime`"""
 
@@ -373,6 +390,12 @@ class Payment(db.Model):
     """ Raw metadata concerning this payment as returned by the payment processor,
         or payment details if it had been made by cash/check
         To be refined.
+
+    :type: str
+    """
+
+    refund_metadata = db.Column(db.Text)
+    """ Raw metadata concerning this payment refund transaction.
 
     :type: str
     """
@@ -406,6 +429,15 @@ class Payment(db.Model):
             and self.status == PaymentStatus.Approved
         )
 
+    def has_refund_receipt(self):
+        """:return: whether this payment has an associated refund receipt
+                    (i.e. if it is a refunded online payment)
+        :rtype: bool"""
+        return (
+            self.payment_type == PaymentType.Online
+            and self.status == PaymentStatus.Refunded
+        )
+
     def __init__(self, registration=None, item_price=None):
         """Overloaded constructor.
         Pre-fill a Payment object from an existing registration and item price
@@ -417,7 +449,7 @@ class Payment(db.Model):
             self.registration_id = registration.id
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
-            self.creditor_id = registration.user.id
+            self.buyer_id = registration.user.id
             self.reporter_id = registration.user.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal(0)

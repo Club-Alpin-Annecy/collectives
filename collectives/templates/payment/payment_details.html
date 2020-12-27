@@ -32,7 +32,7 @@
     {{ details_row("Événement", event.title) }}
     {{ details_row("Objet du paiement", payment.item.title) }}
     {{ details_row("Tarif", payment.price.title) }}
-    {{ details_row("Adhérent", payment.creditor.full_name()) }}
+    {{ details_row("Adhérent", payment.buyer.full_name()) }}
     {% if payment.registration %}
       {{ details_row("Inscription associée", payment.registration.status.display_name()) }}
     {% endif %}
@@ -43,6 +43,7 @@
     {{ details_row("Type", payment.payment_type.display_name()) }}
     {{ details_row("Date de création", format_datetime(payment.creation_time)) }}
     {{ details_row("Date de finalisation", format_datetime(payment.finalization_time)) }}
+    {{ details_row("Date de remboursement", format_datetime(payment.refund_time)) }}
     
     {% if payment.is_offline() %}
       {{ details_row("Précisions", payment.raw_metadata) }}
@@ -51,6 +52,9 @@
       {% if current_user.is_admin() and not payment.is_offline() %}
         {{ details_row("Token", payment.processor_token) }}
         {{ details_row("Metadata", payment.raw_metadata) }}
+        {% if payment.refund_metadata %}
+         {{ details_row("Metadata du remboursement", payment.refund_metadata) }}
+        {% endif %}
       {% endif %}  
     {% endif %}  
 

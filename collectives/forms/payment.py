@@ -9,7 +9,7 @@ from wtforms_alchemy import ModelForm
 
 from .order import OrderedForm
 
-from ..models.payment import ItemPrice, PaymentItem, Payment
+from ..models.payment import ItemPrice, PaymentItem, Payment, PaymentType, PaymentStatus
 from ..utils.numbers import format_currency
 
 
@@ -185,7 +185,7 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
 
     class Meta:
         model = Payment
-        only = ["amount_paid", "raw_metadata", "payment_type"]
+        only = ["amount_paid", "raw_metadata", "payment_type", "status"]
         field_args = {"raw_metadata": {"validators": [Optional()]}}
         locales = ["fr"]
 
@@ -220,7 +220,12 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
         super().__init__(*args, **kwargs)
 
         # Remove 'Online' from payment type options
-        del self.payment_type.choices[0]
+        del self.payment_type.choices[PaymentType.Online]
+
+        # Remove online-related entries from payment status options
+        del self.status.choices[PaymentStatus.Expired]
+        del self.status.choices[PaymentStatus.Cancelled]
+        del self.status.choices[PaymentStatus.Initiated]
 
         # If the registration is already 'Active', do not offer to validate it
         if registration.is_active():

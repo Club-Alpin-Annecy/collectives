@@ -51,7 +51,7 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    creditor_name = fields.Function(lambda p: p.creditor.full_name())
+    buyer_name = fields.Function(lambda p: p.buyer.full_name())
     """ Full name of the user associated to this payment
 
     :type: string"""
@@ -80,6 +80,13 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
+    refund_time = fields.Function(
+        lambda p: p.refund_time.strftime("%d/%m/%y") if p.refund_time else None
+    )
+    """ Time at which the payment has been refunded
+
+    :type: string"""
+
 
 class EventPaymentSchema(PaymentSchema):
     """Specialization of PaymentSchema for listing the payments associated to an event"""
@@ -101,7 +108,7 @@ class EventPaymentSchema(PaymentSchema):
             "price_title",
             "amount_charged",
             "amount_paid",
-            "creditor_name",
+            "buyer_name",
             "payment_type",
             "registration_status",
             "details_uri",
@@ -128,6 +135,15 @@ class MyPaymentSchema(PaymentSchema):
 
     :type: string"""
 
+    refund_receipt_uri = fields.Function(
+        lambda p: url_for("payment.refund_receipt", payment_id=p.id)
+        if p.has_refund_receipt()
+        else None
+    )
+    """ Uri of the receipt associated to the refunded online payment
+
+    :type: string"""
+
     class Meta:
         """ Fields to expose """
 
@@ -142,8 +158,10 @@ class MyPaymentSchema(PaymentSchema):
             "registration_status",
             "details_uri",
             "receipt_uri",
+            "refund_receipt_uri",
             "creation_time",
             "finalization_time",
+            "refund_time",
         )
 
 
@@ -184,7 +202,7 @@ def my_payments(status_code):
     :type status_code: string
     """
 
-    query = Payment.query.filter_by(creditor_id=current_user.id, status=status_code)
+    query = Payment.query.filter_by(buyer_id=current_user.id, status=status_code)
 
     result = query.order_by(Payment.id.desc()).all()
     response = MyPaymentSchema(many=True).dump(result)

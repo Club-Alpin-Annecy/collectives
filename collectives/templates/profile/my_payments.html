@@ -12,8 +12,10 @@
       window.onload = function(){
           var initiatedAjaxUrl = "{{url_for('api.my_payments', status_code='Initiated')}}" ;
           var finalizedAjaxUrl = "{{url_for('api.my_payments', status_code='Approved')}}" ;
-          createMyPaymentsTable("#initiated-payments", initiatedAjaxUrl , false);
-          createMyPaymentsTable("#approved-payments", finalizedAjaxUrl, true);
+          var refundedAjaxUrl = "{{url_for('api.my_payments', status_code='Refunded')}}" ;
+          createMyPaymentsTable("#initiated-payments", initiatedAjaxUrl , 'Initiated');
+          createMyPaymentsTable("#approved-payments", finalizedAjaxUrl, 'Approved');
+          createMyPaymentsTable("#refunded-payments", refundedAjaxUrl, 'Refunded');
     }
   </script>
 {% endblock %}
@@ -32,6 +34,10 @@
 
     <h4>Paiements approuvés</h4>
     <div id="approved-payments">
+    </div>
+
+    <h4>Paiements remboursés</h4>
+    <div id="refunded-payments">
     </div>
 
 </div>

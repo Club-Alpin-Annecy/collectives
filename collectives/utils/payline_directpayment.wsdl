@@ -3940,9 +3940,9 @@
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
-  <wsdl:service name="WebPaymentAPI">
-    <wsdl:port name="WebPaymentAPI" binding="impl:WebPaymentAPISoapBinding">
-      <wsdlsoap:address location="https://homologation.payline.com/V4/services/WebPaymentAPI"/>
+  <wsdl:service name="DirectPaymentAPI">
+    <wsdl:port name="DirectPaymentAPI" binding="impl:DirectPaymentAPISoapBinding">
+      <wsdlsoap:address location="https://homologation.payline.com/V4/services/DirectPaymentAPI"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

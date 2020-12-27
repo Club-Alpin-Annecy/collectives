@@ -196,7 +196,9 @@ def export_payments(event_id):
 
     # Fetch all associated payments
     query = db.session.query(Payment)
-    query = query.filter(Payment.status == PaymentStatus.Approved)
+    query = query.filter(
+        Payment.status.in_([PaymentStatus.Approved, PaymentStatus.Refunded])
+    )
     query = query.filter(PaymentItem.event_id == event_id)
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
     payments = query.all()
@@ -205,15 +207,17 @@ def export_payments(event_id):
     wb = Workbook()
     ws = wb.active
     FIELDS = {
-        "creditor.license": "Licence",
-        "creditor.first_name": "Prénom",
-        "creditor.last_name": "Nom",
-        "creditor.mail": "Email",
-        "creditor.phone": "Téléphone",
+        "buyer.license": "Licence",
+        "buyer.first_name": "Prénom",
+        "buyer.last_name": "Nom",
+        "buyer.mail": "Email",
+        "buyer.phone": "Téléphone",
         "item.title": "Objet",
         "price.title": "Tarif",
         "amount_paid": "Prix payé",
         "finalization_time": "Date",
+        "payment_status_str": "État",
+        "refund_time": "Date de remboursement",
         "payment_type_str": "Type",
         "processor_order_ref": "Référence",
     }
@@ -221,12 +225,13 @@ def export_payments(event_id):
 
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
+        payment.payment_status_str = payment.status.display_name()
         ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
 
     # set column width
-    for c in "BCDEFGI":
+    for c in "BCDEFGIK":
         ws.column_dimensions[c].width = 25
-    for c in "AHJK":
+    for c in "AHJLM":
         ws.column_dimensions[c].width = 16
 
     out = BytesIO()
@@ -273,31 +278,39 @@ def payment_details(payment_id):
 
 
 @blueprint.route("/<payment_id>/receipt", methods=["GET"])
+@blueprint.route(
+    "/<payment_id>/refund_receipt", endpoint="refund_receipt", methods=["GET"]
+)
 @valid_user()
 def payment_receipt(payment_id):
-    """Route for printing user receipt for a given payment
+    """Route for printing user receipt / refund receipt for a given payment
 
     :param payment_id: Payment primary key
     :type payment_id: int
     """
 
+    is_refund = "refund" in request.endpoint
+
     payment = Payment.query.get(payment_id)
-    if (
-        payment is None
-        or payment.item.event is None
-        or payment.creditor != current_user
-    ):
+    if payment is None or payment.item.event is None or payment.buyer != current_user:
         flash("Accès refusé", "error")
         return redirect(url_for("event.index"))
     event = payment.item.event
 
-    if not payment.has_receipt():
+    if is_refund:
+        if not payment.has_refund_receipt():
+            flash(
+                "Justificatif de remboursement indisponible pour ce paiement", "error"
+            )
+            return redirect(url_for("event.view_event", event_id=event.id))
+    elif not payment.has_receipt():
         flash("Recu indisponible pour ce paiement", "error")
         return redirect(url_for("event.view_event", event_id=event.id))
 
     activity_names = [at.name for at in event.activity_types]
+    template = "payment/refund_receipt.html" if is_refund else "payment/receipt.html"
     return render_template(
-        "payment/receipt.html",
+        template,
         conf=current_app.config,
         payment=payment,
         event=event,
@@ -367,8 +380,10 @@ def report_offline(registration_id, payment_id=None):
         form.populate_obj(payment)
 
         payment.reporter_id = current_user.id
-        payment.finalization_time = current_time()
-        payment.status = PaymentStatus.Approved
+        if payment.status == PaymentStatus.Refunded:
+            payment.refund_time = current_time()
+        else:
+            payment.finalization_time = current_time()
 
         db.session.add(payment)
 
@@ -377,7 +392,7 @@ def report_offline(registration_id, payment_id=None):
         db.session.add(registration)
 
         db.session.commit()
-        return redirect(url_for("event.view_event", event_id=event.id))
+        return redirect(url_for(".list_payments", event_id=event.id))
 
     return render_template(
         "basicform.html",
@@ -553,3 +568,60 @@ def process():
         # Return empty response
         return dict(), 200
     return redirect(url_for("event.view_event", event_id=payment.item.event_id))
+
+
+@blueprint.route("/refund_all/<event_id>", methods=["POST"])
+def refund_all(event_id):
+    """Route for refunding all online payments associated to an event
+
+    :param event_id: Id of event
+    :type event_id: int
+
+    :return: Redirection to event page
+    """
+
+    # Check that the user is allowed to modify this event
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(403)
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    # Fetch all associated approved online payments
+    query = db.session.query(Payment)
+    query = query.filter(Payment.status == PaymentStatus.Approved)
+    query = query.filter(Payment.payment_type == PaymentType.Online)
+    query = query.filter(PaymentItem.event_id == event_id)
+    query = query.filter(PaymentItem.id == Payment.payment_item_id)
+    payments = query.all()
+
+    success_count = 0
+
+    # For each payment, do refund call
+    for payment in payments:
+        details = payline.PaymentDetails.from_metadata(payment.raw_metadata)
+        refund_details = payline.api.doRefund(details)
+
+        if refund_details is not None and refund_details.result.is_accepted():
+            # Successful refund, update payment
+            payment.status = PaymentStatus.Refunded
+            payment.refund_time = current_time()
+            payment.refund_metadata = refund_details.raw_metadata()
+            db.session.add(payment)
+            success_count += 1
+        else:
+            # Do not update payment, warn user
+            if refund_details is not None:
+                error_str = f"Erreur {refund_details.result.code} {refund_details.result.long_message}"
+            else:
+                error_str = "API indisponible"
+            flash(
+                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº {payment.processor_order_ref}: {error_str}.",
+                "error",
+            )
+
+    if success_count > 0:
+        flash(f"Remboursement effectué pour {success_count}/{len(payments)} paiements")
+        db.session.commit()
+
+    return redirect(url_for("event.view_event", event_id=event_id))
