@@ -181,15 +181,8 @@ class EventForm(ModelForm, FlaskForm):
 
     def update_choices(self):
         """Updates possible choices for activity and new leader select fields"""
-        activity_ids = (
-            []
-            if self.multi_activities_mode.data or not self.type.data
-            else [self.type.data]
-        )
-        leader_choices = available_leaders(self.current_leaders, activity_ids)
-        self.add_leader.choices = [(0, "")]
-        self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
 
+        # Find possible activities given current leader choices
         source_activities = (
             self.source_event.activity_types if self.source_event else []
         )
@@ -205,6 +198,21 @@ class EventForm(ModelForm, FlaskForm):
         if self.type.data and not self.types.data:
             self.types.data = [self.type.data]
 
+        # Find possible leaders given current activity
+        if self.multi_activities_mode.data:
+            # Multi-activity, do not filter leaders by activity type
+            activity_ids = []
+        elif self.type.data:
+            # Single activity, already selected. Restrict leaders to that activity
+            activity_ids = [self.type.data]
+        else:
+            # Single activity, not yet selected
+            activity_ids = [a.id for a in activity_choices]
+
+        leader_choices = available_leaders(self.current_leaders, activity_ids)
+        self.add_leader.choices = [(0, "")]
+        self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
+
         self.main_leader_id.choices = []
         for l in self.current_leaders:
             self.main_leader_id.choices.append((l.id, "Responsable"))
@@ -215,6 +223,7 @@ class EventForm(ModelForm, FlaskForm):
                 self.main_leader_id.process([])
         self.main_leader_fields = list(self.main_leader_id)
 
+        # Tags
         self.tag_list.choices = EventTag.choices()
 
     def setup_leader_actions(self):
