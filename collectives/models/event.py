@@ -1,6 +1,7 @@
 """Module for event related classes
 """
 from flask_uploads import UploadSet, IMAGES
+from sqlalchemy.orm import validates
 
 from .globals import db
 from .registration import RegistrationStatus, RegistrationLevels
@@ -200,6 +201,19 @@ class Event(db.Model):
 
     :type: list(:py:class:`collectives.models.event_tag.EventTag`)
     """
+
+    @validates("title")
+    def truncate_string(self, key, value):
+        """Truncates a string to the max SQL field length
+        :param string key: name of field to validate
+        :param string value: tentative value
+        :return: Truncated string.
+        :rtype: string
+        """
+        max_len = getattr(self.__class__, key).prop.columns[0].type.length
+        if value and len(value) > max_len:
+            return value[: max_len - 1] + "…"
+        return value
 
     @property
     def tags(self):
