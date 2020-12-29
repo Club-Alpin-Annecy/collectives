@@ -256,7 +256,7 @@
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
       <div id="user-search-data" class="form-search search-data">
         <p>
-            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom…" >
         </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}

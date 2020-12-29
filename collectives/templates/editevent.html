@@ -19,6 +19,26 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
+  {# Leader autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script>
+      window.onload = function () {
+        const searchInput = document.getElementById('new-leader');
+        setupAutoComplete(
+          searchInput, 
+          '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids()) | safe}}',
+          function(item) { return item.full_name; },
+          function(id, val) { 
+            var field = document.getElementById('{{form.add_leader.id}}');
+            field.value = id;
+            updateLeaders(field);
+          }
+          )
+      };
+  </script>
+
 {% endblock %}
 
 {% block header %}
@@ -93,7 +113,8 @@
       </div>
       <div class="controls">
         {{ form.add_leader.label }}
-        {{ form.add_leader(title=form.add_leader.description, onchange="javascript:updateLeaders(this);") }}
+        <input type="text" id="new-leader" placeholder="Nom…">
+        {{ form.add_leader }}
       </div>
       {{ form.update_leaders(value=0) }}
     </fieldset>
