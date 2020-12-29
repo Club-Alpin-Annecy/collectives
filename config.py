@@ -307,10 +307,17 @@ a hash. ``short`` is the name of the icon.
 """
 
 EVENT_TAGS = {
-    1:  {"short": "green_transport", "name": "Mobilité douce"},
-    2:  {"short": "mountain_protection", "name": "Connaissance et protection de la montagne"},
-    3:  {"short": "trip", "name": "Séjour"},
-    4:  {"short": "training", "name": "Formation"},
+    1:  {"short": "tag_green_transport", "name": "Mobilité douce"},
+    2:  {"short": "tag_mountain_protection", "name": "Connaissance et protection de la montagne"},
+    3:  {"short": "tag_trip", "name": "Séjour", "csv_code": "Séjour/WE"},
+    4:  {"short": "tag_training", "name": "Formation"},
+    5:  {"short": "tag_rando_montagne", "name": "Randonnée montagne"},
+    6:  {"short": "tag_handicaf", "name": "Handicaf"},
+    7:  {"short": "tag_jeune_alpi", "name": "Groupe Jeune Alpinistes"},
+    8:  {"short": "tag_evenement", "name": "Evènement"},
+    9:  {"short": "tag_decouverte", "name": "Cycle découverte", "csv_code": "Débutant/Cycle Découverte"},
+    10:  {"short": "tag_rando_cool", "name": "Rando Cool"},
+    11:  {"short": "tag_shopping", "name": "Achat"},
 }
 
 LICENSE_CATEGORIES = {
