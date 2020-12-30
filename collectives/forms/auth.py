@@ -88,3 +88,23 @@ class LegalAcceptation(FlaskForm):
 
 class AccountActivationForm(PasswordResetForm, LegalAcceptation):
     pass
+
+
+class AdminTokenCreationForm(FlaskForm):
+    """Form for administrators to generate conformation tokens"""
+
+    license = StringField(
+        label="Numéro de licence",
+        description=LicenseValidator().help_string(),
+        render_kw={
+            "placeholder": LicenseValidator().sample_value(),
+            "pattern": LicenseValidator().pattern(),
+        },
+        validators=[
+            DataRequired(),
+            LicenseValidator(),
+        ],
+    )
+
+    confirm = BooleanField("Confirmer la génération du jeton de confirmation")
+    submit = SubmitField("Générer le jeton de confirmation")

@@ -8,11 +8,14 @@ from flask import current_app, Blueprint
 from flask_login import current_user
 from openpyxl import Workbook
 
-from ..forms import AdminUserForm, AdminTestUserForm, RoleForm
+from ..forms.user import AdminUserForm, AdminTestUserForm, RoleForm
+from ..forms.auth import AdminTokenCreationForm
 from ..models import User, ActivityType, Role, RoleIds, db
+from ..models.auth import ConfirmationToken
+from ..utils import extranet
 from ..utils.access import confidentiality_agreement, user_is, valid_user
-
 from ..utils.misc import deepgetattr
+from ..email_templates import send_confirmation_email
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 """ Administration blueprint
@@ -56,7 +59,11 @@ def administration():
     count["enable"] = User.query.filter(User.enabled == True).count()
 
     return render_template(
-        "administration.html", conf=current_app.config, filters=filters, count=count
+        "administration.html",
+        conf=current_app.config,
+        filters=filters,
+        count=count,
+        token_creation_form=AdminTokenCreationForm(),
     )
 
 
@@ -323,4 +330,60 @@ def export_role(raw_filters=""):
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
+    )
+
+
+@blueprint.route("/generate_token", methods=["POST"])
+def generate_token():
+    """Route for manually generating a confirmation token for a given license number"""
+    form = AdminTokenCreationForm()
+
+    # Check that the form has been properly submitted
+    if not form.validate_on_submit():
+        for field in form.field:
+            for error in form.errors[field.name]:
+                flash(f"Erreur: {field.label}: {error}", "error")
+        return redirect(url_for(".administration"))
+
+    # Check that the license number is valid
+    license_number = form.license.data
+    license_info = extranet.api.check_license(license_number)
+    if not license_info.exists:
+        flash("Le numéro de license n'existe pas ou n'a pas été renouvellé", "error")
+        return redirect(url_for(".administration"))
+
+    # Check that the license number has an email associated to it
+    user_info = extranet.api.fetch_user_info(license_number)
+    if user_info.email == None:
+        flash(
+            "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de créer un compte",
+            "error",
+        )
+        return redirect(url_for(".administration"))
+
+    # Check whether there is an existing account
+    user = User.query.filter_by(license=form.license.data).first()
+
+    # If the 'confirm' flag has been checked, create the token
+    token_link = None
+    if form.confirm.data:
+        duration = 48  # Make the token valid for 48 hours
+        token = ConfirmationToken(license_number, user, duration)
+        db.session.add(token)
+        db.session.commit()
+        # Send the confirmation email, even if the user may not receive it
+        # (in case of malicious hotline, user should be notified that his account is being reset)
+        send_confirmation_email(user_info.email, user_info.first_name, token)
+        # Create the token link
+        token_link = url_for(
+            "auth.process_confirmation", token_uuid=token.uuid, _external=True
+        )
+
+    return render_template(
+        "auth/generate_token.html",
+        conf=current_app.config,
+        form=form,
+        user=user,
+        user_info=user_info,
+        token_link=token_link,
     )

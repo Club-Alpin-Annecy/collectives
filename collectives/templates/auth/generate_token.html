@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+{% endblock %}
+
+{% block header %}
+  {% block title %}
+      Création d'un jeton de confirmation
+  {% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <h3>Création d'un jeton de confirmation</h3>
+        
+  <p>
+  <a class="button button-secondary" href="{{url_for('.administration')}}">Retour à l'administration</a>
+  </p>
+
+  {% if token_link %}
+    Le jeton de confirmation pour {{user_info.first_name}} {{user_info.last_name}} a été crée.
+    Il est valable pour 48h et est accessible à l'adresse:
+    <pre>
+        {{token_link}}
+    </pre>
+    Un email contenant ce lien a également été envoyé à <em>{{user_info.email}}</em>.
+  {% else%}
+
+  Veuillez confirmer la création d'un jeton permettant la 
+  {%if user%}récupération{%else%}création{%endif%}
+  du compte de {{user_info.first_name}} {{user_info.last_name}}.
+  L'email associée au compte est <em>{{user_info.email}}</em>; une copie du jeton y sera envoyée.
+
+  <div class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+
+        <div class="flash flash-error">
+            <strong>Erreur : {{field.label}}:</strong> {{error}}
+        </div>
+
+    {% endfor %}
+    {% endfor %}
+  </div>
+
+  <form action="" method="POST" class="form form-vertical">
+    <div class="controls">
+        <div class="field">
+        {{form.license.label}}
+        </div>
+    {{form.license(readonly=True)}}
+    </div>
+    <br>
+    <div class="inline_field">
+        {{ form.confirm(required=True, value=form.license.data) }}
+        {{ form.confirm.label }}
+    </div>
+
+    {{ form.hidden_tag() }}
+    {{ form.submit(class="button button-primary") }}
+
+  </form>
+
+  {% endif %}
+
+</div>
+{% endblock %}
+
