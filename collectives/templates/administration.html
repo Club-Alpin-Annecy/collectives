@@ -32,10 +32,10 @@
       </a>
   </div>
   <div id="users-table"></div>
-  
+
   <h4>Jetons de confirmation</h4>
-  Si un utilisateur ne recoit pas les emails contenant le jeton de confirmation nécéssaire à 
-  la création ou récupération de son compte, vous pouvez en générer un manuellement avec le formulation ci -dessous.
+  Si un utilisateur ne reçoit pas les emails contenant le jeton de confirmation nécessaire à
+  la création ou récupération de son compte, vous pouvez en générer un manuellement avec le formulaire ci-dessous.
   <form action="{{url_for('.generate_token')}}" method="post">
     {{token_creation_form.license.label() }}
     {{token_creation_form.license() }}

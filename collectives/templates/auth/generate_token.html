@@ -13,14 +13,14 @@
 {% block content %}
 <div class="panel" id="administration">
   <h3>Création d'un jeton de confirmation</h3>
-        
+
   <p>
   <a class="button button-secondary" href="{{url_for('.administration')}}">Retour à l'administration</a>
   </p>
 
   {% if token_link %}
-    Le jeton de confirmation pour {{user_info.first_name}} {{user_info.last_name}} a été crée.
-    Il est valable pour 48h et est accessible à l'adresse:
+    Le jeton de confirmation pour {{user_info.first_name}} {{user_info.last_name}} a été créé.
+    Il est valable 48h et est accessible à l'adresse:
     <pre>
         {{token_link}}
     </pre>
@@ -30,7 +30,7 @@
   Veuillez confirmer la création d'un jeton permettant la 
   {%if user%}récupération{%else%}création{%endif%}
   du compte de {{user_info.first_name}} {{user_info.last_name}}.
-  L'email associée au compte est <em>{{user_info.email}}</em>; une copie du jeton y sera envoyée.
+  L'email associé au compte est <em>{{user_info.email}}</em>; une copie du jeton y sera envoyée.
 
   <div class="form-errors">
     {% for field in form%}
@@ -66,4 +66,3 @@
 
 </div>
 {% endblock %}
-
