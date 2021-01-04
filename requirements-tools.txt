@@ -11,7 +11,7 @@ pylint-flask-sqlalchemy
 black
 pytest
 
-Sphinx
+Sphinx==2.*
 # We are using one of the latest option of docsr-coverage, thus it is loaded from
 # github.
 git+https://github.com/HunterMcGushion/docstr_coverage.git
