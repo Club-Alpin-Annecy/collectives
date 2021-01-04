@@ -322,7 +322,10 @@ def signup():
             flash("Identifiants ambigus", "error")
             return render_signup_form(form, is_recover)
         else:
-            flash("Aucun compte associé à ces identifiants", "error")
+            flash(
+                "Aucun compte n'est associé à ces identifiants. Veuillez au préalable créer votre compte.",
+                "error",
+            )
             return render_signup_form(form, is_recover)
 
     # Check form erros
@@ -393,8 +396,7 @@ def check_token(license_number):
     if token == None:
         current_app.logger.err(f"Cannot find a token for license {license_number}")
         flash(
-            error_message,
-            "error",
+            error_message, "error",
         )
         return redirect(url_for(".login"))
 
