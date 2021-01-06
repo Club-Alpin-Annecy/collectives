@@ -107,6 +107,9 @@ class PasswordValidator:
 
 class UniqueValidator(Unique):
     def __init__(
-        self, column=None, get_session=None, message="déjà associée à un compte"
+        self,
+        column=None,
+        get_session=None,
+        message="déjà associé(e) à un compte Collectives. Vous souhaitez peut-être récupérer un compte existant ?",
     ):
         Unique.__init__(self, column=column, get_session=get_session, message=message)

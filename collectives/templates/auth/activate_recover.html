@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  {% include 'partials/form-additionalhead.html' %}
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}{{ title }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel" id="administration">
+  <!-- Logging Windows -->
+  <h3>{{ title }}</h3>
+
+  {% if form.error_must_activate %}
+  <div class="form-errors">
+    <div class="flash flash-error">
+      <strong>Erreur :</strong> Aucun compte Collectives n'est associé à cet email ou numéro de licence.
+      Le compte Collectives est propre à ce site et est distinct du compte FFCAM ;
+      si ce n'est pas déjà fait, <a href="{{url_for('auth.signup')}}">cliquez ici
+       pour le créer.</a><br/>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include 'partials/form-fields.html' %}
+  
+  {% if propose_activate %}
+  <div class="form-info">
+    <div class="flash flash-info">
+      Ce formulaire vous permet de changer le mot de passe associé à un compte Collectives existant. 
+      Si vous n'avez pas encore créé votre compte sur le site des Collectives, <a href="{{url_for('auth.signup')}}">cliquez ici pour l'activer</a>. 
+    </div>
+  </div>
+  {% elif propose_recover %}
+  <div class="form-info">
+    <div class="flash flash-info">
+      Si vous avez déjà créé votre compte Collectives mais n'en connaissez plus le mot de passe, vous pouvez
+      <a href="{{url_for('auth.recover')}}">utiliser ce lien
+       pour le récupérer.</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% include 'partials/contact_link.html' %}
+</div>
+
+{% endblock %}
