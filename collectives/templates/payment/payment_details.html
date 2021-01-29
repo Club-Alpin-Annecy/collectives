@@ -16,8 +16,12 @@
 
 {% block content %}
 <div class="panel" id="administration">
-  <h4>Détails du paiement</h4>
   <p><a class="button button-secondary" href="{{url_for('payment.list_payments', event_id=event.id)}}">Retour à la liste des paiements</a></p>
+  
+  <h4>Détails du paiement</h4>
+{% if payment.terms_version %}
+  <p><a href="{{url_for('static', filename=payment.terms_version)}}">Voir les CGV acceptées</a></p>
+{% endif %}
 
   {% if payment.is_offline() and payment.registration %}
   <p>
@@ -59,7 +63,6 @@
     {% endif %}  
 
   </table>
-
 </div>
 {% endblock %}
 
