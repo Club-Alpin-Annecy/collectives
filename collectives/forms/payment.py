@@ -66,6 +66,16 @@ class ItemPriceForm(ModelForm, AmountForm):
             raise ValueError
         return price
 
+    # pylint: disable=R0201
+    def validate_license_types(form, field):
+        """Validator checking that the provided licence categories exist"""
+        valid_types = current_app.config["LICENSE_CATEGORIES"]
+        for license_type in field.data.split():
+            if not license_type in valid_types:
+                raise ValidationError(
+                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la liste des catégories en bas de page."
+                )
+
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
         super().__init__(*args, **kwargs)

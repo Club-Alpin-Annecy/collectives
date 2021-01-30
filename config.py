@@ -299,6 +299,22 @@ EVENT_TAGS = {
     4:  {"short": "training", "name": "Formation"},
 }
 
+LICENSE_CATEGORIES = {
+    "00": "Membre à vie",
+    "A1": "Membre de plus de 65 ans et cafiste depuis plus de 10 ans",
+    "C1": "Conjoint(e) de membre dans le même club",
+    "E1": "Enfant de 18 à 24 ans de membre dans le même club",
+    "E2": "Enfant ou petit-enfant de moins de 18 ans de membre dans le même club",
+    "J1": "Jeune de 18 à 24 ans",
+    "J2": "Jeune de moins de 18 ans",
+    "P1": "Professionel",
+    "T1": "Membre  titulaire de plus de 24 ans",
+}
+"""Dictionary of FFCAM licence categories with their description
+
+:type: dict
+"""
+
 # Technical stuff
 MAX_FILE_SIZE = 2 * 1024 * 1024
 """ Max size to upload files.
