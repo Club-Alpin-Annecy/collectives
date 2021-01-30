@@ -1,4 +1,7 @@
 {% if event.requires_payment() %}
+
+   {% if paid_self_register_form.item_price.choices | length %}
+
     <p>
         Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
         Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
@@ -20,6 +23,9 @@
         </div>
         {{paid_self_register_form.submit(class="button button-primary")}}
     </form>
+   {% else %}
+      Les conditions tarifaires actuellement définies pour cette collective ne s'appliquent pas à votre catégorie de licence.
+   {% endif %}
 {% else %}
     <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
