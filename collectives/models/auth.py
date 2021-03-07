@@ -81,7 +81,7 @@ class ConfirmationToken(db.Model):
 
     :type: :py:class:`collectives.models.auth.TokenEmailStatus`"""
 
-    def __init__(self, user_license, existing_user):
+    def __init__(self, user_license, existing_user, duration=None):
         """Token constructor
 
         This method also auto set uuid and expiry_date. Usually, user_license
@@ -96,7 +96,7 @@ class ConfirmationToken(db.Model):
         """
         self.uuid = str(uuid.uuid4())
         self.expiry_date = current_time() + timedelta(
-            hours=current_app.config["TOKEN_DURATION"]
+            hours=(duration or current_app.config["TOKEN_DURATION"])
         )
         self.user_license = user_license
         self.status = TokenEmailStatus.Pending
