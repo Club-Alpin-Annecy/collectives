@@ -1,0 +1,42 @@
+
+
+  <div class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+
+    <div class="flash flash-error">
+        <strong>Erreur : {{field.label}}:</strong> {{error}}
+    </div>
+
+    {% endfor %}
+    {% endfor %}
+
+    {% if form.generic_error %}
+        <div class="flash flash-error">
+        <strong>Erreur :</strong> {{form.generic_error}}
+        </div>
+    {% endif %}
+
+  </div>
+
+  <form action="" method="POST" enctype="multipart/form-data" class="form">
+    {% for field in form %}
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+            <div class="controls">
+                <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+
+                {% if field.type == "PasswordField" %}
+                    {{ field(autocomplete="new-password", title=field.description) }}
+                {% elif field.type == "FileField" %}
+                    {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
+                {% else %}
+                    {{ field(title=field.description) }}
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endfor %}
+    {{ form.hidden_tag() }}
+    <div class="controls">
+    <br />{{ form.submit(class="button button-primary") }}
+    </div>
+  </form>

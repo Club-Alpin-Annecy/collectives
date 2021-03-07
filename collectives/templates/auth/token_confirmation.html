@@ -25,18 +25,25 @@
     {% endfor %}
     </div>
 
-  <form action="" method="POST" enctype="multipart/form-data" class="form form-vertical">
-      <h4>Mot de passe</h4>
-      <br/>
-      <div class="field">{{ form.password.label }}<span class="help">{{ form.password.description }}</span></div>
-      {{ form.password(title=form.password.description, autocomplete="new-password") }}
+  <form action="" method="POST" enctype="multipart/form-data" class="form">
+      <div class="controls">
+          <h4>Mot de passe</h4>
+      </div>
 
-      <div class="field">{{ form.confirm.label }}<span class="help">{{ form.confirm.description }}</span></div>
-      {{ form.confirm(title=form.confirm.description, autocomplete="new-password") }}
+      <div class="controls">
+        <div class="field">{{ form.password.label }}<span class="label-help">{{ form.password.description }}</span></div>
+        {{ form.password(title=form.password.description, autocomplete="new-password") }}
+      </div>
+
+      <div class="controls">
+        <div class="field">{{ form.confirm.label }}<span class="label-help">{{ form.confirm.description }}</span></div>
+        {{ form.confirm(title=form.confirm.description, autocomplete="new-password") }}
+      </div>
 
       {% if form.legal_accepted is defined %}
-      <h4>Acceptations des conditions du site</h4>
-      <br/>
+      <div class="controls">
+        <h4>Acceptations des conditions du site</h4>
+      </div>
       <div class="inline_field">
             {{ form.legal_accepted(title=form.legal_accepted.description) }}
             {{ form.legal_accepted.label }}
@@ -44,10 +51,12 @@
       {% endif %}
 
     {{ form.hidden_tag() }}
-    <br /><br /><br /><br />{{ form.submit(class="button button-primary") }}
+    <div class="controls">
+      {{ form.submit(class="button button-primary") }}
+    </div>
   </form>
 
-  {% include 'contact_link.html' %}
+  {% include 'partials/contact_link.html' %}
 
 </div>
 {% endblock %}

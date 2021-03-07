@@ -273,10 +273,10 @@ def render_signup_form(form, is_recover):
     propose_activate = is_recover
 
     return render_template(
-        "basicform.html",
+        "auth/activate_recover.html",
         conf=current_app.config,
         form=form,
-        title="{} de compte".format(action),
+        title="{} de compte Collectives".format(action),
         contact_reason="{} votre compte".format(reason),
         propose_activate=propose_activate,
         propose_recover=propose_recover,
@@ -319,10 +319,10 @@ def signup():
             existing_user = existing_users[0]
             form = AccountCreationForm(obj=existing_user)
         elif num_existing_users > 1:
-            flash("Identifiants ambigus", "error")
+            form.generic_error = "Identifiant ambigus: plusieurs comptes peuvent correspondre. Veuillez contacter le support."
             return render_signup_form(form, is_recover)
         else:
-            flash("Aucun compte associé à ces identifiants", "error")
+            form.error_must_activate = True
             return render_signup_form(form, is_recover)
 
     # Check form erros
@@ -333,10 +333,7 @@ def signup():
     license_number = form.license.data
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
-        flash(
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
-            "error",
-        )
+        form.generic_error = "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte."
         return render_signup_form(form, is_recover)
 
     # Fetch extranet data and check against user-provided info
@@ -345,20 +342,17 @@ def signup():
     user_info = extranet.api.fetch_user_info(license_number)
 
     if user_info.email == None:
-        flash(
-            """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au club.
+        form.generic_error = """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au club.
             Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
-            fait, vous pourrez alors activer votre compte""",
-            "error",
-        )
+            fait, vous pourrez alors activer votre compte"""
         return render_signup_form(form, is_recover)
 
     if (
         user.date_of_birth != user_info.date_of_birth
         or user.mail.lower() != user_info.email.lower()
     ):
-        flash("E-mail et/ou date de naissance incorrecte", "error")
+        form.generic_error = "L'e-mail et/ou la date de naissance ne correspondent pas au numéro de licence."
         return render_signup_form(form, is_recover)
 
     # User-provided info is correct,
