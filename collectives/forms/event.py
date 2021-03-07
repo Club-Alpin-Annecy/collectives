@@ -127,7 +127,7 @@ class EventForm(ModelForm, FlaskForm):
     type = SelectField("Activité", choices=[], coerce=int)
     types = SelectMultipleField("Activités", choices=[], coerce=int)
 
-    add_leader = SelectField("Encadrant supplémentaire", choices=[], coerce=int)
+    add_leader = HiddenField("Encadrant supplémentaire")
     leader_actions = FieldList(FormField(LeaderActionForm, default=LeaderAction()))
 
     main_leader_id = RadioField("Responsable", coerce=int)
@@ -182,7 +182,7 @@ class EventForm(ModelForm, FlaskForm):
     def update_choices(self):
         """Updates possible choices for activity and new leader select fields"""
 
-        # Find possible activities given current leader choices
+        # Find possible activities given current leaders
         source_activities = (
             self.source_event.activity_types if self.source_event else []
         )
@@ -197,21 +197,6 @@ class EventForm(ModelForm, FlaskForm):
             self.type.data = self.types.data[0]
         if self.type.data and not self.types.data:
             self.types.data = [self.type.data]
-
-        # Find possible leaders given current activity
-        if self.multi_activities_mode.data:
-            # Multi-activity, do not filter leaders by activity type
-            activity_ids = []
-        elif self.type.data:
-            # Single activity, already selected. Restrict leaders to that activity
-            activity_ids = [self.type.data]
-        else:
-            # Single activity, not yet selected
-            activity_ids = [a.id for a in activity_choices]
-
-        leader_choices = available_leaders(self.current_leaders, activity_ids)
-        self.add_leader.choices = [(0, "")]
-        self.add_leader.choices += [(u.id, u.full_name()) for u in leader_choices]
 
         self.main_leader_id.choices = []
         for l in self.current_leaders:
@@ -276,6 +261,34 @@ class EventForm(ModelForm, FlaskForm):
 
         activity = ActivityType.query.get(self.type.data)
         return [] if activity is None else [activity]
+
+    def current_leader_ids(self):
+        """
+        :return: the list of current leader ids.
+        :rtype: list[int]
+        """
+        return [l.id for l in self.current_leaders]
+
+    def leader_activity_ids(self):
+        """Returns the list of activities with which to filter
+        potential new leaders.
+
+        In multi-activty mode, returns an empty list, meaning that
+        leaders with not be filtered by activity.
+
+        :return: List of activity ids
+        :rtype: list[id]
+        """
+        if self.multi_activities_mode.data:
+            # Multi-activity, do not filter leaders by activity type
+            activity_ids = []
+        elif self.type.data:
+            # Single activity, already selected. Restrict leaders to that activity
+            activity_ids = [self.type.data]
+        else:
+            # Single activity, not yet selected
+            activity_ids = [a[0] for a in self.type.choices]
+        return activity_ids
 
     def can_remove_leader(self, event, leader):
         """
