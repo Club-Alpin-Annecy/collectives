@@ -74,6 +74,20 @@ def populate_db(app):
     init.activity_types(app)
 
 
+class ReverseProxied(object):
+    """Wrapper around WSGI environ to make Flask aware of actual
+    proxy url scheme"""
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        scheme = environ.get("HTTP_X_FORWARDED_PROTO")
+        if scheme:
+            environ["wsgi.url_scheme"] = scheme
+        return self.app(environ, start_response)
+
+
 def create_app(config_filename="config"):
     """Flask application factory.
 
@@ -88,6 +102,7 @@ def create_app(config_filename="config"):
     :rtype: :py:class:`flask.Flask`
     """
     app = Flask(__name__, instance_relative_config=True)
+    app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     # Config options - Make sure you created a 'config.py' file.
     app.config.from_object(config_filename)
