@@ -90,7 +90,7 @@ def autocomplete_users():
     if q is None or (len(q) < 2):
         found_users = []
     else:
-        limit = request.args.get("l") or 8
+        limit = request.args.get("l", type=int) or 8
         found_users = find_users_by_fuzzy_name(q, limit)
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
@@ -117,7 +117,7 @@ def autocomplete_leaders():
     if q is None or (len(q) < 2):
         found_users = []
     else:
-        limit = request.args.get("l") or 8
+        limit = request.args.get("l", type=int) or 8
 
         query = db.session.query(User)
         condition = func.lower(User.first_name + " " + User.last_name).like(f"%{q}%")
