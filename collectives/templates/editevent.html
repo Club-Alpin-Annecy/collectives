@@ -114,7 +114,7 @@
       <div class="controls">
         {{ form.add_leader.label }}
         <input type="text" id="new-leader" placeholder="Nom…">
-        {{ form.add_leader }}
+        {{ form.add_leader(value=0) }}
       </div>
       {{ form.update_leaders(value=0) }}
     </fieldset>
