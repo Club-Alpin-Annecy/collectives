@@ -74,7 +74,7 @@ def populate_db(app):
     init.activity_types(app)
 
 
-class ReverseProxied(object):
+class ReverseProxied:
     """Wrapper around WSGI environ to make Flask aware of actual
     proxy url scheme"""
 
