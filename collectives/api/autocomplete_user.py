@@ -153,7 +153,7 @@ def autocomplete_available_leaders():
     if q is None or (len(q) < 2):
         found_users = []
     else:
-        limit = request.args.get("l") or 8
+        limit = request.args.get("l", type=int) or 8
         activity_ids = request.args.getlist("aid", type=int)
         existing_ids = request.args.getlist("eid", type=int)
 
