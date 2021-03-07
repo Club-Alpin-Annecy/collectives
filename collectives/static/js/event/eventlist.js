@@ -97,8 +97,6 @@ function buildEventsTable() {
    }
 
    refreshFilterDisplay();
-
-   autocompleteLeaders();
 }
 
 function eventRowFormatter(row){
@@ -277,52 +275,12 @@ function gotoEvents(event){
 
 
 // Functions to set up autocomplete of leaders
-function autocompleteLeaders()
-{
-    new window.autoComplete({
-        selector: getLeaderHeaderFilter(),
-        minChars: 2,
-        source: sourceLeaderAutocomplete,
-        renderItem: renderItemLeaderAutocomplete,
-        onSelect: onSelectLeaderAutocomplete
-    });
-}
 
 function getLeaderHeaderFilter() {
     return document.querySelector('div[tabulator-field="leaders"] input[type="search"]');
 }
 
-function sourceLeaderAutocomplete(term, suggest) {
-    loadResultsLeaderAutocomplete(term,
-        function (data) {
-            const matches = []
-            data.forEach((user) => {
-                matches.push({ full_name: user.full_name });
-            });
-            suggest(matches)
-        });
-}
-
-function loadResultsLeaderAutocomplete(term, then) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/api/leaders/autocomplete/?q=' + encodeURIComponent(term));
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            then(JSON.parse(xhr.responseText));
-        }
-    };
-    xhr.send();
-}
-function renderItemLeaderAutocomplete (item) {
-    let icon;
-    if (item.type === 'user') {
-        icon = '<i class="fab fa-github"></i>';
-    }
-    return `<div class="autocomplete-suggestion" data-val="${item.full_name}" data-id="${item.id}"><span>${item.full_name}</span></div>`
-};
-
-function onSelectLeaderAutocomplete(e, term, item) {
-    const searchInput = document.querySelector('div[tabulator-field="leaders"] input[type="search"]');
-    searchInput.value = item.getAttribute('data-val');
+function onSelectLeaderAutocomplete(id, val) {
+    const searchInput = getLeaderHeaderFilter();
+    searchInput.value = val;
 }
