@@ -569,6 +569,8 @@ def self_register(event_id):
         db.session.commit()
 
         payment = Payment(registration=registration, item_price=item_price)
+        payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
+
         db.session.add(payment)
         db.session.commit()
 

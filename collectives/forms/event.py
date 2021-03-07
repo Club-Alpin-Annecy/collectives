@@ -319,11 +319,9 @@ class PaidSelfRegistrationForm(FlaskForm):
     """Self-registration form for paid events"""
 
     item_price = RadioField("Choix du tarif", coerce=int, validators=[DataRequired()])
-    accept_payment_terms = BooleanField(
-        "J'ai lu et j'accepte les conditions générales de vente", [DataRequired()]
-    )
+    accept_payment_terms = BooleanField(validators=[DataRequired()])
 
-    submit = SubmitField("S'inscrire et procéder au paiement en ligne")
+    submit = SubmitField("Valider et accéder au paiement en ligne")
 
     def __init__(self, event, *args, **kwargs):
         """Overloaded  constructor"""

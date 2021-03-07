@@ -102,6 +102,12 @@ PAYMENTS_MAX_PRICE = 10000
 :type: int
 """
 
+PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-01-28_-_CGV_Collectives.pdf"
+"""Path to the file containing the current payment terms and conditions
+
+:type: string
+"""
+
 # Database
 SQLALCHEMY_DATABASE_URI = environ.get(
     "SQLALCHEMY_DATABASE_URI"

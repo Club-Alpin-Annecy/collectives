@@ -415,6 +415,11 @@ class Payment(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
+    terms_version = db.Column(db.String(255), nullable=True)
+    """ Version of the payment terms and condition at the time of payment
+
+    :type: string"""
+
     def is_offline(self):
         """:return: whether this is an offline payment (Check, Card, etc)
         :rtype: bool"""

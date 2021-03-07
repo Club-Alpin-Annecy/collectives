@@ -5,9 +5,10 @@
     <p>
         Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
         Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
-        vous référer aux conditions de vente du club.
+        vous référer aux <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
     </p>
     <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
+        <strong>Inscription</strong>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
             {{paid_self_register_form.item_price.label}} :
@@ -18,8 +19,11 @@
             </ul>
         </div>
         <div>
+        <label>
         {{paid_self_register_form.accept_payment_terms}}
-        {{paid_self_register_form.accept_payment_terms.label}}
+        J'ai lu et j'accepte les <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
+        </label>
+
         </div>
         {{paid_self_register_form.submit(class="button button-primary")}}
     </form>
