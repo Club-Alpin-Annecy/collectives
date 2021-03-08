@@ -113,3 +113,14 @@ class UniqueValidator(Unique):
         message="déjà associé(e) à un compte Collectives. Vous souhaitez peut-être récupérer un compte existant ?",
     ):
         Unique.__init__(self, column=column, get_session=get_session, message=message)
+
+
+def remove_unique_validators(validators):
+    """Remove all elements that are instance of :py:class::`UniqueValidator`
+
+    :param validators: Validator list
+    :type validators: list
+    :return: List without unique validators
+    :rtype: list
+    """
+    return [v for v in validators if not isinstance(v, UniqueValidator)]

@@ -12,6 +12,7 @@ from wtforms_alchemy.utils import strip_string
 from ..models import User, db
 from .order import OrderedForm
 from .validators import UniqueValidator, PasswordValidator, LicenseValidator
+from .validators import remove_unique_validators
 
 
 class LoginForm(FlaskForm):
@@ -45,8 +46,13 @@ class AccountCreationForm(ModelForm, OrderedForm):
 
     submit = SubmitField("Activer le compte")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, is_recover, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if is_recover:
+            self.license.validators = remove_unique_validators(self.license.validators)
+            self.mail.validators = remove_unique_validators(self.mail.validators)
+
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
 

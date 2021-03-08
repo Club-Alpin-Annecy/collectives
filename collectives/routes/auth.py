@@ -296,38 +296,37 @@ def signup():
         flash("Vous êtes déjà connecté", "warning")
         return redirect(url_for("event.index"))
 
-    form = AccountCreationForm()
     is_recover = "recover" in request.endpoint
+    form = AccountCreationForm(is_recover)
 
-    # Form not yet submitted
-    # Don't validate yet as unicity test requires fetching user first
-    if not form.is_submitted():
+    # Form data invalid or not yet submitted
+    if not form.validate_on_submit():
         return render_signup_form(form, is_recover)
+
+    # Get user-provided info from form fields
+    # Do not attempt to use existing db user to avoid overwriting fields
+    user = User()
+    form.populate_obj(user)
 
     # In recover mode, check for any user that is already registered with this
     # email or license
     existing_user = None
     if is_recover:
         existing_users = User.query.filter(
-            or_(User.license == form.license.data, User.mail == form.mail.data)
+            or_(User.license == user.license, User.mail == user.mail)
         ).all()
-
         num_existing_users = len(existing_users)
+
         # Check that a single existing account is matching the
         # provided identifiers
-        if num_existing_users == 1:
-            existing_user = existing_users[0]
-            form = AccountCreationForm(obj=existing_user)
-        elif num_existing_users > 1:
+        if num_existing_users > 1:
             form.generic_error = "Identifiant ambigus: plusieurs comptes peuvent correspondre. Veuillez contacter le support."
             return render_signup_form(form, is_recover)
-        else:
+        if num_existing_users == 0:
             form.error_must_activate = True
             return render_signup_form(form, is_recover)
 
-    # Check form erros
-    if not form.validate():
-        return render_signup_form(form, is_recover)
+        existing_user = existing_users[0]
 
     # Check license validity
     license_number = form.license.data
@@ -336,9 +335,6 @@ def signup():
         form.generic_error = "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte."
         return render_signup_form(form, is_recover)
 
-    # Fetch extranet data and check against user-provided info
-    user = existing_user if existing_user else User()
-    form.populate_obj(user)
     user_info = extranet.api.fetch_user_info(license_number)
 
     if user_info.email == None:
