@@ -74,6 +74,10 @@ def send_mail_threaded(app, **kwargs):
         msg["Date"] = email.utils.formatdate()
 
         dest = kwargs["email"]
+        if not dest:
+            # Attempt to send an email with empty dest would result in an error
+            return
+
         if isinstance(dest, list):
             msg["Bcc"] = ",".join(dest)
         else:

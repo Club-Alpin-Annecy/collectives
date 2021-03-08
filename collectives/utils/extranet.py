@@ -295,8 +295,8 @@ class ExtranetApi:
             info.last_name = result["nom"]
             info.phone = result["portable"]
             info.email = result["email"]
-            info.emergency_contact_name = result["accident_qui"]
-            info.emergency_contact_phone = result["accident_tel"]
+            info.emergency_contact_name = result["accident_qui"] or "Non renseigné"
+            info.emergency_contact_phone = result["accident_tel"] or "Non renseigné"
             info.license_category = result["categorie"]
             info.date_of_birth = datetime.strptime(
                 result["date_naissance"], "%Y-%m-%d"
