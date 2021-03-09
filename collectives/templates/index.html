@@ -37,7 +37,7 @@
           const searchInput = getLeaderHeaderFilter();
           setupAutoComplete(
               searchInput,
-              '{{url_for("api.autocomplete_users")}}',
+              '{{url_for("api.autocomplete_leaders")}}',
               function (item) { return item.full_name; },
               function (id, val) { return onSelectLeaderAutocomplete(id, val); }
           );
