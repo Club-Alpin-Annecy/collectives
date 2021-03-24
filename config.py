@@ -288,7 +288,8 @@ TYPES = {
     16: {"short": "slackline", "name": "Slackline", "trigram" : "ASL"},
     17: {"short": "marche_nordique", "name": "Marche nordique", "trigram" : "ANW"},
     18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "ASF"},
-    20: {"short": "jeune", "name": "Jeunes", "trigram" : "AJAL"},
+    20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL"},
+    21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL"},
 }
 """List of event type
 
