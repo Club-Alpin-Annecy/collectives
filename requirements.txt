@@ -3,6 +3,7 @@ itsdangerous==1.1.*
 flask
 flask-assets
 flask-login
+sqlalchemy<1.4
 flask_sqlalchemy
 sqlalchemy-utils
 passlib

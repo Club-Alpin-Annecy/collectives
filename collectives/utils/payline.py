@@ -13,7 +13,7 @@ from pysimplesoap.client import SoapClient
 
 from ..models.payment import PaymentStatus
 
-PAYLINE_VERSION = 24
+PAYLINE_VERSION = 26
 """ Version of payline API
 :type: int
 """
