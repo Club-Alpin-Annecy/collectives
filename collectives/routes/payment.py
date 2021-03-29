@@ -586,6 +586,8 @@ def refund_all(event_id):
         return abort(403)
     if not event.has_edit_rights(current_user):
         return abort(403)
+    if not current_app.config["REFUND_ENABLED"]:
+        return abort(403)
 
     # Fetch all associated approved online payments
     query = db.session.query(Payment)

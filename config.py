@@ -96,6 +96,12 @@ PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or False
 :type: bool
 """
 
+REFUND_ENABLED = environ.get("REFUND_ENABLED") or False
+"""Whether to enable refunding payments
+
+:type: bool
+"""
+
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 
