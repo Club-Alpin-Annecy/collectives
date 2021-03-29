@@ -102,7 +102,7 @@ PAYMENTS_MAX_PRICE = 10000
 :type: int
 """
 
-PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-01-28_-_CGV_Collectives.pdf"
+PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-02-02 - CGV Collectives.pdf"
 """Path to the file containing the current payment terms and conditions
 
 :type: string
