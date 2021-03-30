@@ -350,10 +350,13 @@ def manage_event(event_id=None):
             tentative_leaders.append(leader)
 
     # Check that the main leader still exists
-    event.main_leader_id = int(form.main_leader_id.data)
-    if not any(l.id == event.main_leader_id for l in tentative_leaders):
-        flash("Un encadrant responsable doit être défini")
 
+    try:
+        main_leader_id = int(form.main_leader_id.data)
+    except (TypeError, ValueError):
+        main_leader_id = None
+    if not any(l.id == main_leader_id for l in tentative_leaders):
+        flash("Un encadrant responsable doit être défini")
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
@@ -382,9 +385,13 @@ def manage_event(event_id=None):
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
-    form.populate_obj(event)
 
-    if not validate_dates_and_slots(event):
+    # Do not populate the real event as errors may still be raised and we do not want
+    # SQLAlchemy to flush the temp data
+    trial_event = Event()
+    form.populate_obj(trial_event)
+
+    if not validate_dates_and_slots(trial_event):
         return render_template(
             "editevent.html", conf=current_app.config, event=event, form=form
         )
@@ -407,7 +414,7 @@ def manage_event(event_id=None):
                 "editevent.html", conf=current_app.config, event=event, form=form
             )
 
-    # If event has not been created yet user current activities to check rights
+    # If event has not been created yet use current activities to check rights
     if event_id is None:
         event.activity_types = tentative_activities
 
@@ -426,6 +433,7 @@ def manage_event(event_id=None):
             )
 
     # All good! Apply changes
+    form.populate_obj(event)
     event.activity_types = tentative_activities
     event.leaders = tentative_leaders
 
