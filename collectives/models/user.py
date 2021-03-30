@@ -411,7 +411,7 @@ class User(db.Model, UserMixin):
         :rtype: boolean
         """
         roles = self.matching_roles(role_ids)
-        return any([role.activity_id == activity_id for role in roles])
+        return any(role.activity_id == activity_id for role in roles)
 
     def is_admin(self):
         """Check if user has an admin role.
