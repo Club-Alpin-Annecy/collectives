@@ -388,7 +388,7 @@ class Event(db.Model):
         :return: True if user supervises one of the event activities.
         :rtype: boolean
         """
-        return any([a for a in self.activity_types if user.supervises_activity(a.id)])
+        return any(a for a in self.activity_types if user.supervises_activity(a.id))
 
     def has_edit_rights(self, user):
         """Check if a user can edit this event.
