@@ -446,7 +446,7 @@ def manage_event(event_id=None):
                     f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été ajouté(e) comme encadrant(e)."
                 )
             for registration in leader_registrations:
-                db.session.delete(registration)
+                event.registrations.remove(registration)
 
     event.set_rendered_description(event.description)
 
