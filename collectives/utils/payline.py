@@ -358,12 +358,7 @@ class BuyerInfo:
     :type: string
     """
     email = ""
-    """ Emial address, must be valid
-
-    :type: string
-    """
-    mobilePhone = ""
-    """ Mobile phone number, optional
+    """ Email address, must be valid
 
     :type: string
     """
@@ -387,7 +382,6 @@ class BuyerInfo:
                 # For testing with admin account
                 self.email += "@example.com"
 
-            self.mobilePhone = user.phone
             self.birthDate = user.date_of_birth.strftime("%Y/%m/%d")
 
 
@@ -558,7 +552,6 @@ class PaylineApi:
                     "lastName": buyer_info.lastName,
                     "firstName": buyer_info.firstName,
                     "email": buyer_info.email,
-                    "mobilePhone": buyer_info.mobilePhone,
                     "birthDate": buyer_info.birthDate,
                 },
                 merchantName=self.payline_merchant_name,
