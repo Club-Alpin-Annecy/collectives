@@ -1,0 +1,22 @@
+.tabulator {
+    .tabulator-footer {
+        .tabulator-paginator {
+            display: flex;
+            justify-content: flex-end;
+            align-items: baseline;
+
+            & > label {
+                margin-right: 0;
+            }
+
+            & > .tabulator-page-size {
+                margin-right: auto;
+            }
+
+            @include mobile {
+                flex-wrap: wrap;
+            }
+        }
+
+    }
+}
