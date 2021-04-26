@@ -12,6 +12,8 @@ import pysimplesoap
 from pysimplesoap.client import SoapClient
 
 from ..models.payment import PaymentStatus
+from .time import format_date
+from .misc import truncate_string, to_ascii
 
 PAYLINE_VERSION = 26
 """ Version of payline API
@@ -300,6 +302,12 @@ class OrderInfo:
     """ Dictionary containing details about the order
         See https://docs.payline.com/display/DT/Object+-+orderDetail
 
+        :type: dict
+    """
+
+    metadata = {}
+    """ Dictionnary containing free-form metadata about the order.
+        Used in lieu of details as Payline does not seem to acknowledge orderDetails
 
         :type: dict
     """
@@ -321,6 +329,24 @@ class OrderInfo:
 
         return f"CAF{date_str}{activity_str}{rolling_id:04}"
 
+    def private_data(self):
+        """
+        :return: Metadata in the Payline key-value list format
+        :rtype: dict
+        """
+        kv = []
+        for k, v in self.metadata.items():
+            if isinstance(v, list):
+                for i, multi_v in enumerate(v):
+                    kv.append({"key": f"{k}_{i+1}", "value": multi_v})
+            else:
+                kv.append({"key": k, "value": v})
+
+        for pair in kv:
+            pair["value"] = truncate_string(to_ascii(pair["value"]), 50)
+
+        return {"privateData": kv}
+
     def __init__(self, payment=None):
         """Constructor from an optional payment object
 
@@ -332,11 +358,21 @@ class OrderInfo:
             self.amount_in_cents = (payment.amount_charged * 100).to_integral_exact()
             self.date = payment.creation_time.strftime("%d/%m/%Y %H:%M")
             item_details = {
-                "ref": payment.price.id,
+                "ref": f"{payment.price.id}",
                 "comment": f"{payment.item.event.title} -- {payment.item.title} -- {payment.price.title}",
-                "price": self.amount_in_cents,
+                "price": f"{self.amount_in_cents}",
             }
-            self.details = {"details": item_details}
+            self.details = {"details": [item_details]}
+            self.metadata = {
+                "collective": payment.item.event.title,
+                "date": format_date(payment.item.event.start),
+                "activite": [a.name for a in payment.item.event.activity_types],
+                "objet": payment.item.title,
+                "tarif": payment.price.title,
+                "encadrants": [
+                    u.full_name() for u in payment.item.event.ranked_leaders()
+                ],
+            }
 
 
 class BuyerInfo:
@@ -546,7 +582,9 @@ class PaylineApi:
                     "details": order_info.details,
                     "country": self.payline_country,
                 },
-                selectedContractList={"selectedContract": self.payline_contract_number},
+                selectedContractList=[
+                    {"selectedContract": self.payline_contract_number}
+                ],
                 buyer={
                     "title": buyer_info.title,
                     "lastName": buyer_info.lastName,
@@ -555,13 +593,14 @@ class PaylineApi:
                     "birthDate": buyer_info.birthDate,
                 },
                 merchantName=self.payline_merchant_name,
+                privateDataList=order_info.private_data(),
                 securityMode="SSL",
             )
-
             payment_response.result = PaymentResult(response["result"])
 
-            payment_response.token = response["token"]
-            payment_response.redirect_url = response["redirectURL"]
+            if payment_response.result.is_accepted():
+                payment_response.token = response["token"]
+                payment_response.redirect_url = response["redirectURL"]
 
             return payment_response
 

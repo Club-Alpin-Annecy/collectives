@@ -17,7 +17,8 @@ flask-marshmallow
 marshmallow-sqlalchemy
 Flask-Images
 markdown
-pysimplesoap
+# Grab pysimplesoap from Github to get list serialization fixes
+git+https://github.com/pysimplesoap/pysimplesoap.git@ad03a21cafab982eed321553c4bfcda1755182eb#egg=pysimplesoap
 pymysql
 dkimpy
 email_validator

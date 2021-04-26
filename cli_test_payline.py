@@ -16,7 +16,12 @@ def doWebPayment():
     order.payment_id = 2
     order.amount_in_cents = "10000"
     order.date = "05/05/2020 00:05"
-    order.details = {"details": {"ref": "12"}}
+    order.details = {"details": [{"ref": "12"}]}
+    order.metadata = {
+        "ref": "12",
+        "coll": ["name", "Ski' de randonnée"],
+        "coll2": "Ski' de randonnée",
+    }
 
     buyer = payline.BuyerInfo()
 
