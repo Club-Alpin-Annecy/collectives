@@ -26,7 +26,7 @@ import flask
 
 
 def send_mail(**kwargs):
-    """ Wrapper for :py:func:`send_mail_threaded`"""
+    """Wrapper for :py:func:`send_mail_threaded`"""
     threading.Thread(
         target=send_mail_threaded,
         # pylint: disable=W0212

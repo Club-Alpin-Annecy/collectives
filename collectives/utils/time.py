@@ -172,5 +172,5 @@ def format_date_range(start, end):
 
 
 def server_local_time():
-    """ Alias of :py:func:`current_time`"""
+    """Alias of :py:func:`current_time`"""
     return current_time()

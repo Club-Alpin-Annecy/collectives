@@ -40,7 +40,7 @@ class UrifyExtension(Extension):
     """
 
     class Impl(Preprocessor):
-        """ A preprocessor for :py:class:`UrifyExtension` """
+        """A preprocessor for :py:class:`UrifyExtension`"""
 
         def run(self, lines):
             """Takes all lines and add a link on standalone URL.
@@ -84,7 +84,7 @@ class PrependBlankLineExtension(Extension):
     """
 
     class Impl(Preprocessor):
-        """ A preprocessor for :py:class:`PrependBlankLineExtension` """
+        """A preprocessor for :py:class:`PrependBlankLineExtension`"""
 
         def run(self, lines):
             """Fonction that will  ensures there is a blank line before the

@@ -18,7 +18,7 @@ class RegistrationLevels(enum.IntEnum):
 
 
 class RegistrationStatus(ChoiceEnum):
-    """ Enum listing acceptable registration status. """
+    """Enum listing acceptable registration status."""
 
     Active = 0
     """ Registered user is plann to be present. """

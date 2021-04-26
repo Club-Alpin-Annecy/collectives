@@ -22,7 +22,7 @@ class RoleSchema(marshmallow.Schema):
     """
 
     class Meta:
-        """ Fields to expose """
+        """Fields to expose"""
 
         fields = (
             "name",
@@ -85,7 +85,7 @@ class UserSchema(marshmallow.Schema):
     :type: list(dict())"""
 
     class Meta:
-        """ Fields to expose """
+        """Fields to expose"""
 
         fields = (
             "id",
@@ -197,7 +197,7 @@ class TraineeRoleSchema(marshmallow.Schema):
     :type: list(dict())"""
 
     class Meta:
-        """ Fields to expose """
+        """Fields to expose"""
 
         fields = (
             "user",

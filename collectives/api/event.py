@@ -73,7 +73,7 @@ def filter_hidden_events(query):
 
 
 class UserSimpleSchema(marshmallow.Schema):
-    """ Schema used to describe leaders in event list """
+    """Schema used to describe leaders in event list"""
 
     avatar_uri = fields.Function(avatar_url)
     """ Profile picture URI of the user.
@@ -91,7 +91,7 @@ class UserSimpleSchema(marshmallow.Schema):
 
 
 class ActivityTypeSchema(marshmallow.Schema):
-    """ Schema to describe activity types """
+    """Schema to describe activity types"""
 
     class Meta:
         """Fields to expose"""
@@ -100,7 +100,7 @@ class ActivityTypeSchema(marshmallow.Schema):
 
 
 class EventSchema(marshmallow.Schema):
-    """ Schema used to describe event in index page."""
+    """Schema used to describe event in index page."""
 
     photo_uri = fields.Function(photo_uri)
     """ URI of the event image thumnail.

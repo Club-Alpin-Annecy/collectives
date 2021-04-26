@@ -17,7 +17,7 @@ photos = UploadSet("photos", IMAGES)
 
 
 class EventStatus(ChoiceEnum):
-    """ Enum listing status of an event"""
+    """Enum listing status of an event"""
 
     Confirmed = 0
     """Confirmed event"""
@@ -217,7 +217,7 @@ class Event(db.Model):
 
     @property
     def tags(self):
-        """ Direct list of the tag types of this event. """
+        """Direct list of the tag types of this event."""
         return [t.full for t in self.tag_refs]
 
     def save_photo(self, file):

@@ -22,7 +22,7 @@ blueprint = Blueprint("profile", __name__, url_prefix="/profile")
 @blueprint.before_request
 @valid_user()
 def before_request():
-    """ Protect all profile from unregistered access """
+    """Protect all profile from unregistered access"""
     pass
 
 
@@ -75,7 +75,7 @@ def show_leader(leader_id):
 
 @blueprint.route("/user/edit", methods=["GET", "POST"])
 def update_user():
-    """ Route to update current user information    """
+    """Route to update current user information"""
 
     form = UserForm(obj=current_user)
 
@@ -109,14 +109,14 @@ def update_user():
 
 @blueprint.route("/user/force_sync", methods=["POST"])
 def force_user_sync():
-    """ Route to force user synchronisation with extranet """
+    """Route to force user synchronisation with extranet"""
     sync_user(current_user, True)
     return redirect(url_for("profile.show_user", user_id=current_user.id))
 
 
 @blueprint.route("/user/confidentiality", methods=["GET", "POST"])
 def confidentiality_agreement():
-    """ Route to show confidentiality agreement. """
+    """Route to show confidentiality agreement."""
     if (
         request.method == "POST"
         and current_user.confidentiality_agreement_signature_date == None

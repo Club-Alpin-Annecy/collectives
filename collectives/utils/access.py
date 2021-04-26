@@ -147,7 +147,7 @@ def confidentiality_agreement(api=False):
 @flask_login.login_required
 @user_is("is_technician")
 def technician_required_f():
-    """ Function to limit access to technician only. """
+    """Function to limit access to technician only."""
     pass
 
 

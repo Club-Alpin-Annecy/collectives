@@ -19,7 +19,7 @@ from .common import blueprint, marshmallow
 
 
 class AutocompleteUserSchema(marshmallow.Schema):
-    """  Schema under which autocomplete suggestions are returned """
+    """Schema under which autocomplete suggestions are returned"""
 
     full_name = fields.Function(lambda user: user.full_name())
     """ User full name as :py:meth:`collectives.models.user.User.full_name`

@@ -5,7 +5,7 @@ from .globals import db
 
 
 class Request(db.Model):
-    """ Request model to store all HTTP request to the site """
+    """Request model to store all HTTP request to the site"""
 
     __tablename__ = "request"
     """ Table name to store request.

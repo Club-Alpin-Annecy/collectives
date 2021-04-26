@@ -99,7 +99,7 @@ class EventPaymentSchema(PaymentSchema):
     :type: string"""
 
     class Meta:
-        """ Fields to expose """
+        """Fields to expose"""
 
         fields = (
             "id",
@@ -145,7 +145,7 @@ class MyPaymentSchema(PaymentSchema):
     :type: string"""
 
     class Meta:
-        """ Fields to expose """
+        """Fields to expose"""
 
         fields = (
             "id",

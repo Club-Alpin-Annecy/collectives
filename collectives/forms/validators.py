@@ -9,7 +9,7 @@ from wtforms_alchemy import Unique
 
 
 class LicenseValidator:
-    """ WTForm Validator for license fields """
+    """WTForm Validator for license fields"""
 
     prefix = "7400"
     """ Prefix for every licence.

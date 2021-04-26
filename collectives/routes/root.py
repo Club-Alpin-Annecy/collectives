@@ -15,13 +15,13 @@ blueprint = Blueprint("root", __name__)
 
 @blueprint.route("/")
 def index():
-    """ Route for root: redirected to event """
+    """Route for root: redirected to event"""
     return redirect(url_for("event.index"))
 
 
 @blueprint.route("/legal")
 def legal():
-    """ Route to display site legal terms """
+    """Route to display site legal terms"""
     return render_template(
         "legal.html", conf=current_app.config, form=LegalAcceptation()
     )
@@ -30,7 +30,7 @@ def legal():
 @blueprint.route("/legal/accept", methods=["POST"])
 @login_required
 def legal_accept():
-    """ Route to accept site legal terms """
+    """Route to accept site legal terms"""
     current_user.legal_text_signature_date = current_time()
     version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
     current_user.legal_text_signed_version = version
@@ -41,5 +41,5 @@ def legal_accept():
 
 @blueprint.route("/legal/stats/<status>")
 def stat_cookie(status):
-    """ Route to set statistics refusal cookie """
+    """Route to set statistics refusal cookie"""
     return statistics.set_disable_cookie(status)

@@ -27,7 +27,7 @@ LICENSE_EXPIRY_MONTH = 10
 
 
 class LicenseInfo:
-    """ Licence information as retrieved from FFCAM servers. """
+    """Licence information as retrieved from FFCAM servers."""
 
     exists = False
     """ If licence exists.
@@ -72,7 +72,7 @@ class LicenseInfo:
 
 
 class UserInfo:
-    """ User information as retrieved from FFCAM servers. """
+    """User information as retrieved from FFCAM servers."""
 
     is_valid = False
     """ True if user exists on servers.

@@ -15,7 +15,7 @@ from ..utils.time import current_time
 
 
 class ConfirmationTokenType(enum.IntEnum):
-    """ Enum listing types of token"""
+    """Enum listing types of token"""
 
     ActivateAccount = 0
     """Token for account activation"""
@@ -24,7 +24,7 @@ class ConfirmationTokenType(enum.IntEnum):
 
 
 class TokenEmailStatus(enum.IntEnum):
-    """ Enum Status for this token"""
+    """Enum Status for this token"""
 
     Pending = 0
     """Token will be sent"""
