@@ -4,8 +4,8 @@
 {% block additionalhead %}
   <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
   {# Wysiwyg Editor #}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 {% endblock %}
 
 {% block header %}
@@ -66,7 +66,7 @@
   </form>
 </div>
 <script>
-var simplemde = makeEditor("description");
+var easymde = makeEditor("description");
 </script>
 
 {% endblock %}

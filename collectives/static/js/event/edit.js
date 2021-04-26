@@ -8,76 +8,76 @@ function makeEditorToolbar() {
     return [
         {
             name: "bold",
-            action: SimpleMDE.toggleBold,
+            action: EasyMDE.toggleBold,
             className: "fa fa-bold",
             title: "Gras",
         },
         {
             name: "italic",
-            action: SimpleMDE.toggleItalic,
+            action: EasyMDE.toggleItalic,
             className: "fa fa-italic",
             title: "Italique",
         },
         {
             name: "strikethrough",
-            action: SimpleMDE.toggleStrikethrough,
+            action: EasyMDE.toggleStrikethrough,
             className: "fa fa-strikethrough",
             title: "Barré",
         },
         {
             name: "heading",
-            action: SimpleMDE.toggleHeadingSmaller,
+            action: EasyMDE.toggleHeadingSmaller,
             className: "fa fa-header",
             title: "Titre",
         },
         "|",
         {
             name: "list-ul",
-            action: SimpleMDE.toggleUnorderedList,
+            action: EasyMDE.toggleUnorderedList,
             className: "fa fa-list-ul",
             title: "Liste",
         },
         {
             name: "list-ol",
-            action: SimpleMDE.toggleOrderedList,
+            action: EasyMDE.toggleOrderedList,
             className: "fa fa-list-ol",
             title: "Liste numérotée",
         },
         "|",
         {
             name: "link",
-            action: SimpleMDE.drawLink,
+            action: EasyMDE.drawLink,
             className: "fa fa-link",
             title: "Lien hypertexte",
         },
         {
             name: "image",
-            action: SimpleMDE.drawImage,
+            action: EasyMDE.drawImage,
             className: "fa fa-picture-o",
             title: "Image",
         },
         {
             name: "table",
-            action: SimpleMDE.drawTable,
+            action: EasyMDE.drawTable,
             className: "fa fa-table",
             title: "Tableau",
         },
         "|",
         {
             name: "preview",
-            action: SimpleMDE.togglePreview,
+            action: EasyMDE.togglePreview,
             className: "fa fa-eye no-disable",
             title: "Aperçu",
         },
         {
             name: "side-by-side",
-            action: SimpleMDE.toggleSideBySide,
+            action: EasyMDE.toggleSideBySide,
             className: "fa fa-columns no-disable no-mobile",
             title: "Aperçu temps-réel",
         },
         {
             name: "fullscreen",
-            action: SimpleMDE.toggleFullScreen,
+            action: EasyMDE.toggleFullScreen,
             className: "fa fa-arrows-alt no-disable no-mobile",
             title: "Plein écran",
         },
@@ -106,9 +106,9 @@ function getEditorOptions(elementId) {
 
 function makeEditor(elementId)
 {
-    var simplemde = new SimpleMDE(getEditorOptions(elementId));
-    simplemde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
-    return simplemde;
+    var easymde = new EasyMDE(getEditorOptions(elementId));
+    easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
+    return easymde;
 }
 
 function validateDateTime(element, canBeEmpty){

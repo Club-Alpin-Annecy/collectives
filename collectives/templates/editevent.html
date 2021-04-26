@@ -12,8 +12,8 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
   {# Wysiwyg Editor #}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-  <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
   {# Multi-select #}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
@@ -61,7 +61,7 @@
   <form
         action="{{ action }}"
         method="POST"
-        onsubmit="document.querySelector('textarea[name=description]').value=simplemde.value()"
+        onsubmit="document.querySelector('textarea[name=description]').value=easymde.value()"
         enctype="multipart/form-data"
         class="form"
   >
@@ -211,7 +211,7 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                     classNames:"form-tail-datetime default",
                 });
 });
-var simplemde = makeEditor("description");
+var easymde = makeEditor("description");
 
 var activities_multiselect = document.getElementById("types");
 if(activities_multiselect) {
