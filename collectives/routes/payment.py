@@ -168,7 +168,7 @@ def list_payments(event_id):
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
 
-    if not event.has_edit_rights(current_user):
+    if not current_user.is_accountant() and not event.has_edit_rights(current_user):
         flash("Accès refusé", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -191,7 +191,8 @@ def export_payments(event_id):
     event = Event.query.get(event_id)
     if event is None:
         return abort(403)
-    if not event.has_edit_rights(current_user):
+
+    if not current_user.is_accountant() and not event.has_edit_rights(current_user):
         return abort(403)
 
     # Fetch all associated payments

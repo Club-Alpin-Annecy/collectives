@@ -178,7 +178,7 @@ def list_payments(event_id):
     if event is None:
         return abort(403)
 
-    if not event.has_edit_rights(current_user):
+    if not current_user.is_accountant() and not event.has_edit_rights(current_user):
         return abort(403)
 
     query = db.session.query(Payment)
