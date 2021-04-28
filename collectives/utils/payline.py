@@ -13,7 +13,7 @@ from pysimplesoap.client import SoapClient
 
 from ..models.payment import PaymentStatus
 from .time import format_date
-from .misc import truncate_string, to_ascii
+from .misc import to_ascii
 
 PAYLINE_VERSION = 26
 """ Version of payline API
@@ -343,7 +343,8 @@ class OrderInfo:
                 kv.append({"key": k, "value": v})
 
         for pair in kv:
-            pair["value"] = truncate_string(to_ascii(pair["value"]), 50)
+            ascii_val = to_ascii(pair["value"])
+            pair["value"] = ascii_val[:50]
 
         return {"privateData": kv}
 
@@ -358,13 +359,14 @@ class OrderInfo:
             self.amount_in_cents = (payment.amount_charged * 100).to_integral_exact()
             self.date = payment.creation_time.strftime("%d/%m/%Y %H:%M")
             item_details = {
-                "ref": f"{payment.price.id}",
+                "ref": payment.price.id,
                 "comment": f"{payment.item.event.title} -- {payment.item.title} -- {payment.price.title}",
-                "price": f"{self.amount_in_cents}",
+                "price": self.amount_in_cents,
             }
             self.details = {"details": [item_details]}
             self.metadata = {
                 "collective": payment.item.event.title,
+                "collective_id": payment.item.event.id,
                 "date": format_date(payment.item.event.start),
                 "activite": [a.name for a in payment.item.event.activity_types],
                 "objet": payment.item.title,

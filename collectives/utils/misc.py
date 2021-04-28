@@ -57,24 +57,13 @@ def isMobileUser():
 def to_ascii(value):
     """Convert an unicode string to ASCII, drop characters that can't be converted
 
-    :param value: Inpout string
+    :param value: Input string
     :type value: str
     :return: ASCII string
     :rtype: str
     """
     return (
-        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+        unicodedata.normalize("NFKD", str(value))
+        .encode("ascii", "ignore")
+        .decode("ascii")
     )
-
-
-def truncate_string(string, max_len):
-    """Truncates a string to maximum length
-
-    :param string: Input string
-    :type string: str
-    :param max_len: Maximum length
-    :type max_len: int
-    :return: Truncated string
-    :rtype: str
-    """
-    return string if len(string) <= max_len else string[:max_len]
