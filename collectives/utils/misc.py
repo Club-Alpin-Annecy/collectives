@@ -2,6 +2,7 @@
 
 """
 import functools
+import unicodedata
 from flask import request
 
 
@@ -51,3 +52,18 @@ def isMobileUser():
         return True
 
     return False
+
+
+def to_ascii(value):
+    """Convert an unicode string to ASCII, drop characters that can't be converted
+
+    :param value: Input string
+    :type value: str
+    :return: ASCII string
+    :rtype: str
+    """
+    return (
+        unicodedata.normalize("NFKD", str(value))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )

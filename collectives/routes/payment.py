@@ -440,7 +440,7 @@ def request_payment(payment_id):
     payment_request = payline.api.doWebPayment(order_info, buyer_info)
 
     if payment_request is not None:
-        if payment_request.result.payment_status() != PaymentStatus.Approved:
+        if not payment_request.result.is_accepted():
             # Payment request has not been accepted, log error
             current_app.logger.error(
                 "Payment request error: %s", payment_request.result.__dict__
@@ -549,6 +549,7 @@ def process():
 
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
+        current_app.logger.error("Invalid token '%s' for '%s'", token, request.endpoint)
         abort(500)
 
     if payment.status != PaymentStatus.Initiated:
