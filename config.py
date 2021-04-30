@@ -296,6 +296,7 @@ TYPES = {
     18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "ASF"},
     20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL"},
     21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL"},
+    22: {"short": "viaferrata", "name": "Via ferrata", "trigram": "AVF"},
 }
 """List of event type
 
