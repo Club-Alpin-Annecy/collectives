@@ -167,6 +167,11 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
+    main_leader = db.relationship("User")
+    """ Main leader of this event.
+
+    :type: :py:class:`collectives.models.user.User`"""
+
     activity_types = db.relationship(
         "ActivityType",
         secondary=event_activity_types,

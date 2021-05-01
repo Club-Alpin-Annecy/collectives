@@ -219,14 +219,16 @@ def export_payments(event_id=None):
     wb = Workbook()
     ws = wb.active
     FIELDS = {
+        "item.event.activity_types_names": "Activités",
+        "item.event.main_leader.first_name": "Prénom encadrant",
+        "item.event.main_leader.last_name": "Nom encadrant",
+        "item.event.title": "Collective",
+        "item.event.start": "Date de la collective",
         "buyer.license": "Licence",
         "buyer.first_name": "Prénom",
         "buyer.last_name": "Nom",
         "buyer.mail": "Email",
         "buyer.phone": "Téléphone",
-        "item.event.title": "Collective",
-        "item.event.activity_types_names": "Activités",
-        "item.event.start": "Date de la collective",
         "item.title": "Objet",
         "price.title": "Tarif",
         "amount_paid": "Prix payé",
