@@ -2,16 +2,13 @@
 
 This modules contains the root Blueprint
 """
-import inspect, sys
-
 from flask import redirect, url_for, Blueprint
-from flask import current_app, render_template, Response
+from flask import current_app, render_template
 from flask_login import current_user, login_required
 
 from ..forms.auth import LegalAcceptation
 from ..utils.time import current_time
-from ..models import db, ActivityType
-from ..models.utils import ChoiceEnum
+from ..models import db
 from ..utils import statistics
 
 blueprint = Blueprint("root", __name__)
@@ -47,15 +44,3 @@ def legal_accept():
 def stat_cookie(status):
     """Route to set statistics refusal cookie"""
     return statistics.set_disable_cookie(status)
-
-
-@blueprint.route("/models.js")
-def models_to_js():
-    """Routes to export all Enum to js"""
-    enums = ""
-    for name, obj in inspect.getmembers(sys.modules["collectives.models"]):
-        if inspect.isclass(obj) and issubclass(obj, ChoiceEnum):
-            enums = enums + "const Enum" + name + "=" + obj.js_values() + ";"
-
-    enums = enums + "const EnumActivityType=" + ActivityType.js_values() + ";"
-    return Response(enums, mimetype="application/javascript")

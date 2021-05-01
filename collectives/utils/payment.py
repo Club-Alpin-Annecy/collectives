@@ -1,7 +1,6 @@
 """Module to help payment extraction
 """
 import datetime
-from sqlalchemy import func
 
 from ..models import db, Payment, PaymentStatus, PaymentItem, Event
 from ..models import ActivityType, ItemPrice, User, PaymentType
@@ -40,30 +39,30 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
 
                 if end_str != "":
                     end = datetime.datetime.strptime(end_str, "%Y-%m-%d")
+                    # To include the end day in the result
+                    end = end + datetime.timedelta(days=1)
                     query = query.filter(Payment.creation_time < end)
-            if field == "item.event.title":
+            elif field == "item.event.title":
                 query = query.filter(Event.title.like(f"%{value}%"))
-            if field == "item.event.activity_types_names":
+            elif field == "item.event.activity_type_names":
                 query = query.filter(
                     Event.activity_types.any(ActivityType.id == int(value))
                 )
-            if field == "item.title":
+            elif field == "item.title":
                 query = query.filter(PaymentItem.title.like(f"%{value}%"))
-            if field == "price.title":
+            elif field == "price.title":
                 query = query.filter(ItemPrice.item_id == PaymentItem.id)
                 query = query.filter(ItemPrice.title.like(f"%{value}%"))
-            if field == "buyer_name":
+            elif field == "buyer_name":
                 query = query.filter(User.id == Payment.buyer_id)
                 query = query.filter(
-                    func.lower(User.first_name + " " + User.last_name).like(
-                        f"%{value}%"
-                    )
+                    User.first_name + " " + User.last_name.ilike(f"%{value}%")
                 )
-            if field == "payment_type":
+            elif field == "payment_type":
                 query = query.filter(Payment.payment_type == PaymentType(int(value)))
-            if field == "status":
+            elif field == "status":
                 query = query.filter(Payment.status == PaymentStatus(int(value)))
-            if field == "registration_status":
+            elif field == "registration_status":
                 query = query.filter(Registration.id == Payment.registration_id)
                 query = query.filter(
                     Registration.status == RegistrationStatus(int(value))

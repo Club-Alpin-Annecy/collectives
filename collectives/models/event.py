@@ -673,7 +673,7 @@ class Event(db.Model):
         return self.has_edit_rights(user)
 
     @property
-    def activity_types_names(self):
+    def activity_type_names(self):
         """
         :return: A string of the actitivities names of the event
         :rtype: string"""

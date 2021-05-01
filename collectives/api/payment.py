@@ -87,7 +87,7 @@ class EventPaymentSchema(PaymentSchema):
             "details_uri",
             "creation_time",
             "item.event.title",
-            "item.event.activity_types_names",
+            "item.event.activity_type_names",
             "item.event.start",
         )
 

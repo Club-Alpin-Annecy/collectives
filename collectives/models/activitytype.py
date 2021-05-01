@@ -99,7 +99,7 @@ class ActivityType(db.Model):
         :rtype: String
         """
         types = cls.get_all_types()
-        items = [str(type.id) + ":'" + str(escape(type.name)) + "'" for type in types]
+        items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
 
 

@@ -16,14 +16,14 @@ function createPaymentsTable(url)
 
           nestedFieldSeparator: false,
           columns:[
-            {title:"État", field:"status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: EnumPaymentStatus}, headerFilterParams:{values: EnumPaymentStatus}},
-            {title:"Date", field:"creation_time", widthGrow:1.2, headerFilter:dateFilterEditor, headerFilterFunc:dateFilterFunction,  formatter:"datetime", formatterParams: { outputFormat:"DD/MM/YYYY" }},
+            {title:"État", field:"status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumPaymentStatus)}, headerFilterParams:{values: addEmpty(EnumPaymentStatus)}},
+            {title:"Date", field:"creation_time", widthGrow:1.2, headerFilter:dateFilterEditor, formatter:"datetime", formatterParams: { outputFormat:"DD/MM/YYYY" }},
             {title:"Objet", field:"item.title", widthGrow:2, headerFilter:true},
             {title:"Tarif", field:"price.title", widthGrow:2, headerFilter:true},
             {title:"Payé", field:"amount_paid", widthGrow:1},
-            {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true, editor:"select", editorParams:{values: EnumPaymentType}, headerFilterParams:{values: EnumPaymentType}},
+            {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true, editor:"select", editorParams:{values: addEmpty(EnumPaymentType)}, headerFilterParams:{values: addEmpty(EnumPaymentType)}},
             {title:"Adhérent", field:"buyer_name", widthGrow:2, headerFilter:true},
-            {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: EnumRegistrationStatus}, headerFilterParams:{values: EnumRegistrationStatus}},
+            {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumRegistrationStatus)}, headerFilterParams:{values: addEmpty(EnumRegistrationStatus)}},
             ],
 
         rowClick:function(e, row){
@@ -48,17 +48,17 @@ function createAllPaymentsTable(url)
     table.addColumn({title:"Collective", field:"item.event.title", widthGrow:2, headerFilter:true}, true, "name");
     table.addColumn({
             title:"Activité",
-            field:"item.event.activity_types_names",
+            field:"item.event.activity_type_names",
             widthGrow:1.5,
             headerFilter:true,
             editor:"select",
-            editorParams:{values: EnumActivityType},
-            headerFilterParams:{values: EnumActivityType}
+            editorParams:{values: addEmpty(EnumActivityType)},
+            headerFilterParams:{values: addEmpty(EnumActivityType)}
         }, true, "name");
     return table;
 }
 
-function exportAsExcell(e)
+function exportAsExcel(e)
 {
     var params = table.modules.ajax.serializeParams({'filters':table.getFilters(true)});
     var url = e.href + "?" + params;
@@ -66,14 +66,20 @@ function exportAsExcell(e)
     return false;
 }
 
-//custom header filter
-var dateFilterEditor = function(cell, onRendered, success, cancel, editorParams){
+function addEmpty(dict){
+    Object.assign(dict, {"":""});
+    return dict;
+}
+
+function dateFilterEditor(cell, onRendered, success, cancel, editorParams){
 
 	var container = document.createElement('span');
     start = document.createElement('input');
-    start.type = 'date';
+    start.type = 'datetime';
+    start.style.width="100%";
     end = document.createElement('input');
-    end.type = 'date';
+    end.type = 'datetime';
+    end.style.width="100%";
 
     function buildDate(){
         success({
@@ -86,42 +92,12 @@ var dateFilterEditor = function(cell, onRendered, success, cancel, editorParams)
     end.addEventListener("change", buildDate);
 
 
+    var tailOpts = {locale: "fr", timeFormat: false,};
+    tail.DateTime(start, tailOpts);
+    tail.DateTime(end, tailOpts);
+
     container.append(start);
     container.append(document.createElement('br'));
     container.append(end);
 	return container;
-}
-
-//custom filter function
-function dateFilterFunction(headerValue, rowValue, rowData, filterParams){
-    //headerValue - the value of the header filter element
-    //rowValue - the value of the column in this row
-    //rowData - the data for the row being filtered
-    //filterParams - params object passed to the headerFilterFuncParams property
-   console.log(headerValue);
-   	var format = filterParams.format || "DD/MM/YYYY";
-   	var start = Date.parse(headerValue.start);
-   	var end = Date.parse(headerValue.end);
-   	var value = Date.parse(rowValue)
-    console.log(start);
-    console.log(end);
-    console.log(rowValue);
-   	if(rowValue){
-   		if(!isNaN(start)){
-   			if(!isNaN(end)){
-                console.log("SE");
-   				return value >= start && value <= end;
-   			}else{
-                console.log("S");
-   				return value >= start;
-   			}
-   		}else{
-   			if(!isNaN(end)){
-                console.log("E");
-   				return value <= end;
-   			}
-   		}
-   	}
-
-    return true; //must return a boolean, true if it passes the filter.
 }

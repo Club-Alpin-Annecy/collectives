@@ -219,7 +219,7 @@ def export_payments(event_id=None):
     wb = Workbook()
     ws = wb.active
     FIELDS = {
-        "item.event.activity_types_names": "Activités",
+        "item.event.activity_type_names": "Activités",
         "item.event.main_leader.first_name": "Prénom encadrant",
         "item.event.main_leader.last_name": "Nom encadrant",
         "item.event.title": "Collective",
