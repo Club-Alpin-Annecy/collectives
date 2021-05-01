@@ -14,6 +14,7 @@ class RoleIds(ChoiceEnum):
     - President
     - Technician
     - Hotline
+    - Accountant
 
     Activity related roles:
     - EventLeader: can lead an event of this activity type
@@ -27,6 +28,8 @@ class RoleIds(ChoiceEnum):
     President = 3
     Technician = 4
     Hotline = 5
+    Accountant = 6
+
     # Activity-related roles
     EventLeader = 10
     ActivitySupervisor = 11
@@ -45,6 +48,7 @@ class RoleIds(ChoiceEnum):
             cls.President: "Président du club",
             cls.Technician: "Technicien du site",
             cls.Hotline: "Support",
+            cls.Accountant: "Comptable",
             cls.EventLeader: "Initiateur",
             cls.ActivitySupervisor: "Responsable d'activité",
             cls.Trainee: "Initiateur en formation",

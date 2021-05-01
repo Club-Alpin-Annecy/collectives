@@ -463,6 +463,16 @@ class User(db.Model, UserMixin):
         """
         return self.has_role([RoleIds.Administrator, RoleIds.Hotline])
 
+    def is_accountant(self):
+        """Check if user has a hotline role.
+
+        See :py:attr:`collectives.models.role.RoleIds.Accountant`
+
+        :return: True if user has an accountant role.
+        :rtype: boolean
+        """
+        return self.has_role([RoleIds.Administrator, RoleIds.Accountant])
+
     def can_create_events(self):
         """Check if user has a role which allow him to creates events.
 

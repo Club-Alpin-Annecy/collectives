@@ -3,17 +3,17 @@
 """
 import json
 
-from flask import abort, url_for
+from flask import abort, url_for, request
 from flask_login import current_user
 from marshmallow import fields
 
 from .common import blueprint, marshmallow
 from ..utils.access import payments_enabled, valid_user
 
-from ..models import db
 from ..models.event import Event
-from ..models.payment import Payment, PaymentItem
+from ..models.payment import Payment
 from ..utils.numbers import format_currency
+from ..utils.payment import extract_payments
 
 
 class PaymentSchema(marshmallow.Schema):
@@ -36,21 +36,6 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    item_title = fields.Function(lambda p: p.item.title)
-    """ Title of the payment item
-
-    :type: string"""
-
-    event_title = fields.Function(lambda p: p.item.event.title)
-    """ Title of the event associated to payment item
-
-    :type: string"""
-
-    price_title = fields.Function(lambda p: p.price.title)
-    """ Title of the item price
-
-    :type: string"""
-
     buyer_name = fields.Function(lambda p: p.buyer.full_name())
     """ Full name of the user associated to this payment
 
@@ -66,24 +51,12 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    creation_time = fields.Function(lambda p: p.creation_time.strftime("%d/%m/%y"))
-    """ Time at which the payment has been created
-
-    :type: string"""
-
     finalization_time = fields.Function(
         lambda p: p.finalization_time.strftime("%d/%m/%y")
         if p.finalization_time
         else None
     )
     """ Time at which the payment has been finalized
-
-    :type: string"""
-
-    refund_time = fields.Function(
-        lambda p: p.refund_time.strftime("%d/%m/%y") if p.refund_time else None
-    )
-    """ Time at which the payment has been refunded
 
     :type: string"""
 
@@ -104,8 +77,8 @@ class EventPaymentSchema(PaymentSchema):
         fields = (
             "id",
             "status",
-            "item_title",
-            "price_title",
+            "item.title",
+            "price.title",
             "amount_charged",
             "amount_paid",
             "buyer_name",
@@ -113,6 +86,9 @@ class EventPaymentSchema(PaymentSchema):
             "registration_status",
             "details_uri",
             "creation_time",
+            "item.event.title",
+            "item.event.activity_type_names",
+            "item.event.start",
         )
 
 
@@ -166,27 +142,33 @@ class MyPaymentSchema(PaymentSchema):
 
 
 @blueprint.route("/payments/<event_id>/list", methods=["GET"])
+@blueprint.route("/payments/list", methods=["GET"])
 @valid_user(True)
 @payments_enabled(True)
-def list_payments(event_id):
-    """Api endpoint for listing all payments associated to an event
+def list_payments(event_id=None):
+    """Api endpoint for listing all payments associated to an event.
 
     :param event_id: The primary key of the event we're listing the payments of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
-    if event is None:
-        return abort(403)
+    if event_id is not None:
+        event = Event.query.get(event_id)
+        if event is None:
+            return abort(404)
+        if not event.has_edit_rights(current_user) and not current_user.is_accountant():
+            return abort(403)
+    else:
+        if not current_user.is_accountant():
+            return abort(403)
 
-    if not event.has_edit_rights(current_user):
-        return abort(403)
+    page = int(request.args.get("page"))
+    size = int(request.args.get("size"))
+    filters = {k: v for (k, v) in request.args.items() if k.startswith("filters")}
 
-    query = db.session.query(Payment)
-    query = query.filter(PaymentItem.event_id == event_id)
-    query = query.filter(PaymentItem.id == Payment.payment_item_id)
+    result = extract_payments(event_id, page, size, filters)
 
-    result = query.order_by(Payment.id).all()
-    response = EventPaymentSchema(many=True).dump(result)
+    data = EventPaymentSchema(many=True).dump(result.items)
+    response = {"data": data, "last_page": result.pages}
 
     return json.dumps(response), 200, {"content-type": "application/json"}
 

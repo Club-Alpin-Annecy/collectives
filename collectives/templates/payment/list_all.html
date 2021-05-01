@@ -12,10 +12,12 @@
   <script src="{{ url_for('static', filename='js/payment/payment_list.js') }}"></script>
   <script src="{{ url_for('api.models_to_js') }}"></script>
   <script>
+  var table;
   window.onload = function() {
-    var ajaxUrl = "{{url_for('api.list_payments', event_id=event.id)}}" ;
-    createPaymentsTable(ajaxUrl);
+    var ajaxUrl = "{{url_for('api.list_payments')}}" ;
+    table = createAllPaymentsTable(ajaxUrl);
   }
+
   </script>
 
 {% endblock %}
@@ -25,14 +27,17 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel" id="administration">
-  <h3>{{event.title}}</h3>
-  <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
-  
-  <h4>Paiement associés à la collective</h4>
+<div class="panel" style="max-width: 100%">
+  <h3>Liste des paiements</h3>
   <div id="payments-table"></div>
 
-  <p><a class="button button-primary" href="{{url_for('payment.export_payments', event_id=event.id)}}">Export XLSX des paiements validés</a></p>
+  <p>
+      <a
+            class="button button-primary"
+            href="{{url_for('payment.export_payments')}}"
+            onclick="return exportAsExcell(this)">
+            Export XLSX des paiements
+      </a>
+  </p>
 </div>
 {% endblock %}
-

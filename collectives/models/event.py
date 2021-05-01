@@ -167,6 +167,11 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
+    main_leader = db.relationship("User")
+    """ Main leader of this event.
+
+    :type: :py:class:`collectives.models.user.User`"""
+
     activity_types = db.relationship(
         "ActivityType",
         secondary=event_activity_types,
@@ -666,6 +671,13 @@ class Event(db.Model):
         if self.status == EventStatus.Confirmed or self.status == EventStatus.Cancelled:
             return True
         return self.has_edit_rights(user)
+
+    @property
+    def activity_type_names(self):
+        """
+        :return: A string of the actitivities names of the event
+        :rtype: string"""
+        return " - ".join([a.name for a in self.activity_types])
 
     # Payment
     def requires_payment(self):

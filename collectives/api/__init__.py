@@ -14,5 +14,7 @@ from collectives.api.autocomplete_user import find_users_by_fuzzy_name
 import collectives.api.event
 import collectives.api.userevent
 import collectives.api.payment
+import collectives.api.models
+
 
 from .common import blueprint, marshmallow

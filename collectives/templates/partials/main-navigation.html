@@ -61,6 +61,15 @@
                                     Logs du serveur</a>
                             </li>
                             {% endif %}
+
+
+                            {%  if conf["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('payment.list_all')}}" class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" />
+                                    Liste des paiements</a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>

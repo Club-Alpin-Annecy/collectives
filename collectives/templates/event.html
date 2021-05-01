@@ -293,6 +293,21 @@
 
     </div> <!-- .administration -->
     {% endif %}
+
+    {# Accountant space #}
+    {% if conf["PAYMENTS_ENABLED"] and current_user.is_accountant()  %}
+    <div class="administration">
+    <h4>Comptabilité</h4>
+    {% if event.requires_payment() %}
+        <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+          Liste des paiements
+        </a>
+    {% else %}
+        Pas de paiement requis sur cette collective
+    {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 
