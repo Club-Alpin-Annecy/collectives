@@ -667,6 +667,13 @@ class Event(db.Model):
             return True
         return self.has_edit_rights(user)
 
+    @property
+    def activity_types_names(self):
+        """
+        :return: A string of the actitivities names of the event
+        :rtype: string"""
+        return " - ".join([a.name for a in self.activity_types])
+
     # Payment
     def requires_payment(self):
         """

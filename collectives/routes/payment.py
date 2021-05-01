@@ -15,7 +15,8 @@ from openpyxl import Workbook
 from ..forms.payment import PaymentItemsForm, OfflinePaymentForm, NewItemPriceForm
 from ..utils import payline
 
-from ..utils.access import payments_enabled, valid_user
+from ..utils.access import payments_enabled, valid_user, user_is
+from ..utils.payment import extract_payments
 from ..utils.time import current_time
 from ..utils.misc import deepgetattr
 from ..utils.url import slugify
@@ -155,6 +156,17 @@ def edit_prices(event_id):
     )
 
 
+@blueprint.route("/list", methods=["GET"])
+@valid_user()
+@user_is("is_accountant")
+def list_all():
+    """Route to display all payments to the accountant"""
+    return render_template(
+        "payment/list_all.html",
+        conf=current_app.config,
+    )
+
+
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
 @valid_user()
 def list_payments(event_id):
@@ -177,9 +189,10 @@ def list_payments(event_id):
     )
 
 
-@blueprint.route("/event/<event_id>/export_payments", methods=["GET"])
+@blueprint.route("/export/event/<event_id>", methods=["GET"])
+@blueprint.route("/export", methods=["GET"])
 @valid_user()
-def export_payments(event_id):
+def export_payments(event_id=None):
     """Create an Excel document listing all approved payments associated to an event
 
     :param event_id: The primary key of the event we're listing the prices of
@@ -188,21 +201,19 @@ def export_payments(event_id):
     """
 
     # Check that the user is allowed to retrieve the payments
-    event = Event.query.get(event_id)
-    if event is None:
-        return abort(403)
-
-    if not current_user.is_accountant() and not event.has_edit_rights(current_user):
-        return abort(403)
+    if event_id is not None:
+        event = Event.query.get(event_id)
+        if event is None:
+            return abort(404)
+        if not current_user.is_accountant() and not event.has_edit_rights(current_user):
+            return abort(403)
+    else:
+        if not current_user.is_accountant():
+            return abort(403)
 
     # Fetch all associated payments
-    query = db.session.query(Payment)
-    query = query.filter(
-        Payment.status.in_([PaymentStatus.Approved, PaymentStatus.Refunded])
-    )
-    query = query.filter(PaymentItem.event_id == event_id)
-    query = query.filter(PaymentItem.id == Payment.payment_item_id)
-    payments = query.all()
+    filters = {k: v for (k, v) in request.args.items() if k.startswith("filters")}
+    payments = extract_payments(event_id, None, None, filters)
 
     # Create the excel document
     wb = Workbook()
@@ -213,10 +224,13 @@ def export_payments(event_id):
         "buyer.last_name": "Nom",
         "buyer.mail": "Email",
         "buyer.phone": "Téléphone",
+        "item.event.title": "Collective",
+        "item.event.activity_types_names": "Activités",
+        "item.event.start": "Date de la collective",
         "item.title": "Objet",
         "price.title": "Tarif",
         "amount_paid": "Prix payé",
-        "finalization_time": "Date",
+        "finalization_time": "Date du paiement",
         "payment_status_str": "État",
         "refund_time": "Date de remboursement",
         "payment_type_str": "Type",
@@ -227,7 +241,7 @@ def export_payments(event_id):
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
         payment.payment_status_str = payment.status.display_name()
-        ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
+        ws.append([str(deepgetattr(payment, field, "-")) for field in FIELDS])
 
     # set column width
     for c in "BCDEFGIK":
@@ -240,9 +254,12 @@ def export_payments(event_id):
     out.seek(0)
 
     time_str = current_time().strftime("%d_%m_%Y %H_%M")
-    filename = (
-        f"CAF Annecy - Export paiements {slugify(event.title)} au {time_str}.xlsx"
-    )
+
+    if event_id is not None:
+        title = slugify(event.title)
+        filename = f"CAF Annecy - Export paiements {title} au {time_str}.xlsx"
+    else:
+        filename = f"CAF Annecy - Export paiements au {time_str}.xlsx"
 
     return send_file(
         out,

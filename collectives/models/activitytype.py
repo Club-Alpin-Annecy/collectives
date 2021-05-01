@@ -1,6 +1,7 @@
 """Module to describe the type of activity.
 """
 from sqlalchemy.orm import validates
+from flask import escape
 
 from .globals import db
 
@@ -89,6 +90,17 @@ class ActivityType(db.Model):
         :return: list of types
         :rtype: list(:py:class:`ActivityType`)"""
         return cls.query.order_by("order", "name").all()
+
+    @classmethod
+    def js_values(cls):
+        """Class method to get all actitivity type as js dict
+
+        :return: types as js Dictionnary
+        :rtype: String
+        """
+        types = cls.get_all_types()
+        items = [str(type.id) + ":'" + str(escape(type.name)) + "'" for type in types]
+        return "{" + ",".join(items) + "}"
 
 
 def activities_without_leader(activities, leaders):
