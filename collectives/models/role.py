@@ -49,9 +49,9 @@ class RoleIds(ChoiceEnum):
             cls.Technician: "Technicien du site",
             cls.Hotline: "Support",
             cls.Accountant: "Comptable",
-            cls.EventLeader: "Initiateur",
+            cls.EventLeader: "Encadrant bénévole",
             cls.ActivitySupervisor: "Responsable d'activité",
-            cls.Trainee: "Initiateur en formation",
+            cls.Trainee: "Encadrant bénévole en formation",
         }
 
     def relates_to_activity(self):

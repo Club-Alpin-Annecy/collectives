@@ -785,7 +785,7 @@ def change_registration_level(reg_id, reg_level):
     if level == RegistrationLevels.CoLeader:
         if not registration.event.can_be_coleader(registration.user):
             flash(
-                "L'utilisateur n'est pas initiateur en formation. Merci de vous rapprocher du responsable d'activité",
+                "L'utilisateur n'est pas encadrant bénévole en formation. Merci de vous rapprocher du responsable d'activité",
                 "error",
             )
             return redirect(url_for("event.view_event", event_id=registration.event.id))

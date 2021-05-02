@@ -16,10 +16,10 @@
   <script>
       window.onload = function () {
         loadTraineesTable('{{url_for("api.trainees")}}', '{{csrf_token()}}');
-      
+
         const searchInput = document.getElementById('user-search');
         setupAutoComplete(
-          searchInput, 
+          searchInput,
           '{{url_for("api.autocomplete_users")}}',
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
@@ -29,12 +29,12 @@
 {% endblock %}
 
 {% block header %}
-  <h1>{% block title %}Initiateurs en formation{% endblock %}</h1>
+  <h1>{% block title %}Encadrants bénévoles en formation{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 <div class="panel" id="administration">
-  <h4>Initiateurs en formation</h4>
+  <h4>Encadrants bénévoles en formation</h4>
 
   <div class="action">
 

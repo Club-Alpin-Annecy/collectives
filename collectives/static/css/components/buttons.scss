@@ -34,6 +34,7 @@
         background: $color-blue-primary-light;
         border: 1px solid $color-blue-primary-light;
         color: $color-white;
+        min-width: 30em;
         &:hover {
             color: $color-white;
             background: $color-blue-primary-dark;
@@ -62,4 +63,3 @@
         font-size: $font-size-xs;
     }
 }
-

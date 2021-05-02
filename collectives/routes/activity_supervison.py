@@ -64,7 +64,7 @@ def add_trainee():
             role.activity_id,
         ):
             flash(
-                "L'utilisateur est déjà initiateur ou initiateur en formation pour cette activité",
+                "L'utilisateur est déjà encadrant bénévole ou encadrant bénévole en formation pour cette activité",
                 "error",
             )
             return redirect(url_for(".manage_trainees"))
@@ -77,7 +77,7 @@ def add_trainee():
         "trainees.html",
         conf=current_app.config,
         add_trainee_form=add_trainee_form,
-        title="Initiateurs en formation",
+        title="Encadrants bénévoles en formation",
     )
 
 
@@ -113,7 +113,7 @@ def manage_trainees():
         "trainees.html",
         conf=current_app.config,
         add_trainee_form=add_trainee_form,
-        title="Initiateurs en formation",
+        title="Encadrants bénévoles en formation",
     )
 
 
