@@ -102,8 +102,13 @@
           <ul>
           {% for r in event.existing_registrations(current_user) %}
             {% if r.is_pending_payment() %}
-              {% for payment in r.payments %}
+              {% for payment in r.pending_payments() %}
                 <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+              {% else %}
+                {# No pending payments, propose to choose item and price #}
+                {% with registration=r %}
+                  {% include 'partials/event/payment_item_choice.html' %}
+                {% endwith %}
               {% endfor %}
             {% endif %}
           {% endfor %}
@@ -141,7 +146,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-          {% include 'event/self_register.html' %}
+          {% include 'partials/event/self_register.html' %}
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>
         {% elif not event.has_free_online_slots() %}

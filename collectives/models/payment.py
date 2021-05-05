@@ -425,13 +425,23 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.payment_type != PaymentType.Online
 
+    def is_pending(self):
+        """:return: whether this payment is pending
+        :rtype: bool"""
+        return self.status == PaymentStatus.Initiated
+
+    def is_approved(self):
+        """:return: whether this payment has been accepted
+        :rtype: bool"""
+        return self.status == PaymentStatus.Approved
+
     def has_receipt(self):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)
         :rtype: bool"""
         return (
             self.payment_type == PaymentType.Online
-            and self.status == PaymentStatus.Approved
+            and self.is_approved()
         )
 
     def has_refund_receipt(self):

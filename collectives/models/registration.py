@@ -80,6 +80,11 @@ class Registration(db.Model):
 
     :type: :py:class:`collectives.models.registration.RegistrationLevels`"""
 
+    is_self = db.Column(db.Boolean, nullable=False, default=True)
+    """ Whether this is a self-registration (by the user themselves)
+
+    :type: int"""
+
     # Relationships
 
     payments = db.relationship("Payment", backref="registration", lazy=True)
@@ -118,3 +123,10 @@ class Registration(db.Model):
         :return: Is :py:attr:`status` pending payment ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.PaymentPending
+
+    def pending_payments(self):
+        """Returns the list of pending payments associated to this registration
+
+        :return: The list of payments with 'Initiated' status
+        :rtype: list[:py:class:`collectives.modes.payment.Payment`]"""
+        return [p for p in self.payments if p.is_pending()]

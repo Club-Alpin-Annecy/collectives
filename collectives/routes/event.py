@@ -10,7 +10,7 @@ from werkzeug.datastructures import CombinedMultiDict
 from ..forms import EventForm, photos
 from ..forms import RegistrationForm
 
-from ..forms.event import PaidSelfRegistrationForm
+from ..forms.event import PaymentItemChoiceForm
 from ..models import Event, ActivityType, Registration, RegistrationLevels, EventStatus
 from ..models import RegistrationStatus, User, db
 from ..models import EventTag
@@ -228,12 +228,14 @@ def view_event(event_id, name=""):
         RegistrationForm() if event.has_edit_rights(current_user) else None
     )
 
-    if event.requires_payment() and event.can_self_register(
-        current_user, current_time()
-    ):
-        paid_self_register_form = PaidSelfRegistrationForm(event)
-    else:
-        paid_self_register_form = None
+    payment_item_choice_form = None
+    if event.requires_payment():
+        # If the user can register or if they have yet to pay, create payment
+        # item choice form
+        if event.can_self_register(
+            current_user, current_time()
+        ) or event.has_pending_payment(current_user):
+            payment_item_choice_form = PaymentItemChoiceForm(event)
 
     return render_template(
         "event.html",
@@ -243,7 +245,7 @@ def view_event(event_id, name=""):
         current_time=current_time(),
         current_user=current_user,
         register_user_form=register_user_form,
-        paid_self_register_form=paid_self_register_form,
+        payment_item_choice_form=payment_item_choice_form,
     )
 
 
@@ -546,6 +548,7 @@ def self_register(event_id):
             user_id=current_user.id,
             status=RegistrationStatus.Active,
             level=RegistrationLevels.Normal,
+            is_self=True,
         )
 
         event.registrations.append(registration)
@@ -554,7 +557,7 @@ def self_register(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Paid event
-    form = PaidSelfRegistrationForm(event)
+    form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
 
         item_price = ItemPrice.query.get(form.item_price.data)
@@ -571,6 +574,7 @@ def self_register(event_id):
             user_id=current_user.id,
             status=RegistrationStatus.PaymentPending,
             level=RegistrationLevels.Normal,
+            is_self=True,
         )
 
         event.registrations.append(registration)
@@ -587,6 +591,56 @@ def self_register(event_id):
 
     # Form has not been submitted to terms not accepted, return to event page
     return redirect(url_for("event.view_event", event_id=event_id))
+
+@blueprint.route("/<int:event_id>/select_payment_item", methods=["POST"])
+@valid_user()
+def select_payment_item(event_id):
+    """Route for a user to select an item to pay for .
+
+    :param int event_id: Primary key of the event .
+    """
+    event = Event.query.filter_by(id=event_id).first()
+
+    if not event or not event.has_pending_payment(current_user):
+        flash("Vous n'avez pas de paiement en attente", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    # Find associated registration which is pending payment but 
+    # with no payment item selected yet
+    registration = None
+    for r in event.existing_registrations(current_user):
+        if r.is_pending_payment() and not r.pending_payments():
+            registration = r
+            break
+    if not registration:
+        flash("Vous n'avez pas de paiement en attente", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    form = PaymentItemChoiceForm(event)
+    if form.validate_on_submit():
+
+        item_price = ItemPrice.query.get(form.item_price.data)
+        if (
+            item_price is None
+            or item_price.item.event_id != event_id
+            or not item_price.is_available_to_user(current_user)
+            or not item_price.is_available_at_date(current_time().date())
+        ):
+            flash("Tarif invalide.", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+        payment = Payment(registration=registration, item_price=item_price)
+        payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
+
+        db.session.add(payment)
+        db.session.commit()
+
+        # Goto to online payment page
+        return redirect(url_for("payment.request_payment", payment_id=payment.id))
+
+    # Form has not been submitted to terms not accepted, return to event page
+    return redirect(url_for("event.view_event", event_id=event_id))
+
 
 
 @blueprint.route("/<int:event_id>/register_user", methods=["POST"])
@@ -626,12 +680,15 @@ def register_user(event_id):
                 )
             except StopIteration:
                 registration = Registration(
-                    level=RegistrationLevels.Normal, event=event, user=user
+                    level=RegistrationLevels.Normal,
+                    event=event,
+                    user=user,
+                    is_self=False,
                 )
 
             if payment_required and registration.status != RegistrationStatus.Active:
                 flash(
-                    f"La collective est payante: l'inscription de {user.full_name()} ne sera définitive qu'après saisie des informations de paiement en bas de page."
+                    f"La collective est payante: l'inscription de {user.full_name()} ne sera définitive qu'après qu'il/elle aie payé en ligne, ou après saisie manuelle des informations de paiement en bas de page."
                 )
                 registration.status = RegistrationStatus.PaymentPending
             else:
