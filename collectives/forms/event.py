@@ -315,11 +315,13 @@ class EventForm(ModelForm, FlaskForm):
         return event.can_remove_leader(current_user, leader)
 
 
-class PaidSelfRegistrationForm(FlaskForm):
-    """Self-registration form for paid events"""
+class PaymentItemChoiceForm(FlaskForm):
+    """Form allowing users to choose a payment item and price """
 
     item_price = RadioField("Choix du tarif", coerce=int, validators=[DataRequired()])
     accept_payment_terms = BooleanField(validators=[DataRequired()])
+
+    existing_registration_id = HiddenField()
 
     submit = SubmitField("Valider et accéder au paiement en ligne")
 

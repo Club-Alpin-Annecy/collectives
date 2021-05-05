@@ -1,39 +1,36 @@
-{% if event.requires_payment() %}
 
-   {% if paid_self_register_form.item_price.choices | length %}
+   {% if payment_item_choice_form.item_price.choices | length %}
 
     <p>
         Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
         Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
         vous référer aux <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
     </p>
-    <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
+    {% if registration %}
+        <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
+        <strong>Finaliser l'inscription</strong>
+    {% else %}
+        <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
         <strong>Inscription</strong>
+    {% endif %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
-            {{paid_self_register_form.item_price.label}} :
+            {{payment_item_choice_form.item_price.label}} :
             <ul class="radio_fields">
-            {% for option in paid_self_register_form.item_price %}
+            {% for option in payment_item_choice_form.item_price %}
                 <li>{{option(required=1)}} {{option.label}} </li>
             {% endfor %}
             </ul>
         </div>
         <div>
         <label>
-        {{paid_self_register_form.accept_payment_terms}}
+        {{payment_item_choice_form.accept_payment_terms}}
         J'ai lu et j'accepte les <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
         </label>
 
         </div>
-        {{paid_self_register_form.submit(class="button button-primary")}}
+        {{payment_item_choice_form.submit(class="button button-primary")}}
     </form>
    {% else %}
       Les conditions tarifaires actuellement définies pour cette collective ne s'appliquent pas à votre catégorie de licence.
    {% endif %}
-{% else %}
-    <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-        <span class="name">S'inscrire</span>
-    </form>
-{% endif %}

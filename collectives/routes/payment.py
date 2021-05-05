@@ -443,7 +443,7 @@ def request_payment(payment_id):
     """
     payment = Payment.query.get(payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(500)
+        abort(403)
 
     # If the item is free, approve the payment immediately
     if payment.amount_charged == Decimal(0.0):
@@ -500,7 +500,7 @@ def do_mock_payment(token):
     """
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
-        abort(500)
+        abort(403)
 
     amount = payline.OrderInfo(payment).amount_in_cents
 
@@ -537,7 +537,7 @@ def finalize_payment(payment, details):
             payment.registration.status = RegistrationStatus.Active
             db.session.add(payment.registration)
     else:
-        if payment.registration is not None:
+        if payment.registration is not None and payment.registration.is_self:
             flash(
                 "Votre paiement a été refusé ou annulé, votre inscription a été supprimée."
             )
@@ -573,12 +573,12 @@ def process():
         token = request.form.get(param)
 
     if token is None:
-        abort(500)
+        abort(403)
 
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
         current_app.logger.error("Invalid token '%s' for '%s'", token, request.endpoint)
-        abort(500)
+        abort(404)
 
     if payment.status != PaymentStatus.Initiated:
         # Payment has already been finalized
