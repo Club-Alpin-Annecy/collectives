@@ -431,8 +431,8 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.payment_type != PaymentType.Online
 
-    def is_pending(self):
-        """:return: whether this payment is pending
+    def is_unsettled(self):
+        """:return: whether this payment is not finalized yet
         :rtype: bool"""
         return self.status == PaymentStatus.Initiated
 

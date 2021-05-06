@@ -124,9 +124,9 @@ class Registration(db.Model):
         :rtype: boolean"""
         return self.status == RegistrationStatus.PaymentPending
 
-    def pending_payments(self):
-        """Returns the list of pending payments associated to this registration
+    def unsettled_payments(self):
+        """Returns the list of unsettled payments associated to this registration
 
         :return: The list of payments with 'Initiated' status
         :rtype: list[:py:class:`collectives.modes.payment.Payment`]"""
-        return [p for p in self.payments if p.is_pending()]
+        return [p for p in self.payments if p.is_unsettled()]
