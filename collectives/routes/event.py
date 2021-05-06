@@ -592,6 +592,7 @@ def self_register(event_id):
     # Form has not been submitted to terms not accepted, return to event page
     return redirect(url_for("event.view_event", event_id=event_id))
 
+
 @blueprint.route("/<int:event_id>/select_payment_item", methods=["POST"])
 @valid_user()
 def select_payment_item(event_id):
@@ -605,7 +606,7 @@ def select_payment_item(event_id):
         flash("Vous n'avez pas de paiement en attente", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    # Find associated registration which is pending payment but 
+    # Find associated registration which is pending payment but
     # with no payment item selected yet
     registration = None
     for r in event.existing_registrations(current_user):
@@ -640,7 +641,6 @@ def select_payment_item(event_id):
 
     # Form has not been submitted to terms not accepted, return to event page
     return redirect(url_for("event.view_event", event_id=event_id))
-
 
 
 @blueprint.route("/<int:event_id>/register_user", methods=["POST"])
