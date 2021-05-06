@@ -28,9 +28,9 @@
 <li>
       <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
 
-      {% if registration.pending_payments() | length %}
+      {% if registration.unsettled_payments() | length %}
         Paiements en cours:
-        {% for p in registration.pending_payments() %}
+        {% for p in registration.unsettled_payments() %}
            <a class="button button-secondary" href="{{url_for('payment.payment_details', payment_id=p.id)}}"> {{p.item.title}}</a>
         {% endfor %}
       {% elif registration.is_pending_payment() %}

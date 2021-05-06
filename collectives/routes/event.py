@@ -607,10 +607,10 @@ def select_payment_item(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Find associated registration which is pending payment but
-    # with no payment item selected yet
+    # with no currently unsettled payments
     registration = None
     for r in event.existing_registrations(current_user):
-        if r.is_pending_payment() and not r.pending_payments():
+        if r.is_pending_payment() and not r.unsettled_payments():
             registration = r
             break
     if not registration:

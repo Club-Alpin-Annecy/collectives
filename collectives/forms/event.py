@@ -321,8 +321,6 @@ class PaymentItemChoiceForm(FlaskForm):
     item_price = RadioField("Choix du tarif", coerce=int, validators=[DataRequired()])
     accept_payment_terms = BooleanField(validators=[DataRequired()])
 
-    existing_registration_id = HiddenField()
-
     submit = SubmitField("Valider et accéder au paiement en ligne")
 
     def __init__(self, event, *args, **kwargs):
