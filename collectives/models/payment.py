@@ -382,6 +382,12 @@ class Payment(db.Model):
     :type: str
     """
 
+    processor_url = db.Column(db.String(255))
+    """ Url that the buyer should be redirected to to make the payment
+
+    :type: str
+    """
+
     raw_metadata = db.Column(
         db.Text,
         nullable=False,
@@ -439,10 +445,7 @@ class Payment(db.Model):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)
         :rtype: bool"""
-        return (
-            self.payment_type == PaymentType.Online
-            and self.is_approved()
-        )
+        return self.payment_type == PaymentType.Online and self.is_approved()
 
     def has_refund_receipt(self):
         """:return: whether this payment has an associated refund receipt

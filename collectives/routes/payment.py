@@ -445,6 +445,9 @@ def request_payment(payment_id):
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(403)
 
+    if payment.buyer.id != current_user.id:
+        abort(403)
+
     # If the item is free, approve the payment immediately
     if payment.amount_charged == Decimal(0.0):
         payment.payment_type = PaymentType.Cash
@@ -460,6 +463,11 @@ def request_payment(payment_id):
         db.session.commit()
 
         return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+
+    if payment.processor_url:
+        # Payment has already been registered with the payment processor
+        # Si ply redirect to the processor url
+        return redirect(payment.processor_url)
 
     # Redirect to the payment processor page
     order_info = payline.OrderInfo(payment)
@@ -480,9 +488,10 @@ def request_payment(payment_id):
 
         payment.processor_token = payment_request.token
         payment.processor_order_ref = order_info.unique_ref()
+        payment.processor_url = payment_request.redirect_url
         db.session.add(payment)
         db.session.commit()
-        return redirect(payment_request.redirect_url)
+        return redirect(payment.processor_url)
 
     flash(
         "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"

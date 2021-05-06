@@ -316,7 +316,7 @@ class EventForm(ModelForm, FlaskForm):
 
 
 class PaymentItemChoiceForm(FlaskForm):
-    """Form allowing users to choose a payment item and price """
+    """Form allowing users to choose a payment item and price"""
 
     item_price = RadioField("Choix du tarif", coerce=int, validators=[DataRequired()])
     accept_payment_terms = BooleanField(validators=[DataRequired()])
