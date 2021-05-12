@@ -16,6 +16,7 @@ from ..forms.payment import PaymentItemsForm, OfflinePaymentForm, NewItemPriceFo
 from ..utils import payline
 
 from ..utils.access import payments_enabled, valid_user, user_is
+from ..utils.access import confidentiality_agreement
 from ..utils.payment import extract_payments
 from ..utils.time import current_time
 from ..utils.misc import deepgetattr
@@ -159,6 +160,7 @@ def edit_prices(event_id):
 @blueprint.route("/list", methods=["GET"])
 @valid_user()
 @user_is("is_accountant")
+@confidentiality_agreement()
 def list_all():
     """Route to display all payments to the accountant"""
     return render_template(
@@ -169,6 +171,7 @@ def list_all():
 
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
 @valid_user()
+@confidentiality_agreement()
 def list_payments(event_id):
     """Route for listing all payments associated to an event
 
@@ -192,6 +195,7 @@ def list_payments(event_id):
 @blueprint.route("/export/event/<event_id>", methods=["GET"])
 @blueprint.route("/export", methods=["GET"])
 @valid_user()
+@confidentiality_agreement()
 def export_payments(event_id=None):
     """Create an Excel document listing all approved payments associated to an event
 
@@ -273,6 +277,7 @@ def export_payments(event_id=None):
 
 @blueprint.route("/<payment_id>/details", methods=["GET"])
 @valid_user()
+@confidentiality_agreement()
 def payment_details(payment_id):
     """Route for displaying details about a given payment
 
@@ -285,9 +290,10 @@ def payment_details(payment_id):
         return redirect(url_for("event.index"))
 
     event = payment.item.event
-    if event is None or not event.has_edit_rights(current_user):
-        flash("Accès refusé", "error")
-        return redirect(url_for("event.view_event", event_id=event.id))
+    if not current_user.is_accountant():
+        if event is None or not event.has_edit_rights(current_user):
+            flash("Accès refusé", "error")
+            return redirect(url_for("event.view_event", event_id=event.id))
 
     return render_template(
         "payment/payment_details.html",
@@ -345,6 +351,7 @@ def payment_receipt(payment_id):
     "/<payment_id>/registration/<registration_id>/edit_offline", methods=["GET", "POST"]
 )
 @valid_user()
+@confidentiality_agreement()
 def report_offline(registration_id, payment_id=None):
     """Route for entering/editing an offline payment
 
@@ -359,9 +366,10 @@ def report_offline(registration_id, payment_id=None):
         return redirect(url_for("event.index"))
 
     event = registration.event
-    if event is None or not event.has_edit_rights(current_user):
-        flash("Accès refusé", "error")
-        return redirect(url_for("event.view_event", event_id=event.id))
+    if not current_user.is_accountant():
+        if event is None or not event.has_edit_rights(current_user):
+            flash("Accès refusé", "error")
+            return redirect(url_for("event.view_event", event_id=event.id))
 
     payment = None
     if payment_id is not None:
@@ -592,6 +600,8 @@ def process():
 
 
 @blueprint.route("/refund_all/<event_id>", methods=["POST"])
+@valid_user()
+@confidentiality_agreement()
 def refund_all(event_id):
     """Route for refunding all online payments associated to an event
 
