@@ -432,7 +432,7 @@ class Payment(db.Model):
         return self.payment_type != PaymentType.Online
 
     def is_unsettled(self):
-        """:return: whether this payment is not finalized yet
+        """:return: whether this payment is not finalized yet. Applies mostly to Online payments
         :rtype: bool"""
         return self.status == PaymentStatus.Initiated
 
