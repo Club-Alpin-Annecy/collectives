@@ -2,6 +2,7 @@
     background: white;
     padding: 20px;
     text-align: right;
+    line-height: 50px;
 }
 
 #eventlist #filters input.button {
@@ -45,6 +46,15 @@
 @media screen and (max-width: 1023px) {
     #eventlist #eventstable .row .section-photo {
         display: none;
+    }
+    #eventlist #eventstable .row .section.activities  {
+        float: right;
+        margin: 5px 5px;
+        height: auto;
+    }
+    #eventlist #eventstable .row{
+        display: block;
+        padding: 20px 0px;
     }
 }
 
@@ -201,6 +211,7 @@ span.event-status {
 .select {
     height: 40px;
     width: 360px;
+    max-width: 100%;
     position: relative;
     border: 1px solid rgb(29, 105, 137);
     text-align: left;
@@ -215,7 +226,7 @@ span.event-status {
     float: right;
     height: 30px;
     margin-top: 5px;
-    z-index: $z-index-m;
+    z-index: $z-index-m+1;
     transform: rotate(90deg);
     position: relative;
     color: rgb(29, 105, 137);
