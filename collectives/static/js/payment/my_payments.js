@@ -42,9 +42,9 @@ function tableColumns(payment_status, state) {
 
     var columns = [
         { title: "Date", field: date_field, widthGrow: 1, headerFilter: true },
-        { title: "Événement", field: "event_title", widthGrow: 2, headerFilter: true },
-        { title: "Objet", field: "item_title", widthGrow: 2, headerFilter: true },
-        { title: "Tarif", field: "price_title", widthGrow: 2, headerFilter: true },
+        { title: "Événement", field: "item.event.title", widthGrow: 2, headerFilter: true },
+        { title: "Objet", field: "item.title", widthGrow: 2, headerFilter: true },
+        { title: "Tarif", field: "price.title", widthGrow: 2, headerFilter: true },
         { title: "Prix", field: amount_field, widthGrow: 1 },
         { title: "Type", field: "payment_type", widthGrow: 1, headerFilter: true },
     ];
@@ -71,6 +71,7 @@ function createMyPaymentsTable(id, url, payment_status) {
             layout: "fitColumns",
             columns: tableColumns(payment_status, state),
 
+            nestedFieldSeparator: false,
             rowClick: function (e, row) {
                 if (state.cellClicked) return;
                 document.location.href = row.getData().details_uri;

@@ -11,7 +11,7 @@ from .common import blueprint, marshmallow
 from ..utils.access import payments_enabled, valid_user
 
 from ..models.event import Event
-from ..models.payment import Payment
+from ..models.payment import Payment, PaymentStatus
 from ..utils.numbers import format_currency
 from ..utils.payment import extract_payments
 
@@ -125,9 +125,9 @@ class MyPaymentSchema(PaymentSchema):
 
         fields = (
             "id",
-            "event_title",
-            "item_title",
-            "price_title",
+            "item.event.title",
+            "item.title",
+            "price.title",
             "amount_charged",
             "amount_paid",
             "payment_type",
@@ -185,6 +185,10 @@ def my_payments(status_code):
     """
 
     query = Payment.query.filter_by(buyer_id=current_user.id, status=status_code)
+
+    if PaymentStatus[status_code] == PaymentStatus.Initiated:
+        # We only care about unsettled payments with an active registration
+        query = query.filter(Payment.registration != None)
 
     result = query.order_by(Payment.id.desc()).all()
     response = MyPaymentSchema(many=True).dump(result)
