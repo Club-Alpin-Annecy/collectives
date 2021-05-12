@@ -1,6 +1,7 @@
 cssmin
 itsdangerous==1.1.*
-flask
+flask==1.1.*
+Werkzeug==0.16.*
 flask-assets
 flask-login
 sqlalchemy<1.4
