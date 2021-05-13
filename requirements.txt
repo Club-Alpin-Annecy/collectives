@@ -1,7 +1,9 @@
 cssmin
-itsdangerous==1.1.*
-flask==1.1.*
-Werkzeug==0.16.*
+# #328 Flask-Images break with itsdangerous>=2.0
+# In turn flash >= 2.0 break with itsdangerous < 2.0
+itsdangerous<2.0
+flask<2.0
+Werkzeug<2.0
 flask-assets
 flask-login
 sqlalchemy<1.4
