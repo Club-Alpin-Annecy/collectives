@@ -127,7 +127,7 @@ class AddTraineeForm(FlaskForm):
 
     user_id = HiddenField()
     activity_id = SelectField("Activité", coerce=int, validators=[DataRequired()])
-    submit = SubmitField("Ajouter un initiateur en formation")
+    submit = SubmitField("Ajouter un encadrant en formation")
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""

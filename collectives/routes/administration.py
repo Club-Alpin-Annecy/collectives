@@ -200,7 +200,7 @@ def add_user_role(user_id):
             # Cannot add a "trainee" role to a leader/supervisor
             if user.has_role_for_activity([RoleIds.EventLeader], role.activity_id):
                 raise RoleValidationException(
-                    "Impossible d'ajouter le rôle 'Initiateur en formation' à un initiateur"
+                    "Impossible d'ajouter le rôle 'Encadrant en formation' à un encadrant"
                 )
         elif role_id == RoleIds.EventLeader:
             # Adding an EventLeader role removes the Trainee role
