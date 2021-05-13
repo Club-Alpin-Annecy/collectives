@@ -35,8 +35,8 @@ function buildEventsTable() {
                 eventsTable.setGroupBy(sorters[0]['field']);
         },
         pagination : 'remote',
-        paginationSize : 10,
-        paginationSizeSelector:[10, 25, 50, 100],
+        paginationSize : 25,
+        paginationSizeSelector:[25, 50, 100],
         pageLoaded :  updatePageURL,
 
         initialSort: [ {column:"start", dir:"asc"}],
