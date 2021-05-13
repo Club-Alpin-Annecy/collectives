@@ -19,7 +19,6 @@ from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
 from ..utils.time import current_time
 from ..utils.numbers import format_currency
-from .utils import MultiCheckboxField
 
 
 def available_leaders(leaders, activity_ids):
@@ -138,7 +137,7 @@ class EventForm(ModelForm, FlaskForm):
 
     multi_activities_mode = BooleanField("Sortie multi-activités")
 
-    tag_list = MultiCheckboxField("Labels", coerce=int)
+    tag_list = SelectMultipleField("Labels", coerce=int)
 
     source_event = None
     current_leaders = []

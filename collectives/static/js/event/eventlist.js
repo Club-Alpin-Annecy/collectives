@@ -188,49 +188,15 @@ function displayLeader(user){
     return user.name;
 }
 
+function selectFilter(type, id){
+    var currentFilter=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
 
-function selectActivity(activity_id){
+    if (currentFilter.length != 0)
+        eventsTable.removeFilter(currentFilter);
 
-
-    // Toggle filter
-    var currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
-
-    // Display all activities
-    if (false === activity_id && currentActivityFilter.length != 0)
-        eventsTable.removeFilter(currentActivityFilter);
-
-    if (false !== activity_id){
-        filter={field:"activity_type", type:"=", value: activity_id};
-        if( currentActivityFilter.length ==0)
+    var filter={field: type, type:"=", value: id};
+    if (false !== id)
             eventsTable.addFilter( [filter]);
-        else{
-            eventsTable.removeFilter(currentActivityFilter);
-            eventsTable.addFilter( [filter]);
-        }
-    }
-
-    refreshFilterDisplay();
-}
-
-function selectTag(tag_id){
-
-
-    // Toggle filter
-    var currentTagFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "tags" });
-
-    // Display all activities
-    if (false === tag_id && currentTagFilter.length != 0)
-        eventsTable.removeFilter(currentTagFilter);
-
-    if (false !== tag_id){
-        filter={field:"tags", type:"=", value: tag_id};
-        if( currentTagFilter.length ==0)
-            eventsTable.addFilter( [filter]);
-        else{
-            eventsTable.removeFilter(currentTagFilter);
-            eventsTable.addFilter( [filter]);
-        }
-    }
 
     refreshFilterDisplay();
 }

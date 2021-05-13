@@ -99,14 +99,14 @@
                     <label for="select_display" class="closer"></label>
 
                     <input type="radio" name="activity" id="select_all" checked/>
-                    <label for="select_all" onclick="selectActivity(false);">
+                    <label for="select_all" onclick="selectFilter('activity_type', false);">
                         <label for="select_display">
                             Toutes activités
                         </label>
                     </label>
                     {% for type in types %}
                         <input type="radio" name="activity" id="select_{{type.short}}"/>
-                        <label for="select_{{type.short}}" onclick="selectActivity('{{type.short}}');">
+                        <label for="select_{{type.short}}" onclick="selectFilter('activity_type', '{{type.short}}');">
                             <label for="select_display">
                                 <span class="activity {{type.short}} s30px"></span>
                                 {{type.name}}
@@ -124,14 +124,14 @@
                     <label for="select_tags" class="closer"></label>
 
                     <input type="radio" name="tag" id="select_all_tags" checked/>
-                    <label for="select_all_tags" onclick="selectTag(false);">
+                    <label for="select_all_tags" onclick="selectFilter('tags', false);">
                         <label for="select_tags">
                             Tous labels
                         </label>
                     </label>
                     {% for i,tag in config['EVENT_TAGS'].items()  %}
                         <input type="radio" name="tag" id="select_{{tag['short']}}"/>
-                        <label for="select_{{tag['short']}}" onclick="selectTag('{{tag['short']}}');">
+                        <label for="select_{{tag['short']}}" onclick="selectFilter('tags', '{{tag['short']}}');">
                             <label for="select_tags">
                                 <span class="activity {{tag['short']}} s30px"></span>
                                 {{tag['name']}}
