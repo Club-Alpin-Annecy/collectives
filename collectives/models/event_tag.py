@@ -54,6 +54,13 @@ class EventTag(db.Model):
         return self.full["short"]
 
     @property
+    def csv_code(self):
+        """Short name of the tag type, used as css class
+
+        :type: string"""
+        return self.full["csv_code"] or self.full["name"]
+
+    @property
     def full(self):
         """All information about the tag type.
 
@@ -73,3 +80,15 @@ class EventTag(db.Model):
 
         :type: dict"""
         return current_app.config["EVENT_TAGS"]
+
+    @classmethod
+    def get_id_from_short(cls, short):
+        """
+
+        :param string short: Shortname of the searched tag
+        :returns: Tag id
+        :rtype: int"""
+        for tag in cls.query.all():
+            if tag.short == short:
+                return tag.id
+        return None

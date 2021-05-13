@@ -188,26 +188,15 @@ function displayLeader(user){
     return user.name;
 }
 
+function selectFilter(type, id){
+    var currentFilter=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
 
-function selectActivity(activity_id){
+    if (currentFilter.length != 0)
+        eventsTable.removeFilter(currentFilter);
 
-
-    // Toggle filter
-    currentActivityFilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "activity_type" });
-
-    // Display all activities
-    if (false === activity_id && currentActivityFilter.length != 0)
-        eventsTable.removeFilter(currentActivityFilter);
-
-    if (false !== activity_id){
-        filter={field:"activity_type", type:"=", value: activity_id};
-        if( currentActivityFilter.length ==0)
+    var filter={field: type, type:"=", value: id};
+    if (false !== id)
             eventsTable.addFilter( [filter]);
-        else{
-            eventsTable.removeFilter(currentActivityFilter);
-            eventsTable.addFilter( [filter]);
-        }
-    }
 
     refreshFilterDisplay();
 }
@@ -238,11 +227,14 @@ function refreshFilterDisplay(){
     var filters = eventsTable.getFilters();
     // Unselect all activity filter buttons
     document.getElementById('select_all').checked = true;
+    document.getElementById('select_all_tags').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
         if (filter['field'] == 'activity_type')
+            document.getElementById('select_'+filter['value']).checked = true;
+        if (filter['field'] == 'tags')
             document.getElementById('select_'+filter['value']).checked = true;
     }
 
