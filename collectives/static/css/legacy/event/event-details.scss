@@ -219,7 +219,6 @@ span.event-status {
     vertical-align: middle;
     line-height: 40px;
     display: inline-block;
-    z-index: $z-index-m;
 }
 
 .select .chevrons {
@@ -271,6 +270,7 @@ span.event-status {
 .select input[type="checkbox"]:checked ~ label {
     display: block;
     border-top: none;
+    z-index: $z-index-m+2;
 }
 .select input[type="radio"]:checked + label {
     display: block;
