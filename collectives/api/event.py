@@ -227,7 +227,7 @@ def events():
             elif filter_type == "!=":
                 query_filter = Event.status != value
         elif field == "tags":
-            query_filter = Event.tag_refs.any(id=EventTag.get_id_from_short(value))
+            query_filter = Event.tag_refs.any(type=EventTag.get_type_from_short(value))
 
         if query_filter is not None:
             query = query.filter(query_filter)

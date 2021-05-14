@@ -82,13 +82,13 @@ class EventTag(db.Model):
         return current_app.config["EVENT_TAGS"]
 
     @classmethod
-    def get_id_from_short(cls, short):
+    def get_type_from_short(cls, short):
         """
 
         :param string short: Shortname of the searched tag
         :returns: Tag id
         :rtype: int"""
-        for tag in cls.query.all():
-            if tag.short == short:
-                return tag.id
+        for i, tag in cls.all().items():
+            if tag["short"] == short:
+                return i
         return None
