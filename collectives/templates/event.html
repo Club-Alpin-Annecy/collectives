@@ -89,7 +89,11 @@
       </div>
     </div>
     <div class="subscriptions">
-      <h5> Liste des inscrits {{event.active_registrations().__len__()}} / {{event.num_slots}}
+      <h5> Liste des inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
+          {% if event.num_pending_registrations() > 0 %}
+            (dont {{event.num_pending_registrations()}} en attente)
+          {% endif %}
+        
           {% if not event.has_free_slots() %}
             <span class="tag red">COMPLET</span>
           {% endif %}
