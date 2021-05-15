@@ -522,6 +522,21 @@ class Event(db.Model):
             ]
         )
 
+    def num_pending_registrations(self):
+        """Return the number of pending registrations
+        (registrations that are holding a slot but not active yet)
+
+        :return: count of pending slots
+        :rtype: int
+        """
+        return len(
+            [
+                registration
+                for registration in self.registrations
+                if (registration.is_holding_slot() and not registration.is_active())
+            ]
+        )
+
     def has_free_slots(self):
         """Check if this event is full.
 
