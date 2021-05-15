@@ -37,7 +37,9 @@ class PaymentItem(db.Model):
 
     # Relationships
 
-    prices = db.relationship("ItemPrice", backref="item", lazy=True)
+    prices = db.relationship(
+        "ItemPrice", backref="item", lazy=True, cascade="all, delete-orphan"
+    )
     """ List of prices associated to this payment item.
 
     :type: list(:py:class:`collectives.models.payment.ItemPrice`)

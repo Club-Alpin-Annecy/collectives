@@ -13,6 +13,7 @@ from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
 from ..models import Event, photos
+from ..models.event import EventStatus
 from ..models import Registration
 from ..models import ActivityType, EventTag
 from ..models import User, Role, RoleIds, db
@@ -209,6 +210,12 @@ class EventForm(ModelForm, FlaskForm):
 
         # Tags
         self.tag_list.choices = EventTag.choices()
+
+        # Disallow 'Pending' status for events with existing payments (#425)
+        if self.source_event and self.source_event.has_payments():
+            self.status.choices = [
+                (k, v) for (k, v) in EventStatus.choices() if k != EventStatus.Pending
+            ]
 
     def setup_leader_actions(self):
         """

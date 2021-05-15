@@ -83,7 +83,7 @@ class Registration(db.Model):
     is_self = db.Column(db.Boolean, nullable=False, default=True)
     """ Whether this is a self-registration (by the user themselves)
 
-    :type: int"""
+    :type: bool"""
 
     # Relationships
 

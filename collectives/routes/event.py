@@ -833,11 +833,17 @@ def delete_event(event_id):
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
-    # Delete registrations, activities and leaders
+    if event.has_payments():
+        flash(
+            "Impossible de supprimer l'événement car des paiements y sont associés",
+            "error",
+        )
+        return redirect(url_for("event.index"))
+
+    # Delete activities and leaders, other relationships
+    # are set to cascade delete
     event.leaders.clear()
     event.activity_types.clear()
-    event.registrations.clear()
-    db.session.commit()
 
     # Delete event itself
     db.session.delete(event)
