@@ -193,7 +193,9 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
-    payment_items = db.relationship("PaymentItem", backref="event", lazy=True)
+    payment_items = db.relationship(
+        "PaymentItem", backref="event", lazy=True, cascade="all, delete-orphan"
+    )
     """ List of payment items associated to this event.
 
     :type: list(:py:class:`collectives.models.payment.PaymentItem`)
@@ -603,16 +605,6 @@ class Event(db.Model):
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
-    def has_pending_payment(self, user):
-        """Check if a user has a pending . payment this event.
-
-        :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
-        :return: True if user is registered with a ``payment pending`` status
-        :rtype: boolean
-        """
-        return self.is_registered_with_status(user, [RegistrationStatus.PaymentPending])
-
     def can_self_register(self, user, time):
         """Check if a user can self-register.
 
@@ -685,3 +677,21 @@ class Event(db.Model):
         :return: Whether this event requires payment.
         :rtype: bool"""
         return any(self.payment_items)
+
+    def has_pending_payment(self, user):
+        """Check if a user has a pending . payment this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``payment pending`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(user, [RegistrationStatus.PaymentPending])
+
+    def has_payments(self):
+        """Checks whether payements have been  made for this event
+
+        :return: true if any payment is associated with the event
+        :rtype: boolean
+        """
+        return any(pi.payments for pi in self.payment_items)

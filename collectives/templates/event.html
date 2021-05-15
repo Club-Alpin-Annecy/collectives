@@ -180,7 +180,7 @@
             Fiche collective
           </a>
 
-          {% if event.has_delete_rights(current_user) %}
+          {% if event.has_delete_rights(current_user) and not event.has_payments() %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="button button-danger">
@@ -198,7 +198,7 @@
               Gestion des tarifs
             </a>
 
-            {% if event.requires_payment() %}
+            {% if event.requires_payment() and event.has_payments() %}
               <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Liste des paiements
