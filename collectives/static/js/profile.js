@@ -13,12 +13,12 @@ window.onload = function(){
             {field:"end", type:">", value:  getServerLocalTime()},
         ],
         columns:[
-            {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:true,
-                    editor:"select", headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
-            {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:true,
-                    editor:"select", headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
-            {title: "État",         field:"status",         sorter:"string",           headerFilter:true,
-                    editor:"select", headerFilterParams:{values: Object.values(addEmpty(EnumEventStatus))}},
+            {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
+                    headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
+            {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",
+                    headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
+            {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",
+                    headerFilterParams:{values: Object.values(addEmpty(EnumEventStatus))}},
             {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 3},
             {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
                     formatterParams:{   outputFormat:"D MMMM YY", invalidPlaceholder:"(invalid date)",}},
@@ -60,11 +60,12 @@ function tagsFormatter(cell, formatterParams, onRendered){
 }
 
 function multiEnumFilter(value, data){
-    console.log(value); console.log(data);
+    if(value == 0)
+        return true;
     return data.map(item => item.id).includes(parseInt(value));
 }
 
 function addEmpty(dict){
-    Object.assign(dict, {"":""});
+    dict[0]="";
     return dict;
 }
