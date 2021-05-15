@@ -78,6 +78,16 @@ def edit_prices(event_id):
             if new_price_form.existing_item.data:
                 new_price.item_id = new_price_form.existing_item.data
             else:
+                if event.registrations and not event.requires_payment():
+                    # Event was free, it is now paid.
+                    # Switch all existing registrations back to 'PaymentPending'
+                    for r in event.active_registrations():
+                        r.status = RegistrationStatus.PaymentPending
+                    flash(
+                        "L'événement est devenu payant ; les inscriptions existantes sont passées 'en attente'. Elles ne seront validées qu'après paiement en ligne sur la page de l'événement ou saisie manuelle par un encadrant.",
+                        "info",
+                    )
+
                 new_item = PaymentItem(title=new_price_form.item_title.data)
                 new_item.prices.append(new_price)
                 event.payment_items.append(new_item)
