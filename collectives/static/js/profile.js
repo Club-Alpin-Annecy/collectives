@@ -4,27 +4,29 @@ moment.locale(locale);
 
 window.onload = function(){
     var common_options = {
-        layout:"fitDataFill",
+        layout:"fitColumns",
         ajaxURL: ajaxURL, // URL is defined in template
 
         paginationSize : 10,
         initialSort: [ {column:"start", dir:"asc"}],
         initialFilter: [
-            {field:"end", type:">", value:  getServerLocalTime()}
+            {field:"end", type:">", value:  getServerLocalTime()},
         ],
         columns:[
-            {title: "Type",         field:"activity_types", formatter: typesFormatter     },
-            {title: "Tags",         field:"tags",           formatter: tagsFormatter     },
-            {title: "État",         field:"status",         sorter:"string"                 },
-            {title: "Titre",        field:"title",          sorter:"string"                 },
-            {title: "Date",         field:"start",          sorter:"string",             formatter:"datetime",
-                    formatterParams:{   outputFormat:"dddd D MMMM YYYY", invalidPlaceholder:"(invalid date)",}  },
-            {title: "Participants", field: "occupied_slots" },
-            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter     }
+            {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
+                    headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
+            {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",
+                    headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
+            {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",
+                    headerFilterParams:{values: Object.values(addEmpty(EnumEventStatus))}},
+            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 3},
+            {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
+                    formatterParams:{   outputFormat:"D MMMM YY", invalidPlaceholder:"(invalid date)",}},
+            {title: "Insc.", field:"occupied_slots", maxWidth:80,},
+            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2 }
         ],
         rowClick: function(e, row){ document.location= row.getData().view_uri},
     };
-
 
     var eventstable= new Tabulator("#eventstable",
                     Object.assign(common_options, {   initialFilter: [
@@ -34,11 +36,17 @@ window.onload = function(){
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:"<", value:getServerLocalTime()  }
                             ]}));
+
 }
 
 function leadersFormatter(cell, formatterParams, onRendered){
     var names = cell.getValue().map((leader) => leader['name']);
     return names.join('<br/>');
+}
+
+function leaderFilter(value, data){
+    var regex = new RegExp(value, "i");
+    return regex.test( data.map(leader => leader['name']).join(' ') );
 }
 
 function typesFormatter(cell, formatterParams, onRendered){
@@ -49,4 +57,15 @@ function typesFormatter(cell, formatterParams, onRendered){
 function tagsFormatter(cell, formatterParams, onRendered){
     var names = cell.getValue().map((tag) => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> `);
     return names.join(' ');
+}
+
+function multiEnumFilter(value, data){
+    if(value == 0)
+        return true;
+    return data.map(item => item.id).includes(parseInt(value));
+}
+
+function addEmpty(dict){
+    dict[0]="";
+    return dict;
 }

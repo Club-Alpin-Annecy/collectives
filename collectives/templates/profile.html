@@ -3,8 +3,9 @@
 {% import 'macros.html' as macros with context %}
 
 {% block additionalhead %}
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.1/dist/js/tabulator.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
 
   <script>
       var ajaxURL= '/api/user/{{user.id}}/events';

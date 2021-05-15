@@ -65,7 +65,9 @@ class EventTag(db.Model):
         """All information about the tag type.
 
         :type: dict"""
-        return self.all()[self.type]
+        tag = self.all()[self.type]
+        tag["id"] = self.type
+        return tag
 
     @classmethod
     def choices(cls):
