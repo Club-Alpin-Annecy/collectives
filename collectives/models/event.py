@@ -41,7 +41,6 @@ class EventStatus(ChoiceEnum):
             cls.Cancelled: "Annulée",
         }
 
-
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
 #  pas comptés dans le nombre de place
 event_leaders = db.Table(
@@ -153,6 +152,11 @@ class Event(db.Model):
 
     :type: int"""
 
+    parent_event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
+    """ Primary key of the parent curriculum event 
+
+    :type: int"""
+
     # Relationships
     leaders = db.relationship(
         "User",
@@ -207,6 +211,16 @@ class Event(db.Model):
     """ List of tags associated to this event.
 
     :type: list(:py:class:`collectives.models.event_tag.EventTag`)
+    """
+
+    parent_event = db.relationship(
+        "Event", backref="children_events", remote_side=[id], lazy=True
+    )
+    """ Parent event 
+    
+    Registrations to this event will we limited to users already registered on the parent event
+
+    :type: :py:class:`collectives.models.event.Event`
     """
 
     @validates("title")
@@ -620,14 +634,28 @@ class Event(db.Model):
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
+    def is_registered_to_parent_event(self, user):
+        """Check if a user has a confirmed registration for the parent event
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if there is no parent event or the user is registered with a ``Confirmed`` status
+        :rtype: boolean
+        """
+        return self.parent_event is None or self.parent_event.is_registered(
+            user, [RegistrationStatus.Confirmed]
+        )
+
     def can_self_register(self, user, time):
         """Check if a user can self-register.
 
         An user can self-register if:
-          - he has no current registration with this event.
-          - he is not a leader of this event.
+          - they have no current registration with this event.
+          - they are not a leader of this event.
           - given time parameter (usually current_time) is in registration
             time.
+          - there are available online slots
+          - user is registered to the parent event if any
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -639,6 +667,8 @@ class Event(db.Model):
         if not self.is_confirmed():
             return False
         if self.is_leader(user) or self.is_registered(user):
+            return False
+        if not self.is_registered_to_parent_event():
             return False
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 

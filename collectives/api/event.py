@@ -248,3 +248,64 @@ def events():
     response = {"data": data, "last_page": paginated_events.pages}
 
     return json.dumps(response), 200, {"content-type": "application/json"}
+
+
+class AutocompleteEventSchema(marshmallow.Schema):
+    """Schema under which autocomplete suggestions are returned"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "title",
+            "start"
+        )
+
+@blueprint.route("/event/autocomplete/")
+def autocomplete_event():
+    """API endpoint for event autocompletion.
+
+    At least 2 characters are required to make a name search.
+
+    :param string q: Search string. Either the event id or a substring from the title
+    :param int l: Maximum number of returned items.
+    :param list[int] aid: List of activity ids to include. Empty means include events for any activity
+    :return: A tuple:
+
+        - JSON containing information describe in AutocompleteUserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+
+    found_events = []
+    
+    q = request.args.get("q")
+    if q:
+        try:
+            event_id = int(q)
+        except:
+            event_id = None
+
+        if event_id is not None or (len(q) >= 2):
+            limit = request.args.get("l", type=int) or 8
+            activity_ids = request.args.getlist("aid", type=int)
+
+            query = Event.query
+            if activity_ids:
+                query = query.filter(Event.activity_types.any(
+                    ActivityType.id.in_(activity_ids)
+                ))
+            
+            condition = Event.title.ilike(f"%{q}%")
+            if event_id:
+                condition = condition | Event.id == event_id
+            query = query.filter(condition)
+            query = query.filter_by(status = EventStatus.Confirmed)
+
+            query = query.order_by(Event.id.desc())
+            found_events = query.limit(limit)
+
+    content = json.dumps(AutocompleteEventSchema(many=True).dump(found_events))
+    return content, 200, {"content-type": "application/json"}
