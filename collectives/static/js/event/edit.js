@@ -1,3 +1,14 @@
+
+var locale = window.navigator.userLanguage || window.navigator.language;
+moment.locale(locale);
+
+// Formats "parent event" autocomplete options
+function formatParentEvent(id, title, start_date)
+{
+    const dateString = moment(start_date).format('ddd D MMM YY');
+    return `#${id} ${title} (${dateString})`;
+}
+
 // Fonction to copy start date into end date in case of one day event
 function copyStartDate() {
     if (!document.querySelector('input[name=end]').value)

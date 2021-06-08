@@ -4,12 +4,13 @@
 {% import 'macros.html' as macros with context %}
 
 {% block additionalhead %}
-  {# Specific for this page #}
-  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
   {# DateTime picker#}
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+  
+  {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
 
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
@@ -24,6 +25,7 @@
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
+
       window.onload = function () {
         const searchInput = document.getElementById('new-leader');
         setupAutoComplete(
@@ -35,7 +37,29 @@
             field.value = id;
             updateLeaders(field);
           }
-          )
+          );
+        
+        const eventSearchInput = document.getElementById('parent-event-search');
+        const parentEventId = document.getElementById('{{form.parent_event_id.id}}');
+        setupAutoComplete(
+          eventSearchInput, 
+          '{{url_for("api.autocomplete_event", aid=form.leader_activity_ids(), eid=[event.id]) | safe}}',
+          function(item) { return formatParentEvent(item.id, item.title, item.start) ; },
+          function(id, val) { 
+            parentEventId.value = id;
+          }
+          );
+
+         eventSearchInput.addEventListener('change', function(event) {
+            if(!event.target.value) {
+              var field = document.getElementById('{{form.parent_event_id.id}}');
+              parentEventId.value = "";
+            }
+         });
+
+         {% if form.parent_event %}
+            eventSearchInput.value = formatParentEvent("{{form.parent_event.id}}", "{{form.parent_event.title}}", "{{form.parent_event.start}}")
+         {% endif %}
       };
   </script>
 
@@ -162,6 +186,12 @@
           Les inscriptions par internet doivent débuter avant de se terminer.
       </span>
     </div>
+
+    <h4>Restrictions d'inscription</h4>
+    Restreindre les inscriptions aux participants de la collective:
+    {{ form.parent_event_id }}
+    <input type="text" id="parent-event-search" placeholder="Titre ou ID…">
+
 
     <h4>Description</h4>
     <div id="editor">

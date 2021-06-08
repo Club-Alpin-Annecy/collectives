@@ -639,11 +639,11 @@ class Event(db.Model):
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
-        :return: True if there is no parent event or the user is registered with a ``Confirmed`` status
+        :return: True if there is no parent event or the user is registered with a ``Active`` status
         :rtype: boolean
         """
-        return self.parent_event is None or self.parent_event.is_registered(
-            user, [RegistrationStatus.Confirmed]
+        return self.parent_event is None or self.parent_event.is_registered_with_status(
+            user, [RegistrationStatus.Active]
         )
 
     def can_self_register(self, user, time):
@@ -668,7 +668,7 @@ class Event(db.Model):
             return False
         if self.is_leader(user) or self.is_registered(user):
             return False
-        if not self.is_registered_to_parent_event():
+        if not self.is_registered_to_parent_event(user):
             return False
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 

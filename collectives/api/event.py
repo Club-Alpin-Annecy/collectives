@@ -291,6 +291,7 @@ def autocomplete_event():
         if event_id is not None or (len(q) >= 2):
             limit = request.args.get("l", type=int) or 8
             activity_ids = request.args.getlist("aid", type=int)
+            existing_ids = request.args.getlist("eid", type=int)
 
             query = Event.query
             if activity_ids:
@@ -300,9 +301,10 @@ def autocomplete_event():
             
             condition = Event.title.ilike(f"%{q}%")
             if event_id:
-                condition = condition | Event.id == event_id
+                condition = condition | (Event.id == event_id)
             query = query.filter(condition)
             query = query.filter_by(status = EventStatus.Confirmed)
+            query = query.filter(~Event.id.in_(existing_ids))
 
             query = query.order_by(Event.id.desc())
             found_events = query.limit(limit)
