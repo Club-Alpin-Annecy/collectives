@@ -256,11 +256,8 @@ class AutocompleteEventSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = (
-            "id",
-            "title",
-            "start"
-        )
+        fields = ("id", "title", "start")
+
 
 @blueprint.route("/event/autocomplete/")
 def autocomplete_event():
@@ -280,12 +277,12 @@ def autocomplete_event():
     """
 
     found_events = []
-    
+
     q = request.args.get("q")
     if q:
         try:
             event_id = int(q)
-        except:
+        except ValueError:
             event_id = None
 
         if event_id is not None or (len(q) >= 2):
@@ -295,10 +292,10 @@ def autocomplete_event():
 
             query = Event.query
             if activity_ids:
-                query = query.filter(Event.activity_types.any(
-                    ActivityType.id.in_(activity_ids)
-                ))
-            
+                query = query.filter(
+                    Event.activity_types.any(ActivityType.id.in_(activity_ids))
+                )
+
             condition = Event.title.ilike(f"%{q}%")
             if event_id:
                 condition = condition | (Event.id == event_id)

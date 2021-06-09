@@ -139,8 +139,8 @@ class EventForm(ModelForm, FlaskForm):
     multi_activities_mode = BooleanField("Sortie multi-activités")
 
     tag_list = SelectMultipleField("Labels", coerce=int)
-    
-    parent_event_id = HiddenField(filters = [lambda id: id or None])
+
+    parent_event_id = HiddenField(filters=[lambda id: id or None])
 
     source_event = None
     current_leaders = []

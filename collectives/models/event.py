@@ -41,6 +41,7 @@ class EventStatus(ChoiceEnum):
             cls.Cancelled: "Annulée",
         }
 
+
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
 #  pas comptés dans le nombre de place
 event_leaders = db.Table(
@@ -153,7 +154,7 @@ class Event(db.Model):
     :type: int"""
 
     parent_event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
-    """ Primary key of the parent curriculum event 
+    """ Primary key of the parent curriculum event
 
     :type: int"""
 
@@ -216,8 +217,8 @@ class Event(db.Model):
     parent_event = db.relationship(
         "Event", backref="children_events", remote_side=[id], lazy=True
     )
-    """ Parent event 
-    
+    """ Parent event
+
     Registrations to this event will we limited to users already registered on the parent event
 
     :type: :py:class:`collectives.models.event.Event`
