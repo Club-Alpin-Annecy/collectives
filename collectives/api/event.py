@@ -303,7 +303,6 @@ def autocomplete_event():
             if event_id:
                 condition = condition | (Event.id == event_id)
             query = query.filter(condition)
-            query = query.filter_by(status = EventStatus.Confirmed)
             query = query.filter(~Event.id.in_(existing_ids))
 
             query = query.order_by(Event.id.desc())
