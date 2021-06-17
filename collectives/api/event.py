@@ -2,7 +2,7 @@
 
 """
 import json
-from flask import url_for, request
+from flask import url_for, request, abort
 from flask_login import current_user
 from sqlalchemy import desc, or_, func
 from marshmallow import fields
@@ -268,6 +268,7 @@ def autocomplete_event():
     :param string q: Search string. Either the event id or a substring from the title
     :param int l: Maximum number of returned items.
     :param list[int] aid: List of activity ids to include. Empty means include events for any activity
+    :param list[int] eid: List of event ids to exclude
     :return: A tuple:
 
         - JSON containing information describe in AutocompleteUserSchema
@@ -278,32 +279,39 @@ def autocomplete_event():
 
     found_events = []
 
-    q = request.args.get("q")
-    if q:
-        try:
-            event_id = int(q)
-        except ValueError:
-            event_id = None
+    search_term = request.args.get("q")
+    if not search_term:
+        abort(400)
 
-        if event_id is not None or (len(q) >= 2):
-            limit = request.args.get("l", type=int) or 8
-            activity_ids = request.args.getlist("aid", type=int)
-            existing_ids = request.args.getlist("eid", type=int)
+    try:
+        event_id = int(search_term)
+    except ValueError:
+        event_id = None
 
-            query = Event.query
-            if activity_ids:
-                query = query.filter(
-                    Event.activity_types.any(ActivityType.id.in_(activity_ids))
-                )
+    if event_id is not None or (len(search_term) >= 2):
+        limit = request.args.get("l", type=int) or 8
+        activity_ids = request.args.getlist("aid", type=int)
+        excluded_ids = request.args.getlist("eid", type=int)
 
-            condition = Event.title.ilike(f"%{q}%")
-            if event_id:
-                condition = condition | (Event.id == event_id)
-            query = query.filter(condition)
-            query = query.filter(~Event.id.in_(existing_ids))
+        query = Event.query
 
-            query = query.order_by(Event.id.desc())
-            found_events = query.limit(limit)
+        # Restrict to event with one of the provided activities
+        if activity_ids:
+            query = query.filter(
+                Event.activity_types.any(ActivityType.id.in_(activity_ids))
+            )
+
+        # Search term in title or id
+        search_clause = Event.title.ilike(f"%{search_term}%")
+        if event_id:
+            search_clause = search_clause | (Event.id == event_id)
+        query = query.filter(search_clause)
+
+        # Remove excluded ids
+        query = query.filter(~Event.id.in_(excluded_ids))
+
+        query = query.order_by(Event.id.desc())
+        found_events = query.limit(limit)
 
     content = json.dumps(AutocompleteEventSchema(many=True).dump(found_events))
     return content, 200, {"content-type": "application/json"}

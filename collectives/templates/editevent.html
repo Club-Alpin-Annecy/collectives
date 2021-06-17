@@ -31,7 +31,9 @@
         setupAutoComplete(
           searchInput, 
           '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids()) | safe}}',
-          function(item) { return item.full_name; },
+          function(item) { 
+            return item.full_name; 
+          },
           function(id, val) { 
             var field = document.getElementById('{{form.add_leader.id}}');
             field.value = id;
@@ -44,7 +46,9 @@
         setupAutoComplete(
           eventSearchInput, 
           '{{url_for("api.autocomplete_event", aid=form.leader_activity_ids(), eid=[event.id]) | safe}}',
-          function(item) { return formatParentEvent(item.id, item.title, item.start) ; },
+          function(item) { 
+            return formatParentEvent(item.id, item.title, item.start) ; 
+          },
           function(id, val) { 
             parentEventId.value = id;
           }
@@ -58,7 +62,7 @@
          });
 
          {% if form.parent_event %}
-            eventSearchInput.value = formatParentEvent("{{form.parent_event.id}}", "{{form.parent_event.title}}", "{{form.parent_event.start}}")
+            eventSearchInput.value = formatParentEvent("{{form.parent_event.id}}", "{{form.parent_event.title}}", "{{form.parent_event.start}}");
          {% endif %}
       };
   </script>
