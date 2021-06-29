@@ -2,7 +2,7 @@
 
 """
 import json
-from flask import url_for, request
+from flask import url_for, request, abort
 from flask_login import current_user
 from sqlalchemy import desc, or_, func
 from marshmallow import fields
@@ -248,3 +248,70 @@ def events():
     response = {"data": data, "last_page": paginated_events.pages}
 
     return json.dumps(response), 200, {"content-type": "application/json"}
+
+
+class AutocompleteEventSchema(marshmallow.Schema):
+    """Schema under which autocomplete suggestions are returned"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "title", "start")
+
+
+@blueprint.route("/event/autocomplete/")
+def autocomplete_event():
+    """API endpoint for event autocompletion.
+
+    At least 2 characters are required to make a name search.
+
+    :param string q: Search string. Either the event id or a substring from the title
+    :param int l: Maximum number of returned items.
+    :param list[int] aid: List of activity ids to include. Empty means include events for any activity
+    :param list[int] eid: List of event ids to exclude
+    :return: A tuple:
+
+        - JSON containing information describe in AutocompleteUserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+
+    found_events = []
+
+    search_term = request.args.get("q")
+    if not search_term:
+        abort(400)
+
+    try:
+        event_id = int(search_term)
+    except ValueError:
+        event_id = None
+
+    if event_id is not None or (len(search_term) >= 2):
+        limit = request.args.get("l", type=int) or 8
+        activity_ids = request.args.getlist("aid", type=int)
+        excluded_ids = request.args.getlist("eid", type=int)
+
+        query = Event.query
+
+        # Restrict to event with one of the provided activities
+        if activity_ids:
+            query = query.filter(
+                Event.activity_types.any(ActivityType.id.in_(activity_ids))
+            )
+
+        # Search term in title or id
+        search_clause = Event.title.ilike(f"%{search_term}%")
+        if event_id:
+            search_clause = search_clause | (Event.id == event_id)
+        query = query.filter(search_clause)
+
+        # Remove excluded ids
+        query = query.filter(~Event.id.in_(excluded_ids))
+
+        query = query.order_by(Event.id.desc())
+        found_events = query.limit(limit)
+
+    content = json.dumps(AutocompleteEventSchema(many=True).dump(found_events))
+    return content, 200, {"content-type": "application/json"}

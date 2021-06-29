@@ -140,9 +140,12 @@ class EventForm(ModelForm, FlaskForm):
 
     tag_list = SelectMultipleField("Labels", coerce=int)
 
+    parent_event_id = HiddenField(filters=[lambda id: id or None])
+
     source_event = None
     current_leaders = []
     main_leader_fields = []
+    parent_event = None
 
     def __init__(self, *args, **kwargs):
         """
@@ -167,6 +170,9 @@ class EventForm(ModelForm, FlaskForm):
             self.set_current_leaders([])
 
         self.update_choices()
+
+        if self.parent_event_id.data:
+            self.parent_event = Event.query.get(self.parent_event_id.data)
 
     def set_current_leaders(self, leaders):
         """
