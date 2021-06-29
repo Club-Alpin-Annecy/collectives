@@ -56,7 +56,11 @@
     <table id="profile_info">
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
-            <td>Catégorie {{user.license_category}}</td>
+            <td>{{user.license}}</td>
+        </tr>
+        <tr>
+            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Catégorie :</td>
+            <td>{{user.license_category}}</td>
         </tr>
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
