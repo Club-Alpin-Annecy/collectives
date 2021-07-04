@@ -72,6 +72,13 @@ class UserSchema(marshmallow.Schema):
 
     :type: string
     """
+    leader_profile_uri = fields.Function(
+        lambda user: url_for("profile.show_leader", leader_id=user.id)
+    )
+    """ URI to see user profile
+
+    :type: string
+    """
     avatar_uri = fields.Function(avatar_url)
     """ URI to a resized version (30px) of user avatar
 
@@ -101,6 +108,7 @@ class UserSchema(marshmallow.Schema):
             "last_name",
             "roles",
             "isadmin",
+            "leader_profile_uri",
         )
 
 
@@ -168,7 +176,7 @@ def users():
     return response, 200, {"content-type": "application/json"}
 
 
-class TraineeRoleSchema(marshmallow.Schema):
+class LeaderRoleSchema(marshmallow.Schema):
     """Schema for a "Trainee" role
 
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
@@ -176,6 +184,8 @@ class TraineeRoleSchema(marshmallow.Schema):
 
     delete_uri = fields.Function(
         lambda role: url_for("activity_supervision.remove_trainee", role_id=role.id)
+        if role.role_id == RoleIds.Trainee
+        else ""
     )
     """ URI to delete this user (WIP)
 
@@ -196,6 +206,11 @@ class TraineeRoleSchema(marshmallow.Schema):
 
     :type: list(dict())"""
 
+    type = fields.Function(lambda role: role.role_id.display_name())
+    """ Role type
+
+    :type: string"""
+
     class Meta:
         """Fields to expose"""
 
@@ -203,15 +218,16 @@ class TraineeRoleSchema(marshmallow.Schema):
             "user",
             "activity_type",
             "delete_uri",
+            "type",
         )
 
 
-@blueprint.route("/trainees/")
+@blueprint.route("/leaders/")
 @valid_user(True)
 @user_is("is_supervisor", True)
 @confidentiality_agreement(True)
-def trainees():
-    """API endpoint to list current trainees
+def leaders():
+    """API endpoint to list current leaders
 
     Only available to administrators and activity supervisors
 
@@ -226,11 +242,15 @@ def trainees():
     supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Role)
-    query = query.filter_by(role_id=RoleIds.Trainee)
+    query = query.filter(
+        Role.role_id.in_(
+            [RoleIds.Trainee, RoleIds.EventLeader, RoleIds.ActivitySupervisor]
+        )
+    )
     query = query.filter(Role.activity_id.in_(a.id for a in supervised_activities))
     query = query.join(Role.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
 
-    response = TraineeRoleSchema(many=True).dump(query.all())
+    response = LeaderRoleSchema(many=True).dump(query.all())
 
     return json.dumps(response), 200, {"content-type": "application/json"}
