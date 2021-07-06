@@ -74,6 +74,8 @@ class UserSchema(marshmallow.Schema):
     """
     leader_profile_uri = fields.Function(
         lambda user: url_for("profile.show_leader", leader_id=user.id)
+        if user.can_create_events()
+        else None
     )
     """ URI to see user profile
 

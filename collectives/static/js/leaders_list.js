@@ -19,7 +19,7 @@ function onclickTriggerInsideForm(e, cell) {
 }
 
 function profileUrl(cell) {
-    return cell.getData().user.leader_profile_uri;
+    return cell.getData().user.leader_profile_uri || cell.getData().user.profile_uri;
 }
 
 function loadLeadersTable(ajaxUrl, csrfToken) {
