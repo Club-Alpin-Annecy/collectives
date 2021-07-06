@@ -52,12 +52,12 @@ def add_trainee():
         ]
         if role.activity_id not in supervised_activity_ids:
             flash("Activité invalide", "error")
-            return redirect(url_for(".manage_trainees"))
+            return redirect(url_for(".leader_list"))
 
         user = User.query.get(role.user_id)
         if user is None:
             flash("Utilisateur invalide", "error")
-            return redirect(url_for(".manage_trainees"))
+            return redirect(url_for(".leader_list"))
 
         if user.has_role_for_activity(
             [RoleIds.Trainee, RoleIds.EventLeader],
@@ -67,14 +67,14 @@ def add_trainee():
                 "L'utilisateur est déjà encadrant ou encadrant en formation pour cette activité",
                 "error",
             )
-            return redirect(url_for(".manage_trainees"))
+            return redirect(url_for(".leader_list"))
 
         db.session.add(role)
         db.session.commit()
         add_trainee_form = AddTraineeForm(formdata=None)
 
     return render_template(
-        "trainees.html",
+        "leaders_list.html",
         conf=current_app.config,
         add_trainee_form=add_trainee_form,
         title="Encadrants en formation",
@@ -92,28 +92,29 @@ def remove_trainee(role_id):
     role = Role.query.get(role_id)
     if role is None or role.role_id != RoleIds.Trainee:
         flash("Role invalide", "error")
-        return redirect(url_for(".manage_trainees"))
+        return redirect(url_for(".leader_list"))
 
     if role.activity_type not in current_user.get_supervised_activities():
         flash("Non autorisé", "error")
-        return redirect(url_for(".manage_trainees"))
+        return redirect(url_for(".leader_list"))
 
     db.session.delete(role)
     db.session.commit()
 
-    return redirect(url_for(".manage_trainees"))
+    return redirect(url_for(".leader_list"))
 
 
-@blueprint.route("/trainees", methods=["GET"])
-def manage_trainees():
-    """Route for activity supervisors to access the Trainees management form"""
+@blueprint.route("/leader", methods=["GET"])
+def leader_list():
+    """Route for activity supervisors to access leader list and trainees
+    management form"""
 
     add_trainee_form = AddTraineeForm()
     return render_template(
-        "trainees.html",
+        "leaders_list.html",
         conf=current_app.config,
         add_trainee_form=add_trainee_form,
-        title="Encadrants en formation",
+        title="Encadrants",
     )
 
 

@@ -11,11 +11,11 @@
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
 
   {# Specific for this page #}
-  <script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/leaders_list.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
       window.onload = function () {
-        loadTraineesTable('{{url_for("api.trainees")}}', '{{csrf_token()}}');
+        loadLeadersTable('{{url_for("api.leaders")}}', '{{csrf_token()}}');
 
         const searchInput = document.getElementById('user-search');
         setupAutoComplete(
@@ -34,6 +34,9 @@
 
 {% block content %}
 <div class="panel" id="administration">
+  <h4>Encadrants</h4>
+  <div id="leaders-table"></div>
+
   <h4>Encadrants en formation</h4>
 
   <div class="action">
@@ -60,6 +63,5 @@
       </div>
       </form>
   </div>
-  <div id="trainees-table"></div>
 </div>
 {% endblock %}

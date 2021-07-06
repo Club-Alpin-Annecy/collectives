@@ -6,6 +6,7 @@ const onSelectAutocomplete = function (id, value) {
 
 function actionFormatter(csrfToken) {
     return function (cell, formatterParams, onRendered) {
+        if(cell.getValue() == "") return '';
         return `<form style="display:inline; padding:0" action="${cell.getValue()}" method="${formatterParams['method']}" >` +
             `<input style="display:none" name="csrf_token" type+"hidden" value="${csrfToken}">` +
             '</form>' +
@@ -18,11 +19,11 @@ function onclickTriggerInsideForm(e, cell) {
 }
 
 function profileUrl(cell) {
-    return cell.getData().user.profile_uri;
+    return cell.getData().user.leader_profile_uri || cell.getData().user.profile_uri;
 }
 
-function loadTraineesTable(ajaxUrl, csrfToken) {
-    new Tabulator("#trainees-table",
+function loadLeadersTable(ajaxUrl, csrfToken) {
+    new Tabulator("#leaders-table",
         {
             ajaxURL: ajaxUrl,
             layout: "fitColumns",
@@ -32,6 +33,7 @@ function loadTraineesTable(ajaxUrl, csrfToken) {
                 { title: "Prénom", field: "user.first_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Nom", field: "user.last_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
+                { title: "Rôle", field: "type", headerFilter: "input", widthGrow: 3},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
             ],
 
@@ -45,5 +47,3 @@ function loadTraineesTable(ajaxUrl, csrfToken) {
             },
         });
 }
-
-
