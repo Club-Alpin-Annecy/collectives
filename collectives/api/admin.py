@@ -92,6 +92,10 @@ class UserSchema(marshmallow.Schema):
     Roles are encoded as JSON.
 
     :type: list(dict())"""
+    full_name = fields.Function(lambda user: user.full_name())
+    """ User full name
+
+    :type: string"""
 
     class Meta:
         """Fields to expose"""
@@ -111,6 +115,7 @@ class UserSchema(marshmallow.Schema):
             "roles",
             "isadmin",
             "leader_profile_uri",
+            "full_name",
         )
 
 

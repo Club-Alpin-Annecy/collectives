@@ -27,11 +27,13 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
         {
             ajaxURL: ajaxUrl,
             layout: "fitColumns",
+            groupBy:"user.full_name",
+            pagination:"local",
+            paginationSize: 50,
 
             columns: [
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
-                { title: "Prénom", field: "user.first_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
-                { title: "Nom", field: "user.last_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
+                { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
                 { title: "Rôle", field: "type", headerFilter: "input", widthGrow: 3},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
