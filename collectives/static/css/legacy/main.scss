@@ -34,7 +34,7 @@
 
 
 /* Flash panel for messages */
-#messages{
+.messages{
 	height: 100vh;
 	width: 100vw;
 	position: fixed;
@@ -42,7 +42,7 @@
 	left: 0px;
 	z-index: 3000;
 }
-#messages .innermessages{
+.messages .innermessages{
 	position: fixed;
 	top: 50%;
 	left: 50%;
@@ -50,11 +50,17 @@
 	background-color: white;
 	border-radius: 20px;
 	padding: 50px 30px;
-	min-width: 60vw;
-	max-width: 600px;
+	width: 80vw;
 	z-index: 3000;
+	max-height: 100vh;
+	overflow-y: auto;
 }
-#messages .veil{
+@media (min-width: 660px) {
+	.messages .innermessages{
+		width: 600px;
+	}
+}
+.messages .veil{
 	background-color: rgba(0, 0, 10, 0.5);
 	position: absolute;
 	top: 0;
@@ -63,12 +69,12 @@
 	width: 100vw;
 	z-index: 2500;
 }
-#messages h3{
+.messages h3{
 	font-size: 30px;
 	font-weight: bold;
 	margin-top: 0;
 }
-#messages .close{
+.messages .close{
 	position: absolute;
 	top: 10px;
 	right: 10px;
@@ -76,20 +82,20 @@
 	height: 30px;
 }
 
-#messages .message::before{
+.messages .message::before{
 	height: 2em;
 	width: 2em;
 	margin-right: 7px;
 	display: inline-block;
 	vertical-align: middle;
 }
-#messages .error::before{
+.messages .error::before{
 	content: url("/static/img/icon/ionicon/md-close-circle.svg");
 }
-#messages .warning::before{
+.messages .warning::before{
 	content: url("/static/img/icon/ionicon/md-alert.svg");
 }
-#messages .success::before{
+.messages .success::before{
 	content: url("/static/img/icon/ionicon/md-checkmark-circle.svg");
 }
 
@@ -271,6 +277,7 @@ form input, form select{
  but the input can take up to the rest of the space*/
 .inputGrow{
 	display: flex;
+	flex-wrap: wrap;
 }
 .inputGrow .grow{
 	flex-grow: 20;
@@ -283,6 +290,12 @@ form input, form select{
 
 .leftalign{
 	text-align: left !important;
+}
+.centeralign{
+	text-align: center !important;
+}
+.rightalign{
+	text-align: right !important;
 }
 
 @keyframes votre_animation{ to{
