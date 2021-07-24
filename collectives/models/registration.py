@@ -96,9 +96,11 @@ class Registration(db.Model):
     def is_active(self):
         """Check if this registation is active.
 
-        :return: Is :py:attr:`status` active ?
+        :return: True if :py:attr:`status` is `Active` and the user's license has not expired
         :rtype: boolean"""
-        return self.status == RegistrationStatus.Active
+        return (
+            self.status == RegistrationStatus.Active and not self.is_pending_renewal()
+        )
 
     def is_holding_slot(self):
         """Check if this registation is holding a slot.
@@ -123,6 +125,13 @@ class Registration(db.Model):
         :return: Is :py:attr:`status` pending payment ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.PaymentPending
+
+    def is_pending_renewal(self):
+        """Check if this registation is pending license renewal.
+
+        :return: True if the user's license expires before the end of the event
+        :rtype: boolean"""
+        return not self.user.check_license_valid_at_time(self.event.end)
 
     def unsettled_payments(self):
         """Returns the list of unsettled payments associated to this registration

@@ -89,7 +89,7 @@
       </div>
     </div>
     <div class="subscriptions">
-      <h5> Liste des inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
+      <h5> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
           {% if event.num_pending_registrations() > 0 %}
             (dont {{event.num_pending_registrations()}} en attente)
           {% endif %}
@@ -117,11 +117,20 @@
             {% endif %}
           {% endfor %}
           </ul></p>
-        {% elif current_time < event.start %}
-        <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
-        </form><br/><br/>
+        {% else %}
+          {% if not current_user.check_license_valid_at_time(event.end) %}
+          <p>
+            Votre licence va expirer avant la fin de l'événement, votre inscription ne sera confirmée qu'après renouvellement. <br/>
+            Si vous venez de renouveller votre licence, merci de resynchronizer vos informations FFCAM dans votre <a href="{{ url_for('profile.show_user', user_id=current_user.id)}}">profil utilisateur</a>. 
+          </p>
+          {% endif %}
+
+          {% if current_time < event.start %}
+          <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+          </form><br/><br/>
+          {% endif %}
         {% endif %}
       {% elif event.parent_event %}
           Les inscriptions en ligne sont restreintes aux participants à la collective 
@@ -306,6 +315,22 @@
         {% endfor %}
         </ul>
       {% endif %}
+
+      <h5> Inscriptions en attente de renouvellement de licence</h5>
+      <ul>
+      {% for registration in event.registrations if registration.is_pending_renewal() %}
+        <li>
+          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-danger button-small" value="Refuser" >
+          </form>
+        </li>
+      {% else %}
+        <li>Aucune inscription en attente de renouvellement de licence.</li>
+      {% endfor %}
+      </ul>
+
 
     </div> <!-- .administration -->
     {% endif %}

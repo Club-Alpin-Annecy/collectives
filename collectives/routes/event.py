@@ -538,10 +538,6 @@ def self_register(event_id):
         flash("Vous ne pouvez pas vous inscrire vous-même.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    if not current_user.check_license_valid_at_time(event.end):
-        flash("Votre licence va expirer avant la fin de l'événement.", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
-
     if not event.requires_payment():
         # Free event
         registration = Registration(
@@ -666,8 +662,6 @@ def register_user(event_id):
             error = "Utilisateur non existant"
         elif event.is_leader(user):
             error = "L'utilisateur encadre la sortie"
-        elif not user.check_license_valid_at_time(event.end):
-            error = "La licence de l'utilisateur va expirer avant la fin de l'événement"
         if error:
             flash(error, "error")
         else:
@@ -684,6 +678,11 @@ def register_user(event_id):
                     event=event,
                     user=user,
                     is_self=False,
+                )
+
+            if not user.check_license_valid_at_time(event.end):
+                flash(
+                    "La licence de l'utilisateur va expirer avant la fin de l'événement, son inscription ne sera confirmée qu'après renouvellement"
                 )
 
             if payment_required and registration.status != RegistrationStatus.Active:
