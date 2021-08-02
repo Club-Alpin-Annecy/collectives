@@ -193,7 +193,6 @@ def index(activity_type_id=None, name=""):
 
     return render_template(
         "index.html",
-        conf=current_app.config,
         types=types,
         photos=photos,
         filtered_activity=filtered_activity,
@@ -239,7 +238,6 @@ def view_event(event_id, name=""):
 
     return render_template(
         "event.html",
-        conf=current_app.config,
         event=event,
         photos=photos,
         current_time=current_time(),
@@ -302,9 +300,7 @@ def manage_event(event_id=None):
         else:
             form = EventForm(obj=event)
         form.setup_leader_actions()
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Get current activites from form
     tentative_activities = form.current_activities()
@@ -338,9 +334,7 @@ def manage_event(event_id=None):
         validate_event_leaders(
             tentative_activities, previous_leaders, form.multi_activities_mode.data
         )
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
@@ -359,9 +353,7 @@ def manage_event(event_id=None):
         main_leader_id = None
     if not any(l.id == main_leader_id for l in tentative_leaders):
         flash("Un encadrant responsable doit être défini")
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Update leaders only
     # Do not process the remainder of the form
@@ -376,17 +368,13 @@ def manage_event(event_id=None):
             form.update_choices()
             form.setup_leader_actions()
 
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     # The 'Update event' button has been clicked
     # Populate object, run custom validators
 
     if not form.validate():
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Do not populate the real event as errors may still be raised and we do not want
     # SQLAlchemy to flush the temp data
@@ -394,9 +382,7 @@ def manage_event(event_id=None):
     form.populate_obj(trial_event)
 
     if not validate_dates_and_slots(trial_event):
-        return render_template(
-            "editevent.html", conf=current_app.config, event=event, form=form
-        )
+        return render_template("editevent.html", event=event, form=form)
 
     has_new_activity = any(a not in event.activity_types for a in tentative_activities)
 
@@ -412,9 +398,7 @@ def manage_event(event_id=None):
             tentative_leaders,
             form.multi_activities_mode.data,
         ):
-            return render_template(
-                "editevent.html", conf=current_app.config, event=event, form=form
-            )
+            return render_template("editevent.html", event=event, form=form)
 
     # If event has not been created yet use current activities to check rights
     if event_id is None:
@@ -430,9 +414,7 @@ def manage_event(event_id=None):
                 ),
                 "error",
             )
-            return render_template(
-                "editevent.html", conf=current_app.config, event=event, form=form
-            )
+            return render_template("editevent.html", event=event, form=form)
 
     # All good! Apply changes
     form.populate_obj(event)
@@ -517,7 +499,6 @@ def duplicate(event_id=None):
 
     return render_template(
         "editevent.html",
-        conf=current_app.config,
         form=form,
         event=event,
         action=url_for("event.manage_event"),

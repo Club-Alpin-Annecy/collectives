@@ -3,7 +3,7 @@
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
 import logging, os.path, os
-from flask import current_app, Blueprint, render_template, send_from_directory
+from flask import Blueprint, render_template, send_from_directory
 
 from ..utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -39,7 +39,6 @@ def list_logs():
     return render_template(
         "technician/logs.html",
         title="Liste des logs",
-        conf=current_app.config,
         logs=files,
     )
 

@@ -5,7 +5,7 @@ This modules contains the /profile Blueprint
 from datetime import datetime
 
 from flask import flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint
+from flask import Blueprint
 from flask_login import current_user
 from flask_images import Images
 
@@ -46,9 +46,7 @@ def show_user(user_id):
 
     user = User.query.filter_by(id=user_id).first()
 
-    return render_template(
-        "profile.html", conf=current_app.config, title="Profil adhérent", user=user
-    )
+    return render_template("profile.html", title="Profil adhérent", user=user)
 
 
 @blueprint.route("/organizer/<leader_id>", methods=["GET"])
@@ -67,7 +65,6 @@ def show_leader(leader_id):
 
     return render_template(
         "leader_profile.html",
-        conf=current_app.config,
         title="Profil adhérent",
         user=user,
     )
@@ -83,7 +80,6 @@ def update_user():
         form.password.data = None
         return render_template(
             "basicform.html",
-            conf=current_app.config,
             form=form,
             title="Profil adhérent",
         )
@@ -126,14 +122,10 @@ def confidentiality_agreement():
         db.session.commit()
         flash("Merci d'avoir signé la charte RGPD", "success")
 
-    return render_template(
-        "confidentiality_agreement.html", conf=current_app.config, title="Charte RGPD"
-    )
+    return render_template("confidentiality_agreement.html", title="Charte RGPD")
 
 
 @blueprint.route("/my_payments", methods=["GET"])
 def my_payments():
     """Route to show payments associated to the current user"""
-    return render_template(
-        "profile/my_payments.html", conf=current_app.config, title="Mes paiements"
-    )
+    return render_template("profile/my_payments.html", title="Mes paiements")

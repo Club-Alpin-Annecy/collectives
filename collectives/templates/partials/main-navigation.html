@@ -2,8 +2,8 @@
     <div class="layout-container main-navigation-container">
         <div class="main-navigation-container-primary">
             <a href="{{ url_for('root.index')}}" class="main-navigation-logo">
-                <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ conf['TITLE'] }}"
-                    title="{{ conf['TITLE'] }}">
+                <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ config['TITLE'] }}"
+                    title="{{ config['TITLE'] }}">
             </a>
 
             {% if current_user.is_authenticated %}
@@ -55,7 +55,7 @@
                                     Administration</a>
                             </li>
                             {% endif %}
-                            {% if current_user.is_technician() and conf['STATISTICS_ENABLED'] %}
+                            {% if current_user.is_technician() and config['STATISTICS_ENABLED'] %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('statistics.index')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}" class="legacy-icon" />
@@ -69,7 +69,7 @@
                             {% endif %}
 
 
-                            {%  if conf["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
+                            {%  if config["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('payment.list_all')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" />
@@ -115,7 +115,7 @@
                                 </a>
                             </li>
                             {% endif %}
-                            {% if conf["PAYMENTS_ENABLED"] %}
+                            {% if config["PAYMENTS_ENABLED"] %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.my_payments')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" /> Mes paiements

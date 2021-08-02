@@ -4,7 +4,7 @@
     <p>
         Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
         Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
-        vous référer aux <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
+        vous référer aux <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
     </p>
     {% if registration %}
         <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
@@ -28,7 +28,7 @@
         <div>
             <label>
                 {{payment_item_choice_form.accept_payment_terms}}
-                J'ai lu et j'accepte les <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
+                J'ai lu et j'accepte les <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
             </label>
         </div>
         <div>

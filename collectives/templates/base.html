@@ -7,15 +7,15 @@
         {% assets "scss_all" %}
             <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
         {% endassets %}
-        <link rel="icon" href="{{ url_for('static', filename=conf['FAVICON']) }}" />
+        <link rel="icon" href="{{ url_for('static', filename=config['FAVICON']) }}" />
         <script type="text/javascript">
             function getServerLocalTime(){
                 return '{{server_local_time()}}';
             }
 
             function checkFileFieldSize(element){
-                var maxSize = parseInt("{{ conf['MAX_FILE_SIZE']}}");
-                var maxSizeFileMessage = "{{conf['MAX_FILE_SIZE_MESSAGE']}}";
+                var maxSize = parseInt("{{ config['MAX_FILE_SIZE']}}");
+                var maxSizeFileMessage = "{{config['MAX_FILE_SIZE_MESSAGE']}}";
                 if (element.files[0].size > maxSize)  {
                     alert(maxSizeFileMessage.replace('[size]', (element.files[0].size / 1024 / 1024).toFixed(2)));
                 }

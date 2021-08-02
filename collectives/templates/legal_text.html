@@ -9,7 +9,7 @@
 <h4>Versionnement des mentions légales:</h4>
 <p>
     <ul>
-        {% if conf['STATISTICS_ENABLED'] %}
+        {% if config['STATISTICS_ENABLED'] %}
             <li><b>v2</b> : (version actuelle) Ajout de <a href="#statistiics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
         {% endif %}
         <li><b>v1</b> : Document initial</li>
@@ -174,7 +174,7 @@
         <li>Droit à la limitation du traitement des données</li>
     </ul>
 
-    {% if conf['STATISTICS_ENABLED'] %}
+    {% if config['STATISTICS_ENABLED'] %}
     <h4 id="statistics">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
         <p>
             Conformément au Règlement général sur la protection des données (RGPD) du 25 mai 2018,

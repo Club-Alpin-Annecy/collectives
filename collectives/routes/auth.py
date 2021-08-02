@@ -103,7 +103,6 @@ def login():
     if not form.validate_on_submit():
         return render_template(
             "auth/login.html",
-            conf=current_app.config,
             form=form,
             contact_reason="vous connecter",
         )
@@ -183,7 +182,6 @@ def render_confirmation_form(form, is_recover):
     form.submit.label.text = "{} le compte".format(reason.capitalize())
     return render_template(
         "auth/token_confirmation.html",
-        conf=current_app.config,
         form=form,
         title="{} de compte".format(action),
     )
@@ -274,7 +272,6 @@ def render_signup_form(form, is_recover):
 
     return render_template(
         "auth/activate_recover.html",
-        conf=current_app.config,
         form=form,
         title="{} de compte Collectives".format(action),
         contact_reason="{} votre compte".format(reason),
