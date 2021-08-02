@@ -23,12 +23,21 @@
             </ul>
         </div>
         <div>
-        <label>
-        {{payment_item_choice_form.accept_payment_terms}}
-        J'ai lu et j'accepte les <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
-        </label>
-
+            L'inscription à un événement vous engage à y participer.
         </div>
+        <div>
+            <label>
+                {{payment_item_choice_form.accept_payment_terms}}
+                J'ai lu et j'accepte les <a href="{{url_for('static', filename=conf['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
+            </label>
+        </div>
+        <div>
+            <label>
+                {{payment_item_choice_form.accept_guide}} J'ai lu et j'accepte le
+                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a>
+            </label>
+        </div>
+        <br/>
         {{payment_item_choice_form.submit(class="button button-primary")}}
     </form>
    {% else %}

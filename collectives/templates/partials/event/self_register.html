@@ -1,9 +1,37 @@
 {% if event.requires_payment() %}
     {% include 'partials/event/payment_item_choice.html' %}
 {% else %}
-    <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" onclick="if(confirm('L\'inscription a un événement vous engage à y participer. Confirmez-vous l\'inscription?')) this.submit()" class="usericon selfsubscribe">
+    <form
+            action="{{url_for('event.self_register', event_id=event.id)}}"
+            method="post"
+
+        >
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-        <span class="name">S'inscrire</span>
+
+        <div
+                class="usericon selfsubscribe"
+                onclick= "this.nextSibling.nextSibling.style.display='block'"
+            >
+            <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
+
+            <span class="name" >S'inscrire</span>
+        </div>
+
+        <div class="messages" style="display:none">
+            <div class="innermessages">
+                <img
+                                src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                                class="close"
+                                onclick= "this.parentNode.parentNode.style.display='none'"
+                            />
+                <h3>Confirmation</h3>
+                <p>L'inscription à un événement vous engage à y participer.<br/>
+                    <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a></label><br/>
+                </p>
+                <h4 class="centeralign">Confirmez-vous l'inscription? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
+            </div>
+            <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+        </div>
+
     </form>
 {% endif %}
