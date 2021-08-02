@@ -21,6 +21,12 @@
                                         class="legacy-icon" /> Liste des collectives
                                 </a>
                             </li>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  class="legacy-icon" />
+                                    Organisation des sorties
+                                </a>
+                            </li>
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img

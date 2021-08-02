@@ -26,9 +26,9 @@
                             />
                 <h3>Confirmation</h3>
                 <p>L'inscription à un événement vous engage à y participer.<br/>
-                    <label><input type="checkbox" onchange="document.getElementById('submitSelfRegister').disabled = !this.checked;"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/2020-12-03 - CAF Annecy Organisation des sorties.pdf') }}">guide d'Organisation des sorties et des séjours du Club Alpin Français d'Annecy</a></label><br/>
+                    <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a></label><br/>
                 </p>
-                <h4 class="centeralign">Confirmez-vous l'inscription? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary" disabled=true></h4>
+                <h4 class="centeralign">Confirmez-vous l'inscription? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
             </div>
             <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
         </div>

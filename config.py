@@ -391,6 +391,11 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
+GUIDE_FILENAME = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
+""" Guide file name to validate to subscribe to an event.
+
+:type: string """
+
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
