@@ -23,9 +23,7 @@ def index():
 @blueprint.route("/legal")
 def legal():
     """Route to display site legal terms"""
-    return render_template(
-        "legal.html", conf=current_app.config, form=LegalAcceptation()
-    )
+    return render_template("legal.html", form=LegalAcceptation())
 
 
 @blueprint.route("/legal/accept", methods=["POST"])

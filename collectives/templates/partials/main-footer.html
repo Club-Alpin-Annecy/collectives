@@ -3,14 +3,14 @@
         <div class="columns">
             <div class="column is-3">
                 <a href="{{ url_for('root.index')}}" class="main-footer-navigation-logo">
-                    <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ conf['TITLE'] }}"
-                        title="{{ conf['TITLE'] }}">
+                    <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ config['TITLE'] }}"
+                        title="{{ config['TITLE'] }}">
                 </a>
             </div>
             <div class="column">
                 <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a
                     href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br /><br />
-                Version du site : {{ version_link(conf['VERSION'])|safe }}<br />
+                Version du site : {{ version_link(config['VERSION'])|safe }}<br />
                 Photo de couverture: <a href="https://www.verticalflow.net/">Vertical Flow</a>
             </div>
 

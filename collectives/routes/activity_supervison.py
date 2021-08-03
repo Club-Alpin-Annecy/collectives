@@ -75,7 +75,6 @@ def add_trainee():
 
     return render_template(
         "leaders_list.html",
-        conf=current_app.config,
         add_trainee_form=add_trainee_form,
         title="Encadrants en formation",
     )
@@ -112,7 +111,6 @@ def leader_list():
     add_trainee_form = AddTraineeForm()
     return render_template(
         "leaders_list.html",
-        conf=current_app.config,
         add_trainee_form=add_trainee_form,
         title="Encadrants",
     )
@@ -148,7 +146,6 @@ def csv_import():
 
     return render_template(
         "import_csv.html",
-        conf=current_app.config,
         form=form,
         failed=failed,
         title="Création d'event par CSV",

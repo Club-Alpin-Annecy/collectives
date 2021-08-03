@@ -160,7 +160,6 @@ def edit_prices(event_id):
 
     return render_template(
         "payment/edit_prices.html",
-        conf=current_app.config,
         event=event,
         form=form,
         new_price_form=new_price_form,
@@ -175,7 +174,6 @@ def list_all():
     """Route to display all payments to the accountant"""
     return render_template(
         "payment/list_all.html",
-        conf=current_app.config,
     )
 
 
@@ -197,9 +195,7 @@ def list_payments(event_id):
         flash("Accès refusé", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    return render_template(
-        "payment/payment_list.html", conf=current_app.config, event=event
-    )
+    return render_template("payment/payment_list.html", event=event)
 
 
 @blueprint.route("/export/event/<event_id>", methods=["GET"])
@@ -307,7 +303,6 @@ def payment_details(payment_id):
 
     return render_template(
         "payment/payment_details.html",
-        conf=current_app.config,
         payment=payment,
         event=event,
     )
@@ -347,7 +342,6 @@ def payment_receipt(payment_id):
     template = "payment/refund_receipt.html" if is_refund else "payment/receipt.html"
     return render_template(
         template,
-        conf=current_app.config,
         payment=payment,
         event=event,
         activity_names=activity_names,
@@ -434,7 +428,6 @@ def report_offline(registration_id, payment_id=None):
 
     return render_template(
         "basicform.html",
-        conf=current_app.config,
         form=form,
         title="Paiement hors-ligne",
         subtitle=f"Inscription de {registration.user.full_name()} à {event.title}",
@@ -523,9 +516,7 @@ def do_mock_payment(token):
 
     amount = payline.OrderInfo(payment).amount_in_cents
 
-    return render_template(
-        "payment/mock.html", conf=current_app.config, payment=payment, amount=amount
-    )
+    return render_template("payment/mock.html", payment=payment, amount=amount)
 
 
 def finalize_payment(payment, details):

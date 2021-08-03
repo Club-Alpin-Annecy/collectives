@@ -4,7 +4,7 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
  """
 from io import BytesIO
 from flask import flash, render_template, redirect, url_for, send_file
-from flask import current_app, Blueprint
+from flask import Blueprint
 from flask_login import current_user
 from openpyxl import Workbook
 
@@ -60,7 +60,6 @@ def administration():
 
     return render_template(
         "administration.html",
-        conf=current_app.config,
         filters=filters,
         count=count,
         token_creation_form=AdminTokenCreationForm(),
@@ -93,7 +92,6 @@ def manage_user(user_id=None):
     if not form.validate_on_submit():
         return render_template(
             "basicform.html",
-            conf=current_app.config,
             form=form,
             title="{} d'utilisateur".format(action),
         )
@@ -169,7 +167,6 @@ def add_user_role(user_id):
     if not form.is_submitted():
         return render_template(
             "user_roles.html",
-            conf=current_app.config,
             user=user,
             form=form,
             title="Roles utilisateur",
@@ -220,7 +217,6 @@ def add_user_role(user_id):
     form = RoleForm()
     return render_template(
         "user_roles.html",
-        conf=current_app.config,
         user=user,
         form=form,
         title="Roles utilisateur",
@@ -252,7 +248,6 @@ def remove_user_role(role_id):
     form = RoleForm()
     return render_template(
         "user_roles.html",
-        conf=current_app.config,
         user=user,
         form=form,
         title="Roles utilisateur",
@@ -381,7 +376,6 @@ def generate_token():
 
     return render_template(
         "auth/generate_token.html",
-        conf=current_app.config,
         form=form,
         user=user,
         user_info=user_info,

@@ -217,7 +217,7 @@
             </form>
           {% endif %}
 
-          {% if conf["PAYMENTS_ENABLED"] %}
+          {% if config["PAYMENTS_ENABLED"] %}
             <br>
             <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
@@ -229,7 +229,7 @@
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Liste des paiements
               </a>
-              {% if conf["REFUND_ENABLED"] %}
+              {% if config["REFUND_ENABLED"] %}
                 <form class="inline" action="{{url_for('payment.refund_all', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer le remboursement de tous les inscrits ayant fait un paiment en ligne ? Les inscriptions correspondantes ne seront pas supprimées.')">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                   <button type="submit" class="button button-danger">
@@ -342,7 +342,7 @@
     {% endif %}
 
     {# Accountant space #}
-    {% if conf["PAYMENTS_ENABLED"] and current_user.is_accountant()  %}
+    {% if config["PAYMENTS_ENABLED"] and current_user.is_accountant()  %}
     <div class="administration">
     <h4>Comptabilité</h4>
     {% if event.requires_payment() %}
