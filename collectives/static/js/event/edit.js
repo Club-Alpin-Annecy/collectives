@@ -99,6 +99,17 @@ function makeEditorToolbar() {
             className: "fa fa-question-circle",
             title: "Aide",
         },
+        "|",
+        {
+            name: "nowysiwyg",
+            action: function(){
+                easymde.toTextArea();
+                document.getElementById("form").onsubmit=null;
+            },
+            className: "fa fa-power-off",
+            title: "Désactiver Wysiwyg",
+        },
+
 
     ]
 
