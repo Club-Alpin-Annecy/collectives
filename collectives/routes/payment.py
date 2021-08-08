@@ -81,8 +81,9 @@ def edit_prices(event_id):
                 if event.registrations and not event.requires_payment():
                     # Event was free, it is now paid.
                     # Switch all existing registrations back to 'PaymentPending'
-                    for r in event.active_registrations():
-                        r.status = RegistrationStatus.PaymentPending
+                    for r in event.registrations:
+                        if r.status == RegistrationStatus.Active:
+                            r.status = RegistrationStatus.PaymentPending
                     flash(
                         "L'événement est devenu payant ; les inscriptions existantes sont passées 'en attente'. Elles ne seront validées qu'après paiement en ligne sur la page de l'événement ou saisie manuelle par un encadrant.",
                         "info",
@@ -151,9 +152,23 @@ def edit_prices(event_id):
             form = PaymentItemsForm(formdata=None)
             form.populate_items(event.payment_items)
 
-            # If we have deleted items, make sure to remove them from the new price form
             if has_deleted_items:
+                # If we have deleted items, make sure to remove them from the new price form
                 new_price_form = NewItemPriceForm(event.payment_items, formdata=None)
+
+                # If all items have been deleted, the event is now free
+                # Transition all registration in "PaymentPending" state to "Active"
+                if event.registrations and not event.requires_payment():
+                    for r in event.registrations:
+                        if r.status == RegistrationStatus.PaymentPending:
+                            r.status = RegistrationStatus.Active
+                            db.session.add(r)
+                    flash(
+                        "L'événement est devenu gratuit ; les inscriptions existantes en attente de paiement sont passées 'confirmées'. ",
+                        "info",
+                    )
+                    db.session.commit()
+
     else:
         form = PaymentItemsForm(formdata=None)
         form.populate_items(event.payment_items)
