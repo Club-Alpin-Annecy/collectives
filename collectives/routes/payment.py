@@ -162,10 +162,12 @@ def edit_prices(event_id):
                     for r in event.registrations:
                         if r.status == RegistrationStatus.PaymentPending:
                             r.status = RegistrationStatus.Active
+                            db.session.add(r)
                     flash(
                         "L'événement est devenu gratuit ; les inscriptions existantes en attente de paiement sont passées 'confirmées'. ",
                         "info",
                     )
+                    db.session.commit()
 
     else:
         form = PaymentItemsForm(formdata=None)
