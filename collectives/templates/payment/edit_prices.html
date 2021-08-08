@@ -36,6 +36,7 @@
       <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
+      <th> Dispo </th>
       <th> Actif </th>
     </thead>
     {% for item_form in form.items %}
@@ -51,10 +52,11 @@
           <td> {{ field.license_types() }} </td>
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
+          <td> {{ field.max_uses() }} </td>
           <td> {{ field.enabled() }} </td>
           <td class="actions"> {{field.price_id}} 
-          {% if field.use_count %}
-            Utilisé {{field.use_count}} fois.
+          {% if field.total_use_count %}
+            Utilisé {{field.total_use_count}} fois ({{field.active_use_count}} actives). 
           {% else %}
             {{field.delete}}&nbsp;{{field.delete.label}}
           {% endif %}
@@ -128,6 +130,8 @@
     {{ new_price_form.start_date}}
     <div class="field">{{ new_price_form.end_date.label }}<span class="help">Date jusqu'à laquelle le tarif sera proposé</span></div>
     {{ new_price_form.end_date}}
+    <div class="field">{{ new_price_form.max_uses.label }}<span class="help">Nombre max d'utilisations du tarif ('0' pour illimité)</span></div>
+    {{ new_price_form.max_uses}}
     </fieldset>
 
     {{ new_price_form.hidden_tag() }}

@@ -3,6 +3,8 @@
 
 from decimal import Decimal
 
+from wtforms.validators import NumberRange
+
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -68,7 +70,11 @@ class PaymentItem(db.Model):
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        return [p for p in self.active_prices() if p.is_available_to_user(user)]
+        return [
+            p
+            for p in self.active_prices()
+            if p.is_available_to_user(user) and p.has_available_use()
+        ]
 
     def available_prices_to_user_now(self, user):
         """Returns all prices that are available to a given user
@@ -153,6 +159,14 @@ class ItemPrice(db.Model):
 
     :type: :py:class:`decimal.Decimal`"""
 
+    max_uses = db.Column(
+        db.Integer, info={"label": "Max dispo", "validators": NumberRange(0)}
+    )
+    """ Max number of times this price can be used.
+    If the number is NULL, then the number of times is unlimited
+
+    :type: string"""
+
     enabled = db.Column(
         db.Boolean, nullable=False, default=False, info={"label": "Activer le tarif"}
     )
@@ -174,6 +188,39 @@ class ItemPrice(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
+
+    def total_use_count(self):
+        """
+        Total number of times this price has been used,
+        even if the corresponding registration is no longer active
+
+        :return: total number of payments associated with this price
+        :rtype: int
+        """
+        return len(self.payments)
+
+    def active_use_count(self):
+        """
+        Number of currently active or payment pending registrations
+        (i.e, registrations holding a slot) that are usein this price
+
+        :return: number of payments associated with this price and an active registration
+        :rtype: int
+        """
+        return sum(
+            1
+            for p in self.payments
+            if p.registration and p.registration.is_holding_slot()
+        )
+
+    def has_available_use(self):
+        """Returns whether there are remaining uses for this price
+        :return: True if max_uses is 0 or larger than :py:meth:`active_use_count()`
+        :rtype: bool
+        """
+        if not self.max_uses:
+            return True
+        return self.max_uses > self.active_use_count()
 
     def is_available_at_date(self, date):
         """Returns whether this price is available at a given time
