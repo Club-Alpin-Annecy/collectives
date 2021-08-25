@@ -12,4 +12,4 @@ def format_currency(amount):
     :return: A string representing the amount in french locale, like "1,345.67 €"
     :rtype: string
     """
-    return babel.numbers.format_currency(amount, "EUR", u"#,##0.00 ¤", locale="fr_FR")
+    return babel.numbers.format_currency(amount, "EUR", "#,##0.00 ¤", locale="fr_FR")

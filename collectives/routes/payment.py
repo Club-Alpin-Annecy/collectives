@@ -609,7 +609,7 @@ def process():
         # Payment has already been finalized
         if is_notify:
             # Return empty response
-            return dict(), 200
+            return {}, 200
         flash("Le paiement a déjà été finalisé")
         return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
@@ -620,7 +620,7 @@ def process():
 
     if is_notify:
         # Return empty response
-        return dict(), 200
+        return {}, 200
     return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
 
