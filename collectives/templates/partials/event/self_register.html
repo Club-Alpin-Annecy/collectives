@@ -1,3 +1,4 @@
+<p>Les inscriptions en ligne sont possibles jusqu'au {{format_datetime(event.registration_close_time)}}. </p>
 {% if event.requires_payment() %}
     {% include 'partials/event/payment_item_choice.html' %}
 {% else %}
