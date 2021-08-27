@@ -104,7 +104,7 @@ function makeEditorToolbar() {
             name: "nowysiwyg",
             action: function(){
                 easymde.toTextArea();
-                document.getElementById("form").onsubmit=null;
+                document.getElementById("form_edit_event").onsubmit=null;
             },
             className: "fa fa-power-off",
             title: "Désactiver Wysiwyg",
