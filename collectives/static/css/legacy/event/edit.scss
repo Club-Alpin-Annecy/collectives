@@ -3,7 +3,12 @@
 #eventedit form{
   padding: 10px 20px;
 }
-
+#eventedit form .controls{
+    flex-wrap: wrap;
+}
+#eventedit form .controls > *{
+    margin: 0 0 !important;
+}
 #eventedit label{
   width : 30%;
   margin-bottom: 1em;
@@ -12,22 +17,35 @@
   width : 40%;
   margin-bottom: 1em;
 }
-
-
 #eventedit input[type=submit] {
 	margin: 8px 0;
 	width: 50%;
 }
+@media screen and (max-width: 1023px) {
+    #eventedit form{
+      padding: 10px 0px;
+    }
+    #eventedit input, #eventedit select{
+      width : 65%;
+    }
+}
+
 
 
 #eventedit #editor {
   width: 80%;
   margin: 1em auto;
-	text-align: left;
+  text-align: left;
+}
+@media screen and (max-width: 1023px) {
+    #eventedit #editor {
+      width: 100%;
+    }
 }
 
 #eventedit #description{
   height: 40em;
+  width: 100%;
 }
 
 #editor a{
