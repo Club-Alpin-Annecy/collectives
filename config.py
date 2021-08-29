@@ -438,6 +438,7 @@ CSV_COLUMNS = {
     "places_internet": {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": str(DEFAULT_ONLINE_SLOTS)},
     "debut_internet": {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h"},
     "fin_internet": {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h"},
+    "parent": {"short_desc": "Collective parente", "description": "ID (nombre) de la collective parente", "type": "int", "optional": 1, "default": None},
 }
 """Dictionnary of columns to import from CSV files.
 

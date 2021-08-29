@@ -29,6 +29,12 @@ def fill_from_csv(event, row, template):
     event.end = parse(row, "fin")
     event.num_slots = parse(row, "places")
 
+    parent_event_id = parse(row, "parent")
+    if parent_event_id != "":
+        if Event.query.get(parent_event_id) is None:
+            raise Exception(f"La collective {parent_event_id} n'existe pas")
+        event.parent_event_id = parent_event_id
+
     # Online subscription dates and slots
     if row["places_internet"].strip():
         event.num_online_slots = parse(row, "places_internet")
@@ -103,6 +109,11 @@ def parse(row, column_name):
     csv_columns = current_app.config["CSV_COLUMNS"]
     column_short_desc = csv_columns[column_name]["short_desc"]
 
+    if row[column_name] is None:
+        raise Exception(
+            f"La colonne '{column_short_desc}' n'existe pas dans le fichier"
+        )
+
     value_str = row[column_name].strip()
 
     # Check if mandatory column is well set
@@ -129,7 +140,7 @@ def parse(row, column_name):
                 return int(value_str)
             except ValueError as err:
                 raise Exception(
-                    "La valeur '{}' de la colonne '{}' doit être un entier".format(
+                    "La valeur '{}' de la colonne '{}' doit être un nombre entier".format(
                         value_str, column_name
                     )
                 ) from err
