@@ -42,12 +42,20 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     class Meta:
         model = ItemPrice
-        only = ["enabled", "title", "start_date", "end_date", "license_types"]
+        only = [
+            "enabled",
+            "title",
+            "start_date",
+            "end_date",
+            "license_types",
+            "max_uses",
+        ]
 
     delete = BooleanField("Supprimer")
 
     price_id = HiddenField()
-    use_count = 0
+    total_use_count = 0
+    active_use_count = 0
 
     def get_price(self, item):
         """
@@ -75,6 +83,11 @@ class ItemPriceForm(ModelForm, AmountForm):
                 raise ValidationError(
                     f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la liste des catégories en bas de page."
                 )
+
+    def validate_max_uses(form, field):
+        """Sets max_uses to None if it was set to a falsy value, for clarity"""
+        if not field.data:
+            field.data = None
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -131,7 +144,8 @@ class PaymentItemForm(ModelForm):
             field_form.update_max_amount()
             price = item.prices[k]
             field_form.price_id.data = price.id
-            field_form.use_count = len(price.payments)
+            field_form.total_use_count = price.total_use_count()
+            field_form.active_use_count = price.active_use_count()
 
 
 class NewItemPriceForm(ModelForm, AmountForm):
@@ -139,12 +153,25 @@ class NewItemPriceForm(ModelForm, AmountForm):
 
     class Meta:
         model = ItemPrice
-        only = ["enabled", "title", "start_date", "end_date", "license_types"]
+        only = [
+            "enabled",
+            "title",
+            "start_date",
+            "end_date",
+            "license_types",
+            "max_uses",
+        ]
 
     item_title = StringField("Intitulé du nouvel objet")
     existing_item = SelectField(
         "Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int
     )
+
+    # pylint: disable=R0201
+    def validate_max_uses(form, field):
+        """Sets max_uses to None if it was set to a falsy value, for clarity"""
+        if not field.data:
+            field.data = None
 
     add = SubmitField("Ajouter le tarif")
 
