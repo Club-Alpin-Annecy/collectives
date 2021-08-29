@@ -56,7 +56,7 @@
           <td> {{ field.enabled() }} </td>
           <td class="actions"> {{field.price_id}} 
           {% if field.total_use_count %}
-            Utilisé {{field.total_use_count}} fois ({{field.active_use_count}} actives). 
+            {{field.active_use_count}} utilisations actives ({{field.total_use_count}} total) 
           {% else %}
             {{field.delete}}&nbsp;{{field.delete.label}}
           {% endif %}
