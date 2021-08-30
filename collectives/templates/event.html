@@ -62,7 +62,7 @@
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
     
-    {# Leaders }
+    {# Leaders #}
 
     <div id="encadrement">
       <h5>Encadrement</h5>
@@ -180,6 +180,25 @@
           </div>
       {% endfor %}
 
+     {# Pending registrations #}
+      {% if event.has_edit_rights(current_user) %}
+        {% for registration in event.registrations if registration.is_pending_renewal() %}
+            <div class="useractionmenu">
+              {% with user = registration.user, user_info = True, is_pending_renewal = True %}
+                {{ macros.usericon(user, leader_info, user_info, is_pending_renewal) }}
+              {% endwith %}
+
+              <div class="popover">
+                <form class="delete" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  Refuser
+                </form>
+              </div>
+            </div>
+        {% endfor %}
+      {% endif %}
+
+
         {% if event.can_self_register(current_user, current_time) %}
           {% include 'partials/event/self_register.html' %}
         {% elif not event.is_confirmed() %}
@@ -193,46 +212,24 @@
         {% endif %}
     </div>
 
-    {# Pending registrations #}
+     
+    {# Payment-pending registrations #}
 
-    {% if event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
-
+    {% if event.requires_payment()  and event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
     <div class="administration">
-      <h4>Inscriptions en attente</h4>
-      
-      {% if event.requires_payment() %}
-        <h5> Inscriptions en attente de paiement</h5>
-        <ul>
-        {% for registration in event.registrations if registration.is_pending_payment() %}
-          {{ macros.registration_admin_list_item(registration) }}
-        {% else %}
-          <li>Aucune inscription en attente de paiement.</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-
-      <h5> Inscriptions en attente de renouvellement de licence</h5>
+      <h4>Inscriptions en attente de paiement</h4>
       <ul>
-      {% for registration in event.registrations if registration.is_pending_renewal() %}
-        <li>
-          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-danger button-small" value="Refuser" >
-          </form>
-        </li>
+      {% for registration in event.registrations if registration.is_pending_payment() %}
+        {{ macros.registration_admin_list_item(registration) }}
       {% else %}
-        <li>Aucune inscription en attente de renouvellement de licence.</li>
+        <li>Aucune inscription en attente de paiement.</li>
       {% endfor %}
       </ul>
-
     </div>
     {% endif %}
 
 
-
     <div id="description" class="breaker">{{ event.rendered_description | safe  }}</div>
-
 
     {# Administration #}
 
@@ -360,6 +357,7 @@
         <li>Aucune inscription refusée.</li>
       {% endfor %}
       </ul>
+      
     </div> <!-- .administration -->
     {% endif %}
 
