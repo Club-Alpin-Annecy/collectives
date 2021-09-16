@@ -3,6 +3,7 @@
 """
 
 import sqlalchemy
+from flask import current_app
 from ..models import ActivityType, db
 
 
@@ -40,8 +41,14 @@ def activity_types(app):
         db.session.commit()
 
     except sqlalchemy.exc.OperationalError:
-        print("WARN: Cannot configure activity types: db is not available")
+        current_app.logger.warning(
+            "Cannot configure activity types: db is not available"
+        )
     except sqlalchemy.exc.InternalError:
-        print("WARN: Cannot configure activity types: db is not available")
+        current_app.logger.warning(
+            "Cannot configure activity types: db is not available"
+        )
     except sqlalchemy.exc.ProgrammingError:
-        print("WARN: Cannot configure activity types: db is not available")
+        current_app.logger.warning(
+            "Cannot configure activity types: db is not available"
+        )

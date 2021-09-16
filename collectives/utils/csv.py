@@ -76,9 +76,7 @@ def fill_from_csv(event, row, template):
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
         raise Exception(
-            "L'encadrant {} (numéro de licence {}) n'a pas encore créé de compte".format(
-                row["nom_encadrant"], row["id_encadrant"]
-            )
+            f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a pas encore créé de compte"
         )
 
     # Check if event already exists in same activity
@@ -86,11 +84,7 @@ def fill_from_csv(event, row, template):
         main_leader_id=leader.id, title=event.title, start=event.start
     ).first():
         raise Exception(
-            "La collective {} démarrant le {} et encadrée par {} existe déjà.".format(
-                event.title,
-                format_date(event.start),
-                row["nom_encadrant"],
-            )
+            f"La collective {event.title} démarrant le {format_date(event.start)} et encadrée par {row['nom_encadrant']} existe déjà."
         )
 
     event.leaders = [leader]
@@ -119,9 +113,7 @@ def parse(row, column_name):
     # Check if mandatory column is well set
     if not value_str and not csv_columns[column_name].get("optional", 0):
         raise Exception(
-            "La colonne '{}' est obligatoire et n'est pas renseignée".format(
-                column_short_desc
-            )
+            f"La colonne '{column_short_desc}' est obligatoire et n'est pas renseignée"
         )
 
     column_type = csv_columns[column_name]["type"]
@@ -130,9 +122,7 @@ def parse(row, column_name):
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
         except ValueError as err:
             raise Exception(
-                "La date '{}' de la colonne '{}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)".format(
-                    value_str, column_short_desc
-                )
+                f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
             ) from err
     elif column_type == "int":
         if value_str:
@@ -140,9 +130,7 @@ def parse(row, column_name):
                 return int(value_str)
             except ValueError as err:
                 raise Exception(
-                    "La valeur '{}' de la colonne '{}' doit être un nombre entier".format(
-                        value_str, column_name
-                    )
+                    f"La valeur '{value_str}' de la colonne '{column_name}' doit être un nombre entier"
                 ) from err
 
     return value_str

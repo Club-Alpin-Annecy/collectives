@@ -93,7 +93,7 @@ def manage_user(user_id=None):
         return render_template(
             "basicform.html",
             form=form,
-            title="{} d'utilisateur".format(action),
+            title=f"{action} d'utilisateur",
         )
 
     # Do not touch password if user does not want to change it

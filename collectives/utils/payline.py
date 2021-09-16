@@ -1,6 +1,5 @@
 """Module to handle connexions to Payline.
 """
-from sys import stderr
 import base64
 import json
 import decimal
@@ -502,7 +501,7 @@ class PaylineApi:
 
         config = self.app.config
         if not config["PAYLINE_MERCHANT_ID"]:
-            print("Warning: Payment API disabled, using mock API", file=stderr)
+            current_app.logger.warning("Payment API disabled, using mock API")
             return
 
         self.payline_merchant_id = config["PAYLINE_MERCHANT_ID"]
@@ -519,20 +518,20 @@ class PaylineApi:
             self.webpayment_client = SoapClient(
                 wsdl=config["PAYLINE_WSDL"],
                 http_headers={
-                    "Authorization": "Basic %s" % encoded_auth,
+                    "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",
                 },
             )
             self.directpayment_client = SoapClient(
                 wsdl=config["PAYLINE_DIRECTPAYMENT_WSDL"],
                 http_headers={
-                    "Authorization": "Basic %s" % encoded_auth,
+                    "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",
                 },
             )
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            current_app.logger.error(f"Extranet API error: {err}")
             self.webpayment_client = None
             self.directpayment_client = None
             raise err
@@ -607,7 +606,7 @@ class PaylineApi:
             return payment_response
 
         except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error("Payment API error: %s", err)
+            current_app.logger.error(f"Payment API error: {err}")
 
         return None
 
@@ -644,7 +643,7 @@ class PaylineApi:
             return PaymentDetails(response)
 
         except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error("Payment API error: %s", err)
+            current_app.logger.error(f"Payment API error: {err}")
 
         return None
 
@@ -690,7 +689,7 @@ class PaylineApi:
             return RefundDetails(response)
 
         except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error("Payment API error: %s", err)
+            current_app.logger.error(f"Payment API error: {err}")
 
         return None
 
