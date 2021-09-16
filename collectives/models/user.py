@@ -586,14 +586,14 @@ class User(db.Model, UserMixin):
 
         :rtype: String
         """
-        return "{} {}".format(self.first_name, self.last_name.upper())
+        return f"{self.first_name} {self.last_name.upper()}"
 
     def abbrev_name(self):
         """Get user first name and first letter of last name.
 
         :rtype: String
         """
-        return "{} {}".format(self.first_name, self.last_name[0].upper())
+        return f"{self.first_name} {self.last_name[0].upper()}"
 
     def get_supervised_activities(self):
         """Get activities the user supervises.

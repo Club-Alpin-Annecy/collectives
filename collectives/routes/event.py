@@ -64,16 +64,12 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
             return True
         if len(problems) == 1:
             flash(
-                "Aucun encadrant valide n'a été défini pour l'activité {}".format(
-                    problems[0].name
-                )
+                f"Aucun encadrant valide n'a été défini pour l'activité {problems[0].name}"
             )
         else:
             names = [a.name for a in problems]
             flash(
-                "Aucun encadrant valide n'a été défini pour les activités {}".format(
-                    ", ".join(names)
-                )
+                f"Aucun encadrant valide n'a été défini pour les activités {', '.join(names)}"
             )
         return False
 
@@ -87,16 +83,12 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
         return True
     if len(problems) == 1:
         flash(
-            "{} ne peut pas encadrer l'activité {}".format(
-                problems[0].full_name(), activities[0].name
-            )
+            f"{problems[0].full_name()} ne peut pas encadrer l'activité {activities[0].name}"
         )
     else:
         names = [u.full_name() for u in problems]
         flash(
-            "{} ne peuvent pas encadrer l'activité {}".format(
-                ", ".join(names), activities[0].name
-            )
+            f"{', '.join(names)} ne peuvent pas encadrer l'activité {activities[0].name}"
         )
     return False
 
@@ -409,9 +401,7 @@ def manage_event(event_id=None):
     for removed_leader in removed_leaders:
         if not event.can_remove_leader(current_user, removed_leader):
             flash(
-                "Impossible de supprimer l'encadrant: {}".format(
-                    removed_leader.full_name()
-                ),
+                f"Impossible de supprimer l'encadrant: {removed_leader.full_name()}",
                 "error",
             )
             return render_template("editevent.html", event=event, form=form)

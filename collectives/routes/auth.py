@@ -179,11 +179,11 @@ def render_confirmation_form(form, is_recover):
     """
     action = "Récupération " if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
-    form.submit.label.text = "{} le compte".format(reason.capitalize())
+    form.submit.label.text = f"{reason.capitalize()} le compte"
     return render_template(
         "auth/token_confirmation.html",
         form=form,
-        title="{} de compte".format(action),
+        title=f"{action} de compte",
     )
 
 
@@ -248,7 +248,7 @@ def process_confirmation(token_uuid):
 
     # Redirect to  login page
     action = "mis à jour" if is_recover else "crée"
-    flash("Compte {} avec succès pour {}".format(action, user.full_name()), "success")
+    flash(f"Compte {action} avec succès pour {user.full_name()}", "success")
     return redirect(url_for("auth.login"))
 
 
@@ -266,15 +266,15 @@ def render_signup_form(form, is_recover):
     """
     action = "Récupération" if is_recover else "Création"
     reason = "récupérer" if is_recover else "créer"
-    form.submit.label.text = "{} le compte".format(reason.capitalize())
+    form.submit.label.text = f"{reason.capitalize()} le compte"
     propose_recover = not is_recover
     propose_activate = is_recover
 
     return render_template(
         "auth/activate_recover.html",
         form=form,
-        title="{} de compte Collectives".format(action),
-        contact_reason="{} votre compte".format(reason),
+        title=f"{action} de compte Collectives",
+        contact_reason=f"{reason} votre compte",
         propose_activate=propose_activate,
         propose_recover=propose_recover,
     )
@@ -425,16 +425,16 @@ def init_admin(app):
             user.roles.append(admin_role)
             db.session.add(user)
             db.session.commit()
-            print("WARN: create admin user")
+            current_app.logger.warning("create admin user")
         if not user.password == app.config["ADMINPWD"]:
             user.password = app.config["ADMINPWD"]
             db.session.commit()
-            print("WARN: Reset admin password")
+            current_app.logger.warning("Reset admin password")
     except sqlite3.OperationalError:
-        print("WARN: Cannot configure admin: db is not available")
+        current_app.logger.warning("Cannot configure admin: db is not available")
     except sqlalchemy.exc.InternalError:
-        print("WARN: Cannot configure admin: db is not available")
+        current_app.logger.warning("Cannot configure admin: db is not available")
     except sqlalchemy.exc.OperationalError:
-        print("WARN: Cannot configure admin: db is not available")
+        current_app.logger.warning("Cannot configure admin: db is not available")
     except sqlalchemy.exc.ProgrammingError:
-        print("WARN: Cannot configure admin: db is not available")
+        current_app.logger.warning("Cannot configure admin: db is not available")

@@ -708,7 +708,7 @@ class Event(db.Model):
         :return: Whether the event is visible
         :rtype: bool
         """
-        if self.status == EventStatus.Confirmed or self.status == EventStatus.Cancelled:
+        if self.status in (EventStatus.Confirmed, EventStatus.Cancelled):
             return True
         return self.has_edit_rights(user)
 

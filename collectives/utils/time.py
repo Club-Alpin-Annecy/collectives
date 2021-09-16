@@ -76,12 +76,7 @@ def format_date(value):
     :rtype: string"""
     if value is None:
         return "N/A"
-    return "{} {} {} {}".format(
-        fr_week_days[value.weekday()],
-        value.day,
-        fr_months[value.month - 1],
-        value.year,
-    )
+    return f"{fr_week_days[value.weekday()]} {value.day} {fr_months[value.month - 1]} {value.year}"
 
 
 def format_date_short(value):
@@ -93,11 +88,7 @@ def format_date_short(value):
     :rtype: string"""
     if value is None:
         return "N/A"
-    return "{}. {} {}".format(
-        fr_week_days[value.weekday()][0:3],
-        value.day,
-        fr_short_months[value.month - 1],
-    )
+    return f"{fr_week_days[value.weekday()][0:3]}. {value.day} {fr_short_months[value.month - 1]}"
 
 
 def format_time(value):
@@ -109,7 +100,7 @@ def format_time(value):
     :rtype: string"""
     if value is None:
         return "N/A"
-    return "{h}h{m:02d}".format(h=value.hour, m=value.minute)
+    return f"{value.hour}h{value.minute:02d}"
 
 
 def format_datetime(value):
@@ -140,20 +131,13 @@ def format_datetime_range(start, end):
     :rtype: string"""
     if start == end:
         if start.time() == time(0):
-            return "{}".format(format_date(start))
-        return "{} à {}".format(format_date(start), format_time(start))
+            return f"{format_date(start)}"
+        return f"{format_date(start)} à {format_time(start)}"
     if start.date() == end.date():
-        return "{} de {} à {}".format(
-            format_date(start), format_time(start), format_time(end)
-        )
+        return f"{format_date(start)} de {format_time(start)} à {format_time(end)}"
     if start.time() == time(0) and end.time() == time(0):
-        return "du {} au {}".format(format_date(start), format_date(end))
-    return "du {} à {} au {} à {}".format(
-        format_date(start),
-        format_time(start),
-        format_date(end),
-        format_time(end),
-    )
+        return f"du {format_date(start)} au {format_date(end)}"
+    return f"du {format_date(start)} à {format_time(start)} au {format_date(end)} à {format_time(end)}"
 
 
 def format_date_range(start, end):
@@ -167,8 +151,8 @@ def format_date_range(start, end):
     :return: Formatted date range.
     :rtype: string"""
     if start.date() == end.date():
-        return "{}".format(format_date_short(start))
-    return "du {} au {}".format(format_date_short(start), format_date_short(end))
+        return f"{format_date_short(start)}"
+    return f"du {format_date_short(start)} au {format_date_short(end)}"
 
 
 def server_local_time():

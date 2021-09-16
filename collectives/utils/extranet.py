@@ -1,7 +1,7 @@
 """Module to handle connexions to FFCAM extranet.
 """
 from datetime import datetime, date
-from sys import stderr
+from flask import current_app
 
 import pysimplesoap
 from pysimplesoap.client import SoapClient
@@ -199,7 +199,7 @@ class ExtranetApi:
 
         config = self.app.config
         if config["EXTRANET_DISABLE"]:
-            print("Warning: extranet API disabled, using mock API", file=stderr)
+            current_app.logger.warning("extranet API disabled, using mock API")
             return
 
         try:
@@ -211,7 +211,7 @@ class ExtranetApi:
             self.soap_client = soap_client
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            current_app.logger.error(f"Extranet API error: {err}")
             self.soap_client = None
             raise err
 
@@ -261,7 +261,7 @@ class ExtranetApi:
                     pass
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            current_app.logger.error(f"Extranet API error: {err}")
 
         return info
 
@@ -305,7 +305,7 @@ class ExtranetApi:
             info.is_valid = True
 
         except pysimplesoap.client.SoapFault as err:
-            print("Extranet API error: {}".format(err), file=stderr)
+            current_app.logger.error(f"Extranet API error: {err}")
 
         return info
 

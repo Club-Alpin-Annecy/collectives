@@ -37,8 +37,7 @@ def doWebPayment():
         raise RuntimeError("Payline API error")
 
     print(
-        "token : %s, URL de paiement : %s"
-        % (doWebPaymentResponse.token, doWebPaymentResponse.redirect_url)
+        f"token : {doWebPaymentResponse.token}, URL de paiement : {doWebPaymentResponse.redirect_url}"
     )
     input("appuyer sur une touche lorsque le paiement est validé")
 
@@ -55,12 +54,7 @@ def getPaymentDetails(token):
     """
     details = payline.api.getWebPaymentDetails(token)
     print(
-        "Result: %s Transaction: %s Date: %s"
-        % (
-            details.result.short_message,
-            details.transaction["id"],
-            details.transaction["date"],
-        )
+        f"Result: {details.result.short_message} Transaction: {details.transaction['id']} Date: {details.transaction['date']}"
     )
     print(details.raw_metadata())
     return details
@@ -78,11 +72,7 @@ def doRefund(payment_details):
         raise RuntimeError("Payline API error")
 
     print(
-        "Refund result: %s %s"
-        % (
-            refundResponse.result.code,
-            refundResponse.result.long_message,
-        )
+        f"Refund result: {refundResponse.result.code} {refundResponse.result.long_message}"
     )
     print(refundResponse.raw_metadata())
 
