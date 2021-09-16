@@ -359,7 +359,7 @@ class TestExtranetApi(flask_testing.TestCase):
 class TestImportCSV(ModelTest):
 
     # pylint: disable=C0301
-    csv = ",,,,,,,,,,,,,,,\nMr TEST,740020000001,26/11/2019 7:00,26/11/2019 7:00,Aiguille des Calvaires,Aravis,,2322,1200,F,,,8,4"
+    csv = ",,,,,,,,,,,,,,,\nMr TEST,740020000001,26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,"
 
     def test_csv_import(self):
 
@@ -378,9 +378,9 @@ class TestImportCSV(ModelTest):
         assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
-        assert event.registration_open_time == datetime.datetime(2019, 11, 19, 7, 0, 0)
+        assert event.registration_open_time == datetime.datetime(2021, 11, 19, 7, 0, 0)
         assert event.registration_close_time == datetime.datetime(
-            2019, 11, 25, 18, 0, 0
+            2021, 11, 25, 12, 0, 0
         )
         assert "2322m-1200m-F" in event.rendered_description
         assert event.leaders[0].license == "740020000001"
