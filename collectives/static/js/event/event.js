@@ -22,3 +22,8 @@ function copyToClipboard(id){
     input.setSelectionRange(0, 99999); /*For mobile devices*/
     document.execCommand("copy");
 }
+
+
+function attendanceSelectAll(value){
+    document.querySelectorAll(`#attendancelist input[type="radio"][value="${value}"]`).forEach(function(i){i.checked = true});
+}

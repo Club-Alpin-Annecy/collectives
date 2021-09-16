@@ -61,7 +61,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for reg in event.active_registrations() %}
+                {% for reg in event.valid_registrations() %}
                 <tr class="{{ loop.cycle('odd', 'even') }}">
                     <td>{{loop.index}}</td>
                     <td>{{reg.user.license}}</td>

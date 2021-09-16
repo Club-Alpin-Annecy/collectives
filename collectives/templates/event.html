@@ -16,7 +16,7 @@
       window.onload = function () {
         const searchInput = document.getElementById('user-search');
         setupAutoComplete(
-          searchInput, 
+          searchInput,
           '{{url_for("api.autocomplete_users")}}',
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
@@ -61,7 +61,7 @@
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
-    
+
     {# Leaders #}
 
     <div id="encadrement">
@@ -72,7 +72,7 @@
           {{ macros.usericon(user, leader_info, user_info) }}
         {% endwith %}
       {% endfor %}
-      
+
       {% if event.coleaders() | length %}
         <h5>Co-encadrants en formation</h5>
         {% for registration in event.coleaders() %}
@@ -102,7 +102,7 @@
           {% if event.num_pending_registrations() > 0 %}
             (dont {{event.num_pending_registrations()}} en attente)
           {% endif %}
-        
+
           {% if not event.has_free_slots() %}
             <span class="tag red">COMPLET</span>
           {% endif %}
@@ -110,6 +110,8 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
+        {% elif event.is_unsubscribed(current_user)%}
+          <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
         {% elif event.has_pending_payment(current_user) %}
           <p>Votre inscription est en attente de paiement.
           <ul>
@@ -130,7 +132,7 @@
           {% if not current_user.check_license_valid_at_time(event.end) %}
           <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
             <p>
-              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif. 
+              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
               Si vous venez de renouveller votre licence, merci de resynchroniser vos informations FFCAM via le bouton ci-dessous. <br />
               <button type="submit" class="button button-secondary">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/> Resynchroniser mes informations FFCAM
@@ -148,7 +150,7 @@
           {% endif %}
         {% endif %}
       {% elif event.parent_event %}
-          Les inscriptions en ligne sont restreintes aux participants à la collective 
+          Les inscriptions en ligne sont restreintes aux participants à la collective
           <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
           {% if event.is_user_registered_to_parent_event(current_user) %}
             dont vous faites partie.
@@ -157,27 +159,30 @@
           {% endif %}
       {% endif %}
 
-      {% for registration in event.active_normal_registrations() %}
-          <div class="useractionmenu">
-            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
+      {# ==== Normal registration display ==== #}
+      {% for registration in event.valid_registrations() %}
+         {% if registration.level == models.RegistrationLevels.Normal %}
+              <div class="useractionmenu">
+                {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
+                  {{ macros.usericon(user, leader_info, user_info) }}
+                {% endwith %}
 
-            {% if event.has_edit_rights(current_user) %}
-            <div class="popover">
-              <form class="delete" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                Refuser
-              </form>
-              {% if event.can_be_coleader(registration.user) %}
-                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  Co-encadrant en formation
-                </form>
-              {% endif %}
-            </div>
-            {% endif %}
-          </div>
+                {% if event.has_edit_rights(current_user) %}
+                <div class="popover">
+                  <form class="delete" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    Refuser
+                  </form>
+                  {% if event.can_be_coleader(registration.user) %}
+                    <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                      Co-encadrant en formation
+                    </form>
+                  {% endif %}
+                </div>
+                {% endif %}
+              </div>
+          {% endif %}
       {% endfor %}
 
      {# Pending registrations #}
@@ -212,7 +217,7 @@
         {% endif %}
     </div>
 
-     
+
     {# Payment-pending registrations #}
 
     {% if event.requires_payment()  and event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
@@ -357,7 +362,86 @@
         <li>Aucune inscription refusée.</li>
       {% endfor %}
       </ul>
-      
+
+        <h5> Participants désincrits eux-mêmes</h5>
+        <ul>
+        {% for registration in event.registrations if registration.is_unsubscribed() %}
+          <li>
+            <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+            <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="submit" class="button button-danger button-small" value="Supprimer" >
+            </form>
+          </li>
+        {% else %}
+          <li>Aucun abandon.</li>
+        {% endfor %}
+        </ul>
+
+      <h5> Inscriptions en attente de renouvellement de licence</h5>
+      <ul>
+      {% for registration in event.registrations if registration.is_pending_renewal() %}
+        <li>
+          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+          <form class="inline" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-danger button-small" value="Refuser" >
+          </form>
+        </li>
+      {% else %}
+        <li>Aucune inscription en attente de renouvellement de licence.</li>
+      {% endfor %}
+      </ul>
+
+
+
+    <h5> Liste des présences</h5>
+        {% if current_time > event.end %}
+        <form  action="{{url_for('event.attendance', event_id=event.id)}}" method="post" id="attendancelistform">
+        <table id="attendancelist">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    {% set statuses =  [ models.RegistrationStatus.Active, models.RegistrationStatus.Present, models.RegistrationStatus.ExcusedAbsentee, models.RegistrationStatus.NotExcusedAbsentee ] %}
+                    {% for status in statuses %}
+                        <th>{{ status.display_name() }} </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for registration in event.planned_registrations() %}
+                <tr>
+                    <td>{{ registration.user.full_name() }}</td>
+                    {% for status in statuses %}
+                        <td style="text-align:center">
+                            <input style=" transform: scale(1.6);" type="radio"
+                                    name="user_{{ registration.user.id }}"
+                                    value="{{status.value}}"
+                                    {% if registration.status == status %}checked{% endif %} />
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    {% for status in statuses %}
+                        <td>
+                            <input height="3em" type="button" name="all"
+                            value="Tous&#13;&#10;{{status.display_name()}}"
+                            class="button button-secondary button-small"
+                            onclick="attendanceSelectAll({{status.value}})"/>
+                        </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="submit" value="Sauvegarder" class="button button-primary">
+      </form>
+      {% else %}
+        <p>La liste des présences sera affichée après que la collective soit passée.</p>
+      {% endif %}
+
     </div> <!-- .administration -->
     {% endif %}
 

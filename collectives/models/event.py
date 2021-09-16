@@ -481,22 +481,14 @@ class Event(db.Model):
         :return: All registration of this event which are active
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
-        return [
-            registration
-            for registration in self.registrations
-            if registration.is_active()
-        ]
+        return [r for r in self.registrations if r.is_active()]
 
     def active_registrations_with_level(self, level):
         """
         :return Active registrations with a given registration level.
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
-        return [
-            registration
-            for registration in self.active_registrations()
-            if registration.level == level
-        ]
+        return [r for r in self.active_registrations() if r.level == level]
 
     def active_normal_registrations(self):
         """
@@ -504,6 +496,36 @@ class Event(db.Model):
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return self.active_registrations_with_level(RegistrationLevels.Normal)
+
+    def planned_registrations(self):
+        """Returns all planned registrations.
+
+        See :py:meth:`collectives.models.registration.Registration.is_planned`
+
+        :return: All registration of this event which are planned
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [r for r in self.registrations if r.is_planned()]
+
+    def valid_registrations(self):
+        """Returns all valid registrations.
+
+        See :py:meth:`collectives.models.registration.Registration.is_valid`
+
+        :return: All registration of this event which are valid
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [r for r in self.registrations if r.is_valid()]
+
+    def holding_slot_registrations(self):
+        """Returns all holding slot registrations.
+
+        See :py:meth:`collectives.models.registration.Registration.is_holding_slot`
+
+        :return: All registration of this event which are valid
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [r for r in self.registrations if r.is_holding_slot()]
 
     def coleaders(self):
         """
@@ -635,6 +657,16 @@ class Event(db.Model):
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
+    def is_unsubscribed(self, user):
+        """Check if a user has unsubscribed this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``unsubscribed`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(user, [RegistrationStatus.Unsubscribed])
+
     def is_user_registered_to_parent_event(self, user):
         """Check if a user has a confirmed registration for the parent event
 
@@ -646,7 +678,7 @@ class Event(db.Model):
         if self.parent_event is None:
             return True
         return self.parent_event.is_registered_with_status(
-            user, [RegistrationStatus.Active]
+            user, [RegistrationStatus.Active, RegistrationStatus.Present]
         )
 
     def can_self_register(self, user, time):
@@ -684,15 +716,6 @@ class Event(db.Model):
         :return: True if this event has ``Confirmed`` status.
         :rtype: boolean"""
         return self.status == EventStatus.Confirmed
-
-    def status_string(self):
-        """Get the event status as a string to display.
-
-        See: :py:meth:`EventStatus.display_name`
-
-        :return: The status of the event.
-        :rtype: string"""
-        return EventStatus(self.status).display_name()
 
     def is_visible_to(self, user):
         """Checks whether this event is visible to an user

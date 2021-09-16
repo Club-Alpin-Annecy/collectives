@@ -127,7 +127,7 @@ function eventRowFormatter(row){
                  </div>`;
 
         var status_string = ''
-        if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
+        if(!data.is_confirmed) status_string = `<span class="event-status">${EnumEventStatus[data.status]}</span>`
 
 
         html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)

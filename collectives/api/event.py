@@ -112,7 +112,9 @@ class EventSchema(marshmallow.Schema):
     """ Number of free user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function` """
-    occupied_slots = fields.Function(lambda event: len(event.active_registrations()))
+    occupied_slots = fields.Function(
+        lambda event: len(event.holding_slot_registrations())
+    )
     """ Number of occupied user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
@@ -141,10 +143,6 @@ class EventSchema(marshmallow.Schema):
 
     is_confirmed = fields.Function(lambda event: event.is_confirmed())
     """ Current event status is confirmed.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    status = fields.Function(lambda event: event.status_string())
-    """ Current status event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
     tags = fields.Function(lambda event: event.tags)

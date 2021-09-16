@@ -21,7 +21,7 @@ class RegistrationStatus(ChoiceEnum):
     """Enum listing acceptable registration status."""
 
     Active = 0
-    """ Registered user is plann to be present. """
+    """ Registered user is planned to be present. """
 
     Rejected = 1
     """ Registered user has been rejected by a leader.
@@ -32,6 +32,19 @@ class RegistrationStatus(ChoiceEnum):
 
     This registration is temporarily holding up a spot, but may be removed after timeout
     """
+    Unsubscribed = 3
+    """ User has self unsubscribed to the event.
+
+    User should not be able to register again without leader help."""
+
+    Present = 4
+    """ User has been present to the event."""
+
+    ExcusedAbsentee = 5
+    """ User has been absent to the event, but excused by the leader. """
+
+    NotExcusedAbsentee = 6
+    """ User has been absent to the event, but not excused by the leader. """
 
     @classmethod
     def display_names(cls):
@@ -40,9 +53,13 @@ class RegistrationStatus(ChoiceEnum):
         :rtype: dict
         """
         return {
-            cls.Active: "Active",
+            cls.Active: "Inscrit",
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
+            cls.Unsubscribed: "Désinscrit",
+            cls.Present: "Présent",
+            cls.ExcusedAbsentee: "Absent Excusé",
+            cls.NotExcusedAbsentee: "No show",
         }
 
 
@@ -102,15 +119,31 @@ class Registration(db.Model):
             self.status == RegistrationStatus.Active and not self.is_pending_renewal()
         )
 
+    def is_planned(self):
+        """Check if this registation is not rejected or unsubscribed
+
+        :return: True if :py:attr:`status` is `Present`, `ExcusedAbsentee`, `NotExcusedAbsentee`, `Active`
+        :rtype: boolean"""
+        return self.status in [
+            RegistrationStatus.Present,
+            RegistrationStatus.ExcusedAbsentee,
+            RegistrationStatus.NotExcusedAbsentee,
+            RegistrationStatus.Active,
+        ]
+
+    def is_valid(self):
+        """Check if this registation is present or active
+
+        :return: True if :py:attr:`status` is `Present` or `Active`
+        :rtype: boolean"""
+        return self.status in [RegistrationStatus.Present, RegistrationStatus.Active]
+
     def is_holding_slot(self):
         """Check if this registation is holding a slot.
 
-        :return: Is :py:attr:`status` active or pending?
+        :return: Is :py:attr:`status` planned or pending?
         :rtype: boolean"""
-        return self.status in (
-            RegistrationStatus.Active,
-            RegistrationStatus.PaymentPending,
-        )
+        return self.is_planned() or self.status == RegistrationStatus.PaymentPending
 
     def is_rejected(self):
         """Check if this registation is rejected.
@@ -118,6 +151,13 @@ class Registration(db.Model):
         :return: Is :py:attr:`status` rejected ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.Rejected
+
+    def is_unsubscribed(self):
+        """Check if this registation is unsubscribed.
+
+        :return: Is :py:attr:`status` unsubscribed ?
+        :rtype: boolean"""
+        return self.status == RegistrationStatus.Unsubscribed
 
     def is_pending_payment(self):
         """Check if this registation is pending payment.
