@@ -219,14 +219,14 @@ form input, form select{
 /* Class for the cover image (skiing man) */
 #cover{
 	margin: 0;
-  	background-image: url("/static/caf/coverW2020_darken_500-min.jpg");
-  	background-position: left;
+  	background-image: url("/static/caf/cover_500-min.jpg");
+  	background-position-x: 78%;
   	background-size: cover;
 	height: 100vh;
 	display: flex;
 	flex-direction: row;
 	text-align: center;
-	align-items: center;
+	/* align-items: center; */
 	position: relative;
 	overflow: hidden;
 }
@@ -236,24 +236,29 @@ form input, form select{
        display: block;
        position: absolute;
        border-bottom: 15vh solid white;
-       border-left: 100vw solid  transparent;
+       border-right: 100vw solid  transparent;
        bottom: 0;
 	   margin: 0;
 	   width: 0;
 }
-@media (min-width: 751px) {
+@media (min-width: 500px) {
 	#cover{
-		background-image: url("/static/caf/coverW2020_darken_1000-min.jpg");
+		background-image: url("/static/caf/cover_742-min.jpg");
 	}
 }
-@media (min-width: 1501px) {
+@media (min-height: 742px) {
 	#cover{
-		background-image: url("/static/caf/coverW2020_darken_1920-min.jpg");
+		background-image: url("/static/caf/cover_1080-min.jpg");
 	}
 }
-@media (min-width: 1921px) {
+@media (min-height: 1080px) {
 	#cover{
-		background-image: url("/static/caf/coverW2020_darken-min.jpg");
+		background-image: url("/static/caf/cover_1080-min.jpg");
+	}
+}
+@media (min-height: 1440px) {
+	#cover{
+		background-image: url("/static/caf/cover-min.jpg");
 	}
 }
 
