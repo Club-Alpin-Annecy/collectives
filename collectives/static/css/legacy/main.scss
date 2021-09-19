@@ -173,6 +173,15 @@
 .usericon span.minor{
 	background-color:orangered;
 }
+.usericon span.pending-renewal{
+	color: white;
+	background-color:darkred;
+	margin-right:3px;
+}
+.usericon span.pending-renewal img{
+	height:2ex;
+	vertical-align: middle;
+}
 
 .tag{
 	border-radius: 5px;
