@@ -1,4 +1,4 @@
-{% macro usericon(user, leader_info=None, user_info=None) -%}
+{% macro usericon(user, leader_info=None, user_info=None, is_pending_renewal=False) -%}
 <div class="usericon">
       <img class="avatar" src="{% if user.avatar
                       %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
@@ -14,6 +14,12 @@
                  <span class="license-tag minor">-18</span>
               {% elif user.is_youth() %}
                 <span class="license-tag youth">-25</span>
+              {% endif %}
+              {% if is_pending_renewal %}
+                 <span class="license-tag pending-renewal">
+                  <img src="{{url_for('static', filename='img/icon/ionicon/md-time-white.svg')}}">
+                  Licence à renouveler
+                  </span>
               {% endif %}
               <a href="{{url_for('profile.show_user', user_id=user.id)}}"
                   alt="Avatar de {{user.abbrev_name()}}">{{user.full_name().title()}}</a>

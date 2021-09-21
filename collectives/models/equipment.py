@@ -1,10 +1,6 @@
 """Module for registration related classes
 """
-import enum
 from .globals import db
-from .utils import ChoiceEnum
-
-
 
 class Equipment(db.Model):
     """Class of an equipment.
@@ -26,4 +22,4 @@ class Equipment(db.Model):
 
     purchasePrice = db.Column(db.Float, nullable = True)
 
-    idStock = dB.Columns(db.Integer, db.ForeignKey("stock.id"))
+    idStock = db.Columns(db.Integer, db.ForeignKey("stock.id"))

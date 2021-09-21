@@ -1,6 +1,5 @@
 """Templates for mails
 """
-from sys import stderr
 from functools import wraps
 
 from flask import current_app, url_for
@@ -38,7 +37,7 @@ def send_new_event_notification(event):
     try:
         mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
     except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
+        current_app.logger.error(f"Mailer error: {err}")
 
 
 def send_unregister_notification(event, user):
@@ -68,7 +67,7 @@ def send_unregister_notification(event, user):
             message=message,
         )
     except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
+        current_app.logger.error(f"Mailer error: {err}")
 
 
 def send_confirmation_email(email, name, token):
@@ -115,7 +114,7 @@ def send_confirmation_email(email, name, token):
 
     mail.send_mail(
         email=email,
-        subject="{} de compte Collectives".format(reason.capitalize()),
+        subject=f"{reason.capitalize()} de compte Collectives",
         message=message,
         error_action=has_failed,
         success_action=has_succeed,
@@ -151,7 +150,7 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
             message=message,
         )
     except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
+        current_app.logger.error(f"Mailer error: {err}")
 
 
 def send_cancelled_event_notification(name, event):
@@ -183,4 +182,4 @@ def send_cancelled_event_notification(name, event):
                 message=message,
             )
     except BaseException as err:
-        print("Mailer error: {}".format(err), file=stderr)
+        current_app.logger.error(f"Mailer error: {err}")
