@@ -40,9 +40,7 @@ class LicenseValidator:
 
         :return: an help sentence.
         :rtype: string"""
-        return "{len} chiffres commencant par '{pref}'".format(
-            len=self.length, pref=self.prefix
-        )
+        return f"{self.length} chiffres commencant par '{self.prefix}'"
 
     def sample_value(self):
         """Generate a sample value (place holder).
@@ -74,8 +72,7 @@ class PasswordValidator:
 
         if len(password) < self.min_length:
             raise ValidationError(
-                "Le mot de passe doit contenir au moins "
-                + "{} caractères".format(self.min_length)
+                f"Le mot de passe doit contenir au moins {self.min_length} caractères"
             )
 
         num_classes = 0
@@ -90,12 +87,7 @@ class PasswordValidator:
 
         if num_classes < self.min_classes:
             raise ValidationError(
-                (
-                    "Le mot de passe doit contenir au moins "
-                    + "{} classes de caractères".format(self.min_classes)
-                    + " parmi majuscules, minuscules, chiffres et "
-                    + " caractères spéciaux"
-                )
+                f"Le mot de passe doit contenir au moins {self.min_classes} classes de caractères parmi majuscules, minuscules, chiffres et caractères spéciaux"
             )
 
     def help_string(self):

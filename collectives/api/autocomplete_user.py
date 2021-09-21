@@ -51,12 +51,9 @@ def find_users_by_fuzzy_name(q, limit=8):
     else:
         concat_clause = "CONCAT(first_name, ' ', last_name)"
 
-    sql = (
-        "SELECT id, first_name, last_name from users "
-        "WHERE LOWER({}) LIKE :pattern LIMIT :limit"
-    ).format(concat_clause)
+    sql = f"SELECT id, first_name, last_name from users WHERE LOWER({concat_clause}) LIKE :pattern LIMIT :limit"
 
-    pattern = "%{}%".format(q.lower())
+    pattern = f"%{q.lower()}%"
     found_users = (
         db.session.query(User)
         .from_statement(text(sql))

@@ -1,6 +1,7 @@
 """Module to help payment extraction
 """
 import datetime
+from flask import current_app
 
 from ..models import db, Payment, PaymentStatus, PaymentItem, Event
 from ..models import ActivityType, ItemPrice, User, PaymentType
@@ -45,9 +46,14 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
             elif field == "item.event.title":
                 query = query.filter(Event.title.like(f"%{value}%"))
             elif field == "item.event.activity_type_names":
-                query = query.filter(
-                    Event.activity_types.any(ActivityType.id == int(value))
-                )
+                try:
+                    query = query.filter(
+                        Event.activity_types.any(ActivityType.id == int(value))
+                    )
+                except TypeError:
+                    current_app.logger.warn(
+                        f"payment_list: {value} cannot be converted to an int"
+                    )
             elif field == "item.title":
                 query = query.filter(PaymentItem.title.like(f"%{value}%"))
             elif field == "price.title":

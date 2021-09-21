@@ -603,7 +603,7 @@ def process():
 
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
-        current_app.logger.error("Invalid token '%s' for '%s'", token, request.endpoint)
+        current_app.logger.error(f"Invalid token '{token}' for '{request.endpoint}'")
         abort(404)
 
     if payment.status != PaymentStatus.Initiated:

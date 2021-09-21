@@ -66,10 +66,10 @@ def populate_db(app):
         running_migration = False
 
     if running_migration:
-        print("Migration detected, skipping populating database")
+        app.logger.info("Migration detected, skipping populating database")
         return
 
-    print("Populating database with initial values")
+    app.logger.info("Populating database with initial values")
     auth.init_admin(app)
     init.activity_types(app)
 
