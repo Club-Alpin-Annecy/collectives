@@ -14,12 +14,12 @@ class Equipment(db.Model):
 
     purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
 
-    model = db.Column(db.String(100), nullable=False)
-
-    # reference =
+    reference = db.Column(db.String(100), nullable=False)
 
     caution = db.Column(db.Float, nullable=True)
 
     purchasePrice = db.Column(db.Float, nullable=True)
 
     idStock = db.Columns(db.Integer, db.ForeignKey("stock.id"))
+
+    equipment_model_id = db.Columns(db.Integer, db.ForeignKey("equipment_models.id"))
