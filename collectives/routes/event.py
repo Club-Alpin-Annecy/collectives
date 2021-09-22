@@ -282,6 +282,11 @@ def manage_event(event_id=None):
         return redirect(url_for("event.index"))
 
     event = Event.query.get(event_id) if event_id is not None else Event()
+
+    if event is not None and not event.has_edit_rights(current_user):
+        flash("Accès restreint.", "error")
+        return redirect(url_for("event.index"))
+
     current_status = event.status
     form = EventForm(CombinedMultiDict((request.files, request.form)))
 
