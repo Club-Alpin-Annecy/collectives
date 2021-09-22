@@ -37,9 +37,6 @@ class RegistrationStatus(ChoiceEnum):
 
     User should not be able to register again without leader help."""
 
-    Present = 4
-    """ User has been present to the event."""
-
     ExcusedAbsentee = 5
     """ User has been absent to the event, but excused by the leader. """
 
@@ -57,7 +54,6 @@ class RegistrationStatus(ChoiceEnum):
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
             cls.Unsubscribed: "Désinscrit",
-            cls.Present: "Présent",
             cls.ExcusedAbsentee: "Absent Excusé",
             cls.NotExcusedAbsentee: "No show",
         }
@@ -119,31 +115,15 @@ class Registration(db.Model):
             self.status == RegistrationStatus.Active and not self.is_pending_renewal()
         )
 
-    def is_planned(self):
-        """Check if this registation is not rejected or unsubscribed
-
-        :return: True if :py:attr:`status` is `Present`, `ExcusedAbsentee`, `NotExcusedAbsentee`, `Active`
-        :rtype: boolean"""
-        return self.status in [
-            RegistrationStatus.Present,
-            RegistrationStatus.ExcusedAbsentee,
-            RegistrationStatus.NotExcusedAbsentee,
-            RegistrationStatus.Active,
-        ]
-
-    def is_valid(self):
-        """Check if this registation is present or active
-
-        :return: True if :py:attr:`status` is `Present` or `Active`
-        :rtype: boolean"""
-        return self.status in [RegistrationStatus.Present, RegistrationStatus.Active]
-
     def is_holding_slot(self):
         """Check if this registation is holding a slot.
 
-        :return: Is :py:attr:`status` planned or pending?
+        :return: Is :py:attr:`status` active or pending?
         :rtype: boolean"""
-        return self.is_planned() or self.status == RegistrationStatus.PaymentPending
+        return self.status in (
+            RegistrationStatus.Active,
+            RegistrationStatus.PaymentPending,
+        )
 
     def is_rejected(self):
         """Check if this registation is rejected.

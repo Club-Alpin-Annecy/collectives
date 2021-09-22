@@ -497,26 +497,6 @@ class Event(db.Model):
         """
         return self.active_registrations_with_level(RegistrationLevels.Normal)
 
-    def planned_registrations(self):
-        """Returns all planned registrations.
-
-        See :py:meth:`collectives.models.registration.Registration.is_planned`
-
-        :return: All registration of this event which are planned
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
-        """
-        return [r for r in self.registrations if r.is_planned()]
-
-    def valid_registrations(self):
-        """Returns all valid registrations.
-
-        See :py:meth:`collectives.models.registration.Registration.is_valid`
-
-        :return: All registration of this event which are valid
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
-        """
-        return [r for r in self.registrations if r.is_valid()]
-
     def holding_slot_registrations(self):
         """Returns all holding slot registrations.
 
@@ -678,7 +658,7 @@ class Event(db.Model):
         if self.parent_event is None:
             return True
         return self.parent_event.is_registered_with_status(
-            user, [RegistrationStatus.Active, RegistrationStatus.Present]
+            user, [RegistrationStatus.Active]
         )
 
     def can_self_register(self, user, time):
