@@ -32,15 +32,15 @@ class RegistrationStatus(ChoiceEnum):
 
     This registration is temporarily holding up a spot, but may be removed after timeout
     """
-    Unsubscribed = 3
-    """ User has self unsubscribed to the event.
+    SelfUnregistered = 3
+    """ User has self unregister to the event.
 
     User should not be able to register again without leader help."""
 
-    ExcusedAbsentee = 5
+    JustifiedAbsentee = 4
     """ User has been absent to the event, but excused by the leader. """
 
-    NotExcusedAbsentee = 6
+    UnJustifiedAbsentee = 5
     """ User has been absent to the event, but not excused by the leader. """
 
     @classmethod
@@ -53,9 +53,9 @@ class RegistrationStatus(ChoiceEnum):
             cls.Active: "Inscrit",
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
-            cls.Unsubscribed: "Désinscrit",
-            cls.ExcusedAbsentee: "Absent Excusé",
-            cls.NotExcusedAbsentee: "No show",
+            cls.SelfUnregistered: "Auto désinscrit",
+            cls.JustifiedAbsentee: "Absent justifié",
+            cls.UnJustifiedAbsentee: "Absent non justifié",
         }
 
 
@@ -132,12 +132,12 @@ class Registration(db.Model):
         :rtype: boolean"""
         return self.status == RegistrationStatus.Rejected
 
-    def is_unsubscribed(self):
-        """Check if this registation is unsubscribed.
+    def is_unregistered(self):
+        """Check if this registation is unregistered.
 
-        :return: Is :py:attr:`status` unsubscribed ?
+        :return: Is :py:attr:`status` unregistered ?
         :rtype: boolean"""
-        return self.status == RegistrationStatus.Unsubscribed
+        return self.status == RegistrationStatus.SelfUnregistered
 
     def is_pending_payment(self):
         """Check if this registation is pending payment.

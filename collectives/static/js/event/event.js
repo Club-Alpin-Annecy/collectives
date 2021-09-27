@@ -25,5 +25,5 @@ function copyToClipboard(id){
 
 
 function attendanceSelectAll(value){
-    document.querySelectorAll(`#attendancelist input[type="radio"][value="${value}"]`).forEach(function(i){i.checked = true});
+    document.querySelectorAll(`#attendancelist select`).forEach(function(i){ if(i.value=="0") i.value = value});
 }

@@ -698,7 +698,7 @@ def self_unregister(event_id):
         )
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    registration.status = RegistrationStatus.Unsubscribed
+    registration.status = RegistrationStatus.SelfUnregistered
 
     db.session.add(registration)
     db.session.commit()
@@ -707,34 +707,6 @@ def self_unregister(event_id):
     send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))
-
-
-@blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
-@valid_user()
-def reject_registration(reg_id):
-    """Route for a leader to reject a user participation to the event.
-
-    :param int reg_id: Primary key of the registration.
-    """
-    registration = Registration.query.filter_by(id=reg_id).first()
-    if registration is None:
-        flash("Inscription inexistante", "error")
-        return redirect(url_for("event.index"))
-
-    if not registration.event.has_edit_rights(current_user):
-        flash("Non autorisé", "error")
-        return redirect(url_for("event.index"))
-
-    registration.status = RegistrationStatus.Rejected
-    db.session.add(registration)
-    db.session.commit()
-
-    # Send notification e-mail to user
-    send_reject_subscription_notification(
-        current_user.full_name(), registration.event, registration.user.mail
-    )
-
-    return redirect(url_for("event.view_event", event_id=registration.event_id))
 
 
 @blueprint.route("/registrations/<reg_id>/level/<int:reg_level>", methods=["POST"])
@@ -837,17 +809,40 @@ def delete_event(event_id):
 
 @blueprint.route("/<int:event_id>/attendance", methods=["POST"])
 @valid_user()
-def attendance(event_id):
+@confidentiality_agreement()
+def update_attendance(event_id):
     """Route to update attendance list.
 
     :param int event_id: Primary key of the event to update.
     """
     event = Event.query.get(event_id)
+
+    if event is None:
+        raise Exception("Unknown Event")
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
     for registration in event.registrations:
         if f"user_{registration.user.id}" in request.form:
             value = request.form.get(f"user_{registration.user.id}")
-            registration.status = RegistrationStatus(int(value))
-            db.session.add(registration)
+            if value != "-1":
+                registration.status = RegistrationStatus(int(value))
+                db.session.add(registration)
+
+                if registration.status == RegistrationStatus.Rejected:
+                    # Send notification e-mail to user
+                    send_reject_subscription_notification(
+                        current_user.full_name(),
+                        registration.event,
+                        registration.user.mail,
+                    )
+            else:
+                db.session.delete(registration)
 
     db.session.commit()
-    return redirect(url_for("event.view_event", event_id=event_id))
+
+    return redirect(
+        url_for("event.view_event", event_id=event_id) + "#attendancelistform"
+    )

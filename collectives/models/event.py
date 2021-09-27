@@ -637,15 +637,17 @@ class Event(db.Model):
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
-    def is_unsubscribed(self, user):
-        """Check if a user has unsubscribed this event.
+    def is_unregistered(self, user):
+        """Check if a user has unregistered this event.
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
-        :return: True if user is registered with a ``unsubscribed`` status
+        :return: True if user is registered with a ``unregistered`` status
         :rtype: boolean
         """
-        return self.is_registered_with_status(user, [RegistrationStatus.Unsubscribed])
+        return self.is_registered_with_status(
+            user, [RegistrationStatus.SelfUnregistered]
+        )
 
     def is_user_registered_to_parent_event(self, user):
         """Check if a user has a confirmed registration for the parent event
