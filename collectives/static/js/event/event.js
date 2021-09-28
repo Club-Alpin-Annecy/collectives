@@ -25,5 +25,10 @@ function copyToClipboard(id){
 
 
 function attendanceSelectAll(value){
-    document.querySelectorAll(`#attendancelist select`).forEach(function(i){ if(i.value=="0") i.value = value});
+    document.querySelectorAll(`#attendancelist select`).forEach(function(i){
+                                                if(i.value=="0"){
+                                                    i.value = value;
+                                                    i.onchange();
+                                                }
+                                            });
 }

@@ -362,27 +362,35 @@
         <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <tbody>
-                {% set license_to_renew = False %}
+                {% set ns = namespace(license_to_renew=False) %}
                 {% for registration in event.registrations %}
                 <tr>
                     <td>
                         <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">
                             {{ registration.user.full_name() }}
                             {% if registration.is_pending_renewal() %}
-                                {% set license_to_renew = True %}
+                                {% set ns.license_to_renew = True %}
                                 <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
-                            {% endif %}
+                            {% endif %}{{license_to_renew}}
                         </a>
                     </td>
                     <td style="text-align:center">
                         <select name="user_{{ registration.user.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
                             {% for status in models.RegistrationStatus %}
-                                {% if status not in  [ models.RegistrationStatus.SelfUnregistered ] or registration.status == status %}
                                 <option
                                         value="{{status.value}}"
-                                        {% if registration.status == status %} selected {% endif %}
+                                        {% if registration.status == status %}
+                                            selected
+
+                                        {# PaymentPending registration can only be Refused or deleted #}
+                                        {% elif registration.status == models.RegistrationStatus.PaymentPending and status != models.RegistrationStatus.Rejected %}
+                                            disabled
+
+                                        {# SelfRegistered and PaymentPending cannot be selected by leader#}
+                                        {% elif status in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.PaymentPending ] %}
+                                            disabled
+                                        {% endif %}
                                         >{{status.display_name()}}</option>
-                                {% endif %}
                             {% endfor %}
                             <option value="-1">Effacer l'inscription</option>
                         </select>
@@ -395,7 +403,7 @@
                         <select name="none" onchange="attendanceSelectAll(this.value)">
                             <option value="" selected disabled> </option>
                             {% for status in models.RegistrationStatus %}
-                                {% if status not in  [ models.RegistrationStatus.SelfUnregistered ] %}
+                                {% if status not in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.Active ] %}
                                 <option value="{{status.value}}">{{status.display_name()}}</option>
                                 {% endif %}
                             {% endfor %}
@@ -403,11 +411,12 @@
                     </td>
                 </tr>
             </tbody>
-            {% if license_to_renew %}
-            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
-            = Licence à renouveller
-            {% endif %}
         </table>
+            {% if ns.license_to_renew %}
+            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+            = Licence à renouveller <br/>
+            {% endif %}
+
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
         <input type="submit" value="Sauvegarder" class="button button-primary">
       </form>
