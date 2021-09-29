@@ -682,21 +682,25 @@ def self_unregister(event_id):
 
     :param int event_id: Primary key of the event to manage.
     """
-    event = Event.query.filter_by(id=event_id).first()
+    event = Event.query.get(event_id)
 
-    if event.end > current_time():
-        existing_registration = [
-            r for r in event.active_registrations() if r.user == current_user
-        ]
-
-    if (
-        not existing_registration
-        or existing_registration[0].status == RegistrationStatus.Rejected
-    ):
-        flash("Impossible de vous désinscrire, vous n'êtes pas inscrit.", "error")
+    if event.start < current_time():
+        flash("Désinscription impossible: la collective a déjà commencé.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    db.session.delete(existing_registration[0])
+    query = Registration.query.filter_by(user=current_user)
+    registration = query.filter_by(event=event).first()
+
+    if registration.status == RegistrationStatus.Rejected:
+        flash(
+            "Désinscription impossible: vous avez déjà été refusé de la collective.",
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    registration.status = RegistrationStatus.SelfUnregistered
+
+    db.session.add(registration)
     db.session.commit()
 
     # Send notification e-mail to leaders
@@ -829,3 +833,44 @@ def delete_event(event_id):
 
     flash("Événement supprimé", "success")
     return redirect(url_for("event.index"))
+
+
+@blueprint.route("/<int:event_id>/attendance", methods=["POST"])
+@valid_user()
+@confidentiality_agreement()
+def update_attendance(event_id):
+    """Route to update attendance list.
+
+    :param int event_id: Primary key of the event to update.
+    """
+    event = Event.query.get(event_id)
+
+    if event is None:
+        raise Exception("Unknown Event")
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
+    for registration in event.registrations:
+        if f"user_{registration.user.id}" in request.form:
+            value = request.form.get(f"user_{registration.user.id}")
+            if value != "-1":
+                registration.status = RegistrationStatus(int(value))
+                db.session.add(registration)
+
+                if registration.status == RegistrationStatus.Rejected:
+                    # Send notification e-mail to user
+                    send_reject_subscription_notification(
+                        current_user.full_name(),
+                        registration.event,
+                        registration.user.mail,
+                    )
+            else:
+                db.session.delete(registration)
+
+    db.session.commit()
+
+    return redirect(
+        url_for("event.view_event", event_id=event_id) + "#attendancelistform"
+    )

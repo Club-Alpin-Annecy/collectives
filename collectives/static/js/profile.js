@@ -17,9 +17,11 @@ window.onload = function(){
                     headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
             {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",
                     headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
-            {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",
-                    headerFilterParams:{values: Object.values(addEmpty(EnumEventStatus))}},
-            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 3},
+            {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",  formatterParams:{'enum': EnumEventStatus},
+                    headerFilterParams:{values: addEmpty(EnumEventStatus)}, formatter: enumFormatter},
+            { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
+                    formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} },
+            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 2.5},
             {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
                     formatterParams:{   outputFormat:"D MMMM YY", invalidPlaceholder:"(invalid date)",}},
             {title: "Insc.", field:"occupied_slots", maxWidth:80,},
@@ -30,12 +32,14 @@ window.onload = function(){
 
     var eventstable= new Tabulator("#eventstable",
                     Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:">", value:getServerLocalTime() }
+                                {field:"end", type:">", value:getServerLocalTime() },
+                                {field:"registration.status", type:"=", value: 0 },
                             ]}));
     var pasteventstable= new Tabulator("#pasteventstable",
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:"<", value:getServerLocalTime()  }
                             ]}));
+    eventstable.hideColumn("registration.status");
 
 }
 
@@ -64,8 +68,12 @@ function multiEnumFilter(value, data){
         return true;
     return data.map(item => item.id).includes(parseInt(value));
 }
-
+function enumFormatter(cell, formatterParams, onRendered){
+    return formatterParams['enum'][cell.getValue()];
+}
 function addEmpty(dict){
-    dict[0]="";
-    return dict;
+    var copy={};
+    copy['']="";
+    Object.assign(copy, dict);
+    return copy;
 }

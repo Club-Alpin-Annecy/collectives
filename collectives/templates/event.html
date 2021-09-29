@@ -16,7 +16,7 @@
       window.onload = function () {
         const searchInput = document.getElementById('user-search');
         setupAutoComplete(
-          searchInput, 
+          searchInput,
           '{{url_for("api.autocomplete_users")}}',
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
@@ -61,7 +61,7 @@
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
 
-    
+
     {# Leaders #}
 
     <div id="encadrement">
@@ -72,7 +72,7 @@
           {{ macros.usericon(user, leader_info, user_info) }}
         {% endwith %}
       {% endfor %}
-      
+
       {% if event.coleaders() | length %}
         <h5>Co-encadrants en formation</h5>
         {% for registration in event.coleaders() %}
@@ -102,7 +102,7 @@
           {% if event.num_pending_registrations() > 0 %}
             (dont {{event.num_pending_registrations()}} en attente)
           {% endif %}
-        
+
           {% if not event.has_free_slots() %}
             <span class="tag red">COMPLET</span>
           {% endif %}
@@ -110,6 +110,8 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
+        {% elif event.is_unregistered(current_user)%}
+          <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
         {% elif event.has_pending_payment(current_user) %}
           <p>Votre inscription est en attente de paiement.
           <ul>
@@ -130,7 +132,7 @@
           {% if not current_user.check_license_valid_at_time(event.end) %}
           <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
             <p>
-              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif. 
+              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
               Si vous venez de renouveller votre licence, merci de resynchroniser vos informations FFCAM via le bouton ci-dessous. <br />
               <button type="submit" class="button button-secondary">
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/> Resynchroniser mes informations FFCAM
@@ -148,7 +150,7 @@
           {% endif %}
         {% endif %}
       {% elif event.parent_event %}
-          Les inscriptions en ligne sont restreintes aux participants à la collective 
+          Les inscriptions en ligne sont restreintes aux participants à la collective
           <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
           {% if event.is_user_registered_to_parent_event(current_user) %}
             dont vous faites partie.
@@ -165,10 +167,6 @@
 
             {% if event.has_edit_rights(current_user) %}
             <div class="popover">
-              <form class="delete" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                Refuser
-              </form>
               {% if event.can_be_coleader(registration.user) %}
                 <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -212,7 +210,7 @@
         {% endif %}
     </div>
 
-     
+
     {# Payment-pending registrations #}
 
     {% if event.requires_payment()  and event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
@@ -220,7 +218,7 @@
       <h4>Inscriptions en attente de paiement</h4>
       <ul>
       {% for registration in event.registrations if registration.is_pending_payment() %}
-        {{ macros.registration_admin_list_item(registration) }}
+        {{ macros.registration_admin_list_item(registration) }}<br/>
       {% else %}
         <li>Aucune inscription en attente de paiement.</li>
       {% endfor %}
@@ -236,8 +234,8 @@
     {% if event.has_edit_rights(current_user) %}
       <div class="administration">
       <h4>Administration</h4>
-
-      <div>
+      <br/>
+      <div class="buttons">
           <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
               Editer
@@ -265,7 +263,7 @@
           {% endif %}
 
           {% if config["PAYMENTS_ENABLED"] %}
-            <br>
+            <br/><br/>
             <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
               Gestion des tarifs
@@ -288,7 +286,7 @@
             {% endif %}
           {% endif %}
 
-        </div>
+      </div>
       <h5>Coordonnées du groupe</h5>
       {% if current_user.has_signed_ca() %}
           <div class="contactinfos">
@@ -343,21 +341,85 @@
       </div>
       </form>
 
-      <h5> Inscriptions refusées</h5>
+      <h5> Inscriptions en attente de renouvellement de licence</h5>
       <ul>
-      {% for registration in event.registrations if registration.is_rejected() %}
+      {% for registration in event.registrations if registration.is_pending_renewal() %}
         <li>
           <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.delete_registration', reg_id=registration.id)}}" method="post">
+          <form class="inline" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-danger button-small" value="Supprimer" >
+          <input type="submit" class="button button-danger button-small" value="Refuser" >
           </form>
         </li>
       {% else %}
-        <li>Aucune inscription refusée.</li>
+        <li>Aucune inscription en attente de renouvellement de licence.</li>
       {% endfor %}
       </ul>
-      
+
+
+
+    <h5> Liste des présences</h5>
+        <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
+        <table id="attendancelist">
+            <tbody>
+                {% set ns = namespace(license_to_renew=False) %}
+                {% for registration in event.registrations %}
+                <tr>
+                    <td>
+                        <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">
+                            {{ registration.user.full_name() }}
+                            {% if registration.is_pending_renewal() %}
+                                {% set ns.license_to_renew = True %}
+                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+                            {% endif %}{{license_to_renew}}
+                        </a>
+                    </td>
+                    <td style="text-align:center">
+                        <select name="user_{{ registration.user.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
+                            {% for status in models.RegistrationStatus %}
+                                <option
+                                        value="{{status.value}}"
+                                        {% if registration.status == status %}
+                                            selected
+
+                                        {# PaymentPending registration can only be Refused or deleted #}
+                                        {% elif registration.status == models.RegistrationStatus.PaymentPending and status != models.RegistrationStatus.Rejected %}
+                                            disabled
+
+                                        {# SelfRegistered and PaymentPending cannot be selected by leader#}
+                                        {% elif status in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.PaymentPending ] %}
+                                            disabled
+                                        {% endif %}
+                                        >{{status.display_name()}}</option>
+                            {% endfor %}
+                            <option value="-1">Effacer l'inscription</option>
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td>Tous les "Inscrits"</td>
+                    <td style="text-align:center">
+                        <select name="none" onchange="attendanceSelectAll(this.value)">
+                            <option value="" selected disabled> </option>
+                            {% for status in models.RegistrationStatus %}
+                                {% if status not in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.Active ] %}
+                                <option value="{{status.value}}">{{status.display_name()}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+            {% if ns.license_to_renew %}
+            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+            = Licence à renouveller <br/>
+            {% endif %}
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
+        <input type="submit" value="Sauvegarder" class="button button-primary">
+      </form>
     </div> <!-- .administration -->
     {% endif %}
 
@@ -365,15 +427,19 @@
 
     {% if config["PAYMENTS_ENABLED"] and current_user.is_accountant()  %}
     <div class="administration">
-    <h4>Comptabilité</h4>
-    {% if event.requires_payment() %}
-        <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
-          Liste des paiements
-        </a>
-    {% else %}
-        Pas de paiement requis sur cette collective
-    {% endif %}
+        <h4>Comptabilité</h4>
+        <br/>
+        <div class="buttons">
+        {% if event.requires_payment() %}
+            <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+              Liste des paiements
+            </a>
+        {% else %}
+            Pas de paiement requis sur cette collective
+        {% endif %}
+
+        </div>
     </div>
     {% endif %}
 </div>

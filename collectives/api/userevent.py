@@ -5,13 +5,37 @@ Event schema is the one from :py:class:`collectives.api.event.EventSchema`
 import json
 
 from flask_login import current_user
+from marshmallow import fields
 
 from ..models import db, User, Event
-from ..models import Registration, RegistrationStatus
+from ..models import Registration
 
-from .common import blueprint
+from .common import blueprint, marshmallow
+
 from .event import EventSchema, filter_hidden_events
 from ..utils.access import valid_user
+
+
+class RegistrationSchema(marshmallow.Schema):
+    """Schema to describe a registration"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "status", "level", "is_self")
+
+
+class RegistrationEventSchema(EventSchema):
+    """Schema to describe a en event with a specific registration"""
+
+    registration = fields.Function(
+        lambda event: RegistrationSchema().dump(event.registration)
+    )
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = EventSchema.Meta.fields + tuple(["registration"])
 
 
 @blueprint.route("/user/<user_id>/events")
@@ -36,13 +60,16 @@ def user_events(user_id):
     query = filter_hidden_events(query)
 
     query = query.filter(Registration.user_id == user_id)
-    query = query.filter(Registration.status == RegistrationStatus.Active)
     query = query.filter(Event.id == Registration.event_id)
     query = query.order_by(Event.start, Event.id)
 
-    result = query.all()
-    response = EventSchema(many=True).dump(result)
+    events = query.all()
 
+    user = User.query.get(user_id)
+    for event in events:
+        event.registration = event.existing_registrations(user)[0]
+
+    response = RegistrationEventSchema(many=True).dump(events)
     return json.dumps(response), 200, {"content-type": "application/json"}
 
 

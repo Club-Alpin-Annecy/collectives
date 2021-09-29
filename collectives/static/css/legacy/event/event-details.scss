@@ -180,17 +180,28 @@ span.event-status {
 }
 
 #eventdetail .administration {
-    background-color: #cccccc;
-    margin-top: 5em;
-    padding: 20px 10px;
+    border: 1px solid #00A5CC;
+    margin-top: 4em;
+    padding-bottom: 20px;
 }
 
 #eventdetail .administration h4 {
     text-align: center;
+    color: white;
+    background: #00A5CC;
+    margin: 0;
+    padding: 0.7em;
 }
 
 #eventdetail .administration h5 {
-    margin-top: 2em;
+    color: white;
+    background:#00A5CC;
+    margin: 2em 0 1em;
+    padding: 0.2em 2em;
+}
+
+#eventdetail .administration .buttons {
+    text-align: center;
 }
 
 #eventdetail .search-input {
@@ -206,6 +217,16 @@ span.event-status {
 }
 #description a:hover {
     text-decoration: none;
+}
+#attendancelistform{
+    text-align: center;
+}
+#attendancelistform table{
+    margin: auto;
+    text-align: left;
+}
+#attendancelistform td select{
+    width: 100%;
 }
 
 .select {
