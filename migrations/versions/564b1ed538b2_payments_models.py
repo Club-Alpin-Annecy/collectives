@@ -31,7 +31,10 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("event_id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(length=256), nullable=False),
-        sa.ForeignKeyConstraint(["event_id"], ["events.id"],),
+        sa.ForeignKeyConstraint(
+            ["event_id"],
+            ["events.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -45,7 +48,10 @@ def upgrade():
         sa.Column("amount", sa.Numeric(precision=8, scale=2), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("update_time", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["item_id"], ["payment_items.id"],),
+        sa.ForeignKeyConstraint(
+            ["item_id"],
+            ["payment_items.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -82,11 +88,26 @@ def upgrade():
         sa.Column("raw_metadata", sa.Text(), nullable=False),
         sa.Column("amount_charged", sa.Numeric(precision=8, scale=2), nullable=False),
         sa.Column("amount_paid", sa.Numeric(precision=8, scale=2), nullable=False),
-        sa.ForeignKeyConstraint(["creditor_id"], ["users.id"],),
-        sa.ForeignKeyConstraint(["item_price_id"], ["item_prices.id"],),
-        sa.ForeignKeyConstraint(["payment_item_id"], ["payment_items.id"],),
-        sa.ForeignKeyConstraint(["registration_id"], ["registrations.id"],),
-        sa.ForeignKeyConstraint(["reporter_id"], ["users.id"],),
+        sa.ForeignKeyConstraint(
+            ["creditor_id"],
+            ["users.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["item_price_id"],
+            ["item_prices.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["payment_item_id"],
+            ["payment_items.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["registration_id"],
+            ["registrations.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["reporter_id"],
+            ["users.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(

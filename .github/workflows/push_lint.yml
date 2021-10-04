@@ -26,4 +26,4 @@ jobs:
 
     - name: Format with black
       run: |
-        black --check *.py collectives
+        black --check *.py collectives migrations tests
