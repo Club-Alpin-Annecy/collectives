@@ -709,34 +709,6 @@ def self_unregister(event_id):
     return redirect(url_for("event.view_event", event_id=event_id))
 
 
-@blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
-@valid_user()
-def reject_registration(reg_id):
-    """Route for a leader to reject a user participation to the event.
-
-    :param int reg_id: Primary key of the registration.
-    """
-    registration = Registration.query.filter_by(id=reg_id).first()
-    if registration is None:
-        flash("Inscription inexistante", "error")
-        return redirect(url_for("event.index"))
-
-    if not registration.event.has_edit_rights(current_user):
-        flash("Non autorisé", "error")
-        return redirect(url_for("event.index"))
-
-    registration.status = RegistrationStatus.Rejected
-    db.session.add(registration)
-    db.session.commit()
-
-    # Send notification e-mail to user
-    send_reject_subscription_notification(
-        current_user.full_name(), registration.event, registration.user.mail
-    )
-
-    return redirect(url_for("event.view_event", event_id=registration.event_id))
-
-
 @blueprint.route("/registrations/<reg_id>/level/<int:reg_level>", methods=["POST"])
 @valid_user()
 def change_registration_level(reg_id, reg_level):
@@ -853,10 +825,26 @@ def update_attendance(event_id):
         return redirect(url_for("event.index"))
 
     for registration in event.registrations:
-        if f"user_{registration.user.id}" in request.form:
-            value = request.form.get(f"user_{registration.user.id}")
-            if value != "-1":
-                registration.status = RegistrationStatus(int(value))
+        field_name = f"reg_{registration.id}"
+        if field_name in request.form:
+            try:
+                value = request.form.get(field_name, type=int)
+            except ValueError:
+                continue
+
+            if value >= 0:
+                new_status = RegistrationStatus(value)
+                if new_status == registration.status:
+                    continue
+
+                if new_status not in registration.valid_transitions():
+                    flash(
+                        f"Transition impossible de {registration.status.display_name()} vers {new_status.display_name} pour {registration.user.full_name()}.",
+                        "warning",
+                    )
+                    continue
+
+                registration.status = new_status
                 db.session.add(registration)
 
                 if registration.status == RegistrationStatus.Rejected:
@@ -866,7 +854,7 @@ def update_attendance(event_id):
                         registration.event,
                         registration.user.mail,
                     )
-            else:
+            elif registration.can_be_deleted():
                 db.session.delete(registration)
 
     db.session.commit()

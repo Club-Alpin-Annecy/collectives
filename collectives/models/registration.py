@@ -58,6 +58,28 @@ class RegistrationStatus(ChoiceEnum):
             cls.UnJustifiedAbsentee: "Absent non justifié",
         }
 
+    @classmethod
+    def transition_table(cls):
+        """
+        :return: a dict defining possible transitions for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Active: [cls.Rejected, cls.UnJustifiedAbsentee, cls.JustifiedAbsentee],
+            cls.Rejected: [cls.Active],
+            cls.PaymentPending: [cls.Rejected],
+            cls.SelfUnregistered: [],
+            cls.JustifiedAbsentee: [cls.Rejected, cls.Active, cls.UnJustifiedAbsentee],
+            cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
+        }
+
+    def valid_transitions(self):
+        """
+        :return: The list of all achievable transitions for a given status (excluding itself)
+        :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
+        """
+        return self.__class__.transition_table()[self.value]
+
 
 class Registration(db.Model):
     """Object linking a user (participant) and an event.
@@ -159,3 +181,32 @@ class Registration(db.Model):
         :return: The list of payments with 'Initiated' status
         :rtype: list[:py:class:`collectives.modes.payment.Payment`]"""
         return [p for p in self.payments if p.is_unsettled()]
+
+    def valid_transitions(self):
+        """
+        :return: The list of all achievable transitions from the current status
+        :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
+        """
+        transitions = [self.status] + self.status.valid_transitions()
+
+        # Special case for rejected/unregistered and paid events:
+        # allow to put back the registration in PaymentPending state
+        # (as if the user had just registered)
+        if self.event.requires_payment() and self.status in [
+            RegistrationStatus.Rejected,
+            RegistrationStatus.SelfUnregistered,
+        ]:
+            transitions += [RegistrationStatus.PaymentPending]
+        return transitions
+
+    def can_be_deleted(self):
+        """
+        :return: Whether the registration can be deleted.
+                 We prevent deletion from arbitray status as the user
+                 must be first made aware that their registration is no longer active
+        :rtype: bool
+        """
+        return self.status in [
+            RegistrationStatus.Rejected,
+            RegistrationStatus.SelfUnregistered,
+        ]
