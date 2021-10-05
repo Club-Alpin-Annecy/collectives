@@ -27,6 +27,25 @@
                                     Organisation des sorties
                                 </a>
                             </li>
+
+
+                            {% if current_user.can_manage_equipment() %}
+                                
+                    <!-- -------------------------------------------------- Ajout item Gestion Matériel -------------------------------------------------- -->
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}"  class="menu-dropdown-item-link">
+                                    <!-- <img src="img/icon/ionicon/md-box.svg"  class="legacy-icon" /> -->
+                                    Gestion Matériel
+                                </a>
+                            </li>
+                    <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
+
+
+                            {% endif %}
+
+
+
+
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
