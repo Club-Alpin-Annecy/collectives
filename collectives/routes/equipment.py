@@ -13,8 +13,6 @@ from ..models import db, User, Equipment
 from ..utils.access import confidentiality_agreement, valid_user
 
 
-
-
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
 """ Event blueprint
 

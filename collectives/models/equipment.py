@@ -2,9 +2,9 @@
 """
 from .globals import db
 
+
 class EquipmentType(db.Model):
-    """Class of a type of equipment equipment.
-    """
+    """Class of a type of equipment equipment."""
 
     __tablename__ = "equipment_types"
 
@@ -12,10 +12,13 @@ class EquipmentType(db.Model):
 
     type_name = db.Column(db.String(100), nullable=False)
 
-    price = db.Column(db.Float, primary_key=True)
+    price = db.Column(db.Float)
 
-    models = db.relationship('EquipmentModel', lazy='select',
-        backref=db.backref('type_equipment', lazy='joined'))
+    models = db.relationship(
+        "EquipmentModel",
+        lazy="select",
+        backref=db.backref("type_equipment", lazy="joined"),
+    )
 
 
 class EquipmentModel(db.Model):
@@ -29,11 +32,11 @@ class EquipmentModel(db.Model):
 
     model_name = db.Column(db.String(100), nullable=False)
 
-    models = db.relationship('Equipment', lazy='select',
-        backref=db.backref('equipment_model', lazy='joined'))
+    models = db.relationship(
+        "Equipment", lazy="select", backref=db.backref("equipment_model", lazy="joined")
+    )
 
     type_equipment_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
-
 
 
 class Equipment(db.Model):
