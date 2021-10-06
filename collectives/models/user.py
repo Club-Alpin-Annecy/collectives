@@ -611,18 +611,6 @@ class User(db.Model, UserMixin):
 
 
 
-
-
-    def can_manage_equipment(self):
-        """Check if user can manage equipment.
-
-        Admin, equipment manager et equipment volunteer can manage equipment.
-
-        """
-        return True   
-
-
-
     @property
     def is_active(self):
         """Check if user is currently active.
