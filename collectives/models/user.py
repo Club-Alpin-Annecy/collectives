@@ -489,7 +489,8 @@ class User(db.Model, UserMixin):
         :return: True if user has an equiment_manager role.
         :rtype: boolean
         """
-        return self.has_role([RoleIds.all_equipment_management_roles()])
+        
+        return self.has_role(RoleIds.all_equipment_management_roles())
 
     def can_lead_activity(self, activity_id):
         """Check if user has a role which allow him to lead a specific activity.
