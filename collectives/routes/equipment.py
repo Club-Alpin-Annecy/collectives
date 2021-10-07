@@ -41,8 +41,9 @@ def view_equipment():
 
 
 
-@blueprint.route("/add", methods=["GET"])
-def Test_equipment():
+
+@blueprint.route("/equipment_type", methods=["GET"])
+def view_equipment_type():
     # equipments = Equipment.query.all()
     # equipments.commit()
 
@@ -55,7 +56,28 @@ def Test_equipment():
     print(vars(equipment), flush=True)
 
     return render_template(
-        "equipment.html",
+        "equipment_type.html",
+        # equipments=equipments
+        equipment=equipment,
+    )
+
+
+
+
+@blueprint.route("/stock", methods=["GET"])
+def view_equipment_stock():
+    # equipments = Equipment.query.all()
+    # equipments.commit()
+
+    equipment = Equipment()
+    equipment.purchaseDate = datetime.datetime.now()
+    equipment.reference = "blabla"
+    equipment.caution = 12.1
+    equipment.purchasePrice = 15.50
+
+
+    return render_template(
+        "equipment_stock.html",
         # equipments=equipments
         equipment=equipment,
     )

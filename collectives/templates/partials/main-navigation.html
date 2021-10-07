@@ -6,6 +6,7 @@
                     title="{{ config['TITLE'] }}">
             </a>
 
+
             {% if current_user.is_authenticated %}
                 <div class="menu-dropdown menu-dropdown-left">
                     <div class="menu-dropdown-trigger main-navigation-menu">
@@ -31,7 +32,7 @@
 
 
 
-                            {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py -->
+                            {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py --->
                                 
                             <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
                             <li class="menu-dropdown-item">
@@ -43,8 +44,6 @@
                             <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
                             
                             {% endif %}
-
-
 
 
 
