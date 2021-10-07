@@ -57,7 +57,7 @@ class EquipmentModel(db.Model):
         "Equipment", lazy="select", backref=db.backref("equipment_model", lazy="joined")
     )
 
-    # equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
+    equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
 
 
 class Equipment(db.Model):
@@ -79,4 +79,4 @@ class Equipment(db.Model):
 
     brand = db.Column(db.String(50), nullable = True)
 
-    # equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
+    equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
