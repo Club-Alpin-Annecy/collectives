@@ -1,6 +1,28 @@
 """Module for registration related classes
 """
 from .globals import db
+from .utils import ChoiceEnum
+
+class EquipmentStatus(ChoiceEnum):
+    Available = 0
+    Booked = 1
+    Rented = 2
+    Unavailable = 3
+    pendingReview = 4
+    
+
+    @classmethod
+    def display_names(cls):
+        """Display name of the current status
+
+        :return: status of the event
+        :rtype: string
+        """
+        return {
+            cls.Confirmed: "Confirmée",
+            cls.Pending: "En attente",
+            cls.Cancelled: "Annulée",
+        }
 
 
 class EquipmentType(db.Model):
@@ -45,17 +67,14 @@ class Equipment(db.Model):
     """
 
     __tablename__ = "equipments"
-
     id = db.Column(db.Integer, primary_key=True)
-
-    purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
-
     reference = db.Column(db.String(100), nullable=False)
-
     caution = db.Column(db.Float, nullable=True)
-
+    lastReview = db.Column(db.DateTime, nullable = True)
+    purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
     purchasePrice = db.Column(db.Float, nullable=True)
+    brand = db.Column(db.String(50), nullable = True)
 
-    # idStock = db.Column(db.Integer, db.ForeignKey("stock.id"))
+
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
