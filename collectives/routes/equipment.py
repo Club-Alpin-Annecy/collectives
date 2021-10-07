@@ -38,3 +38,24 @@ def view_equipment():
         # equipments=equipments
         equipment=equipment,
     )
+
+
+
+@blueprint.route("/add", methods=["GET"])
+def Test_equipment():
+    # equipments = Equipment.query.all()
+    # equipments.commit()
+
+    equipment = Equipment()
+    equipment.purchaseDate = datetime.datetime.now()
+    equipment.reference = "blabla"
+    equipment.caution = 12.1
+    equipment.purchasePrice = 15.50
+
+    print(vars(equipment), flush=True)
+
+    return render_template(
+        "equipment.html",
+        # equipments=equipments
+        equipment=equipment,
+    )

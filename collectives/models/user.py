@@ -616,6 +616,9 @@ class User(db.Model, UserMixin):
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
 
+
+
+
     @property
     def is_active(self):
         """Check if user is currently active.

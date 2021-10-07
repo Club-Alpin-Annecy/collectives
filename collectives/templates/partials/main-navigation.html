@@ -27,6 +27,30 @@
                                     Organisation des sorties
                                 </a>
                             </li>
+
+
+
+
+                            {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py -->
+                                
+                            <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('equipment.view_equipment')}}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}"  class="legacy-icon" />
+                                    Gestion Matériel
+                                </a>
+                            </li>
+                            <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
+                            
+                            {% endif %}
+
+
+
+
+
+
+
+
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
