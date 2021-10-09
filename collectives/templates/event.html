@@ -180,7 +180,7 @@
 
      {# Pending registrations #}
       {% if event.has_edit_rights(current_user) %}
-        {% for registration in event.registrations if registration.is_pending_renewal() %}
+        {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status ==  models.RegistrationStatus.Active %}
             <div class="useractionmenu">
               {% with user = registration.user, user_info = True, is_pending_renewal = True %}
                 {{ macros.usericon(user, leader_info, user_info, is_pending_renewal) }}
