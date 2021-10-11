@@ -43,6 +43,9 @@ class RegistrationStatus(ChoiceEnum):
     UnJustifiedAbsentee = 5
     """ User has been absent to the event, but not excused by the leader. """
 
+    ToBeDeleted = -1
+    """ Registration should be deleted. This is not a valid SQL enum entry and should only be used as a temporary marker"""
+
     @classmethod
     def display_names(cls):
         """
@@ -56,29 +59,36 @@ class RegistrationStatus(ChoiceEnum):
             cls.SelfUnregistered: "Auto désinscrit",
             cls.JustifiedAbsentee: "Absent justifié",
             cls.UnJustifiedAbsentee: "Absent non justifié",
+            cls.ToBeDeleted: "Effacer l'inscription",
         }
 
     @classmethod
-    def transition_table(cls):
+    def transition_table(cls, requires_payment):
         """
         :return: a dict defining possible transitions for all enum values
+        :param bool requires_payment: whether this is a paid event.
         :rtype: dict
         """
+
+        re_register_status = cls.PaymentPending if requires_payment else cls.Active
+
         return {
             cls.Active: [cls.Rejected, cls.UnJustifiedAbsentee, cls.JustifiedAbsentee],
-            cls.Rejected: [cls.Active],
+            cls.Rejected: [re_register_status, cls.ToBeDeleted],
             cls.PaymentPending: [cls.Rejected],
-            cls.SelfUnregistered: [],
+            cls.SelfUnregistered: [re_register_status, cls.ToBeDeleted],
             cls.JustifiedAbsentee: [cls.Rejected, cls.Active, cls.UnJustifiedAbsentee],
             cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
+            cls.ToBeDeleted: [],
         }
 
-    def valid_transitions(self):
+    def valid_transitions(self, requires_payment):
         """
         :return: The list of all achievable transitions for a given status (excluding itself)
+        :param bool requires_payment: whether this is a paid event.
         :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
         """
-        return self.__class__.transition_table()[self.value]
+        return self.__class__.transition_table(requires_payment)[self.value]
 
 
 class Registration(db.Model):
@@ -187,26 +197,6 @@ class Registration(db.Model):
         :return: The list of all achievable transitions from the current status
         :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
         """
-        transitions = [self.status] + self.status.valid_transitions()
-
-        # Special case for rejected/unregistered and paid events:
-        # allow to put back the registration in PaymentPending state
-        # (as if the user had just registered)
-        if self.event.requires_payment() and self.status in [
-            RegistrationStatus.Rejected,
-            RegistrationStatus.SelfUnregistered,
-        ]:
-            transitions += [RegistrationStatus.PaymentPending]
-        return transitions
-
-    def can_be_deleted(self):
-        """
-        :return: Whether the registration can be deleted.
-                 We prevent deletion from arbitray status as the user
-                 must be first made aware that their registration is no longer active
-        :rtype: bool
-        """
-        return self.status in [
-            RegistrationStatus.Rejected,
-            RegistrationStatus.SelfUnregistered,
-        ]
+        return [self.status] + self.status.valid_transitions(
+            self.event.requires_payment()
+        )

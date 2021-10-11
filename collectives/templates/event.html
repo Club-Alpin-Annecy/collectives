@@ -361,9 +361,6 @@
                                 >
                                         {{status.display_name()}}</option>
                             {% endfor %}
-                            {% if registration.can_be_deleted() %}
-                              <option value="-1">Effacer l'inscription</option>
-                            {% endif %}
                         </select>
                     </td>
                 </tr>
@@ -373,7 +370,7 @@
                     <td style="text-align:center">
                         <select name="none" onchange="attendanceSelectAll(this.value)">
                             <option value="" selected disabled> </option>
-                            {% for status in models.RegistrationStatus.Active.valid_transitions() %}
+                            {% for status in models.RegistrationStatus.Active.valid_transitions(event.requires_payment()) %}
                                 <option value="{{status.value}}">{{status.display_name()}}</option>
                             {% endfor %}
                         </select>

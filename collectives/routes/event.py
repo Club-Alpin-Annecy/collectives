@@ -829,21 +829,23 @@ def update_attendance(event_id):
         if field_name in request.form:
             try:
                 value = request.form.get(field_name, type=int)
+                new_status = RegistrationStatus(value)
             except ValueError:
                 continue
 
-            if value >= 0:
-                new_status = RegistrationStatus(value)
-                if new_status == registration.status:
-                    continue
+            if new_status == registration.status:
+                continue
 
-                if new_status not in registration.valid_transitions():
-                    flash(
-                        f"Transition impossible de {registration.status.display_name()} vers {new_status.display_name} pour {registration.user.full_name()}.",
-                        "warning",
-                    )
-                    continue
+            if new_status not in registration.valid_transitions():
+                flash(
+                    f"Transition impossible de {registration.status.display_name()} vers {new_status.display_name} pour {registration.user.full_name()}.",
+                    "warning",
+                )
+                continue
 
+            if new_status == RegistrationStatus.ToBeDeleted:
+                db.session.delete(registration)
+            else:
                 registration.status = new_status
                 db.session.add(registration)
 
@@ -854,8 +856,6 @@ def update_attendance(event_id):
                         registration.event,
                         registration.user.mail,
                     )
-            elif registration.can_be_deleted():
-                db.session.delete(registration)
 
     db.session.commit()
 
