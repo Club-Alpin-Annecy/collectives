@@ -43,7 +43,7 @@ class RegistrationStatus(ChoiceEnum):
     UnJustifiedAbsentee = 5
     """ User has been absent to the event, but not excused by the leader. """
 
-    ToBeDeleted = -1
+    ToBeDeleted = 99999
     """ Registration should be deleted. This is not a valid SQL enum entry and should only be used as a temporary marker"""
 
     @classmethod
