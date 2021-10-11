@@ -185,13 +185,6 @@
               {% with user = registration.user, user_info = True, is_pending_renewal = True %}
                 {{ macros.usericon(user, leader_info, user_info, is_pending_renewal) }}
               {% endwith %}
-
-              <div class="popover">
-                <form class="delete" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post" onclick="if(confirm('Vous êtes en passe de refuser l\'inscripton d`un adhérent à votre sortie. Il recevra un mail de notification. Confirmez-vous le refus?')) this.submit()">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  Refuser
-                </form>
-              </div>
             </div>
         {% endfor %}
       {% endif %}
@@ -341,24 +334,7 @@
       </div>
       </form>
 
-      <h5> Inscriptions en attente de renouvellement de licence</h5>
-      <ul>
-      {% for registration in event.registrations if registration.is_pending_renewal() %}
-        <li>
-          <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
-          <form class="inline" action="{{url_for('event.reject_registration', reg_id=registration.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-danger button-small" value="Refuser" >
-          </form>
-        </li>
-      {% else %}
-        <li>Aucune inscription en attente de renouvellement de licence.</li>
-      {% endfor %}
-      </ul>
-
-
-
-    <h5> Liste des présences</h5>
+      <h5> Liste des présences</h5>
         <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <tbody>
@@ -375,24 +351,16 @@
                         </a>
                     </td>
                     <td style="text-align:center">
-                        <select name="user_{{ registration.user.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
-                            {% for status in models.RegistrationStatus %}
+                        <select name="reg_{{ registration.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
+                            {% for status in registration.valid_transitions() %}
                                 <option
                                         value="{{status.value}}"
                                         {% if registration.status == status %}
                                             selected
-
-                                        {# PaymentPending registration can only be Refused or deleted #}
-                                        {% elif registration.status == models.RegistrationStatus.PaymentPending and status != models.RegistrationStatus.Rejected %}
-                                            disabled
-
-                                        {# SelfRegistered and PaymentPending cannot be selected by leader#}
-                                        {% elif status in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.PaymentPending ] %}
-                                            disabled
                                         {% endif %}
-                                        >{{status.display_name()}}</option>
+                                >
+                                        {{status.display_name()}}</option>
                             {% endfor %}
-                            <option value="-1">Effacer l'inscription</option>
                         </select>
                     </td>
                 </tr>
@@ -402,10 +370,8 @@
                     <td style="text-align:center">
                         <select name="none" onchange="attendanceSelectAll(this.value)">
                             <option value="" selected disabled> </option>
-                            {% for status in models.RegistrationStatus %}
-                                {% if status not in  [ models.RegistrationStatus.SelfUnregistered, models.RegistrationStatus.Active ] %}
+                            {% for status in models.RegistrationStatus.Active.valid_transitions(event.requires_payment()) %}
                                 <option value="{{status.value}}">{{status.display_name()}}</option>
-                                {% endif %}
                             {% endfor %}
                         </select>
                     </td>
