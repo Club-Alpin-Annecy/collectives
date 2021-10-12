@@ -250,22 +250,22 @@ form input, form select{
 	   margin: 0;
 	   width: 0;
 }
-@media (min-width: 500px) {
+@media (min-device-height: 500px) {
 	#cover{
 		background-image: url("/static/caf/cover_742-min.jpg");
 	}
 }
-@media (min-height: 742px) {
+@media (min-device-height: 742px) {
 	#cover{
 		background-image: url("/static/caf/cover_1080-min.jpg");
 	}
 }
-@media (min-height: 1080px) {
+@media (min-device-height: 1080px) {
 	#cover{
-		background-image: url("/static/caf/cover_1080-min.jpg");
+		background-image: url("/static/caf/cover_1440-min.jpg");
 	}
 }
-@media (min-height: 1440px) {
+@media (min-device-height: 1440px) {
 	#cover{
 		background-image: url("/static/caf/cover-min.jpg");
 	}
