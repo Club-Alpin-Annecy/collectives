@@ -19,11 +19,9 @@ window.onload = function(){
                     headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
             {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",  formatterParams:{'enum': EnumEventStatus},
                     headerFilterParams:{values: addEmpty(EnumEventStatus)}, formatter: enumFormatter},
-            { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
-                    formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} },
             {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 2.5},
             {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
-                    formatterParams:{   outputFormat:"D MMMM YY", invalidPlaceholder:"(invalid date)",}},
+                    formatterParams:{   outputFormat:"D/M/YY", invalidPlaceholder:"(invalid date)"}},
             {title: "Insc.", field:"occupied_slots", maxWidth:80,},
             {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2 }
         ],
@@ -33,13 +31,20 @@ window.onload = function(){
     var eventstable= new Tabulator("#eventstable",
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:">", value:getServerLocalTime() },
-                                {field:"registration.status", type:"=", value: 0 },
                             ]}));
     var pasteventstable= new Tabulator("#pasteventstable",
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:"<", value:getServerLocalTime()  }
                             ]}));
-    eventstable.hideColumn("registration.status");
+
+    if(ajaxURL.match(/^\/api\/user/)){
+        var statusColumn = { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
+                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} }
+        eventstable.addColumn(statusColumn);
+        eventstable.hideColumn("registration.status")
+        pasteventstable.addColumn(statusColumn);
+        eventstable.addFilter("registration.status", "=", 0);
+    }
 
 }
 
