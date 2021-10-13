@@ -699,6 +699,15 @@ class Event(db.Model):
         :rtype: boolean"""
         return self.status == EventStatus.Confirmed
 
+    def status_string(self):
+        """Get the event status as a string to display.
+
+        See: :py:meth:`EventStatus.display_name`
+
+        :return: The status of the event.
+        :rtype: string"""
+        return EventStatus(self.status).display_name()
+
     def is_visible_to(self, user):
         """Checks whether this event is visible to an user
 
