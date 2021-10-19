@@ -31,7 +31,8 @@
           {% if filtered_activity %}
             filterConfirmedOnly(false);
             filterFutureOnly(true);
-            selectActivity('{{filtered_activity.short}}');
+            selectFilter('activity_type', '{{filtered_activity.short}}');
+            selectFilter('tags', false);
           {% endif %}
           
           const searchInput = getLeaderHeaderFilter();
