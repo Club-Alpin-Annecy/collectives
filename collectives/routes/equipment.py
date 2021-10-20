@@ -76,7 +76,7 @@ def view_equipment_type():
 
         new_equipment_type = EquipmentType()
 
-        new_equipment_type.type_name = form.libelleEquipmentType.data
+        new_equipment_type.name = form.libelleEquipmentType.data
         new_equipment_type.price = float(form.priceEquipmentType.data)
 
 
@@ -86,12 +86,6 @@ def view_equipment_type():
 
 
     test = EquipmentType.query.all()
-    print(test)
-
-  
-
-    for aEquipement in test:
-        print(aEquipement.type_name)
 
     return render_template(
         "equipment_type.html",
@@ -145,33 +139,29 @@ def view_equipment_stock():
 
 
 
-@blueprint.route("/create_equipments_in_bdd", methods=["GET"])
+#@blueprint.route("/create_equipments_in_bdd", methods=["GET"])
 def create_equipments_in_bdd():
+    if(EquipmentType.query.all() == []):
+        equipmentsTypesNames = ['Piolet', 'Crampon', 'DVA', 'Corde a sauter']
 
-    equipmentsTypesNames = ['Piolet', 'Crampon', 'DVA', 'Corde a sauter']
+        equipmentTypeList = []
+        for i, name in enumerate(equipmentsTypesNames):
+            equipmentType = EquipmentType()
+            equipmentType.name = name
+            equipmentType.price = i+5.5
+            equipmentType.models = []
+            for y in range(0,4):
+                equipmentModel = EquipmentModel()
+                equipmentModel.name = "model "+str(i)+str(y)
+                equipmentModel.equipments = []
+                for z in range(0,4):
+                    equipment = Equipment()
+                    equipment.purchaseDate = datetime.datetime.now()
+                    equipment.reference = "REF"+str(i)+str(y)+str(z)
+                    equipment.purchasePrice = 15.50
+                    equipmentModel.equipments.append(equipment)
 
-    equipmentTypeList = []
-    for i, name in enumerate(equipmentsTypesNames):
-        equipmentType = EquipmentType()
-        equipmentType.name = name
-        equipmentType.price = i+5.5
-        equipmentType.models = []
-        for y in range(0,4):
-            equipmentModel = EquipmentModel()
-            equipmentModel.name = "model "+str(i)+str(y)
-            equipmentModel.equipments = []
-            for z in range(0,4):
-                equipment = Equipment()
-                equipment.purchaseDate = datetime.datetime.now()
-                equipment.reference = "REF"+str(i)+str(y)+str(z)
-                equipment.purchasePrice = 15.50
-                equipmentModel.equipments.append(equipment)
-
-            equipmentType.models.append(equipmentModel)
-        equipmentTypeList.append(equipmentType) 
-        print(i)
-        db.session.add(equipmentTypeList[i])
-        db.session.commit()
-
-
-    return redirect(url_for("equipment.view_equipment_stock"))
+                equipmentType.models.append(equipmentModel)
+            equipmentTypeList.append(equipmentType) 
+            db.session.add(equipmentTypeList[i])
+            db.session.commit()
