@@ -25,6 +25,7 @@ from .routes import (
     root,
     profile,
     auth,
+    equipment,
     administration,
     event,
     payment,
@@ -72,6 +73,7 @@ def populate_db(app):
 
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
+    equipment.create_equipments_in_bdd()
     init.activity_types(app)
 
 
