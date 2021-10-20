@@ -27,28 +27,41 @@
 
 {% endblock %}
 
-
-
-
 {% block content %}
 
-    <h1>STOCK</h1>
+    <h1>Type equipement</h1>
 
-    {% for equipmentType in equipmentTypeList %}
-      {% for model in equipmentType.models %}
-        {% for equipment in model.equipments %}
-        <p>
-          {{ equipment.reference }} 
-          {{ equipment.model.name }} 
-          {{ equipmentType.name }}
-          {{ equipment.status.display_name() }}
-          
-          {% include 'equipment/delete_equipment_form.html' %}
+    {% for aModel in listEquipementModel %}
+        {% if modelId != aModel.id %}
+            <p> {{ aModel.name }} {{ aModel.equipmentType.name }}</p>
+        {% else %}
+        <form action="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}" method="post">
 
-        </p>
-        {% endfor %}
-      {% endfor %}
+            {{ formEdit.hidden_tag() }}
+      
+            {{ formEdit.name }}
+            {{ formEdit.equipmentType }}
+      
+            {{ formEdit.submit(class="button button-primary") }}
+      
+          </form>
+        {% endif %}
     {% endfor %}
+
+
+    <h2>Ajouter un model d'equipement</h2>
+
+    <form action="" method="post">
+
+      {{ formAjout.hidden_tag() }}
+
+      {{ formAjout.name }}
+      {{ formAjout.equipmentType }}
+
+      {{ formAjout.submit(class="button button-primary") }}
+      
+
+    </form>
 
 
 {% endblock %}
