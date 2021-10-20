@@ -33,7 +33,7 @@
 
     {% for aModel in listEquipementModel %}
         {% if modelId != aModel.id %}
-            <p> {{ aModel.name }} {{ aModel.equipmentType.name }}</p>
+            <p> {{ aModel.name }} {{ aModel.equipmentType.name }} <a href="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}">edit</a></p>
         {% else %}
         <form action="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}" method="post">
 
