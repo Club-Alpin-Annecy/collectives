@@ -40,7 +40,7 @@ def view_equipment():
   
 
     return render_template(
-        "equipment.html",
+        "equipment/equipment.html",
         # equipments=equipments
         equipment=equipment,
     )
@@ -52,23 +52,6 @@ def view_equipment():
 def view_equipment_type():
     
     listEquipementType = EquipmentType.query.all()
-    # equipments.commit()
-
-
-    # for aEquipement in allEquipment:
-    #     print(aEquipement.type_name)
-
-    # listEquipementType = []
-    # listEquipmentName = ["Baudrier", "Crampon", "Crocs"]
-
-    # for equipementName in listEquipmentName:
-    #     equipmentType = EquipmentType()
-    #     equipmentType.type_name = equipementName
-
-    #     listEquipementType.append(equipmentType)
-
-
-    # print(vars(equipment), flush=True)
 
     form = AddEquipmentTypeForm()
 
@@ -90,11 +73,10 @@ def view_equipment_type():
 
   
 
-    # for aEquipement in test:
-    #     print(aEquipement.type_name)
+
 
     return render_template(
-        "equipment_type.html",
+        "equipment/equipment_type.html",
         # equipments=equipments
         # equipment=equipment,
         listEquipementType=listEquipementType,
@@ -115,7 +97,7 @@ def view_equipment_stock():
 
 
     return render_template(
-        "equipment_stock.html",
+        "equipment/equipment_stock.html",
         # equipments=equipments
         equipmentTypeList=equipmentTypeList,
     )

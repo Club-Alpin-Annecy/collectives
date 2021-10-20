@@ -79,6 +79,13 @@ class Equipment(db.Model):
 
     purchasePrice = db.Column(db.Float, nullable=True)
 
+    status = db.Column(
+        db.Enum(EquipmentStatus),
+        nullable=False,
+        default=EquipmentStatus.Available,
+        info={"choices": EquipmentStatus.choices(), "coerce": EquipmentStatus.coerce},
+    )
+
     #brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
