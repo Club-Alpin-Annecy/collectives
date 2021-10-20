@@ -34,5 +34,17 @@
 
     <h1>STOCK</h1>
 
+    {% for equipmentType in equipmentTypeList %}
+      {% for model in equipmentType.models %}
+        {% for equipment in model.equipments %}
+        <p>
+          {{ equipment.reference }} 
+          {{equipment.equipment_model.model_name}} 
+          {{equipmentType.type_name}}
+        </p>
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+
 
 {% endblock %}

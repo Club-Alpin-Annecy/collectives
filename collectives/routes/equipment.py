@@ -6,13 +6,12 @@ from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
 
-from collectives.models.equipment import EquipmentType
 
 from ..forms.equipment import AddEquipmentTypeForm
 
 import datetime
 
-from ..models import db, User, Equipment
+from ..models import db, User, Equipment, EquipmentType, EquipmentModel
 
 from ..utils.access import confidentiality_agreement, valid_user
 
@@ -111,19 +110,68 @@ def view_equipment_stock():
     # equipments = Equipment.query.all()
     # equipments.commit()
 
-    equipment = Equipment()
-    equipment.purchaseDate = datetime.datetime.now()
-    equipment.reference = "blabla"
-    equipment.caution = 12.1
-    equipment.purchasePrice = 15.50
+
+    equipmentTypeList = EquipmentType.query.all()
 
 
     return render_template(
         "equipment_stock.html",
         # equipments=equipments
-        equipment=equipment,
+        equipmentTypeList=equipmentTypeList,
     )
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@blueprint.route("/create_equipments_in_bdd", methods=["GET"])
+def create_equipments_in_bdd():
+
+    equipmentsTypesNames = ['Piolet', 'Crampon', 'DVA', 'Corde a sauter']
+
+    equipmentTypeList = []
+    for i, name in enumerate(equipmentsTypesNames):
+        equipmentType = EquipmentType()
+        equipmentType.type_name = name
+        equipmentType.price = i+5.5
+        equipmentType.models = []
+        for y in range(0,4):
+            equipmentModel = EquipmentModel()
+            equipmentModel.model_name = "model "+str(i)+str(y)
+            equipmentModel.equipments = []
+            for z in range(0,4):
+                equipment = Equipment()
+                equipment.purchaseDate = datetime.datetime.now()
+                equipment.reference = "REF"+str(i)+str(y)+str(z)
+                equipment.purchasePrice = 15.50
+                equipmentModel.equipments.append(equipment)
+
+            equipmentType.models.append(equipmentModel)
+        equipmentTypeList.append(equipmentType) 
+        print(i)
+        db.session.add(equipmentTypeList[i])
+        db.session.commit()
+
+
+    return redirect(url_for("equipment.view_equipment_stock"))
