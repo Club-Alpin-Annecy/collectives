@@ -153,12 +153,12 @@ def create_equipments_in_bdd():
     equipmentTypeList = []
     for i, name in enumerate(equipmentsTypesNames):
         equipmentType = EquipmentType()
-        equipmentType.type_name = name
+        equipmentType.name = name
         equipmentType.price = i+5.5
         equipmentType.models = []
         for y in range(0,4):
             equipmentModel = EquipmentModel()
-            equipmentModel.model_name = "model "+str(i)+str(y)
+            equipmentModel.name = "model "+str(i)+str(y)
             equipmentModel.equipments = []
             for z in range(0,4):
                 equipment = Equipment()

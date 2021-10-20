@@ -39,8 +39,8 @@
         {% for equipment in model.equipments %}
         <p>
           {{ equipment.reference }} 
-          {{equipment.equipment_model.model_name}} 
-          {{equipmentType.type_name}}
+          {{equipment.model.name}} 
+          {{equipmentType.name}}
         </p>
         {% endfor %}
       {% endfor %}

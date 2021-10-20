@@ -33,14 +33,16 @@ class EquipmentType(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    type_name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
 
     price = db.Column(db.Float)
+
+    deposit = db.Column(db.Float, nullable=True)
 
     models = db.relationship(
         "EquipmentModel",
         lazy="select",
-        backref=db.backref("type_equipment", lazy="joined"),
+        backref=db.backref("equipmentType", lazy="joined"),
     )
 
 
@@ -53,10 +55,10 @@ class EquipmentModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    model_name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
 
     equipments = db.relationship(
-        "Equipment", lazy="select", backref=db.backref("equipment_model", lazy="joined")
+        "Equipment", lazy="select", backref=db.backref("model", lazy="joined")
     )
 
     equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
@@ -71,14 +73,10 @@ class Equipment(db.Model):
 
     reference = db.Column(db.String(100), nullable=False)
 
-    caution = db.Column(db.Float, nullable=True)
-
-    lastReview = db.Column(db.DateTime, nullable = True)
-
     purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
 
     purchasePrice = db.Column(db.Float, nullable=True)
 
-    brand = db.Column(db.String(50), nullable = True)
+    #brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
