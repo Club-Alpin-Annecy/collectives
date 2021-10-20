@@ -1,0 +1,16 @@
+<form action="{{ route }}" method="post">
+
+    {{ form.hidden_tag() }}
+
+    {{ form.reference.label }}
+    {{ form.reference }}
+    {{ form.purchaseDate.label }}
+    {{ form.purchaseDate }}
+    {{ form.purchasePrice.label }}
+    {{ form.purchasePrice }}
+    {{ form.model.label }}
+    {{ form.model }}
+
+    {{ form.submit(class="button button-primary") }}
+
+</form>

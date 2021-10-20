@@ -4,7 +4,7 @@ This module contains form related to equipment.
 """
 from flask import Markup
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, DateField, DecimalField 
 from wtforms.validators import InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm, QuerySelectField
 from wtforms_alchemy.utils import strip_string
@@ -24,14 +24,14 @@ class AddEquipmentTypeForm(FlaskForm):
     priceEquipmentType = StringField("Prix :")
     submit = SubmitField("Enregistrer")
 
-class AddEquipmentModelForm(FlaskForm):
+class EquipmentModelForm(FlaskForm):
     class Meta:
         model = EquipmentModel
         only = ["name", "equipmentType"]
         
-    name = StringField("Type d'équipement :")
+    name = StringField("Model d'équipement :")
 
-    equipmentType = QuerySelectField(
+    equipmentType = QuerySelectField("Type d'équipement : ",
         query_factory=lambda: EquipmentType.query.all(),
         get_pk=lambda a: a.id,
         get_label=lambda a: a.name,
@@ -39,8 +39,28 @@ class AddEquipmentModelForm(FlaskForm):
     )
     submit = SubmitField("Enregistrer")
 
-class DeleteEquipmentForm(FlaskForm):
-    # equipment_id = HiddenField()
+class EquipmentForm(FlaskForm):
+    class Meta:
+        model = Equipment
+        only = ["reference", "purchase"]
+        
+    reference = StringField("Référence de l'équipement :")
+
+    purchaseDate = DateField("Date d'achat",format='%d/%m/%Y')
+
+    purchasePrice = DecimalField("Prix d'achat")
+
+    model = QuerySelectField(
+        query_factory=lambda: EquipmentModel.query.all(),
+        get_pk=lambda a: a.id,
+        get_label=lambda a: a.name + "("+a.equipmentType.name+")",
+        allow_blank=False,
+    )
+    submit = SubmitField("Enregistrer")
+
+
+class DeleteForm(FlaskForm):
+    
     delete = SubmitField("Supprimer")
 
 

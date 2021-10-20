@@ -35,33 +35,20 @@
         {% if modelId != aModel.id %}
             <p> {{ aModel.name }} {{ aModel.equipmentType.name }} <a href="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}">edit</a></p>
         {% else %}
-        <form action="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}" method="post">
-
-            {{ formEdit.hidden_tag() }}
-      
-            {{ formEdit.name }}
-            {{ formEdit.equipmentType }}
-      
-            {{ formEdit.submit(class="button button-primary") }}
-      
-          </form>
+          {% with form=formEdit, route=url_for("equipment.crud_equipment_model",modelId=aModel.id) %}
+            {% include "equipment/model/form.html" %}
+          {% endwith %}
         {% endif %}
+        {% with form=deleteForm, route=url_for("equipment.delete_equipment_model",modelId=aModel.id) %}
+            {% include 'equipment/delete_form.html' %}
+        {% endwith %}
     {% endfor %}
 
 
     <h2>Ajouter un model d'equipement</h2>
-
-    <form action="" method="post">
-
-      {{ formAjout.hidden_tag() }}
-
-      {{ formAjout.name }}
-      {{ formAjout.equipmentType }}
-
-      {{ formAjout.submit(class="button button-primary") }}
-      
-
-    </form>
+    {% with form=formAjout, route=url_for("equipment.crud_equipment_model") %}
+      {% include "equipment/model/form.html" %}
+    {% endwith %}
 
 
 {% endblock %}

@@ -7,7 +7,7 @@ from flask import current_app, Blueprint, escape
 from flask_login import current_user
 
 
-from ..forms.equipment import AddEquipmentTypeForm, DeleteEquipmentForm, AddEquipmentModelForm
+from ..forms.equipment import AddEquipmentTypeForm, DeleteForm, EquipmentModelForm,EquipmentForm
 
 import datetime
 
@@ -81,11 +81,12 @@ def view_equipment_type():
 @blueprint.route("/equipment_models/edit<int:modelId>", methods=["GET", "POST"])
 def crud_equipment_model(modelId = None):
 
-    formAjout = AddEquipmentModelForm()
+    formAjout = EquipmentModelForm()
+    
     formEdit = None
     if(modelId is not None):
         equipmentModified = EquipmentModel.query.get(modelId)
-        formEdit = AddEquipmentModelForm(obj=EquipmentModel.query.get(modelId))
+        formEdit = EquipmentModelForm(obj=EquipmentModel.query.get(modelId))
 
         if formEdit.validate_on_submit():
             equipmentModified.name = formEdit.name.data
@@ -100,47 +101,89 @@ def crud_equipment_model(modelId = None):
         new_equipment_model.equipmentType = formAjout.equipmentType.data
         db.session.add(new_equipment_model)
         db.session.commit()
-
-    
-
+        formAjout.name.data = ""
+        formAjout.equipmentType.data= ""
 
     listEquipementModel = EquipmentModel.query.all()
-
+    deleteForm = DeleteForm()
     return render_template(
-        "equipment/equipment_model.html",
+        "equipment/model/equipment_model.html",
         listEquipementModel=listEquipementModel,
         formAjout=formAjout,
         formEdit=formEdit,
-        modelId=modelId
+        modelId=modelId,
+        deleteForm=deleteForm
 
     )
 
 
 
-@blueprint.route("/stock", methods=["GET"])
+
+@blueprint.route("/stock", methods=["GET", "POST"])
 def view_equipment_stock():
-    # equipments = Equipment.query.all()
-    # equipments.commit()
+    addEquipmentForm = EquipmentForm()
 
-
+    if addEquipmentForm.validate_on_submit():
+        new_equipment = Equipment()
+        new_equipment.reference = addEquipmentForm.reference.data
+        new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
+        new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
+        new_equipment.model = addEquipmentForm.model.data
+        db.session.add(new_equipment)
+        db.session.commit()
+        return redirect(url_for(".view_equipment_stock"))
+        
     equipmentTypeList = EquipmentType.query.all()
 
-    form = DeleteEquipmentForm()
+    deleteForm = DeleteForm()
 
     return render_template(
         "equipment/equipment_stock.html",
-        # equipments=equipments
         equipmentTypeList=equipmentTypeList,
-        form=form,
+        addEquipmentForm=addEquipmentForm, 
+        deleteForm=deleteForm,
+    )
+
+@blueprint.route("/stock/edit<int:equipmentId>", methods=["GET", "POST"])
+def edit_equipment(equipmentId):
+    equipmentModified = Equipment.query.get(equipmentId)
+    editEquipmentForm = EquipmentForm(obj=equipmentModified)
+    
+
+    if editEquipmentForm.validate_on_submit():
+        equipmentModified.reference = editEquipmentForm.reference.data
+        equipmentModified.purchaseDate = editEquipmentForm.purchaseDate.data
+        equipmentModified.purchasePrice = editEquipmentForm.purchasePrice.data
+        equipmentModified.model = editEquipmentForm.model.data
+        db.session.commit()
+        return redirect(url_for(".view_equipment_stock"))
+        
+    equipmentTypeList = EquipmentType.query.all()
+    addEquipmentForm = EquipmentForm()
+    deleteForm = DeleteForm()
+
+    return render_template(
+        "equipment/equipment_stock.html",
+        equipmentTypeList=equipmentTypeList,
+        editEquipmentForm=editEquipmentForm,
+        addEquipmentForm=addEquipmentForm,
+        deleteForm=deleteForm,
+        equipmentId=equipmentId
     )
 
 
-@blueprint.route("/delete/<int:equipment_id>", methods=["POST"])
+@blueprint.route("/delete_equipment/<int:equipment_id>", methods=["POST"])
 def delete_equipment(equipment_id):
     del_equipment = Equipment.query.get(equipment_id)
     db.session.delete(del_equipment)
     return redirect(url_for(".view_equipment_stock"))
 
+
+@blueprint.route("/delete_model/<int:modelId>", methods=["POST"])
+def delete_equipment_model(modelId):
+    model = EquipmentModel.query.get(modelId)
+    db.session.delete(model)
+    return redirect(url_for(".crud_equipment_model"))
 
 
 
