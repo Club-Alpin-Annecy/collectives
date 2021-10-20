@@ -69,14 +69,6 @@ def view_equipment_type():
 
 
     test = EquipmentType.query.all()
-<<<<<<< HEAD
-    print(test)
-
-  
-
-
-=======
->>>>>>> delete_equipment_button
 
     return render_template(
         "equipment/equipment_type.html",
