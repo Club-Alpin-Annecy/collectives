@@ -2,6 +2,7 @@
 """
 from .globals import db
 from .utils import ChoiceEnum
+from sqlalchemy.orm import validates
 
 class EquipmentStatus(ChoiceEnum):
     Available = 0
@@ -41,6 +42,7 @@ class EquipmentType(db.Model):
         lazy="select",
         backref=db.backref("type_equipment", lazy="joined"),
     )
+
 
 
 class EquipmentModel(db.Model):

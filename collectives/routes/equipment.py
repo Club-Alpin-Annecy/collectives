@@ -6,6 +6,10 @@ from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
 
+from collectives.models.equipment import EquipmentType
+
+from ..forms.equipment import AddEquipmentTypeForm
+
 import datetime
 
 from ..models import db, User, Equipment
@@ -33,6 +37,9 @@ def view_equipment():
 
     print(vars(equipment), flush=True)
 
+
+  
+
     return render_template(
         "equipment.html",
         # equipments=equipments
@@ -42,23 +49,58 @@ def view_equipment():
 
 
 
-@blueprint.route("/equipment_type", methods=["GET"])
+@blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
-    # equipments = Equipment.query.all()
+    
+    listEquipementType = EquipmentType.query.all()
     # equipments.commit()
 
-    equipment = Equipment()
-    equipment.purchaseDate = datetime.datetime.now()
-    equipment.reference = "blabla"
-    equipment.caution = 12.1
-    equipment.purchasePrice = 15.50
 
-    print(vars(equipment), flush=True)
+    # for aEquipement in allEquipment:
+    #     print(aEquipement.type_name)
+
+    # listEquipementType = []
+    # listEquipmentName = ["Baudrier", "Crampon", "Crocs"]
+
+    # for equipementName in listEquipmentName:
+    #     equipmentType = EquipmentType()
+    #     equipmentType.type_name = equipementName
+
+    #     listEquipementType.append(equipmentType)
+
+
+    # print(vars(equipment), flush=True)
+
+    form = AddEquipmentTypeForm()
+
+    if form.validate_on_submit():
+
+        new_equipment_type = EquipmentType()
+
+        new_equipment_type.type_name = form.libelleEquipmentType.data
+        new_equipment_type.price = float(form.priceEquipmentType.data)
+
+
+        db.session.add(new_equipment_type)
+        listEquipementType.append(new_equipment_type)
+        db.session.commit()
+
+
+    test = EquipmentType.query.all()
+    print(test)
+
+  
+
+    for aEquipement in test:
+        print(aEquipement.type_name)
 
     return render_template(
         "equipment_type.html",
         # equipments=equipments
-        equipment=equipment,
+        # equipment=equipment,
+        listEquipementType=listEquipementType,
+        form=form
+
     )
 
 
@@ -81,3 +123,7 @@ def view_equipment_stock():
         # equipments=equipments
         equipment=equipment,
     )
+
+
+
+

@@ -34,5 +34,27 @@
 
     <h1>Type equipement</h1>
 
+    {% for aEquipment in listEquipementType %}
+      <p> {{ aEquipment.type_name }} </p>
+    {% endfor %}
+
+
+    <h2>Ajouter un type equipement</h2>
+
+    <form action="" method="post">
+
+      {{ form.hidden_tag() }}
+
+      {{ form.libelleEquipmentType.label }}
+      {{ form.libelleEquipmentType }}
+
+      {{ form.priceEquipmentType.label }}
+      {{ form.priceEquipmentType }}
+
+      {{ form.submit(class="button button-primary") }}
+      
+
+    </form>
+
 
 {% endblock %}
