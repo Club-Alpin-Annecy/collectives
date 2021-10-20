@@ -35,6 +35,8 @@ class EquipmentType(db.Model):
 
     name = db.Column(db.String(100), nullable=False)
 
+    pathImg = db.Column(db.String(100), nullable=True)
+
     price = db.Column(db.Float)
 
     deposit = db.Column(db.Float, nullable=True)

@@ -1,8 +1,8 @@
-"""Modifications on equipments models
+"""Added equipment type img
 
-Revision ID: bd8e76210a5d
+Revision ID: 341f247b06cf
 Revises: bc252bdfe1a5
-Create Date: 2021-10-20 14:03:03.090776
+Create Date: 2021-10-20 14:50:56.200875
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'bd8e76210a5d'
+revision = '341f247b06cf'
 down_revision = 'bc252bdfe1a5'
 branch_labels = None
 depends_on = None
@@ -21,6 +21,7 @@ def upgrade():
     op.create_table('equipment_types',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('pathImg', sa.String(length=100), nullable=True),
     sa.Column('price', sa.Float(), nullable=True),
     sa.Column('deposit', sa.Float(), nullable=True),
     sa.PrimaryKeyConstraint('id')

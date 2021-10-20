@@ -76,7 +76,7 @@ def view_equipment_type():
 
         new_equipment_type = EquipmentType()
 
-        new_equipment_type.type_name = form.libelleEquipmentType.data
+        new_equipment_type.name = form.libelleEquipmentType.data
         new_equipment_type.price = float(form.priceEquipmentType.data)
 
 
@@ -90,8 +90,8 @@ def view_equipment_type():
 
   
 
-    for aEquipement in test:
-        print(aEquipement.type_name)
+    # for aEquipement in test:
+    #     print(aEquipement.type_name)
 
     return render_template(
         "equipment_type.html",
