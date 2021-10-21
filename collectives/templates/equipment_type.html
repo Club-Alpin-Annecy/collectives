@@ -35,13 +35,13 @@
     <h1>Type equipement</h1>
 
     {% for aEquipment in listEquipementType %}
-      <p> {{ aEquipment.name }} </p>
+      <p> {{ aEquipment.name }}  {{ aEquipment.price }} {{ aEquipment.pathImg }}</p>
     {% endfor %}
 
 
     <h2>Ajouter un type equipement</h2>
 
-    <form action="" method="post">
+    <form method="POST" action="" enctype="multipart/form-data">
 
       {{ form.hidden_tag() }}
 
@@ -50,6 +50,9 @@
 
       {{ form.priceEquipmentType.label }}
       {{ form.priceEquipmentType }}
+
+      {{ form.imageType_file.label }}
+      {{ form.imageType_file }}
 
       {{ form.submit(class="button button-primary") }}
       

@@ -2,7 +2,13 @@
 """
 from .globals import db
 from .utils import ChoiceEnum
+from flask_uploads import UploadSet, IMAGES
 from sqlalchemy.orm import validates
+
+
+# Upload
+imgtypeequip = UploadSet("imgtypeequip", IMAGES)
+
 
 class EquipmentStatus(ChoiceEnum):
     Available = 0
@@ -46,6 +52,20 @@ class EquipmentType(db.Model):
         lazy="select",
         backref=db.backref("equipmentType", lazy="joined"),
     )
+
+    def save_typeImg(self, file):
+        """Save an image as type image.
+
+        It will both save the files into the file system and save the path into the database.
+        If file is None, it will do nothing. It will use Flask-Upload to save the image.
+
+        :param file: request param to be saved.
+        :type file: :py:class:`werkzeug.datastructures.FileStorage`
+        """
+        if file is not None:
+            filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
+            print(filename)
+            self.pathImg = filename
 
 
 

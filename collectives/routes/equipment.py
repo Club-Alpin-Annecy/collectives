@@ -6,8 +6,9 @@ from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
 
+from flask_uploads import UploadSet, IMAGES
 
-from ..forms.equipment import AddEquipmentTypeForm
+from ..forms.equipment import AddEquipmentTypeForm, ImgForm
 
 import datetime
 
@@ -71,13 +72,17 @@ def view_equipment_type():
     # print(vars(equipment), flush=True)
 
     form = AddEquipmentTypeForm()
-
+    print(request)
     if form.validate_on_submit():
 
         new_equipment_type = EquipmentType()
 
         new_equipment_type.name = form.libelleEquipmentType.data
         new_equipment_type.price = float(form.priceEquipmentType.data)
+        # print("---------------------------------------------------------------------------------")
+        # print(form.imageType_file)
+        # print("---------------------------------------------------------------------------------")
+        new_equipment_type.save_typeImg(form.imageType_file.data)
 
 
         db.session.add(new_equipment_type)
@@ -86,7 +91,6 @@ def view_equipment_type():
 
 
     test = EquipmentType.query.all()
-    print(test)
 
   
 
@@ -101,7 +105,6 @@ def view_equipment_type():
         form=form
 
     )
-
 
 
 
