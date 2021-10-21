@@ -32,29 +32,65 @@
 
 {% block content %}
 
-    <h1>STOCK</h1>
+  <div class="panel">
 
-    {% for equipmentType in equipmentTypeList %}
-      {% for model in equipmentType.models %}
-        {% for equipment in model.equipments %}
-        <p>
-          {% if equipmentId != equipment.id %}
+    <h3>GESTION DU MATÉRIEL <span class="title_second_path">/ STOCK</span></h3>
+
+    <h4>STOCK</h4>
+
+    <input type="submit" value="Ajouter" class="button button-primary button-small">
+
+
+    <div class="container_table">
+      <div class="table_head_container">
+
+        <p class="head_element">Référence Catalogue</p>
+        <p class="head_element">Type d'objet</p>
+        <p class="head_element"> Modele </p>
+        <p class="head_element">État</p>
+
+      </div>
+
+      <div class="table_body_container">
+
+        {% for equipmentType in equipmentTypeList %}
+        {% for model in equipmentType.models %}
+          {% for equipment in model.equipments %}
+
             {% include 'equipment/equipment/display_one.html' %}
-            <a href="{{ url_for("equipment.edit_equipment", equipmentId=equipment.id)}}">edit</a>
-          {% else %}
-            {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
-              {% include "equipment/equipment/form.html" %}
-            {% endwith %}
-          {% endif %}
-          
-          {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipment_id=equipment.id) %}
-            {% include 'equipment/delete_form.html' %}
-          {% endwith %}
 
-        </p>
+
+            <!-- {% if equipmentId != equipment.id %}
+            
+              <a href="{{ url_for("equipment.edit_equipment", equipmentId=equipment.id)}}">edit</a>
+            {% else %}
+              {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
+                {% include "equipment/equipment/form.html" %}
+              {% endwith %}
+           {% endif %}
+          
+            {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipment_id=equipment.id) %}
+              {% include 'equipment/delete_form.html' %}
+            {% endwith %} -->
+
+          {% endfor %}
         {% endfor %}
       {% endfor %}
-    {% endfor %}
+
+      </div>
+
+    </div>
+
+
+  
+
+  </div>
+
+
+
+
+
+
 
     {% if addEquipmentForm is defined %}
       {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock") %}

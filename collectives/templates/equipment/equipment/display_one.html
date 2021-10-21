@@ -1,6 +1,10 @@
-{{ equipment.reference }} 
-{{ equipment.model.name }} 
-{{ equipmentType.name }}
-{{ equipment.status.display_name() }}
-{{ equipment.purchasePrice }}
-{{ equipment.purchaseDate }}
+
+<a href="#" class="line_body_link">
+    <div class="line_body">
+
+      <p class="line_body_element">  {{ equipment.reference }}  </p>
+      <p class="line_body_element">  {{ equipmentType.name }} </p>
+      <p class="line_body_element">  {{ equipment.model.name }} </p>
+      <p class="line_body_element">  {{ equipment.status.display_name() }} </p>
+    </div>
+  </a>
