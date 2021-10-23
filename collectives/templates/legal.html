@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="page-content" id="legal">
-    <h3>Mentions légales</h3>
+    <h1 class="heading-1">Mentions légales</h1>
 
     {% if  current_user.is_authenticated  %}
         {% if current_user.has_signed_legal_text() %}

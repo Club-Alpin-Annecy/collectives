@@ -30,7 +30,7 @@
 
       {# Title / Photo / tags #}
 
-      <h3>
+      <h1 class="heading-1">
           {% for atype in event.activity_types %}
               <span class="activity {{atype.short}} type"></span>
           {% endfor %}
@@ -39,7 +39,7 @@
           <span class="event-status">{{event.status_string()}}</span>&nbsp;
         {% endif %}
         {{event.title}}
-      </h3>
+      </h1>
       {% if event.tags %}
       <h5>
           {% for tag in event.tags %}

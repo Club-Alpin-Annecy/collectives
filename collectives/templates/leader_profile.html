@@ -15,7 +15,7 @@
 
 {% block content %}
 <div class="page-content" id="eventdetail">
-    <h3>{{user.full_name()}}</h3>
+    <h1 class="heading-1">{{user.full_name()}}</h1>
     
     <div><img src="{%   if user.avatar
                                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
