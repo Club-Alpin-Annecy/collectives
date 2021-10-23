@@ -26,20 +26,18 @@
     </head>
     <body>
         {%include 'partials/main-navigation.html' %}
-        <div id="playground">
-
+        <section class="page">
             {% block content %}{% endblock %}
-
-        </div>
+        </section>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="messages">
                 <div class="innermessages">
                     <img
-                                    src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                                    class="close"
-                                    onclick= "this.parentNode.parentNode.style.display='none'"
-                                />
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                        class="close"
+                        onclick= "this.parentNode.parentNode.style.display='none'"
+                    />
                     <h3>Message</h3>
                 {% for category, message in messages %}
                 <p class="{{category}} message">{{ message }}</p>
