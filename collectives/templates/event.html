@@ -31,7 +31,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="panel" id="eventdetail">
+<div class="panel collective-display" id="eventdetail">
 
       {# Title / Photo / tags #}
 
@@ -59,7 +59,7 @@
       </h5>
 
 
-    <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
+    <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
 
 
     {# Leaders #}
