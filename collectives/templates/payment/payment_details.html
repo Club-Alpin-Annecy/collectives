@@ -10,10 +10,6 @@
 {% block additionalhead %}
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Détails d'un paiement{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 <div class="page-content" id="administration">
   <p><a class="button button-secondary" href="{{url_for('payment.list_payments', event_id=event.id)}}">Retour à la liste des paiements</a></p>

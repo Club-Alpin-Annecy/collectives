@@ -13,10 +13,6 @@
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
 
-{% block header %}
-<h1>{% block title %} {{user.full_name()}} {% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 <div class="page-content" id="eventdetail">
     <h3>{{user.full_name()}}</h3>

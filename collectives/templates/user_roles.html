@@ -1,10 +1,6 @@
 
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}{{ title }}{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 <div class="page-content" id="administration">
   <h2>{{user.full_name()}}</h2>

@@ -62,14 +62,6 @@ Additionnal ``<head>`` tags can be included by adding a block ``additionalhead``
       <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
     {% endblock %}
 
-You shall define a title by adding blocks ``header`` and ``title``:
-
-::
-
-    {% block header %}
-      <h1>{% block title %}TITRE{% endblock %}</h1>
-    {% endblock %}
-
 At last, your page content can be defined in a block ``content``.
 
 ::
