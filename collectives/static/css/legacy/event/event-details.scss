@@ -5,6 +5,10 @@
     line-height: 50px;
 }
 
+#eventlist a {
+    color: inherit;
+}
+
 #eventlist #filters input.button {
     display: none;
 }
@@ -62,10 +66,10 @@
     height: 130px;
     width: 200px;
 }
-#eventlist #eventstable h4 {
-    font-size: 160%;
-    margin: 0;
-}
+// #eventlist #eventstable h4 {
+//     font-size: 160%;
+//     margin: 0;
+// }
 
 #eventlist #eventstable .tabulator-table {
     width: 100%;
