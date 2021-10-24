@@ -41,17 +41,18 @@
         {{event.title}}
       </h1>
       {% if event.tags %}
-      <h5>
+      <h2 class="heading-3">
           {% for tag in event.tags %}
                <span class="activity s30px {{tag.short}}" title="{{tag.name}}" ></span> {{tag.name}}
           {% endfor %}
           <br/><br/>
-      </h5>
+      </h2>
       {% endif %}
 
-      <h5 class="date"> <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+      <h2 class="heading-3">
+        <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
         {{ format_datetime_range(event.start, event.end) | capitalize}}
-      </h5>
+      </h2>
 
 
     <img class="photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=800 ) }}{% endif %}"/>
@@ -60,7 +61,7 @@
     {# Leaders #}
 
     <div id="encadrement">
-      <h5>Encadrement</h5>
+      <h2 class="heading-3">Encadrement</h2>
       <div class="userlist">
       {% for user in event.ranked_leaders() %}
         {% with leader_info=True %}
@@ -69,7 +70,7 @@
       {% endfor %}
 
       {% if event.coleaders() | length %}
-        <h5>Co-encadrants en formation</h5>
+        <h3 class="heading-4">Co-encadrants en formation</h3>
         {% for registration in event.coleaders() %}
           <div class="useractionmenu">
             {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
@@ -93,7 +94,7 @@
     {# Active registrations and self-register #}
 
     <div class="subscriptions">
-      <h5> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
+      <h2 class="heading-3"> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
           {% if event.num_pending_registrations() > 0 %}
             (dont {{event.num_pending_registrations()}} en attente)
           {% endif %}
@@ -101,7 +102,7 @@
           {% if not event.has_free_slots() %}
             <span class="tag red">COMPLET</span>
           {% endif %}
-      </h5>
+      </h2>
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
@@ -203,7 +204,7 @@
 
     {% if event.requires_payment()  and event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
     <div class="administration">
-      <h4>Inscriptions en attente de paiement</h4>
+      <h4 class="heading-4">Inscriptions en attente de paiement</h4>
       <ul>
       {% for registration in event.registrations if registration.is_pending_payment() %}
         {{ macros.registration_admin_list_item(registration) }}<br/>
@@ -221,7 +222,7 @@
 
     {% if event.has_edit_rights(current_user) %}
       <div class="administration">
-      <h4>Administration</h4>
+      <h4 class="heading-4">Administration</h4>
       <br/>
       <div class="buttons">
           <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
@@ -275,7 +276,7 @@
           {% endif %}
 
       </div>
-      <h5>Coordonnées du groupe</h5>
+      <h5 class="heading-5">Coordonnées du groupe</h5>
       {% if current_user.has_signed_ca() %}
           <div class="contactinfos">
               <p class="inputGrow">
@@ -318,7 +319,7 @@
           </p>
       {% endif %}
 
-      <h5> Inscrire un adhérent </h5>
+      <h5 class="heading-5"> Inscrire un adhérent </h5>
       <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
       <div id="user-search-data" class="form-search search-data">
         <p>
@@ -329,7 +330,7 @@
       </div>
       </form>
 
-      <h5> Liste des présences</h5>
+      <h5 class="heading-5"> Liste des présences</h5>
         <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <tbody>
@@ -388,7 +389,7 @@
 
     {% if config["PAYMENTS_ENABLED"] and current_user.is_accountant()  %}
     <div class="administration">
-        <h4>Comptabilité</h4>
+        <h4 class="heading-4">Comptabilité</h4>
         <br/>
         <div class="buttons">
         {% if event.requires_payment() %}
