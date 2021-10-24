@@ -97,120 +97,65 @@ span.event-status {
 }
 
 /* Event details */
-// #eventdetail h5 {
-//     font-size: 20px;
-//     margin: 0.5em 20px;
-// }
-// #eventdetail .slots {
-//     text-align: left;
-// }
-// #eventdetail .photo {
-//     width: 50%;
-//     margin: 2em auto;
-//     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-//     display: block;
-// }
-// #eventdetail .type {
-//     float: right;
-// }
-// #eventdetail #description {
-//     text-align: justify;
-//     max-width: 1000px;
-//     margin: 2em auto 1em;
-//     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-//     padding: 30px 40px;
-//     overflow-wrap: break-word;
-// }
 
-// #eventdetail .subscriptions,
-// #eventdetail #encadrement {
-//     padding: 3px 20px;
-// }
+#eventdetail .slots {
+    text-align: left;
+}
 
-// #eventdetail .date,
-// #eventdetail .subscriptions h5,
-// #eventdetail #encadrement h5 {
-//     color: rgb(235, 105, 28);
-// }
+#eventdetail .useractionmenu {
+    position: relative;
+    display: inline-block;
+}
 
-// #eventdetail .useractionmenu {
-//     position: relative;
-//     display: inline-block;
-// }
+#eventdetail .useractionmenu div.popover{
+    display: none;
+    position: absolute;
+    top: 50px;
+    z-index: 500;
+}
 
-// #eventdetail .useractionmenu div.popover{
-//     display: none;
-//     position: absolute;
-//     top: 50px;
-//     z-index: 500;
-// }
+#eventdetail .useractionmenu:hover div.popover {
+    display: block;
+}
 
-// #eventdetail .useractionmenu:hover div.popover {
-//     display: block;
-// }
+#eventdetail .useractionmenu form{
+    display:inline-block;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
 
-// #eventdetail .useractionmenu form{
-//     display:inline-block;
-//     text-align: center;
-//     color: white;
-//     font-weight: bold;
-//     padding: 5px 10px;
-//     cursor: pointer;
-//     border-radius: 5px;
-// }
+#eventdetail .useractionmenu form.delete {
+    background-color: red;
+}
 
-// #eventdetail .useractionmenu form.delete {
-//     background-color: red;
-// }
+#eventdetail .useractionmenu form.update {
+    background-color: #006880;
+}
 
-// #eventdetail .useractionmenu form.update {
-//     background-color: #006880;
-// }
+#eventdetail .selfsubscribe {
+    cursor: pointer;
+    margin-left: 40px;
+    background-color: #006880;
+    color: white;
+}
 
-// #eventdetail .selfsubscribe {
-//     cursor: pointer;
-//     margin-left: 40px;
-//     background-color: #006880;
-//     color: white;
-// }
+#eventdetail .selfunregister {
+    display: inline;
+    vertical-align: middle;
+}
 
-// #eventdetail .selfunregister {
-//     display: inline;
-//     vertical-align: middle;
-// }
+#eventdetail .administration .buttons {
+    text-align: center;
+}
 
-// #eventdetail .administration {
-//     border: 1px solid #00A5CC;
-//     margin-top: 4em;
-//     padding-bottom: 20px;
-// }
+#eventdetail .search-input {
+    max-width: 400px;
+}
 
-// #eventdetail .administration h4 {
-//     text-align: center;
-//     color: white;
-//     background: #00A5CC;
-//     margin: 0;
-//     padding: 0.7em;
-// }
-
-// #eventdetail .administration h5 {
-//     color: white;
-//     background:#00A5CC;
-//     margin: 2em 0 1em;
-//     padding: 0.2em 2em;
-// }
-
-// #eventdetail .administration .buttons {
-//     text-align: center;
-// }
-
-// #eventdetail .search-input {
-//     max-width: 400px;
-// }
-
-// #eventdetail p {
-//     padding: 1em 20px;
-// }
 
 #description a {
     text-decoration: underline;

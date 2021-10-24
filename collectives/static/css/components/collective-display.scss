@@ -1,0 +1,36 @@
+.collective-display {
+    &--photo {
+        width: 100%;
+    }
+
+    &--header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding-bottom: $padding-vertical-l;
+    }
+
+    &--activity-type {
+        min-width: 60px;
+        margin-top: 8px;
+    }
+
+    &--date {
+        color: $color-gray-medium;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-m;
+    }
+
+    &--description {
+       padding-bottom: $padding-vertical-l;
+    }
+
+    &--administration {
+        padding: $padding-sections;
+        background: lighten($color-blue-primary-light, 57%);
+    }
+
+    &--administration-title {
+       color: $color-blue-primary-dark;
+    }
+}
