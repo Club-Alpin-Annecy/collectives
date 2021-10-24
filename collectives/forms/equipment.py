@@ -46,14 +46,14 @@ class EquipmentForm(FlaskForm):
         
     reference = StringField("Référence de l'équipement :")
 
-    purchaseDate = DateField("Date d'achat",format='%d/%m/%Y')
+    purchaseDate = DateField("Date d'achat :",format='%d/%m/%Y')
 
-    purchasePrice = DecimalField("Prix d'achat")
+    purchasePrice = DecimalField("Prix d'achat :")
 
-    model = QuerySelectField(
+    model = QuerySelectField( "Model :",
         query_factory=lambda: EquipmentModel.query.all(),
         get_pk=lambda a: a.id,
-        get_label=lambda a: a.name + "("+a.equipmentType.name+")",
+        get_label=lambda a: a.name + "   ("+a.equipmentType.name+")",
         allow_blank=False,
     )
     submit = SubmitField("Enregistrer")

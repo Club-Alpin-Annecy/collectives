@@ -1,16 +1,39 @@
-<form action="{{ route }}" method="post">
 
-    {{ form.hidden_tag() }}
 
-    {{ form.reference.label }}
-    {{ form.reference }}
-    {{ form.purchaseDate.label }}
-    {{ form.purchaseDate }}
-    {{ form.purchasePrice.label }}
-    {{ form.purchasePrice }}
-    {{ form.model.label }}
-    {{ form.model }}
 
-    {{ form.submit(class="button button-primary") }}
+<h1 class="modal_form_title">Ajouter un équipement</h1>
 
-</form>
+<div class="modal_form_container">
+    <form action="{{ route }}" method="post" class="modal_form">
+
+        {{ form.hidden_tag() }}
+    
+        <div class="modal_form_input_box">
+            {{ form.reference.label }}
+            {{ form.reference }}
+        </div>
+    
+        <div class="modal_form_input_box">    
+            {{ form.purchaseDate.label }}
+            {{ form.purchaseDate }}
+        </div>
+    
+    
+        <div class="modal_form_input_box">
+            {{ form.purchasePrice.label }}
+            {{ form.purchasePrice }}
+        </div>
+    
+    
+        <div class="modal_form_input_box">    
+            {{ form.model.label }}
+            {{ form.model }}
+        </div>
+    
+    
+    
+        {{ form.submit(class="button button-primary") }}
+    
+    </form>
+
+</div>

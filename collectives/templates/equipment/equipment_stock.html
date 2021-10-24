@@ -25,6 +25,16 @@
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+
+
+{% endblock %}
+
+
+
+{% block scriptJsBody %}
+
+  {# Script JS in body tag #}
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 {% endblock %}
 
 
@@ -38,7 +48,7 @@
 
     <h4>STOCK</h4>
 
-    <input type="submit" value="Ajouter" class="button button-primary button-small">
+    <p class="button button-primary button-small button-open-modal">Ajouter</p>
 
 
     <div class="container_table">
@@ -92,11 +102,23 @@
 
 
 
-    {% if addEquipmentForm is defined %}
+    <!-- {% if addEquipmentForm is defined %}
       {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock") %}
         {% include 'equipment/equipment/form.html' %}
       {% endwith %}
-    {% endif %}
+    {% endif %} -->
+
+
+    <!--  -->
+
+    {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock"),
+    includePath='equipment/equipment/form.html' %}
+
+      {% include 'partials/modal.html' %}
+
+    {% endwith %}
+
+
 
 
 {% endblock %}
