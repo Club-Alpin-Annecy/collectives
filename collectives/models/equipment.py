@@ -1,8 +1,10 @@
 """Module for registration related classes
 """
+import os
+from genericpath import isdir, isfile
 from .globals import db
 from .utils import ChoiceEnum
-from flask_uploads import UploadSet, IMAGES
+from flask_uploads import UploadSet, IMAGES, extension
 from sqlalchemy.orm import validates
 
 
@@ -63,8 +65,10 @@ class EquipmentType(db.Model):
         :type file: :py:class:`werkzeug.datastructures.FileStorage`
         """
         if file is not None:
+            pathFile = "collectives/static/uploads/typeEquipmentImg/type-" + str(self.name) + "."+extension(file.filename)
+            if isfile(pathFile):
+                os.remove(pathFile)
             filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
-            print(filename)
             self.pathImg = filename
 
 
