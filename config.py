@@ -358,6 +358,12 @@ UPLOADED_AVATARS_DEST = os.path.join(basedir,
                                     "collectives/static/uploads/avatars")
 """Folder path for uploaded user avatars.
 
+
+"""
+UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(basedir,
+                                    "collectives/static/uploads/typeEquipmentImg")
+"""Folder path for uploaded type images.
+
 :type: string
 """
 
@@ -368,7 +374,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 """
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
-IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
+IMAGES_PATH = ["static/uploads", "static/uploads/avatars","static/uploads/typeEquipmentImg"]
 
 
 DESCRIPTION_TEMPLATE = """
