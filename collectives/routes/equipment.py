@@ -8,7 +8,7 @@ from flask_login import current_user
 
 from flask_uploads import UploadSet, IMAGES
 
-from ..forms.equipment import AddEquipmentTypeForm, ImgForm
+from ..forms.equipment import AddEquipmentTypeForm
 
 import datetime
 
