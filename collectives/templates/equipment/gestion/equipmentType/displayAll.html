@@ -34,30 +34,25 @@
 
     <h1>Type equipement</h1>
 
-    {% for aEquipment in listEquipementType %}
-      <p> {{ aEquipment.name }}  {{ aEquipment.price }} {{ aEquipment.pathImg }}</p>
+    {% for anEquipmentType in listEquipementType %}
+      y
+
+      {% if typeId != anEquipmentType.id %}
+        <p> {{ anEquipmentType.name }}  {{ anEquipmentType.price }} {{ anEquipmentType.pathImg }} 
+          <a href="{{ url_for("equipment.edit_equipment_type",typeId=anEquipmentType.id)}}">edit</a></p>
+      {% else %}
+        {% with form=formEdit, route=url_for("equipment.edit_equipment_type",typeId=anEquipmentType.id) %}
+          {% include "equipment/gestion/equipmentType/form.html" %}
+        {% endwith %}
+      {% endif %}
     {% endfor %}
 
 
     <h2>Ajouter un type equipement</h2>
 
-    <form method="POST" action="" enctype="multipart/form-data">
-
-      {{ form.hidden_tag() }}
-
-      {{ form.libelleEquipmentType.label }}
-      {{ form.libelleEquipmentType }}
-
-      {{ form.priceEquipmentType.label }}
-      {{ form.priceEquipmentType }}
-
-      {{ form.imageType_file.label }}
-      {{ form.imageType_file }}
-
-      {{ form.submit(class="button button-primary") }}
-      
-
-    </form>
+    {% with form=formAjout, route="route=url_for('equipment.view_equipment_type')" %}
+      {% include "equipment/gestion/equipmentType/form.html" %}
+    {% endwith %}
 
 
 {% endblock %}

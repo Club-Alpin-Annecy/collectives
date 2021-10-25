@@ -21,8 +21,8 @@ class AddEquipmentTypeForm(FlaskForm):
         model = EquipmentType
         only = ["type_name"]
         
-    libelleEquipmentType = StringField(label="Type d'équipement :", validators=[DataRequired()])
-    priceEquipmentType = FloatField(label="Prix :",render_kw={"pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$","placeholder":"Prix"})
+    name = StringField(label="Type d'équipement :", validators=[DataRequired()])
+    price = FloatField(label="Prix :",render_kw={"pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$","placeholder":"Prix"})
     imageType_file = FileField("Ajouter image",validators=[FileAllowed(photos, "Image uniquement!")])
     submit = SubmitField("Enregistrer")
 

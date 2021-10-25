@@ -59,6 +59,16 @@
 
     <img src=" {{ url_for('static', filename='uploads/typeEquipmentImg/') }}{{ equipment.model.equipmentType.pathImg }}" alt="">
 
+    {% if editEquipmentForm is defined %}
+      {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
+        {% include "equipment/gestion/equipment/form.html" %}
+      {% endwith %}
+      
+      {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id) %}
+        {% include 'equipment/gestion/delete_form.html' %}
+      {% endwith %}
+    {% endif %}
+  
     
 
   </div>
