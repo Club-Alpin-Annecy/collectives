@@ -41,7 +41,7 @@ def view_equipment():
   
 
     return render_template(
-        "equipment/equipment.html",
+        "equipment/gestion/equipment.html",
         # equipments=equipments
         equipment=equipment,
     )
@@ -81,7 +81,7 @@ def view_equipment_type():
     #     print(aEquipement.type_name)
 
     return render_template(
-        "equipment/equipment_type.html",
+        "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments
         # equipment=equipment,
         listEquipementType=listEquipementType,
@@ -119,7 +119,7 @@ def crud_equipment_model(modelId = None):
     listEquipementModel = EquipmentModel.query.all()
     deleteForm = DeleteForm()
     return render_template(
-        "equipment/model/equipment_model.html",
+        "equipment/gestion/equipmentModel/equipment_model.html",
         listEquipementModel=listEquipementModel,
         formAjout=formAjout,
         formEdit=formEdit,
@@ -150,7 +150,7 @@ def view_equipment_stock():
     deleteForm = DeleteForm()
 
     return render_template(
-        "equipment/equipment_stock.html",
+        "equipment/gestion/equipment/displayAll.html",
         equipmentTypeList=equipmentTypeList,
         addEquipmentForm=addEquipmentForm, 
         deleteForm=deleteForm,
@@ -175,7 +175,7 @@ def edit_equipment(equipmentId):
     deleteForm = DeleteForm()
 
     return render_template(
-        "equipment/equipment_stock.html",
+        "equipment/gestion/equipment/displayAll.html",
         equipmentTypeList=equipmentTypeList,
         editEquipmentForm=editEquipmentForm,
         addEquipmentForm=addEquipmentForm,
@@ -191,7 +191,7 @@ def detail_equipment(equipment_id):
     print(equipmentSelected)
 
     return render_template(
-        "equipment/equipment_detail.html",
+        "equipment/gestion/equipment/displayDetail.html",
         equipment = equipmentSelected
     )
 
@@ -203,7 +203,7 @@ def delete_equipment(equipment_id):
     return redirect(url_for(".view_equipment_stock"))
 
 
-@blueprint.route("/delete_model/<int:modelId>", methods=["POST"])
+@blueprint.route("/delete_equipmentModel/<int:modelId>", methods=["POST"])
 def delete_equipment_model(modelId):
     model = EquipmentModel.query.get(modelId)
     db.session.delete(model)

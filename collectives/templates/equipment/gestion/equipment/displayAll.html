@@ -67,7 +67,7 @@
         {% for model in equipmentType.models %}
           {% for equipment in model.equipments %}
 
-            {% include 'equipment/equipment/display_one.html' %}
+            {% include 'equipment/gestion/equipment/display_one.html' %}
 
 
             <!-- {% if equipmentId != equipment.id %}
@@ -75,12 +75,12 @@
               <a href="{{ url_for("equipment.edit_equipment", equipmentId=equipment.id)}}">edit</a>
             {% else %}
               {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
-                {% include "equipment/equipment/form.html" %}
+                {% include "equipment/gestion/equipment/form.html" %}
               {% endwith %}
            {% endif %}
           
             {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipment_id=equipment.id) %}
-              {% include 'equipment/delete_form.html' %}
+              {% include 'equipment/gestion/delete_form.html' %}
             {% endwith %} -->
 
           {% endfor %}
@@ -104,7 +104,7 @@
 
     <!-- {% if addEquipmentForm is defined %}
       {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock") %}
-        {% include 'equipment/equipment/form.html' %}
+        {% include 'equipment/gestion/equipment/form.html' %}
       {% endwith %}
     {% endif %} -->
 
@@ -112,7 +112,7 @@
     <!--  -->
 
     {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock"),
-    includePath='equipment/equipment/form.html' %}
+    includePath='equipment/gestion/equipment/form.html' %}
 
       {% include 'partials/modal.html' %}
 

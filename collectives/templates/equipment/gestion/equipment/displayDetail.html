@@ -1,3 +1,5 @@
+
+
 {% extends 'base.html' %}
 
 
@@ -25,30 +27,42 @@
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+
+
 {% endblock %}
+
+
+
+{% block scriptJsBody %}
+
+  {# Script JS in body tag #}
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+{% endblock %}
+
+
+
 
 {% block content %}
 
-    <h1>Type equipement</h1>
+  <div class="panel">
 
-    {% for aModel in listEquipementModel %}
-        {% if modelId != aModel.id %}
-            <p> {{ aModel.name }} {{ aModel.equipmentType.name }} <a href="{{ url_for("equipment.crud_equipment_model",modelId=aModel.id)}}">edit</a></p>
-        {% else %}
-          {% with form=formEdit, route=url_for("equipment.crud_equipment_model",modelId=aModel.id) %}
-            {% include "equipment/model/form.html" %}
-          {% endwith %}
-        {% endif %}
-        {% with form=deleteForm, route=url_for("equipment.delete_equipment_model",modelId=aModel.id) %}
-            {% include 'equipment/delete_form.html' %}
-        {% endwith %}
-    {% endfor %}
+    <h3>GESTION DU MATÉRIEL <span class="title_second_path">/ STOCK</span></h3>
 
+    <h4>MATOS  {{ equipment.id }}</h4>
 
-    <h2>Ajouter un model d'equipement</h2>
-    {% with form=formAjout, route=url_for("equipment.crud_equipment_model") %}
-      {% include "equipment/model/form.html" %}
-    {% endwith %}
+    <p class="button button-primary button-small button-open-modal">Éditer</p>
+
+    <p> Ref : {{ equipment.reference }} </p>
+    <p> Etat : {{ equipment.status.display_name() }} </p>
+    <p> Model : {{ equipment.model.name }} </p>
+    <p> Type : {{ equipment.model.equipmentType.name }} </p>
+
+    <img src=" {{ url_for('static', filename='uploads/typeEquipmentImg/') }}{{ equipment.model.equipmentType.pathImg }}" alt="">
+
+    
+
+  </div>
+
 
 
 {% endblock %}
