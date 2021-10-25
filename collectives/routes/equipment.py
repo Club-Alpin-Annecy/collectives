@@ -172,6 +172,18 @@ def edit_equipment(equipmentId):
     )
 
 
+@blueprint.route("/stock/detail_equipment/<int:equipment_id>", methods=["GET", "POST"])
+def detail_equipment(equipment_id):
+    equipmentSelected = Equipment.query.get(equipment_id)
+
+    print(equipmentSelected)
+
+    return render_template(
+        "equipment/equipment_detail.html",
+        equipment = equipmentSelected
+    )
+
+
 @blueprint.route("/delete_equipment/<int:equipment_id>", methods=["POST"])
 def delete_equipment(equipment_id):
     del_equipment = Equipment.query.get(equipment_id)

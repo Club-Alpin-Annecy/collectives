@@ -54,7 +54,7 @@ class EquipmentForm(FlaskForm):
         query_factory=lambda: EquipmentModel.query.all(),
         get_pk=lambda a: a.id,
         get_label=lambda a: a.name + "   ("+a.equipmentType.name+")",
-        allow_blank=False,
+        allow_blank=True,
     )
     submit = SubmitField("Enregistrer")
 
