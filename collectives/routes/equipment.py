@@ -54,18 +54,15 @@ def view_equipment_type():
     
     listEquipementType = EquipmentType.query.all()
 
-    form = AddEquipmentTypeForm()
+    formAjout = AddEquipmentTypeForm()
     print(request)
-    if form.validate_on_submit():
+    if formAjout.validate_on_submit():
 
         new_equipment_type = EquipmentType()
 
-        new_equipment_type.name = form.libelleEquipmentType.data
-        new_equipment_type.price = float(form.priceEquipmentType.data)
-        # print("---------------------------------------------------------------------------------")
-        # print(form.imageType_file)
-        # print("---------------------------------------------------------------------------------")
-        new_equipment_type.save_typeImg(form.imageType_file.data)
+        new_equipment_type.name = formAjout.name.data
+        new_equipment_type.price = float(formAjout.price.data)
+        new_equipment_type.save_typeImg(formAjout.imageType_file.data)
 
 
         db.session.add(new_equipment_type)
@@ -73,21 +70,43 @@ def view_equipment_type():
         db.session.commit()
 
 
-    test = EquipmentType.query.all()
+    return render_template(
+        "equipment/gestion/equipmentType/displayAll.html",
+        # equipments=equipments
+        # equipment=equipment,
+        listEquipementType=listEquipementType,
+        formAjout=formAjout
+    )
 
-  
+@blueprint.route("/equipment_type/edit<int:typeId>", methods=["GET", "POST"])
+def edit_equipment_type(typeId):
 
-    # for aEquipement in test:
-    #     print(aEquipement.type_name)
+    
+    typeModified = EquipmentType.query.get(typeId)
+    formEdit = AddEquipmentTypeForm(obj=typeModified)
+    
+    if formEdit.validate_on_submit():
+
+        typeModified.name = formEdit.name.data
+        typeModified.price = float(formEdit.price.data)
+        typeModified.save_typeImg(formEdit.imageType_file.data)
+        db.session.commit()
+        
+        return redirect(url_for(".view_equipment_type"))
+
+    listEquipementType = EquipmentType.query.all()
+    formAjout = AddEquipmentTypeForm()
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments
         # equipment=equipment,
         listEquipementType=listEquipementType,
-        form=form
-
+        formAjout=formAjout,
+        formEdit=formEdit,
+        typeId=typeId,
     )
+
 
 @blueprint.route("/equipment_models", methods=["GET", "POST"])
 @blueprint.route("/equipment_models/edit<int:modelId>", methods=["GET", "POST"])
@@ -119,7 +138,7 @@ def crud_equipment_model(modelId = None):
     listEquipementModel = EquipmentModel.query.all()
     deleteForm = DeleteForm()
     return render_template(
-        "equipment/gestion/equipmentModel/equipment_model.html",
+        "equipment/gestion/equipmentModel/displayAll.html",
         listEquipementModel=listEquipementModel,
         formAjout=formAjout,
         formEdit=formEdit,
@@ -156,7 +175,7 @@ def view_equipment_stock():
         deleteForm=deleteForm,
     )
 
-@blueprint.route("/stock/edit<int:equipmentId>", methods=["GET", "POST"])
+@blueprint.route("/stock/<int:equipmentId>/edit", methods=["GET", "POST"])
 def edit_equipment(equipmentId):
     equipmentModified = Equipment.query.get(equipmentId)
     editEquipmentForm = EquipmentForm(obj=equipmentModified)
@@ -189,16 +208,18 @@ def detail_equipment(equipment_id):
     equipmentSelected = Equipment.query.get(equipment_id)
 
     print(equipmentSelected)
+    deleteForm = DeleteForm()
 
     return render_template(
         "equipment/gestion/equipment/displayDetail.html",
-        equipment = equipmentSelected
+        equipment = equipmentSelected,
+        deleteForm=deleteForm,
     )
 
 
-@blueprint.route("/delete_equipment/<int:equipment_id>", methods=["POST"])
-def delete_equipment(equipment_id):
-    del_equipment = Equipment.query.get(equipment_id)
+@blueprint.route("/delete_equipment/<int:equipmentId>", methods=["POST"])
+def delete_equipment(equipmentId):
+    del_equipment = Equipment.query.get(equipmentId)
     db.session.delete(del_equipment)
     return redirect(url_for(".view_equipment_stock"))
 

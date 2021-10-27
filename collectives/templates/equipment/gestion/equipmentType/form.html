@@ -1,0 +1,17 @@
+<form method="POST" action="{{route}}" enctype="multipart/form-data">
+
+    {{ form.hidden_tag() }}
+
+    {{ form.name.label }}
+    {{ form.name }}
+
+    {{ form.price.label }}
+    {{ form.price }}
+
+    {{ form.imageType_file.label }}
+    {{ form.imageType_file }}
+
+    {{ form.submit(class="button button-primary") }}
+    
+
+  </form>
