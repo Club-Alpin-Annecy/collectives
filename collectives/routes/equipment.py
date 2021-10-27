@@ -5,6 +5,7 @@ This modules contains the /equipment Blueprint
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
+from flask_sqlalchemy.model import Model
 
 from flask_uploads import UploadSet, IMAGES
 
@@ -78,7 +79,29 @@ def view_equipment_type():
         formAjout=formAjout
     )
 
-@blueprint.route("/equipment_type/edit<int:typeId>", methods=["GET", "POST"])
+@blueprint.route("/equipment_type/<int:typeId>", methods=["GET", "POST"])
+def detail_equipment_type(typeId): 
+    equipmentType = EquipmentType.query.get(typeId)
+    formAjoutModel = EquipmentModelForm()
+    
+    if formAjoutModel.validate_on_submit():
+        new_equipment_model = EquipmentModel()
+        new_equipment_model.name = formAjoutModel.name.data
+        new_equipment_model.equipmentType = formAjoutModel.equipmentType.data
+        db.session.add(new_equipment_model)
+        db.session.commit()
+        formAjoutModel.name.data = ""
+        formAjoutModel.equipmentType.data= ""
+        return redirect(url_for(".detail_equipment_type", typeId=typeId))
+
+    
+    return render_template(
+        "equipment/gestion/equipmentType/displayOne.html",
+        equipmentType=equipmentType,
+        formAjoutModel=formAjoutModel,
+    )
+
+@blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
 def edit_equipment_type(typeId):
 
     
@@ -86,7 +109,6 @@ def edit_equipment_type(typeId):
     formEdit = AddEquipmentTypeForm(obj=typeModified)
     
     if formEdit.validate_on_submit():
-
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
         typeModified.save_typeImg(formEdit.imageType_file.data)
@@ -99,8 +121,6 @@ def edit_equipment_type(typeId):
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
-        # equipments=equipments
-        # equipment=equipment,
         listEquipementType=listEquipementType,
         formAjout=formAjout,
         formEdit=formEdit,
@@ -108,45 +128,34 @@ def edit_equipment_type(typeId):
     )
 
 
-@blueprint.route("/equipment_models", methods=["GET", "POST"])
-@blueprint.route("/equipment_models/edit<int:modelId>", methods=["GET", "POST"])
-def crud_equipment_model(modelId = None):
-
-    formAjout = EquipmentModelForm()
+@blueprint.route("/equipment_type/<int:typeId>/model<int:modelId>", methods=["GET", "POST"])
+def edit_equipment_model(typeId,modelId):
     
-    formEdit = None
-    if(modelId is not None):
-        equipmentModified = EquipmentModel.query.get(modelId)
-        formEdit = EquipmentModelForm(obj=EquipmentModel.query.get(modelId))
+   
+    equipmentModified = EquipmentModel.query.get(modelId)
+    formEditModel = EquipmentModelForm(obj=EquipmentModel.query.get(modelId))
 
-        if formEdit.validate_on_submit():
-            equipmentModified.name = formEdit.name.data
-            equipmentModified.equipmentType = formEdit.equipmentType.data
-            db.session.commit()
-            return redirect(url_for(".crud_equipment_model"))
-
-
-    elif formAjout.validate_on_submit():
-        new_equipment_model = EquipmentModel()
-        new_equipment_model.name = formAjout.name.data
-        new_equipment_model.equipmentType = formAjout.equipmentType.data
-        db.session.add(new_equipment_model)
+    if formEditModel.validate_on_submit():
+        equipmentModified.name = formEditModel.name.data
+        equipmentModified.equipmentType = formEditModel.equipmentType.data
         db.session.commit()
-        formAjout.name.data = ""
-        formAjout.equipmentType.data= ""
+        return redirect(url_for(".detail_equipment_type",typeId=typeId))
+            
 
+    typeSelected = EquipmentType.query.get(typeId)
+    formAjoutModel = EquipmentModelForm()
     listEquipementModel = EquipmentModel.query.all()
-    deleteForm = DeleteForm()
+    deleteFormModel = DeleteForm()
     return render_template(
-        "equipment/gestion/equipmentModel/displayAll.html",
+        "equipment/gestion/equipmentType/displayOne.html",
         listEquipementModel=listEquipementModel,
-        formAjout=formAjout,
-        formEdit=formEdit,
+        formAjoutModel=formAjoutModel,
+        equipmentType=typeSelected,
+        formEditModel=formEditModel,
         modelId=modelId,
-        deleteForm=deleteForm
+        deleteFormModel=deleteFormModel
 
     )
-
 
 
 
@@ -227,8 +236,9 @@ def delete_equipment(equipmentId):
 @blueprint.route("/delete_equipmentModel/<int:modelId>", methods=["POST"])
 def delete_equipment_model(modelId):
     model = EquipmentModel.query.get(modelId)
+    typeId = model.equipmentType.id
     db.session.delete(model)
-    return redirect(url_for(".crud_equipment_model"))
+    return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
 
 

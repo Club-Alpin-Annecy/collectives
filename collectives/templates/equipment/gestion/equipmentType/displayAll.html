@@ -39,9 +39,9 @@
 
       {% if typeId != anEquipmentType.id %}
         <p> {{ anEquipmentType.name }}  {{ anEquipmentType.price }} {{ anEquipmentType.pathImg }} 
-          <a href="{{ url_for("equipment.edit_equipment_type",typeId=anEquipmentType.id)}}">edit</a></p>
+          <a href="{{ url_for("equipment.detail_equipment_type",typeId=anEquipmentType.id)}}">edit</a></p>
       {% else %}
-        {% with form=formEdit, route=url_for("equipment.edit_equipment_type",typeId=anEquipmentType.id) %}
+        {% with form=formEdit, route=url_for("equipment.detail_equipment_type",typeId=anEquipmentType.id) %}
           {% include "equipment/gestion/equipmentType/form.html" %}
         {% endwith %}
       {% endif %}
