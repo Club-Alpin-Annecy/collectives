@@ -98,7 +98,7 @@
     <!--  -->
 
     {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock"),
-    includePath='equipment/gestion/equipment/form.html' %}
+    includePath='equipment/gestion/equipment/form.html', titre="Ajouter un équipement" %}
 
       {% include 'partials/modal.html' %}
 

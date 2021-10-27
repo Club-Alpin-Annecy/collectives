@@ -35,7 +35,7 @@
     <h1>Type equipement</h1>
 
     {% for anEquipmentType in listEquipementType %}
-      y
+      
 
       {% if typeId != anEquipmentType.id %}
         <p> {{ anEquipmentType.name }}  {{ anEquipmentType.price }} {{ anEquipmentType.pathImg }} 
@@ -50,7 +50,7 @@
 
     <h2>Ajouter un type equipement</h2>
 
-    {% with form=formAjout, route="route=url_for('equipment.view_equipment_type')" %}
+    {% with form=formAjout, route="route=url_for('equipment.view_equipment_type')"%}
       {% include "equipment/gestion/equipmentType/form.html" %}
     {% endwith %}
 

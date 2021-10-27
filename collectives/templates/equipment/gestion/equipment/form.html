@@ -1,7 +1,8 @@
 
 
 
-<h1 class="modal_form_title">Ajouter un équipement</h1>
+<h1 class="modal_form_title">{{ titre or 'Ajouter un équipement' }}</h1>
+
 
 <div class="modal_form_container">
     <form action="{{ route }}" method="post" class="modal_form">
@@ -29,9 +30,13 @@
             {{ form.model.label }}
             {{ form.model }}
 
+        </div>
+
+        
+        <div class="modal_form_info_supp_box">    
             <a href="{{ url_for('equipment.crud_equipment_model' )}}" target="_blank" >Ajouter ou modifier un model</a>
         </div>
-    
+        
     
     
         {{ form.submit(class="button button-primary") }}
