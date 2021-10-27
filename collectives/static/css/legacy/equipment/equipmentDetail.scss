@@ -1,0 +1,124 @@
+
+
+
+.container_equipmentInfo {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    
+
+    margin: 50px auto;
+
+
+
+
+    .type_info {
+        font-weight: $font-weight-bold;
+    }
+
+    h5 {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-bold;
+        margin: 0;
+        color: $color-blue-primary-light;
+    }
+
+    p {
+        margin: 0;
+        font-size: $font-size-m;
+    }
+
+
+    .container_equipmentInfo_top {
+        height: 400px;
+        max-height: 400px;
+
+        display: flex;
+        justify-content: space-between;
+
+        max-width: 1100px;
+
+        .container_equipmentInfo_img, .container_equipmentInfo_txt {
+            width: 48%;
+        }
+    
+        .container_equipmentInfo_img {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+    
+            padding: $padding-horizontal-m 0;
+    
+            background-color: #ffffff;
+    
+            box-shadow: $box-shadow-m;
+    
+            img {
+                width: 50%;
+                max-height: 100%;
+            }
+        }
+
+
+
+
+
+        .container_equipmentInfo_txt {
+            // background-color: palegoldenrod;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            padding: $padding-horizontal-m 0;
+
+    
+            .container_info_sub {
+                display: flex;
+                justify-content: space-between;
+            }
+
+        }
+    
+
+        @media screen and (max-width: 765px) {
+            & {
+                flex-direction: column;
+                align-items: center;
+
+                max-height: unset;
+                height: unset;
+            }
+
+            .container_equipmentInfo_img, .container_equipmentInfo_txt {
+                width: 95%;
+            }
+
+            .container_location_info {
+                margin-top: 25px;
+            }
+        }
+
+    }
+
+
+
+
+    .container_equipmentInfo_supp {
+
+
+        margin-top: 50px;
+
+
+        p {
+            margin-top: 6px;
+        }
+    }
+    
+
+}
+
+
+
+
