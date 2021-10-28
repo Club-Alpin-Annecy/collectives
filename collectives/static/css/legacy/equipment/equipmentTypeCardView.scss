@@ -1,0 +1,22 @@
+
+
+.container_all_card {
+
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+
+    margin-top: 30px;
+
+    margin: 30px auto 0;
+
+
+    @media screen and (max-width: 765px) {
+        & {
+            flex-direction: column;
+            flex-wrap: nowrap;
+        }
+    }
+
+}

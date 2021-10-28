@@ -1,17 +1,34 @@
-<form method="POST" action="{{route}}" enctype="multipart/form-data">
 
-    {{ form.hidden_tag() }}
 
-    {{ form.name.label }}
-    {{ form.name }}
+<h1 class="modal_form_title">{{ titre or 'Ajouter un type d''équipement' }}</h1>
 
-    {{ form.price.label }}
-    {{ form.price }}
+<div class="modal_form_container">
 
-    {{ form.imageType_file.label }}
-    {{ form.imageType_file }}
+  <form method="POST" action="{{route}}" enctype="multipart/form-data" class="modal_form">
+  
+      {{ form.hidden_tag() }}
+  
+      <div class="modal_form_input_box">
+        {{ form.name.label }}
+        {{ form.name }}
 
-    {{ form.submit(class="button button-primary") }}
-    
+      </div>   
+  
+      <div class="modal_form_input_box">
+        {{ form.price.label }}
+        {{ form.price }}
 
+      </div>
+  
+      <div class="modal_form_input_box">
+        {{ form.imageType_file.label }}
+        {{ form.imageType_file }}
+
+      </div>
+  
+      {{ form.submit(class="button button-primary") }}
+      
+  
   </form>
+
+</div>
