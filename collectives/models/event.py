@@ -15,7 +15,6 @@ photos = UploadSet("photos", IMAGES)
 
 :type: flask_uploads.UploadSet"""
 
-
 class EventStatus(ChoiceEnum):
     """Enum listing status of an event"""
 
@@ -158,6 +157,11 @@ class Event(db.Model):
 
     :type: int"""
 
+    event_type_id = db.Column(db.Integer, db.ForeignKey("event_types.id"), default = 1)
+    """ Primary key of the associated event type  (see  :py:class:`collectives.models.eventtype.EventType`)
+
+    :type: int"""
+
     # Relationships
     leaders = db.relationship(
         "User",
@@ -176,6 +180,11 @@ class Event(db.Model):
     """ Main leader of this event.
 
     :type: :py:class:`collectives.models.user.User`"""
+
+    event_type = db.relationship("EventType")
+    """ Type of this event.
+
+    :type: :py:class:`collectives.models.eventtype.Event`"""
 
     activity_types = db.relationship(
         "ActivityType",

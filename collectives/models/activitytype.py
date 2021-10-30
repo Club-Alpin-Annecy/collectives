@@ -9,8 +9,10 @@ from .globals import db
 class ActivityType(db.Model):
     """Class of the type of activity.
 
-    An activity type can be a sport (climbing, hiking) or another occupation
-    (training). Persistence is done with SQLAlchemy and in the table
+    An activity type is a sport (climbing, hiking). Previouslu it could
+    also be another occupation (training), but this distinction should now
+    be made using event types. 
+    Persistence is done with SQLAlchemy and in the table
     ``activity_types``
     """
 
@@ -43,6 +45,14 @@ class ActivityType(db.Model):
     """ Order to display this activity
 
     :type: int
+    """
+
+    deprecated = db.Column(db.Boolean, nullable=False, default=False)
+    """ Indicates a deprecated activity type, now replaced by an event type
+
+    Kept in the table for backward compatibility, but excluded from activity lists
+
+    :type: bool
     """
 
     # Relationships

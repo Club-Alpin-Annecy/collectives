@@ -72,6 +72,7 @@ def populate_db(app):
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
     init.activity_types(app)
+    init.event_types(app)
 
 
 class ReverseProxied:

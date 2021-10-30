@@ -273,9 +273,9 @@ TZ_NAME = "Europe/Paris"
 :type: string
 """
 
-# Event type:
+# Activity type:
 # fmt: off
-TYPES = {
+ACTIVITY_TYPES = {
     1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "ASA"},
     2:  {"short": "escalade", "name": "Escalade", "trigram" : "AES"},
     3:  {"short": "ski_rando", "name": "Ski de randonnée", "trigram" : "ASM"},
@@ -288,17 +288,35 @@ TYPES = {
     10: {"short": "parapente", "name": "Parapente", "trigram" : "AVR"},
     11: {"short": "randonnee", "name": "Randonnée montagne", "trigram" : "ARP"},
     12: {"short": "cyclisme", "name": "VTT", "trigram" : "AVTT"},
-    13: {"short": "formation", "name": "Formation", "trigram" : "FOR"},
-    14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "SCL"},
-    15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL"},
+    13: {"short": "formation", "name": "Formation", "trigram" : "FOR", "deprecated" : True},
+    14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "SCL", "deprecated" : True},
+    15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL", "deprecated" : True},
     16: {"short": "slackline", "name": "Slackline", "trigram" : "ASL"},
     17: {"short": "marche_nordique", "name": "Marche nordique", "trigram" : "ANW"},
     18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "ASF"},
-    20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL"},
-    21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL"},
+    20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL", "deprecated" : True},
+    21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL", "deprecated" : True},
     22: {"short": "viaferrata", "name": "Via ferrata", "trigram": "AVF"},
 }
-"""List of event type
+"""List of activity type
+
+Contains the list of activity type as a dictionnary. id is an int, value is
+a hash. ``short`` is the name of the icon.
+
+:type: dict
+"""
+
+# Event type:
+# fmt: off
+EVENT_TYPES = {
+    1:  {"short": "collective", "name": "Collective", "requires_activity" : True},
+    2:  {"short": "jeune", "name": "Collective Jeunes", "requires_activity" : True, "license_types" : ["J1", "J2", "E1", "E2"]},
+    3:  {"short": "formation", "name": "Formation", "requires_activity" : False},
+    4:  {"short": "soiree", "name": "Soirée", "requires_activity" : False},
+    5:  {"short": "randonnees_lointaines", "name": "Voyage  lointain", "requires_activity" : True},
+    6:  {"short": "achat", "name": "Achat groupé", "requires_activity" : False},
+}
+"""List of event types
 
 Contains the list of event type as a dictionnary. id is an int, value is
 a hash. ``short`` is the name of the icon.
