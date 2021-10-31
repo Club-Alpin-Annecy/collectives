@@ -118,6 +118,8 @@ function eventRowFormatter(row){
 
         //add row data on right hand side
         html += `<div class="activities section collectives-list--item--activity-type">`;
+        for (const event_type of data.event_types)
+                    html += `<span class="activity ${event_type['short']} type"></span>`;
         for (const activity of data.activity_types)
                     html += `<span class="activity ${activity['short']} type"></span>`;
         html += `</div>`;
@@ -228,14 +230,17 @@ function refreshFilterDisplay(){
     // Unselect all activity filter buttons
     document.getElementById('select_all').checked = true;
     document.getElementById('select_all_tags').checked = true;
+    document.getElementById('select_all_event_types').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
         if (filter['field'] == 'activity_type')
-            document.getElementById('select_'+filter['value']).checked = true;
+            document.getElementById('select_activity_type_'+filter['value']).checked = true;
+        if (filter['field'] == 'event_type')
+            document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
-            document.getElementById('select_'+filter['value']).checked = true;
+            document.getElementById('select_tag_'+filter['value']).checked = true;
     }
 
 

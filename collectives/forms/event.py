@@ -7,6 +7,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
 from flask_login import current_user
+import sqlalchemy
 from wtforms import SubmitField, SelectField, IntegerField, HiddenField
 from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultipleField
 from wtforms.validators import DataRequired
@@ -15,7 +16,7 @@ from wtforms_alchemy import ModelForm
 from ..models import Event, photos
 from ..models.event import EventStatus
 from ..models import Registration
-from ..models import ActivityType, EventTag
+from ..models import ActivityType, EventType, EventTag
 from ..models import User, Role, RoleIds, db
 from ..models.activitytype import leaders_without_activities
 from ..utils.time import current_time, format_date, format_date_range
@@ -51,6 +52,35 @@ def available_leaders(leaders, activity_ids):
     return [u for u in choices if u not in existing_leaders]
 
 
+def available_event_types(source_event_type, leaders):
+    """Returns all available event types given the current leaders.
+    This means:
+
+     - All existing event types if the current user is a moderator
+     - All existing event types if any of the current leaders can lead at least one activity
+     - All event types that do not require an activity in other cases, plus the source event type if provided
+
+    :param source_event_type: Event type to unconditionally include
+    :type source_event_type: :py:class:`collectives.models.eventtype.EventType`
+    :param leaders: List of leaders currently added to the event
+    :type leaders: list[:py:class:`collectives.models.user.User`]
+    :return: Available event types
+    :rtype: list[:py:class:`collectives.models.eventtype.EventType`]
+    """
+
+    query = EventType.query
+
+    if not current_user.is_moderator():
+        if not any(l.can_lead_at_least_one_activity() for l in leaders):
+            query_filter = EventType.requires_activity == False
+            if source_event_type:
+                query_filter = sqlalchemy.or_(
+                    query_filter, EventType.id == source_event_type.id
+                )
+            query = query.filter(query_filter)
+    return query.all()
+
+
 def available_activities(activities, leaders, union):
     """Creates a list of activities theses leaders can lead.
 
@@ -69,7 +99,7 @@ def available_activities(activities, leaders, union):
     :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
     """
     if current_user.is_moderator():
-        choices = ActivityType.query.all()
+        choices = ActivityType.get_all_types()
     else:
         # Gather unique activities
         choices = None
@@ -124,8 +154,9 @@ class EventForm(ModelForm, FlaskForm):
 
     photo_file = FileField(validators=[FileAllowed(photos, "Image only!")])
     duplicate_photo = HiddenField()
-    type = SelectField("Activité", choices=[], coerce=int)
-    types = SelectMultipleField("Activités", choices=[], coerce=int)
+    event_type_id = SelectField("Type d'événement", choices=[], coerce=int)
+    single_activity_type = SelectField("Activité", choices=[], coerce=int)
+    multi_activity_types = SelectMultipleField("Activités", choices=[], coerce=int)
 
     add_leader = HiddenField("Encadrant supplémentaire")
     leader_actions = FieldList(FormField(LeaderActionForm, default=LeaderAction()))
@@ -136,7 +167,7 @@ class EventForm(ModelForm, FlaskForm):
     update_leaders = HiddenField()
     save_all = SubmitField("Enregistrer")
 
-    multi_activities_mode = BooleanField("Sortie multi-activités")
+    multi_activities_mode = BooleanField("Événement multi-activités")
 
     tag_list = SelectMultipleField("Labels", coerce=int)
 
@@ -159,17 +190,33 @@ class EventForm(ModelForm, FlaskForm):
             # Reading from an existing event
             self.source_event = kwargs["obj"]
             activities = self.source_event.activity_types
-            self.multi_activities_mode.data = len(activities) > 1 or any(
+            self.multi_activities_mode.data = len(activities) != 1 or any(
                 leaders_without_activities(activities, self.source_event.leaders)
             )
-            self.type.data = int(activities[0].id)
-            self.types.data = [a.id for a in activities]
+            if activities:
+                self.single_activity_type.data = int(activities[0].id)
+            self.multi_activity_types.data = [a.id for a in activities]
             self.set_current_leaders(self.source_event.leaders)
             self.tag_list.data = [tag.type for tag in self.source_event.tag_refs]
         else:
             self.set_current_leaders([])
 
         self.update_choices()
+
+        if not self.can_switch_multi_activity_mode():
+            self.multi_activities_mode.data = True
+
+        # Populate single-activty from multi-activty, and vice versa
+        if not self.single_activity_type.data and self.multi_activity_types.data:
+            self.single_activity_type.data = self.multi_activity_types.data[0]
+        if self.single_activity_type.data and not self.multi_activity_types.data:
+            self.multi_activity_types.data = [self.single_activity_type.data]
+
+        # Remove the useless aingle/multi activity field
+        if self.multi_activities_mode.data:
+            del self.single_activity_type
+        else:
+            del self.multi_activity_types
 
         if self.parent_event_id.data:
             self.parent_event = Event.query.get(self.parent_event_id.data)
@@ -188,21 +235,34 @@ class EventForm(ModelForm, FlaskForm):
     def update_choices(self):
         """Updates possible choices for activity and new leader select fields"""
 
-        # Find possible activities given current leaders
+        # Find possible even types and activities given current leaders
+        # If there is a source event, make sure its existing settings can be reproduced
+        source_event_type = self.source_event.event_type if self.source_event else None
         source_activities = (
             self.source_event.activity_types if self.source_event else []
         )
+
+        event_type_choices = available_event_types(
+            source_event_type, self.current_leaders
+        )
+        self.event_type_id.choices = [(t.id, t.name) for t in event_type_choices]
+
+        if not self.can_switch_multi_activity_mode():
+            self.multi_activities_mode.data = True
+
         activity_choices = available_activities(
             source_activities, self.current_leaders, self.multi_activities_mode.data
         )
 
-        self.type.choices = [(a.id, a.name) for a in activity_choices]
-        self.types.choices = [(a.id, a.name) for a in activity_choices]
+        if self.single_activity_type:
+            self.single_activity_type.choices = [
+                (a.id, a.name) for a in activity_choices
+            ]
 
-        if not self.type.data and self.types.data:
-            self.type.data = self.types.data[0]
-        if self.type.data and not self.types.data:
-            self.types.data = [self.type.data]
+        if self.multi_activity_types:
+            self.multi_activity_types.choices = [
+                (a.id, a.name) for a in activity_choices
+            ]
 
         self.main_leader_id.choices = []
         for l in self.current_leaders:
@@ -222,6 +282,23 @@ class EventForm(ModelForm, FlaskForm):
             self.status.choices = [
                 (k, v) for (k, v) in EventStatus.choices() if k != EventStatus.Pending
             ]
+
+    def current_event_type(self):
+        """
+        :return: The currently selected event type, of the first available if none has been elected yet
+        :rtype: :py:class:`collectives.models.eventtype.EventType`
+        """
+        if self.event_type_id.data:
+            return EventType.query.get(self.event_type_id.data)
+        return EventType.query.get(self.event_type_id.choices[0][0])
+
+    def can_switch_multi_activity_mode(self):
+        """
+        :return: Whether the current user can switch between single-activty/multi-activity modes.
+                 If False, this means that editing is restricted to multi-activty mode.
+        :rtype: bool
+        """
+        return self.current_event_type().requires_activity
 
     def setup_leader_actions(self):
         """
@@ -269,10 +346,15 @@ class EventForm(ModelForm, FlaskForm):
         :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
         """
         if self.multi_activities_mode.data:
-            return ActivityType.query.filter(ActivityType.id.in_(self.types.data)).all()
+            return ActivityType.query.filter(
+                ActivityType.id.in_(self.multi_activity_types.data)
+            ).all()
 
-        activity = ActivityType.query.get(self.type.data)
-        return [] if activity is None else [activity]
+        if self.single_activity_type.data:
+            activity = ActivityType.query.get(self.single_activity_type.data)
+        else:
+            activity = ActivityType.query.get(self.single_activity_type.choices[0][0])
+        return [activity] if activity else []
 
     def current_leader_ids(self):
         """
@@ -294,12 +376,12 @@ class EventForm(ModelForm, FlaskForm):
         if self.multi_activities_mode.data:
             # Multi-activity, do not filter leaders by activity type
             activity_ids = []
-        elif self.type.data:
+        elif self.single_activity_type.data:
             # Single activity, already selected. Restrict leaders to that activity
-            activity_ids = [self.type.data]
+            activity_ids = [self.single_activity_type.data]
         else:
             # Single activity, not yet selected
-            activity_ids = [a[0] for a in self.type.choices]
+            activity_ids = [a[0] for a in self.single_activity_type.choices]
         return activity_ids
 
     def can_remove_leader(self, event, leader):

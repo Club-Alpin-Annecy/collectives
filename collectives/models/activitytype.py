@@ -11,7 +11,7 @@ class ActivityType(db.Model):
 
     An activity type is a sport (climbing, hiking). Previouslu it could
     also be another occupation (training), but this distinction should now
-    be made using event types. 
+    be made using event types.
     Persistence is done with SQLAlchemy and in the table
     ``activity_types``
     """
@@ -94,12 +94,17 @@ class ActivityType(db.Model):
         return False
 
     @classmethod
-    def get_all_types(cls):
+    def get_all_types(cls, include_deprecated=False):
         """List all activity_types in database
 
+        :param include_deprecated: Whether to include deprecated activity types
+        :type include_deprecated: bool
         :return: list of types
         :rtype: list(:py:class:`ActivityType`)"""
-        return cls.query.order_by("order", "name").all()
+        query = cls.query.order_by("order", "name")
+        if not include_deprecated:
+            query = query.filter_by(deprecated=False)
+        return query.all()
 
     @classmethod
     def js_values(cls):

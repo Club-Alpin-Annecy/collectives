@@ -312,9 +312,9 @@ EVENT_TYPES = {
     1:  {"short": "collective", "name": "Collective", "requires_activity" : True},
     2:  {"short": "jeune", "name": "Collective Jeunes", "requires_activity" : True, "license_types" : ["J1", "J2", "E1", "E2"]},
     3:  {"short": "formation", "name": "Formation", "requires_activity" : False},
-    4:  {"short": "soiree", "name": "Soirée", "requires_activity" : False},
-    5:  {"short": "randonnees_lointaines", "name": "Voyage  lointain", "requires_activity" : True},
-    6:  {"short": "achat", "name": "Achat groupé", "requires_activity" : False},
+    4:  {"short": "soiree", "name": "Animation", "requires_activity" : False},
+    5:  {"short": "randonnees_lointaines", "name": "Voyage lointain", "requires_activity" : True},
+    6:  {"short": "shopping", "name": "Achat groupé", "requires_activity" : False},
 }
 """List of event types
 

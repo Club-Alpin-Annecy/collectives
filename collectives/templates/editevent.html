@@ -95,19 +95,31 @@
     {# For this add a hidden submit button before 'update_leaders' #}
     {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }}
 
-    <h4 class="heading-4">Activité et encadrants</h4>
+    <h4 class="heading-4">Type d'événement et encadrants</h4>
     <div class="controls">
-      {{form.update_activity(value=0)}}
+        {{form.update_activity(value=0)}}
+        {{form.event_type_id.label}}
+        {{ form.event_type_id(onchange="javascript:updateActivity(this)") }}
+    </div>
+    
+    {% if form.can_switch_multi_activity_mode() %}
+    <div class="controls">
       <div class="inline_field">
          {{form.multi_activities_mode(onchange="javascript:updateActivity(this)") }}
          {{form.multi_activities_mode.label}}
       </div>
     </div>
+    {% else %}
+         {{form.multi_activities_mode(style="display:none") }}
+    {% endif %}
+
     <div class="controls">
       {% if form.multi_activities_mode.data %}
-        <label for="{{form.types.id_for_label}}">Activités:</label> {{form.types(class="choices")}}
+        <label for="{{form.multi_activity_types.id_for_label}}">
+          Activités {%if not form.current_event_type().requires_activty %} (Optionnel) {%endif%}:
+        </label> {{form.multi_activity_types(class="choices")}}
       {% else %}
-        <label for="{{form.type.id_for_label}}">Activités:</label> {{ form.type(onchange="javascript:updateActivity(this)") }}
+        <label for="{{form.single_activity_type.id_for_label}}">Activité:</label> {{ form.single_activity_type(onchange="javascript:updateActivity(this)") }}
       {% endif %}
     </div>
       <fieldset>
@@ -244,7 +256,7 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
 });
 var easymde = makeEditor("description");
 
-var activities_multiselect = document.getElementById("types");
+var activities_multiselect = document.getElementById("multi_activity_types");
 if(activities_multiselect) {
   const choices = new Choices(activities_multiselect, {
     removeItemButton:true

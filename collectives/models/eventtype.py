@@ -1,7 +1,5 @@
-
 """Module to describe the type of event.
 """
-from sqlalchemy.orm import validates
 from flask import escape
 
 from .globals import db
@@ -38,7 +36,7 @@ class EventType(db.Model):
     """
 
     requires_activity = db.Column(db.Boolean(), nullable=False)
-    """ Whether event of this types need to be associated with at least one activity.
+    """ Whether events of this type need to be associated with at least one activity.
 
     :type: bool
     """
@@ -51,6 +49,18 @@ class EventType(db.Model):
 
     :type: string
     """
+
+    def has_valid_license(self, user):
+        """Check whether an user has a valic license for this type of event
+
+        :param user: The user whose license should be checked
+        :param user: :py:class:`collectives.models.user.User`
+        :return: True if no license types are defined or if the user license category is included in those types
+        :rtype: bool"""
+        if not self.license_types:
+            return True
+        license_types = self.license_types.split()
+        return len(license_types) == 0 or user.license_category in license_types
 
     @classmethod
     def get_all_types(cls):
@@ -70,4 +80,3 @@ class EventType(db.Model):
         types = cls.get_all_types()
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
-

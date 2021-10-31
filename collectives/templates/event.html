@@ -53,6 +53,7 @@
         </span>
       </div>
       <div>
+        <span class="activity {{event.event_type.short}}  collective-display--activity-type" title="{{event.event_type.name}}"></span>
         {% for atype in event.activity_types %}
           <span class="activity {{atype.short}} type collective-display--activity-type" title="{{atype.name}}"></span>
         {% endfor %}
@@ -152,14 +153,26 @@
           </form><br/><br/>
           {% endif %}
         {% endif %}
-      {% elif event.parent_event %}
-          Les inscriptions en ligne sont restreintes aux participants à la collective
-          <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
-          {% if event.is_user_registered_to_parent_event(current_user) %}
-            dont vous faites partie.
-          {% else %}
-            dont vous ne faites pas partie.
-          {% endif %}
+      {% else %}  {#  Not registered, display registration conditions #}
+        {% if event.event_type.license_types %}  
+            Les inscriptions en ligne sont restreintes aux licenses de type {{event.event_type.license_types}}, 
+            {% if event.event_type.has_valid_license(current_user) %}
+              ce qui est votre cas.
+            {% else %}
+              ce qui n'est pas votre cas.
+            {% endif %}
+            <br/>
+        {% endif %}
+        {% if event.parent_event %}  
+            Les inscriptions en ligne sont restreintes aux participants à la collective
+            <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
+            {% if event.is_user_registered_to_parent_event(current_user) %}
+              dont vous faites partie.
+            {% else %}
+              dont vous ne faites pas partie.
+            {% endif %}
+            <br/>
+        {% endif %}
       {% endif %}
 
       {% for registration in event.active_normal_registrations() %}
@@ -221,7 +234,6 @@
       </ul>
     </div>
     {% endif %}
-
 
     <div id="description" class="collective-display--description">{{ event.rendered_description | safe  }}</div>
 

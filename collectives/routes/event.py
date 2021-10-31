@@ -11,7 +11,14 @@ from ..forms import EventForm, photos
 from ..forms import RegistrationForm
 
 from ..forms.event import PaymentItemChoiceForm
-from ..models import Event, ActivityType, Registration, RegistrationLevels, EventStatus
+from ..models import (
+    Event,
+    ActivityType,
+    EventType,
+    Registration,
+    RegistrationLevels,
+    EventStatus,
+)
 from ..models import RegistrationStatus, User, db
 from ..models import EventTag
 from ..models.activitytype import activities_without_leader, leaders_without_activities
@@ -46,9 +53,6 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
     :return: whether all tests succeeded
     :rtype: bool
     """
-    if len(activities) == 0:
-        flash("Aucune activité définie", "error")
-        return False
 
     if current_user.is_moderator():
         return True
@@ -154,7 +158,8 @@ def index(activity_type_id=None, name=""):
     :param int activity_type_id: Optional, ID of the activity_type to filter on.
     :param string title: Name of the activity type, only for URL cosmetic purpose.
     """
-    types = ActivityType.query.order_by("order", "name").all()
+    event_types = EventType.get_all_types()
+    activity_types = ActivityType.get_all_types()
 
     filtered_activity = None
     if activity_type_id:
@@ -185,7 +190,8 @@ def index(activity_type_id=None, name=""):
 
     return render_template(
         "index.html",
-        types=types,
+        activity_types=activity_types,
+        event_types=event_types,
         photos=photos,
         filtered_activity=filtered_activity,
     )
@@ -301,6 +307,14 @@ def manage_event(event_id=None):
 
     # Get current activites from form
     tentative_activities = form.current_activities()
+
+    requires_activity = form.current_event_type().requires_activity
+    if requires_activity and len(tentative_activities) == 0:
+        flash(
+            f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
+            "error",
+        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Fetch existing readers leaders minus removed ones
     previous_leaders = []

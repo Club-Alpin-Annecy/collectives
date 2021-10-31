@@ -13,16 +13,19 @@ span.activity.s30px{
   background-size: 300px;
   height: 30px !important;
   width: 30px !important;
+  display: inline-block !important;
 }
 span.activity.s20px{
   background-size: 200px;
   height: 20px !important;
   width: 20px !important;
+  display: inline-block !important;
 }
 span.activity.s90px{
   background-size: 900px;
   height: 90px !important;
   width: 90px !important;
+  display: inline-block !important;
 }
 
 .icon0_0{
@@ -33,7 +36,7 @@ span.activity.s90px{
     background-position: 11.11% 0%;
 }
 
-.icon2_0, span.activity.mountain{
+.icon2_0, span.activity.mountain, span.activity.collective {
     background-position: 22.22% 0%;
 }
 
@@ -169,7 +172,7 @@ span.activity.s90px{
     background-position: 55.55% 33.33%;
 }
 
-.icon9_7, span.activity.tag_shopping{
+.icon9_7, span.activity.shopping, span.activity.tag_shopping{
     background-position: 99.99% 77.77%;
 }
 
@@ -247,4 +250,9 @@ span.activity.s90px{
 
 .icon2_9, span.activity.role6{
     background-position: 22.22% 99.99%;
+}
+
+span.activity.collective
+{
+    display: none;
 }

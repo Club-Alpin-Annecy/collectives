@@ -68,7 +68,7 @@ class RoleIds(ChoiceEnum):
     @classmethod
     def all_moderator_roles(cls):
         """
-        :return: List of all roles that grant modertor capabilities
+        :return: List of all roles that grant moderator capabilities
         :rtype: list[:py:class:`RodeIds`]
         """
         return [cls.Administrator, cls.Moderator, cls.President]
@@ -76,7 +76,7 @@ class RoleIds(ChoiceEnum):
     @classmethod
     def all_activity_leader_roles(cls):
         """
-        :return: List of all roles that allow users to lead events
+        :return: List of all roles that allow users to lead event activities
         :rtype: list[:py:class:`RodeIds`]
         """
         return [cls.EventLeader, cls.ActivitySupervisor]
@@ -87,7 +87,11 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users to create events
         :rtype: list[:py:class:`RodeIds`]
         """
-        return cls.all_activity_leader_roles() + cls.all_moderator_roles()
+        return (
+            [cls.Hotline, cls.Technician]
+            + cls.all_activity_leader_roles()
+            + cls.all_moderator_roles()
+        )
 
     @classmethod
     def get(cls, required_id):
