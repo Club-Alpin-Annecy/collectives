@@ -315,6 +315,7 @@ EVENT_TYPES = {
     4:  {"short": "soiree", "name": "Animation", "requires_activity" : False},
     5:  {"short": "randonnees_lointaines", "name": "Voyage lointain", "requires_activity" : True},
     6:  {"short": "shopping", "name": "Achat groupé", "requires_activity" : False},
+    7:  {"short": "inscription", "name": "Inscription en ligne", "requires_activity" : False},
 }
 """List of event types
 
