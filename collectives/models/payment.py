@@ -76,22 +76,38 @@ class PaymentItem(db.Model):
             if p.is_available_to_user(user) and p.has_available_use()
         ]
 
-    def available_prices_to_user_now(self, user):
+    def available_prices_to_user_at_date(self, user, date):
         """Returns all prices that are available to a given user
-        at the current time
+        at a given date
 
         :param user:  The candidate user
         :type user: :py:class:`collectives.models.user.User`
-
+        :param date:  The considered date
+        :type date: :py:class:`datetime.date`
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        current_date = current_time().date()
         return [
             p
             for p in self.available_prices_to_user(user)
-            if p.is_available_at_date(current_date)
+            if p.is_available_at_date(date)
         ]
+
+    def cheapest_price_for_user_at_date(self, user, date):
+        """Returns the cheapest price available to a given user
+        at a given date
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+        :param date:  The considered date
+        :type date: :py:class:`datetime.date`
+        :return: List of available prices
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        available_prices = self.available_prices_to_user_at_date(user, date)
+        if len(available_prices) == 0:
+            return None
+        return min(available_prices, key=lambda p: p.amount)
 
     def cheapest_price_for_user_now(self, user):
         """Returns the cheapest price available to a given user
@@ -103,10 +119,8 @@ class PaymentItem(db.Model):
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        available_prices = self.available_prices_to_user_now(user)
-        if len(available_prices) == 0:
-            return None
-        return min(available_prices, key=lambda p: p.amount)
+        current_date = current_time().date()
+        return self.cheapest_price_for_user_at_date(user, current_date)
 
 
 class ItemPrice(db.Model):
