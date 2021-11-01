@@ -259,7 +259,8 @@ var easymde = makeEditor("description");
 var activities_multiselect = document.getElementById("multi_activity_types");
 if(activities_multiselect) {
   const choices = new Choices(activities_multiselect, {
-    removeItemButton:true
+    removeItemButton:true,
+    noChoicesText: 'Veuillez d\'abord ajouter un encadrant de l\'activité désirée.',
   });
 }
 const labelsChoices = new Choices(document.getElementById("tag_list"), {
