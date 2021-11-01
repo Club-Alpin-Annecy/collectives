@@ -89,11 +89,7 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users to create events
         :rtype: list[:py:class:`RodeIds`]
         """
-        return (
-            [cls.Staff]
-            + cls.all_activity_leader_roles()
-            + cls.all_moderator_roles()
-        )
+        return [cls.Staff] + cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
     @classmethod
     def get(cls, required_id):

@@ -116,7 +116,7 @@
     <div class="controls">
       {% if form.multi_activities_mode.data %}
         <label for="{{form.multi_activity_types.id_for_label}}">
-          Activités {%if not form.current_event_type().requires_activty %} (Optionnel) {%endif%}:
+          Activités {%if not form.current_event_type().requires_activity %} (Optionnel) {%endif%}:
         </label> {{form.multi_activity_types(class="choices")}}
       {% else %}
         <label for="{{form.single_activity_type.id_for_label}}">Activité:</label> {{ form.single_activity_type(onchange="javascript:updateActivity(this)") }}
