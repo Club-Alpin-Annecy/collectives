@@ -96,7 +96,7 @@ def detail_equipment_type(typeId):
 
     
     return render_template(
-        "equipment/gestion/equipmentType/displayOne.html",
+        "equipment/gestion/equipmentType/displayDetail.html",
         equipmentType=equipmentType,
         formAjoutModel=formAjoutModel,
     )
@@ -147,7 +147,7 @@ def edit_equipment_model(typeId,modelId):
     listEquipementModel = EquipmentModel.query.all()
     deleteFormModel = DeleteForm()
     return render_template(
-        "equipment/gestion/equipmentType/displayOne.html",
+        "equipment/gestion/equipmentType/displayDetail.html",
         listEquipementModel=listEquipementModel,
         formAjoutModel=formAjoutModel,
         equipmentType=typeSelected,

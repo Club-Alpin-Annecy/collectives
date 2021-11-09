@@ -1,12 +1,30 @@
-<form action="{{ route }}" method="post">
 
-    {{ form.hidden_tag() }}
 
-    {{ form.name.label }}
-    {{ form.name }}
-    {{ form.equipmentType.label }}
-    {{ form.equipmentType }}
+  <h1 class="modal_form_title">{{ titre or 'Ajouter un modèle' }}</h1>
 
-    {{ form.submit(class="button button-primary") }}
 
-  </form>
+
+
+
+<div class="modal_form_container">
+
+  <form action="{{ route }}" method="post" class="modal_form">
+  
+      {{ form.hidden_tag() }}
+  
+      <div class="modal_form_input_box">
+        {{ form.name.label }}
+        {{ form.name }}
+
+      </div>
+
+      <div class="modal_form_input_box">
+
+        {{ form.equipmentType.label }}
+        {{ form.equipmentType }}
+      </div>
+  
+      {{ form.submit(class="button button-primary") }}
+  
+    </form>
+</div>

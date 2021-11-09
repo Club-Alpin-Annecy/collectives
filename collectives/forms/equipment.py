@@ -23,7 +23,7 @@ class AddEquipmentTypeForm(FlaskForm):
         
     name = StringField(label="Type d'équipement :", validators=[DataRequired()])
     price = FloatField(label="Prix :",render_kw={"pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$","placeholder":"Prix"})
-    imageType_file = FileField("Ajouter image",validators=[FileAllowed(photos, "Image uniquement!")])
+    imageType_file = FileField("Ajouter une image :",validators=[FileAllowed(photos, "Image uniquement!")])
     submit = SubmitField("Enregistrer")
 
 class EquipmentModelForm(FlaskForm):

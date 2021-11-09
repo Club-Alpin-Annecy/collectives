@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Liste{% endblock %}
+{% endblock %}
+
+
+{% block scriptJsBody %}
+
+  {# Script JS in body tag #}
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="panel">
+  
+  <h3>GESTION DU MATÉRIEL <span class="title_second_path">/ MATÉRIEL</span></h3>
+
+  <h4>Type équipement n° {{ equipmentType.id }} </h4>
+
+
+  <div class="container_equipmentInfo">
+
+    <div class="container_equipmentInfo_top">
+
+
+      <div class="container_equipmentInfo_img">
+        <img src=" {{ 
+          url_for('static', filename='uploads/typeEquipmentImg/') + equipmentType.pathImg 
+          if equipmentType.pathImg else 
+         url_for('static', filename='img/icon/ionicon/md-images.svg') }}" alt="">
+        
+      </div>
+
+
+
+      <div class="container_equipmentInfo_txt">
+  
+        <div class="container_main_info">
+          <h5>Informations :</h5>
+
+          <p> <span class="type_info">Type :</span>  {{ equipmentType.name }} </p>
+
+
+        </div>
+
+
+        <div class="container_location_info">
+
+          <h5>Location :</h5>
+          <div class="container_info_sub">
+            <p> <span class="type_info">Prix :</span> {{ equipmentType.price }} € </p>
+            <p> <span class="type_info">Caution :</span> {{ equipmentType.deposit or "- "}}€ </p>
+          </div>
+          
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <h4>Modèle : {Nb de modèle} </h4>
+  <p class="button button-primary button-small button-open-modal">Ajouter</p>
+
+
+  <!-- Display all equipment model-->
+  {% with formAjoutModel=formAjoutModel, 
+      listEquipementModel=equipmentType.models,
+      equipmentType=typeSelected,
+      formEditModel=formEditModel,
+      modelId=modelId,
+      deleteFormModel=deleteFormModel,
+      typeId=equipmentType.id
+      %}
+      {% include "equipment/gestion/equipmentModel/displayAll.html" %}
+  {% endwith %}
+      
+</div>
+
+
+
+
+
+{% endblock %}
