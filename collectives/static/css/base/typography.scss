@@ -77,6 +77,10 @@ html, body {
 	line-height: $line-height-xs;
 }
 
+.title_second_path {
+	font-size: $font-size-xxl;
+	color: $color-orange-primary-light;
+}
 // Links 
 
 a, .link {
@@ -88,6 +92,17 @@ a, .link {
 		color: darken($color-blue-secondary-dark, 15%);
 	}
 }
+
+
+.title_first_path {
+    color: $color-black;
+}    
+.title_first_path:hover {
+    color: $color-black;
+    text-decoration: none;
+}
+
+
 
 .link-danger {
 	color: $color-error-light;
