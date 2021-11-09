@@ -53,6 +53,9 @@
     <h4>Équipement n° {{ equipment.id }}</h4>
 
     <p class="button button-primary button-small button-open-modal">Éditer</p>
+    {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id) %}
+        {% include 'equipment/gestion/delete_form.html' %}
+      {% endwith %}
 
 
     <div class="container_equipmentInfo">
@@ -115,14 +118,16 @@
 
 
     {% if editEquipmentForm is defined %}
-      {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
-        {% include "equipment/gestion/equipment/form.html" %}
-      {% endwith %}
-      
-      {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id) %}
-        {% include 'equipment/gestion/delete_form.html' %}
-      {% endwith %}
+
+      {% with form=editEquipmentForm, route=url_for("equipment.view_equipment_stock"),
+      includePath='equipment/gestion/equipment/form.html', titre="Editer un équipement" %}
+
+      {% include 'partials/modal.html' %}
+
+    {% endwith %}
     {% endif %}
+
+    
   
     
 
