@@ -55,6 +55,7 @@ class EquipmentType(db.Model):
         backref=db.backref("equipmentType", lazy="joined"),
     )
 
+    
     def save_typeImg(self, file):
         """Save an image as type image.
 
@@ -70,6 +71,11 @@ class EquipmentType(db.Model):
                 os.remove(pathFile)
             filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
             self.pathImg = filename
+
+    def nbModels(self):
+        return len(self.models)
+        
+
 
 
 
