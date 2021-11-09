@@ -16,13 +16,14 @@ from .validators import remove_unique_validators
 
 
 
-class AddEquipmentTypeForm(FlaskForm):
+class EquipmentTypeForm(FlaskForm):
     class Meta:
         model = EquipmentType
         only = ["type_name"]
         
     name = StringField(label="Type d'équipement :", validators=[DataRequired()])
     price = FloatField(label="Prix :",render_kw={"pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$","placeholder":"Prix"})
+    deposit = FloatField(label="Caution :",render_kw={"pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$","placeholder":"Caution"})
     imageType_file = FileField("Ajouter une image :",validators=[FileAllowed(photos, "Image uniquement!")])
     submit = SubmitField("Enregistrer")
 

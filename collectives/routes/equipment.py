@@ -9,7 +9,7 @@ from flask_sqlalchemy.model import Model
 
 from flask_uploads import UploadSet, IMAGES
 
-from ..forms.equipment import AddEquipmentTypeForm, DeleteForm, EquipmentModelForm,EquipmentForm
+from ..forms.equipment import EquipmentTypeForm, DeleteForm, EquipmentModelForm,EquipmentForm
 
 import datetime
 
@@ -55,7 +55,7 @@ def view_equipment_type():
     
     listEquipementType = EquipmentType.query.all()
 
-    formAjout = AddEquipmentTypeForm()
+    formAjout = EquipmentTypeForm()
     print(request)
     if formAjout.validate_on_submit():
 
@@ -65,10 +65,10 @@ def view_equipment_type():
         new_equipment_type.price = float(formAjout.price.data)
         new_equipment_type.save_typeImg(formAjout.imageType_file.data)
 
-
         db.session.add(new_equipment_type)
         listEquipementType.append(new_equipment_type)
         db.session.commit()
+        return redirect(url_for(".view_equipment_type"))
 
 
     return render_template(
@@ -90,15 +90,23 @@ def detail_equipment_type(typeId):
         new_equipment_model.equipmentType = formAjoutModel.equipmentType.data
         db.session.add(new_equipment_model)
         db.session.commit()
-        formAjoutModel.name.data = ""
-        formAjoutModel.equipmentType.data= ""
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
     
+    formEdit = EquipmentTypeForm(obj=equipmentType)
+    
+    if formEdit.validate_on_submit():
+        equipmentType.name = formEdit.name.data
+        equipmentType.price = float(formEdit.price.data)
+        equipmentType.save_typeImg(formEdit.imageType_file.data)
+        db.session.commit()
+        return redirect(url_for(".view_equipment_type"))
+
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
         equipmentType=equipmentType,
         formAjoutModel=formAjoutModel,
+        formEdit=formEdit,
     )
 
 @blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
@@ -106,18 +114,17 @@ def edit_equipment_type(typeId):
 
     
     typeModified = EquipmentType.query.get(typeId)
-    formEdit = AddEquipmentTypeForm(obj=typeModified)
+    formEdit = EquipmentTypeForm(obj=typeModified)
     
     if formEdit.validate_on_submit():
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
-        
         return redirect(url_for(".view_equipment_type"))
 
     listEquipementType = EquipmentType.query.all()
-    formAjout = AddEquipmentTypeForm()
+    formAjout = EquipmentTypeForm()
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
@@ -215,8 +222,8 @@ def edit_equipment(equipmentId):
 @blueprint.route("/stock/detail_equipment/<int:equipment_id>", methods=["GET", "POST"])
 def detail_equipment(equipment_id):
     equipmentSelected = Equipment.query.get(equipment_id)
-    
-    editEquipmentForm = EquipmentForm(obj=equipmentSelected)    
+
+    editEquipmentForm = EquipmentForm(obj=equipmentSelected) 
     
     deleteForm = DeleteForm()
 
