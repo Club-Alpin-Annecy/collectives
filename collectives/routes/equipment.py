@@ -184,7 +184,7 @@ def view_equipment_stock():
         deleteForm=deleteForm,
     )
 
-@blueprint.route("/stock/<int:equipmentId>/edit", methods=["GET", "POST"])
+@blueprint.route("/stock/detail_equipment/<int:equipmentId>/edit", methods=["GET", "POST"])
 def edit_equipment(equipmentId):
     equipmentModified = Equipment.query.get(equipmentId)
     editEquipmentForm = EquipmentForm(obj=equipmentModified)
@@ -215,14 +215,16 @@ def edit_equipment(equipmentId):
 @blueprint.route("/stock/detail_equipment/<int:equipment_id>", methods=["GET", "POST"])
 def detail_equipment(equipment_id):
     equipmentSelected = Equipment.query.get(equipment_id)
-
-    print(equipmentSelected)
+    
+    editEquipmentForm = EquipmentForm(obj=equipmentSelected)    
+    
     deleteForm = DeleteForm()
 
     return render_template(
         "equipment/gestion/equipment/displayDetail.html",
         equipment = equipmentSelected,
         deleteForm=deleteForm,
+        editEquipmentForm=editEquipmentForm,
     )
 
 
