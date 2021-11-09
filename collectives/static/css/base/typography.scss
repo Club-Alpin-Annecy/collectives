@@ -77,10 +77,27 @@ html, body {
 	line-height: $line-height-xs;
 }
 
+.title_first_path {
+	color: $color-black;
+
+	&:hover {
+		color: $color-black;
+		text-decoration: none;
+	}
+}    
+
+
 .title_second_path {
 	font-size: $font-size-xxl;
 	color: $color-orange-primary-light;
+
+	&:hover {
+		color: $color-orange-primary-light;
+		text-decoration: none;
+	}
 }
+
+
 // Links 
 
 a, .link {
@@ -93,14 +110,13 @@ a, .link {
 	}
 }
 
+.link_path {
 
-.title_first_path {
-    color: $color-black;
-}    
-.title_first_path:hover {
-    color: $color-black;
-    text-decoration: none;
+	&:hover {
+		text-decoration: none;
+	}
 }
+
 
 
 

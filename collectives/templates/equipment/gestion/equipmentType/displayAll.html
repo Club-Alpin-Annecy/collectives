@@ -40,7 +40,9 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.view_equipment')}}" class="title_first_path">GESTION DU MATÉRIEL</a> <span class="title_second_path">/ MATÉRIEL</span></h3>
+    <h3><a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
+      <a href="{{ url_for('equipment.view_equipment_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a> 
+    </h3>
 
 
     <h4>Type equipement</h4>
@@ -112,9 +114,7 @@
 
 
 
-  
 
-  <h2>Ajouter un type equipement</h2>
 
   {% with form=formAjout, route=url_for('equipment.view_equipment_type'),
   includePath="equipment/gestion/equipmentType/form.html", titre="Ajouter un type d'équipement"%}
