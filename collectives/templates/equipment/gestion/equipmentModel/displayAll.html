@@ -11,7 +11,7 @@
             <p> {{ aModel.name }}
             <a href="{{ url_for('equipment.edit_equipment_model', typeId=typeId, modelId=aModel.id)}}">edit</a></p>
         {% else %}
-          {% with form=formEditModel, route=url_for("equipment.edit_equipment_model", typeId=typeId, modelId=aModel.id), titre="EIDTER" %}
+          {% with form=formEditModel, route=url_for("equipment.edit_equipment_model", typeId=typeId, modelId=aModel.id), titre="EDITER" %}
             {% include "equipment/gestion/equipmentModel/form.html" %}
           {% endwith %}
           {% with form=deleteFormModel, route=url_for("equipment.delete_equipment_model",typeId=typeId, modelId=aModel.id) %}
