@@ -30,7 +30,6 @@ class RoleIds(ChoiceEnum):
     Hotline = 5
     Accountant = 6
 
-
     # Activity-related roles
     EventLeader = 10
     ActivitySupervisor = 11
@@ -39,6 +38,7 @@ class RoleIds(ChoiceEnum):
     # Equipment-related roles
     EquipmentManager = 21
     EquipmentVolonter = 22
+
     @classmethod
     def display_names(cls):
         """Display name of the current role

@@ -1,11 +1,10 @@
 """Module for registration related classes
 """
 import os
-from genericpath import isdir, isfile
+from genericpath import isfile
+from flask_uploads import UploadSet, IMAGES, extension
 from .globals import db
 from .utils import ChoiceEnum
-from flask_uploads import UploadSet, IMAGES, extension
-from sqlalchemy.orm import validates
 
 
 # Upload
@@ -13,17 +12,18 @@ imgtypeequip = UploadSet("imgtypeequip", IMAGES)
 
 
 class EquipmentStatus(ChoiceEnum):
+    """Enum listing status of an equipment"""
+
     Available = 0
     Rented = 1
     Unavailable = 2
     InReview = 3
-    
 
     @classmethod
     def display_names(cls):
         """Display name of the current status
 
-        :return: status of the event
+        :return: status of the equipment
         :rtype: string
         """
         return {
@@ -35,7 +35,11 @@ class EquipmentStatus(ChoiceEnum):
 
 
 class EquipmentType(db.Model):
-    """Class of a type of equipment."""
+    """Class of a type of equipment.
+
+    An equipment type is an object with a determined name, price, image, and deposit price.
+    It is related to multiple models.
+    """
 
     __tablename__ = "equipment_types"
 
@@ -55,7 +59,6 @@ class EquipmentType(db.Model):
         backref=db.backref("equipmentType", lazy="joined"),
     )
 
-    
     def save_typeImg(self, file):
         """Save an image as type image.
 
@@ -66,21 +69,29 @@ class EquipmentType(db.Model):
         :type file: :py:class:`werkzeug.datastructures.FileStorage`
         """
         if file is not None:
-            pathFile = "collectives/static/uploads/typeEquipmentImg/type-" + str(self.name) + "."+extension(file.filename)
+            pathFile = (
+                "collectives/static/uploads/typeEquipmentImg/type-"
+                + str(self.name)
+                + "."
+                + extension(file.filename)
+            )
             if isfile(pathFile):
                 os.remove(pathFile)
             filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
             self.pathImg = filename
 
     def nbModels(self):
+        """
+        :return: number of equipment models of the type
+        :rtype: int
+        """
         return len(self.models)
-        
-
-
 
 
 class EquipmentModel(db.Model):
     """Class of a model of equipment.
+    An equipment model is an object with a determined name.
+    It is related to multiple equipments and one equipment type.
     """
 
     __tablename__ = "equipment_models"
@@ -98,6 +109,10 @@ class EquipmentModel(db.Model):
 
 class Equipment(db.Model):
     """Class of an equipment.
+
+    An equipment is an object with a determined reference, purchase price, purchase date, and status.
+    Status are declared in the EquipmentType enumeration.
+    It is related to one equipment model.
     """
 
     __tablename__ = "equipments"
@@ -116,6 +131,6 @@ class Equipment(db.Model):
         info={"choices": EquipmentStatus.choices(), "coerce": EquipmentStatus.coerce},
     )
 
-    #brand = db.Column(db.String(50), nullable = True)
+    # brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
