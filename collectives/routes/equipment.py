@@ -50,8 +50,6 @@ def view_equipment():
     )
 
 
-<<<<<<< HEAD
-=======
 
 class EquipmentTypeSchema(marshmallow.Schema):
     """Schema to describe activity types"""
@@ -62,7 +60,6 @@ class EquipmentTypeSchema(marshmallow.Schema):
         fields = ("id", "name")
 
 
->>>>>>> testTabulatorAjax
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
 
@@ -83,11 +80,8 @@ def view_equipment_type():
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> testTabulatorAjax
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments
