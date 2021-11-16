@@ -3,12 +3,9 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
-from flask import flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint, escape
-from flask_login import current_user
-from flask_sqlalchemy.model import Model
+from flask import render_template, redirect, url_for, request
+from flask import Blueprint
 
-from flask_uploads import UploadSet, IMAGES
 import marshmallow
 
 
@@ -24,7 +21,7 @@ from ..models import db, Equipment, EquipmentType, EquipmentModel
 
 
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
-""" Event blueprint
+""" Equipment blueprint
 
 This blueprint contains all routes for reservations and equipment
 """

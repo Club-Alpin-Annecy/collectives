@@ -130,7 +130,7 @@ class Equipment(db.Model):
     """Database primary key
 
     :type: int"""
-    
+
     reference = db.Column(db.String(100), nullable=False)
 
     purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
