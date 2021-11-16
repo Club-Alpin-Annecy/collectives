@@ -32,6 +32,8 @@
 
   {# Script JS in body tag #}
   <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+
 {% endblock %}
 
 
@@ -43,7 +45,35 @@
     <h3><a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
       <a href="{{ url_for('equipment.view_equipment_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a> 
     </h3>
+    <div id="example-table"></div>
+    <script>
+      var ajaxURL= '/api/equipementType';
 
+      //initialize table
+      let table = new Tabulator("#example-table", {
+        ajaxURL:ajaxURL,
+        layout:"fitColumns",      //fit columns to width of table
+        responsiveLayout:"hide",  //hide columns that dont fit on the table
+        tooltips:true,            //show tool tips on cells
+        addRowPos:"top",          //when adding a new row, add it to the top of the table
+        history:true,             //allow undo and redo actions on the table
+        pagination:"local",       //paginate the data
+        paginationSize:7,         //allow 7 rows per page of data
+        movableColumns:true,      //allow column order to be changed
+        resizableRows:true,       //allow row order to be changed
+        initialSort:[             //set the initial sort order of the data
+            {column:"name", dir:"asc"},
+        ],
+        columns:[                 //define the table columns
+          //{title:"id", field:"id", formatter:"number"},
+          {title:"Name", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
+          {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '7em'}},
+          {title:"Prix", field:"price", formatter:"money"},
+          {title:"Caution", field:"deposit", formatter:"money"},
+        ],
+         //create columns from data field names
+      });
+    </script>
 
     <h4>Type equipement</h4>
 

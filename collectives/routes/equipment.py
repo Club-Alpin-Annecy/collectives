@@ -2,12 +2,14 @@
 
 This modules contains the /equipment Blueprint
 """
+import json
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
 from flask_sqlalchemy.model import Model
 
 from flask_uploads import UploadSet, IMAGES
+import marshmallow
 
 from ..forms.equipment import EquipmentTypeForm, DeleteForm, EquipmentModelForm,EquipmentForm
 
@@ -49,6 +51,14 @@ def view_equipment():
 
 
 
+class EquipmentTypeSchema(marshmallow.Schema):
+    """Schema to describe activity types"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "name")
+
 
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
@@ -71,12 +81,13 @@ def view_equipment_type():
         return redirect(url_for(".view_equipment_type"))
 
 
+
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments
         # equipment=equipment,
         listEquipementType=listEquipementType,
-        formAjout=formAjout
+        formAjout=formAjout,
     )
 
 @blueprint.route("/equipment_type/<int:typeId>", methods=["GET", "POST"])
