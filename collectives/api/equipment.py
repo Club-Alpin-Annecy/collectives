@@ -29,7 +29,6 @@ def photo_uri(equipmentType):
 
 
 def equipmentType_uri(equipmentType):
-
     return url_for("equipment.detail_equipment_type", typeId=equipmentType.id)
 
 
@@ -51,7 +50,6 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
 @blueprint.route("/equipementType")
 def equipemntType():
-
     query = EquipmentType.query.all()
 
     data = EquipmentTypeSchema(many=True).dump(query)

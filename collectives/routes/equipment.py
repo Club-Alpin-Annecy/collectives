@@ -20,7 +20,7 @@ from ..models import db, Equipment, EquipmentType, EquipmentModel
 
 
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
-""" Event blueprint
+""" Equipment blueprint
 
 This blueprint contains all routes for reservations and equipment
 """
