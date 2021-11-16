@@ -8,7 +8,7 @@ from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
-from collectives.models.equipment import EquipmentType
+from collectives.models.equipment import EquipmentModel, EquipmentType
 
 from ..models import db, User, RoleIds, Role
 from ..utils.access import valid_user, user_is, confidentiality_agreement
@@ -50,6 +50,15 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
 
 
+class EquipmentModelSchema(marshmallow.Schema):
+    """Schema to describe equipemnt model"""
+
+    
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "name")
+
 @blueprint.route("/equipementType")
 def equipemntType():
    
@@ -59,4 +68,19 @@ def equipemntType():
     data = EquipmentTypeSchema(many=True).dump(query)
 
     print('-----------------------------------------------------------------------------------------------------------------------------------------------------')
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+
+
+@blueprint.route("/modelsfromtype/<int:typeId>")
+def equipemntModel(typeId):
+   
+
+    query = EquipmentModel.query.all()
+    query = EquipmentType.query.get(typeId).models
+    
+
+    data = EquipmentModelSchema(many=True).dump(query)
+
     return json.dumps(data), 200, {"content-type": "application/json"}
