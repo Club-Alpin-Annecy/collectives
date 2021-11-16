@@ -15,9 +15,13 @@ class EquipmentStatus(ChoiceEnum):
     """Enum listing status of an equipment"""
 
     Available = 0
+    """ Equipment is in stock, can be rented or put under review at any time """
     Rented = 1
+    """ Equipment in use is no longer in stock, can't be rented anymore, and will become available or unavaible at the end of its use """
     Unavailable = 2
+    """ Equipment is unavailable, it won't change status anymore """
     InReview = 3
+    """ Equipment is under review, can either become unavailable or available at end of review"""
 
     @classmethod
     def display_names(cls):
@@ -44,6 +48,9 @@ class EquipmentType(db.Model):
     __tablename__ = "equipment_types"
 
     id = db.Column(db.Integer, primary_key=True)
+    """Database primary key
+
+    :type: int"""
 
     name = db.Column(db.String(100), nullable=False)
 
@@ -97,6 +104,9 @@ class EquipmentModel(db.Model):
     __tablename__ = "equipment_models"
 
     id = db.Column(db.Integer, primary_key=True)
+    """Database primary key
+
+    :type: int"""
 
     name = db.Column(db.String(100), nullable=False)
 
@@ -117,7 +127,10 @@ class Equipment(db.Model):
 
     __tablename__ = "equipments"
     id = db.Column(db.Integer, primary_key=True)
+    """Database primary key
 
+    :type: int"""
+    
     reference = db.Column(db.String(100), nullable=False)
 
     purchaseDate = db.Column(db.DateTime, nullable=False, index=True)

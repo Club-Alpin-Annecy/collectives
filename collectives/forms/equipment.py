@@ -7,14 +7,16 @@ from wtforms import (
     DateField,
     DecimalField,
     FloatField,
+    SelectField,
 )
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
-from wtforms_alchemy import QuerySelectField
 from ..models import Equipment, EquipmentType, EquipmentModel, photos
 
 
 class EquipmentTypeForm(FlaskForm):
+    """Form for adding an equipment type, specifying its name, price, deposit, and related image"""
+
     class Meta:
         model = EquipmentType
         only = ["type_name"]
@@ -41,23 +43,26 @@ class EquipmentTypeForm(FlaskForm):
 
 
 class EquipmentModelForm(FlaskForm):
+    """Form for adding an equipment model, specifying its name and type"""
+
     class Meta:
         model = EquipmentModel
         only = ["name", "equipmentType"]
 
     name = StringField("Model d'équipement :")
 
-    equipmentType = QuerySelectField(
-        "Type d'équipement : ",
-        query_factory=lambda: EquipmentType.query.all(),
-        get_pk=lambda a: a.id,
-        get_label=lambda a: a.name,
-        allow_blank=False,
-    )
+    equipmentType = SelectField("Type d'équipement : ", coerce=int, choices=[])
+
     submit = SubmitField("Enregistrer")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.equipmentType.choices = [(i.id, i.name) for i in EquipmentType.query.all()]
 
 
 class EquipmentForm(FlaskForm):
+    """Form for adding an equipment, specifying its reference, model, purchase date and price"""
+
     class Meta:
         model = Equipment
         only = ["reference", "purchase"]
@@ -68,16 +73,15 @@ class EquipmentForm(FlaskForm):
 
     purchasePrice = DecimalField("Prix d'achat :")
 
-    model = QuerySelectField(
-        "Model :",
-        query_factory=lambda: EquipmentModel.query.all(),
-        get_pk=lambda a: a.id,
-        get_label=lambda a: a.name + "   (" + a.equipmentType.name + ")",
-        allow_blank=True,
-    )
+    model = SelectField("Model :", coerce=int, choices=[])
     submit = SubmitField("Enregistrer")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model.choices = [(i.id, i.name) for i in EquipmentModel.query.all()]
 
 
 class DeleteForm(FlaskForm):
+    """Form for deleting an equipment"""
 
     delete = SubmitField("Supprimer")
