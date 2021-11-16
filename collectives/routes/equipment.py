@@ -3,12 +3,8 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
-from flask import flash, render_template, redirect, url_for, request
-from flask import current_app, Blueprint, escape
-from flask_login import current_user
-from flask_sqlalchemy.model import Model
-
-from flask_uploads import UploadSet, IMAGES
+from flask import render_template, redirect, url_for, request
+from flask import Blueprint
 import marshmallow
 
 
@@ -50,9 +46,6 @@ def view_equipment():
     )
 
 
-<<<<<<< HEAD
-=======
-
 class EquipmentTypeSchema(marshmallow.Schema):
     """Schema to describe activity types"""
 
@@ -62,7 +55,6 @@ class EquipmentTypeSchema(marshmallow.Schema):
         fields = ("id", "name")
 
 
->>>>>>> testTabulatorAjax
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
 
@@ -83,11 +75,6 @@ def view_equipment_type():
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> testTabulatorAjax
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments

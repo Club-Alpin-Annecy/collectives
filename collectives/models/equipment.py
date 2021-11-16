@@ -7,7 +7,6 @@ from .globals import db
 from .utils import ChoiceEnum
 
 
-# Upload
 imgtypeequip = UploadSet("imgtypeequip", IMAGES)
 
 
@@ -25,7 +24,7 @@ class EquipmentStatus(ChoiceEnum):
 
     @classmethod
     def display_names(cls):
-        """Display name of the current status
+        """Display name of the current status.
 
         :return: status of the equipment
         :rtype: string
@@ -48,23 +47,36 @@ class EquipmentType(db.Model):
     __tablename__ = "equipment_types"
 
     id = db.Column(db.Integer, primary_key=True)
-    """Database primary key
+    """Database primary key.
 
     :type: int"""
 
     name = db.Column(db.String(100), nullable=False)
+    """Name of this type.
+
+    :type: string"""
 
     pathImg = db.Column(db.String(100), nullable=True)
 
     price = db.Column(db.Float)
+    """Price for renting this type.
+
+    :type: float"""
 
     deposit = db.Column(db.Float, nullable=True)
+    """Deposit price. This is the price that will cost the user if he brokes an equipment of this type.
+
+    :type: float"""
 
     models = db.relationship(
         "EquipmentModel",
         lazy="select",
         backref=db.backref("equipmentType", lazy="joined"),
     )
+    """ List of models associated to this type.
+
+    :type: list(:py:class:`collectives.models.equipment.EquipmentModel`)
+    """
 
     def save_typeImg(self, file):
         """Save an image as type image.
@@ -104,17 +116,27 @@ class EquipmentModel(db.Model):
     __tablename__ = "equipment_models"
 
     id = db.Column(db.Integer, primary_key=True)
-    """Database primary key
+    """Database primary key.
 
     :type: int"""
 
     name = db.Column(db.String(100), nullable=False)
+    """Name of this type.
+
+    :type: string"""
 
     equipments = db.relationship(
         "Equipment", lazy="select", backref=db.backref("model", lazy="joined")
     )
+    """ List of equipment associated to this model.
+
+    :type: list(:py:class:`collectives.models.equipment.Equipment`)
+    """
 
     equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
+    """ Primary key of the type to which the model is related (see  :py:class:`collectives.models.equipment.EquipmentType`)
+
+    :type: int"""
 
 
 class Equipment(db.Model):
@@ -127,15 +149,24 @@ class Equipment(db.Model):
 
     __tablename__ = "equipments"
     id = db.Column(db.Integer, primary_key=True)
-    """Database primary key
+    """Database primary key.
 
     :type: int"""
-    
+
     reference = db.Column(db.String(100), nullable=False)
+    """Reference of this equipment.
+
+    :type: string"""
 
     purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
+    """Purchase date of this equipment.
+
+    :type: :py:class:`datetime.datetime`"""
 
     purchasePrice = db.Column(db.Float, nullable=True)
+    """Purchase price of this equipment.
+
+    :type: float"""
 
     status = db.Column(
         db.Enum(EquipmentStatus),
@@ -143,7 +174,13 @@ class Equipment(db.Model):
         default=EquipmentStatus.Available,
         info={"choices": EquipmentStatus.choices(), "coerce": EquipmentStatus.coerce},
     )
+    """ Status of the equipment (available, rented...).
+
+    :type: :py:class:`collectives.models.equipment.EquipmentStatus`"""
 
     # brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
+    """ Primary key of the model to which the equipment is related (see  :py:class:`collectives.models.equipment.EquipmentModel`).
+
+    :type: int"""
