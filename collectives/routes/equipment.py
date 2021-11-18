@@ -80,7 +80,7 @@ def detail_equipment_type(typeId):
     if formAjoutModel.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = formAjoutModel.name.data
-        new_equipment_model.equipmentType = formAjoutModel.equipmentType.data
+        new_equipment_model.equipment_type_id = formAjoutModel.equipmentType.data
         db.session.add(new_equipment_model)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
@@ -132,12 +132,12 @@ def edit_equipment_type(typeId):
 )
 def edit_equipment_model(typeId, modelId):
 
-    equipmentModified = EquipmentModel.query.get(modelId)
+    equipmentModelModified = EquipmentModel.query.get(modelId)
     formEditModel = EquipmentModelForm(obj=EquipmentModel.query.get(modelId))
 
     if formEditModel.validate_on_submit():
-        equipmentModified.name = formEditModel.name.data
-        equipmentModified.equipmentType = formEditModel.equipmentType.data
+        equipmentModelModified.name = formEditModel.name.data
+        equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
@@ -165,7 +165,7 @@ def view_equipment_stock():
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
-        new_equipment.model = addEquipmentForm.model.data
+        new_equipment.equipment_model_id = addEquipmentForm.model.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".view_equipment_stock"))
@@ -193,7 +193,7 @@ def edit_equipment(equipmentId):
         equipmentModified.reference = editEquipmentForm.reference.data
         equipmentModified.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentModified.purchasePrice = editEquipmentForm.purchasePrice.data
-        equipmentModified.model = editEquipmentForm.model.data
+        equipmentModified.equipment_model_id = editEquipmentForm.model.data
         db.session.commit()
         return redirect(url_for(".view_equipment_stock"))
 
