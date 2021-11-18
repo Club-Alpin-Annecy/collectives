@@ -348,6 +348,8 @@ class User(db.Model, UserMixin):
         if self.is_test:
             # Test users licenses never expire
             return True
+        if self.license_expiry_date is None:
+            return False
         return self.license_expiry_date > time.date()
 
     def is_youth(self):
