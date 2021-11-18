@@ -136,7 +136,7 @@ def edit_equipment_model(typeId, modelId):
     formEditModel = EquipmentModelForm(obj=equipmentModelModified)
 
     if formEditModel.validate_on_submit():
-        
+
         equipmentModelModified.name = formEditModel.name.data
         equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
         db.session.commit()

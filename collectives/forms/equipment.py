@@ -57,7 +57,9 @@ class EquipmentModelForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.equipment_type_id.choices = [(i.id, i.name) for i in EquipmentType.query.all()]
+        self.equipment_type_id.choices = [
+            (i.id, i.name) for i in EquipmentType.query.all()
+        ]
 
 
 class EquipmentForm(FlaskForm):
@@ -78,7 +80,9 @@ class EquipmentForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.equipment_model_id.choices = [(i.id, i.name) for i in EquipmentModel.query.all()]
+        self.equipment_model_id.choices = [
+            (i.id, i.name) for i in EquipmentModel.query.all()
+        ]
 
 
 class DeleteForm(FlaskForm):
