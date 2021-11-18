@@ -37,8 +37,6 @@ def view_equipment():
     equipment.caution = 12.1
     equipment.purchasePrice = 15.50
 
-    print(vars(equipment), flush=True)
-
     return render_template(
         "equipment/gestion/equipment.html",
         # equipments=equipments
