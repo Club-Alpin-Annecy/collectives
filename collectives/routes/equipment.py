@@ -46,6 +46,15 @@ def view_equipment():
     )
 
 
+class EquipmentTypeSchema(marshmallow.Schema):
+    """Schema to describe activity types"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "name")
+
+
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
 

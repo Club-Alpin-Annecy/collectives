@@ -47,6 +47,7 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
         fields = ("id", "name", "pathImg", "price", "deposit", "urlEquipmentTypeDetail")
 
+
 @blueprint.route("/equipementType")
 def equipemntType():
     query = EquipmentType.query.all()
@@ -59,43 +60,42 @@ def equipemntType():
 def getModelNameFromAnEquipment(equipment):
     return equipment.model.name
 
+
 def getAnEquipemtnTypeNameFromAnEquipment(equipment):
     return equipment.model.equipmentType.name
 
+
 class EquipmentSchema(marshmallow.Schema):
     """Schema to describe equipment"""
-    typeName=fields.Function(lambda obj: obj.model.equipmentType.name)
-    urlEquipmentTypeDetail=fields.Function(lambda obj: 
-        url_for("equipment.detail_equipment_type",
-            typeId=obj.model.equipmentType.id
+
+    typeName = fields.Function(lambda obj: obj.model.equipmentType.name)
+    urlEquipmentTypeDetail = fields.Function(
+        lambda obj: url_for(
+            "equipment.detail_equipment_type", typeId=obj.model.equipmentType.id
         )
     )
     modelName = fields.Function(lambda obj: obj.model.name)
     statusName = fields.Function(lambda obj: obj.status.display_name())
 
-    equipmentURL=fields.Function(lambda obj: 
-        url_for("equipment.detail_equipment",
-            equipment_id=obj.id
-        )
+    equipmentURL = fields.Function(
+        lambda obj: url_for("equipment.detail_equipment", equipment_id=obj.id)
     )
-
 
     class Meta:
         """Fields to expose"""
 
         fields = (
-            "reference", 
-            "modelName", 
-            "typeName", 
+            "reference",
+            "modelName",
+            "typeName",
             "statusName",
-            "equipmentURL", 
-            "urlEquipmentTypeDetail"
+            "equipmentURL",
+            "urlEquipmentTypeDetail",
         )
 
 
 @blueprint.route("/equipement")
 def equipemnt():
-   
 
     query = Equipment.query.all()
 
