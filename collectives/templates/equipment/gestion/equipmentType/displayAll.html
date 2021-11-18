@@ -47,7 +47,7 @@
     </h3>
     <div id="example-table"></div>
     <script>
-      var ajaxURL= '/api/equipementType';
+      var ajaxURL= '/api/equipmentType';
 
       //initialize table
       let table = new Tabulator("#example-table", {
@@ -75,14 +75,14 @@
       });
     </script>
 
-    <h4>Type equipement</h4>
+    <h4>Type equipment</h4>
 
     <p class="button button-primary button-small button-open-modal">Ajouter</p>
 
 
     <div class="container_all_card">
 
-      {% for anEquipmentType in listEquipementType %}
+      {% for anEquipmentType in listEquipmentType %}
       
         <div class="container_one_card">
             {% if typeId != anEquipmentType.id %}

@@ -1,4 +1,4 @@
-""" API for equipement.
+""" API for equipment.
 
 """
 import json
@@ -58,7 +58,7 @@ class EquipmentModelSchema(marshmallow.Schema):
         fields = ("id", "name")
 
 
-@blueprint.route("/equipementType")
+@blueprint.route("/equipmentType")
 def equipemntType():
     query = EquipmentType.query.all()
 
@@ -104,7 +104,7 @@ class EquipmentSchema(marshmallow.Schema):
         )
 
 
-@blueprint.route("/equipement")
+@blueprint.route("/equipment")
 def equipemnt():
 
     query = Equipment.query.all()

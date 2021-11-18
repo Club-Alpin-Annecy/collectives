@@ -46,7 +46,7 @@ def view_equipment():
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
 
-    listEquipementType = EquipmentType.query.all()
+    listEquipmentType = EquipmentType.query.all()
 
     formAjout = EquipmentTypeForm()
     print(request)
@@ -59,7 +59,7 @@ def view_equipment_type():
         new_equipment_type.save_typeImg(formAjout.imageType_file.data)
 
         db.session.add(new_equipment_type)
-        listEquipementType.append(new_equipment_type)
+        listEquipmentType.append(new_equipment_type)
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
@@ -67,7 +67,7 @@ def view_equipment_type():
         "equipment/gestion/equipmentType/displayAll.html",
         # equipments=equipments
         # equipment=equipment,
-        listEquipementType=listEquipementType,
+        listEquipmentType=listEquipmentType,
         formAjout=formAjout,
     )
 
@@ -76,11 +76,11 @@ def view_equipment_type():
 def detail_equipment_type(typeId):
     equipmentType = EquipmentType.query.get(typeId)
     formAjoutModel = EquipmentModelForm()
-
+    formAjoutModel.equipment_type_id.data = typeId
     if formAjoutModel.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = formAjoutModel.name.data
-        new_equipment_model.equipment_type_id = formAjoutModel.equipmentType.data
+        new_equipment_model.equipment_type_id = formAjoutModel.equipment_type_id.data
         db.session.add(new_equipment_model)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
@@ -115,12 +115,12 @@ def edit_equipment_type(typeId):
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
-    listEquipementType = EquipmentType.query.all()
+    listEquipmentType = EquipmentType.query.all()
     formAjout = EquipmentTypeForm()
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
-        listEquipementType=listEquipementType,
+        listEquipmentType=listEquipmentType,
         formAjout=formAjout,
         formEdit=formEdit,
         typeId=typeId,
@@ -133,9 +133,10 @@ def edit_equipment_type(typeId):
 def edit_equipment_model(typeId, modelId):
 
     equipmentModelModified = EquipmentModel.query.get(modelId)
-    formEditModel = EquipmentModelForm(obj=EquipmentModel.query.get(modelId))
+    formEditModel = EquipmentModelForm(obj=equipmentModelModified)
 
     if formEditModel.validate_on_submit():
+        
         equipmentModelModified.name = formEditModel.name.data
         equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
         db.session.commit()
@@ -143,11 +144,11 @@ def edit_equipment_model(typeId, modelId):
 
     typeSelected = EquipmentType.query.get(typeId)
     formAjoutModel = EquipmentModelForm()
-    listEquipementModel = EquipmentModel.query.all()
+    listEquipmentModel = EquipmentModel.query.all()
     deleteFormModel = DeleteForm()
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
-        listEquipementModel=listEquipementModel,
+        listEquipmentModel=listEquipmentModel,
         formAjoutModel=formAjoutModel,
         equipmentType=typeSelected,
         formEditModel=formEditModel,
@@ -165,7 +166,7 @@ def view_equipment_stock():
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
-        new_equipment.equipment_model_id = addEquipmentForm.model.data
+        new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".view_equipment_stock"))
@@ -193,9 +194,9 @@ def edit_equipment(equipmentId):
         equipmentModified.reference = editEquipmentForm.reference.data
         equipmentModified.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentModified.purchasePrice = editEquipmentForm.purchasePrice.data
-        equipmentModified.equipment_model_id = editEquipmentForm.model.data
+        equipmentModified.equipment_model_id = editEquipmentForm.equipment_model_id.data
         db.session.commit()
-        return redirect(url_for(".view_equipment_stock"))
+        return redirect(url_for(".detail_equipment", equipment_id=equipmentId))
 
     equipmentTypeList = EquipmentType.query.all()
     addEquipmentForm = EquipmentForm()
@@ -216,6 +217,14 @@ def detail_equipment(equipment_id):
     equipmentSelected = Equipment.query.get(equipment_id)
 
     editEquipmentForm = EquipmentForm(obj=equipmentSelected)
+
+    if editEquipmentForm.validate_on_submit():
+        equipmentSelected.reference = editEquipmentForm.reference.data
+        equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
+        equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
+        equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
+        db.session.commit()
+        return redirect(url_for(".detail_equipment", equipment_id=equipment_id))
 
     deleteForm = DeleteForm()
 

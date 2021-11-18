@@ -6,7 +6,7 @@
 
 
 
-    {% for aModel in listEquipementModel %}
+    {% for aModel in listEquipmentModel %}
         {% if modelId != aModel.id %}
             <p> {{ aModel.name }}
             <a href="{{ url_for('equipment.edit_equipment_model', typeId=typeId, modelId=aModel.id)}}">edit</a></p>
