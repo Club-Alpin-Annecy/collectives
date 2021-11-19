@@ -75,7 +75,6 @@ def equipemntType():
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-
 class EquipmentSchema(marshmallow.Schema):
     """Schema to describe equipment"""
 
