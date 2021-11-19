@@ -29,10 +29,6 @@ def photo_uri(equipmentType):
     return url_for("static", filename="img/icon/ionicon/md-images.svg")
 
 
-def equipmentType_uri(equipmentType):
-    return url_for("equipment.detail_equipment_type", typeId=equipmentType.id)
-
-
 class EquipmentTypeSchema(marshmallow.Schema):
     """Schema to describe equipment types"""
 
@@ -60,19 +56,24 @@ class EquipmentModelSchema(marshmallow.Schema):
 
 @blueprint.route("/equipmentType")
 def equipemntType():
+    """API endpoint to list equipment types.
+
+    It can be filtered using tabulator filter and sorter.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentTypeSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
     query = EquipmentType.query.all()
 
     data = EquipmentTypeSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
-
-def getModelNameFromAnEquipment(equipment):
-    return equipment.model.name
-
-
-def getAnEquipemtnTypeNameFromAnEquipment(equipment):
-    return equipment.model.equipmentType.name
 
 
 class EquipmentSchema(marshmallow.Schema):
@@ -106,6 +107,18 @@ class EquipmentSchema(marshmallow.Schema):
 
 @blueprint.route("/equipment")
 def equipemnt():
+    """API endpoint to list equipment.
+
+    It can be filtered using tabulator filter and sorter.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
 
     query = Equipment.query.all()
 
@@ -116,6 +129,18 @@ def equipemnt():
 
 @blueprint.route("/modelsfromtype/<int:typeId>")
 def equipemntModel(typeId):
+    """API endpoint to list equipment models.
+
+    It can be filtered using tabulator filter and sorter.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentModelSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
 
     query = EquipmentModel.query.all()
     query = EquipmentType.query.get(typeId).models
