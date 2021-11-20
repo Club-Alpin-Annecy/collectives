@@ -32,9 +32,51 @@
 
 {% block content %}
 
-    <h1>ETAT STOCK EN TEMPS REEL</h1>
+  <div class="panel">
+    
+    <h3>
+      <a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
+    </h3>
+    
+    <h4>ACCÈS DIRECT</h4>
+    <a href="{{ url_for('equipment.view_equipment_type')}}" class="button button-primary">MATÉRIEL</a>
+    <a href="{{ url_for('equipment.view_equipment_stock')}}" class="button button-primary">STOCK</a>
 
-    <a href="{{ url_for('equipment.view_equipment_type')}}">MATERIEL</a>
-    <a href="{{ url_for('equipment.view_equipment_stock')}}">STOCK</a>
+    <h4>ÉTAT DES SOTCKS EN TEMPS RÉEL</h4>
+
+    <div id="equipment-state"></div>
+
+    <script>
+      var ajaxURL= '/api/equipmentType';
+
+      //initialize table
+      let table = new Tabulator("#equipment-state", {
+        ajaxURL:ajaxURL,
+        layout:"fitColumns",      //fit columns to width of table
+        responsiveLayout:"hide",  //hide columns that dont fit on the table
+        tooltips:true,            //show tool tips on cells
+        addRowPos:"top",          //when adding a new row, add it to the top of the table
+        history:true,             //allow undo and redo actions on the table
+        pagination:"local",       //paginate the data
+        paginationSize:5,         //allow 7 rows per page of data
+        movableColumns:true,      //allow column order to be changed
+        resizableRows:true,       //allow row order to be changed
+        initialSort:[             //set the initial sort order of the data
+            {column:"name", dir:"asc"},
+        ],
+        columns:[                 //define the table columns
+          //{title:"id", field:"id", formatter:"number"},
+          {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '4em'}},
+          {title:"Name", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
+          {title:"Total", field:"nbTotal"},
+          {title:"Indisponible", field:"nbTotalUnavailable"},
+          {title:"Disponible", field:"nbTotalAvailable"},
+        ],
+         //create columns from data field names
+      });
+    </script>
+
+  </div>
+
 
 {% endblock %}

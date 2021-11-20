@@ -38,11 +38,33 @@ class EquipmentTypeSchema(marshmallow.Schema):
             "equipment.detail_equipment_type", typeId=equipmentType.id
         )
     )
+    """:type: int"""
+    nbTotal = fields.Function(lambda equipmentType: equipmentType.nb_total())
+
+    """:type: int"""
+    nbTotalUnavailable = fields.Function(
+        lambda equipmentType: equipmentType.nb_total_unavailable()
+    )
+
+    """:type: int"""
+    nbTotalAvailable = fields.Function(
+        lambda equipmentType: equipmentType.nb_total_available()
+    )
 
     class Meta:
         """Fields to expose"""
 
-        fields = ("id", "name", "pathImg", "price", "deposit", "urlEquipmentTypeDetail")
+        fields = (
+            "id",
+            "name",
+            "pathImg",
+            "price",
+            "deposit",
+            "urlEquipmentTypeDetail",
+            "nbTotal",
+            "nbTotalUnavailable",
+            "nbTotalAvailable",
+        )
 
 
 class EquipmentModelSchema(marshmallow.Schema):

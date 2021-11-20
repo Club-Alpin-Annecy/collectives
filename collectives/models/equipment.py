@@ -106,6 +106,37 @@ class EquipmentType(db.Model):
         """
         return len(self.models)
 
+    def nb_total(self):
+        """
+        :return: number of total equipments of the type
+        :rtype: int
+        """
+        nbTotal = 0
+        for aModel in list(self.models):
+            nbTotal += len(aModel.equipments)
+
+        return nbTotal
+
+    def nb_total_unavailable(self):
+        """
+        :return: number of total equipments no available of the type
+        :rtype: int
+        """
+        nbTotalUnavailable = 0
+        for aModel in list(self.models):
+            for aEquipment in aModel.equipments:
+                if aEquipment.status == EquipmentStatus.Unavailable:
+                    nbTotalUnavailable += 1
+
+        return nbTotalUnavailable
+
+    def nb_total_available(self):
+        """
+        :return: number of total equipments available of the type
+        :rtype: int
+        """
+        return self.nb_total() - self.nb_total_unavailable()
+
 
 class EquipmentModel(db.Model):
     """Class of a model of equipment.
