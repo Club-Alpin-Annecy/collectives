@@ -102,9 +102,12 @@
 
 
   <h4>Modèle{{"s" if equipmentType.nbModels()>1}} ({{equipmentType.nbModels()}}) : </h4>
-  <p class="button button-primary button-small button-open-modal">Ajouter</p>
+  <p class="button button-primary button-small">Ajouter</p>
 
-
+  {% with form=formAjoutModel, route=url_for('equipment.detail_equipment_type', typeId=equipmentType.id) %}
+  {% include "equipment/gestion/equipmentModel/form.html" %}
+  {% endwith %}
+ 
   <!-- Display all equipment model-->
   {% with formAjoutModel=formAjoutModel, 
       listEquipmentModel=equipmentType.models,

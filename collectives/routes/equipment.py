@@ -76,11 +76,10 @@ def view_equipment_type():
 def detail_equipment_type(typeId):
     equipmentType = EquipmentType.query.get(typeId)
     formAjoutModel = EquipmentModelForm()
-    formAjoutModel.equipment_type_id.data = typeId
     if formAjoutModel.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = formAjoutModel.name.data
-        new_equipment_model.equipment_type_id = formAjoutModel.equipment_type_id.data
+        new_equipment_model.equipment_type_id = typeId
         db.session.add(new_equipment_model)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
