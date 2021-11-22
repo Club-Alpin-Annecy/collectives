@@ -6,7 +6,8 @@ import json
 from flask import url_for
 from marshmallow import fields
 
-from collectives.models.equipment import Equipment, EquipmentType, EquipmentModel
+from ..models import db, Equipment, EquipmentType, EquipmentModel
+
 
 
 from .common import blueprint, marshmallow
@@ -169,3 +170,26 @@ def equipemntModel(typeId):
     data = EquipmentModelSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+
+
+@blueprint.route("/modelEdit/<int:model_id>/<string:name>")
+def equipmentModelEdit(model_id, name):  
+    model = EquipmentModel.query.get(model_id)
+    model.name = name
+    db.session.commit()
+
+    query = EquipmentModel.query.all()
+    data = EquipmentModelSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+
+@blueprint.route("/modelDelete/<int:model_id>")
+def equipmentModelDelete(model_id):  
+    model = EquipmentModel.query.get(model_id)
+    db.session.delete(model)
+
+    return "{'resp': 'OKI'}", 200, {"content-type": "application/json"}
