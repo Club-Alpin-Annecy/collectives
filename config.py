@@ -374,7 +374,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 """
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
-IMAGES_PATH = ["static/uploads", "static/uploads/avatars","static/uploads/typeEquipmentImg"]
+IMAGES_PATH = ["static/uploads", "static/uploads/avatars", "static/uploads/typeEquipmentImg"]
 
 
 DESCRIPTION_TEMPLATE = """
