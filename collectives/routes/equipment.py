@@ -103,6 +103,9 @@ def detail_equipment_type(typeId):
 
 @blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
 def edit_equipment_type(typeId):
+    """
+    Route to delete a specific equipment type
+    """
 
     typeModified = EquipmentType.query.get(typeId)
     formEdit = EquipmentTypeForm(obj=typeModified)

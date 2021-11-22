@@ -173,6 +173,17 @@ def equipemntModel(typeId):
 
 @blueprint.route("/modelEdit/<int:model_id>/<string:name>")
 def equipmentModelEdit(model_id, name):
+    """
+    API endpoint to edit a model.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentModelSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
     model = EquipmentModel.query.get(model_id)
     model.name = name
     db.session.commit()
@@ -185,6 +196,17 @@ def equipmentModelEdit(model_id, name):
 
 @blueprint.route("/modelDelete/<int:model_id>")
 def equipmentModelDelete(model_id):
+    """
+    API endpoint to delete a model.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentModelSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
     model = EquipmentModel.query.get(model_id)
     db.session.delete(model)
 
