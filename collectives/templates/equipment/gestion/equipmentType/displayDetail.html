@@ -44,10 +44,17 @@
 
   <h4>Type équipement n° {{ equipmentType.id }} </h4>
 
-  <!-- TODO : Create route for type deleting -->
+  <p class="button button-primary button-small button-open-modal">Éditer</p>
   {% with form=deleteForm, route=url_for("equipment.delete_equipment_type",equipmentTypeId=equipmentType.id) %}
     {% include 'equipment/gestion/delete_form.html' %}
   {% endwith %}
+
+  {% if formEdit is defined %}
+    {% with form=formEdit, route=url_for("equipment.edit_equipment_type", typeId=equipmentType.id),
+    includePath='equipment/gestion/equipmentType/form.html', titre="Editer un équipement" %}
+      {% include 'partials/modal.html' %}
+    {% endwith %}
+  {% endif %}
 
   <div class="container_equipmentInfo">
 
@@ -109,9 +116,6 @@
       %}
       {% include "equipment/gestion/equipmentModel/displayAll.html" %}
   {% endwith %}
-
-
-
 
   <div id="equipmentModel"></div>
 
