@@ -72,11 +72,10 @@ def detail_equipment_type(typeId):
     Show one equipment type and its models
     """
     formAjoutModel = EquipmentModelForm()
-    formAjoutModel.equipment_type_id.data = typeId
     if formAjoutModel.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = formAjoutModel.name.data
-        new_equipment_model.equipment_type_id = formAjoutModel.equipment_type_id.data
+        new_equipment_model.equipment_type_id = typeId
         db.session.add(new_equipment_model)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
@@ -91,12 +90,48 @@ def detail_equipment_type(typeId):
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
+    deleteForm = DeleteForm()
+
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
         equipmentType=equipmentType,
         formAjoutModel=formAjoutModel,
         formEdit=formEdit,
+        deleteForm=deleteForm,
     )
+
+
+@blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
+def edit_equipment_type(typeId):
+
+    typeModified = EquipmentType.query.get(typeId)
+    formEdit = EquipmentTypeForm(obj=typeModified)
+
+    if formEdit.validate_on_submit():
+        typeModified.name = formEdit.name.data
+        typeModified.price = float(formEdit.price.data)
+        typeModified.save_typeImg(formEdit.imageType_file.data)
+        db.session.commit()
+        return redirect(url_for(".view_equipment_type"))
+
+    listEquipmentType = EquipmentType.query.all()
+    formAjout = EquipmentTypeForm()
+
+    return render_template(
+        "equipment/gestion/equipmentType/displayAll.html",
+        listEquipmentType=listEquipmentType,
+        formAjout=formAjout,
+        formEdit=formEdit,
+        typeId=typeId,
+    )
+
+
+@blueprint.route("/delete_equipmentType/<int:equipmentTypeId>", methods=["POST"])
+def delete_equipment_type(equipmentTypeId):
+    """Route to delete a specific type"""
+    equipmentType = EquipmentType.query.get(equipmentTypeId)
+    db.session.delete(equipmentType)
+    return redirect(url_for(".view_equipment"))
 
 
 @blueprint.route(
@@ -559,7 +594,7 @@ def create_equipments_in_bdd():
                 ],
             },
         }
-        for eType in equipmentsTypes.items():
+        for eType in equipmentsTypes:
             equipmentType = EquipmentType()
             print(eType[1])
             equipmentType.name = eType[0]

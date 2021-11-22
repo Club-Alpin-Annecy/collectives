@@ -51,15 +51,7 @@ class EquipmentModelForm(FlaskForm):
 
     name = StringField("Model d'équipement :")
 
-    equipment_type_id = SelectField("Type d'équipement : ", coerce=int, choices=[])
-
     submit = SubmitField("Enregistrer")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.equipment_type_id.choices = [
-            (i.id, i.name) for i in EquipmentType.query.all()
-        ]
 
 
 class EquipmentForm(FlaskForm):

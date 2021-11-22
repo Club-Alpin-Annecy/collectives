@@ -9,7 +9,6 @@ from marshmallow import fields
 from ..models import db, Equipment, EquipmentType, EquipmentModel
 
 
-
 from .common import blueprint, marshmallow
 
 
@@ -172,10 +171,8 @@ def equipemntModel(typeId):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-
-
 @blueprint.route("/modelEdit/<int:model_id>/<string:name>")
-def equipmentModelEdit(model_id, name):  
+def equipmentModelEdit(model_id, name):
     model = EquipmentModel.query.get(model_id)
     model.name = name
     db.session.commit()
@@ -186,9 +183,8 @@ def equipmentModelEdit(model_id, name):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-
 @blueprint.route("/modelDelete/<int:model_id>")
-def equipmentModelDelete(model_id):  
+def equipmentModelDelete(model_id):
     model = EquipmentModel.query.get(model_id)
     db.session.delete(model)
 

@@ -47,6 +47,17 @@
 
   <h4>Type équipement n° {{ equipmentType.id }} </h4>
 
+  <p class="button button-primary button-small button-open-modal">Éditer</p>
+  {% with form=deleteForm, route=url_for("equipment.delete_equipment_type",equipmentTypeId=equipmentType.id) %}
+    {% include 'equipment/gestion/delete_form.html' %}
+  {% endwith %}
+
+  {% if formEdit is defined %}
+    {% with form=formEdit, route=url_for("equipment.edit_equipment_type", typeId=equipmentType.id),
+    includePath='equipment/gestion/equipmentType/form.html', titre="Editer un équipement" %}
+      {% include 'partials/modal.html' %}
+    {% endwith %}
+  {% endif %}
 
   <div class="container_equipmentInfo">
 
@@ -94,9 +105,12 @@
 
 
   <h4>Modèle{{"s" if equipmentType.nbModels()>1}} ({{equipmentType.nbModels()}}) : </h4>
-  <p class="button button-primary button-small button-open-modal">Ajouter</p>
+  <p class="button button-primary button-small">Ajouter</p>
 
-
+  {% with form=formAjoutModel, route=url_for('equipment.detail_equipment_type', typeId=equipmentType.id) %}
+  {% include "equipment/gestion/equipmentModel/form.html" %}
+  {% endwith %}
+ 
   <!-- Display all equipment model-->
   {% with formAjoutModel=formAjoutModel, 
       listEquipmentModel=equipmentType.models,
@@ -108,9 +122,6 @@
       %}
       {% include "equipment/gestion/equipmentModel/displayAll.html" %}
   {% endwith %}
-
-
-
 
   <div id="equipmentModel"></div>
 
