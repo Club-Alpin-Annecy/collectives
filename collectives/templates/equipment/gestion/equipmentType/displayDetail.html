@@ -16,6 +16,9 @@
 
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
+ {# Axios #}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
   {# Autocomplete for leader lookup #}
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
@@ -113,6 +116,11 @@
 
   <script>
     var ajaxURL= '/api/modelsfromtype/{{equipmentType.id}}';
+
+    var editCheck = function(row) {
+      return true;
+    }
+
   
     //initialize table
     let table = new Tabulator("#equipmentModel", {
@@ -129,12 +137,36 @@
       initialSort:[             //set the initial sort order of the data
           {column:"name", dir:"asc"},
       ],
+      cellEdited: (cell)=> {
+        console.log(cell.getRow().getData().id) ;
+        let id = cell.getRow().getData().id
+        
+        axios.get('/api/modelEdit/'+id+'/'+cell._cell.value)
+        .then((response)=>{
+          console.log(response)   
+        })
+      },
       columns:[                 //define the table columns
         //{title:"id", field:"id", formatter:"number"},
-        {title:"Name", headerFilter:"input",field:"name"},
+        {title:"Name", headerFilter:"input",field:"name", editor: 'input', editable: editCheck},
+        {title:"Supprimer", formatter:"buttonCross", headerSort:false, cellClick:function(e, cell){
+            if(confirm('Are you sure you want to delete this entry?')) {
+                
+                let id = cell.getRow().getData().id
+          
+                axios.get('/api/modelDelete/'+id)
+                .then((response)=>{
+                  cell.getRow().delete();
+                })
+            }
+          }
+        },
       ],
        //create columns from data field names
     });
+
+
+
   </script>
       
 </div>
