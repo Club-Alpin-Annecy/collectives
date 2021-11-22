@@ -94,11 +94,14 @@ def detail_equipment_type(typeId):
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
+    deleteForm = DeleteForm()
+
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
         equipmentType=equipmentType,
         formAjoutModel=formAjoutModel,
         formEdit=formEdit,
+        deleteForm=deleteForm,
     )
 
 
@@ -125,6 +128,14 @@ def edit_equipment_type(typeId):
         formEdit=formEdit,
         typeId=typeId,
     )
+
+
+@blueprint.route("/delete_equipmentType/<int:equipmentTypeId>", methods=["POST"])
+def delete_equipment_type(equipmentTypeId):
+    """Route to delete a specific type"""
+    equipmentType = EquipmentType.query.get(equipmentTypeId)
+    db.session.delete(equipmentType)
+    return redirect(url_for(".view_equipment"))
 
 
 @blueprint.route(
