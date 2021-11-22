@@ -559,7 +559,7 @@ def create_equipments_in_bdd():
                 ],
             },
         }
-        for eType in equipmentsTypes.items():
+        for eType in equipmentsTypes.keys():
             equipmentType = EquipmentType()
             equipmentType.name = eType
             equipmentType.price = 5.5
