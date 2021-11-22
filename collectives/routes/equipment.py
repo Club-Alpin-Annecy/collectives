@@ -3,7 +3,7 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for
 from flask import Blueprint
 
 
@@ -27,29 +27,24 @@ This blueprint contains all routes for reservations and equipment
 
 @blueprint.route("/", methods=["GET"])
 def view_equipment():
-    # equipments = Equipment.query.all()
-    # equipments.commit()
-
-    equipment = Equipment()
-    equipment.purchaseDate = datetime.datetime.now()
-    equipment.reference = "blabla"
-    equipment.caution = 12.1
-    equipment.purchasePrice = 15.50
+    """
+    Show the stock situation
+    """
 
     return render_template(
         "equipment/gestion/equipment.html",
-        # equipments=equipments
-        equipment=equipment,
     )
+
+
+# --------------------------------------- EQUIPMENT TYPE AND MODELS -------------------------------------------------
 
 
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
 def view_equipment_type():
-
-    listEquipmentType = EquipmentType.query.all()
-
+    """
+    Show all the equipment types and a form for to add one
+    """
     formAjout = EquipmentTypeForm()
-    print(request)
     if formAjout.validate_on_submit():
 
         new_equipment_type = EquipmentType()
@@ -59,14 +54,13 @@ def view_equipment_type():
         new_equipment_type.save_typeImg(formAjout.imageType_file.data)
 
         db.session.add(new_equipment_type)
-        listEquipmentType.append(new_equipment_type)
         db.session.commit()
         return redirect(url_for(".view_equipment_type"))
 
+    listEquipmentType = EquipmentType.query.all()
+
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
-        # equipments=equipments
-        # equipment=equipment,
         listEquipmentType=listEquipmentType,
         formAjout=formAjout,
     )
@@ -74,7 +68,9 @@ def view_equipment_type():
 
 @blueprint.route("/equipment_type/<int:typeId>", methods=["GET", "POST"])
 def detail_equipment_type(typeId):
-    equipmentType = EquipmentType.query.get(typeId)
+    """
+    Show one equipment type and its models
+    """
     formAjoutModel = EquipmentModelForm()
     formAjoutModel.equipment_type_id.data = typeId
     if formAjoutModel.validate_on_submit():
@@ -85,6 +81,7 @@ def detail_equipment_type(typeId):
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
+    equipmentType = EquipmentType.query.get(typeId)
     formEdit = EquipmentTypeForm(obj=equipmentType)
 
     if formEdit.validate_on_submit():
@@ -102,36 +99,13 @@ def detail_equipment_type(typeId):
     )
 
 
-@blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
-def edit_equipment_type(typeId):
-
-    typeModified = EquipmentType.query.get(typeId)
-    formEdit = EquipmentTypeForm(obj=typeModified)
-
-    if formEdit.validate_on_submit():
-        typeModified.name = formEdit.name.data
-        typeModified.price = float(formEdit.price.data)
-        typeModified.save_typeImg(formEdit.imageType_file.data)
-        db.session.commit()
-        return redirect(url_for(".view_equipment_type"))
-
-    listEquipmentType = EquipmentType.query.all()
-    formAjout = EquipmentTypeForm()
-
-    return render_template(
-        "equipment/gestion/equipmentType/displayAll.html",
-        listEquipmentType=listEquipmentType,
-        formAjout=formAjout,
-        formEdit=formEdit,
-        typeId=typeId,
-    )
-
-
 @blueprint.route(
     "/equipment_type/<int:typeId>/model<int:modelId>", methods=["GET", "POST"]
 )
 def edit_equipment_model(typeId, modelId):
-
+    """
+    Unused route
+    """
     equipmentModelModified = EquipmentModel.query.get(modelId)
     formEditModel = EquipmentModelForm(obj=equipmentModelModified)
 
@@ -157,8 +131,16 @@ def edit_equipment_model(typeId, modelId):
     )
 
 
+# -------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------- EQUIPMENT ---------------------------------------------------
+
+
 @blueprint.route("/stock", methods=["GET", "POST"])
 def view_equipment_stock():
+    """
+    Show all the equipments
+    """
     addEquipmentForm = EquipmentForm()
 
     if addEquipmentForm.validate_on_submit():
@@ -183,37 +165,11 @@ def view_equipment_stock():
     )
 
 
-@blueprint.route(
-    "/stock/detail_equipment/<int:equipmentId>/edit", methods=["GET", "POST"]
-)
-def edit_equipment(equipmentId):
-    equipmentModified = Equipment.query.get(equipmentId)
-    editEquipmentForm = EquipmentForm(obj=equipmentModified)
-
-    if editEquipmentForm.validate_on_submit():
-        equipmentModified.reference = editEquipmentForm.reference.data
-        equipmentModified.purchaseDate = editEquipmentForm.purchaseDate.data
-        equipmentModified.purchasePrice = editEquipmentForm.purchasePrice.data
-        equipmentModified.equipment_model_id = editEquipmentForm.equipment_model_id.data
-        db.session.commit()
-        return redirect(url_for(".detail_equipment", equipment_id=equipmentId))
-
-    equipmentTypeList = EquipmentType.query.all()
-    addEquipmentForm = EquipmentForm()
-    deleteForm = DeleteForm()
-
-    return render_template(
-        "equipment/gestion/equipment/displayAll.html",
-        equipmentTypeList=equipmentTypeList,
-        editEquipmentForm=editEquipmentForm,
-        addEquipmentForm=addEquipmentForm,
-        deleteForm=deleteForm,
-        equipmentId=equipmentId,
-    )
-
-
 @blueprint.route("/stock/detail_equipment/<int:equipment_id>", methods=["GET", "POST"])
 def detail_equipment(equipment_id):
+    """
+    Show the detail af an equipment and a form to edit it
+    """
     equipmentSelected = Equipment.query.get(equipment_id)
 
     editEquipmentForm = EquipmentForm(obj=equipmentSelected)
@@ -236,8 +192,14 @@ def detail_equipment(equipment_id):
     )
 
 
+# ---------------------------------------- DELETE ROUTES-------------------------------------------------
+
+
 @blueprint.route("/delete_equipment/<int:equipmentId>", methods=["POST"])
 def delete_equipment(equipmentId):
+    """
+    Route to delete a specific equipment
+    """
     del_equipment = Equipment.query.get(equipmentId)
     db.session.delete(del_equipment)
     return redirect(url_for(".view_equipment_stock"))
@@ -245,14 +207,22 @@ def delete_equipment(equipmentId):
 
 @blueprint.route("/delete_equipmentModel/<int:modelId>", methods=["POST"])
 def delete_equipment_model(modelId):
+    """
+    Route to delete a specific model from an equipment type
+    """
     model = EquipmentModel.query.get(modelId)
     typeId = model.equipmentType.id
     db.session.delete(model)
     return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
 
-# @blueprint.route("/create_equipments_in_bdd", methods=["GET"])
+# ----------------------------------------------------------------------------------------------------------
+
+
 def create_equipments_in_bdd():
+    """
+    Initiate the DB : put fake data to simulate what the pages would look like
+    """
     if EquipmentType.query.all() == []:
         equipmentsTypes = {
             "DVA": {
