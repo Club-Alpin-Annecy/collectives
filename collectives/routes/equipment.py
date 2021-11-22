@@ -559,16 +559,17 @@ def create_equipments_in_bdd():
                 ],
             },
         }
-        for eType in equipmentsTypes.keys():
+        for eType in equipmentsTypes.items():
             equipmentType = EquipmentType()
-            equipmentType.name = eType
+            print(eType[1])
+            equipmentType.name = eType[0]
             equipmentType.price = 5.5
             equipmentType.models = []
-            for model in equipmentsTypes[eType]:
+            for model in eType[1].items():
                 equipmentModel = EquipmentModel()
-                equipmentModel.name = model
+                equipmentModel.name = model[0]
                 equipmentModel.equipments = []
-                for refEquipment in equipmentsTypes[eType][model]:
+                for refEquipment in model[1]:
                     equipment = Equipment()
                     equipment.purchaseDate = datetime.datetime.now()
                     equipment.reference = refEquipment
