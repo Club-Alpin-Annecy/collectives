@@ -36,7 +36,7 @@ def list_logs():
     all_children = os.listdir(log_dir())
     files = [file for file in all_children if ".log" in file]
 
-    files.sort(key=lambda x: os.path.getmtime(log_dir()+'/'+x), reverse=True)
+    files.sort(key=lambda x: os.path.getmtime(log_dir() + "/" + x), reverse=True)
 
     return render_template(
         "technician/logs.html",
