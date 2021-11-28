@@ -16,7 +16,7 @@
     }
 
     &--date {
-        color: $color-gray-medium;
+        color: $color-blue-primary-dark;
         font-weight: $font-weight-medium;
         font-size: $font-size-m;
     }
@@ -27,7 +27,8 @@
 
     &--administration {
         padding: $padding-sections;
-        background: lighten($color-blue-primary-light, 57%);
+        background: $color-white;
+        border: 1px solid $color-gray-light;
     }
 
     &--administration-title {

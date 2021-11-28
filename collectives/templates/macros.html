@@ -1,6 +1,6 @@
 {% macro usericon(user, leader_info=None, user_info=None, is_pending_renewal=False) -%}
 <div class="usericon">
-      <a class="usericon-wrapper" href="{{url_for('profile.show_user', user_id=user.id)}}"
+      <a class="usericon-wrapper" href="{% if leader_info %}{{url_for('profile.show_user', user_id=user.id)}}{% else %}#{% endif %}"
                   alt="Avatar de {{user.abbrev_name()}}">
             <img class="usericon-avatar" src="{% if user.avatar
                         %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%

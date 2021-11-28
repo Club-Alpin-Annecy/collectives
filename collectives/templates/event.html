@@ -33,10 +33,10 @@
     <div class="collective-display--header">
       <div>
         <h1 class="heading-1">
+          {{event.title}}
           {% if not event.is_confirmed() %}
             <span class="event-status-badge event-status-{{event.status.value}}">{{event.status_string()}}</span>&nbsp;
           {% endif %}
-          {{event.title}}
         </h1>
         {% if event.tags %}
         <h2 class="heading-3">
