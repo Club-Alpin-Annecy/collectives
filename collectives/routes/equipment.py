@@ -3,8 +3,12 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
+from flask_login import current_user
 from flask import render_template, redirect, url_for
-from flask import Blueprint
+from flask import Blueprint, flash
+
+from collectives.models.role import RoleIds
+from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
 
 from ..forms.equipment import (
@@ -14,15 +18,29 @@ from ..forms.equipment import (
     EquipmentForm,
 )
 
-
 from ..models import db, Equipment, EquipmentType, EquipmentModel
-
 
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
 """ Equipment blueprint
 
 This blueprint contains all routes for reservations and equipment
 """
+
+
+@blueprint.before_request
+@valid_user()
+@confidentiality_agreement()
+@user_is("can_manage_equipment")
+def before_request():
+    """Protect all of the admin endpoints.
+
+    Protection is done by the decorator:
+
+    - check if user is valid :py:func:`collectives.utils.access.valid_user`
+    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user is allowed to manage equipment :py:func:`collectives.utils.access.user_is`
+    """
+    pass
 
 
 @blueprint.route("/", methods=["GET"])
@@ -179,6 +197,13 @@ def view_equipment_stock():
     """
     Show all the equipments
     """
+
+    if not current_user.matching_roles(
+        [RoleIds.EquipmentManager, RoleIds.Administrator]
+    ):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
     addEquipmentForm = EquipmentForm()
 
     if addEquipmentForm.validate_on_submit():
