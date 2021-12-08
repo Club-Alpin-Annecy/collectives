@@ -46,14 +46,14 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-      <a href="{{ url_for('equipment.view_equipment_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
+    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
+      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
     </h3>
 
     <h4>Équipement n° {{ equipment.id }}</h4>
 
     <p class="button button-primary button-small button-open-modal">Éditer</p>
-    {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id) %}
+    {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id), message="Êtes-vous sûr de vouloir supprimer cet équipement ?" %}
         {% include 'equipment/gestion/delete_form.html' %}
       {% endwith %}
 

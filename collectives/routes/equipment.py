@@ -44,7 +44,7 @@ def before_request():
 
 
 @blueprint.route("/", methods=["GET"])
-def view_equipment():
+def stock_situation():
     """
     Show the stock situation
     """
@@ -58,29 +58,29 @@ def view_equipment():
 
 
 @blueprint.route("/equipment_type", methods=["GET", "POST"])
-def view_equipment_type():
+def display_all_type():
     """
     Show all the equipment types and a form for to add one
     """
-    formAjout = EquipmentTypeForm()
-    if formAjout.validate_on_submit():
+    addingFrom = EquipmentTypeForm()
+    if addingFrom.validate_on_submit():
 
         new_equipment_type = EquipmentType()
 
-        new_equipment_type.name = formAjout.name.data
-        new_equipment_type.price = float(formAjout.price.data)
-        new_equipment_type.save_typeImg(formAjout.imageType_file.data)
+        new_equipment_type.name = addingFrom.name.data
+        new_equipment_type.price = float(addingFrom.price.data)
+        new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
 
         db.session.add(new_equipment_type)
         db.session.commit()
-        return redirect(url_for(".view_equipment_type"))
+        return redirect(url_for(".display_all_type"))
 
-    listEquipmentType = EquipmentType.query.all()
+    list_equipmentt_type = EquipmentType.query.all()
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
-        listEquipmentType=listEquipmentType,
-        formAjout=formAjout,
+        list_equipmentt_type=list_equipmentt_type,
+        addingFrom=addingFrom,
     )
 
 
@@ -89,10 +89,10 @@ def detail_equipment_type(typeId):
     """
     Show one equipment type and its models
     """
-    formAjoutModel = EquipmentModelForm()
-    if formAjoutModel.validate_on_submit():
+    adding_from_model = EquipmentModelForm()
+    if adding_from_model.validate_on_submit():
         new_equipment_model = EquipmentModel()
-        new_equipment_model.name = formAjoutModel.name.data
+        new_equipment_model.name = adding_from_model.name.data
         new_equipment_model.equipment_type_id = typeId
         db.session.add(new_equipment_model)
         db.session.commit()
@@ -106,14 +106,14 @@ def detail_equipment_type(typeId):
         equipmentType.price = float(formEdit.price.data)
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
-        return redirect(url_for(".view_equipment_type"))
+        return redirect(url_for(".display_all_type"))
 
     deleteForm = DeleteForm()
 
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
         equipmentType=equipmentType,
-        formAjoutModel=formAjoutModel,
+        adding_from_model=adding_from_model,
         formEdit=formEdit,
         deleteForm=deleteForm,
     )
@@ -133,15 +133,15 @@ def edit_equipment_type(typeId):
         typeModified.price = float(formEdit.price.data)
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
-        return redirect(url_for(".view_equipment_type"))
+        return redirect(url_for(".display_all_type"))
 
-    listEquipmentType = EquipmentType.query.all()
-    formAjout = EquipmentTypeForm()
+    list_equipmentt_type = EquipmentType.query.all()
+    addingFrom = EquipmentTypeForm()
 
     return render_template(
         "equipment/gestion/equipmentType/displayAll.html",
-        listEquipmentType=listEquipmentType,
-        formAjout=formAjout,
+        list_equipmentt_type=list_equipmentt_type,
+        addingFrom=addingFrom,
         formEdit=formEdit,
         typeId=typeId,
     )
@@ -152,7 +152,7 @@ def delete_equipment_type(equipmentTypeId):
     """Route to delete a specific type"""
     equipmentType = EquipmentType.query.get(equipmentTypeId)
     db.session.delete(equipmentType)
-    return redirect(url_for(".view_equipment"))
+    return redirect(url_for(".stock_situation"))
 
 
 @blueprint.route(
@@ -173,13 +173,13 @@ def edit_equipment_model(typeId, modelId):
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
     typeSelected = EquipmentType.query.get(typeId)
-    formAjoutModel = EquipmentModelForm()
+    adding_from_model = EquipmentModelForm()
     listEquipmentModel = EquipmentModel.query.all()
     deleteFormModel = DeleteForm()
     return render_template(
         "equipment/gestion/equipmentType/displayDetail.html",
         listEquipmentModel=listEquipmentModel,
-        formAjoutModel=formAjoutModel,
+        adding_from_model=adding_from_model,
         equipmentType=typeSelected,
         formEditModel=formEditModel,
         modelId=modelId,
@@ -193,7 +193,7 @@ def edit_equipment_model(typeId, modelId):
 
 
 @blueprint.route("/stock", methods=["GET", "POST"])
-def view_equipment_stock():
+def stock_situation_stock():
     """
     Show all the equipments
     """
@@ -214,7 +214,7 @@ def view_equipment_stock():
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
         db.session.add(new_equipment)
         db.session.commit()
-        return redirect(url_for(".view_equipment_stock"))
+        return redirect(url_for(".stock_situation_stock"))
 
     equipmentTypeList = EquipmentType.query.all()
 
@@ -265,7 +265,7 @@ def delete_equipment(equipmentId):
     """
     del_equipment = Equipment.query.get(equipmentId)
     db.session.delete(del_equipment)
-    return redirect(url_for(".view_equipment_stock"))
+    return redirect(url_for(".stock_situation_stock"))
 
 
 @blueprint.route("/delete_equipmentModel/<int:modelId>", methods=["POST"])
@@ -622,7 +622,7 @@ def create_equipments_in_bdd():
                 ],
             },
         }
-        for eType in equipmentsTypes:
+        for eType in equipmentsTypes.items():
             equipmentType = EquipmentType()
             print(eType[1])
             equipmentType.name = eType[0]

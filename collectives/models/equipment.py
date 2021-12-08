@@ -72,6 +72,7 @@ class EquipmentType(db.Model):
         "EquipmentModel",
         lazy="select",
         backref=db.backref("equipmentType", lazy="joined"),
+        cascade="all,delete",
     )
     """ List of models associated to this type.
 
@@ -157,7 +158,10 @@ class EquipmentModel(db.Model):
     :type: string"""
 
     equipments = db.relationship(
-        "Equipment", lazy="select", backref=db.backref("model", lazy="joined")
+        "Equipment",
+        lazy="select",
+        backref=db.backref("model", lazy="joined"),
+        cascade="all,delete",
     )
     """ List of equipment associated to this model.
 
