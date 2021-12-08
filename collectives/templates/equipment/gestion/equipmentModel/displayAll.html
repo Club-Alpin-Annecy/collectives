@@ -25,7 +25,7 @@
 
 
 
-    {% with form=formAjoutModel, route=url_for("equipment.detail_equipment_type",typeId=typeId),
+    {% with form=adding_from_model, route=url_for("equipment.detail_equipment_type",typeId=typeId),
       includePath='equipment/gestion/equipmentModel/form.html', titre="Ajouter un modèle" %}
       {% include 'partials/modal.html' %}
     {% endwith %}

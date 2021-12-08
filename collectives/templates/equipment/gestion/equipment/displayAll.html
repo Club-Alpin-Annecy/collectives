@@ -44,8 +44,8 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-      <a href="{{ url_for('equipment.view_equipment_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
+    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
+      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
     </h3>
 
     <h4>STOCK</h4>
@@ -71,6 +71,9 @@
         initialSort:[             //set the initial sort order of the data
             {column:"name", dir:"asc"},
         ],
+        rowClick: function (e, row) {
+          location = row._row.data.equipmentURL
+      },
         columns:[              //define the table columns
           //{title:"id", field:"id", formatter:"number"},
           {
@@ -110,55 +113,9 @@
          //create columns from data field names
       });
     </script>
-
-
-    <div class="container_table">
-      <div class="table_head_container">
-
-        <p class="head_element">Référence Catalogue</p>
-        <p class="head_element">Type d'objet</p>
-        <p class="head_element"> Modele </p>
-        <p class="head_element">État</p>
-
-      </div>
-
-      <div class="table_body_container">
-
-        {% for equipmentType in equipmentTypeList %}
-        {% for model in equipmentType.models %}
-          {% for equipment in model.equipments %}
-
-            {% include 'equipment/gestion/equipment/display_one.html' %}
-
-          {% endfor %}
-        {% endfor %}
-      {% endfor %}
-
-      </div>
-
-    </div>
-
-
-  
-
   </div>
 
-
-
-
-
-
-
-    <!-- {% if addEquipmentForm is defined %}
-      {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock") %}
-        {% include 'equipment/gestion/equipment/form.html' %}
-      {% endwith %}
-    {% endif %} -->
-
-
-    <!--  -->
-
-    {% with form=addEquipmentForm, route=url_for("equipment.view_equipment_stock"),
+    {% with form=addEquipmentForm, route=url_for("equipment.stock_situation_stock"),
     includePath='equipment/gestion/equipment/form.html', titre="Ajouter un équipement" %}
 
       {% include 'partials/modal.html' %}
