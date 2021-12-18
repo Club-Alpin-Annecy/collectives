@@ -374,7 +374,7 @@ class TestImportCSV(ModelTest):
         assert len(events) == 1
         event = events[0]
         assert processed == 1
-        assert failed == []
+        assert not failed
         assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4
