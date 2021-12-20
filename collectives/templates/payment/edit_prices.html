@@ -12,19 +12,15 @@
   </script>
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}{{event.title}}{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="administration">
-  <h3>{{event.title}}</h3>
+<div class="page-content" id="administration">
+  <h1 class="heading-1">{{event.title}}</h1>
   <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
 
-  <h4>Édition des tarifs</h4>
+  <h4 class="heading-4">Édition des tarifs</h4>
   Pour rendre la collective payante, définissez un ou plusieurs tarifs.
 
-  <h5> Tarifs existants </h5>
+  <h5 class="heading-5"> Tarifs existants </h5>
   {% if form.items %}
 
     <form method="POST">
@@ -86,7 +82,7 @@
       Aucun tarif n'a été défini pour le moment.
     {%endif%}
 
-    <h5> Nouveau tarif </h5>
+    <h5 class="heading-5"> Nouveau tarif </h5>
     <form method="POST">
 
     <div class="form-errors">
@@ -138,7 +134,7 @@
     <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
 
-    <h4>Catégories de licence</h4>
+    <h4 class="heading-4">Catégories de licence</h4>
     <p>
       Pour rappel, les catégories de licence FFCAM sont les suivantes:
       <ul>

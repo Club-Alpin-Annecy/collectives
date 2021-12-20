@@ -69,14 +69,10 @@
 
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Rédaction d'activité{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="eventedit">
+<div class="page-content" id="eventedit">
   <!-- Logging Windows -->
-  <h3>Rédaction d'activité</h3>
+  <h1 class="heading-1">Rédaction d'activité</h1>
   <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
@@ -99,7 +95,7 @@
     {# For this add a hidden submit button before 'update_leaders' #}
     {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }}
 
-    <h4>Activité et encadrants</h4>
+    <h4 class="heading-4">Activité et encadrants</h4>
     <div class="controls">
       {{form.update_activity(value=0)}}
       <div class="inline_field">
@@ -148,7 +144,7 @@
       {{ form.update_leaders(value=0) }}
     </fieldset>
 
-    <h4>Informations</h4>
+    <h4 class="heading-4">Informations</h4>
     <div class="controls">
       <label for="title">Titre : </label> {{ form.title(size=200) }}
     </div>
@@ -160,7 +156,7 @@
     </div>
 
     <div class="dates">
-      <h4>Dates</h4>
+      <h4 class="heading-4">Dates</h4>
 
       <div class="controls">
         <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
@@ -173,7 +169,7 @@
     </div>
 
     <div class="dates">
-      <h4>Inscriptions par internet</h4>
+      <h4 class="heading-4">Inscriptions par internet</h4>
       <div class="controls">
         <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
       </div>
@@ -192,13 +188,13 @@
       </span>
     </div>
 
-    <h4>Restrictions d'inscription</h4>
+    <h4 class="heading-4">Restrictions d'inscription</h4>
     Restreindre les inscriptions aux participants de la collective:
     {{ form.parent_event_id }}
     <input type="text" id="parent-event-search" placeholder="Titre ou ID…">
 
 
-    <h4>Description</h4>
+    <h4 class="heading-4">Description</h4>
     <div id="editor">
         {{ form.description }}
     </div>

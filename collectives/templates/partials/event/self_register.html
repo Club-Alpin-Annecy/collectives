@@ -10,11 +10,9 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <div
-                class="usericon selfsubscribe"
+                class="button button-primary"
                 onclick= "this.nextSibling.nextSibling.style.display='block'"
             >
-            <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-
             <span class="name" >S'inscrire</span>
         </div>
 
@@ -25,8 +23,9 @@
                                 class="close"
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
-                <h3>Confirmation</h3>
-                <p>L'inscription à un événement vous engage à y participer.<br/>
+                <h1 class="heading-1">Confirmation</h1>
+                <p>L'inscription à un événement vous engage à y participer.</p>
+                <p>
                     <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a></label><br/>
                 </p>
                 <h4 class="centeralign">Confirmez-vous l'inscription? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>

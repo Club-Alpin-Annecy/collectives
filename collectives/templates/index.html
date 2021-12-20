@@ -3,10 +3,6 @@
 
 {% import 'macros.html' as macros with context %}
 
-{% block header %}
-  {% block title %}Liste{% endblock %}
-{% endblock %}
-
 {% block additionalhead %}
 
 
@@ -67,10 +63,10 @@
 </script>
 {% endif %}
 
-<div id="eventlist" class="panel">
-    <h3>
+<div id="eventlist" class="page-content">
+    <h1 class="heading-1">
         Collectives du club
-    </h3>
+    </h1>
     <div id="filters">
 
             <input
@@ -142,7 +138,7 @@
 
             </div>
     </div>
-    <div id="eventstable"></div>
+    <div id="eventstable" class="collectives-list"></div>
 </div>
 
 {% endblock %}

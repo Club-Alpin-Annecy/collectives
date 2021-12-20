@@ -8,14 +8,10 @@
   <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Import CSV{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="administration">
+<div class="page-content" id="administration">
   <!-- Logging Windows -->
-  <h3>{{ title }}</h3>
+  <h1 class="heading-1"> title }}</h1>
 
   <div class="form-errors">
     {% for field in form%}
@@ -48,7 +44,7 @@
     {% endif %}
     {% endfor %}
 
-    <h4>Squelette de description</h4>
+    <h4 class="heading-4">Squelette de description</h4>
     <br/>
     <div id="editor">
     {{ form.description }}
@@ -56,7 +52,7 @@
     <br/>
     {{ form.hidden_tag() }}
      <br/><input type="submit" value="Importer" class="button button-primary"/>
-    <h4>Description des colonnes</h4>
+    <h4 class="heading-4">Description des colonnes</h4>
     <p>Le fichier doit être au format CSV. Les colonnes doivent être séparées par une virgule ','. La 1ère ligne doit contenir le titre des colonnes :</p>
     <ul>
     {% for (key, column) in config["CSV_COLUMNS"].items(): %}

@@ -13,13 +13,9 @@
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
 
-{% block header %}
-<h1>{% block title %} {{user.full_name()}} {% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="eventdetail">
-    <h3>{{user.full_name()}}</h3>
+<div class="page-content">
+    <h1 class="heading-1">{{user.full_name()}}</h1>
     
     <div><img src="{%   if user.avatar
                                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
@@ -30,7 +26,7 @@
                 class="avatar big float_right" />
     </div>
     
-    <h4>Rôles</h4>
+    <h4 class="heading-4">Rôles</h4>
     <ul>
         {% for role in user.roles %}
         <li>{{role.name}}
@@ -41,18 +37,18 @@
         {% endfor %}
     </ul>
 
-    <h4>Informations de contact</h4>
+    <h4 class="heading-4">Informations de contact</h4>
     <ul>
         <li><b>Email :</b> <a href="mailto:{{user.mail}}">{{user.mail}}</a></li>
         <li><b>Téléphone :</b> {{user.phone}}</li>
     </ul>
 
-    <h4>Sorties encadrées à venir</h4>
-    <div id="eventstable">
+    <h4 class="heading-4">Sorties encadrées à venir</h4>
+    <div id="eventstable" class="collectives-list">
     </div>
 
-    <h4>Sorties encadrées effectuées</h4>
-    <div id="pasteventstable">
+    <h4 class="heading-4">Sorties encadrées effectuées</h4>
+    <div id="pasteventstable" class="collectives-list">
     </div>
 </div>
 

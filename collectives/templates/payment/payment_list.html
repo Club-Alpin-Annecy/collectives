@@ -20,16 +20,12 @@
 
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Liste des paiements{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="administration">
-  <h3>{{event.title}}</h3>
+<div class="page-content" id="administration">
+  <h1 class="heading-1">{{event.title}}</h1>
   <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
   
-  <h4>Paiement associés à la collective</h4>
+  <h4 class="heading-4">Paiement associés à la collective</h4>
   <div id="payments-table"></div>
 
   <p><a class="button button-primary" href="{{url_for('payment.export_payments', event_id=event.id)}}">Export XLSX des paiements validés</a></p>

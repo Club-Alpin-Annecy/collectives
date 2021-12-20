@@ -111,46 +111,46 @@ function eventRowFormatter(row){
 
         //define a table layout structure and set width of row
         divRow = document.createElement("a");
-        divRow.className = "row tabulator-cell";
+        divRow.className = "row tabulator-cell collectives-list--item";
         divRow.setAttribute("role","gridcell");
         divRow.setAttribute("href", data.view_uri);
         divRow.style.width = (width - 18) + "px";
 
         //add row data on right hand side
-        html += `<div class="activities section">`;
+        html += `<div class="activities section collectives-list--item--activity-type">`;
         for (const activity of data.activity_types)
                     html += `<span class="activity ${activity['short']} type"></span>`;
         html += `</div>`;
 
-        html += `<div class="section section-photo">
+        html += `<div class="section section-photo collectives-list--item--photo">
                     <img src="${data.photo_uri}" class="photo"/>
                  </div>`;
 
         var status_string = ''
-        if(!data.is_confirmed) status_string = `<span class="event-status">${EnumEventStatus[data.status]}</span>`
+        if(!data.is_confirmed) status_string = `<span class="event-status-badge event-status-${data.status} ">${EnumEventStatus[data.status]}</span>`
 
 
         html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
         html_tags = html_tags.join(' - ')
 
-        html += `<div class="section">
-                     <h4>
+        html += `<div class="section collectives-list--item--details">
+                     <h3 class="heading-3 collectives-list--item--details-heading">
                      ${status_string}
                      ${escapeHTML(data.title)}
-                     </h4>
-                     <div class="date">
+                     </h3>
+                     <div class="date collectives-list--item--details-date">
                          <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
                          ${localInterval(data.start, data.end)}
                      </div>
 
-                     <div class="leader">
+                     <div class="leader collectives-list--item--details-leader">
                         Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
                      </div>
-                     <div class="slots">
+                     <div class="slots collectives-list--item--details-slots">
                         ${slots(data.num_slots - data.free_slots)}
                         ${slots(data.free_slots, 'free_slot')}
                      </div>
-                     <div>${html_tags}</div>
+                     <div class="collectives-list--item--details-tags">${html_tags}</div>
                  </div>
                  <div class="breaker"></div>`;
         divRow.innerHTML = html;
