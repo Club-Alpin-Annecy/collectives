@@ -72,6 +72,18 @@
         </td> </tr>
         {%endif%}
       {% endfor %}
+
+      {% if item_form.errors["title"]  %}
+      <tr> <td colspan="4" class="error-cell">
+        <div class="form-errors">
+            {% for error in item_form.errors["title"] %}
+            <div class="flash flash-error">
+                <strong>Erreur: {{item_form.title.label}}:</strong> {{error}}
+            </div>
+            {% endfor %}
+        </div>
+      </td> </tr>
+      {%endif%}
     {% endfor %}
     </table>
 

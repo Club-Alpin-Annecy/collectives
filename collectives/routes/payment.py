@@ -63,7 +63,7 @@ def edit_prices(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Only populate the form corresponding to the submit button
-    # that gas been clicked
+    # that has been clicked
 
     # Add a new payment option
     if "add" in request.form:
