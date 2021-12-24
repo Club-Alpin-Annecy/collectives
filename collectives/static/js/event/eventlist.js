@@ -135,8 +135,8 @@ function eventRowFormatter(row){
 
         html += `<div class="section collectives-list--item--details">
                      <h3 class="heading-3 collectives-list--item--details-heading">
-                     ${status_string}
                      ${escapeHTML(data.title)}
+                     ${status_string}
                      </h3>
                      <div class="date collectives-list--item--details-date">
                          <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
