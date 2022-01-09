@@ -151,7 +151,7 @@
                             Tous labels
                         </label>
                     </label>
-                    {% for i,tag in config['EVENT_TAGS'].items()  %}
+                    {% for tag in models.EventTag.all().values()  %}
                         <input type="radio" name="tag" id="select_tag_{{tag['short']}}"/>
                         <label for="select_tag_{{tag['short']}}" onclick="selectFilter('tags', '{{tag['short']}}');">
                             <label for="select_tags">
