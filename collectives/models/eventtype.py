@@ -49,6 +49,20 @@ class EventType(db.Model):
 
     :type: string
     """
+    
+    terms_title = db.Column(db.String(256), nullable=True)
+    """ Title of the terms that must be accepted for registering to
+    and événement of this type.
+
+    :type: string
+    """
+    
+    terms_file = db.Column(db.String(256), nullable=True)
+    """ Name of the file containings the terms that must be accepted for registering to
+    and événement of this type
+
+    :type: string
+    """
 
     def has_valid_license(self, user):
         """Check whether an user has a valic license for this type of event

@@ -31,12 +31,14 @@
                 J'ai lu et j'accepte les <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
             </label>
         </div>
+        {% if event.event_type.terms_file %}
         <div>
             <label>
                 {{payment_item_choice_form.accept_guide}} J'ai lu et j'accepte le
-                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a>
+                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a>
             </label>
         </div>
+        {% endif %}
         <br/>
         {{payment_item_choice_form.submit(class="button button-primary")}}
     </form>

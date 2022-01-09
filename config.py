@@ -306,16 +306,26 @@ a hash. ``short`` is the name of the icon.
 :type: dict
 """
 
+GUIDE_TITLE = "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"
+""" Name of the guide to accept to register to an event of most types.
+
+:type: string """
+
+GUIDE_FILENAME = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
+""" Guide file name to accept to register to an event of most types.
+
+:type: string """
+
 # Event type:
 # fmt: off
 EVENT_TYPES = {
-    1:  {"short": "collective", "name": "Collective", "requires_activity" : True},
-    2:  {"short": "jeune", "name": "Collective Jeunes", "requires_activity" : True, "license_types" : ["J1", "J2", "E1", "E2"]},
-    3:  {"short": "formation", "name": "Formation", "requires_activity" : False},
-    4:  {"short": "soiree", "name": "Soirée", "requires_activity" : False},
-    5:  {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "requires_activity" : True},
+    1:  {"short": "collective", "name": "Collective", "requires_activity" : True, "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
+    2:  {"short": "jeune", "name": "Jeunes", "requires_activity" : True, "license_types" : ["J1", "J2", "E1", "E2"], "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
+    3:  {"short": "formation", "name": "Formation", "requires_activity" : False, "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
+    4:  {"short": "soiree", "name": "Soirée", "requires_activity" : False, "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
+    5:  {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "requires_activity" : False, "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
     6:  {"short": "shopping", "name": "Achat groupé", "requires_activity" : False},
-    7:  {"short": "inscription", "name": "Inscription en ligne", "requires_activity" : False},
+    7:  {"short": "inscription", "name": "Inscription en ligne", "requires_activity" : False, "terms_title" : GUIDE_TITLE, "terms_file" : GUIDE_FILENAME},
 }
 """List of event types
 
@@ -409,11 +419,6 @@ Matériel requis :
 Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
-
-GUIDE_FILENAME = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
-""" Guide file name to validate to subscribe to an event.
-
-:type: string """
 
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event

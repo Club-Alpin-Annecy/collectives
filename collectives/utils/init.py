@@ -83,6 +83,11 @@ def event_types(app):
 
             if "license_types" in etype:
                 event_type.license_types = ",".join(etype["license_types"])
+            else:
+                event_type.license_types = None
+
+            event_type.terms_title = etype.get("terms_title", None)
+            event_type.terms_file = etype.get("terms_file", None)
 
             db.session.add(event_type)
 
