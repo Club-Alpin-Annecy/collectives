@@ -1,8 +1,8 @@
 """add_equipment
 
-Revision ID: 209bf2e32aa1
+Revision ID: 28f945d84529
 Revises: bc252bdfe1a5
-Create Date: 2022-01-11 15:23:48.092496
+Create Date: 2022-01-11 16:31:00.885681
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '209bf2e32aa1'
+revision = '28f945d84529'
 down_revision = 'bc252bdfe1a5'
 branch_labels = None
 depends_on = None
@@ -22,8 +22,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('pathImg', sa.String(length=100), nullable=True),
-    sa.Column('price', sa.Float(), nullable=True),
-    sa.Column('deposit', sa.Float(), nullable=True),
+    sa.Column('price', sa.Numeric(precision=5, scale=2), nullable=True),
+    sa.Column('deposit', sa.Numeric(precision=5, scale=2), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('equipment_models',
@@ -37,7 +37,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('reference', sa.String(length=100), nullable=False),
     sa.Column('purchaseDate', sa.DateTime(), nullable=False),
-    sa.Column('purchasePrice', sa.Float(), nullable=True),
+    sa.Column('purchasePrice', sa.Numeric(precision=8, scale=2), nullable=True),
     sa.Column('manufacturer', sa.String(length=50), nullable=True),
     sa.Column('status', sa.Enum('Available', 'Rented', 'Unavailable', 'InReview', name='equipmentstatus'), nullable=False),
     sa.Column('equipment_model_id', sa.Integer(), nullable=True),
