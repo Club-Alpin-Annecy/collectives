@@ -78,7 +78,7 @@ def display_all_type():
     list_equipmentt_type = EquipmentType.query.all()
 
     return render_template(
-        "equipment/gestion/equipmentType/displayAll.html",
+        "equipment/gestion/equipmentType/equipment_types.html",
         list_equipmentt_type=list_equipmentt_type,
         addingFrom=addingFrom,
     )
@@ -111,7 +111,7 @@ def detail_equipment_type(typeId):
     deleteForm = DeleteForm()
 
     return render_template(
-        "equipment/gestion/equipmentType/displayDetail.html",
+        "equipment/gestion/equipmentType/equipment_type.html",
         equipmentType=equipmentType,
         adding_from_model=adding_from_model,
         formEdit=formEdit,
@@ -139,7 +139,7 @@ def edit_equipment_type(typeId):
     addingFrom = EquipmentTypeForm()
 
     return render_template(
-        "equipment/gestion/equipmentType/displayAll.html",
+        "equipment/gestion/equipmentType/equipment_types.html",
         list_equipmentt_type=list_equipmentt_type,
         addingFrom=addingFrom,
         formEdit=formEdit,
@@ -177,7 +177,7 @@ def edit_equipment_model(typeId, modelId):
     listEquipmentModel = EquipmentModel.query.all()
     deleteFormModel = DeleteForm()
     return render_template(
-        "equipment/gestion/equipmentType/displayDetail.html",
+        "equipment/gestion/equipmentType/equipment_type.html",
         listEquipmentModel=listEquipmentModel,
         adding_from_model=adding_from_model,
         equipmentType=typeSelected,
@@ -221,7 +221,7 @@ def stock_situation_stock():
     deleteForm = DeleteForm()
 
     return render_template(
-        "equipment/gestion/equipment/displayAll.html",
+        "equipment/gestion/equipment/equipments.html",
         equipmentTypeList=equipmentTypeList,
         addEquipmentForm=addEquipmentForm,
         deleteForm=deleteForm,
@@ -249,7 +249,7 @@ def detail_equipment(equipment_id):
     deleteForm = DeleteForm()
 
     return render_template(
-        "equipment/gestion/equipment/displayDetail.html",
+        "equipment/gestion/equipment/equipment.html",
         equipment=equipmentSelected,
         deleteForm=deleteForm,
         editEquipmentForm=editEquipmentForm,

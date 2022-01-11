@@ -49,7 +49,7 @@
   <p class="button button-primary button-small button-open-modal">Ajouter</p>
   <div id="equipment-type-table"></div>
   <script>
-    var ajaxURL= '/api/equipmentType';
+    var ajaxURL = "{{url_for('api.equipmentTypes')}}";
 
     //initialize table
     let table = new Tabulator("#equipment-type-table", {
