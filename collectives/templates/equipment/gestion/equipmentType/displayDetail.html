@@ -142,10 +142,9 @@
         console.log(cell.getRow().getData().id) ;
         let id = cell.getRow().getData().id
 
-        axios.get('/api/modelEdit/'+id+'/'+cell._cell.value)
-        .then((response)=>{
-          console.log(response)
-        })
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
+        axios.post('/api/modelEdit/'+id+'/'+cell._cell.value)
+
       },
       columns:[                 //define the table columns
         //{title:"id", field:"id", formatter:"number"},
@@ -159,7 +158,6 @@
 
                 axios.post('/api/modelDelete/'+id)
                 .then((response)=>{
-                  //cell.getRow().delete();
                   cell.getTable().replaceData();
 
                 })
