@@ -40,9 +40,9 @@
 {% block content %}
 
 <div class="panel">
-  
-  <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a> 
+
+  <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a>
   </h3>
 
   <h4>Type équipement n° {{ equipmentType.id }} </h4>
@@ -65,17 +65,17 @@
 
 
       <div class="container_equipmentInfo_img">
-        <img src=" {{ 
-          url_for('static', filename='uploads/typeEquipmentImg/') + equipmentType.pathImg 
-          if equipmentType.pathImg else 
+        <img src=" {{
+          url_for('static', filename='uploads/typeEquipmentImg/') + equipmentType.pathImg
+          if equipmentType.pathImg else
          url_for('static', filename='img/icon/ionicon/md-images.svg') }}" alt="">
-        
+
       </div>
 
 
 
       <div class="container_equipmentInfo_txt">
-  
+
         <div class="container_main_info">
           <h5>Informations :</h5>
 
@@ -92,7 +92,7 @@
             <p> <span class="type_info">Prix :</span> {{ equipmentType.price }} € </p>
             <p> <span class="type_info">Caution :</span> {{ equipmentType.deposit or "- "}}€ </p>
           </div>
-          
+
         </div>
 
       </div>
@@ -116,11 +116,13 @@
   <script>
     var ajaxURL= '/api/modelsfromtype/{{equipmentType.id}}';
 
+    const token_csrf = "{{ csrf_token() }}" ;
+
     var editCheck = function(row) {
       return true;
     }
 
-  
+
     //initialize table
     let table = new Tabulator("#equipment-model-table", {
       ajaxURL:ajaxURL,
@@ -139,10 +141,10 @@
       cellEdited: (cell)=> {
         console.log(cell.getRow().getData().id) ;
         let id = cell.getRow().getData().id
-        
+
         axios.get('/api/modelEdit/'+id+'/'+cell._cell.value)
         .then((response)=>{
-          console.log(response)   
+          console.log(response)
         })
       },
       columns:[                 //define the table columns
@@ -150,13 +152,18 @@
         {title:"Name", headerFilter:"input",field:"name", editor: 'input', editable: editCheck},
         {title:"Supprimer", formatter:"buttonCross", headerSort:false, cellClick:function(e, cell){
             if(confirm('Attention vous allez suprimer tous les équipements liés à ce modèle ?')) {
-                
+
                 let id = cell.getRow().getData().id
-          
-                axios.get('/api/modelDelete/'+id)
+
+                axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
+
+                axios.post('/api/modelDelete/'+id)
                 .then((response)=>{
-                  cell.getRow().delete();
+                  //cell.getRow().delete();
+                  cell.getTable().replaceData();
+
                 })
+
             }
           }
         },
@@ -167,7 +174,7 @@
 
 
   </script>
-      
+
 </div>
 
 

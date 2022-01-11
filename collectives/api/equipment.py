@@ -194,7 +194,7 @@ def equipmentModelEdit(model_id, name):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-@blueprint.route("/modelDelete/<int:model_id>")
+@blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
 def equipmentModelDelete(model_id):
     """
     API endpoint to delete a model.
@@ -211,3 +211,6 @@ def equipmentModelDelete(model_id):
     db.session.delete(model)
 
     return "{'resp': 'OKI'}", 200, {"content-type": "application/json"}
+
+
+
