@@ -54,7 +54,7 @@
 
     <div id="equipment-table"></div>
     <script>
-      var ajaxURL= '/api/equipment';
+      var ajaxURL = "{{url_for('api.equipment')}}";
 
       //initialize table
       let table = new Tabulator("#equipment-table", {

@@ -114,7 +114,8 @@
   <div id="equipment-model-table"></div>
 
   <script>
-    var ajaxURL= '/api/modelsfromtype/{{equipmentType.id}}';
+     //'/api/modelsfromtype/{{equipmentType.id}}';
+     var ajaxURL= "{{url_for('api.equipemntModel', typeId=equipmentType.id)}}";
 
     const token_csrf = "{{ csrf_token() }}" ;
 
