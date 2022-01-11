@@ -242,6 +242,7 @@ def detail_equipment(equipment_id):
         equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
         equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
+        equipmentSelected.manufacturer = editEquipmentForm.manufacturer.data
         db.session.commit()
         return redirect(url_for(".detail_equipment", equipment_id=equipment_id))
 
@@ -282,7 +283,7 @@ def delete_equipment_model(modelId):
 # ----------------------------------------------------------------------------------------------------------
 
 
-def create_equipments_in_bdd():
+def create_equipments_in_db():
     """
     Initiate the DB : put fake data to simulate what the pages would look like
     """
@@ -624,7 +625,6 @@ def create_equipments_in_bdd():
         }
         for eType in equipmentsTypes.items():
             equipmentType = EquipmentType()
-            print(eType[1])
             equipmentType.name = eType[0]
             equipmentType.price = 5.5
             equipmentType.models = []

@@ -74,6 +74,7 @@
           <div class="container_main_info">
             <h5>Informations :</h5>
 
+            <p> <span class="type_info">Fabricant :</span>  {{ equipment.manufacturer or "Non renseigné" }} </p>
             <p> <span class="type_info">Type :</span>  {{ equipment.model.equipmentType.name }} </p>
             <p> <span class="type_info">Modèle :</span>  {{ equipment.model.name }} </p>
             <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
