@@ -140,7 +140,6 @@
           {column:"name", dir:"asc"},
       ],
       cellEdited: (cell)=> {
-        console.log(cell.getRow().getData().id) ;
         let id = cell.getRow().getData().id
 
         axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
