@@ -171,7 +171,7 @@ def equipemntModel(typeId):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-@blueprint.route("/modelEdit/<int:model_id>/<string:name>")
+@blueprint.route("/modelEdit/<int:model_id>/<string:name>", methods=["POST"])
 def equipmentModelEdit(model_id, name):
     """
     API endpoint to edit a model.
@@ -188,10 +188,7 @@ def equipmentModelEdit(model_id, name):
     model.name = name
     db.session.commit()
 
-    query = EquipmentModel.query.all()
-    data = EquipmentModelSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'resp': 'Model Edit OK'}", 200, {"content-type": "application/json"}
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
@@ -210,7 +207,4 @@ def equipmentModelDelete(model_id):
     model = EquipmentModel.query.get(model_id)
     db.session.delete(model)
 
-    return "{'resp': 'OKI'}", 200, {"content-type": "application/json"}
-
-
-
+    return "{'resp': 'Model Delete OK'}", 200, {"content-type": "application/json"}
