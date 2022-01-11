@@ -41,16 +41,16 @@
 {% block content %}
 
 <div class="panel">
-  
-  <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a> 
+
+  <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a>
   </h3>
-  <h4>Type equipment</h4>
+  <h4>Liste des types équipements</h4>
   <p class="button button-primary button-small button-open-modal">Ajouter</p>
   <div id="equipment-type-table"></div>
   <script>
     var ajaxURL= '/api/equipmentType';
-    
+
     //initialize table
     let table = new Tabulator("#equipment-type-table", {
       ajaxURL:ajaxURL,
@@ -83,7 +83,7 @@
 
 
 
-    
+
 
 
   {% with form=addingFrom, route=url_for('equipment.display_all_type'),
@@ -91,7 +91,7 @@
     {% include 'partials/modal.html' %}
   {% endwith %}
 
- 
+
 
 
 {% endblock %}

@@ -49,7 +49,7 @@ class EquipmentModelForm(FlaskForm):
         model = EquipmentModel
         only = ["name", "equipmentType"]
 
-    name = StringField("Model d'équipement :")
+    name = StringField("Modèle d'équipement :")
 
     submit = SubmitField("Enregistrer")
 
@@ -67,7 +67,7 @@ class EquipmentForm(FlaskForm):
 
     purchasePrice = DecimalField("Prix d'achat :")
 
-    equipment_model_id = SelectField("Model :", coerce=int, choices=[])
+    equipment_model_id = SelectField("Modèle :", coerce=int, choices=[])
     submit = SubmitField("Enregistrer")
 
     def __init__(self, *args, **kwargs):
