@@ -283,7 +283,7 @@ def delete_equipment_model(modelId):
 # ----------------------------------------------------------------------------------------------------------
 
 
-def create_equipments_in_bdd():
+def create_equipments_in_db():
     """
     Initiate the DB : put fake data to simulate what the pages would look like
     """

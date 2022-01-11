@@ -31,7 +31,6 @@ from .routes import (
     payment,
     technician,
     activity_supervison,
-    equipment,
 )
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline, statistics
@@ -73,7 +72,7 @@ def populate_db(app):
 
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
-    equipment.create_equipments_in_bdd()
+    equipment.create_equipments_in_db()
     init.activity_types(app)
 
 
