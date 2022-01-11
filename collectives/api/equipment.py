@@ -208,5 +208,3 @@ def equipmentModelDelete(model_id):
     db.session.delete(model)
 
     return "{'resp': 'Model Delete OK'}", 200, {"content-type": "application/json"}
-
-

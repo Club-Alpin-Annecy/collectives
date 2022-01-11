@@ -68,6 +68,8 @@ class EquipmentForm(FlaskForm):
     purchasePrice = DecimalField("Prix d'achat :")
 
     equipment_model_id = SelectField("Modèle :", coerce=int, choices=[])
+
+    manufacturer = StringField("Fabricant :")
     submit = SubmitField("Enregistrer")
 
     def __init__(self, *args, **kwargs):

@@ -203,6 +203,10 @@ class Equipment(db.Model):
 
     :type: float"""
 
+    manufacturer = db.Column(db.String(50))
+    """Manufacturer of this equipment.
+    :type: string"""
+
     status = db.Column(
         db.Enum(EquipmentStatus),
         nullable=False,
