@@ -97,7 +97,7 @@ class EquipmentType(db.Model):
             )
             if isfile(pathFile):
                 os.remove(pathFile)
-            filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
+            filename = imgtypeequip.save(file, name="type-num" + str(self.id) + ".")
             self.pathImg = filename
 
     def nb_models(self):

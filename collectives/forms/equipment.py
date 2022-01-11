@@ -25,14 +25,14 @@ class EquipmentTypeForm(FlaskForm):
     price = FloatField(
         label="Prix :",
         render_kw={
-            "pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$",
+            "pattern": "^[+-]?([0-9]+([.|,][0-9]*)?|[.][0-9]+)$",
             "placeholder": "Prix",
         },
     )
     deposit = FloatField(
         label="Caution :",
         render_kw={
-            "pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$",
+            "pattern": "^[+-]?([0-9]+([.|,][0-9]*)?|[.][0-9]+)$",
             "placeholder": "Caution",
         },
     )
