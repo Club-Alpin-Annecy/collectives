@@ -113,7 +113,7 @@ class EquipmentType(db.Model):
         :rtype: int
         """
         nbTotal = 0
-        for aModel in list(self.models):
+        for aModel in self.models:
             nbTotal += len(aModel.equipments)
 
         return nbTotal
@@ -124,7 +124,7 @@ class EquipmentType(db.Model):
         :rtype: int
         """
         nbTotalUnavailable = 0
-        for aModel in list(self.models):
+        for aModel in self.models:
             for aEquipment in aModel.equipments:
                 if aEquipment.status == EquipmentStatus.Unavailable:
                     nbTotalUnavailable += 1
