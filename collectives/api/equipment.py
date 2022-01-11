@@ -149,7 +149,7 @@ def equipment():
 
 
 @blueprint.route("/modelsfromtype/<int:typeId>")
-def equipemntModel(typeId):
+def equipmentModel(typeId):
     """API endpoint to list equipment models.
 
     It can be filtered using tabulator filter and sorter.
@@ -163,9 +163,7 @@ def equipemntModel(typeId):
     :rtype: (string, int, dict)
     """
 
-    query = EquipmentModel.query.all()
     query = EquipmentType.query.get(typeId).models
-
     data = EquipmentModelSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
@@ -178,7 +176,7 @@ def equipmentModelEdit(model_id, name):
 
     :return: A tuple:
 
-        - JSON containing information describe in EquipmentModelSchema
+        - JSON containing information if OK
         - HTTP return code : 200
         - additional header (content as JSON)
 
@@ -188,7 +186,7 @@ def equipmentModelEdit(model_id, name):
     model.name = name
     db.session.commit()
 
-    return "{'resp': 'Model Edit OK'}", 200, {"content-type": "application/json"}
+    return "{'response': 'Model Edit OK'}", 200, {"content-type": "application/json"}
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
@@ -198,7 +196,7 @@ def equipmentModelDelete(model_id):
 
     :return: A tuple:
 
-        - JSON containing information describe in EquipmentModelSchema
+        - JSON containing information if OK
         - HTTP return code : 200
         - additional header (content as JSON)
 
@@ -207,4 +205,4 @@ def equipmentModelDelete(model_id):
     model = EquipmentModel.query.get(model_id)
     db.session.delete(model)
 
-    return "{'resp': 'Model Delete OK'}", 200, {"content-type": "application/json"}
+    return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}
