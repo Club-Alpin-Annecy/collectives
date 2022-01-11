@@ -33,16 +33,16 @@
 
 
                             {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py --->
-                                
+
                             <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('equipment.stock_situation')}}"  class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}"  class="legacy-icon" />
-                                    Gestion Matériel
+                                    Gestion du matériel
                                 </a>
                             </li>
                             <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
-                            
+
                             {% endif %}
 
 

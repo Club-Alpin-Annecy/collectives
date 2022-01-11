@@ -68,7 +68,7 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
 
 class EquipmentModelSchema(marshmallow.Schema):
-    """Schema to describe equipemnt model"""
+    """Schema to describe equipment model"""
 
     class Meta:
         """Fields to expose"""
@@ -77,7 +77,7 @@ class EquipmentModelSchema(marshmallow.Schema):
 
 
 @blueprint.route("/equipmentType")
-def equipemntType():
+def equipmentTypes():
     """API endpoint to list equipment types.
 
     It can be filtered using tabulator filter and sorter.
@@ -127,7 +127,7 @@ class EquipmentSchema(marshmallow.Schema):
 
 
 @blueprint.route("/equipment")
-def equipemnt():
+def equipment():
     """API endpoint to list equipment.
 
     It can be filtered using tabulator filter and sorter.
@@ -208,3 +208,5 @@ def equipmentModelDelete(model_id):
     db.session.delete(model)
 
     return "{'resp': 'Model Delete OK'}", 200, {"content-type": "application/json"}
+
+

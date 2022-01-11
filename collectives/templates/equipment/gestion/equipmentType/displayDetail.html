@@ -104,7 +104,7 @@
 
 
 
-  <h4>Modèle{{"s" if equipmentType.nbModels()>1}} ({{equipmentType.nbModels()}}) : </h4>
+  <h4>Modèle{{"s" if equipmentType.nb_models()>1}} ({{equipmentType.nb_models()}}) : </h4>
   <p class="button button-primary button-small">Ajouter</p>
 
   {% with form=adding_from_model, route=url_for('equipment.detail_equipment_type', typeId=equipmentType.id) %}

@@ -100,7 +100,7 @@ class EquipmentType(db.Model):
             filename = imgtypeequip.save(file, name="type-" + str(self.name) + ".")
             self.pathImg = filename
 
-    def nbModels(self):
+    def nb_models(self):
         """
         :return: number of equipment models of the type
         :rtype: int

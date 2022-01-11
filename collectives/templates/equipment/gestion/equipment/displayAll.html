@@ -44,8 +44,8 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
+    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
     </h3>
 
     <h4>STOCK</h4>
@@ -77,36 +77,36 @@
         columns:[              //define the table columns
           //{title:"id", field:"id", formatter:"number"},
           {
-            title:"Type", 
-            headerFilter:"input", 
-            field:"typeName", 
-            formatter:"link", 
+            title:"Type",
+            headerFilter:"input",
+            field:"typeName",
+            formatter:"link",
             formatterParams:{
               urlField:"urlEquipmentTypeDetail"
             }
           },
           {
-            title:"Model", 
+            title:"Modèle",
             headerFilter:"input",
-            field:"modelName", 
-            formatter:"link", 
+            field:"modelName",
+            formatter:"link",
             formatterParams:{
               urlField:"urlEquipmentTypeDetail"
             }
           },
           {
-            title:"Reference", 
+            title:"Reference",
             headerFilter:"input",
-            field:"reference", 
-            formatter:"link", 
+            field:"reference",
+            formatter:"link",
             formatterParams:{
               urlField:"equipmentURL"
             }
           },
           {
-            title:"Etat", 
+            title:"Etat",
             headerFilter:"input",
-            field:"statusName", 
+            field:"statusName",
           },
 
         ],
