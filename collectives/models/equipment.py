@@ -58,12 +58,12 @@ class EquipmentType(db.Model):
 
     pathImg = db.Column(db.String(100), nullable=True)
 
-    price = db.Column(db.Float)
+    price = db.Column(db.Numeric(precision=5, scale=2))
     """Price for renting this type.
 
     :type: float"""
 
-    deposit = db.Column(db.Float, nullable=True)
+    deposit = db.Column(db.Numeric(precision=5, scale=2), nullable=True)
     """Deposit price. This is the price that will cost the user if he brokes an equipment of this type.
 
     :type: float"""
@@ -198,7 +198,7 @@ class Equipment(db.Model):
 
     :type: :py:class:`datetime.datetime`"""
 
-    purchasePrice = db.Column(db.Float, nullable=True)
+    purchasePrice = db.Column(db.Numeric(precision=8, scale=2), nullable=True)
     """Purchase price of this equipment.
 
     :type: float"""
