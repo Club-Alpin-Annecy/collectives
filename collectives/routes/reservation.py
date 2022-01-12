@@ -10,7 +10,7 @@ from flask import Blueprint, flash
 from collectives.models.role import RoleIds
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
-from ..models import db, Equipment, EquipmentType, EquipmentModel
+from ..models import db, Equipment, EquipmentType, EquipmentModel, Reservation
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 """ Equipment blueprint
@@ -22,6 +22,9 @@ def reservation():
     """
     Show all the reservations
     """
+    reservation = Reservation()
+    
     return render_template(
-        "equipment/gestion/equipment.html",
+        "reservation/reservations.html",
+        reservation
     )
