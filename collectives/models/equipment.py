@@ -217,6 +217,8 @@ class Equipment(db.Model):
 
     :type: :py:class:`collectives.models.equipment.EquipmentStatus`"""
 
+    reservationLines = db.relationship("ReservationLine", back_populates="equipment")
+
     # brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))

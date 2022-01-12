@@ -54,12 +54,13 @@ class ReservationLine(db.Model):
 
     CheckConstraint("quantity >= 0", name="CK_RESERVATION_quantity")
 
-    equipment_id = db.Column(db.Integer, db.ForeignKey("equipments.id"), nullable=False)
+    equipment_id = db.Column(db.Integer, db.ForeignKey("equipments.id"))
     """ Primary key of the related equipment (see  :py:class:`collectives.models.equipment.Equipment`).
     :type: int"""
+    equipment = db.relationship("Equipment", back_populates="reservationLines")
 
     reservation_id = db.Column(
-        db.Integer, db.ForeignKey("reservations.id"), nullable=False
+        db.Integer, db.ForeignKey("reservations.id")
     )
     """ Primary key of the related reservation (see  :py:class:`collectives.models.reservation.Reservation`).
     :type: int"""
@@ -109,7 +110,7 @@ class Reservation(db.Model):
 
     :type: bool"""
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     """ Primary key of the related user (see  :py:class:`collectives.models.user.User`).
     :type: int"""
 

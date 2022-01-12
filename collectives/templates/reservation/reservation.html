@@ -20,10 +20,10 @@
 {% block content %}
     <h1>ICI</h1>
     <p>{{reservation}}</p>
-    <div id="reservations-table"></div>
+    <div id="reservation-table"></div>
     <script>
-        var ajaxURL = "{{url_for('api.reservations')}}";
+        var ajaxURL = "{{url_for('api.reservation', reservation_id=reservation.id)}}";
     </script>
 
-    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation.js') }}"></script>
 {% endblock %}
