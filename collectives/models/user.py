@@ -266,6 +266,15 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.registration.Registration`)
     """
 
+    reservations = db.relationship(
+        "Reservation",
+        back_populates="user",
+    )
+    """ List of reservations made by the user.
+
+    :type: list(:py:class:`collectives.models.reservation.Reservation`)
+    """
+
     payments = db.relationship(
         "Payment", backref="buyer", foreign_keys="[Payment.buyer_id]", lazy=True
     )
