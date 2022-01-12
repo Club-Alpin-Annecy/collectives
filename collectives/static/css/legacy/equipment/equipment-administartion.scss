@@ -1,0 +1,37 @@
+#equipmentDetail .administration {
+    margin-top: 5em;
+    border: 1px solid $color-blue-secondary-dark;
+
+
+    h4 {
+        margin-top: 0;
+        text-align: center;
+        padding: 15px 0;
+        color: $color-white;
+        background-color: $color-blue-secondary-dark;
+        font-weight: $font-weight-default;
+    }
+
+    .administration-buttons {
+        padding: $padding-vertical-l $padding-horizontal-m;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+
+        p {
+            margin: 0 5px;
+        }
+
+        &:nth-child(n) {
+            margin-right: 5px;
+            padding: 50px !important;
+        }
+    }
+
+    .administration-buttons:nth-child(n) {
+
+        padding: 50px !important;
+    }
+
+}
+
