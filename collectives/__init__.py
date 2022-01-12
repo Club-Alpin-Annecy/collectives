@@ -20,6 +20,8 @@ from flask_statistics import Statistics
 
 from click import pass_context
 
+from collectives.routes import reservation
+
 from . import models, api, forms
 from .routes import (
     root,
@@ -156,6 +158,7 @@ def create_app(config_filename="config"):
         app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(equipment.blueprint)
+        app.register_blueprint(reservation.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)
