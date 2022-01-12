@@ -2,7 +2,6 @@
     margin-top: 5em;
     border: 1px solid $color-blue-secondary-dark;
 
-
     h4 {
         margin-top: 0;
         text-align: center;
@@ -24,13 +23,7 @@
 
         &:nth-child(n) {
             margin-right: 5px;
-            padding: 50px !important;
         }
-    }
-
-    .administration-buttons:nth-child(n) {
-
-        padding: 50px !important;
     }
 
 }
