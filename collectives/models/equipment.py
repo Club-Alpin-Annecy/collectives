@@ -1,5 +1,6 @@
 """Module for registration related classes
 """
+from enum import unique
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
@@ -188,7 +189,7 @@ class Equipment(db.Model):
 
     :type: int"""
 
-    reference = db.Column(db.String(100), nullable=False)
+    reference = db.Column(db.String(100), nullable=False, unique=True)
     """Reference of this equipment.
 
     :type: string"""
