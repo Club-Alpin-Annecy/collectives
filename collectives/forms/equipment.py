@@ -1,6 +1,7 @@
 """Module containing forms related to equipment management
 """
 from flask_wtf import FlaskForm
+from datetime import datetime
 from wtforms import (
     StringField,
     SubmitField,
@@ -63,7 +64,7 @@ class EquipmentForm(FlaskForm):
 
     reference = StringField("Référence de l'équipement :")
 
-    purchaseDate = DateField("Date d'achat :", format="%d/%m/%Y")
+    purchaseDate = DateField("Date d'achat :", format="%d/%m/%Y", default=datetime.now())
 
     purchasePrice = FlexibleDecimalField("Prix d'achat :")
 

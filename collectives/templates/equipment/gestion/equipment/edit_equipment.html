@@ -6,6 +6,11 @@
         {{ form.hidden_tag() }}
 
         <div class="modal_form_input_box">
+            {{ form.equipment_model_id.label }}
+            {{ form.equipment_model_id }}
+        </div>
+
+        <div class="modal_form_input_box">
             {{ form.reference.label }}
             {{ form.reference }}
         </div>
@@ -15,23 +20,15 @@
             {{ form.purchaseDate }}
         </div>
 
-
         <div class="modal_form_input_box">
             {{ form.purchasePrice.label }}
             {{ form.purchasePrice }}
         </div>
 
-
         <div class="modal_form_input_box">
             {{ form.manufacturer.label }}
             {{ form.manufacturer }}
         </div>
-
-        <div class="modal_form_input_box">
-            {{ form.equipment_model_id.label }}
-            {{ form.equipment_model_id }}
-        </div>
-
 
         <div class="modal_form_info_supp_box">
             <a href="{{ url_for('equipment.display_all_type' )}}" target="_blank" >Ajouter ou modifier un model</a>
