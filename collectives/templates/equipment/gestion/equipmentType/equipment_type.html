@@ -31,6 +31,7 @@
 
   {# Script JS in body tag #}
   <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/equipment/form_equipment_model.js') }}"></script>
 {% endblock %}
 
 
@@ -72,11 +73,13 @@
 
 
   <h4>Modèle{{"s" if equipmentType.nb_models()>1}} ({{equipmentType.nb_models()}}) : </h4>
-  <p class="button button-primary button-small">Ajouter</p>
+  <p class="button button-primary button-small" id="btn_display_form_model">Ajouter</p>
 
-  {% with form=adding_from_model, route=url_for('equipment.detail_equipment_type', typeId=equipmentType.id) %}
-  {% include "equipment/gestion/equipmentModel/edit_equipment_model.html" %}
-  {% endwith %}
+  <div class="form_model display-none">
+    {% with form=adding_from_model, route=url_for('equipment.detail_equipment_type', typeId=equipmentType.id) %}
+    {% include "equipment/gestion/equipmentModel/edit_equipment_model.html" %}
+    {% endwith %}
+  </div>
 
   <div id="equipment-model-table"></div>
 
