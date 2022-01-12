@@ -5,11 +5,12 @@ from wtforms import (
     StringField,
     SubmitField,
     DateField,
-    DecimalField,
     SelectField,
 )
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
+
+from collectives.utils.numbers import FlexibleDecimalField
 from ..models import Equipment, EquipmentType, EquipmentModel, photos
 
 
@@ -21,14 +22,14 @@ class EquipmentTypeForm(FlaskForm):
         only = ["type_name"]
 
     name = StringField(label="Type d'équipement :", validators=[DataRequired()])
-    price = DecimalField(
+    price = FlexibleDecimalField(
         label="Prix :",
         render_kw={
             "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
             "placeholder": "Prix",
         },
     )
-    deposit = DecimalField(
+    deposit = FlexibleDecimalField(
         label="Caution :",
         render_kw={
             "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
@@ -64,7 +65,7 @@ class EquipmentForm(FlaskForm):
 
     purchaseDate = DateField("Date d'achat :", format="%d/%m/%Y")
 
-    purchasePrice = DecimalField("Prix d'achat :")
+    purchasePrice = FlexibleDecimalField("Prix d'achat :")
 
     equipment_model_id = SelectField("Modèle :", coerce=int, choices=[])
 
