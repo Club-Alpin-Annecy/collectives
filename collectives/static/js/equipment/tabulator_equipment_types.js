@@ -21,7 +21,7 @@
             {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '7em'}},
             {title:"Name", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
             {title:"Prix", field:"price"},
-            {title:"Caution", field:"deposit", formatter:"money"},
+            {title:"Caution", field:"deposit"},
           ],
            //create columns from data field names
         });

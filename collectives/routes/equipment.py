@@ -3,9 +3,11 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
+import decimal
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
+from sqlalchemy.util.compat import decode_backslashreplace
 
 from collectives.models.role import RoleIds
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
@@ -69,6 +71,7 @@ def display_all_type():
 
         new_equipment_type.name = addingFrom.name.data
         new_equipment_type.price = float(addingFrom.price.data)
+        new_equipment_type.deposit = float(addingFrom.deposit.data)
         new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
 
         db.session.add(new_equipment_type)
@@ -104,6 +107,7 @@ def detail_equipment_type(typeId):
     if formEdit.validate_on_submit():
         equipmentType.name = formEdit.name.data
         equipmentType.price = float(formEdit.price.data)
+        equipmentType.deposit = float(formEdit.deposit.data)
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -131,6 +135,7 @@ def edit_equipment_type(typeId):
     if formEdit.validate_on_submit():
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
+        typeModified.deposit = float(formEdit.deposit.data)
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))

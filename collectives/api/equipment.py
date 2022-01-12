@@ -55,6 +55,13 @@ class EquipmentTypeSchema(marshmallow.Schema):
     """:type: string"""
     price = fields.Function(lambda equipmentType: format_currency(equipmentType.price))
 
+    """:type: string"""
+    deposit = fields.Function(
+        lambda equipmentType: format_currency(equipmentType.deposit)
+        if equipmentType.deposit
+        else "-"
+    )
+
     class Meta:
         """Fields to expose"""
 

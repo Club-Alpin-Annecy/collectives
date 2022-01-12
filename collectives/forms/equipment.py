@@ -64,7 +64,9 @@ class EquipmentForm(FlaskForm):
 
     reference = StringField("Référence de l'équipement :")
 
-    purchaseDate = DateField("Date d'achat :", format="%d/%m/%Y", default=datetime.now())
+    purchaseDate = DateField(
+        "Date d'achat :", format="%d/%m/%Y", default=datetime.now()
+    )
 
     purchasePrice = FlexibleDecimalField("Prix d'achat :")
 
