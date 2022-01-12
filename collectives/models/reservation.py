@@ -59,9 +59,7 @@ class ReservationLine(db.Model):
     :type: int"""
     equipment = db.relationship("Equipment", back_populates="reservationLines")
 
-    reservation_id = db.Column(
-        db.Integer, db.ForeignKey("reservations.id")
-    )
+    reservation_id = db.Column(db.Integer, db.ForeignKey("reservations.id"))
     """ Primary key of the related reservation (see  :py:class:`collectives.models.reservation.Reservation`).
     :type: int"""
 

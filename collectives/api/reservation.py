@@ -8,10 +8,8 @@ from marshmallow import fields
 
 from collectives.models.reservation import Reservation
 
-from ..models import db, Equipment, EquipmentType, EquipmentModel
-
-
 from .common import blueprint, marshmallow
+
 
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe equipment"""
@@ -37,7 +35,7 @@ class ReservationSchema(marshmallow.Schema):
             "return_date",
             "statusName",
             "userLicence",
-            "reservationURL"
+            "reservationURL",
         )
 
 
@@ -57,8 +55,9 @@ def reservations():
     query = Reservation.query.all()
 
     data = ReservationSchema(many=True).dump(query)
-    
+
     return json.dumps(data), 200, {"content-type": "application/json"}
+
 
 class ReservationLineSchema(marshmallow.Schema):
     """Schema to describe equipment"""
@@ -72,11 +71,7 @@ class ReservationLineSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = (
-            "quantity",
-            "equipmentReference",
-            "equipmentURL"
-        )
+        fields = ("quantity", "equipmentReference", "equipmentURL")
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
@@ -95,5 +90,5 @@ def reservation(reservation_id):
     query = Reservation.query.get(reservation_id).lines
 
     data = ReservationLineSchema(many=True).dump(query)
-    
+
     return json.dumps(data), 200, {"content-type": "application/json"}
