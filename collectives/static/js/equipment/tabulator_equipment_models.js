@@ -29,7 +29,7 @@ var editCheck = function(row) {
       //{title:"id", field:"id", formatter:"number"},
       {title:"Name", headerFilter:"input",field:"name", editor: 'input', editable: editCheck},
       {title:"Supprimer", formatter:"buttonCross", headerSort:false, cellClick:function(e, cell){
-          if(confirm('Attention vous allez suprimer tous les équipements liés à ce modèle ?')) {
+          if(confirm('Attention vous allez supprimer tous les équipements liés à ce modèle ?')) {
 
               let id = cell.getRow().getData().id
 
