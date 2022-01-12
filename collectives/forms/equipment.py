@@ -6,7 +6,6 @@ from wtforms import (
     SubmitField,
     DateField,
     DecimalField,
-    FloatField,
     SelectField,
 )
 from flask_wtf.file import FileField, FileAllowed
@@ -22,14 +21,14 @@ class EquipmentTypeForm(FlaskForm):
         only = ["type_name"]
 
     name = StringField(label="Type d'équipement :", validators=[DataRequired()])
-    price = FloatField(
+    price = DecimalField(
         label="Prix :",
         render_kw={
             "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
             "placeholder": "Prix",
         },
     )
-    deposit = FloatField(
+    deposit = DecimalField(
         label="Caution :",
         render_kw={
             "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",

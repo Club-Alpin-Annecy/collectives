@@ -10,6 +10,7 @@ from ..models import db, Equipment, EquipmentType, EquipmentModel
 
 
 from .common import blueprint, marshmallow
+from ..utils.numbers import format_currency
 
 
 def photo_uri(equipmentType):
@@ -50,6 +51,9 @@ class EquipmentTypeSchema(marshmallow.Schema):
     nbTotalAvailable = fields.Function(
         lambda equipmentType: equipmentType.nb_total_available()
     )
+
+    """:type: string"""
+    price = fields.Function(lambda equipmentType: format_currency(equipmentType.price))
 
     class Meta:
         """Fields to expose"""
@@ -93,7 +97,7 @@ def equipmentTypes():
     query = EquipmentType.query.all()
 
     data = EquipmentTypeSchema(many=True).dump(query)
-
+    print(data)
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
