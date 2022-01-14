@@ -1,4 +1,3 @@
-
 from collectives.models.role import RoleIds
 
 from ..models.user import User
@@ -25,4 +24,6 @@ class LeaderReservationForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.leader_id.choices = User.matching_roles(RoleIds.all_activity_leader_roles())
+        self.leader_id.choices = User.query.filter_by(
+            User.roles in RoleIds.all_activity_leader_roles()
+        ).all()

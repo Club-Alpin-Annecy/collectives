@@ -75,6 +75,7 @@ def populate_db(app):
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
     equipment.create_equipments_in_db()
+    reservation.create_demo_values()
     init.activity_types(app)
 
 
@@ -155,7 +156,6 @@ def create_app(config_filename="config"):
         app.register_blueprint(event.blueprint)
         app.register_blueprint(payment.blueprint)
         app.register_blueprint(technician.blueprint)
-        app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)

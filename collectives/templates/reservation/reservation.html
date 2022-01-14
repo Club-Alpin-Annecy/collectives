@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Liste{% endblock %}
+{% endblock %}
+
+{% block content %}
+  <div class="panel">
+    <h3>
+      <a href="{{ url_for('reservation.reservation')}}" class="link_path"> <span class="title_first_path">GESTION DES RESERVATIONS</span></a>
+    </h3>
+
+    <a href="{{ url_for('reservation.manage_reservation')}}" class="button button-primary">Ajouter</a>
+  </div>
+{% endblock %}

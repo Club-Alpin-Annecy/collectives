@@ -15,6 +15,7 @@ from .auth import LoginForm, AccountCreationForm
 from .event import RegistrationForm, EventForm
 from .user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm
 from .reservation import LeaderReservationForm
+
 csrf = CSRFProtect()
 
 
