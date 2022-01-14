@@ -1,6 +1,5 @@
 """Module for registration related classes
 """
-from enum import unique
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension

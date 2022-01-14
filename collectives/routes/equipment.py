@@ -3,11 +3,9 @@
 This modules contains the /equipment Blueprint
 """
 import datetime
-import decimal
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
-from sqlalchemy.util.compat import decode_backslashreplace
 
 from collectives.models.role import RoleIds
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
