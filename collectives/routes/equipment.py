@@ -212,6 +212,7 @@ def stock_situation_stock():
         new_equipment = Equipment()
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
+        new_equipment.serial_number = addEquipmentForm.serial_number.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
         db.session.add(new_equipment)
@@ -241,6 +242,7 @@ def detail_equipment(equipment_id):
 
     if editEquipmentForm.validate_on_submit():
         equipmentSelected.reference = editEquipmentForm.reference.data
+        equipmentSelected.serial_number = editEquipmentForm.serial_number.data
         equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
         equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
