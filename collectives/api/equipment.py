@@ -104,7 +104,6 @@ def equipmentTypes():
     query = EquipmentType.query.all()
 
     data = EquipmentTypeSchema(many=True).dump(query)
-    print(data)
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
