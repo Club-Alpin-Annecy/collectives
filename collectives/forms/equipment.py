@@ -62,8 +62,8 @@ class EquipmentForm(FlaskForm):
         model = Equipment
         only = ["reference", "purchase"]
 
-    reference = StringField("Référence de l'équipement :")
-
+    reference = StringField("Référence :")
+    serial_number = StringField("Numéro de série :")
     purchaseDate = DateField(
         "Date d'achat :", format="%d/%m/%Y", default=datetime.now()
     )

@@ -207,6 +207,10 @@ class Equipment(db.Model):
     """Manufacturer of this equipment.
     :type: string"""
 
+    serial_number = db.Column(db.String(50))
+    """Serial number of this equipment.
+    :type: String"""
+
     status = db.Column(
         db.Enum(EquipmentStatus),
         nullable=False,
