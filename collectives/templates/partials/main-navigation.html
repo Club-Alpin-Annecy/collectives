@@ -29,9 +29,6 @@
                                 </a>
                             </li>
 
-
-
-
                             {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py --->
 
                             <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
@@ -44,11 +41,6 @@
                             <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
 
                             {% endif %}
-
-
-
-
-
 
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">

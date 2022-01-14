@@ -617,6 +617,34 @@ class User(db.Model, UserMixin):
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
 
+    
+
+
+
+
+
+
+
+
+
+    def can_manage_equipment(self):
+        """Check if user can manage equipment.
+
+        Admin, equipment manager and equipment volunteer can manage equipment.
+
+        :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`) je sais pas quoi mettre
+        """
+        return True
+
+
+
+
+
+
+
+
+
+
     @property
     def is_active(self):
         """Check if user is currently active.
