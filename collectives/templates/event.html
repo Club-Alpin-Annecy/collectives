@@ -116,7 +116,7 @@
           <p>Votre inscription a été refusée.</p>
         {% elif event.is_unregistered(current_user)%}
           <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
-        {% elif event.has_pending_payment(current_user) %}
+        {% elif event.is_pending_payment(current_user) %}
           <p>Votre inscription est en attente de paiement.
           <ul>
           {% for r in event.existing_registrations(current_user) %}
@@ -125,7 +125,7 @@
                 <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
               {% else %}
                 {# No pending payments, propose to choose item and price #}
-                {% with registration=r %}
+                {% with registration=r, is_leader=False %}
                   {% include 'partials/event/payment_item_choice.html' %}
                 {% endwith %}
               {% endfor %}
@@ -194,7 +194,7 @@
           </div>
       {% endfor %}
 
-     {# Pending registrations #}
+     {# Registrations pending licence renewal #}
       {% if event.has_edit_rights(current_user) %}
         {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status ==  models.RegistrationStatus.Active %}
             <div class="useractionmenu">
@@ -218,6 +218,27 @@
         <p>Les inscriptions sont closes.</p>
         {% endif %}
     </div>
+
+
+    {# Leader payment #}    
+    {% if event.requires_payment() and event.is_leader(current_user) %}
+      <p>Cette collective est payante; en tant qu'encadrant, vous pouvez participer aux frais.</p>
+      {% if event.has_approved_or_unsettled_payments(current_user) %}
+        <ul>
+        {% for payment in event.user_payments(current_user) %}
+          {%if payment.is_unsettled() %}    
+            <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+          {%elif payment.has_receipt()%}
+            <li>Vous avez reglé <a href="{{url_for('payment.receipt', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+          {%endif%}
+        {% endfor %}
+        </ul>
+      {%else}
+        {% with is_leader=True%}
+            {% include 'partials/event/payment_item_choice.html' %}
+        {% endwidth %}
+      {% endif %}
+    {% endif %}
 
 
     {# Payment-pending registrations #}
