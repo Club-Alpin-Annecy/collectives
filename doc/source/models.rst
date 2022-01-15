@@ -25,6 +25,12 @@ Module ``collectives.models.event``
    event
 
 
+Module ``collectives.models.eventtype``
+---------------------------------------------
+.. automodule:: collectives.models.eventtype
+    :members:
+
+
 Module ``collectives.models.globals``
 ---------------------------------------
 .. automodule:: collectives.models.globals

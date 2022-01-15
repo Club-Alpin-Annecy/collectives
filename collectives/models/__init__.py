@@ -8,6 +8,7 @@ from .globals import db
 from .event import Event, EventStatus, photos
 from .event_tag import EventTag
 from .activitytype import ActivityType
+from .eventtype import EventType
 from .registration import Registration, RegistrationLevels, RegistrationStatus
 from .role import Role, RoleIds
 from .user import User, Gender, avatars

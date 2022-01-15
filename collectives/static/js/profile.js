@@ -13,6 +13,8 @@ window.onload = function(){
             {field:"end", type:">", value:  getServerLocalTime()},
         ],
         columns:[
+            {title: "Type",     field:"event_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
+                    headerFilterParams:{values: addEmpty(EnumEventType)}, headerFilterFunc: multiEnumFilter   },
             {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
                     headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
             {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",

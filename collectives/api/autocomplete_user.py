@@ -159,7 +159,7 @@ def autocomplete_available_leaders():
         if current_user.is_moderator():
             query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
         else:
-            query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
+            query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
             if len(activity_ids) > 0:
                 query = query.filter(Role.activity_id.in_(activity_ids))
 

@@ -45,16 +45,23 @@ function createPaymentsTable(url)
 function createAllPaymentsTable(url)
 {
     var table = createPaymentsTable(url);
-    table.addColumn({title:"Collective", field:"item.event.title", widthGrow:2, headerFilter:true}, true, "name");
+    table.addColumn({title:"Événement", field:"item.event.title", widthGrow:2, headerFilter:true}, true);
     table.addColumn({
             title:"Activité",
             field:"item.event.activity_type_names",
             widthGrow:1.5,
             headerFilter:true,
             editor:"select",
-            editorParams:{values: addEmpty(EnumActivityType)},
             headerFilterParams:{values: addEmpty(EnumActivityType)}
-        }, true, "name");
+        }, true);
+    table.addColumn({
+            title:"Type",
+            field:"item.event.event_type.name",
+            widthGrow:1.5,
+            headerFilter:true,
+            editor:"select",
+            headerFilterParams:{values: addEmpty(EnumEventType)}
+        }, true);
     return table;
 }
 

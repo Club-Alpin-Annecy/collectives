@@ -158,6 +158,11 @@ class Event(db.Model):
 
     :type: int"""
 
+    event_type_id = db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)
+    """ Primary key of the associated event type  (see  :py:class:`collectives.models.eventtype.EventType`)
+
+    :type: int"""
+
     # Relationships
     leaders = db.relationship(
         "User",
@@ -176,6 +181,11 @@ class Event(db.Model):
     """ Main leader of this event.
 
     :type: :py:class:`collectives.models.user.User`"""
+
+    event_type = db.relationship("EventType")
+    """ Type of this event.
+
+    :type: :py:class:`collectives.models.eventtype.Event`"""
 
     activity_types = db.relationship(
         "ActivityType",
@@ -673,6 +683,7 @@ class Event(db.Model):
             time.
           - there are available online slots
           - user is registered to the parent event if any
+          - user license is compatible with event type
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -687,6 +698,9 @@ class Event(db.Model):
             return False
         if not self.is_user_registered_to_parent_event(user):
             return False
+        if not self.event_type.has_valid_license(user):
+            return False
+
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 
     # Status

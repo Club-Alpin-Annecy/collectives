@@ -77,11 +77,19 @@ class EventTag(db.Model):
         return [(tag[0], tag[1]["name"]) for tag in cls.all().items()]
 
     @classmethod
-    def all(cls):
-        """Alias for EVENT_TAGS in config.
+    def all(cls, include_deprecated=False):
+        """Returns tag dictionnary as defined by EVENT_TAGS in config.
+
+        :param include_deprecated: Whether to include deprecated activity types
+        :type include_deprecated: bool
 
         :type: dict"""
-        return current_app.config["EVENT_TAGS"]
+
+        tags = current_app.config["EVENT_TAGS"]
+        if include_deprecated:
+            return tags
+
+        return {id: tag for id, tag in tags.items() if not tag.get("deprecated", False)}
 
     @classmethod
     def get_type_from_short(cls, short):
