@@ -754,8 +754,8 @@ class Event(db.Model):
         :rtype: bool"""
         return any(self.payment_items)
 
-    def has_pending_payment(self, user):
-        """Check if a user has a pending . payment this event.
+    def is_pending_payment(self, user):
+        """Check if a user has registration pending payment this event.
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -771,3 +771,25 @@ class Event(db.Model):
         :rtype: boolean
         """
         return any(pi.payments for pi in self.payment_items)
+
+    def user_payments(self, user):
+        """Checks whether payements have been  made for this event
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: The list of payments belonging to the user
+        :rtype: list[:py:class:`collectives.modes.payment.Payment`]
+        """
+        return [p for pi in self.payment_items for p in pi.payments if p.buyer == user]
+
+    def has_approved_or_unsettled_payments(self, user):
+        """Check if a user has valid or potentially valid payments .
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: Whether the user has payments with 'Initiated' or 'Approved' status
+        :rtype: bool
+        """
+        return [
+            p for p in self.user_payments(user) if p.is_unsettled() or p.is_approved()
+        ]

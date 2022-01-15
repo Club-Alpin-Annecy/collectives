@@ -550,18 +550,21 @@ def finalize_payment(payment, details):
     payment.raw_metadata = details.raw_metadata()
 
     if payment.status == PaymentStatus.Approved:
-        if payment.registration is None:
-            # This should not be possible, but still check nonetheless
-            flash(
-                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
-                "warning",
-            )
-        else:
+        if payment.registration is not None:
             flash(
                 "Votre paiement a été accepté, votre inscription est désormais confirmée."
             )
             payment.registration.status = RegistrationStatus.Active
             db.session.add(payment.registration)
+        elif payment.item.event.is_leader(payment.buyer):
+            # Buyer is a leader and does not need registration
+            flash("Votre paiement a été accepté.")
+        else:
+            # This should not be possible, but still check nonetheless
+            flash(
+                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+                "warning",
+            )
     else:
         if payment.registration is not None and payment.registration.is_self:
             flash(

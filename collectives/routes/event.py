@@ -231,7 +231,7 @@ def view_event(event_id, name=""):
         # item choice form
         if event.can_self_register(
             current_user, current_time()
-        ) or event.has_pending_payment(current_user):
+        ) or event.is_pending_payment(current_user):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
     return render_template(
@@ -587,21 +587,31 @@ def select_payment_item(event_id):
     :param int event_id: Primary key of the event .
     """
     event = Event.query.filter_by(id=event_id).first()
+    if not event or not event.requires_payment():
+        flash("Pas de paiement requis pour cet événement", "error")
+        return redirect(url_for(".index"))
 
-    if not event or not event.has_pending_payment(current_user):
-        flash("Vous n'avez pas de paiement en attente", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
-
-    # Find associated registration which is pending payment but
-    # with no currently unsettled payments
+    is_leader = event.is_leader(current_user)
     registration = None
-    for r in event.existing_registrations(current_user):
-        if r.is_pending_payment() and not r.unsettled_payments():
-            registration = r
-            break
-    if not registration:
-        flash("Vous n'avez pas de paiement en attente", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
+
+    if is_leader:
+        if event.has_approved_or_unsettled_payments(current_user):
+            flash("Vous avez déjà un paiement approuvé ou en cours", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+    else:
+        if not event.has_pending_payment(current_user):
+            flash("Vous n'avez pas de paiement en attente", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+        # Find associated registration which is pending payment but
+        # with no currently unsettled payments
+        for r in event.existing_registrations(current_user):
+            if r.is_pending_payment() and not r.unsettled_payments():
+                registration = r
+                break
+        if not registration:
+            flash("Vous n'avez pas de paiement en attente", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
 
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
