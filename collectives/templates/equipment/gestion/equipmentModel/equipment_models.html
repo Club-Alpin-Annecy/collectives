@@ -1,0 +1,19 @@
+    {% for aModel in listEquipmentModel %}
+        {% if modelId != aModel.id %}
+            <p> {{ aModel.name }}
+            <a href="{{ url_for('equipment.edit_equipment_model', typeId=typeId, modelId=aModel.id)}}">edit</a></p>
+        {% else %}
+          {% with form=formEditModel, route=url_for("equipment.edit_equipment_model", typeId=typeId, modelId=aModel.id), titre="EDITER" %}
+            {% include "equipment/gestion/equipmentModel/edit_equipment_model.html" %}
+          {% endwith %}
+          {% with form=deleteFormModel, route=url_for("equipment.delete_equipment_model",typeId=typeId, modelId=aModel.id) %}
+            {% include 'equipment/gestion/delete_form.html' %}
+          {% endwith %}
+        {% endif %}
+    {% endfor %}
+
+
+    {% with form=adding_from_model, route=url_for("equipment.detail_equipment_type",typeId=typeId),
+      includePath='equipment/gestion/equipmentModel/edit_equipment_model.html', titre="Ajouter un modèle" %}
+      {% include 'partials/modal.html' %}
+    {% endwith %}

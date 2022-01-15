@@ -483,6 +483,15 @@ class User(db.Model, UserMixin):
         """
         return self.has_role(RoleIds.all_event_creator_roles())
 
+    def can_manage_equipment(self):
+        """Check if user has an equipment_manager role.
+
+        :return: True if user has an equiment_manager role.
+        :rtype: boolean
+        """
+
+        return self.has_role(RoleIds.all_equipment_management_roles())
+
     def can_lead_activity(self, activity_id):
         """Check if user has a role which allow him to lead a specific activity.
 
@@ -607,34 +616,6 @@ class User(db.Model, UserMixin):
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
-
-    
-
-
-
-
-
-
-
-
-
-    def can_manage_equipment(self):
-        """Check if user can manage equipment.
-
-        Admin, equipment manager and equipment volunteer can manage equipment.
-
-        :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`) je sais pas quoi mettre
-        """
-        return True
-
-
-
-
-
-
-
-
-
 
     @property
     def is_active(self):

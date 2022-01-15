@@ -8,6 +8,10 @@
 @import "legacy/activity";
 @import "legacy/event/index";
 @import "legacy/payment/edit-prices";
+@import "legacy/equipment/equipmentDetail";
+@import "legacy/equipment/equipmentTypeCardView";
+@import "legacy/equipment/equipment-administration";
+
 
 // New css (new stuff goes here)
 @import "base/index";
@@ -15,3 +19,4 @@
 @import "layout/index";
 @import "components/index";
 @import "utilities/index";
+

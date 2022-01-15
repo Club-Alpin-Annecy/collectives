@@ -35,6 +35,10 @@ class RoleIds(ChoiceEnum):
     ActivitySupervisor = 11
     Trainee = 12
 
+    # Equipment-related roles
+    EquipmentManager = 21
+    EquipmentVolunteer = 22
+
     @classmethod
     def display_names(cls):
         """Display name of the current role
@@ -52,6 +56,8 @@ class RoleIds(ChoiceEnum):
             cls.EventLeader: "Encadrant",
             cls.ActivitySupervisor: "Responsable d'activité",
             cls.Trainee: "Encadrant en formation",
+            cls.EquipmentVolunteer: "Bénévole matériel",
+            cls.EquipmentManager: "Responsable matériel",
         }
 
     def relates_to_activity(self):
@@ -80,6 +86,14 @@ class RoleIds(ChoiceEnum):
         :rtype: list[:py:class:`RodeIds`]
         """
         return [cls.EventLeader, cls.ActivitySupervisor]
+
+    @classmethod
+    def all_equipment_management_roles(cls):
+        """
+        :return: List of all roles that allow users manage equipment
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [cls.EquipmentVolunteer, cls.EquipmentManager, cls.Administrator]
 
     @classmethod
     def all_event_creator_roles(cls):

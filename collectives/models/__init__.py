@@ -14,3 +14,4 @@ from .user import User, Gender, avatars
 from .auth import ConfirmationToken, ConfirmationTokenType
 from .payment import PaymentItem, ItemPrice, PaymentStatus, Payment, PaymentType
 from .request import Request
+from .equipment import EquipmentModel, Equipment, EquipmentType, imgtypeequip

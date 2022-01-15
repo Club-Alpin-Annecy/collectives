@@ -25,6 +25,7 @@ from .routes import (
     root,
     profile,
     auth,
+    equipment,
     administration,
     event,
     payment,
@@ -152,6 +153,8 @@ def create_app(config_filename="config"):
         app.register_blueprint(payment.blueprint)
         app.register_blueprint(technician.blueprint)
         app.register_blueprint(activity_supervison.blueprint)
+        app.register_blueprint(activity_supervison.blueprint)
+        app.register_blueprint(equipment.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

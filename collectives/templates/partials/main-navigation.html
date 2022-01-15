@@ -6,6 +6,7 @@
                     title="{{ config['TITLE'] }}">
             </a>
 
+
             {% if current_user.is_authenticated %}
                 <div class="menu-dropdown menu-dropdown-left">
                     <div class="menu-dropdown-trigger main-navigation-menu">
@@ -28,23 +29,18 @@
                                 </a>
                             </li>
 
+                            {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py --->
 
-                            {% if current_user.can_manage_equipment() %}
-                                
-                    <!-- -------------------------------------------------- Ajout item Gestion Matériel -------------------------------------------------- -->
+                            <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}"  class="menu-dropdown-item-link">
-                                    <!-- <img src="img/icon/ionicon/md-box.svg"  class="legacy-icon" /> -->
-                                    Gestion Matériel
+                                <a href="{{ url_for('equipment.stock_situation')}}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}"  class="legacy-icon" />
+                                    Gestion du matériel
                                 </a>
                             </li>
-                    <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
-
+                            <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
 
                             {% endif %}
-
-
-
 
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
