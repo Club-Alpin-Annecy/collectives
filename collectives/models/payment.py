@@ -186,7 +186,17 @@ class ItemPrice(db.Model):
     )
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted
-    one people have started paying them
+    once at least one person has used the
+
+    :type: bool"""
+
+    leader_only = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        info={"label": "Tarif encadrant"},
+    )
+    """ Whether this price is only available to the event leaders.
 
     :type: bool"""
 
@@ -216,7 +226,8 @@ class ItemPrice(db.Model):
     def active_use_count(self):
         """
         Number of currently active or payment pending registrations
-        (i.e, registrations holding a slot) that are usein this price
+        (i.e, registrations holding a slot or event leaders) that are using
+         this price
 
         :return: number of payments associated with this price and an active registration
         :rtype: int
@@ -224,7 +235,8 @@ class ItemPrice(db.Model):
         return sum(
             1
             for p in self.payments
-            if p.registration and p.registration.is_holding_slot()
+            if (p.registration and p.registration.is_holding_slot()
+                or self.item.event.is_leader(p.buyer))
         )
 
     def has_available_use(self):
@@ -265,6 +277,8 @@ class ItemPrice(db.Model):
         :rtype: bool
         """
         if not self.enabled:
+            return False
+        if self.leader_only and not self.item.event.is_leader(user):
             return False
         if not self.license_types:
             return True

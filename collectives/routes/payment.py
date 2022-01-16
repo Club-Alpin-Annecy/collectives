@@ -138,6 +138,7 @@ def edit_prices(event_id):
                             price.start_date = price_form.start_date.data
                             price.end_date = price_form.end_date.data
                             price.license_types = price_form.license_types.data
+                            price.leader_only = price_form.leader_only.data
                             price.max_uses = price_form.max_uses.data or None
                             if price.amount != price_form.amount.data:
                                 price.amount = price_form.amount.data
