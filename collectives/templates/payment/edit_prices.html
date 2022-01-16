@@ -32,14 +32,15 @@
       <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
-      <th> Dispo </th>
-      <th> Actif </th>
+      <th> Max dispo </th>
+      <th> Tarif encadrant </th>
+      <th> Utilisations</th>
     </thead>
     {% for item_form in form.items %}
       {{item_form.item_id}}
     
       {% for field in item_form.item_prices %}
-        <tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %}" >
           <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
           <td> {{ field.title() }} </td>
           <td>
@@ -49,13 +50,15 @@
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
           <td> {{ field.max_uses() }} </td>
-          <td> {{ field.enabled() }} </td>
+          <td> {{ field.leader_only() }} </td>
           <td class="actions"> {{field.price_id}} 
-          {% if field.total_use_count %}
-            {{field.active_use_count}} utilisations actives ({{field.total_use_count}} total) 
-          {% else %}
+          {{field.active_use_count}} actives ({{field.total_use_count}} tot.)
+          <br/>
+          <label>{{field.enabled}} Tarif actif</label>
+          {% if field.total_use_count == 0 %}
+          <br />
             {{field.delete}}&nbsp;{{field.delete.label}}
-          {% endif %}
+          {% endif %} 
           </td>
         </tr>
         {% if field.errors %}
@@ -140,6 +143,10 @@
     {{ new_price_form.end_date}}
     <div class="field">{{ new_price_form.max_uses.label }}<span class="help">Nombre max d'utilisations du tarif ('0' pour illimité)</span></div>
     {{ new_price_form.max_uses}}
+    <div class="field">
+    {{ new_price_form.leader_only }} 
+    </div>
+    {{new_price_form.leader_only.label}}
     </fieldset>
 
     {{ new_price_form.hidden_tag() }}

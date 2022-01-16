@@ -228,15 +228,15 @@
         {% for payment in event.user_payments(current_user) %}
           {%if payment.is_unsettled() %}    
             <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
-          {%elif payment.has_receipt()%}
-            <li>Vous avez reglé <a href="{{url_for('payment.receipt', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+          {%elif payment.is_approved()%}
+            <li>Vous avez réglé <a href="{{url_for('payment.payment_details', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></li>
           {%endif%}
         {% endfor %}
         </ul>
-      {%else}
+      {%else%}
         {% with is_leader=True%}
             {% include 'partials/event/payment_item_choice.html' %}
-        {% endwidth %}
+        {% endwith %}
       {% endif %}
     {% endif %}
 
