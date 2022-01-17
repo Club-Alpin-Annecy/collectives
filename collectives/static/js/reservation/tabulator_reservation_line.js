@@ -14,11 +14,11 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.reservationLineURL
+          location = row._row.data.equipmentURL
       },
         columns:[
           {
-            title:"quantity",
+            title:"reference",
             headerFilter:"input",
             field:"quantity"
           },

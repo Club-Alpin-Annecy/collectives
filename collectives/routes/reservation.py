@@ -33,7 +33,7 @@ def reservations():
     for y in range(1, 5):
         reservationLine = ReservationLine()
         reservationLine.quantity = y
-        reservationLine.equipment = Equipment.query.get(y)
+        reservationLine.equipmentType = EquipmentType.query.get(y)
         reservation.lines.append(reservationLine)
     db.session.add(reservation)
 
@@ -52,4 +52,16 @@ def reservation(reservation_id):
     return render_template(
         "reservation/reservation.html",
         reservation=Reservation.query.get(reservation_id),
+    )
+
+
+@blueprint.route("/line/<int:reservationLine_id>", methods=["GET"])
+def reservationLine(reservationLine_id):
+    """
+    Show a reservation line
+    """
+
+    return render_template(
+        "reservation/reservationLine.html",
+        reservationLine=ReservationLine.query.get(reservationLine_id),
     )

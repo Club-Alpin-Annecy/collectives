@@ -81,7 +81,9 @@ class EquipmentType(db.Model):
     :type: list(:py:class:`collectives.models.equipment.EquipmentModel`)
     """
 
-    reservationLines = db.relationship("ReservationLine", back_populates="equipmentType")
+    reservationLines = db.relationship(
+        "ReservationLine", back_populates="equipmentType"
+    )
 
     def save_typeImg(self, file):
         """Save an image as type image.
@@ -231,4 +233,5 @@ class Equipment(db.Model):
     reservationLines = db.relationship(
         "ReservationLine",
         secondary=ReservationLine_Equipment,
-        back_populates="equipments")
+        back_populates="equipments",
+    )

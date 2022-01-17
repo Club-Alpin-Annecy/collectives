@@ -5,21 +5,16 @@ import json
 
 from flask import url_for
 from marshmallow import fields
+from collectives.api.equipment import EquipmentSchema
 
-from collectives.models.reservation import Reservation
+from collectives.models.reservation import Reservation, ReservationLine
 
 from .common import blueprint, marshmallow
 
 
 class ReservationSchema(marshmallow.Schema):
-    """Schema to describe equipment"""
+    """Schema to describe a reservation"""
 
-    # typeName = fields.Function(lambda obj: obj.model.equipmentType.name)
-    # urlEquipmentTypeDetail = fields.Function(
-    #     lambda obj: url_for(
-    #         "equipment.detail_equipment_type", typeId=obj.model.equipmentType.id
-    #     )
-    # )
     userLicence = fields.Function(lambda obj: obj.user.license)
     statusName = fields.Function(lambda obj: obj.status.display_name())
 
@@ -41,11 +36,11 @@ class ReservationSchema(marshmallow.Schema):
 
 @blueprint.route("/reservations")
 def reservations():
-    """API endpoint to list equipment.
+    """API endpoint to list reservation.
 
     :return: A tuple:
 
-        - JSON containing information describe in EquipmentSchema
+        - JSON containing information describe in ReservationSchema
         - HTTP return code : 200
         - additional header (content as JSON)
 
@@ -60,23 +55,43 @@ def reservations():
 
 
 class ReservationLineSchema(marshmallow.Schema):
-    """Schema to describe equipment"""
+    """Schema to describe reservation line"""
 
-    equipmentReference = fields.Function(lambda obj: obj.equipment.reference)
+    equipmentTypeName = fields.Function(lambda obj: obj.equipmentType.name)
 
-    equipmentURL = fields.Function(
-        lambda obj: url_for("equipment.detail_equipment", equipment_id=obj.equipment.id)
+    reservationLineURL = fields.Function(
+        lambda obj: url_for("reservation.reservationLine", reservationLine_id=obj.id)
     )
 
     class Meta:
         """Fields to expose"""
 
-        fields = ("quantity", "equipmentReference", "equipmentURL")
+        fields = ("quantity", "equipmentTypeName", "reservationLineURL")
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
 def reservation(reservation_id):
-    """API endpoint to list equipment.
+    """API endpoint to list reservation lines.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationLineSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Reservation.query.get(reservation_id).lines
+
+    data = ReservationLineSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservation/ligne/<int:line_id>")
+def reservation_line(line_id):
+    """API endpoint to list equipment in a reservation line.
 
     :return: A tuple:
 
@@ -87,8 +102,8 @@ def reservation(reservation_id):
     :rtype: (string, int, dict)
     """
 
-    query = Reservation.query.get(reservation_id).lines
+    query = ReservationLine.query.get(line_id).equipments
 
-    data = ReservationLineSchema(many=True).dump(query)
+    data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
