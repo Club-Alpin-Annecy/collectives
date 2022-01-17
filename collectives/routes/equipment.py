@@ -215,6 +215,7 @@ def stock_situation_stock():
         new_equipment.serial_number = addEquipmentForm.serial_number.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
+        new_equipment.manufacturer = addEquipmentForm.manufacturer.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
