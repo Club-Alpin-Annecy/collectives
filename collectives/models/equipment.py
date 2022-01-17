@@ -3,6 +3,8 @@
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
+
+from collectives.models.reservation import ReservationLine_Equipment
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -78,6 +80,8 @@ class EquipmentType(db.Model):
 
     :type: list(:py:class:`collectives.models.equipment.EquipmentModel`)
     """
+
+    reservationLines = db.relationship("ReservationLine", back_populates="equipmentType")
 
     def save_typeImg(self, file):
         """Save an image as type image.
@@ -217,11 +221,14 @@ class Equipment(db.Model):
 
     :type: :py:class:`collectives.models.equipment.EquipmentStatus`"""
 
-    reservationLines = db.relationship("ReservationLine", back_populates="equipment")
-
     # brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
     """ Primary key of the model to which the equipment is related (see  :py:class:`collectives.models.equipment.EquipmentModel`).
 
     :type: int"""
+
+    reservationLines = db.relationship(
+        "ReservationLine",
+        secondary=ReservationLine_Equipment,
+        back_populates="equipments")
