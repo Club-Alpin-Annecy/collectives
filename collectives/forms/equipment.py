@@ -9,7 +9,7 @@ from wtforms import (
     SelectField,
 )
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Regexp
 
 from collectives.utils.numbers import FlexibleDecimalField
 from ..models import Equipment, EquipmentType, EquipmentModel, photos
