@@ -9,7 +9,7 @@ from wtforms import (
     SelectField,
 )
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired, Regexp
+from wtforms.validators import DataRequired
 
 from collectives.utils.numbers import FlexibleDecimalField
 from ..models import Equipment, EquipmentType, EquipmentModel, photos
@@ -62,37 +62,23 @@ class EquipmentForm(FlaskForm):
         model = Equipment
         only = ["reference", "purchase"]
 
-    reference = StringField(
-        label="Référence :",
-        validators=[DataRequired()]
-    )
-    serial_number = StringField(
-        label="Numéro de série :",
-        validators=[DataRequired()]
-    )
+    reference = StringField(label="Référence :", validators=[DataRequired()])
+    serial_number = StringField(label="Numéro de série :", validators=[DataRequired()])
     purchaseDate = DateField(
         label="Date d'achat :",
         format="%d/%m/%Y",
         default=datetime.now(),
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     purchasePrice = FlexibleDecimalField(
         label="Prix d'achat :",
         validators=[DataRequired()],
-        render_kw={
-            "pattern": "^[0-9]+([.|,][0-9]+){0,1}$"
-        }
+        render_kw={"pattern": "^[0-9]+([.|,][0-9]+){0,1}$"},
     )
     equipment_model_id = SelectField(
-        label="Modèle :",
-        coerce=int,
-        choices=[],
-        validators=[DataRequired()]
+        label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
-    manufacturer = StringField(
-        label="Fabricant :",
-        validators=[DataRequired()]
-    )
+    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
 
     submit = SubmitField("Enregistrer")
 
