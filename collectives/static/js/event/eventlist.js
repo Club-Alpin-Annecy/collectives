@@ -43,7 +43,7 @@ function buildEventsTable() {
         initialFilter: [{field:"end", type:">=", value:"now" }],
         columns:[
             {title:"Titre", field:"title", sorter:"string", headerFilter:true},
-            {title:"Date", field:"start", sorter:"string"},
+            {title:"Date", field:"start", sorter:"string", headerFilter:true, headerFilter:dateFilterEditor,},
             {title:"Encadrant", field:"leaders", headerSort:false, headerFilter:true},
         ],
         rowFormatter: eventRowFormatter,
@@ -280,4 +280,21 @@ function getLeaderHeaderFilter() {
 function onSelectLeaderAutocomplete(id, val) {
     const searchInput = getLeaderHeaderFilter();
     searchInput.value = val;
+}
+
+function dateFilterEditor(cell, onRendered, success, cancel, editorParams){
+
+	var container = document.createElement('span');
+    start = document.createElement('input');
+    start.type = 'datetime';
+    start.placeholder = 'Filtre';
+    start.style.width="100%";
+
+    start.addEventListener("change", function(){success(start.value); });
+
+    var tailOpts = {locale: "fr", timeFormat: false,};
+    tail.DateTime(start, tailOpts);
+
+    container.append(start);
+	return container;
 }
