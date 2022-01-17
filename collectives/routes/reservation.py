@@ -6,10 +6,11 @@ from datetime import datetime
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
+
+from collectives.utils.access import user_is
 from ..models import db
-from ..models.event import Event
-from ..models.reservation import ReservationStatus, Reservation
-from ..models.role import RoleIds
+from ..models import Equipment, Event, RoleIds
+from ..models.reservation import ReservationStatus, Reservation, ReservationLine
 from ..forms.reservation import LeaderReservationForm
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
@@ -20,10 +21,34 @@ This blueprint contains all routes for reservations
 
 
 @blueprint.route("/", methods=["GET"])
-def reservation():
+def reservations():
     """
     Show all the reservations
     """
+    reservation = Reservation()
+
+    reservation.collect_date = datetime.now()
+    reservation.return_date = datetime.now()
+    reservation.user = current_user
+    for y in range(1, 5):
+        reservationLine = ReservationLine()
+        reservationLine.quantity = y
+        reservationLine.equipment = Equipment.query.get(y)
+        reservation.lines.append(reservationLine)
+    db.session.add(reservation)
+
+    return render_template(
+        "reservation/reservations.html",
+        reservations=Reservation.query.all(),
+    )
+
+
+@blueprint.route("/<int:reservation_id>", methods=["GET"])
+def reservation(reservation_id):
+    """
+    Shows a reservation
+    """
+
     return render_template(
         "reservation/reservation.html",
     )
@@ -32,7 +57,12 @@ def reservation():
 @blueprint.route("/add", methods=["GET"])
 @blueprint.route("/<int:reservation_id>", methods=["GET"])
 def manage_reservation(reservation_id=None):
-    """doc"""
+    """Reservation creation and modification page.
+
+    If an ``reservation_id`` is given, it is a modification of an existing reservation.
+
+    :param int reservation_id: Primary key of the reservation to manage.
+    """
     reservation = (
         Reservation()
         if reservation_id is None
@@ -58,18 +88,30 @@ def manage_reservation(reservation_id=None):
     db.session.add(reservation)
     db.session.commit()
 
-    return redirect(url_for("reservation.reservation"))
-
+    return redirect(url_for("reservation.reservation", reservation_id=reservation_id))
 
 @blueprint.route("/<int:event_id>/<int:role_id>/register", methods=["GET"])
 def register(event_id=None, role_id=None):
+    """Page for user to create a new reservation.
+
+    The displayed form depends on the role_id, a leader can create an reservation without paying
+    and without a max number of equipment.
+    The reservation will relate to the event of event_id.
+
+    :param int role_id: Role that the user wishes to register has.
+    :param int event_id: Primary key of the related event.
+    """
     role = RoleIds.get(role_id)
     if role is None:
         flash("Role inexistant", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    if not role.relates_to_activity():
+    if not current_user.has_role([role_id]):
         flash("Role insuffisant", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    if not role.relates_to_activity():
+        flash("Role not implemented yet")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     event = Reservation() if event_id is None else Event.query.get(event_id)

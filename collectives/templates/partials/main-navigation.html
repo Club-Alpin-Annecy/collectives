@@ -29,26 +29,21 @@
                                 </a>
                             </li>
 
-
-
-
-                            {% if current_user.can_manage_equipment() %}   <!-- WARNING IMPLEMENT can_manage_equipment() IN user.py --->
-
-                            <!-- -------------------------------------------------- Ajout item Gestion Matériel  -------------------------------------------------- -->
+                            {% if current_user.can_manage_equipment() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('equipment.stock_situation')}}"  class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}"  class="legacy-icon" />
                                     Gestion du matériel
                                 </a>
                             </li>
-                            <!-- -------------------------------------------------- FIN Ajout item Gestion Matériel -------------------------------------------------- -->
-
                             {% endif %}
 
-
-
-
-
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('reservation.reservations')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}" class="legacy-icon" />
+                                    Gestion des réservations
+                                </a>
+                            </li>
 
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
@@ -57,6 +52,7 @@
                                         class="legacy-icon" /> Ajouter un événement</a>
                             </li class="menu-dropdown-item">
                             {% endif %}
+
                             {% if current_user.get_supervised_activities() | length %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
@@ -71,6 +67,7 @@
                                 </a>
                             </li>
                             {% endif %}
+
                             {% if current_user.is_hotline() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('administration.administration')}}" class="menu-dropdown-item-link"><img
@@ -78,6 +75,7 @@
                                     Administration</a>
                             </li>
                             {% endif %}
+
                             {% if current_user.is_technician() and config['STATISTICS_ENABLED'] %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('statistics.index')}}" class="menu-dropdown-item-link"><img
@@ -90,7 +88,6 @@
                                     Logs du serveur</a>
                             </li>
                             {% endif %}
-
 
                             {%  if config["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
                             <li class="menu-dropdown-item">

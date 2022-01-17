@@ -1,8 +1,8 @@
 """add reservation
 
-Revision ID: 0b4c12908e01
+Revision ID: 7e0a017cd27d
 Revises: 28f945d84529
-Create Date: 2022-01-12 11:41:02.956069
+Create Date: 2022-01-12 17:14:53.643559
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0b4c12908e01'
+revision = '7e0a017cd27d'
 down_revision = '28f945d84529'
 branch_labels = None
 depends_on = None
@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('return_date', sa.DateTime(), nullable=True),
     sa.Column('status', sa.Enum('Planned', 'Ongoing', 'Completed', 'Cancelled', name='reservationstatus'), nullable=False),
     sa.Column('extended', sa.Boolean(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['event_id'], ['events.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -35,8 +35,8 @@ def upgrade():
     op.create_table('reservation_lines',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('equipment_id', sa.Integer(), nullable=False),
-    sa.Column('reservation_id', sa.Integer(), nullable=False),
+    sa.Column('equipment_id', sa.Integer(), nullable=True),
+    sa.Column('reservation_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['equipment_id'], ['equipments.id'], ),
     sa.ForeignKeyConstraint(['reservation_id'], ['reservations.id'], ),
     sa.PrimaryKeyConstraint('id')
