@@ -42,8 +42,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_foreign_key(None, 'events', 'users', ['main_leader_id'], ['id'])
-    op.drop_index('ix_payments_creditor_id', table_name='payments')
-    op.create_index(op.f('ix_payments_buyer_id'), 'payments', ['buyer_id'], unique=False)
     # ### end Alembic commands ###
 
 
