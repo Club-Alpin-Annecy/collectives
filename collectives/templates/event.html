@@ -214,6 +214,15 @@
         <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
         <p>Inscriptions possibles à partir du {{format_date(event.registration_open_time)}} à {{format_time(event.registration_open_time)}}.</p>
+          {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
+          <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
+          <ul>
+            {% for id, choice in payment_item_choice_form.item_price.choices%}
+              <li>{{choice}}</li>
+            {% endfor %}
+          </ul></p>
+          {% endif %}
+
         {% elif current_time > event.registration_close_time %}
         <p>Les inscriptions sont closes.</p>
         {% endif %}
@@ -222,7 +231,7 @@
 
     {# Leader payment #}    
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cette collective est payante; en tant qu'encadrant, vous pouvez participer aux frais.</p>
+      <p>Cet événement est payante; en tant qu'encadrant, vous pouvez participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}

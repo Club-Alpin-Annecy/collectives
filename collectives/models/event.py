@@ -790,6 +790,6 @@ class Event(db.Model):
         :return: Whether the user has payments with 'Initiated' or 'Approved' status
         :rtype: bool
         """
-        return [
+        return any(
             p for p in self.user_payments(user) if p.is_unsettled() or p.is_approved()
-        ]
+        )

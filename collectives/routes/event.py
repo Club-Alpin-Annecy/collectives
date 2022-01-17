@@ -227,11 +227,11 @@ def view_event(event_id, name=""):
 
     payment_item_choice_form = None
     if event.requires_payment():
-        # If the user can register or if they have yet to pay, create payment
-        # item choice form
-        if event.can_self_register(
-            current_user, current_time()
-        ) or event.is_pending_payment(current_user):
+        # If the user is not registered yet or is pending payment, prepare item choice form
+        # Event if he cannot register the form will be useful to grive price info
+        if not event.is_registered(current_user) or event.is_pending_payment(
+            current_user
+        ):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
     return render_template(
@@ -626,7 +626,9 @@ def select_payment_item(event_id):
             flash("Tarif invalide.", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
-        payment = Payment(registration=registration, item_price=item_price)
+        payment = Payment(
+            registration=registration, item_price=item_price, buyer=current_user
+        )
         payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
 
         db.session.add(payment)

@@ -227,7 +227,7 @@ class ItemPrice(db.Model):
         """
         Number of currently active or payment pending registrations
         (i.e, registrations holding a slot or event leaders) that are using
-         this price
+        this price
 
         :return: number of payments associated with this price and an active registration
         :rtype: int
@@ -235,8 +235,13 @@ class ItemPrice(db.Model):
         return sum(
             1
             for p in self.payments
-            if (p.registration and p.registration.is_holding_slot()
-                or self.item.event.is_leader(p.buyer))
+            if (
+                (p.is_approved() or p.is_unsettled())
+                and (
+                    (p.registration and p.registration.is_holding_slot())
+                    or self.item.event.is_leader(p.buyer)
+                )
+            )
         )
 
     def has_available_use(self):
@@ -533,19 +538,25 @@ class Payment(db.Model):
             and self.status == PaymentStatus.Refunded
         )
 
-    def __init__(self, registration=None, item_price=None):
+    def __init__(self, registration=None, item_price=None, buyer=None):
         """Overloaded constructor.
         Pre-fill a Payment object from an existing registration and item price
         """
 
         super().__init__()
 
-        if registration is not None and item_price is not None:
+        if registration is not None:
             self.registration_id = registration.id
+            if buyer is None:
+                buyer = registration.user
+
+        if buyer is not None:
+            self.buyer_id = buyer.id
+            self.reporter_id = buyer.id
+
+        if item_price is not None:
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
-            self.buyer_id = registration.user.id
-            self.reporter_id = registration.user.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal(0)
             self.payment_type = PaymentType.Online
