@@ -559,7 +559,7 @@ class PaymentItemChoiceForm(FlaskForm):
         """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 
-        if not event.event_type.terms_file:
+        if not event.event_type.terms_file or event.is_leader(current_user):
             del self.accept_guide
 
         self.item_price.choices = []
