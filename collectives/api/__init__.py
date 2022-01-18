@@ -15,6 +15,8 @@ import collectives.api.event
 import collectives.api.userevent
 import collectives.api.payment
 import collectives.api.models
+import collectives.api.equipment
+import collectives.api.reservation
 
 
 from .common import blueprint, marshmallow

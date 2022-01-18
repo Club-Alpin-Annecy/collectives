@@ -46,60 +46,64 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.view_equipment')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a> 
-      <a href="{{ url_for('equipment.view_equipment_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a> 
+    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
     </h3>
 
     <h4>Équipement n° {{ equipment.id }}</h4>
 
     <p class="button button-primary button-small button-open-modal">Éditer</p>
+    {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id), message="Êtes-vous sûr de vouloir supprimer cet équipement ?" %}
+        {% include 'equipment/gestion/delete_form.html' %}
+      {% endwith %}
 
 
     <div class="container_equipmentInfo">
 
       <div class="container_equipmentInfo_top">
         <div class="container_equipmentInfo_img">
-          <img src=" {{ 
-            url_for('static', filename='uploads/typeEquipmentImg/') + equipment.model.equipmentType.pathImg 
-            if equipment.model.equipmentType.pathImg else 
+          <img src=" {{
+            url_for('static', filename='uploads/typeEquipmentImg/') + equipment.model.equipmentType.pathImg
+            if equipment.model.equipmentType.pathImg else
            url_for('static', filename='img/icon/ionicon/md-images.svg') }}" alt="">
-          
+
         </div>
-  
+
         <div class="container_equipmentInfo_txt">
-  
+
           <div class="container_main_info">
             <h5>Informations :</h5>
-  
+
+            <p> <span class="type_info">Fabricant :</span>  {{ equipment.manufacturer or "Non renseigné" }} </p>
             <p> <span class="type_info">Type :</span>  {{ equipment.model.equipmentType.name }} </p>
-            <p> <span class="type_info">Model :</span>  {{ equipment.model.name }} </p>
-            <p> <span class="type_info">Ref :</span>  {{ equipment.reference }} </p>
+            <p> <span class="type_info">Modèle :</span>  {{ equipment.model.name }} </p>
+            <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
             <p> <span class="type_info">Etat :</span>  {{ equipment.status.display_name() }} </p>
-  
+
           </div>
-  
-  
+
+
           <div class="container_location_info">
-  
+
             <h5>Location :</h5>
             <div class="container_info_sub">
               <p> <span class="type_info">Prix :</span> {{ equipment.model.equipmentType.price }} € </p>
               <p> <span class="type_info">Caution :</span> {{ equipment.model.equipmentType.deposit or "- "}}€ </p>
             </div>
-            
+
           </div>
-  
+
         </div>
       </div>
 
-  
+
 
       <div class="container_equipmentInfo_supp">
 
         <h5>Informations supplémentaires :</h5>
         <p> <span class="type_info">Date d'achat :</span>  {{ equipment.purchaseDate }} </p>
         <p> <span class="type_info">Prix d'achat :</span>  {{ equipment.purchasePrice }} € </p>
-  
+
       </div>
 
 
@@ -110,21 +114,23 @@
 
     <h4>Historique de révision</h4>
     <h4>Historique de location</h4>
-    
- 
+
+
 
 
     {% if editEquipmentForm is defined %}
-      {% with form=editEquipmentForm, route=url_for("equipment.edit_equipment", equipmentId=equipment.id) %}
-        {% include "equipment/gestion/equipment/form.html" %}
-      {% endwith %}
-      
-      {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id) %}
-        {% include 'equipment/gestion/delete_form.html' %}
-      {% endwith %}
+
+      {% with form=editEquipmentForm, route=url_for("equipment.detail_equipment", equipment_id=equipment.id),
+      includePath='equipment/gestion/equipment/edit_equipment.html', titre="Editer un équipement" %}
+
+      {% include 'partials/modal.html' %}
+
+    {% endwith %}
     {% endif %}
-  
-    
+
+
+
+
 
   </div>
 

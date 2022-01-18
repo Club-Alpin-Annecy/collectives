@@ -32,9 +32,27 @@
 
 {% block content %}
 
-    <h1>ETAT STOCK EN TEMPS REEL</h1>
+  <div class="panel">
 
-    <a href="{{ url_for('equipment.view_equipment_type')}}">MATERIEL</a>
-    <a href="{{ url_for('equipment.view_equipment_stock')}}">STOCK</a>
+    <h3>
+      <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+    </h3>
+
+    <h4>ACCÈS DIRECT</h4>
+    <a href="{{ url_for('equipment.display_all_type')}}" class="button button-primary">MATÉRIEL</a>
+    <a href="{{ url_for('equipment.stock_situation_stock')}}" class="button button-primary">STOCK</a>
+
+    <h4>ÉTAT DES STOCKS EN TEMPS RÉEL</h4>
+
+    <div id="equipment-state"></div>
+
+    <script>
+      var ajaxURL = "{{url_for('api.equipmentTypes')}}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment_stock_situation.js') }}"></script>
+
+  </div>
+
 
 {% endblock %}

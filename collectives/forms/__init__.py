@@ -8,7 +8,7 @@ other form submodules and create some configuration for all forms.
 from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
-from ..models import photos, avatars,imgtypeequip
+from ..models import photos, avatars, imgtypeequip
 
 from .csv import CSVForm
 from .auth import LoginForm, AccountCreationForm

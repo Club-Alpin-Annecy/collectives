@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Liste{% endblock %}
+{% endblock %}
+
+
+
+{% block additionalhead %}
+
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  {# Autocomplete for leader lookup #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+
+  <script src="{{ url_for('static', filename='js/event/eventlist.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+
+
+{% endblock %}
+
+
+
+{% block scriptJsBody %}
+
+  {# Script JS in body tag #}
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+{% endblock %}
+
+
+
+
+{% block content %}
+
+  <div class="panel">
+
+    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+      <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
+    </h3>
+
+    <h4>STOCK</h4>
+
+    <p class="button button-primary button-small button-open-modal">Ajouter</p>
+
+    <div id="equipment-table"></div>
+    <script>
+      var ajaxURL = "{{url_for('api.equipment')}}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment.js') }}"></script>
+  </div>
+
+    {% with form=addEquipmentForm, route=url_for("equipment.stock_situation_stock"),
+    includePath='equipment/gestion/equipment/edit_equipment.html', titre="Ajouter un équipement" %}
+
+      {% include 'partials/modal.html' %}
+
+    {% endwith %}
+
+
+
+
+{% endblock %}
