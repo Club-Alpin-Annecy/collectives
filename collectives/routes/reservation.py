@@ -8,7 +8,7 @@ from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
 from ..models import db
-from ..models import Equipment, Event, RoleIds
+from ..models import EquipmentType, Event, RoleIds
 from ..models.reservation import ReservationStatus, Reservation, ReservationLine
 from ..forms.reservation import LeaderReservationForm
 
@@ -24,17 +24,17 @@ def view_reservations():
     """
     Show all the reservations
     """
-    reservation = Reservation()
+    aReservation = Reservation()
 
-    reservation.collect_date = datetime.now()
-    reservation.return_date = datetime.now()
-    reservation.user = current_user
+    aReservation.collect_date = datetime.now()
+    aReservation.return_date = datetime.now()
+    aReservation.user = current_user
     for y in range(1, 5):
-        reservationLine = ReservationLine()
-        reservationLine.quantity = y
-        reservationLine.equipment = Equipment.query.get(y)
-        reservation.lines.append(reservationLine)
-    db.session.add(reservation)
+        aReservationLine = ReservationLine()
+        aReservationLine.quantity = y
+        aReservationLine.equipmentType = EquipmentType.query.get(y)
+        aReservation.lines.append(aReservationLine)
+    db.session.add(aReservation)
 
     return render_template(
         "reservation/reservations.html",
@@ -154,3 +154,15 @@ def create_demo_values():
         res.event_id = resi[5]
         db.session.add(res)
         db.session.commit()
+
+
+@blueprint.route("/line/<int:reservationLine_id>", methods=["GET"])
+def reservationLine(reservationLine_id):
+    """
+    Show a reservation line
+    """
+
+    return render_template(
+        "reservation/reservationLine.html",
+        reservationLine=ReservationLine.query.get(reservationLine_id),
+    )

@@ -1,8 +1,8 @@
-"""add reservation
+"""add_reservation
 
-Revision ID: 7e0a017cd27d
+Revision ID: b537b21981e2
 Revises: 28f945d84529
-Create Date: 2022-01-12 17:14:53.643559
+Create Date: 2022-01-17 16:26:53.765760
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7e0a017cd27d'
+revision = 'b537b21981e2'
 down_revision = '28f945d84529'
 branch_labels = None
 depends_on = None
@@ -35,11 +35,18 @@ def upgrade():
     op.create_table('reservation_lines',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('equipment_id', sa.Integer(), nullable=True),
+    sa.Column('equipment_type_id', sa.Integer(), nullable=True),
     sa.Column('reservation_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['equipment_id'], ['equipments.id'], ),
+    sa.ForeignKeyConstraint(['equipment_type_id'], ['equipment_types.id'], ),
     sa.ForeignKeyConstraint(['reservation_id'], ['reservations.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('reservation_lines_equipments',
+    sa.Column('reservation_line_id', sa.Integer(), nullable=False),
+    sa.Column('equipment_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['equipment_id'], ['equipments.id'], ),
+    sa.ForeignKeyConstraint(['reservation_line_id'], ['reservation_lines.id'], ),
+    sa.PrimaryKeyConstraint('reservation_line_id', 'equipment_id')
     )
     # ### end Alembic commands ###
 
