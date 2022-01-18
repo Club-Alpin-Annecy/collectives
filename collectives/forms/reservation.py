@@ -1,6 +1,6 @@
-from ..models.reservation import Reservation
 from wtforms import DateField, SubmitField
 from flask_wtf.form import FlaskForm
+from ..models.reservation import Reservation
 
 
 class LeaderReservationForm(FlaskForm):
@@ -11,7 +11,7 @@ class LeaderReservationForm(FlaskForm):
     class Meta:
         model = Reservation
 
-    collect_date = DateField("Date d'emprunt", format="%d/%m/%Y")
+    collect_date = DateField("Date d'emprunt :", format="%d/%m/%Y")
 
     submit = SubmitField("Enregistrer")
 

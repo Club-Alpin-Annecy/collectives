@@ -7,7 +7,6 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
-from collectives.utils.access import user_is
 from ..models import db
 from ..models import Equipment, Event, RoleIds
 from ..models.reservation import ReservationStatus, Reservation, ReservationLine
@@ -21,7 +20,7 @@ This blueprint contains all routes for reservations
 
 
 @blueprint.route("/", methods=["GET"])
-def reservations():
+def view_reservations():
     """
     Show all the reservations
     """
@@ -44,13 +43,18 @@ def reservations():
 
 
 @blueprint.route("/<int:reservation_id>", methods=["GET"])
-def reservation(reservation_id):
+def view_reservation(reservation_id=None):
     """
     Shows a reservation
     """
-
+    reservation = (
+        Reservation()
+        if reservation_id is None
+        else Reservation.query.get(reservation_id)
+    )
     return render_template(
         "reservation/reservation.html",
+        reservation=reservation,
     )
 
 
@@ -88,7 +92,10 @@ def manage_reservation(reservation_id=None):
     db.session.add(reservation)
     db.session.commit()
 
-    return redirect(url_for("reservation.reservation", reservation_id=reservation_id))
+    return redirect(
+        url_for("reservation.view_reservation", reservation_id=reservation_id)
+    )
+
 
 @blueprint.route("/<int:event_id>/<int:role_id>/register", methods=["GET"])
 def register(event_id=None, role_id=None):
@@ -119,10 +126,10 @@ def register(event_id=None, role_id=None):
 
     if not form.validate_on_submit():
         return render_template(
-            "reservation/editreservation.html",
-            form=form,
-            event=event
+            "reservation/editreservation.html", form=form, event=event
         )
+
+    return redirect(url_for("reservation.view_reservations"))
 
 
 def create_demo_values():
