@@ -133,7 +133,7 @@ def register(event_id=None, role_id=None):
 
 
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET"])
-def reservationLine(reservationLine_id):
+def view_reservationLine(reservationLine_id):
     """
     Show a reservation line
     """
