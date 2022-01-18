@@ -22,6 +22,28 @@
             }
         </script>
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+        {% if config['STATISTICS_ENABLED'] %}
+        <!-- Analytics -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tarteaucitronjs/1.9.5/tarteaucitron.js"
+                integrity="sha512-Z59cuz/ZybHWC3/3UZNQnihn3Xmp2MZJKF6P2HX6WHbkHLrmoW0FHUhpNw+76ms9RuJC88uu3RxWW1IHrfOeug=="
+                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script type="text/javascript">
+               tarteaucitron.init({
+                   "privacyUrl": "{{ url_for('root.legal')}}",
+                   "closePopup": true,
+                   "orientation"   : "bottom",
+                   "showAlertSmall": false,
+                   "showIcon"      : false,
+               });
+
+                tarteaucitron.user.analyticsUa = '{{ config['ANALYTICS_UA'] }}';
+                tarteaucitron.user.gajsMore = function () { /* add here your optionnal _ga.push() */ };
+                (tarteaucitron.job = tarteaucitron.job || []).push('gajs');
+
+        </script>
+        {% endif %}
+
         {% block additionalhead %}{% endblock %}
     </head>
     <body>

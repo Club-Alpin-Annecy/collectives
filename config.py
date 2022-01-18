@@ -253,11 +253,18 @@ FAVICON = "caf/favicon.ico"
 :type: string
 """
 
-STATISTICS_ENABLED = True
+STATISTICS_ENABLED = False
 """Enable flask-statistics to track website user.
 
 :type: boolean
 """
+
+ANALYTICS_UA = "UA-XXXXXXX-X"
+""" Identifier for google analytics.
+
+Only used if STATISTICS_ENABLED is True.
+
+:type: string"""
 
 CURRENT_LEGAL_TEXT_VERSION = 1
 """Current version of the legal text.
