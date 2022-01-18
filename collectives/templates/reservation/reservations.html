@@ -18,9 +18,21 @@
 {% endblock %}
 
 {% block content %}
-    <h1>ICI</h1>
+
+  <div class="panel">
+
+    <h3>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+    </h3>
+
+    <h4>TOUTES LES RESERVATIONS</h4>
+
     <p>{{reservation}}</p>
     <div id="reservations-table"></div>
+
+  </div>
+
+
     <script>
         var ajaxURL = "{{url_for('api.reservations')}}";
     </script>

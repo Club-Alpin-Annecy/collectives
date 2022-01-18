@@ -75,7 +75,6 @@ def populate_db(app):
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
     equipment.create_equipments_in_db()
-    reservation.create_demo_values()
     init.activity_types(app)
 
 

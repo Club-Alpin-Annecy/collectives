@@ -132,32 +132,8 @@ def register(event_id=None, role_id=None):
     return redirect(url_for("reservation.view_reservations"))
 
 
-def create_demo_values():
-    """
-    Initiate the DB : put fake data to simulate what the pages would look like
-    """
-    reservations = [
-        ["12/01/22", "21/01/22", ReservationStatus.Ongoing, False, 1, 1],
-        ["01/01/22", "22/01/22", ReservationStatus.Ongoing, True, 2, 0],
-        ["12/01/22", None, ReservationStatus.Planned, False, 3, 1],
-        ["30/12/21", "10/01/22", ReservationStatus.Completed, False, 1, 0],
-    ]
-
-    for resi in reservations:
-        res = Reservation()
-        res.collect_date = datetime.strptime(resi[0], "%d/%m/%y")
-        if resi[1] != None:
-            res.return_date = datetime.strptime(resi[1], "%d/%m/%y")
-        res.status = resi[2]
-        res.extended = resi[3]
-        res.user_id = resi[4]
-        res.event_id = resi[5]
-        db.session.add(res)
-        db.session.commit()
-
-
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET"])
-def reservationLine(reservationLine_id):
+def view_reservationLine(reservationLine_id):
     """
     Show a reservation line
     """

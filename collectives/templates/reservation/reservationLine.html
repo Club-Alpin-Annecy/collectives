@@ -18,12 +18,23 @@
 {% endblock %}
 
 {% block content %}
-    <h1>ICI2222</h1>
-    <p>{{reservationLine}}</p>
+
+  <div class="panel">
+
+    <h3>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION {{ reservationLine.reservation.id }} </span> </a>
+    </h3>
+
+    <h4>{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
     <div id="equipment-table"></div>
-    <script>
-        var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
-    </script>
+
+  </div>
+
+
+  <script>
+      var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
+  </script>
 
     <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment.js') }}"></script>
 {% endblock %}
