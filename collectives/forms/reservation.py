@@ -11,7 +11,7 @@ class LeaderReservationForm(FlaskForm):
     class Meta:
         model = Reservation
 
-    collect_date = DateField("Date d'emprunt :", format="%d/%m/%Y")
+    collect_date = DateField("Date d'emprunt", format="%d/%m/%Y")
 
     submit = SubmitField("Enregistrer")
 
