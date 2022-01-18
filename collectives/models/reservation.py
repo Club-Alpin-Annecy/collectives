@@ -33,14 +33,16 @@ class ReservationStatus(ChoiceEnum):
             cls.Cancelled: "Annulée",
         }
 
-ReservationLine_Equipment = db.Table('reservation_lines_equipments', db.metadata,
-    db.Column('reservation_line_id', db.ForeignKey('reservation_lines.id'), primary_key=True),
-    """ Primary key of the related reservationLine type (see  :py:class:`collectives.models.reservation.ReservationLine`).
-    :type: int"""
-    db.Column('equipment_id', db.ForeignKey('equipments.id'), primary_key=True)
-    """ Primary key of the related equipments (see  :py:class:`collectives.models.equipment.Equipment`).
-    :type: int"""
+
+ReservationLine_Equipment = db.Table(
+    "reservation_lines_equipments",
+    db.metadata,
+    db.Column(
+        "reservation_line_id", db.ForeignKey("reservation_lines.id"), primary_key=True
+    ),
+    db.Column("equipment_id", db.ForeignKey("equipments.id"), primary_key=True),
 )
+
 
 class ReservationLine(db.Model):
     """Class of an reservation line.
@@ -62,17 +64,16 @@ class ReservationLine(db.Model):
 
     CheckConstraint("quantity >= 0", name="CK_RESERVATION_quantity")
 
-    
-
     equipments = db.relationship(
         "Equipment",
         secondary=ReservationLine_Equipment,
-        back_populates="reservationLines")
+        back_populates="reservationLines",
+    )
     """ List of equipments of a line of reservation.
 
     :type: list(:py:class:`collectives.models.equipment.Equipment`)
     """
-    
+
     equipmentType = db.relationship("EquipmentType", back_populates="reservationLines")
     """ Equipments of a line of reservation.
 
@@ -86,8 +87,6 @@ class ReservationLine(db.Model):
     reservation_id = db.Column(db.Integer, db.ForeignKey("reservations.id"))
     """ Primary key of the related reservation (see  :py:class:`collectives.models.reservation.Reservation`).
     :type: int"""
-
-    
 
 
 class Reservation(db.Model):

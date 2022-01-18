@@ -4,14 +4,11 @@ This modules contains the /reservation Blueprint
 """
 import datetime
 from flask_login import current_user
-from flask import render_template, redirect, url_for
-from flask import Blueprint, flash
+from flask import render_template
+from flask import Blueprint
 from collectives.models.reservation import ReservationLine
 
-from collectives.models.role import RoleIds
-from collectives.utils.access import valid_user, confidentiality_agreement, user_is
-
-from ..models import db, Equipment, EquipmentType, EquipmentModel, Reservation
+from ..models import db, EquipmentType, Reservation
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 """ Equipment blueprint
@@ -25,17 +22,17 @@ def reservations():
     """
     Show all the reservations
     """
-    reservation = Reservation()
+    aReservation = Reservation()
 
-    reservation.collect_date = datetime.datetime.now()
-    reservation.return_date = datetime.datetime.now()
-    reservation.user = current_user
+    aReservation.collect_date = datetime.datetime.now()
+    aReservation.return_date = datetime.datetime.now()
+    aReservation.user = current_user
     for y in range(1, 5):
-        reservationLine = ReservationLine()
-        reservationLine.quantity = y
-        reservationLine.equipmentType = EquipmentType.query.get(y)
-        reservation.lines.append(reservationLine)
-    db.session.add(reservation)
+        aReservationLine = ReservationLine()
+        aReservationLine.quantity = y
+        aReservationLine.equipmentType = EquipmentType.query.get(y)
+        aReservation.lines.append(aReservationLine)
+    db.session.add(aReservation)
 
     return render_template(
         "reservation/reservations.html",
