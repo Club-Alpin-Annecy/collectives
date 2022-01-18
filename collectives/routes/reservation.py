@@ -106,7 +106,7 @@ def register(event_id=None, role_id=None):
         flash("Role inexistant", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    if not current_user.has_role([role_id]):
+    if not current_user.has_role([role_id]) and not current_user.is_moderator():
         flash("Role insuffisant", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -119,10 +119,9 @@ def register(event_id=None, role_id=None):
 
     if not form.validate_on_submit():
         return render_template(
-            "basicform.html",
+            "reservation/editreservation.html",
             form=form,
-            event=event,
-            title=f"Réservation",
+            event=event
         )
 
 
