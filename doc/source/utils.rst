@@ -56,11 +56,6 @@ Module ``collectives.utils.render_markdown``
 .. automodule:: collectives.utils.render_markdown
     :members:
 
-Module ``collectives.utils.statistics``
-----------------------------------------------
-.. automodule:: collectives.utils.statistics
-    :members:
-
 Module ``collectives.utils.time``
 ----------------------------------------------
 .. automodule:: collectives.utils.time

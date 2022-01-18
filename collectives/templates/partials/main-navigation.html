@@ -57,10 +57,12 @@
                             {% endif %}
                             {% if current_user.is_technician() and config['STATISTICS_ENABLED'] %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('statistics.index')}}" class="menu-dropdown-item-link"><img
+                                <a href="" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}" class="legacy-icon" />
                                     Statistiques</a>
                             </li>
+                            {% endif %}
+                            {% if current_user.is_technician() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('technician.list_logs')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" class="legacy-icon" />

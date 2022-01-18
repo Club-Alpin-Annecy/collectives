@@ -33,4 +33,4 @@ goto end
 
 :end
 popd
-pause
+rem pause

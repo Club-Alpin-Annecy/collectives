@@ -174,34 +174,7 @@
         <li>Droit à la limitation du traitement des données</li>
     </ul>
 
-    {% if config['STATISTICS_ENABLED'] %}
+    {% if config['STATISTICS_ENABLED'] %}<!--
     <h4 id="statistics">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
-        <p>
-            Conformément au Règlement général sur la protection des données (RGPD) du 25 mai 2018,
-            les données personnelles des visiteurs du site ne sont pas enregistrées. Pour la réalisation de
-            statistiques d'utilisation du site, chaque requête est enregistrée avec ces données:
-        </p>
-
-        <ul>
-            <li><b>response_time :</b>	Le temps du serveur à générer la requête</li>
-            <li><b>date :</b>	La date de la requête</li>
-            <li><b>method :</b>	La méthode HTTP de la requête</li>
-            <li><b>size :</b>	La taille de la réponse de la requête</li>
-            <li><b>status_code :</b>	Le code de retour HTTP de la requête</li>
-            <li><b>user_agent :</b>	Le User-Agent de la requête</li>
-            <li><b>remote_address :</b>	L’IP anonymisée de la requête (masquage des deux derniers octets)</li>
-            <li><b>exception :</b>	L’erreur éventuelle de la requête</li>
-            <li><b>referrer :</b>	Le lien qui a renvoyé vers la page de la requête</li>
-            <li><b>browser :</b>	Le type de client du visiteur</li>
-            <li><b>platform :</b>	La plateforme du client du visiteur</li>
-            <li><b>mimetype :</b>	Le Mime type de la requête</li>
-
-        </ul>
-
-        <p>
-            Ces données ne sont collectées que pour améliorer le service. Elles ne sont à destination que des équipes du site et ne sont pas communiquées à des tiers.
-        </p>
-        <p>
-            Vous pouvez désactiver les statistiques grâce au bouton en début de page. Votre choix est conservé pendant 1 an et est rattaché au navigateur (cookie).
-        </p>
+        -->
     {% endif %}
