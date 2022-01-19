@@ -6,7 +6,6 @@ import json
 from flask import url_for
 from marshmallow import fields
 from collectives.api.equipment import EquipmentSchema
-from collectives.models.equipment import Equipment, EquipmentStatus
 
 from collectives.models.reservation import Reservation, ReservationLine
 
@@ -124,10 +123,10 @@ def autocomplete_availibles_equipments(line_id):
 
     :rtype: (string, int, dict)
     """
-    type = ReservationLine.query.get(line_id).equipmentType
+    typeEquipment = ReservationLine.query.get(line_id).equipmentType
 
-    query = type.get_all_equipments()
-    
+    query = typeEquipment.get_all_equipments()
+
     data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}

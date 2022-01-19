@@ -141,12 +141,10 @@ def view_reservationLine(reservationLine_id):
     Show a reservation line
     """
     form = AddEquipmentInReservation()
-    reservationLine=ReservationLine.query.get(reservationLine_id)
+    reservationLine = ReservationLine.query.get(reservationLine_id)
     if form.validate_on_submit():
         equipment = Equipment.query.get(form.add_equipment.data)
         reservationLine.equipments.append(equipment)
     return render_template(
-        "reservation/reservationLine.html",
-        reservationLine=reservationLine,
-        form=form
+        "reservation/reservationLine.html", reservationLine=reservationLine, form=form
     )
