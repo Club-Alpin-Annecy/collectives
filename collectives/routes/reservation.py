@@ -27,18 +27,6 @@ def view_reservations():
     """
     Show all the reservations
     """
-    aReservation = Reservation()
-
-    aReservation.collect_date = datetime.now()
-    aReservation.return_date = datetime.now()
-    aReservation.user = current_user
-    for y in range(1, 5):
-        aReservationLine = ReservationLine()
-        aReservationLine.quantity = y
-        aReservationLine.equipmentType = EquipmentType.query.get(y)
-        aReservation.lines.append(aReservationLine)
-    db.session.add(aReservation)
-
     return render_template(
         "reservation/reservations.html",
         reservations=Reservation.query.all(),
