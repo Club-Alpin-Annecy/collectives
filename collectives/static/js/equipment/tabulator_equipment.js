@@ -47,8 +47,14 @@
           },
           {
             title:"Etat",
-            headerFilter:"input",
             field:"statusName",
+            headerFilter: "select",
+	          headerFilterParams:{
+              "Libre":"Libre",
+              "Loué":"Loué",
+              "Révision en cours": "Révision en cours",
+              "Invalide": "Invalide"
+            }
           },
 
         ],

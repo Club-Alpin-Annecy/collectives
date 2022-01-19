@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% import 'macros.html' as macros with context %}
 
 {% block header %}
@@ -8,9 +7,7 @@
 {% endblock %}
 
 
-
 {% block additionalhead %}
-
 
 {# Tabulator: for tables#}
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
@@ -27,7 +24,6 @@
 
 {% endblock %}
 
-
 {% block scriptJsBody %}
 
 {# Script JS in body tag #}
@@ -35,8 +31,6 @@
 <script src="{{ url_for('api.models_to_js') }}"></script>
 
 {% endblock %}
-
-
 
 {% block content %}
 
@@ -54,17 +48,9 @@
 
   <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment_types.js') }}"></script>
 
-
-
-
-
-
   {% with form=addingFrom, route=url_for('equipment.display_all_type'),
   includePath="equipment/gestion/equipmentType/edit_equipment_type.html", titre="Ajouter un type d'équipement"%}
     {% include 'partials/modal.html' %}
   {% endwith %}
-
-
-
 
 {% endblock %}

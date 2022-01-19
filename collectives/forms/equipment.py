@@ -1,5 +1,6 @@
 """Module containing forms related to equipment management
 """
+from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
 from flask_wtf.file import FileField, FileAllowed
@@ -56,15 +57,24 @@ class EquipmentForm(FlaskForm):
         model = Equipment
         only = ["reference", "purchase"]
 
-    reference = StringField("Référence de l'équipement :")
+    reference = StringField(label="Référence :", validators=[DataRequired()])
+    serial_number = StringField(label="Numéro de série :", validators=[DataRequired()])
+    purchaseDate = DateField(
+        label="Date d'achat :",
+        format="%d/%m/%Y",
+        default=datetime.now(),
+        validators=[DataRequired()],
+    )
+    purchasePrice = FlexibleDecimalField(
+        label="Prix d'achat :",
+        validators=[DataRequired()],
+        render_kw={"pattern": "^[0-9]+([.|,][0-9]+){0,1}$"},
+    )
+    equipment_model_id = SelectField(
+        label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
+    )
+    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
 
-    purchaseDate = DateField("Date d'achat :", format="%d/%m/%Y")
-
-    purchasePrice = FlexibleDecimalField("Prix d'achat :")
-
-    equipment_model_id = SelectField("Modèle :", coerce=int, choices=[])
-
-    manufacturer = StringField("Fabricant :")
     submit = SubmitField("Enregistrer")
 
     def __init__(self, *args, **kwargs):

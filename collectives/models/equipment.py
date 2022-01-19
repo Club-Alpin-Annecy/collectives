@@ -205,7 +205,7 @@ class Equipment(db.Model):
 
     :type: int"""
 
-    reference = db.Column(db.String(100), nullable=False)
+    reference = db.Column(db.String(100), nullable=False, unique=True)
     """Reference of this equipment.
 
     :type: string"""
@@ -223,6 +223,10 @@ class Equipment(db.Model):
     manufacturer = db.Column(db.String(50))
     """Manufacturer of this equipment.
     :type: string"""
+
+    serial_number = db.Column(db.String(50))
+    """Serial number of this equipment.
+    :type: String"""
 
     status = db.Column(
         db.Enum(EquipmentStatus),

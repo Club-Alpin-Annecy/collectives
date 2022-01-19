@@ -69,6 +69,7 @@ def display_all_type():
 
         new_equipment_type.name = addingFrom.name.data
         new_equipment_type.price = float(addingFrom.price.data)
+        new_equipment_type.deposit = float(addingFrom.deposit.data)
         new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
 
         db.session.add(new_equipment_type)
@@ -104,6 +105,7 @@ def detail_equipment_type(typeId):
     if formEdit.validate_on_submit():
         equipmentType.name = formEdit.name.data
         equipmentType.price = float(formEdit.price.data)
+        equipmentType.deposit = float(formEdit.deposit.data)
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -131,6 +133,7 @@ def edit_equipment_type(typeId):
     if formEdit.validate_on_submit():
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
+        typeModified.deposit = float(formEdit.deposit.data)
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -210,8 +213,10 @@ def stock_situation_stock():
         new_equipment = Equipment()
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
+        new_equipment.serial_number = addEquipmentForm.serial_number.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
+        new_equipment.manufacturer = addEquipmentForm.manufacturer.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
@@ -239,6 +244,7 @@ def detail_equipment(equipment_id):
 
     if editEquipmentForm.validate_on_submit():
         equipmentSelected.reference = editEquipmentForm.reference.data
+        equipmentSelected.serial_number = editEquipmentForm.serial_number.data
         equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
         equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
@@ -634,7 +640,7 @@ def create_equipments_in_db():
                 equipmentModel.equipments = []
                 for refEquipment in model[1]:
                     equipment = Equipment()
-                    equipment.purchaseDate = datetime.datetime.now()
+                    equipment.purchaseDate = datetime.now()
                     equipment.reference = refEquipment
                     equipment.purchasePrice = 15.50
                     equipmentModel.equipments.append(equipment)

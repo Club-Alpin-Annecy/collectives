@@ -1,8 +1,8 @@
 """add_equipment
 
-Revision ID: 28f945d84529
+Revision ID: 78eeaa194828
 Revises: bc252bdfe1a5
-Create Date: 2022-01-11 16:31:00.885681
+Create Date: 2022-01-14 09:12:26.367868
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '28f945d84529'
+revision = '78eeaa194828'
 down_revision = 'bc252bdfe1a5'
 branch_labels = None
 depends_on = None
@@ -39,10 +39,12 @@ def upgrade():
     sa.Column('purchaseDate', sa.DateTime(), nullable=False),
     sa.Column('purchasePrice', sa.Numeric(precision=8, scale=2), nullable=True),
     sa.Column('manufacturer', sa.String(length=50), nullable=True),
+    sa.Column('serial_number', sa.String(length=50), nullable=True),
     sa.Column('status', sa.Enum('Available', 'Rented', 'Unavailable', 'InReview', name='equipmentstatus'), nullable=False),
     sa.Column('equipment_model_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['equipment_model_id'], ['equipment_models.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('reference')
     )
     op.create_index(op.f('ix_equipments_purchaseDate'), 'equipments', ['purchaseDate'], unique=False)
     # ### end Alembic commands ###

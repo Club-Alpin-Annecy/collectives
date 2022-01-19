@@ -1,7 +1,4 @@
-
-
 {% extends 'base.html' %}
-
 
 {% import 'macros.html' as macros with context %}
 
@@ -9,10 +6,7 @@
   {% block title %}Liste{% endblock %}
 {% endblock %}
 
-
-
 {% block additionalhead %}
-
 
   {# Tabulator: for tables#}
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
@@ -27,11 +21,7 @@
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
-
-
 {% endblock %}
-
-
 
 {% block scriptJsBody %}
 
@@ -39,27 +29,17 @@
   <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 {% endblock %}
 
-
-
-
 {% block content %}
 
-  <div class="panel">
+  <div class="panel" id="equipmentDetail">
 
     <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
       <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
     </h3>
 
-    <h4>Équipement n° {{ equipment.id }}</h4>
-
-    <p class="button button-primary button-small button-open-modal">Éditer</p>
-    {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id), message="Êtes-vous sûr de vouloir supprimer cet équipement ?" %}
-        {% include 'equipment/gestion/delete_form.html' %}
-      {% endwith %}
-
+    <h4>{{ equipment.model.equipmentType.name }} - {{ equipment.model.name }} - {{ equipment.reference }} </h4>
 
     <div class="container_equipmentInfo">
-
       <div class="container_equipmentInfo_top">
         <div class="container_equipmentInfo_img">
           <img src=" {{
@@ -70,52 +50,54 @@
         </div>
 
         <div class="container_equipmentInfo_txt">
-
           <div class="container_main_info">
             <h5>Informations :</h5>
-
             <p> <span class="type_info">Fabricant :</span>  {{ equipment.manufacturer or "Non renseigné" }} </p>
+            <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
+            <p> <span class="type_info">N° de série :</span>  {{ equipment.serial_number or "Non renseigné" }} </p>
             <p> <span class="type_info">Type :</span>  {{ equipment.model.equipmentType.name }} </p>
             <p> <span class="type_info">Modèle :</span>  {{ equipment.model.name }} </p>
-            <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
             <p> <span class="type_info">Etat :</span>  {{ equipment.status.display_name() }} </p>
 
           </div>
 
-
           <div class="container_location_info">
-
             <h5>Location :</h5>
             <div class="container_info_sub">
               <p> <span class="type_info">Prix :</span> {{ equipment.model.equipmentType.price }} € </p>
               <p> <span class="type_info">Caution :</span> {{ equipment.model.equipmentType.deposit or "- "}}€ </p>
             </div>
-
           </div>
-
         </div>
       </div>
-
-
 
       <div class="container_equipmentInfo_supp">
 
         <h5>Informations supplémentaires :</h5>
-        <p> <span class="type_info">Date d'achat :</span>  {{ equipment.purchaseDate }} </p>
+        <p> <span class="type_info">Date d'achat :</span>  {{ format_date(equipment.purchaseDate).capitalize() }} </p>
         <p> <span class="type_info">Prix d'achat :</span>  {{ equipment.purchasePrice }} € </p>
 
       </div>
-
-
     </div>
-
-
-
 
     <h4>Historique de révision</h4>
     <h4>Historique de location</h4>
 
+    <div class="administration">
+      <h4>Administration</h4>
 
+      <div class="administration-buttons">
+        <p class="button button-secondary button-open-modal">
+          <img src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}" alt="" class="icon">
+          Éditer
+        </p>
+
+        {% with form=deleteForm, route=url_for("equipment.delete_equipment",equipmentId=equipment.id), message="Êtes-vous sûr de vouloir supprimer cet équipement ?" %}
+            {% include 'equipment/gestion/delete_form.html' %}
+        {% endwith %}
+
+      </div>
+    </div>
 
 
     {% if editEquipmentForm is defined %}
@@ -128,12 +110,6 @@
     {% endwith %}
     {% endif %}
 
-
-
-
-
   </div>
-
-
 
 {% endblock %}

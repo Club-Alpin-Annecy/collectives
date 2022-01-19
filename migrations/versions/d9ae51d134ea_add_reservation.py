@@ -1,7 +1,7 @@
 """add_reservation
 
 Revision ID: d9ae51d134ea
-Revises: 28f945d84529
+Revises: 78eeaa194828
 Create Date: 2022-01-18 17:21:03.178179
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'd9ae51d134ea'
-down_revision = '28f945d84529'
+down_revision = '78eeaa194828'
 branch_labels = None
 depends_on = None
 

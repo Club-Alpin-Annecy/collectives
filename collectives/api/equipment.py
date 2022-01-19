@@ -55,6 +55,13 @@ class EquipmentTypeSchema(marshmallow.Schema):
     """:type: string"""
     price = fields.Function(lambda equipmentType: format_currency(equipmentType.price))
 
+    """:type: string"""
+    deposit = fields.Function(
+        lambda equipmentType: format_currency(equipmentType.deposit)
+        if equipmentType.deposit
+        else "-"
+    )
+
     class Meta:
         """Fields to expose"""
 
@@ -97,7 +104,6 @@ def equipmentTypes():
     query = EquipmentType.query.all()
 
     data = EquipmentTypeSchema(many=True).dump(query)
-    print(data)
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
