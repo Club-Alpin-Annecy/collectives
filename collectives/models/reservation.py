@@ -89,6 +89,9 @@ class ReservationLine(db.Model):
     :type: int"""
 
     def is_not_full(self):
+        """
+        :return: True if the reservation line is not full
+        :rtype: bool"""
         print(self.equipments)
         return self.quantity > len(self.equipments)
 
