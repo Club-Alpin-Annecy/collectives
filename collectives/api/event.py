@@ -235,7 +235,7 @@ def events():
         elif field == "title":
             query_filter = Event.title.like(f"%{value}%")
         elif field == "start":
-            query_filter = Event.start >= parser.parse(value)
+            query_filter = Event.start >= parser.parse(value, dayfirst=True)
         elif field == "end":
             if filter_type == ">=":
                 query_filter = Event.end >= current_time().date()

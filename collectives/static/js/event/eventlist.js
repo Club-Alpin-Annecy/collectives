@@ -287,12 +287,14 @@ function dateFilterEditor(cell, onRendered, success, cancel, editorParams){
 	var container = document.createElement('span');
     start = document.createElement('input');
     start.type = 'datetime';
-    start.placeholder = 'Filtre';
     start.style.width="100%";
+    start.style.padding= "4px";
+    start.placeholder = 'A partir de';
+    start.setAttribute("readonly", "readonly");
 
     start.addEventListener("change", function(){success(start.value); });
 
-    var tailOpts = {locale: "fr", timeFormat: false,};
+    var tailOpts = {locale: "fr", dateFormat: "dd/mm/YYYY", timeFormat: false,};
     tail.DateTime(start, tailOpts);
 
     container.append(start);
