@@ -124,8 +124,9 @@ def autocomplete_availibles_equipments(line_id):
 
     :rtype: (string, int, dict)
     """
-    line = ReservationLine.query.get(line_id)
-    query = Equipment.query.filter_by(status = EquipmentStatus.Available)
+    type = ReservationLine.query.get(line_id).equipmentType
+
+    query = type.get_all_equipments()
     
     data = EquipmentSchema(many=True).dump(query)
 

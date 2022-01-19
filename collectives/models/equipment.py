@@ -144,6 +144,14 @@ class EquipmentType(db.Model):
         """
         return self.nb_total() - self.nb_total_unavailable()
 
+    def get_all_equipments(self):
+        equiments = []
+        for aModel in self.models:
+            equiments += aModel.equipments
+        
+        return equiments
+
+
 
 class EquipmentModel(db.Model):
     """Class of a model of equipment.
