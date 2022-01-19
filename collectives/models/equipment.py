@@ -145,12 +145,15 @@ class EquipmentType(db.Model):
         return self.nb_total() - self.nb_total_unavailable()
 
     def get_all_equipments(self):
+        """
+        :return: all the equipments of a specific equipment type
+        :rtype: list of Equipments
+        """
         equiments = []
         for aModel in self.models:
             equiments += aModel.equipments
-        
-        return equiments
 
+        return equiments
 
 
 class EquipmentModel(db.Model):
