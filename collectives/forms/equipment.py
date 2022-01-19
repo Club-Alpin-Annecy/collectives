@@ -6,6 +6,7 @@ from wtforms import (
     SubmitField,
     DateField,
     SelectField,
+    HiddenField
 )
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
@@ -83,3 +84,9 @@ class DeleteForm(FlaskForm):
     """Form for deleting an equipment"""
 
     delete = SubmitField("Supprimer")
+
+class AddEquipmentInReservation(FlaskForm):
+    """Form for deleting an equipment"""
+
+    add_equipment = HiddenField("Ajouter un equipment")
+    save_all = SubmitField("Enregistrer")

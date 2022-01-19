@@ -6,6 +6,7 @@ import json
 from flask import url_for
 from marshmallow import fields
 from collectives.api.equipment import EquipmentSchema
+from collectives.models.equipment import Equipment, EquipmentStatus
 
 from collectives.models.reservation import Reservation, ReservationLine
 
@@ -106,6 +107,26 @@ def reservation_line(line_id):
 
     query = ReservationLine.query.get(line_id).equipments
 
+    data = EquipmentSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservation/autocomplete/<int:line_id>")
+def autocomplete_availibles_equipments(line_id):
+    """API endpoint to list equipment in a reservation line.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    line = ReservationLine.query.get(line_id)
+    query = Equipment.query.filter_by(status = EquipmentStatus.Available)
+    
     data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}

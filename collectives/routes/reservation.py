@@ -7,6 +7,9 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
+from collectives.forms.equipment import AddEquipmentInReservation
+from collectives.models.equipment import Equipment
+
 from ..models import db
 from ..models import EquipmentType, Event, RoleIds
 from ..models.reservation import Reservation, ReservationLine
@@ -132,13 +135,18 @@ def register(event_id=None, role_id=None):
     return redirect(url_for("reservation.view_reservations"))
 
 
-@blueprint.route("/line/<int:reservationLine_id>", methods=["GET"])
+@blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])
 def view_reservationLine(reservationLine_id):
     """
     Show a reservation line
     """
-
+    form = AddEquipmentInReservation()
+    reservationLine=ReservationLine.query.get(reservationLine_id)
+    if form.validate_on_submit():
+        equipment = Equipment.query.get(form.add_equipment.data)
+        reservationLine.equipments.append(equipment)
     return render_template(
         "reservation/reservationLine.html",
-        reservationLine=ReservationLine.query.get(reservationLine_id),
+        reservationLine=reservationLine,
+        form=form
     )
