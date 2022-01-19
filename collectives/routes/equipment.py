@@ -289,6 +289,7 @@ def delete_equipment_model(modelId):
 # ----------------------------------------- Creation of fake datas in DB
 
 
+@blueprint.route("/create_test_data")
 def create_equipments_in_db():
     """
     Initiate the DB : put fake data to simulate what the pages would look like

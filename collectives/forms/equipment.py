@@ -94,4 +94,3 @@ class AddEquipmentInReservation(FlaskForm):
     """Form for deleting an equipment"""
 
     add_equipment = HiddenField("Ajouter un equipment")
-    save_all = SubmitField("Enregistrer")

@@ -5,9 +5,13 @@ import json
 
 from flask import url_for
 from marshmallow import fields
-from collectives.api.equipment import EquipmentSchema
+from collectives.api.equipment import AutocompleteEquipmentSchema, EquipmentSchema
+from collectives.models.equipment import Equipment, EquipmentStatus
 
 from collectives.models.reservation import Reservation, ReservationLine
+
+from ..models import db
+
 
 from .common import blueprint, marshmallow
 
@@ -112,7 +116,7 @@ def reservation_line(line_id):
 
 
 @blueprint.route("/reservation/autocomplete/<int:line_id>")
-def autocomplete_availibles_equipments(line_id):
+def autocomplete_availables_equipments(line_id):
     """API endpoint to list equipment in a reservation line.
 
     :return: A tuple:
@@ -125,8 +129,36 @@ def autocomplete_availibles_equipments(line_id):
     """
     eType = ReservationLine.query.get(line_id).equipmentType
 
-    query = eType.get_all_equipments()
-
-    data = EquipmentSchema(many=True).dump(query)
+    query = eType.get_all_equipments_availables()
+    data = AutocompleteEquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route(
+    "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",
+    methods=["POST"],
+)
+def remove_reservationLine_equipment(equipment_id, line_id):
+    """
+    API endpoint to delete a model.
+
+    :return: A tuple:
+
+        - JSON containing information if OK
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    line = ReservationLine.query.get(line_id)
+    equipment = Equipment.query.get(equipment_id)
+    line.equipments.remove(equipment)
+    equipment.status = EquipmentStatus.Available
+    db.session.commit()
+
+    return (
+        "{'response': 'Status changed OK'}",
+        200,
+        {"content-type": "application/json"},
+    )

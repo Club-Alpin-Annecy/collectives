@@ -2,12 +2,13 @@
 
 This modules contains the /reservation Blueprint
 """
+from datetime import datetime
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
 from collectives.forms.equipment import AddEquipmentInReservation
-from collectives.models.equipment import Equipment
+from collectives.models.equipment import Equipment, EquipmentStatus, EquipmentType
 
 from ..models import db
 from ..models import Event, RoleIds
@@ -132,6 +133,27 @@ def view_reservationLine(reservationLine_id):
     if form.validate_on_submit():
         equipment = Equipment.query.get(form.add_equipment.data)
         reservationLine.equipments.append(equipment)
+        equipment.status = EquipmentStatus.Rented
+        return redirect(
+            url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
+        )
     return render_template(
         "reservation/reservationLine.html", reservationLine=reservationLine, form=form
     )
+
+
+@blueprint.route("/create_test_data")
+def create_reservation_in_db():
+    aReservation = Reservation()
+
+    aReservation.collect_date = datetime.now()
+    aReservation.return_date = datetime.now()
+    aReservation.user = current_user
+    for y in range(1, 5):
+        aReservationLine = ReservationLine()
+        aReservationLine.quantity = y
+        aReservationLine.equipmentType = EquipmentType.query.get(y)
+        aReservation.lines.append(aReservationLine)
+
+    db.session.add(aReservation)
+    db.session.commit()

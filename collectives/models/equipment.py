@@ -144,14 +144,16 @@ class EquipmentType(db.Model):
         """
         return self.nb_total() - self.nb_total_unavailable()
 
-    def get_all_equipments(self):
+    def get_all_equipments_availables(self):
         """
         :return: List of all the equipments of type
         :rtype: list[:py:class:`collectives.models.equipment.Equipment]
         """
         equiments = []
         for aModel in self.models:
-            equiments += aModel.equipments
+            for anEquipment in aModel.equipments:
+                if anEquipment.status == EquipmentStatus.Available:
+                    equiments.append(anEquipment)
 
         return equiments
 

@@ -14,11 +14,13 @@
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
   
-   {# Leader autocomplete #}
-   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
-   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
-   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  {# Leader autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+  {# Axios #}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -32,16 +34,18 @@
 
     <h4>{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
 
+    
+    {% if reservationLine.is_not_full() %}
     <div class="controls">
       <form action="{{ route }}" method="post">
         {{ form.hidden_tag() }}
         {{ form.add_equipment.label }}
           <input type="text" id="new-equipment" placeholder="Référence">
         {{ form.add_equipment(value=0) }}
-        {{ form.save_all(class="button button-primary") }}
       </form>
       
     </div>
+    {% endif %}
 
     <div id="equipment-table"></div>
 
@@ -49,24 +53,26 @@
 
 
   <script>
-      var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
-      
-      window.onload = function () {
-        const searchInput = document.getElementById('new-equipment');
-        setupAutoComplete(
-          searchInput, 
-          '{{url_for("api.autocomplete_availibles_equipments", line_id=reservationLine.id) | safe}}',
-          function(item) { 
-            return item.reference; 
-          },
-          function(id, val) {
-            var field = document.getElementById('{{form.add_equipment.id}}');
-            field.value = id;
-            field.form.submit();
-          }
-        );
-      }
-    </script>
+    var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
+    const token_csrf = "{{ csrf_token() }}" ;
+    const line_id = "{{reservationLine.id}}"
+    
+    window.onload = function () {
+      const searchInput = document.getElementById('new-equipment');
+      setupAutoComplete(
+        searchInput, 
+        '{{url_for("api.autocomplete_availables_equipments", line_id=reservationLine.id) | safe}}',
+        function(item) { 
+          return item.reference; 
+        },
+        function(id, val) {
+          var field = document.getElementById('{{form.add_equipment.id}}');
+          field.value = id;
+          field.form.submit();
+        }
+      );
+    }
+  </script>
 
-    <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_line.js') }}"></script>
 {% endblock %}
