@@ -12,8 +12,8 @@ from collectives.models.equipment import Equipment, EquipmentStatus, EquipmentTy
 
 from ..models import db
 from ..models import Event, RoleIds
-from ..models.reservation import Reservation, ReservationLine
-from ..forms.reservation import LeaderReservationForm
+from ..models.reservation import Reservation, ReservationLine, ReservationStatus
+from ..forms.reservation import LeaderReservationForm, ReservationToLocationForm
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 """ Reservation blueprint
@@ -33,19 +33,26 @@ def view_reservations():
     )
 
 
-@blueprint.route("/<int:reservation_id>", methods=["GET"])
+@blueprint.route("/<int:reservation_id>", methods=["GET", "POST"])
 def view_reservation(reservation_id=None):
     """
     Shows a reservation
     """
+
     reservation = (
         Reservation()
         if reservation_id is None
         else Reservation.query.get(reservation_id)
     )
+    reservationToLocationForm = ReservationToLocationForm()
+    if reservationToLocationForm.validate_on_submit():
+        reservation.status = ReservationStatus.Ongoing
+        return redirect(url_for(".view_reservation", reservation_id=reservation_id))
+
     return render_template(
         "reservation/reservation.html",
         reservation=reservation,
+        reservationToLocationForm=reservationToLocationForm,
     )
 
 

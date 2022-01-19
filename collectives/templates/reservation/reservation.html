@@ -36,9 +36,15 @@
     <p>Date de collecte : {{reservation.collect_date}}</p>
     <p>Date de retour : {{reservation.return_date}}</p>
     <p>Status : {{reservation.status.display_name()}}</p>
-
+    {% if reservation.is_planned() %}
+    <form action="" method="post" >
+      {{ reservationToLocationForm.hidden_tag() }}
+      {{ reservationToLocationForm.validate(class="button button-primary") }}
+    </form>
+    {% endif %}
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>
+    
   </div>
 
 

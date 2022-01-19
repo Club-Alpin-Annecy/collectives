@@ -35,9 +35,9 @@
     <h4>{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
 
     
-    {% if reservationLine.is_not_full() %}
+    {% if not reservationLine.is_full() %}
     <div class="controls">
-      <form action="{{ route }}" method="post">
+      <form action="" method="post">
         {{ form.hidden_tag() }}
         {{ form.add_equipment.label }}
           <input type="text" id="new-equipment" placeholder="Référence">
