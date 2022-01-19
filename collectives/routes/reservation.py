@@ -2,7 +2,6 @@
 
 This modules contains the /reservation Blueprint
 """
-from datetime import datetime
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
@@ -11,7 +10,7 @@ from collectives.forms.equipment import AddEquipmentInReservation
 from collectives.models.equipment import Equipment
 
 from ..models import db
-from ..models import EquipmentType, Event, RoleIds
+from ..models import Event, RoleIds
 from ..models.reservation import Reservation, ReservationLine
 from ..forms.reservation import LeaderReservationForm
 
@@ -129,12 +128,10 @@ def view_reservationLine(reservationLine_id):
     Show a reservation line
     """
     form = AddEquipmentInReservation()
-    reservationLine=ReservationLine.query.get(reservationLine_id)
+    reservationLine = ReservationLine.query.get(reservationLine_id)
     if form.validate_on_submit():
         equipment = Equipment.query.get(form.add_equipment.data)
         reservationLine.equipments.append(equipment)
     return render_template(
-        "reservation/reservationLine.html",
-        reservationLine=reservationLine,
-        form=form
+        "reservation/reservationLine.html", reservationLine=reservationLine, form=form
     )
