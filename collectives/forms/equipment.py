@@ -91,6 +91,6 @@ class DeleteForm(FlaskForm):
 
 
 class AddEquipmentInReservation(FlaskForm):
-    """Form for deleting an equipment"""
+    """Form to add an equipment in a reservation"""
 
     add_equipment = HiddenField("Ajouter un equipment")

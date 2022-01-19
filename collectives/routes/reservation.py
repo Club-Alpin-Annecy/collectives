@@ -142,8 +142,11 @@ def view_reservationLine(reservationLine_id):
     )
 
 
-@blueprint.route("/create_test_data")
+@blueprint.route("/docstr-coverage collectives/models")
 def create_reservation_in_db():
+    """
+    Initiate the DB : put fake data to simulate what the pages would look like
+    """
     aReservation = Reservation()
 
     aReservation.collect_date = datetime.now()

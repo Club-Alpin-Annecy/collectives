@@ -146,7 +146,7 @@ class EquipmentType(db.Model):
 
     def get_all_equipments_availables(self):
         """
-        :return: List of all the equipments of type
+        :return: List of all the equipments available of the type
         :rtype: list[:py:class:`collectives.models.equipment.Equipment]
         """
         equiments = []

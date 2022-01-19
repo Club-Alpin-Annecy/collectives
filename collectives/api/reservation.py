@@ -5,7 +5,7 @@ import json
 
 from flask import url_for
 from marshmallow import fields
-from collectives.api.equipment import AutocompleteEquipmentSchema, EquipmentSchema
+from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.equipment import Equipment, EquipmentStatus
 
 from collectives.models.reservation import Reservation, ReservationLine
@@ -130,7 +130,7 @@ def autocomplete_availables_equipments(line_id):
     eType = ReservationLine.query.get(line_id).equipmentType
 
     query = eType.get_all_equipments_availables()
-    data = AutocompleteEquipmentSchema(many=True).dump(query)
+    data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
@@ -141,7 +141,7 @@ def autocomplete_availables_equipments(line_id):
 )
 def remove_reservationLine_equipment(equipment_id, line_id):
     """
-    API endpoint to delete a model.
+    API endpoint to remove an equipment from a réservation.
 
     :return: A tuple:
 

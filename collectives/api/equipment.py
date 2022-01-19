@@ -137,18 +137,6 @@ class EquipmentSchema(marshmallow.Schema):
         )
 
 
-class AutocompleteEquipmentSchema(marshmallow.Schema):
-    """Schema to describe equipment"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = (
-            "id",
-            "reference",
-        )
-
-
 @blueprint.route("/equipment")
 def equipment():
     """API endpoint to list equipment.
