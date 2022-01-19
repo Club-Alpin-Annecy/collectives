@@ -6,6 +6,7 @@ from flask import url_for, request, abort
 from flask_login import current_user
 from sqlalchemy import desc, or_, func
 from marshmallow import fields
+from dateutil import parser
 
 from ..models import Event, EventStatus, EventType, ActivityType, User, EventTag
 from ..utils.url import slugify
@@ -233,6 +234,8 @@ def events():
             )
         elif field == "title":
             query_filter = Event.title.like(f"%{value}%")
+        elif field == "start":
+            query_filter = Event.start >= parser.parse(value, dayfirst=True)
         elif field == "end":
             if filter_type == ">=":
                 query_filter = Event.end >= current_time().date()
