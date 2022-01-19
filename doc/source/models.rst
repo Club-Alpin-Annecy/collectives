@@ -42,11 +42,6 @@ Module ``collectives.models.registration``
 .. automodule:: collectives.models.registration
    :members:
 
-   Module ``collectives.models.request``
-   --------------------------------------------
-   .. automodule:: collectives.models.request
-      :members:
-
 
 Module ``collectives.models.role``
 ---------------------------------------
