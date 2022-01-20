@@ -142,21 +142,3 @@ def view_reservationLine(reservationLine_id):
     )
 
 
-@blueprint.route("/docstr-coverage collectives/models")
-def create_reservation_in_db():
-    """
-    Initiate the DB : put fake data to simulate what the pages would look like
-    """
-    aReservation = Reservation()
-
-    aReservation.collect_date = datetime.now()
-    aReservation.return_date = datetime.now()
-    aReservation.user = current_user
-    for y in range(1, 5):
-        aReservationLine = ReservationLine()
-        aReservationLine.quantity = y
-        aReservationLine.equipmentType = EquipmentType.query.get(y)
-        aReservation.lines.append(aReservationLine)
-
-    db.session.add(aReservation)
-    db.session.commit()
