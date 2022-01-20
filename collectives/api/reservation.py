@@ -1,6 +1,7 @@
 """ API for equipment.
 
 """
+from datetime import datetime, timedelta
 import json
 
 from flask import url_for
@@ -53,6 +54,55 @@ def reservations():
 
     query = Reservation.query.all()
 
+    data = ReservationSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservations_of_day")
+def reservations_of_day():
+    """API endpoint to list reservation.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    dt = datetime.today()
+    start = dt - timedelta(days=dt.weekday())
+    end = start + timedelta(days=6)
+
+    query = Reservation.query.filter(
+        Reservation.collect_date >= start, Reservation.collect_date <= end
+    )
+    data = ReservationSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservations_returns_of_day")
+def reservations_returns_of_day():
+    """API endpoint to list reservation.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    dt = datetime.today()
+    start = dt - timedelta(days=dt.weekday())
+    end = start + timedelta(days=6)
+
+    query = Reservation.query.filter(
+        Reservation.return_date >= start, Reservation.return_date <= end
+    )
     data = ReservationSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}

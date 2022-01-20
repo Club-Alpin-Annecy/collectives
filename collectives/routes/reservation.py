@@ -2,7 +2,7 @@
 
 This modules contains the /reservation Blueprint
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
@@ -29,7 +29,26 @@ def view_reservations():
     """
     return render_template(
         "reservation/reservations.html",
-        reservations=Reservation.query.all(),
+    )
+
+
+@blueprint.route("/reservation_of_day", methods=["GET"])
+def view_reservations_of_week():
+    """
+    Show the reservations of the week
+    """
+    return render_template(
+        "reservation/reservationsDay.html",
+    )
+
+
+@blueprint.route("/reservations_returns_of_day", methods=["GET"])
+def view_reservations_returns_of_week():
+    """
+    Show the reservations returns of the week
+    """
+    return render_template(
+        "reservation/reservationsReturnDay.html",
     )
 
 
@@ -149,8 +168,8 @@ def create_reservation_in_db():
     """
     aReservation = Reservation()
 
-    aReservation.collect_date = datetime.now()
-    aReservation.return_date = datetime.now()
+    aReservation.collect_date = datetime.today() - timedelta(days=1)
+    aReservation.return_date = datetime.today() - timedelta(days=1)
     aReservation.user = current_user
     for y in range(1, 5):
         aReservationLine = ReservationLine()

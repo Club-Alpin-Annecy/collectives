@@ -22,15 +22,16 @@
   <div class="panel">
 
     <h3>
-      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+      <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
     </h3>
 
     <h4>ACCÈS DIRECT</h4>
-    <a href="{{ url_for('reservation.view_reservations')}}" class="button button-primary button-selected">TOUTES LES RÉSERVATIONS</a>
-    <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-primary">RÉSERVATIONS DE LA SEMAINE</a>
+    <a href="{{ url_for('reservation.view_reservations')}}" class="button button-primary">TOUTES LES RÉSERVATIONS</a>
+    <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-primary button-selected">RÉSERVATIONS DE LA SEMAINE</a>
     <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-primary">RETOUR DE LA SEMAINE</a>
 
-    <h4>TOUTES LES RESERVATIONS</h4>
+
+    <h4>RÉSERVATIONS DE LA SEMAINE</h4>
 
     <div id="reservations-table"></div>
 
@@ -38,7 +39,7 @@
 
 
     <script>
-        var ajaxURL = "{{url_for('api.reservations')}}";
+        var ajaxURL = "{{url_for('api.reservations_of_day')}}";
     </script>
 
     <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>

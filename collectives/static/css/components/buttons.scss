@@ -61,4 +61,10 @@
         padding: $padding-s;
         font-size: $font-size-xs;
     }
+
+    &.button-selected {
+        background: $color-blue-primary-dark ;
+        border: 1px solid $color-blue-primary-dark;
+    }
+
 }
