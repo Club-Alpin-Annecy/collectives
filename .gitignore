@@ -9,6 +9,9 @@ uploads
 # Test DB
 collectives/testdb.sqlite
 
+# Populate db of equipments and reservations
+collectives/routes/populate_db.py
+
 .env
 .coverage
 

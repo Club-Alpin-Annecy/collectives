@@ -4,8 +4,10 @@
 from datetime import datetime, timedelta
 import json
 
-from flask import url_for
+from flask import url_for, request
 from marshmallow import fields
+from sqlalchemy.sql import text
+
 from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.equipment import Equipment, EquipmentStatus
 
@@ -165,26 +167,6 @@ def reservation_line(line_id):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-@blueprint.route("/reservation/autocomplete/<int:line_id>")
-def autocomplete_availables_equipments(line_id):
-    """API endpoint to list equipment in a reservation line.
-
-    :return: A tuple:
-
-        - JSON containing information describe in EquipmentSchema
-        - HTTP return code : 200
-        - additional header (content as JSON)
-
-    :rtype: (string, int, dict)
-    """
-    eType = ReservationLine.query.get(line_id).equipmentType
-
-    query = eType.get_all_equipments_availables()
-    data = EquipmentSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
-
-
 @blueprint.route(
     "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",
     methods=["POST"],
@@ -212,3 +194,63 @@ def remove_reservationLine_equipment(equipment_id, line_id):
         200,
         {"content-type": "application/json"},
     )
+
+
+# ---------------------------------------------------------------- Autocomplete ----------------------------------------------------
+class AutocompleteEquipmentSchema(marshmallow.Schema):
+    """Schema to describe autocomplete equipment"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "reference",
+        )
+
+
+def find_equipments_by_reference(q):
+    """Find equipment for autocomplete from a part of their full name.
+
+    Comparison are case insensitive.
+
+    :param string q: Part of the name that will be searched.
+    :return: List of equipments corresponding to ``q``
+    :rtype: list(:py:class:`collectives.models.equipment.Equipment`)
+    """
+
+    sql = "SELECT id, reference from equipments WHERE LOWER(reference) LIKE :pattern"
+
+    pattern = f"%{q.lower()}%"
+    found_equipments = (
+        db.session.query(Equipment).from_statement(text(sql)).params(pattern=pattern)
+    )
+
+    return found_equipments
+
+
+@blueprint.route("/reservation/autocomplete/<int:line_id>")
+def autocomplete_availables_equipments(line_id):
+    """API endpoint to list equipment in a reservation line.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    eType = ReservationLine.query.get(line_id).equipmentType
+
+    equipments_of_type = eType.get_all_equipments_availables()
+    q = request.args.get("q")
+    equipments_of_autocomplete = []
+    if q:
+        equipments_of_autocomplete = find_equipments_by_reference(q)
+
+    query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+
+    data = EquipmentSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}

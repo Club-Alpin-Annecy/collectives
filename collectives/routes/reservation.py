@@ -2,13 +2,15 @@
 
 This modules contains the /reservation Blueprint
 """
+
 from datetime import datetime, timedelta
+
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
 from collectives.forms.equipment import AddEquipmentInReservation
-from collectives.models.equipment import Equipment, EquipmentStatus, EquipmentType
+from collectives.models.equipment import Equipment, EquipmentStatus
 
 from ..models import db
 from ..models import Event, RoleIds
@@ -160,7 +162,6 @@ def view_reservationLine(reservationLine_id):
         "reservation/reservationLine.html", reservationLine=reservationLine, form=form
     )
 
-
 @blueprint.route("/docstr-coverage collectives/models")
 def create_reservation_in_db():
     """
@@ -179,3 +180,4 @@ def create_reservation_in_db():
 
     db.session.add(aReservation)
     db.session.commit()
+
