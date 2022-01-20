@@ -3,6 +3,7 @@
 
 from datetime import datetime
 from sqlalchemy import CheckConstraint
+
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -93,6 +94,27 @@ class ReservationLine(db.Model):
         :return: True if the reservation line is full
         :rtype: bool"""
         return self.quantity <= len(self.equipments)
+
+    def get_equipments_rented(self):
+        """
+        :return: List of all the equipments Rented
+        :rtype: list[:py:class:`collectives.models.equipment.Equipment]
+        """
+        equipmentsRented = []
+        for equipment in self.equipments:
+            if(equipment.is_rented()): equipmentsRented.append(equipment)
+        return equipmentsRented
+
+    def get_equipments_returned(self):
+        """
+        :return: List of all the equipments available
+        :rtype: list[:py:class:`collectives.models.equipment.Equipment]
+        """
+        equipmentsAvailable = []
+        for equipment in self.equipments:
+            if(equipment.is_available()): equipmentsAvailable.append(equipment)
+        return equipmentsAvailable
+        
 
 
 class Reservation(db.Model):

@@ -135,18 +135,23 @@ def view_reservationLine(reservationLine_id):
     """
     Show a reservation line
     """
-    form = AddEquipmentInReservation()
     reservationLine = ReservationLine.query.get(reservationLine_id)
-    if form.validate_on_submit():
-        equipment = Equipment.query.get(form.add_equipment.data)
-        reservationLine.equipments.append(equipment)
-        equipment.status = EquipmentStatus.Rented
-        return redirect(
-            url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
+    if(reservationLine.reservation.status == ReservationStatus.Planned):
+        form = AddEquipmentInReservation()
+        if form.validate_on_submit():
+            equipment = Equipment.query.get(form.add_equipment.data)
+            reservationLine.equipments.append(equipment)
+            equipment.status = EquipmentStatus.Rented
+            return redirect(
+                url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
+            )
+        return render_template(
+            "reservation/reservationLine_planned.html", reservationLine=reservationLine, form=form
         )
-    return render_template(
-        "reservation/reservationLine.html", reservationLine=reservationLine, form=form
-    )
+    if(reservationLine.reservation.status == ReservationStatus.Ongoing):
+        return render_template(
+            "reservation/reservationLine_ongoing.html", reservationLine=reservationLine
+        )
 
 
 @blueprint.route("/docstr-coverage collectives/models")

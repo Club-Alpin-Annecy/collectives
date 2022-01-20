@@ -252,3 +252,15 @@ class Equipment(db.Model):
         secondary=ReservationLine_Equipment,
         back_populates="equipments",
     )
+
+    def is_rented(self):
+        """
+        :return: True if the equipment is rented
+        :rtype: bool"""
+        return self.status == EquipmentStatus.Rented
+
+    def is_available(self):
+        """
+        :return: True if the equipment is Available
+        :rtype: bool"""
+        return self.status == EquipmentStatus.Available
