@@ -2,7 +2,6 @@
 
 This modules contains the /equipment Blueprint
 """
-from datetime import datetime
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash

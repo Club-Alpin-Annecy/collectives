@@ -11,11 +11,16 @@ from collectives.models.equipment import Equipment, EquipmentType, EquipmentMode
 from ..models import db
 from ..models.reservation import Reservation, ReservationLine
 
-blueprint = Blueprint("populate_db_equipment_reservation", __name__, url_prefix="/populate_db_equipment_reservation")
+blueprint = Blueprint(
+    "populate_db_equipment_reservation",
+    __name__,
+    url_prefix="/populate_db_equipment_reservation",
+)
 """ Reservation blueprint
 
 This blueprint contains all routes for populate the db
 """
+
 
 @blueprint.route("/")
 def create_equipments_in_db():
