@@ -38,12 +38,14 @@
                             </li>
                             {% endif %}
 
+                            {% if current_user.can_manage_reservation() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('reservation.view_reservations')}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}" class="legacy-icon" />
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="legacy-icon" />
                                     Gestion des réservations
                                 </a>
                             </li>
+                            {% endif %}
 
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">

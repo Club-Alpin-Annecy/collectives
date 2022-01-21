@@ -20,19 +20,18 @@ from flask_statistics import Statistics
 
 from click import pass_context
 
-from collectives.routes import reservation
-
 from . import models, api, forms
 from .routes import (
     root,
     profile,
     auth,
-    equipment,
     administration,
     event,
     payment,
     technician,
     activity_supervison,
+    equipment,
+    reservation,
 )
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline, statistics
