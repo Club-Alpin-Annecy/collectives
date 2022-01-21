@@ -37,9 +37,10 @@
                    "showIcon"      : false,
                });
 
-                tarteaucitron.user.analyticsUa = '{{ config['GOOGLE_ANALYTICS_UA'] }}';
-                tarteaucitron.user.gajsMore = function () { /* add here your optionnal _ga.push() */ };
-                (tarteaucitron.job = tarteaucitron.job || []).push('gajs');
+                tarteaucitron.user.gtagUa = '{{ config['GOOGLE_ANALYTICS_UA'] }}';
+                // tarteaucitron.user.gtagCrossdomain = ['example.com', 'example2.com'];
+                tarteaucitron.user.gtagMore = function () { /* add here your optionnal gtag() */ };
+                (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
 
         </script>
         {% endif %}
