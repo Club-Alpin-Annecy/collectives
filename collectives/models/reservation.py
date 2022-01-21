@@ -102,7 +102,8 @@ class ReservationLine(db.Model):
         """
         equipmentsRented = []
         for equipment in self.equipments:
-            if(equipment.is_rented()): equipmentsRented.append(equipment)
+            if equipment.is_rented():
+                equipmentsRented.append(equipment)
         return equipmentsRented
 
     def get_equipments_returned(self):
@@ -112,9 +113,9 @@ class ReservationLine(db.Model):
         """
         equipmentsAvailable = []
         for equipment in self.equipments:
-            if(equipment.is_available()): equipmentsAvailable.append(equipment)
+            if equipment.is_available():
+                equipmentsAvailable.append(equipment)
         return equipmentsAvailable
-        
 
 
 class Reservation(db.Model):
@@ -187,3 +188,9 @@ class Reservation(db.Model):
         :return: True if the reservation is Planned
         :rtype: bool"""
         return self.status == ReservationStatus.Planned
+
+    def is_ongoing(self):
+        """
+        :return: True if the reservation is Ongoing
+        :rtype: bool"""
+        return self.status == ReservationStatus.Ongoing

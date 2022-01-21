@@ -113,6 +113,7 @@ def reservation_line(line_id):
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
+
 @blueprint.route("/reservation/lignerented/<int:line_id>")
 def reservation_line_equipments_rented(line_id):
     """API endpoint to list equipment rented in a reservation line.
@@ -131,6 +132,7 @@ def reservation_line_equipments_rented(line_id):
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
+
 @blueprint.route("/reservation/lignereturned/<int:line_id>")
 def reservation_line_equipments_returned(line_id):
     """API endpoint to list equipment rented in a reservation line.
@@ -148,6 +150,7 @@ def reservation_line_equipments_returned(line_id):
     data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
+
 
 @blueprint.route("/reservation/autocomplete/<int:line_id>")
 def autocomplete_availables_equipments(line_id):
@@ -168,6 +171,7 @@ def autocomplete_availables_equipments(line_id):
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
+
 @blueprint.route(
     "/set_available_equipment/<int:equipment_id>",
     methods=["POST"],
@@ -184,9 +188,9 @@ def set_available_equipment(equipment_id):
 
     :rtype: (string, int, dict)
     """
-    
+
     equipment = Equipment.query.get(equipment_id)
-    
+
     equipment.status = EquipmentStatus.Available
     db.session.commit()
 
@@ -195,6 +199,7 @@ def set_available_equipment(equipment_id):
         200,
         {"content-type": "application/json"},
     )
+
 
 @blueprint.route(
     "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",

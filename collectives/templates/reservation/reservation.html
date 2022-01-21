@@ -38,8 +38,14 @@
     <p>Status : {{reservation.status.display_name()}}</p>
     {% if reservation.is_planned() %}
     <form action="" method="post" >
-      {{ reservationToLocationForm.hidden_tag() }}
-      {{ reservationToLocationForm.validate(class="button button-primary") }}
+      {{ form.hidden_tag() }}
+      {{ form.validate(class="button button-primary") }}
+    </form>
+    {% endif %}
+    {% if reservation.is_ongoing() %}
+    <form action="" method="post" >
+      {{ form.hidden_tag() }}
+      {{ form.validate(class="button button-primary") }}
     </form>
     {% endif %}
     <h4>ÉQUIPEMENTS</h4>
