@@ -10,6 +10,7 @@ from flask import Blueprint, flash
 
 from collectives.forms.equipment import AddEquipmentInReservation
 from collectives.models.equipment import Equipment, EquipmentStatus
+from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
 from ..models import db
 from ..models import Event, RoleIds
@@ -21,6 +22,22 @@ blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 
 This blueprint contains all routes for reservations
 """
+
+
+@blueprint.before_request
+@valid_user()
+@confidentiality_agreement()
+@user_is("can_manage_reservation")
+def before_request():
+    """Protect all of the admin endpoints.
+
+    Protection is done by the decorator:
+
+    - check if user is valid :py:func:`collectives.utils.access.valid_user`
+    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user is allowed to manage reservation :py:func:`collectives.utils.access.user_is`
+    """
+    pass
 
 
 @blueprint.route("/", methods=["GET"])
