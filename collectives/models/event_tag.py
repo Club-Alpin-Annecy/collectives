@@ -65,7 +65,7 @@ class EventTag(db.Model):
         """All information about the tag type.
 
         :type: dict"""
-        tag = self.all()[self.type]
+        tag = self.all(True)[self.type]
         tag["id"] = self.type
         return tag
 
@@ -98,7 +98,7 @@ class EventTag(db.Model):
         :param string short: Shortname of the searched tag
         :returns: Tag id
         :rtype: int"""
-        for i, tag in cls.all().items():
+        for i, tag in cls.all(True).items():
             if tag["short"] == short:
                 return i
         return None
