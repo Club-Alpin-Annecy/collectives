@@ -3,7 +3,6 @@
 This modules contains the /reservation Blueprint
 """
 
-from datetime import datetime, timedelta
 
 from flask_login import current_user
 from flask import render_template, redirect, url_for
@@ -161,5 +160,3 @@ def view_reservationLine(reservationLine_id):
     return render_template(
         "reservation/reservationLine.html", reservationLine=reservationLine, form=form
     )
-
-
