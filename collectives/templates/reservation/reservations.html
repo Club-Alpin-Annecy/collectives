@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Reservations{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="panel">
+
+    <h3>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+    </h3>
+
+    <h4>ACCÈS DIRECT</h4>
+    <a href="{{ url_for('reservation.view_reservations')}}" class="button button-primary button-selected">TOUTES LES RÉSERVATIONS</a>
+    <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-primary">RÉSERVATIONS DE LA SEMAINE</a>
+    <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-primary">RETOUR DE LA SEMAINE</a>
+
+    <h4>TOUTES LES RESERVATIONS</h4>
+
+    <div id="reservations-table"></div>
+
+  </div>
+
+
+    <script>
+        var ajaxURL = "{{url_for('api.reservations')}}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>
+{% endblock %}

@@ -2,12 +2,7 @@
 """
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import (
-    StringField,
-    SubmitField,
-    DateField,
-    SelectField,
-)
+from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
 
@@ -93,3 +88,9 @@ class DeleteForm(FlaskForm):
     """Form for deleting an equipment"""
 
     delete = SubmitField("Supprimer")
+
+
+class AddEquipmentInReservation(FlaskForm):
+    """Form to add an equipment in a reservation"""
+
+    add_equipment = HiddenField("Ajouter un equipment")

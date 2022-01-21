@@ -25,12 +25,13 @@ from .routes import (
     root,
     profile,
     auth,
-    equipment,
     administration,
     event,
     payment,
     technician,
     activity_supervison,
+    equipment,
+    reservation,
 )
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline, statistics
@@ -153,8 +154,8 @@ def create_app(config_filename="config"):
         app.register_blueprint(payment.blueprint)
         app.register_blueprint(technician.blueprint)
         app.register_blueprint(activity_supervison.blueprint)
-        app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(equipment.blueprint)
+        app.register_blueprint(reservation.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

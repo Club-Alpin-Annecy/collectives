@@ -96,6 +96,14 @@ class RoleIds(ChoiceEnum):
         return [cls.EquipmentVolunteer, cls.EquipmentManager, cls.Administrator]
 
     @classmethod
+    def all_reservation_management_roles(cls):
+        """
+        :return: List of all roles that allow users manage reservation
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [cls.EquipmentVolunteer, cls.EquipmentManager, cls.Administrator]
+
+    @classmethod
     def all_event_creator_roles(cls):
         """
         :return: List of all roles that allow users to create events

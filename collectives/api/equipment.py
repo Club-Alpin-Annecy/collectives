@@ -127,6 +127,7 @@ class EquipmentSchema(marshmallow.Schema):
         """Fields to expose"""
 
         fields = (
+            "id",
             "reference",
             "modelName",
             "typeName",

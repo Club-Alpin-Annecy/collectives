@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  {# DateTime picker#}
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Réservation{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <!-- Logging Windows -->
+  <h3>Réservation en tant qu'encadrant</h3>
+  <div class="form-errors">
+    {% for field in form%}
+      {% for error in form.errors[field.name] %}
+        <div class="flash flash-error">
+          <strong>Erreur : {{field.label}} :</strong> {{error}}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="dates">
+    <div class="controls">
+      <div class="datetimepicker" id="datetimepickerstart">
+        {{ form.collect_date.label }} : {{ form.collect_date(type="datetime") }}
+      </div>
+    </div>
+    <div class="controls">
+      {{ form.submit(class="button button-primary") }}
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll("input[type=datetime]").forEach(function(input){
+    var datepicker = tail.DateTime(input,{
+        animate: false,
+        weekStart: 1,
+        locale: "fr",
+        timeStepMinutes: 15,
+        timeSeconds: false,
+        closeButton: false,
+        startOpen: true,
+        stayOpen: true,
+        position: "#"+input.parentElement.id,
+        classNames:"form-tail-datetime default",
+    });
+  });
+</script>
+{% endblock %}

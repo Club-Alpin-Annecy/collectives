@@ -266,6 +266,15 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.registration.Registration`)
     """
 
+    reservations = db.relationship(
+        "Reservation",
+        back_populates="user",
+    )
+    """ List of reservations made by the user.
+
+    :type: list(:py:class:`collectives.models.reservation.Reservation`)
+    """
+
     payments = db.relationship(
         "Payment", backref="buyer", foreign_keys="[Payment.buyer_id]", lazy=True
     )
@@ -491,6 +500,15 @@ class User(db.Model, UserMixin):
         """
 
         return self.has_role(RoleIds.all_equipment_management_roles())
+
+    def can_manage_reservation(self):
+        """Check if user has an equipment_manager role.
+
+        :return: True if user has an equiment_manager role.
+        :rtype: boolean
+        """
+
+        return self.has_role(RoleIds.all_reservation_management_roles())
 
     def can_lead_activity(self, activity_id):
         """Check if user has a role which allow him to lead a specific activity.
