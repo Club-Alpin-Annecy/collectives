@@ -17,3 +17,15 @@ class LeaderReservationForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+class ReservationToLocationForm(FlaskForm):
+    """Form for deleting an equipment"""
+
+    validate = SubmitField("Valider la réservation")
+
+
+class EndLocationForm(FlaskForm):
+    """Form for deleting an equipment"""
+
+    validate = SubmitField("Valider la retour de la location")
