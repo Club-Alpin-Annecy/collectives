@@ -27,15 +27,15 @@
     </h3>
 
     <h4>INFORMATIONS UTILISATEURS</h4>
-    <p>Nom : {{reservation.user.last_name}}</p>
-    <p>Prénom : {{reservation.user.first_name}}</p>
-    <p>Rôle : {{reservation.user.roles}}</p>
+    <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
+    <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
+    <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
 
 
     <h4>INFORMATIONS RÉSERVATIONS</h4>
-    <p>Date de collecte : {{reservation.collect_date}}</p>
-    <p>Date de retour : {{reservation.return_date}}</p>
-    <p>Status : {{reservation.status.display_name()}}</p>
+    <p><span class="bold">Date de collecte :</span> {{reservation.collect_date}}</p>
+    <p><span class="bold">Date de retour :</span> {{reservation.return_date}}</p>
+    <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
     {% if reservation.is_planned() %}
     <form action="" method="post" >
       {{ form.hidden_tag() }}
@@ -50,7 +50,7 @@
     {% endif %}
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>
-    
+
   </div>
 
 
