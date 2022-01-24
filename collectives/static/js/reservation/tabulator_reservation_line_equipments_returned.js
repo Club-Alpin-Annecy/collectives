@@ -14,12 +14,12 @@
         ],
         columns:[
           {
-            title:"reference",
+            title:"Référence",
             headerFilter:"input",
             field:"reference"
           },
           {
-            title:"typeName",
+            title:"Type d'équipement",
             headerFilter:"input",
             field:"typeName",
             formatter:"link",
@@ -28,9 +28,9 @@
             }
           },
           {
-            title:"Commentaire", 
-            field:"comment", 
-            editor:"textarea", 
+            title:"Commentaire",
+            field:"comment",
+            editor:"textarea",
             editorParams:{
               elementAttributes:{
                   maxlength:"500", //set the maximum character length of the textarea element to 10 characters

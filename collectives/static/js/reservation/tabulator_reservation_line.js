@@ -13,15 +13,15 @@
         initialSort:[             //set the initial sort order of the data
             {column:"name", dir:"asc"},
         ],
-        
+
         columns:[
           {
-            title:"reference",
+            title:"Référence",
             headerFilter:"input",
             field:"reference"
           },
           {
-            title:"typeName",
+            title:"Type d'équipement",
             headerFilter:"input",
             field:"typeName",
             formatter:"link",
@@ -30,20 +30,20 @@
             }
           },
           {
-            title:"Supprimer", 
-            formatter:"buttonCross", 
-            headerSort:false, 
+            title:"Supprimer",
+            formatter:"buttonCross",
+            headerSort:false,
             cellClick:function(e, cell){
               if(confirm('Voulez-vous vraiment retirer cet équipement de cet réservation ?')) {
-    
+
                   let id = cell.getRow().getData().id
-    
+
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
                   axios.post('/api/remove_reservationLine_equipment/'+id+'/'+line_id)
                   .then((response)=>{
                     window.location.reload()
                   })
-    
+
               }
             }
           },

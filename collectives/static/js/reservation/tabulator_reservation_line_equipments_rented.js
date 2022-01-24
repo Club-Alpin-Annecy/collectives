@@ -14,12 +14,12 @@
         ],
         columns:[
           {
-            title:"reference",
+            title:"Référence",
             headerFilter:"input",
             field:"reference"
           },
           {
-            title:"typeName",
+            title:"Type d'équipement",
             headerFilter:"input",
             field:"typeName",
             formatter:"link",
@@ -28,9 +28,9 @@
             }
           },
           {
-            title:"Commentaire", 
-            field:"comment", 
-            editor:"textarea", 
+            title:"Commentaire",
+            field:"comment",
+            editor:"textarea",
             editorParams:{
               elementAttributes:{
                   maxlength:"500", //set the maximum character length of the textarea element to 10 characters
@@ -38,12 +38,12 @@
             }
           },
           {
-            title:"Rendu", 
-            formatter:"buttonTick", 
-            headerSort:false, 
+            title:"Rendu",
+            formatter:"buttonTick",
+            headerSort:false,
             cellClick:function(e, cell){
               if(confirm('Voulez-vous vraiment rendre cet équipement ?')) {
-    
+
                   console.log(cell.getRow().getData().comment)
                   let id = cell.getRow().getData().id
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
@@ -51,7 +51,7 @@
                   .then((response)=>{
                     window.location.reload()
                   })
-    
+
               }
             }
           },
