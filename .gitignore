@@ -10,7 +10,7 @@ uploads
 collectives/testdb.sqlite
 
 # Populate db of equipments and reservations
-collectives/routes/populate_db.py
+collectives/routes/populate_db_equipment_reservation.py
 
 .env
 .coverage
