@@ -18,12 +18,12 @@
       },
         columns:[
           {
-            title:"quantity",
+            title:"Quantité",
             headerFilter:"input",
             field:"quantity"
           },
           {
-            title:"equipmentTypeName",
+            title:"Type d'équipement",
             headerFilter:"input",
             field:"equipmentTypeName",
             formatter:"link",
