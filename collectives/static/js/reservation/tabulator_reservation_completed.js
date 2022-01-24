@@ -31,10 +31,6 @@
               urlField:"reservationLineURL"
             }
           },
-          {
-            title:"Ratio",
-            field:"ratio_equipments",
-          },
         ],
          //create columns from data field names
       });
