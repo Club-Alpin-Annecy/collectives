@@ -228,7 +228,7 @@ def view_event(event_id, name=""):
     payment_item_choice_form = None
     if event.requires_payment():
         # If the user is not registered yet or is pending payment, prepare item choice form
-        # Event if he cannot register the form will be useful to grive price info
+        # Even if they cannot register, the form will be useful to display price info
         if not event.is_registered(current_user) or event.is_pending_payment(
             current_user
         ):
@@ -599,7 +599,7 @@ def select_payment_item(event_id):
             flash("Vous avez déjà un paiement approuvé ou en cours", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
     else:
-        if not event.has_pending_payment(current_user):
+        if not event.is_pending_payment(current_user):
             flash("Vous n'avez pas de paiement en attente", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
