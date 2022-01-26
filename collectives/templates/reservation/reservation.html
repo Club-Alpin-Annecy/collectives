@@ -33,8 +33,8 @@
 
 
     <h4>INFORMATIONS RÉSERVATIONS</h4>
-    <p><span class="bold">Date de collecte :</span> {{reservation.collect_date}}</p>
-    <p><span class="bold">Date de retour :</span> {{reservation.return_date}}</p>
+    <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
+    <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
     {% if reservation.is_planned() %}
     <form action="" method="post" >
