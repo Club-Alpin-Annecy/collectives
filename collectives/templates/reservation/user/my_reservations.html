@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Reservations{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="panel">
+
+    <h3>
+      <a href="{{ url_for('reservation.my_reservations')}}" class="link_path"> <span class="title_first_path">MES LOCATIONS</span></a>
+    </h3>
+
+    <h4>MES LOCATIONS</h4>
+    <div id="my-reservation-table"></div>
+
+    <h4>MON HISTORIQUE</h4>
+    <div id="historical-reservation-table"></div>
+
+  </div>
+
+
+    <script>
+        var ajaxURLMyReservation = "{{url_for('api.my_reservations')}}";
+        var ajaxURLHistoricalReservation = "{{url_for('api.my_reservations_completed')}}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/reservation/user/tabulator_my_reservations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/reservation/user/tabulator_my_reservations_completed.js') }}"></script>
+{% endblock %}

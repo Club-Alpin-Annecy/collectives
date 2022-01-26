@@ -11,6 +11,8 @@ from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
 
+from collectives.models.reservation import ReservationStatus
+
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
@@ -634,6 +636,31 @@ class User(db.Model, UserMixin):
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
+
+    def get_reservations_planned_and_ongoing(self):
+        """Get all reservations planned and ongoing from user.
+
+        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
+        """
+        reservation_list = []
+        for aReservation in self.reservations:
+            if aReservation.status in (
+                ReservationStatus.Planned,
+                ReservationStatus.Ongoing,
+            ):
+                reservation_list.append(aReservation)
+        return reservation_list
+
+    def get_reservations_completed(self):
+        """Get all reservations completed from user.
+
+        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
+        """
+        reservation_list = []
+        for aReservation in self.reservations:
+            if aReservation.status == ReservationStatus.Completed:
+                reservation_list.append(aReservation)
+        return reservation_list
 
     @property
     def is_active(self):

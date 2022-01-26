@@ -80,11 +80,8 @@ def view_reservation(reservation_id=None):
     Shows a reservation
     """
 
-    reservation = (
-        Reservation()
-        if reservation_id is None
-        else Reservation.query.get(reservation_id)
-    )
+    reservation = Reservation.query.get(reservation_id)
+
     form = None
     if reservation.is_planned():
         form = ReservationToLocationForm()
@@ -206,3 +203,25 @@ def register(event_id=None, role_id=None):
         )
 
     return redirect(url_for("reservation.view_reservations"))
+
+
+@blueprint.route("/my_reservations", methods=["GET"])
+def my_reservations():
+    """
+    Show all the reservations of user
+    """
+    return render_template(
+        "reservation/user/my_reservations.html",
+    )
+
+
+@blueprint.route("/my_reservation//<int:reservation_id>", methods=["GET", "POST"])
+def my_reservation(reservation_id):
+    """
+    Show the reservations detail of user
+    """
+    reservation = Reservation.query.get(reservation_id)
+
+    return render_template(
+        "reservation/user/my_reservation.html", reservation=reservation
+    )
