@@ -152,10 +152,17 @@ class ReservationLineSchema(marshmallow.Schema):
         )
     )
 
+    ratio_equipments = fields.Function(lambda obj: obj.get_ratio_equipments())
+
     class Meta:
         """Fields to expose"""
 
-        fields = ("quantity", "equipmentTypeName", "reservationLineURL")
+        fields = (
+            "quantity",
+            "equipmentTypeName",
+            "reservationLineURL",
+            "ratio_equipments",
+        )
 
 
 @blueprint.route("/reservation/<int:reservation_id>")

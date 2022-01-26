@@ -36,18 +36,25 @@
     <p><span class="bold">Date de collecte :</span> {{reservation.collect_date}}</p>
     <p><span class="bold">Date de retour :</span> {{reservation.return_date}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
+    
     {% if reservation.is_planned() %}
     <form action="" method="post" >
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
     {% endif %}
-    {% if reservation.is_ongoing() %}
+
+    {% if reservation.is_ongoing() and reservation.can_be_completed() %}
     <form action="" method="post" >
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
     {% endif %}
+
+    {% if not reservation.is_completed() %}
+    <h1>{{reservation.get_ratio_equipments()}}</h1>
+    {% endif %}
+    
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>
 
@@ -58,5 +65,10 @@
         var ajaxURL = "{{url_for('api.reservation', reservation_id=reservation.id)}}";
     </script>
 
+    {% if not reservation.is_completed() %}
     <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation.js') }}"></script>
+    {% else %}
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_completed.js') }}"></script>
+    {% endif %}
+
 {% endblock %}

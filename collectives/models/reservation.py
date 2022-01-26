@@ -117,6 +117,33 @@ class ReservationLine(db.Model):
                 equipmentsAvailable.append(equipment)
         return equipmentsAvailable
 
+    def count_equipments_returned(self):
+        """
+        :return: Number of equipments returned
+        :rtype: Int
+        """
+        return len(self.get_equipments_returned())
+
+    def count_equipments(self):
+        """
+        :return: Number of equipments in the reservation
+        :rtype: Int
+        """
+        return len(self.equipments)
+
+    def get_ratio_equipments(self):
+        """
+        :return: Number of equipments in each reservation line
+        :rtype: String
+        """
+        if self.reservation.is_ongoing():
+            return (
+                str(self.count_equipments_returned())
+                + "/"
+                + str(self.count_equipments())
+            )
+        return str(self.count_equipments()) + "/" + str(self.quantity)
+
 
 class Reservation(db.Model):
     """Class of an reservation.
@@ -194,3 +221,58 @@ class Reservation(db.Model):
         :return: True if the reservation is Ongoing
         :rtype: bool"""
         return self.status == ReservationStatus.Ongoing
+
+    def is_completed(self):
+        """
+        :return: True if the reservation is Completed
+        :rtype: bool"""
+        return self.status == ReservationStatus.Completed
+
+    def count_equipments_returned(self):
+        """
+        :return: Number of equipments returned
+        :rtype: Int
+        """
+        nb_equipments_rendered = 0
+        for reservationLine in self.lines:
+            nb_equipments_rendered += reservationLine.count_equipments_returned()
+        return nb_equipments_rendered
+
+    def count_equipments(self):
+        """
+        :return: Number of equipments in each reservation line
+        :rtype: Int
+        """
+        nb_equipments = 0
+        for reservationLine in self.lines:
+            nb_equipments += reservationLine.count_equipments()
+        return nb_equipments
+
+    def count_total_quantity(self):
+        """
+        :return: total of quantity in each reservation line
+        :rtype: Int
+        """
+        quantity = 0
+        for reservationLine in self.lines:
+            quantity += reservationLine.quantity
+        return quantity
+
+    def get_ratio_equipments(self):
+        """
+        :return: Number of equipments in each reservation line
+        :rtype: String
+        """
+        if self.is_ongoing():
+            return (
+                str(self.count_equipments_returned())
+                + "/"
+                + str(self.count_equipments())
+            )
+        return str(self.count_equipments()) + "/" + str(self.count_total_quantity())
+
+    def can_be_completed(self):
+        """
+        :return: True if the reservation is all the equipments rented are returned
+        :rtype: bool"""
+        return self.count_equipments_returned() == self.count_equipments()
