@@ -1,9 +1,10 @@
-""" API for equipment.
+""" API for reservation.
 
 """
 from datetime import datetime, timedelta
 import json
 
+from flask_login import current_user
 from flask import url_for, request
 from marshmallow import fields
 from sqlalchemy.sql import text
@@ -12,7 +13,11 @@ from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.equipment import Equipment, EquipmentStatus
 from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 
-from collectives.models.reservation import Reservation, ReservationLine
+from collectives.models.reservation import (
+    Reservation,
+    ReservationLine,
+)
+from collectives.models.user import User
 
 from ..models import db
 
@@ -30,6 +35,10 @@ class ReservationSchema(marshmallow.Schema):
         lambda obj: url_for("reservation.view_reservation", reservation_id=obj.id)
     )
 
+    reservationURLUser = fields.Function(
+        lambda obj: url_for("reservation.my_reservation", reservation_id=obj.id)
+    )
+
     class Meta:
         """Fields to expose"""
 
@@ -39,6 +48,7 @@ class ReservationSchema(marshmallow.Schema):
             "statusName",
             "userLicence",
             "reservationURL",
+            "reservationURLUser",
         )
 
 
@@ -261,6 +271,67 @@ def remove_reservationLine_equipment(equipment_id, line_id):
         200,
         {"content-type": "application/json"},
     )
+
+
+# ---------------------------------------------------------------- User ----------------------------------------------------
+@blueprint.route("/my_reservations/")
+def my_reservations():
+    """API endpoint to list reservation lines of current user.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = User.query.get(current_user.id).get_reservations_planned_and_ongoing()
+
+    data = ReservationSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/my_reservations_completed/")
+def my_reservations_completed():
+    """API endpoint to list reservation lines of current user.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = User.query.get(current_user.id).get_reservations_completed()
+
+    data = ReservationSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/my_reservation/<int:reservation_id>")
+def my_reservation(reservation_id):
+    """API endpoint to list reservation lines.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationLineSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Reservation.query.get(reservation_id).lines
+
+    data = ReservationLineSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
 
 
 # ---------------------------------------------------------------- Autocomplete ----------------------------------------------------
