@@ -121,6 +121,26 @@ def reservations_returns_of_day():
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
+@blueprint.route("/reservation/histo_reservations_for_an_equipment<int:equipment_id>")
+def equipment_histo_reservations(equipment_id):
+    """API endpoint to list the historique of reservations of an equipment.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationShema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Equipment.query.get(equipment_id).get_reservations()
+
+    data = ReservationSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
 class ReservationLineSchema(marshmallow.Schema):
     """Schema to describe reservation line"""
 

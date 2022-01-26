@@ -78,15 +78,6 @@ class EquipmentTypeSchema(marshmallow.Schema):
         )
 
 
-class EquipmentModelSchema(marshmallow.Schema):
-    """Schema to describe equipment model"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = ("id", "name")
-
-
 @blueprint.route("/equipmentType")
 def equipmentTypes():
     """API endpoint to list equipment types.
@@ -107,56 +98,13 @@ def equipmentTypes():
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-class EquipmentSchema(marshmallow.Schema):
-    """Schema to describe equipment"""
-
-    typeName = fields.Function(lambda obj: obj.model.equipmentType.name)
-    urlEquipmentTypeDetail = fields.Function(
-        lambda obj: url_for(
-            "equipment.detail_equipment_type", typeId=obj.model.equipmentType.id
-        )
-    )
-    modelName = fields.Function(lambda obj: obj.model.name)
-    statusName = fields.Function(lambda obj: obj.status.display_name())
-
-    equipmentURL = fields.Function(
-        lambda obj: url_for("equipment.detail_equipment", equipment_id=obj.id)
-    )
+class EquipmentModelSchema(marshmallow.Schema):
+    """Schema to describe equipment model"""
 
     class Meta:
         """Fields to expose"""
 
-        fields = (
-            "id",
-            "reference",
-            "modelName",
-            "typeName",
-            "statusName",
-            "equipmentURL",
-            "urlEquipmentTypeDetail",
-        )
-
-
-@blueprint.route("/equipment")
-def equipment():
-    """API endpoint to list equipment.
-
-    It can be filtered using tabulator filter and sorter.
-
-    :return: A tuple:
-
-        - JSON containing information describe in EquipmentSchema
-        - HTTP return code : 200
-        - additional header (content as JSON)
-
-    :rtype: (string, int, dict)
-    """
-
-    query = Equipment.query.all()
-
-    data = EquipmentSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        fields = ("id", "name")
 
 
 @blueprint.route("/modelsfromtype/<int:typeId>")
@@ -217,3 +165,55 @@ def equipmentModelDelete(model_id):
     db.session.delete(model)
 
     return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}
+
+
+class EquipmentSchema(marshmallow.Schema):
+    """Schema to describe equipment"""
+
+    typeName = fields.Function(lambda obj: obj.model.equipmentType.name)
+    urlEquipmentTypeDetail = fields.Function(
+        lambda obj: url_for(
+            "equipment.detail_equipment_type", typeId=obj.model.equipmentType.id
+        )
+    )
+    modelName = fields.Function(lambda obj: obj.model.name)
+    statusName = fields.Function(lambda obj: obj.status.display_name())
+
+    equipmentURL = fields.Function(
+        lambda obj: url_for("equipment.detail_equipment", equipment_id=obj.id)
+    )
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "reference",
+            "modelName",
+            "typeName",
+            "statusName",
+            "equipmentURL",
+            "urlEquipmentTypeDetail",
+        )
+
+
+@blueprint.route("/equipment")
+def equipment():
+    """API endpoint to list equipment.
+
+    It can be filtered using tabulator filter and sorter.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Equipment.query.all()
+
+    data = EquipmentSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}

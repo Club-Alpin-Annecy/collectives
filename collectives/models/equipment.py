@@ -253,6 +253,17 @@ class Equipment(db.Model):
         back_populates="equipments",
     )
 
+    def get_reservations(self):
+        """
+        :return: List of all the reservations related to this equipment
+        :rtype: list[:py:class:`collectives.models.reservation.Reservation]
+        """
+        reservations = []
+        for aReservationLine in self.reservationLines:
+            reservations.append(aReservationLine.reservation)
+
+        return reservations
+
     def is_rented(self):
         """
         :return: True if the equipment is rented

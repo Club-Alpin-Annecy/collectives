@@ -82,7 +82,12 @@
 
     <h4>Historique de révision</h4>
     <h4>Historique de location</h4>
-
+    <div id="reservations-table"></div>
+    <script>
+      var ajaxURL = "{{url_for('api.equipment_histo_reservations', equipment_id=equipment.id)}}";
+    </script>
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>
+  
     <div class="administration">
       <h4>Administration</h4>
 
