@@ -27,6 +27,7 @@ from ..email_templates import send_new_event_notification
 from ..email_templates import send_unregister_notification
 from ..email_templates import send_reject_subscription_notification
 from ..email_templates import send_cancelled_event_notification
+from ..email_templates import send_update_waiting_list_notification
 
 from ..utils.time import current_time
 from ..utils.url import slugify
@@ -522,20 +523,31 @@ def self_register(event_id):
     """
     event = Event.query.filter_by(id=event_id).first()
 
+    # Prepare registration
+    registration = Registration(
+        user_id=current_user.id,
+        status=RegistrationStatus.Active,
+        level=RegistrationLevels.Normal,
+        is_self=True,
+    )
+
     now = current_time()
+    # Check if user cannot directly subscribe
     if not event or not event.can_self_register(current_user, now):
-        flash("Vous ne pouvez pas vous inscrire vous-même.", "error")
+        # Check if user cannot subscribe in waiting list either
+        if not event or not event.can_self_register(current_user, now, True):
+            flash("Vous ne pouvez pas vous inscrire vous-même.", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+        # User subscribe to waiting_list
+        registration.status = RegistrationStatus.Waiting
+        event.registrations.append(registration)
+        db.session.commit()
+
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.requires_payment():
         # Free event
-        registration = Registration(
-            user_id=current_user.id,
-            status=RegistrationStatus.Active,
-            level=RegistrationLevels.Normal,
-            is_self=True,
-        )
-
         event.registrations.append(registration)
         db.session.commit()
 
@@ -555,13 +567,7 @@ def self_register(event_id):
             flash("Tarif invalide.", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
-        registration = Registration(
-            user_id=current_user.id,
-            status=RegistrationStatus.PaymentPending,
-            level=RegistrationLevels.Normal,
-            is_self=True,
-        )
-
+        registration.status = RegistrationStatus.PaymentPending
         event.registrations.append(registration)
         db.session.commit()
 
@@ -723,13 +729,15 @@ def self_unregister(event_id):
         )
         return redirect(url_for("event.view_event", event_id=event_id))
 
+    previous_status = registration.status
     registration.status = RegistrationStatus.SelfUnregistered
-
     db.session.add(registration)
+    update_waiting_list(event)
     db.session.commit()
 
-    # Send notification e-mail to leaders
-    send_unregister_notification(event, current_user)
+    # Send notification e-mail to leaders only if definitive subscription
+    if previous_status == RegistrationStatus.Active:
+        send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -881,9 +889,43 @@ def update_attendance(event_id):
                         registration.event,
                         registration.user.mail,
                     )
-
+    update_waiting_list(event)
     db.session.commit()
 
     return redirect(
         url_for("event.view_event", event_id=event_id) + "#attendancelistform"
     )
+
+
+def update_waiting_list(event):
+    """Update the attendance list of an event ofr waiting registrations
+
+    If a waiting registration has a free slot to become active, its
+    status will be changed. Function will returns the modified
+    registrations.
+
+    This function will do the db.session.add() but not the commit.
+    Ensure you have a db.session.commit() after the function call.
+
+    This function will also send update email to the users.
+
+    :param event: Event to update
+    :returns: The registration that will be active if a slot is free.
+    None otherwise.
+    :rtype: :py:class:`collectives.models.registration.Registration`
+    """
+    registrations = []
+    while event.free_slots() != 0 and event.waiting_registrations():
+        new_registration = event.waiting_registrations()[0]
+        registrations.append(new_registration)
+
+        if event.requires_payment():
+            new_registration.status = RegistrationStatus.PaymentPending
+        else:
+            new_registration.status = RegistrationStatus.Active
+
+        send_update_waiting_list_notification(new_registration)
+
+        db.session.add(new_registration)
+
+    return registrations

@@ -1,5 +1,6 @@
 """Module for event related classes
 """
+from operator import attrgetter
 from flask_uploads import UploadSet, IMAGES
 from sqlalchemy.orm import validates
 
@@ -121,6 +122,13 @@ class Event(db.Model):
         db.Integer, nullable=False, default="0", info={"min": 0}
     )
     """Maximum number of user that can self-register to this event.
+
+    :type: int"""
+
+    num_waiting_list = db.Column(
+        db.Integer, nullable=False, default="5", info={"min": 0}
+    )
+    """Maximum number of user that can queue for this event.
 
     :type: int"""
 
@@ -526,6 +534,20 @@ class Event(db.Model):
         """
         return [r for r in self.registrations if r.is_holding_slot()]
 
+    def waiting_registrations(self):
+        """Returns all waiting list registrations.
+
+        See :py:meth:`collectives.models.registration.RegistrationStatus.Waiting`
+
+        :return: All registration of this event which are waiting, ordered.
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        waiting = [
+            r for r in self.registrations if r.status == RegistrationStatus.Waiting
+        ]
+        waiting.sort(key=attrgetter("id"))
+        return waiting
+
     def coleaders(self):
         """
         :return Active registrations with a "Co-leader" level.
@@ -682,7 +704,7 @@ class Event(db.Model):
             user, [RegistrationStatus.Active]
         )
 
-    def can_self_register(self, user, time):
+    def can_self_register(self, user, time, waiting=False):
         """Check if a user can self-register.
 
         An user can self-register if:
@@ -698,6 +720,8 @@ class Event(db.Model):
         :type user: :py:class:`collectives.models.user.User`
         :param time: Time that will be checked (usually, current time).
         :type time: :py:class:`datetime.datetime`
+        :param waiting: check if user can self register into waiting list
+        :type time: boolean
         :return: True if user can self-register.
         :rtype: boolean
         """
@@ -707,10 +731,15 @@ class Event(db.Model):
             return False
         if not self.is_user_registered_to_parent_event(user):
             return False
+        if not self.is_registration_open_at_time(time):
+            return False
         if not self.event_type.has_valid_license(user):
             return False
-
-        return self.has_free_online_slots() and self.is_registration_open_at_time(time)
+        if not waiting:
+            return self.has_free_online_slots()
+        if self.has_free_online_slots():
+            return False
+        return len(self.waiting_registrations()) < self.num_waiting_list
 
     # Status
     def is_confirmed(self):

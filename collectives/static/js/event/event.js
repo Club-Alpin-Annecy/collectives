@@ -9,6 +9,8 @@ Merci de contacter l'encadrant pour prévenir et justifier votre désinscription
 
 Confirmez-vous la désinscription ?`;
 
+var unregister_message_waiting = `Confirmez-vous la désinscription de la liste d'attente?`;
+
 const onSelectAutocomplete = function (id, val) {
     document.getElementById('user-search-resultid').value = id;
     document.getElementById('user-search-form').submit();

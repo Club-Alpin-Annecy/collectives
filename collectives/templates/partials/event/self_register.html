@@ -1,5 +1,8 @@
+{% macro button(waiting_list = False) -%}
+
+
 <p>Les inscriptions en ligne sont possibles jusqu'au {{format_datetime(event.registration_close_time)}}. </p>
-{% if event.requires_payment() %}
+{% if event.requires_payment() and not waiting_list %}
     <p>
         Cet événement est payant ; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
         Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
@@ -28,17 +31,19 @@
                                 class="close"
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
-                <h1 class="heading-1">Confirmation</h1>
+                <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
                 {% if event.event_type.terms_file %}
                 <p>L'inscription à un événement vous engage à y participer.</p>
                 <p>
                     <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a></label><br/>
                 </p>
                 {% endif %}
-                <h4 class="centeralign">Confirmez-vous l'inscription ? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
+                <h4 class="centeralign">Confirmez-vous l'inscription {% if waiting_list %} à la liste d'attente{% endif %} ? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
             </div>
             <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
         </div>
 
     </form>
 {% endif %}
+
+{%- endmacro %}

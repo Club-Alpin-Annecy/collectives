@@ -46,6 +46,9 @@ class RegistrationStatus(ChoiceEnum):
     ToBeDeleted = 99999
     """ Registration should be deleted. This is not a valid SQL enum entry and should only be used as a temporary marker"""
 
+    Waiting = 6
+    """ User is in waiting list. """
+
     @classmethod
     def display_names(cls):
         """
@@ -60,6 +63,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.JustifiedAbsentee: "Absent justifié",
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
+            cls.Waiting: "Liste d'attente",
         }
 
     @classmethod
@@ -73,13 +77,19 @@ class RegistrationStatus(ChoiceEnum):
         re_register_status = cls.PaymentPending if requires_payment else cls.Active
 
         return {
-            cls.Active: [cls.Rejected, cls.UnJustifiedAbsentee, cls.JustifiedAbsentee],
-            cls.Rejected: [re_register_status, cls.ToBeDeleted],
+            cls.Active: [
+                cls.Rejected,
+                cls.UnJustifiedAbsentee,
+                cls.JustifiedAbsentee,
+                cls.Waiting,
+            ],
+            cls.Rejected: [re_register_status, cls.ToBeDeleted, cls.Waiting],
             cls.PaymentPending: [cls.Rejected],
-            cls.SelfUnregistered: [re_register_status, cls.ToBeDeleted],
+            cls.SelfUnregistered: [re_register_status, cls.Waiting, cls.ToBeDeleted],
             cls.JustifiedAbsentee: [cls.Rejected, cls.Active, cls.UnJustifiedAbsentee],
             cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
             cls.ToBeDeleted: [],
+            cls.Waiting: [cls.Rejected, re_register_status],
         }
 
     def valid_transitions(self, requires_payment):

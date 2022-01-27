@@ -183,3 +183,34 @@ def send_cancelled_event_notification(name, event):
             )
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
+
+
+def send_update_waiting_list_notification(registration):
+    """Send a notification to user whom registration has been activated from waiting list
+
+    :param registration: Activated registration
+    """
+    try:
+        current_app.logger.warn(f"Send mail to: {registration.user.mail}")
+        conf = current_app.config
+        message = conf["ACTIVATED_REGISTRATION_MESSAGE"].format(
+            event_title=registration.event.title,
+            event_date=format_date(registration.event.start),
+            link=url_for(
+                "event.view_event",
+                event_id=registration.event.id,
+                name=slugify(registration.event.title),
+                _external=True,
+            ),
+        )
+
+        subject = conf["ACTIVATED_REGISTRATION_SUBJECT"].format(
+            event_title=registration.event.title
+        )
+        mail.send_mail(
+            subject=subject,
+            email=registration.user.mail,
+            message=message,
+        )
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")
