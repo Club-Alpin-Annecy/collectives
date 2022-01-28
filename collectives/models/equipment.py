@@ -176,6 +176,10 @@ class EquipmentModel(db.Model):
 
     :type: string"""
 
+    manufacturer = db.Column(db.String(50))
+    """Manufacturer of this equipment.
+    :type: string"""
+
     equipments = db.relationship(
         "Equipment",
         lazy="select",
@@ -221,10 +225,6 @@ class Equipment(db.Model):
     """Purchase price of this equipment.
 
     :type: float"""
-
-    manufacturer = db.Column(db.String(50))
-    """Manufacturer of this equipment.
-    :type: string"""
 
     serial_number = db.Column(db.String(50))
     """Serial number of this equipment.

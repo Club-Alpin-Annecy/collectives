@@ -1,6 +1,6 @@
 var editCheck = function(row) {
-    return true;
-  }
+  return true;
+}
 
 
   //initialize table
@@ -20,14 +20,16 @@ var editCheck = function(row) {
     ],
     cellEdited: (cell)=> {
       let id = cell.getRow().getData().id
-
+      let manufacturer = cell.getRow().getData().manufacturer
+      let name = cell.getRow().getData().name
       axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
-      axios.post('/api/modelEdit/'+id+'/'+cell._cell.value)
+      axios.post('/api/modelEdit/'+id+'/'+name+'/'+manufacturer)
 
     },
     columns:[                 //define the table columns
       //{title:"id", field:"id", formatter:"number"},
-      {title:"Name", headerFilter:"input",field:"name", editor: 'input', editable: editCheck},
+      {title:"Nom", headerFilter:"input",field:"name", editor: 'input', editable: editCheck},
+      {title:"Fabricant", headerFilter:"input",field:"manufacturer", editor: 'input' },
       {title:"Supprimer", formatter:"buttonCross", headerSort:false, cellClick:function(e, cell){
           if(confirm('Attention vous allez supprimer tous les équipements liés à ce modèle ?')) {
 

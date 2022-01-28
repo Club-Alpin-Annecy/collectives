@@ -104,7 +104,7 @@ class EquipmentModelSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = ("id", "name")
+        fields = ("id", "name", "manufacturer")
 
 
 @blueprint.route("/modelsfromtype/<int:typeId>")
@@ -128,8 +128,10 @@ def equipmentModel(typeId):
     return json.dumps(data), 200, {"content-type": "application/json"}
 
 
-@blueprint.route("/modelEdit/<int:model_id>/<string:name>", methods=["POST"])
-def equipmentModelEdit(model_id, name):
+@blueprint.route(
+    "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
+)
+def equipmentModelEdit(model_id, name, manufacturer):
     """
     API endpoint to edit a model.
 
@@ -143,6 +145,7 @@ def equipmentModelEdit(model_id, name):
     """
     model = EquipmentModel.query.get(model_id)
     model.name = name
+    model.manufacturer = manufacturer
     db.session.commit()
 
     return "{'response': 'Model Edit OK'}", 200, {"content-type": "application/json"}

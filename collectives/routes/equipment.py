@@ -93,6 +93,7 @@ def detail_equipment_type(typeId):
     if adding_from_model.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = adding_from_model.name.data
+        new_equipment_model.manufacturer = adding_from_model.manufacturer.data
         new_equipment_model.equipment_type_id = typeId
         db.session.add(new_equipment_model)
         db.session.commit()
@@ -170,6 +171,7 @@ def edit_equipment_model(typeId, modelId):
     if formEditModel.validate_on_submit():
 
         equipmentModelModified.name = formEditModel.name.data
+        equipmentModelModified.manufacturer = formEditModel.manufacturer.data
         equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
@@ -215,7 +217,6 @@ def stock_situation_stock():
         new_equipment.serial_number = addEquipmentForm.serial_number.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
-        new_equipment.manufacturer = addEquipmentForm.manufacturer.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
@@ -247,7 +248,6 @@ def detail_equipment(equipment_id):
         equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
         equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
-        equipmentSelected.manufacturer = editEquipmentForm.manufacturer.data
         db.session.commit()
         return redirect(url_for(".detail_equipment", equipment_id=equipment_id))
 

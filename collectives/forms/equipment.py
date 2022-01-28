@@ -43,10 +43,10 @@ class EquipmentModelForm(FlaskForm):
 
     class Meta:
         model = EquipmentModel
-        only = ["name", "equipmentType"]
+        only = ["name", "equipmentType", "manufacturer"]
 
     name = StringField("Modèle d'équipement :")
-
+    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
     submit = SubmitField("Enregistrer")
 
 
@@ -73,7 +73,6 @@ class EquipmentForm(FlaskForm):
     equipment_model_id = SelectField(
         label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
-    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
 
     submit = SubmitField("Enregistrer")
 
