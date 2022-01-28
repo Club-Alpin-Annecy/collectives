@@ -30,7 +30,7 @@ class ReservationSchema(marshmallow.Schema):
 
     userLicence = fields.Function(lambda obj: obj.user.license)
     statusName = fields.Function(lambda obj: obj.status.display_name())
-
+    userFullname = fields.Function(lambda obj: obj.user.full_name())
     reservationURL = fields.Function(
         lambda obj: url_for("reservation.view_reservation", reservation_id=obj.id)
     )
@@ -49,6 +49,7 @@ class ReservationSchema(marshmallow.Schema):
             "userLicence",
             "reservationURL",
             "reservationURLUser",
+            "userFullname",
         )
 
 

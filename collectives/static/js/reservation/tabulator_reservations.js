@@ -28,9 +28,9 @@
             field:"return_date",
           },
           {
-            title:"Licence",
+            title:"Utilisateur",
             headerFilter:"input",
-            field:"userLicence",
+            field:"userFullname",
           },
           {
             title:"État",
