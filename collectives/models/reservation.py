@@ -296,12 +296,12 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
 
-    def get_line_of_type(self, type):
+    def get_line_of_type(self, equipemntType):
         """
         :return: the line containing the type
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
         for reservationLine in self.lines:
-            if reservationLine.equipmentType == type:
+            if reservationLine.equipmentType == equipemntType:
                 return reservationLine
         return None
