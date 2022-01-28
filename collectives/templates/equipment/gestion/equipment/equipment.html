@@ -53,7 +53,7 @@
           <div class="container_main_info">
             <h5>Informations :</h5>
             <p> <span class="type_info">Fabricant :</span>  {{ equipment.manufacturer or "Non renseigné" }} </p>
-            <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
+            <p> <span class="type_info">Référence interne :</span>  {{ equipment.reference }} </p>
             <p> <span class="type_info">N° de série :</span>  {{ equipment.serial_number or "Non renseigné" }} </p>
             <p> <span class="type_info">Type :</span>  {{ equipment.model.equipmentType.name }} </p>
             <p> <span class="type_info">Modèle :</span>  {{ equipment.model.name }} </p>
@@ -87,7 +87,7 @@
       var ajaxURL = "{{url_for('api.equipment_histo_reservations', equipment_id=equipment.id)}}";
     </script>
     <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>
-  
+
     <div class="administration">
       <h4>Administration</h4>
 
