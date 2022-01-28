@@ -95,6 +95,16 @@ class ReservationLine(db.Model):
         :rtype: bool"""
         return self.quantity <= len(self.equipments)
 
+    def add_equipment(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if not self.is_full():
+            if equipment.set_status_to_rented():
+                self.equipments.append(equipment)
+                return True
+        return False
+
     def get_equipments_rented(self):
         """
         :return: List of all the equipments Rented
@@ -228,6 +238,15 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.status == ReservationStatus.Completed
 
+    def is_full(self):
+        """
+        :return: True if the reservation is full
+        :rtype: bool"""
+        for reservationLine in self.lines:
+            if not reservationLine.is_full():
+                return False
+        return True
+
     def count_equipments_returned(self):
         """
         :return: Number of equipments returned
@@ -276,3 +295,13 @@ class Reservation(db.Model):
         :return: True if the reservation is all the equipments rented are returned
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
+
+    def get_line_of_type(self, type):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        for reservationLine in self.lines:
+            if reservationLine.equipmentType == type:
+                return reservationLine
+        return None

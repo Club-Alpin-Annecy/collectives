@@ -83,7 +83,20 @@ def view_reservation(reservation_id=None):
     reservation = Reservation.query.get(reservation_id)
 
     form = None
+    form_add = None
     if reservation.is_planned():
+        form_add = AddEquipmentInReservation()
+        if form_add.validate_on_submit():
+            equipment = Equipment.query.get(form_add.add_equipment.data)
+            if equipment:
+                reservationLine = reservation.get_line_of_type(
+                    equipment.model.equipmentType
+                )
+                if reservationLine:
+                    reservationLine.add_equipment(equipment)
+                return redirect(
+                    url_for(".view_reservation", reservation_id=reservation_id)
+                )
         form = ReservationToLocationForm()
         if form.validate_on_submit():
             reservation.status = ReservationStatus.Ongoing
@@ -97,6 +110,7 @@ def view_reservation(reservation_id=None):
         "reservation/reservation.html",
         reservation=reservation,
         form=form,
+        form_add=form_add,
     )
 
 
@@ -110,8 +124,7 @@ def view_reservationLine(reservationLine_id):
         form = AddEquipmentInReservation()
         if form.validate_on_submit():
             equipment = Equipment.query.get(form.add_equipment.data)
-            reservationLine.equipments.append(equipment)
-            equipment.status = EquipmentStatus.Rented
+            reservationLine.add_equipment(equipment)
             return redirect(
                 url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
             )
