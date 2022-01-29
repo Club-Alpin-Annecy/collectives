@@ -10,6 +10,7 @@ from wtforms_alchemy import ModelForm
 from .order import OrderedForm
 
 from ..models.payment import ItemPrice, PaymentItem, Payment, PaymentType, PaymentStatus
+from ..models import Configuration
 from ..utils.numbers import format_currency
 
 
@@ -78,7 +79,7 @@ class ItemPriceForm(ModelForm, AmountForm):
     # pylint: disable=R0201
     def validate_license_types(form, field):
         """Validator checking that the provided licence categories exist"""
-        valid_types = current_app.config["LICENSE_CATEGORIES"]
+        valid_types = Configuration.LICENSE_CATEGORIES
         for license_type in field.data.split():
             if not license_type in valid_types:
                 raise ValidationError(

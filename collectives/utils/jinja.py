@@ -24,6 +24,7 @@ def helpers_processor():
     helper_functions["version_link"] = version_link
     helper_functions["models"] = models
     helper_functions["get_bad_phone_message"] = get_bad_phone_message
+    helper_functions["Configuration"] = models.Configuration
 
     return helper_functions
 

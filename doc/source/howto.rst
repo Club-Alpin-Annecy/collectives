@@ -67,8 +67,12 @@ case, please edit the file to update user and directory.
 
 Configuration
 ..............
-Configuration should be in `instance/config.py`. This file should be readable
-only by flask user (chmod 600)
+Flask and DB related configuration should be in `instance/config.py`. This file 
+should be readable only by flask user (chmod 600). 
+
+However, more basic configuration that can be put into DB should be put
+`collectives/configuration.yaml`. File architecture is loaded at every reboot
+into db. Then, it can be modified by a site technician into the HMI. 
 
 Database
 .........

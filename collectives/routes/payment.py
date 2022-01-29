@@ -22,7 +22,7 @@ from ..utils.payment import extract_payments
 from ..utils.time import current_time
 from ..utils.misc import deepgetattr
 from ..utils.url import slugify
-from ..models import db
+from ..models import db, Configuration
 from ..models.event import Event
 from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus, PaymentType
 from ..models.registration import RegistrationStatus, Registration
@@ -652,7 +652,7 @@ def refund_all(event_id):
         return abort(403)
     if not event.has_edit_rights(current_user):
         return abort(403)
-    if not current_app.config["REFUND_ENABLED"]:
+    if not Configuration.REFUND_ENABLED:
         return abort(403)
 
     # Fetch all associated approved online payments

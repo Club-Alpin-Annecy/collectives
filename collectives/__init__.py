@@ -16,7 +16,6 @@ from flask import Flask, current_app
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
-from click import pass_context
 
 from . import models, api, forms
 from .routes import (
@@ -32,47 +31,7 @@ from .routes import (
     reservation,
 )
 from .routes import activity_supervison
-from .utils import extranet, init, jinja, error, access, payline
-
-
-@pass_context
-def is_running_migration(ctx):
-    """Detects whether we are running a migration command
-
-    :param ctx: The current click context
-    :type ctx: :py:class:`cli.Context`
-    :return: True if running  a migration
-    :rtype: False
-    """
-    while ctx is not None:
-        if ctx.command and ctx.command.name == "db":
-            return True
-        ctx = ctx.parent
-    return False
-
-
-def populate_db(app):
-    """Populates the database with admin account and activities,
-    if and only if we're not currently running a db migration command
-
-    :param app: The Flask application
-    :type app: :py:class:`flask.Application`
-    """
-    try:
-        # pylint: disable=E1120
-        running_migration = is_running_migration()
-    except RuntimeError:
-        # There is no active CLI context
-        running_migration = False
-
-    if running_migration:
-        app.logger.info("Migration detected, skipping populating database")
-        return
-
-    app.logger.info("Populating database with initial values")
-    auth.init_admin(app)
-    init.activity_types(app)
-    init.event_types(app)
+from .utils import extranet, init, jinja, error, access, payline, config_sql
 
 
 class ReverseProxied:
@@ -125,6 +84,9 @@ def create_app(config_filename="config"):
     _migrate = Migrate(app, models.db)
 
     with app.app_context():
+
+        config_sql.load_initial_config()
+
         # Initialize asset compilation
         assets = Environment(app)
 
@@ -172,7 +134,7 @@ def create_app(config_filename="config"):
         # Initialize DB
         # models.db.create_all()
 
-        populate_db(app)
+        init.populate_db(app)
 
         return app
 

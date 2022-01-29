@@ -8,10 +8,9 @@ from datetime import timedelta
 import enum
 import uuid
 
-from flask import current_app
-
 from .globals import db
 from ..utils.time import current_time
+from .configuration import Configuration
 
 
 class ConfirmationTokenType(enum.IntEnum):
@@ -96,7 +95,7 @@ class ConfirmationToken(db.Model):
         """
         self.uuid = str(uuid.uuid4())
         self.expiry_date = current_time() + timedelta(
-            hours=(duration or current_app.config["TOKEN_DURATION"])
+            hours=(duration or Configuration.TOKEN_DURATION)
         )
         self.user_license = user_license
         self.status = TokenEmailStatus.Pending

@@ -1,0 +1,32 @@
+{% extends 'technician/maintenance.html' %}
+
+{% block maintenance_content %}
+  <h2 class="heading-4">{{ title }}</h2>
+
+  <div>
+    {% for folder in folders %}
+    <a class="button button-secondary" href="#{{folder}}">
+      {{folder}}
+    </a>
+    {% endfor %}
+  </div>
+<br/>
+
+<div class="configuration-form">
+  {% for folder, forms in configuration_items.items() %}
+  <br/>
+  <div class="heading-3" id="{{folder}}">{{ folder }}</div>
+    {% for form in forms %}
+      <form action="" method="POST" enctype="multipart/form-data" class="form" >
+        <div class="name">
+          <b>{{ form['conf'].name }}</b><br/>
+          <em>{{ form['conf'].description }}</em>
+        </div>
+        <div class="input">{{ form['form'].content }}</div>
+        {{ form['form'].submit(class="button button-primary") }}
+        {{ form['form'].hidden_tag() }}
+      </form>
+    {% endfor %}
+  {% endfor %}
+</div>
+{% endblock %}

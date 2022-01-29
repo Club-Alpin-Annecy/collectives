@@ -3,11 +3,11 @@
 Usually export as js file to be directly used by js."""
 
 import inspect, sys, json
-from flask import Response, current_app
+from flask import Response
 
 from .common import blueprint
 from ..models.utils import ChoiceEnum
-from ..models import ActivityType, EventType, EventTag
+from ..models import ActivityType, EventType, EventTag, Configuration
 
 
 @blueprint.route("/models.js")
@@ -27,7 +27,7 @@ def models_to_js():
     enums = (
         enums
         + "const LicenseCategories = "
-        + json.dumps(current_app.config["LICENSE_CATEGORIES"])
+        + json.dumps(Configuration.LICENSE_CATEGORIES)
         + ";"
     )
 

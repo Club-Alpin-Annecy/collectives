@@ -2,10 +2,22 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
-import logging, os.path, os
-from flask import Blueprint, render_template, send_from_directory
+import logging, os.path, os, json, datetime
+from flask import (
+    Blueprint,
+    render_template,
+    send_from_directory,
+    url_for,
+    request,
+    redirect,
+    flash,
+)
+from flask_login import current_user
 
 from ..utils.access import confidentiality_agreement, user_is, valid_user
+
+from ..models import ConfigurationItem, db, ConfigurationTypeEnum, Configuration
+from ..forms.configuration import get_form_from_configuration
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint
@@ -30,18 +42,35 @@ def before_request():
     pass
 
 
+@blueprint.route("/maintenance", methods=["GET"])
+def maintenance():
+    """Route to maintenance home page"""
+    return render_template(
+        "technician/maintenance.html",
+        title="Maintenance du serveur",
+    )
+
+
 @blueprint.route("/logs", methods=["GET"])
-def list_logs():
+def logs():
     """Route to list application log"""
     all_children = os.listdir(log_dir())
-    files = [file for file in all_children if ".log" in file]
-
-    files.sort(key=lambda x: os.path.getmtime(log_dir() + "/" + x), reverse=True)
+    files = [
+        {
+            "name": file,
+            "link": url_for("technician.get_log", file_name=file),
+            "size": os.path.getsize(f"{log_dir()}/{file}"),
+            "start": os.path.getctime(f"{log_dir()}/{file}"),
+            "end": os.path.getmtime(f"{log_dir()}/{file}"),
+        }
+        for file in all_children
+        if ".log" in file
+    ]
 
     return render_template(
         "technician/logs.html",
-        title="Liste des logs",
-        logs=files,
+        title="Logs",
+        logs=json.dumps(files),
     )
 
 
@@ -65,3 +94,61 @@ def log_dir():
         if hasattr(handler, "baseFilename"):
             return os.path.dirname(handler.baseFilename)
     return None
+
+
+@blueprint.route("/configuration", methods=["GET"])
+def configuration():
+    """Route to display and update configuration."""
+
+    folders = db.session.query(ConfigurationItem.folder).distinct().all()
+    folders = [f[0] for f in folders]
+
+    configuration_items = {}
+    for folder in folders:
+        configuration_items[folder] = []
+
+        for item in ConfigurationItem.query.filter_by(folder=folder).all():
+            form = get_form_from_configuration(item)(obj=item)
+            form.name.value = item.name
+            if item.type in [
+                ConfigurationTypeEnum.Array,
+                ConfigurationTypeEnum.Dictionnary,
+            ]:
+                form.content.data = item.json_content
+            configuration_items[folder].append({"form": form, "conf": item})
+
+    return render_template(
+        "technician/configuration.html",
+        title="Configuration",
+        configuration_items=configuration_items,
+        folders=folders,
+    )
+
+
+@blueprint.route("/configuration", methods=["POST"])
+def update_configuration():
+    """Endpoint to modify a configuration item
+
+    :return: redirection to configuration
+    """
+    item = Configuration.get_item(request.form["name"])
+    if item is None:
+        return "", 403, ""
+
+    form = get_form_from_configuration(item)(request.form)
+
+    if item.type in [ConfigurationTypeEnum.Array, ConfigurationTypeEnum.Dictionnary]:
+        try:
+            item.content = json.loads(form.content.data)
+        except json.decoder.JSONDecodeError as e:
+            flash(str(e), "error")
+            return redirect(url_for("technician.configuration"))
+    else:
+        item.content = form.content.data
+
+    item.user_id = current_user.id
+    item.date = datetime.datetime.now()
+    db.session.add(item)
+    db.session.commit()
+
+    return redirect(url_for("technician.configuration"))
