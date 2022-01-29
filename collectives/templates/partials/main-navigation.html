@@ -99,9 +99,9 @@
                             {% endif %}
                             {% if current_user.is_technician() %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('technician.list_logs')}}" class="menu-dropdown-item-link"><img
+                                <a href="{{ url_for('technician.maintenance')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" class="legacy-icon" />
-                                    Logs du serveur</a>
+                                    Maintenance du site</a>
                             </li>
                             {% endif %}
 

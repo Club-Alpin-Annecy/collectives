@@ -18,6 +18,7 @@ import collectives.api.payment
 import collectives.api.models
 import collectives.api.equipment
 import collectives.api.reservation
+import collectives.api.configuration
 
 
 from .common import blueprint, marshmallow

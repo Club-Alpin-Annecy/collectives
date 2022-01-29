@@ -5,7 +5,8 @@ import tempfile
 from alembic.command import upgrade
 from alembic.config import Config
 
-from collectives import create_app, auth
+from collectives import create_app
+from collectives.utils import init
 from collectives.models import db
 
 
@@ -28,7 +29,7 @@ def app():
     with app.app_context():
         db.init_app(app)
         db.create_all()
-        auth.init_admin(app)
+        init.init_admin(app)
 
         yield app
 

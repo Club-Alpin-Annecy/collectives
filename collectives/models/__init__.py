@@ -16,3 +16,4 @@ from .auth import ConfirmationToken, ConfirmationTokenType
 from .payment import PaymentItem, ItemPrice, PaymentStatus, Payment, PaymentType
 from .equipment import EquipmentModel, Equipment, EquipmentType, imgtypeequip
 from .reservation import ReservationLine, Reservation
+from .configuration import Configuration

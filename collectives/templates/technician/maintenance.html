@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+{# Tabulator: for tables#}
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+
+{# Specific for this page #}
+<script>
+    const csrf_token = "{{ csrf_token() }}";
+    const files = {{ logs | safe}};
+</script>
+<script src="{{ url_for('static', filename='js/technician.js') }}"></script>
+
+{% endblock %}
+
+{% block content %}
+<div class="page-content" id="administration">
+  <!-- Logging Windows -->
+  <h1 class="heading-1">{{ title }}</h1>
+
+  <h4 class="heading-4">Liste des logs</h4>
+  <div id="logs-table"></div>
+
+
+
+  <h4 class="heading-4">Configuration serveur</h4>
+  <div id="configuration-table"></div>
+</div>
+{% endblock %}

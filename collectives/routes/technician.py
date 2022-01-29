@@ -2,8 +2,8 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
-import logging, os.path, os
-from flask import Blueprint, render_template, send_from_directory
+import logging, os.path, os, json
+from flask import Blueprint, render_template, send_from_directory, url_for
 
 from ..utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -30,18 +30,26 @@ def before_request():
     pass
 
 
-@blueprint.route("/logs", methods=["GET"])
-def list_logs():
+@blueprint.route("/maintenance", methods=["GET"])
+def maintenance():
     """Route to list application log"""
     all_children = os.listdir(log_dir())
-    files = [file for file in all_children if ".log" in file]
-
-    files.sort(key=lambda x: os.path.getmtime(log_dir() + "/" + x), reverse=True)
+    files = [
+        {
+            "name": file,
+            "link": url_for("technician.get_log", file_name=file),
+            "size": os.path.getsize(f"{log_dir()}/{file}"),
+            "start": os.path.getctime(f"{log_dir()}/{file}"),
+            "end": os.path.getmtime(f"{log_dir()}/{file}"),
+        }
+        for file in all_children
+        if ".log" in file
+    ]
 
     return render_template(
-        "technician/logs.html",
-        title="Liste des logs",
-        logs=files,
+        "technician/maintenance.html",
+        title="Maintenance du site",
+        logs=json.dumps(files),
     )
 
 
@@ -57,6 +65,17 @@ def get_log(file_name):
 
 
 def log_dir():
+    """Get log directory from logger configuration.
+
+    :returns: Absolute path to the log directory.
+    :rtype: string"""
+    for handler in logging.getLogger().handlers:
+        if hasattr(handler, "baseFilename"):
+            return os.path.dirname(handler.baseFilename)
+    return None
+
+
+def configuration():
     """Get log directory from logger configuration.
 
     :returns: Absolute path to the log directory.

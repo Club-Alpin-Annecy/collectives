@@ -2,9 +2,15 @@
 
 """
 
+import sqlite3
+import datetime
+import uuid
+
 import sqlalchemy
 from flask import current_app
-from ..models import ActivityType, EventType, db
+from click import pass_context
+
+from ..models import ActivityType, EventType, User, Role, RoleIds, db
 
 
 def activity_types(app):
@@ -107,3 +113,91 @@ def event_types(app):
         current_app.logger.warning("Cannot configure event types: db is not available")
     except sqlalchemy.exc.ProgrammingError:
         current_app.logger.warning("Cannot configure event types: db is not available")
+
+
+# Init: Setup admin (if db is ready)
+def init_admin(app):
+    """Create an ``admin`` account if it does not exists. Enforce its password.
+
+    Password is :py:data:`config:ADMINPWD`"""
+    try:
+        user = User.query.filter_by(mail="admin").first()
+        if user is None:
+            user = User()
+            user.mail = "admin"
+            # Generate unique license number
+            user.license = str(uuid.uuid4())[:12]
+            user.first_name = "Compte"
+            user.last_name = "Administrateur"
+            user.confidentiality_agreement_signature_date = datetime.datetime.now()
+            version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+            user.legal_text_signed_version = version
+            user.legal_text_signature_date = datetime.datetime.now()
+            user.password = app.config["ADMINPWD"]
+            admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
+            user.roles.append(admin_role)
+            db.session.add(user)
+            db.session.commit()
+            current_app.logger.warning("create admin user")
+        if not user.password == app.config["ADMINPWD"]:
+            user.password = app.config["ADMINPWD"]
+            db.session.commit()
+            current_app.logger.warning("Reset admin password")
+    except sqlite3.OperationalError:
+        current_app.logger.warning("Cannot configure admin: db is not available")
+    except sqlalchemy.exc.InternalError:
+        current_app.logger.warning("Cannot configure admin: db is not available")
+    except sqlalchemy.exc.OperationalError:
+        current_app.logger.warning("Cannot configure admin: db is not available")
+    except sqlalchemy.exc.ProgrammingError:
+        current_app.logger.warning("Cannot configure admin: db is not available")
+
+
+def populate_db(app):
+    """Populates the database with admin account and activities,
+    if and only if we're not currently running a db migration command
+
+    :param app: The Flask application
+    :type app: :py:class:`flask.Application`
+    """
+
+    if is_running_migration():
+        app.logger.info("Migration detected, skipping populating database")
+        return
+
+    app.logger.info("Populating database with initial values")
+    init_admin(app)
+    activity_types(app)
+    event_types(app)
+
+
+def is_running_migration():
+    """Detects whether we are running a migration command.
+
+    :return: True if running  a migration
+    :rtype: False
+    """
+    try:
+        # pylint: disable=E1120
+        return is_running_migration_context()
+    except RuntimeError:
+        # There is no active CLI context
+        return False
+
+
+@pass_context
+def is_running_migration_context(ctx):
+    """Detects whether we are running a migration command.
+
+    It has not error protection if there is no context.
+
+    :param ctx: The current click context
+    :type ctx: :py:class:`cli.Context`
+    :return: True if running  a migration
+    :rtype: False
+    """
+    while ctx is not None:
+        if ctx.command and ctx.command.name == "db":
+            return True
+        ctx = ctx.parent
+    return False

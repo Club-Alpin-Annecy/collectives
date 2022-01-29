@@ -11,6 +11,12 @@ WARNING: for production, some parameter MUST be modified (ADMINPWD, SECRET_KEY)
 import os
 from os import environ
 import subprocess
+from typing import Annotated, Any
+
+
+Modifiable = Annotated[Any, "modifiable"]
+ModifiableHidden = Annotated[Any, "modifiable", "hidden"]
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -58,7 +64,7 @@ in production.
 :type: string
 """
 
-AUTH_FAILURE_WAIT = 10
+AUTH_FAILURE_WAIT: Modifiable = 10
 """Time a user has to wait after a wrong auth in seconds
 
 :type: int
@@ -66,7 +72,7 @@ AUTH_FAILURE_WAIT = 10
 
 # User/password for accessing extranet API
 default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
-EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
+EXTRANET_DISABLE: Modifiable = environ.get("EXTRANET_DISABLE")
 """Use a connection to FFCAM server to activate accounts.
 
 Usually set to False for tests which don't have acces to FFCAM server such
@@ -79,36 +85,36 @@ EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or default_wsdl
 
 :type: string
 """
-EXTRANET_ACCOUNT_ID = environ.get("EXTRANET_ACCOUNT_ID")
+EXTRANET_ACCOUNT_ID: Modifiable = environ.get("EXTRANET_ACCOUNT_ID")
 """Account login for FFCAM extranet access
 
 :type: string
 """
-EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
+EXTRANET_ACCOUNT_PWD: ModifiableHidden = environ.get("EXTRANET_ACCOUNT_PWD")
 """Account password for FFCAM extranet access
 
 :type: string
 """
 
-PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or False
+PAYMENTS_ENABLED: Modifiable = environ.get("PAYMENTS_ENABLED") or False
 """Whether to enable the payment-related functionalities
 
 :type: bool
 """
 
-REFUND_ENABLED = environ.get("REFUND_ENABLED") or False
+REFUND_ENABLED: Modifiable = environ.get("REFUND_ENABLED") or False
 """Whether to enable refunding payments
 
 :type: bool
 """
 
-PAYMENTS_MAX_PRICE = 10000
+PAYMENTS_MAX_PRICE: Modifiable = 10000
 """Maximum price in euros for a payment item
 
 :type: int
 """
 
-PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-02-02 - CGV Collectives.pdf"
+PAYMENTS_TERMS_FILE: Modifiable = "caf/doc/cgv/2021-02-02 - CGV Collectives.pdf"
 """Path to the file containing the current payment terms and conditions
 
 :type: string
@@ -131,34 +137,34 @@ NB: When using mysql, charset must be specified to allow UTF8 character in test 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # SMTP (mail) configuration
-SMTP_HOST = environ.get("SMTP_HOST") or "smtp.example.org"
+SMTP_HOST: Modifiable = environ.get("SMTP_HOST") or "smtp.example.org"
 """Host SMTP to send mail
 
 :type: string
 """
-SMTP_PORT = environ.get("SMTP_PORT") or 25
+SMTP_PORT: Modifiable = environ.get("SMTP_PORT") or 25
 """TCP port for SMTP server
 
 :type: int
 """
-SMTP_ADDRESS = environ.get("SMTP_ADDRESS") or "noreply@example.org"
+SMTP_ADDRESS: Modifiable = environ.get("SMTP_ADDRESS") or "noreply@example.org"
 """Sending address to send administration mails
 
 Will be used as a reply address
 
 :type: string
 """
-SMTP_LOGIN = environ.get("SMTP_LOGIN") or None
+SMTP_LOGIN: Modifiable = environ.get("SMTP_LOGIN") or None
 """SMTP login to be used
 
 :type: string
 """
-SMTP_PASSWORD = environ.get("SMTP_PASSWORD") or ""
+SMTP_PASSWORD: ModifiableHidden = environ.get("SMTP_PASSWORD") or ""
 """SMTP password to be used along SMTP_LOGIN as login
 
 :type: string
 """
-DKIM_KEY = ""
+DKIM_KEY: ModifiableHidden = ""
 """DKIM private KEY
 
 Contain the PEM encoded PKCS#8 format private key (not the file name, but its
@@ -167,7 +173,7 @@ Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
 
 :type: string
 """
-DKIM_SELECTOR = "default"
+DKIM_SELECTOR: Modifiable = "default"
 """DKIM selector
 
 :type: string
@@ -192,36 +198,40 @@ PAYLINE_DIRECTPAYMENT_WSDL = (
 :type: string
 """
 
-PAYLINE_MERCHANT_ID = environ.get("PAYLINE_MERCHANT_ID") or ""
+PAYLINE_MERCHANT_ID: Modifiable = environ.get("PAYLINE_MERCHANT_ID") or ""
 """Payline merchant id, refer to payline account.
 If left empty the payline API will operate in mock mode.
 
 :type: string
 """
-PAYLINE_ACCESS_KEY = environ.get("PAYLINE_ACCESS_KEY") or ""
+PAYLINE_ACCESS_KEY: ModifiableHidden = environ.get("PAYLINE_ACCESS_KEY") or ""
 """ Payline access key (to be set in payline backoffice)
 
 :type: string
 """
-PAYLINE_CONTRACT_NUMBER = environ.get("PAYLINE_CONTRACT_NUMBER") or ""
+PAYLINE_CONTRACT_NUMBER: Modifiable = environ.get("PAYLINE_CONTRACT_NUMBER") or ""
 """ Payline contract number
 
 :type: string
 """
-PAYLINE_MERCHANT_NAME = environ.get("PAYLINE_MERCHANT_NAME") or "CAF Annecy"
+PAYLINE_MERCHANT_NAME: Modifiable = environ.get("PAYLINE_MERCHANT_NAME") or "CAF Annecy"
 """ Payline merchant name
 
 :type: string
 """
 
-PAYLINE_CURRENCY = environ.get("PAYLINE_CURRENCY") or "978"  # Default to euros
+PAYLINE_CURRENCY: Modifiable = (
+    environ.get("PAYLINE_CURRENCY") or "978"
+)  # Default to euros
 """ Code of the currency to be used for payments, '978' means euros
 See https://docs.payline.com/display/DT/Codes+-+Currency
 
 :type: string
 """
 
-PAYLINE_COUNTRY = environ.get("PAYLINE_COUNTRY") or "FR"  # Default to France
+PAYLINE_COUNTRY: Modifiable = (
+    environ.get("PAYLINE_COUNTRY") or "FR"
+)  # Default to France
 """ Code of the country in which the order are being made
 See https://docs.payline.com/display/DT/Codes+-+Country
 
@@ -229,12 +239,12 @@ See https://docs.payline.com/display/DT/Codes+-+Country
 """
 
 # Page information
-TITLE = "Collectives CAF Annecy"
+TITLE: Modifiable = "Collectives CAF Annecy"
 """Website title
 
 :type: string
 """
-LOGO = "caf/caf-gris.png"
+LOGO: Modifiable = "caf/caf-gris.png"
 """URL to the site logo
 
 :type: string
@@ -247,13 +257,13 @@ run = subprocess.run(
 )
 VERSION = run.stdout.decode("utf-8")
 # FAVICON= "img/icon/favicon.ico"
-FAVICON = "caf/favicon.ico"
+FAVICON: Modifiable = "caf/favicon.ico"
 """URL to the site favicon
 
 :type: string
 """
 
-GOOGLE_ANALYTICS_UA = False
+GOOGLE_ANALYTICS_UA: Modifiable = False
 """ Identifier for google analytics.
 
 Set to False to deactivate it.
@@ -270,7 +280,7 @@ valid.
 
 :type: int"""
 
-TZ_NAME = "Europe/Paris"
+TZ_NAME: Modifiable = "Europe/Paris"
 """Timezone to use for time comparisons
 
 :type: string
@@ -278,7 +288,7 @@ TZ_NAME = "Europe/Paris"
 
 # Activity type:
 # fmt: off
-ACTIVITY_TYPES = {
+ACTIVITY_TYPES: Modifiable = {
     1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "ASA"},
     2:  {"short": "escalade", "name": "Escalade", "trigram" : "AES"},
     3:  {"short": "ski_rando", "name": "Ski de randonnée", "trigram" : "ASM"},
@@ -310,20 +320,24 @@ a hash. ``short`` is the name of the icon.
 :type: dict
 """
 
-GUIDE_TITLE = (
+GUIDE_TITLE: Modifiable = (
     "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"
 )
 """ Name of the guide to accept to register to an event of most types.
 
 :type: string """
 
+<<<<<<< HEAD
 GUIDE_FILENAME = "2022-02-01 - CAF Annecy Organisation des sorties.pdf"
+=======
+GUIDE_FILENAME: Modifiable = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
+>>>>>>> [FEATURE] Enable configuration management in maintenance panel
 """ Guide file name to accept to register to an event of most types.
 
 :type: string """
 
 # Event type:
-EVENT_TYPES = {
+EVENT_TYPES: Modifiable = {
     1: {
         "short": "collective",
         "name": "Collective",
@@ -377,7 +391,7 @@ a hash. ``short`` is the name of the icon.
 :type: dict
 """
 
-EVENT_TAGS = {
+EVENT_TAGS: Modifiable = {
     1: {"short": "tag_green_transport", "name": "Mobilité douce"},
     2: {
         "short": "tag_mountain_protection",
@@ -398,7 +412,7 @@ EVENT_TAGS = {
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
 }
 
-LICENSE_CATEGORIES = {
+LICENSE_CATEGORIES: Modifiable = {
     "00": "Membre à vie",
     "A1": "Membre de plus de 65 ans et cafiste depuis plus de 10 ans",
     "C1": "Conjoint(e) de membre dans le même club",
@@ -415,11 +429,11 @@ LICENSE_CATEGORIES = {
 """
 
 # Technical stuff
-MAX_FILE_SIZE = 2 * 1024 * 1024
+MAX_FILE_SIZE: Modifiable = 2 * 1024 * 1024
 """ Max size to upload files.
 
 :type: int """
-MAX_FILE_SIZE_MESSAGE = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
+MAX_FILE_SIZE_MESSAGE: Modifiable = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
 """ Error message if uploaded file is too big.
 
 This error message is only used in form validation on client. `[size]` is a
@@ -458,7 +472,7 @@ IMAGES_PATH = [
 ]
 
 
-DESCRIPTION_TEMPLATE = """
+DESCRIPTION_TEMPLATE: Modifiable = """
 {observations}
 
 Secteur : {secteur}
@@ -478,32 +492,36 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
-DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
+DEFAULT_ONLINE_SLOTS: Modifiable = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
 :type: int """
 
-REGISTRATION_OPENING_DELTA_DAYS = environ.get("REGISTRATION_OPENING_DELTA_DAYS") or 7
+REGISTRATION_OPENING_DELTA_DAYS: Modifiable = (
+    environ.get("REGISTRATION_OPENING_DELTA_DAYS") or 7
+)
 """ Default number of days the online registration should start before the beginning of the event
 
 :type: int """
 
-REGISTRATION_OPENING_HOUR = environ.get("REGISTRATION_OPENING_HOUR") or 7
+REGISTRATION_OPENING_HOUR: Modifiable = environ.get("REGISTRATION_OPENING_HOUR") or 7
 """ Default hour of the day the online registration should start before the beginning of the event
 
 :type: int """
 
-REGISTRATION_CLOSING_DELTA_DAYS = environ.get("REGISTRATION_CLOSING_DELTA_DAYS") or 1
+REGISTRATION_CLOSING_DELTA_DAYS: Modifiable = (
+    environ.get("REGISTRATION_CLOSING_DELTA_DAYS") or 1
+)
 """ Default number of days the online registration should end before the beginning of the event
 
 :type: int """
 
-REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
+REGISTRATION_CLOSING_HOUR: Modifiable = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 """ Default hour of the day the online registration should end before the beginning of the event
 
 :type: int """
 
-CSV_COLUMNS = {
+CSV_COLUMNS: Modifiable = {
     "nom_encadrant": {
         "short_desc": "Encadrant",
         "description": "Prénom et nom de l'encadrant",
@@ -625,13 +643,13 @@ XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx
 :type: string
 """
 
-TOKEN_DURATION = environ.get("TOKEN_DURATION") or 2
+TOKEN_DURATION: Modifiable = environ.get("TOKEN_DURATION") or 2
 """Duration (in hours) of a token before expiration
 
 :type: int
 """
 
-CONFIRMATION_MESSAGE = """
+CONFIRMATION_MESSAGE: Modifiable = """
 Bonjour {name},
 
 Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous :
@@ -646,12 +664,12 @@ Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
 :type: string
 """
 
-NEW_EVENT_SUBJECT = "Notification de création d'événement"
+NEW_EVENT_SUBJECT: Modifiable = "Notification de création d'événement"
 """Email subject for event creation
 
 :type: string
 """
-NEW_EVENT_MESSAGE = """
+NEW_EVENT_MESSAGE: Modifiable = """
 Bonjour,
 
 Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
@@ -666,12 +684,12 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 :type: string
 """
 
-SELF_UNREGISTER_SUBJECT = "Notification de désinscription"
+SELF_UNREGISTER_SUBJECT: Modifiable = "Notification de désinscription"
 """Email subject for user self unregister
 
 :type: string
 """
-SELF_UNREGISTER_MESSAGE = """
+SELF_UNREGISTER_MESSAGE: Modifiable = """
 Bonjour,
 
 '{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
@@ -686,13 +704,15 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 :type: string
 """
 
-REJECTED_REGISTRATION_SUBJECT = "Refus d'insription à la collective {event_title}"
+REJECTED_REGISTRATION_SUBJECT: Modifiable = (
+    "Refus d'insription à la collective {event_title}"
+)
 """Email subject for rejected registration to an event
 
 :type: string
 """
 
-REJECTED_REGISTRATION_MESSAGE = """
+REJECTED_REGISTRATION_MESSAGE: Modifiable = """
 Bonjour,
 
 {rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
@@ -707,13 +727,13 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 :type: string
 """
 
-CANCELLED_EVENT_SUBJECT = "Annulation de la collective {event_title}"
+CANCELLED_EVENT_SUBJECT: Modifiable = "Annulation de la collective {event_title}"
 """Email subject for registered users when an event is cancelled
 
 :type: string
 """
 
-CANCELLED_EVENT_MESSAGE = """
+CANCELLED_EVENT_MESSAGE: Modifiable = """
 Bonjour,
 
 {originator_name} vient d'annuler la collective {event_title} débutant le {event_date}.
@@ -760,3 +780,17 @@ ACTIVATED_REGISTRATION_SUBJECT = "Participation à la collective {event_title}"
 
 :type: string
 """
+# pylint: disable=E0602
+notes = __annotations__.items()
+MODIFIABLE_CONF = [name for name, note in notes if "modifiable" in note.__metadata__]
+""" Modifiable configuration list by administration interface.
+
+To have a modifaiable configuration item, add `: Modifiable` after its name.
+
+:type: list()"""
+HIDDEN_CONF = [name for name, note in notes if "hidden" in note.__metadata__]
+""" Modifiable configuration list by administration interface, but with a secret content.
+
+To have a modifiable configuration item, add `: ModifiableHidden` after its name.
+
+:type: list()"""
