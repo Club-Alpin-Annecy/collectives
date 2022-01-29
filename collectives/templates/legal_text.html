@@ -9,7 +9,7 @@
 <h4 class="heading-4">Versionnement des mentions légales:</h4>
 <p>
     <ul>
-        {% if config['GOOGLE_ANALYTICS_UA'] %}
+        {% if Configuration.GOOGLE_ANALYTICS_UA %}
             <li><b>v3</b> : (version actuelle) Mise à jour de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
             <li><b>v2</b> : Ajout de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
         {% endif %}
@@ -188,7 +188,7 @@
         <li>Droit à la limitation du traitement des données</li>
     </ul>
 
-    {% if config['GOOGLE_ANALYTICS_UA'] %}
+    {% if Configuration.GOOGLE_ANALYTICS_UA %}
     <h4 id="statistics" class="heading-4">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
     <p>
         Google Analytics est utilisé pour les statistiques d'utilisation du site. La participation à ces statistiques est optionnelle

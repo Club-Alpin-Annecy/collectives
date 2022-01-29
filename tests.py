@@ -17,7 +17,7 @@ from collectives.utils.time import current_time
 from collectives.models.user import activity_supervisors
 from collectives.utils.csv import csv_to_events
 
-from collectives.utils import extranet
+from collectives.utils import extranet, init
 
 
 def create_test_user(email="test", user_license=""):
@@ -55,6 +55,7 @@ class ModelTest(flask_testing.TestCase):
     def setUp(self):
 
         db.create_all()
+        init.init_config()
 
     def tearDown(self):
         db.session.remove()
@@ -326,15 +327,9 @@ class TestJsonApi(ModelTest):
         assert len(users) == 0
 
 
-class TestExtranetApi(flask_testing.TestCase):
+class TestExtranetApi(ModelTest):
 
     VALID_LICENSE_NUMBER = environ.get("EXTRANET_TEST_LICENSE_NUMBER")
-
-    def create_app(self):
-
-        # pass in test configuration
-        app = create_app()
-        return app
 
     def test_check_license(self):
         result = extranet.api.check_license(self.VALID_LICENSE_NUMBER)

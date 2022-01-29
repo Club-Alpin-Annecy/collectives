@@ -3,12 +3,12 @@
 This modules contains the root Blueprint
 """
 from flask import redirect, url_for, Blueprint
-from flask import current_app, render_template
+from flask import render_template
 from flask_login import current_user, login_required
 
 from ..forms.auth import LegalAcceptation
 from ..utils.time import current_time
-from ..models import db
+from ..models import db, Configuration
 
 blueprint = Blueprint("root", __name__)
 
@@ -30,7 +30,7 @@ def legal():
 def legal_accept():
     """Route to accept site legal terms"""
     current_user.legal_text_signature_date = current_time()
-    version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+    version = Configuration.CURRENT_LEGAL_TEXT_VERSION
     current_user.legal_text_signed_version = version
     db.session.add(current_user)
     db.session.commit()

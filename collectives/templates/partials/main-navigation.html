@@ -52,7 +52,7 @@
                             </li>
                             {% endif %}
                             
-                            {% if config['RESERVATION_ENABLED'] %}
+                            {% if Configuration.RESERVATION_ENABLED %}
                                 
                                 {% if current_user.can_manage_equipment() %}
                                 <li class="menu-dropdown-item">
@@ -90,22 +90,15 @@
                                     Administration</a>
                             </li>
                             {% endif %}
-                            {% if current_user.is_technician() and config['GOOGLE_ANALYTICS_UA'] %}
-                            <li class="menu-dropdown-item">
-                                <a href="https://analytics.google.com/analytics/web/" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}" class="legacy-icon" />
-                                    Statistiques</a>
-                            </li>
-                            {% endif %}
                             {% if current_user.is_technician() %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('technician.list_logs')}}" class="menu-dropdown-item-link"><img
+                                <a href="{{ url_for('technician.maintenance')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}" class="legacy-icon" />
-                                    Logs du serveur</a>
+                                    Maintenance du site</a>
                             </li>
                             {% endif %}
 
-                            {%  if config["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
+                            {%  if Configuration.PAYMENTS_ENABLED and current_user.is_accountant() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('payment.list_all')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" />
@@ -151,7 +144,7 @@
                                 </a>
                             </li>
                             {% endif %}
-                            {% if config['RESERVATION_ENABLED'] %}
+                            {% if Configuration.RESERVATION_ENABLED %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('reservation.my_reservations')}}"  class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-bag.svg') }}"  class="legacy-icon" />
@@ -159,7 +152,7 @@
                                 </a>
                             </li>
                             {% endif %}
-                            {% if config["PAYMENTS_ENABLED"] %}
+                            {% if Configuration.PAYMENTS_ENABLED %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.my_payments')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" /> Mes paiements

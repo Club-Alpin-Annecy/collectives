@@ -11,6 +11,7 @@ import pysimplesoap
 from pysimplesoap.client import SoapClient
 
 from ..models.payment import PaymentStatus
+from ..models import Configuration
 from .time import format_date
 from .misc import to_ascii
 
@@ -502,31 +503,30 @@ class PaylineApi:
             # Already initialized
             return
 
-        config = self.app.config
-        if not config["PAYLINE_MERCHANT_ID"]:
+        if not Configuration.PAYLINE_MERCHANT_ID:
             current_app.logger.warning("Payment API disabled, using mock API")
             return
 
-        self.payline_merchant_id = config["PAYLINE_MERCHANT_ID"]
-        self.payline_access_key = config["PAYLINE_ACCESS_KEY"]
+        self.payline_merchant_id = Configuration.PAYLINE_MERCHANT_ID
+        self.payline_access_key = Configuration.PAYLINE_ACCESS_KEY
         encoded_auth = base64.b64encode(
             self.payline_merchant_id.encode() + b":" + self.payline_access_key.encode()
         ).decode("utf-8")
-        self.payline_currency = config["PAYLINE_CURRENCY"]
-        self.payline_contract_number = config["PAYLINE_CONTRACT_NUMBER"]
-        self.payline_merchant_name = config["PAYLINE_MERCHANT_NAME"]
-        self.payline_country = config["PAYLINE_COUNTRY"]
+        self.payline_currency = Configuration.PAYLINE_CURRENCY
+        self.payline_contract_number = Configuration.PAYLINE_CONTRACT_NUMBER
+        self.payline_merchant_name = Configuration.PAYLINE_MERCHANT_NAME
+        self.payline_country = Configuration.PAYLINE_COUNTRY
 
         try:
             self.webpayment_client = SoapClient(
-                wsdl=config["PAYLINE_WSDL"],
+                wsdl=Configuration.PAYLINE_WSDL,
                 http_headers={
                     "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",
                 },
             )
             self.directpayment_client = SoapClient(
-                wsdl=config["PAYLINE_DIRECTPAYMENT_WSDL"],
+                wsdl=Configuration.PAYLINE_DIRECTPAYMENT_WSDL,
                 http_headers={
                     "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",

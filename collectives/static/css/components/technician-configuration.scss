@@ -1,0 +1,26 @@
+.configuration-form form {
+
+    display: flex;
+    margin: 10px 0;
+    flex-grow: 4;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .submit, .name{
+        flex-grow: 0;
+    }
+
+    .name{
+        width: 300px;
+    }
+
+    .input{
+        flex-grow: 4;
+        min-width: 500px;
+        padding: 0 10px;
+
+        input, textarea{
+            width: 100%;
+        }
+    }
+}

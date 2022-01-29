@@ -10,6 +10,7 @@ pylint-flask-sqlalchemy
 
 black
 pytest
+beautifulsoup4 
 
 Sphinx
 # We are using one of the latest option of docsr-coverage, thus it is loaded from

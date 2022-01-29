@@ -23,6 +23,7 @@ import dkim
 # pylint: enable=E0001
 
 import flask
+from ..models import Configuration
 
 
 def send_mail(**kwargs):
@@ -59,51 +60,53 @@ def send_mail_threaded(app, **kwargs):
         * *success_action* (``string``) --
           Function to activate if email sending succeeds
     """
-    try:
-        config = app.config
-        s = smtplib.SMTP(host=config["SMTP_HOST"], port=config["SMTP_PORT"])
+    with app.app_context():
+        try:
+            s = smtplib.SMTP(host=Configuration.SMTP_HOST, port=Configuration.SMTP_PORT)
 
-        s.starttls()
-        s.login(config["SMTP_LOGIN"] or config["SMTP_ADDRESS"], config["SMTP_PASSWORD"])
-
-        msg = MIMEMultipart()
-
-        msg["From"] = config["SMTP_ADDRESS"]
-        msg["Subject"] = kwargs["subject"]
-        msg["Message-ID"] = email.utils.make_msgid(domain=config["SERVER_NAME"])
-        msg["Date"] = email.utils.formatdate()
-
-        dest = kwargs["email"]
-        if not dest:
-            # Attempt to send an email with empty dest would result in an error
-            return
-
-        if isinstance(dest, list):
-            msg["Bcc"] = ",".join(dest)
-        else:
-            msg["To"] = dest
-
-        msg.attach(MIMEText(kwargs["message"], "plain", "utf-8"))
-
-        # DKIM part
-        if config["DKIM_KEY"] != "" and config["DKIM_SELECTOR"] != "":
-            sig = dkim.sign(
-                message=msg.as_bytes(),
-                selector=config["DKIM_SELECTOR"].encode(),
-                domain=config["SMTP_ADDRESS"].split("@")[-1].encode(),
-                privkey=config["DKIM_KEY"].encode(),
-                include_headers=["From", "To", "Subject", "Message-ID"],
+            s.starttls()
+            s.login(
+                Configuration.SMTP_LOGIN or Configuration.SMTP_ADDRESS,
+                Configuration.SMTP_PASSWORD,
             )
-            msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
 
-        s.send_message(msg)
-        if "success_action" in kwargs:
-            with app.app_context():
-                kwargs["success_action"]()
-    except Exception as e:
-        dest = kwargs["email"]
-        app.logger.exception(f"Unable to send mail to {dest}")
+            msg = MIMEMultipart()
 
-        if "error_action" in kwargs:
-            with app.app_context():
+            msg["From"] = Configuration.SMTP_ADDRESS
+            msg["Subject"] = kwargs["subject"]
+            msg["Message-ID"] = email.utils.make_msgid(domain=app.config["SERVER_NAME"])
+            msg["Date"] = email.utils.formatdate()
+
+            dest = kwargs["email"]
+            if not dest:
+                # Attempt to send an email with empty dest would result in an error
+                return
+
+            if isinstance(dest, list):
+                msg["Bcc"] = ",".join(dest)
+            else:
+                msg["To"] = dest
+
+            msg.attach(MIMEText(kwargs["message"], "plain", "utf-8"))
+
+            # DKIM part
+            if Configuration.DKIM_KEY != "" and Configuration.DKIM_SELECTOR != "":
+                sig = dkim.sign(
+                    message=msg.as_bytes(),
+                    selector=Configuration.DKIM_SELECTOR.encode(),
+                    domain=Configuration.SMTP_ADDRESS.split("@")[-1].encode(),
+                    privkey=Configuration.DKIM_KEY.replace("\r", "").encode(),
+                    include_headers=["From", "To", "Subject", "Message-ID"],
+                )
+                msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
+
+            s.send_message(msg)
+            if "success_action" in kwargs:
+                with app.app_context():
+                    kwargs["success_action"]()
+        except Exception as e:
+            dest = kwargs["email"]
+            app.logger.exception(f"Unable to send mail to {dest}")
+
+            if "error_action" in kwargs:
                 kwargs["error_action"](e)

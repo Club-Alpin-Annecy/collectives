@@ -58,12 +58,6 @@ in production.
 :type: string
 """
 
-AUTH_FAILURE_WAIT = 10
-"""Time a user has to wait after a wrong auth in seconds
-
-:type: int
-"""
-
 # User/password for accessing extranet API
 default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
 EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
@@ -78,28 +72,6 @@ EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or default_wsdl
 """URL of WSDL to connect to FFCAM server
 
 :type: string
-"""
-EXTRANET_ACCOUNT_ID = environ.get("EXTRANET_ACCOUNT_ID")
-"""Account login for FFCAM extranet access
-
-:type: string
-"""
-EXTRANET_ACCOUNT_PWD = environ.get("EXTRANET_ACCOUNT_PWD")
-"""Account password for FFCAM extranet access
-
-:type: string
-"""
-
-PAYMENTS_ENABLED = environ.get("PAYMENTS_ENABLED") or False
-"""Whether to enable the payment-related functionalities
-
-:type: bool
-"""
-
-REFUND_ENABLED = environ.get("REFUND_ENABLED") or False
-"""Whether to enable refunding payments
-
-:type: bool
 """
 
 PAYMENTS_MAX_PRICE = 10000
@@ -130,115 +102,8 @@ NB: When using mysql, charset must be specified to allow UTF8 character in test 
 """
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-# SMTP (mail) configuration
-SMTP_HOST = environ.get("SMTP_HOST") or "smtp.example.org"
-"""Host SMTP to send mail
-
-:type: string
-"""
-SMTP_PORT = environ.get("SMTP_PORT") or 25
-"""TCP port for SMTP server
-
-:type: int
-"""
-SMTP_ADDRESS = environ.get("SMTP_ADDRESS") or "noreply@example.org"
-"""Sending address to send administration mails
-
-Will be used as a reply address
-
-:type: string
-"""
-SMTP_LOGIN = environ.get("SMTP_LOGIN") or None
-"""SMTP login to be used
-
-:type: string
-"""
-SMTP_PASSWORD = environ.get("SMTP_PASSWORD") or ""
-"""SMTP password to be used along SMTP_LOGIN as login
-
-:type: string
-"""
-DKIM_KEY = ""
-"""DKIM private KEY
-
-Contain the PEM encoded PKCS#8 format private key (not the file name, but its
-content).
-Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
-
-:type: string
-"""
-DKIM_SELECTOR = "default"
-"""DKIM selector
-
-:type: string
-"""
-
-# Payline
-PAYLINE_WSDL = (
-    environ.get("PAYLINE_WSDL")
-    or f"file://{os.path.join(basedir, 'collectives/utils/payline.wsdl')}"
-)
-"""Path to WDSL file describing Payline WebPayment SOAP API
-
-:type: string
-"""
-
-PAYLINE_DIRECTPAYMENT_WSDL = (
-    environ.get("PAYLINE_DIRECTPAYMENT_WSDL")
-    or f"file://{os.path.join(basedir, 'collectives/utils/payline_directpayment.wsdl')}"
-)
-"""Path to WDSL file describing Payline DirectPayment SOAP API
-
-:type: string
-"""
-
-PAYLINE_MERCHANT_ID = environ.get("PAYLINE_MERCHANT_ID") or ""
-"""Payline merchant id, refer to payline account.
-If left empty the payline API will operate in mock mode.
-
-:type: string
-"""
-PAYLINE_ACCESS_KEY = environ.get("PAYLINE_ACCESS_KEY") or ""
-""" Payline access key (to be set in payline backoffice)
-
-:type: string
-"""
-PAYLINE_CONTRACT_NUMBER = environ.get("PAYLINE_CONTRACT_NUMBER") or ""
-""" Payline contract number
-
-:type: string
-"""
-PAYLINE_MERCHANT_NAME = environ.get("PAYLINE_MERCHANT_NAME") or "CAF Annecy"
-""" Payline merchant name
-
-:type: string
-"""
-
-PAYLINE_CURRENCY = environ.get("PAYLINE_CURRENCY") or "978"  # Default to euros
-""" Code of the currency to be used for payments, '978' means euros
-See https://docs.payline.com/display/DT/Codes+-+Currency
-
-:type: string
-"""
-
-PAYLINE_COUNTRY = environ.get("PAYLINE_COUNTRY") or "FR"  # Default to France
-""" Code of the country in which the order are being made
-See https://docs.payline.com/display/DT/Codes+-+Country
-
-:type: string
-"""
 
 # Page information
-TITLE = "Collectives CAF Annecy"
-"""Website title
-
-:type: string
-"""
-LOGO = "caf/caf-gris.png"
-"""URL to the site logo
-
-:type: string
-"""
 run = subprocess.run(
     ["git", "describe", "--tags"],
     stdout=subprocess.PIPE,
@@ -253,28 +118,6 @@ FAVICON = "caf/favicon.ico"
 :type: string
 """
 
-GOOGLE_ANALYTICS_UA = False
-""" Identifier for google analytics.
-
-Set to False to deactivate it.
-
-Example: `GOOGLE_ANALYTICS_UA = "UA-XXXXXXX-X"`
-
-:type: string or boolean"""
-
-CURRENT_LEGAL_TEXT_VERSION = 1
-"""Current version of the legal text.
-
-If a user has signed an earlier version, its signature will not be considered
-valid.
-
-:type: int"""
-
-TZ_NAME = "Europe/Paris"
-"""Timezone to use for time comparisons
-
-:type: string
-"""
 
 # Activity type:
 # fmt: off
@@ -398,22 +241,6 @@ EVENT_TAGS = {
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
 }
 
-LICENSE_CATEGORIES = {
-    "00": "Membre à vie",
-    "A1": "Membre de plus de 65 ans et cafiste depuis plus de 10 ans",
-    "C1": "Conjoint(e) de membre dans le même club",
-    "E1": "Enfant de 18 à 24 ans de membre dans le même club",
-    "E2": "Enfant ou petit-enfant de moins de 18 ans de membre dans le même club",
-    "J1": "Jeune de 18 à 24 ans",
-    "J2": "Jeune de moins de 18 ans",
-    "P1": "Professionel",
-    "T1": "Membre  titulaire de plus de 24 ans",
-}
-"""Dictionary of FFCAM licence categories with their description
-
-:type: dict
-"""
-
 # Technical stuff
 MAX_FILE_SIZE = 2 * 1024 * 1024
 """ Max size to upload files.
@@ -457,26 +284,6 @@ IMAGES_PATH = [
     "static/uploads/typeEquipmentImg",
 ]
 
-
-DESCRIPTION_TEMPLATE = """
-{observations}
-
-Secteur : {secteur}
-Carte IGN : {carte_IGN}
-Altitude max. : {altitude}m
-Dénivelé : {denivele}m
-Distance : {distance}km
-Cotation : {cotation}
-
-Lieu et heure de départ :
-
-Matériel requis :
-"""
-"""Default event description template.
-
-Place holder can be inserted, and will be used for CSV import.
-
-:type: string"""
 
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
@@ -621,142 +428,6 @@ Key is the column name. And for each column:
 
 XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx")
 """Path to Excel template.
-
-:type: string
-"""
-
-TOKEN_DURATION = environ.get("TOKEN_DURATION") or 2
-"""Duration (in hours) of a token before expiration
-
-:type: int
-"""
-
-CONFIRMATION_MESSAGE = """
-Bonjour {name},
-
-Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous :
-{link}
-
-Ce lien expirera après {expiry_hours} heures.
-
-Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
-"""
-"""Template of confirmation email.
-
-:type: string
-"""
-
-NEW_EVENT_SUBJECT = "Notification de création d'événement"
-"""Email subject for event creation
-
-:type: string
-"""
-NEW_EVENT_MESSAGE = """
-Bonjour,
-
-Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
-Vous pouvez le consulter à l'adresse ci-dessous :
-{link}
-
-Vous recevez cet e-mail en tant que Responsable de l'activité.
-Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-"""
-"""Email template content for event creation
-
-:type: string
-"""
-
-SELF_UNREGISTER_SUBJECT = "Notification de désinscription"
-"""Email subject for user self unregister
-
-:type: string
-"""
-SELF_UNREGISTER_MESSAGE = """
-Bonjour,
-
-'{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
-Lien vers l'événement :
-{link}
-
-Vous recevez cet e-mail en tant qu'encadrant d'une activité.
-Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-"""
-"""Email template content for user self unregister
-
-:type: string
-"""
-
-REJECTED_REGISTRATION_SUBJECT = "Refus d'insription à la collective {event_title}"
-"""Email subject for rejected registration to an event
-
-:type: string
-"""
-
-REJECTED_REGISTRATION_MESSAGE = """
-Bonjour,
-
-{rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
-Lien vers l'événement :
-{link}
-
-Vous recevez cet e-mail en tant qu'adhérent inscrit à une collective.
-Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-"""
-"""Email template content for rejected registration to an event
-
-:type: string
-"""
-
-CANCELLED_EVENT_SUBJECT = "Annulation de la collective {event_title}"
-"""Email subject for registered users when an event is cancelled
-
-:type: string
-"""
-
-CANCELLED_EVENT_MESSAGE = """
-Bonjour,
-
-{originator_name} vient d'annuler la collective {event_title} débutant le {event_date}.
-Vous pouvez la consulter à l'adresse ci-dessous:
-{link}
-
-Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
-Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-"""
-"""Email template content for registered users when an event is cancelled
-
-:type: string
-"""
-
-RESERVATION_ENABLED = environ.get("RESERVATION_ENABLED") or False
-"""Whether to enable the reservation/rental-related functionalities
-
-:type: bool
-"""
-
-ACTIVATED_REGISTRATION_MESSAGE = """
-Bonjour,
-
-Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
-Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit
-à la collective.
-
-Si vous ne pouvez pas participer, merci de vous désincrire au plus tôt.
-
-Merci de vérifier si la collective nécessite un paiement de votre part:
-{link}
-
-Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
-Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-"""
-"""Email template content for registered users when an event is cancelled
-
-:type: string
-"""
-
-
-ACTIVATED_REGISTRATION_SUBJECT = "Participation à la collective {event_title}"
-"""Email subject for registered users when an event is cancelled
 
 :type: string
 """

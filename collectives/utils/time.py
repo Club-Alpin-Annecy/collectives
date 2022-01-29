@@ -2,7 +2,8 @@
 """
 from datetime import datetime, time
 from dateutil import tz
-from flask import current_app
+
+from ..models.configuration import Configuration
 
 fr_week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 """ Day of week in French.
@@ -60,7 +61,7 @@ def current_time():
     :return: Current time
     :rtype: :py:class:`datetime.datetime`
     """
-    tz_name = current_app.config["TZ_NAME"]
+    tz_name = Configuration.TZ_NAME
     tz_info = tz.gettz(tz_name)
     now = datetime.now(tz_info)
 

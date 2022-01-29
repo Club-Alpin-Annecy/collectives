@@ -6,7 +6,7 @@ from flask import current_app, url_for
 
 from .utils import mail
 from .utils.url import slugify
-from .models import db
+from .models import db, Configuration
 from .models.auth import ConfirmationTokenType, TokenEmailStatus
 from .models.user import activity_supervisors
 from .utils.time import format_date
@@ -22,8 +22,7 @@ def send_new_event_notification(event):
     emails = [u.mail for u in supervisors]
     leader_names = [l.full_name() for l in event.leaders]
     activity_names = [a.name for a in event.activity_types]
-    conf = current_app.config
-    message = conf["NEW_EVENT_MESSAGE"].format(
+    message = Configuration.NEW_EVENT_MESSAGE.format(
         leader_name=",".join(leader_names),
         activity_name=",".join(activity_names),
         event_title=event.title,
@@ -35,7 +34,9 @@ def send_new_event_notification(event):
         ),
     )
     try:
-        mail.send_mail(subject=conf["NEW_EVENT_SUBJECT"], email=emails, message=message)
+        mail.send_mail(
+            subject=Configuration.NEW_EVENT_SUBJECT, email=emails, message=message
+        )
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
 
@@ -50,8 +51,7 @@ def send_unregister_notification(event, user):
     """
     try:
         leader_emails = [l.mail for l in event.leaders]
-        conf = current_app.config
-        message = conf["SELF_UNREGISTER_MESSAGE"].format(
+        message = Configuration.SELF_UNREGISTER_MESSAGE.format(
             user_name=user.full_name(),
             event_title=event.title,
             link=url_for(
@@ -62,7 +62,7 @@ def send_unregister_notification(event, user):
             ),
         )
         mail.send_mail(
-            subject=conf["SELF_UNREGISTER_SUBJECT"],
+            subject=Configuration.SELF_UNREGISTER_SUBJECT,
             email=leader_emails,
             message=message,
         )
@@ -82,10 +82,10 @@ def send_confirmation_email(email, name, token):
     if token.token_type == ConfirmationTokenType.RecoverAccount:
         reason = "récupération"
 
-    message = current_app.config["CONFIRMATION_MESSAGE"].format(
+    message = Configuration.CONFIRMATION_MESSAGE.format(
         name=name,
         reason=reason,
-        expiry_hours=current_app.config["TOKEN_DURATION"],
+        expiry_hours=Configuration.TOKEN_DURATION,
         link=url_for(
             "auth.process_confirmation", token_uuid=token.uuid, _external=True
         ),
@@ -130,8 +130,7 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
     :param string rejected_user_email: User email for who registraton is rejected.
     """
     try:
-        conf = current_app.config
-        message = conf["REJECTED_REGISTRATION_MESSAGE"].format(
+        message = Configuration.REJECTED_REGISTRATION_MESSAGE.format(
             rejector_name=rejector_name,
             event_title=event.title,
             event_date=format_date(event.start),
@@ -143,7 +142,9 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
             ),
         )
 
-        subject = conf["REJECTED_REGISTRATION_SUBJECT"].format(event_title=event.title)
+        subject = Configuration.REJECTED_REGISTRATION_SUBJECT.format(
+            event_title=event.title
+        )
         mail.send_mail(
             subject=subject,
             email=rejected_user_email,
@@ -161,8 +162,7 @@ def send_cancelled_event_notification(name, event):
     :type event: :py:class:`collectives.modes.event.Event`
     """
     try:
-        conf = current_app.config
-        message = conf["CANCELLED_EVENT_MESSAGE"].format(
+        message = Configuration.CANCELLED_EVENT_MESSAGE.format(
             originator_name=name,
             event_title=event.title,
             event_date=format_date(event.start),
@@ -173,7 +173,7 @@ def send_cancelled_event_notification(name, event):
                 _external=True,
             ),
         )
-        subject = conf["CANCELLED_EVENT_SUBJECT"].format(event_title=event.title)
+        subject = Configuration.CANCELLED_EVENT_SUBJECT.format(event_title=event.title)
         emails = [r.user.mail for r in event.active_registrations()]
         if emails:
             mail.send_mail(
@@ -192,8 +192,7 @@ def send_update_waiting_list_notification(registration):
     """
     try:
         current_app.logger.warn(f"Send mail to: {registration.user.mail}")
-        conf = current_app.config
-        message = conf["ACTIVATED_REGISTRATION_MESSAGE"].format(
+        message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
             event_title=registration.event.title,
             event_date=format_date(registration.event.start),
             link=url_for(
@@ -204,7 +203,7 @@ def send_update_waiting_list_notification(registration):
             ),
         )
 
-        subject = conf["ACTIVATED_REGISTRATION_SUBJECT"].format(
+        subject = Configuration.ACTIVATED_REGISTRATION_SUBJECT.format(
             event_title=registration.event.title
         )
         mail.send_mail(

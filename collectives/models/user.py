@@ -5,7 +5,6 @@ import os
 from datetime import date, datetime
 
 from flask_login import UserMixin
-from flask import current_app
 from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
@@ -22,6 +21,7 @@ from .activitytype import ActivityType
 from .registration import Registration
 from .utils import ChoiceEnum
 from ..utils.time import current_time
+from .configuration import Configuration
 
 # Upload
 avatars = UploadSet("avatars", IMAGES)
@@ -607,7 +607,7 @@ class User(db.Model, UserMixin):
         """
         is_signed = self.legal_text_signature_date is not None
 
-        current_version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
+        current_version = Configuration.CURRENT_LEGAL_TEXT_VERSION
         is_good_signed_version = self.legal_text_signed_version == current_version
 
         return is_signed and is_good_signed_version
