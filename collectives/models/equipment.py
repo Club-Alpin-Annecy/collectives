@@ -132,7 +132,7 @@ class EquipmentType(db.Model):
         nbTotalUnavailable = 0
         for aModel in self.models:
             for aEquipment in aModel.equipments:
-                if aEquipment.status == EquipmentStatus.Unavailable:
+                if aEquipment.status != EquipmentStatus.Available:
                     nbTotalUnavailable += 1
 
         return nbTotalUnavailable
