@@ -30,7 +30,7 @@
     <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
-
+    <p><span class="bold">Prix total :</span> {{format_currency(reservation.total_price())}}</p>
 
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>

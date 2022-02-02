@@ -18,6 +18,7 @@ from collectives.models.reservation import (
     ReservationLine,
 )
 from collectives.models.user import User
+from collectives.utils.numbers import format_currency
 
 from ..models import db
 
@@ -155,6 +156,8 @@ class ReservationLineSchema(marshmallow.Schema):
 
     ratio_equipments = fields.Function(lambda obj: obj.get_ratio_equipments())
 
+    total_price = fields.Function(lambda obj: format_currency(obj.total_price()))
+
     class Meta:
         """Fields to expose"""
 
@@ -163,6 +166,7 @@ class ReservationLineSchema(marshmallow.Schema):
             "equipmentTypeName",
             "reservationLineURL",
             "ratio_equipments",
+            "total_price",
         )
 
 
