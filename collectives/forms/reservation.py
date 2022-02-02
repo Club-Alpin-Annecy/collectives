@@ -1,4 +1,4 @@
-from wtforms import DateField, SubmitField
+from wtforms import DateField, SubmitField, HiddenField
 from flask_wtf.form import FlaskForm
 from ..models.reservation import Reservation
 
@@ -29,3 +29,16 @@ class EndLocationForm(FlaskForm):
     """Form for deleting an equipment"""
 
     validate = SubmitField("Valider la retour de la location")
+
+
+class AddEquipmentInReservationForm(FlaskForm):
+    """Form to add an equipment in a reservation"""
+
+    add_equipment = HiddenField("Ajouter un equipment")
+
+
+class NewRentalForm(FlaskForm):
+    """Form to create a new rental from no reservation"""
+
+    license = HiddenField("Licence")
+    add_equipment = HiddenField("Ajouter un equipment")

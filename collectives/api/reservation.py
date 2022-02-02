@@ -28,7 +28,7 @@ from .common import blueprint, marshmallow
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe a reservation"""
 
-    userLicence = fields.Function(lambda obj: obj.user.license)
+    userLicence = fields.Function(lambda obj: obj.user.license if obj.user else "")
     statusName = fields.Function(lambda obj: obj.status.display_name())
 
     reservationURL = fields.Function(
@@ -181,6 +181,26 @@ def reservation(reservation_id):
     query = Reservation.query.get(reservation_id).lines
 
     data = ReservationLineSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservation/new_rental/<int:reservation_id>")
+def new_rental(reservation_id):
+    """API endpoint to list reservation lines.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationLineSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Reservation.query.get(reservation_id).get_equipments()
+
+    data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 

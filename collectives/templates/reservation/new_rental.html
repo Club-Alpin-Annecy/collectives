@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+{% block title %}Reservations{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+
+
+{# Tabulator: for tables#}
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+{# Equipment autocomplete #}
+<script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+<link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.add_equipment.label }}
+            <input type="text" id="new-equipment" placeholder="Référence">
+        {{ form.add_equipment(value=0) }}
+    </form>
+
+    <div id="equipment-table"></div>
+
+    <script>
+        window.onload = function () {
+          const searchInput = document.getElementById('new-equipment');
+          setupAutoComplete(
+          searchInput,
+          '{{url_for("api.autocomplete_availables_equipments") | safe}}',
+          function(item) {
+            return item.reference;
+          },
+          function(id, val) {
+            var field = document.getElementById('{{form.add_equipment.id}}');
+            field.value = id;
+            field.form.submit();
+          }
+          );
+        }
+      </script>
+
+      {% if reservation.id %}
+        <script>
+            let ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
+        </script>
+      <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_line.js') }}"></script>
+      {% endif %}
+{% endblock %}

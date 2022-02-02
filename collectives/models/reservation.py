@@ -105,6 +105,14 @@ class ReservationLine(db.Model):
                 return True
         return False
 
+    def add_equipment_by_increasing_quantity(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if self.is_full():
+            self.quantity += 1
+        return self.add_equipment(equipment)
+
     def get_equipments_rented(self):
         """
         :return: List of all the equipments Rented
@@ -296,12 +304,47 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
 
-    def get_line_of_type(self, equipemntType):
+    def get_line_of_type(self, equipmentType):
         """
         :return: the line containing the type
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
         for reservationLine in self.lines:
-            if reservationLine.equipmentType == equipemntType:
+            if reservationLine.equipmentType == equipmentType:
                 return reservationLine
         return None
+
+    def get_or_create_line_of_type(self, equipmentType):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        reservationLine = self.get_line_of_type(equipmentType)
+        if not reservationLine:
+            reservationLine = ReservationLine()
+            reservationLine.quantity = 0
+            reservationLine.equipmentType = equipmentType
+            self.lines.append(reservationLine)
+        return reservationLine
+
+    def add_equipment(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if equipment:
+            reservationLine = self.get_or_create_line_of_type(
+                equipment.model.equipmentType
+            )
+            return reservationLine.add_equipment_by_increasing_quantity(equipment)
+
+        return False
+
+    def get_equipments(self):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        equipments = []
+        for reservationLine in self.lines:
+            equipments.extend(reservationLine.equipments)
+        return equipments
