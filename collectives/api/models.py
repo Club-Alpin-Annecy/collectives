@@ -2,8 +2,8 @@
 
 Usually export as js file to be directly used by js."""
 
-import inspect, sys
-from flask import Response
+import inspect, sys, json
+from flask import Response, current_app
 
 from .common import blueprint
 from ..models.utils import ChoiceEnum
@@ -23,5 +23,7 @@ def models_to_js():
 
     tags = ",".join([f"{i}:'{tag['name']}'" for i, tag in EventTag.all().items()])
     enums = enums + "const EnumEventTag={" + tags + "};"
+
+    enums = enums + "const LicenseCategories = " + json.dumps(current_app.config['LICENSE_CATEGORIES']) + ";"
 
     return Response(enums, mimetype="application/javascript")

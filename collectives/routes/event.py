@@ -450,6 +450,7 @@ def manage_event(event_id=None):
 
     # We have to save new event before add the photo, or id is not defined
     db.session.add(event)
+    update_waiting_list(event)
     db.session.commit()
 
     # If no photo is sent, we don't do anything, especially if a photo is
@@ -898,7 +899,7 @@ def update_attendance(event_id):
 
 
 def update_waiting_list(event):
-    """Update the attendance list of an event ofr waiting registrations
+    """Update the attendance list of an event of waiting registrations
 
     If a waiting registration has a free slot to become active, its
     status will be changed. Function will returns the modified
@@ -915,7 +916,7 @@ def update_waiting_list(event):
     :rtype: :py:class:`collectives.models.registration.Registration`
     """
     registrations = []
-    while event.free_slots() != 0 and event.waiting_registrations():
+    while event.has_free_online_slots() != 0 and event.waiting_registrations():
         new_registration = event.waiting_registrations()[0]
         registrations.append(new_registration)
 

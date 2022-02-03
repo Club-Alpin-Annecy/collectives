@@ -231,10 +231,9 @@
         <p>Les inscriptions sont closes.</p>
         {% endif %}
 
-
-        {% if event.num_waiting_list != 0 and event.free_slots() == 0 %}  
-          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations().__len__() }} / {{ event.num_waiting_list }}
-              {% if event.waiting_registrations().__len__() >= event.num_waiting_list %}
+        {% if event.num_waiting_list != 0 and not event.has_free_online_slots() %}  
+          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() |length }} / {{ event.num_waiting_list }}
+              {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
               {% endif %}
           </h3>

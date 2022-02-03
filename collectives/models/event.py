@@ -126,7 +126,7 @@ class Event(db.Model):
     :type: int"""
 
     num_waiting_list = db.Column(
-        db.Integer, nullable=False, default="5", info={"min": 0}
+        db.Integer, nullable=False, default="0", info={"min": 0}
     )
     """Maximum number of user that can queue for this event.
 
@@ -611,6 +611,15 @@ class Event(db.Model):
         :rtype: boolean
         """
         return self.num_taken_slots() < self.num_online_slots
+        
+    def has_free_waiting_slots(self):
+        """Check if an user can self-register to the waiting list.
+
+        :return: True if there is less waiting registrations than available
+                wainting slots.
+        :rtype: boolean
+        """
+        return len(self.waiting_registrations()) < self.num_waiting_list
 
     def free_slots(self):
         """Calculate the amount of available slot for new registrations.
