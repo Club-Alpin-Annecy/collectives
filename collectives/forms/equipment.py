@@ -88,4 +88,3 @@ class DeleteForm(FlaskForm):
     """Form for deleting an equipment"""
 
     delete = SubmitField("Supprimer")
-
