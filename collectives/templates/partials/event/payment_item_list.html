@@ -1,0 +1,10 @@
+
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+  <script type="text/javascript" > const event_id = {{event.id}} ;</script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/event/payment_item_list.js') }}"></script>
+
+  <div id="prices">
+    <h3 class="heading-3">Table des tarifs</h3>
+    <div id="payment_item_table"></div>
+  </div>

@@ -611,7 +611,7 @@ class Event(db.Model):
         :rtype: boolean
         """
         return self.num_taken_slots() < self.num_online_slots
-        
+
     def has_free_waiting_slots(self):
         """Check if an user can self-register to the waiting list.
 

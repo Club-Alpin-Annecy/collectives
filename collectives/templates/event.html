@@ -14,6 +14,8 @@
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+
   <script>
       window.onload = function () {
         const searchInput = document.getElementById('user-search');
@@ -290,6 +292,9 @@
     {% endif %}
 
     <div id="description" class="collective-display--description">{{ event.rendered_description | safe  }}</div>
+
+    {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
+    <br/>
 
     {# Administration #}
 

@@ -15,9 +15,12 @@ from ..models.payment import ItemPrice, Payment, PaymentStatus, PaymentItem
 from ..utils.numbers import format_currency
 from ..utils.payment import extract_payments
 
+
 class ItemPriceSchema(marshmallow.Schema):
+    """Schema to serialiaze a price"""
+
     total_use_count = fields.Function(lambda p: p.total_use_count())
-    """ Total number of times this price has been used, even if the 
+    """ Total number of times this price has been used, even if the
     corresponding registration is no longer active
 
     :type: string"""
@@ -199,6 +202,7 @@ def list_payments(event_id=None):
 
     return json.dumps(response), 200, {"content-type": "application/json"}
 
+
 @blueprint.route("/event/<int:event_id>/prices", methods=["GET"])
 @valid_user(True)
 @payments_enabled(True)
@@ -214,13 +218,17 @@ def list_prices(event_id):
     if not event.requires_payment():
         return abort(400)
 
-
-    result = ItemPrice.query.filter_by(enabled = True).filter(PaymentItem.event_id == event_id).all()
+    result = (
+        ItemPrice.query.filter_by(enabled=True)
+        .filter(PaymentItem.event_id == event_id)
+        .all()
+    )
 
     data = ItemPriceSchema(many=True).dump(result)
-    #response = {"data": data, "last_page": result.pages}
+    # response = {"data": data, "last_page": result.pages}
 
     return json.dumps(data), 200, {"content-type": "application/json"}
+
 
 @blueprint.route("/payments/my/<status_code>", methods=["GET"])
 @valid_user(True)
