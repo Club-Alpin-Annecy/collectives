@@ -317,7 +317,7 @@ GUIDE_TITLE = (
 
 :type: string """
 
-GUIDE_FILENAME = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
+GUIDE_FILENAME = "2022-02-01 - CAF Annecy Organisation des sorties.pdf"
 """ Guide file name to accept to register to an event of most types.
 
 :type: string """
