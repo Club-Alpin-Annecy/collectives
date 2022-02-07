@@ -63,8 +63,9 @@
     }
 
     &.button-selected {
-        background: $color-blue-primary-dark ;
-        border: 1px solid $color-blue-primary-dark;
+        background: $color-blue-primary-light;
+        color: $color-white;
+        border: 1px solid $color-blue-primary-light;
     }
 
 }

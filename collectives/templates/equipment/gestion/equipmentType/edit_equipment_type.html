@@ -1,7 +1,7 @@
-<h1 class="modal_form_title">{{ titre or 'Ajouter un type d''équipement' }}</h1>
+  <h1 class="modal_form_title">{{ title or 'Éditer un type d''équipement'}}</h1>
 
-<div class="form-errors">
-  {% for field in form %}
+  <div class="form-errors">
+    {% for field in form %}
     {% for error in form.errors[field.name] %}
 
     <div class="flash flash-error">
@@ -9,18 +9,18 @@
     </div>
 
     {% endfor %}
-  {% endfor %}
+    {% endfor %}
 
-  {% if form.generic_error %}
+    {% if form.generic_error %}
     <div class="flash flash-error">
-    <strong>Erreur :</strong> {{form.generic_error}}
+      <strong>Erreur :</strong> {{form.generic_error}}
     </div>
-  {% endif %}
-</div>
+    {% endif %}
+  </div>
 
-<div class="modal_form_container">
+  <div class="modal_form_container">
 
-  <form method="POST" action="{{route}}" enctype="multipart/form-data" class="modal_form">
+    <form method="POST" action="{{route}}" enctype="multipart/form-data" class="modal_form">
 
       {{ form.hidden_tag() }}
 
@@ -44,9 +44,14 @@
         {{ form.imageType_file }}
       </div>
 
-      {{ form.submit(class="button button-primary") }}
+        {{ form.submit(class="button button-primary") }}
 
-  </form>
+      </form>
 
-</div>
+    </div>
+
+  </div>
+
+
+
 
