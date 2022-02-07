@@ -62,6 +62,7 @@ def find_users_by_fuzzy_name(q, limit=8):
 
     return found_users
 
+
 @blueprint.route("/users/autocomplete/create_rental")
 @valid_user(True)
 @confidentiality_agreement(True)

@@ -104,7 +104,7 @@ class ReservationLine(db.Model):
                 self.equipments.append(equipment)
                 return True
         return False
-    
+
     def remove_equipment(self, equipment):
         """
         :return: True the equipment has been removed well
@@ -131,7 +131,6 @@ class ReservationLine(db.Model):
         if self.is_full():
             self.quantity += 1
         return self.add_equipment(equipment)
-
 
     def get_equipments_rented(self):
         """
@@ -384,8 +383,10 @@ class Reservation(db.Model):
         :rtype: bool"""
         if equipment:
             line = self.get_line_of_type(equipment.model.equipmentType)
-            if line.remove_equipment_decreasing_quantity(equipment) and line.quantity == 0:
+            if (
+                line.remove_equipment_decreasing_quantity(equipment)
+                and line.quantity == 0
+            ):
                 self.lines.remove(line)
                 return True
         return False
-        

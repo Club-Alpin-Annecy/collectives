@@ -166,7 +166,7 @@ class ReservationLineSchema(marshmallow.Schema):
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
-def reservation(reservation_id):
+def reservationLines(reservation_id):
     """API endpoint to list reservation lines.
 
     :return: A tuple:

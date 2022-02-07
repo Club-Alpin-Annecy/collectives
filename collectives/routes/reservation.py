@@ -16,6 +16,7 @@ from ..models import db
 from ..models import Event, RoleIds
 from ..models.reservation import Reservation, ReservationLine, ReservationStatus
 from ..forms.reservation import (
+    CancelRentalForm,
     EndLocationForm,
     LeaderReservationForm,
     NewRentalForm,
@@ -140,13 +141,24 @@ def new_rental(reservation_id=None):
             db.session.add(reservation)
             db.session.commit()
         return redirect(url_for(".new_rental", reservation_id=reservation.id))
-        
 
+    cancel_form = CancelRentalForm()
     return render_template(
         "reservation/new_rental.html",
         reservation=reservation,
         form=form,
+        cancel_form=cancel_form,
     )
+
+
+@blueprint.route("/cancel", methods=["POST"])
+@blueprint.route("/cancel/<int:reservation_id>", methods=["POST"])
+def cancel_rental(reservation_id=None):
+
+    if reservation_id:
+        reservation = Reservation.query.get(reservation_id)
+        db.session.delete(reservation)
+    return redirect(url_for(".view_reservations"))
 
 
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])

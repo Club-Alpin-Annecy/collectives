@@ -39,7 +39,7 @@
                   let id = cell.getRow().getData().id
 
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
-                  axios.post('/api/remove_reservation_equipment/'+id)
+                  axios.post('/api/remove_reservationLine_equipment/'+id+'/'+line_id)
                   .then((response)=>{
                     window.location.reload()
                   })
