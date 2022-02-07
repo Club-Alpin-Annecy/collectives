@@ -106,12 +106,13 @@ def detail_equipment_type(typeId):
         deleteForm=deleteForm,
     )
 
+
 @blueprint.route("/equipment_type/add", methods=["GET", "POST"])
 def add_equipment_type():
     """
     Route to add an equipment type
     """
-    title="Ajouter un type d'équipement"
+    title = "Ajouter un type d'équipement"
     addingFrom = EquipmentTypeForm()
     if addingFrom.validate_on_submit():
 
@@ -129,8 +130,9 @@ def add_equipment_type():
     return render_template(
         "equipment/gestion/equipmentType/add_equipment_type.html",
         form=addingFrom,
-        title=title
+        title=title,
     )
+
 
 @blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
 def edit_equipment_type(typeId):
@@ -229,6 +231,7 @@ def stock_situation_stock():
         deleteForm=deleteForm,
     )
 
+
 @blueprint.route("/stock/add", methods=["GET", "POST"])
 def add_equipment():
     """
@@ -241,7 +244,7 @@ def add_equipment():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
-    title="Ajouter un équipement"
+    title = "Ajouter un équipement"
     addEquipmentForm = EquipmentForm()
 
     if addEquipmentForm.validate_on_submit():
@@ -255,11 +258,10 @@ def add_equipment():
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
 
-
     return render_template(
         "equipment/gestion/equipment/add_equipment.html",
         form=addEquipmentForm,
-        title=title
+        title=title,
     )
 
 
