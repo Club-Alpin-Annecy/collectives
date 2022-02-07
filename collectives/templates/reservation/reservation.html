@@ -15,6 +15,11 @@
 
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
+  {# Equipment autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -44,6 +49,34 @@
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
+      {% if not reservation.is_full() %}
+      <div class="controls">
+        <form action="" method="post">
+          {{ form_add.hidden_tag() }}
+          {{ form_add.add_equipment.label }}
+            <input type="text" id="new-equipment" placeholder="Référence">
+          {{ form_add.add_equipment(value=0) }}
+        </form>
+
+      </div>
+      <script>
+        window.onload = function () {
+          const searchInput = document.getElementById('new-equipment');
+          setupAutoComplete(
+          searchInput,
+          '{{url_for("api.autocomplete_availables_equipments") | safe}}',
+          function(item) {
+            return item.reference;
+          },
+          function(id, val) {
+            var field = document.getElementById('{{form_add.add_equipment.id}}');
+            field.value = id;
+            field.form.submit();
+          }
+          );
+        }
+      </script>
+      {% endif %}
     {% endif %}
 
     {% if reservation.is_ongoing() and reservation.can_be_completed() %}
@@ -56,6 +89,8 @@
     {% if not reservation.is_completed() %}
     <h1>{{reservation.get_ratio_equipments()}}</h1>
     {% endif %}
+
+    
 
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>

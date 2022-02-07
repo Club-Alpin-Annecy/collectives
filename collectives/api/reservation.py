@@ -396,7 +396,8 @@ def find_equipments_by_reference(q):
 
 
 @blueprint.route("/reservation/autocomplete/<int:line_id>")
-def autocomplete_availables_equipments(line_id):
+@blueprint.route("/reservation/autocomplete")
+def autocomplete_availables_equipments(line_id=None):
     """API endpoint to list equipment in a reservation line.
 
     :return: A tuple:
@@ -407,15 +408,24 @@ def autocomplete_availables_equipments(line_id):
 
     :rtype: (string, int, dict)
     """
-    eType = ReservationLine.query.get(line_id).equipmentType
 
-    equipments_of_type = eType.get_all_equipments_availables()
     q = request.args.get("q")
+
     equipments_of_autocomplete = []
     if q:
         equipments_of_autocomplete = find_equipments_by_reference(q)
 
-    query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+    if line_id:
+        eType = ReservationLine.query.get(line_id).equipmentType
+        equipments_of_type = eType.get_all_equipments_availables()
+        query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+    else:
+        equipments_availables = Equipment.query.filter_by(
+            status=EquipmentStatus.Available
+        )
+        query = list(
+            set(equipments_availables).intersection(equipments_of_autocomplete)
+        )
 
     data = EquipmentSchema(many=True).dump(query)
 
