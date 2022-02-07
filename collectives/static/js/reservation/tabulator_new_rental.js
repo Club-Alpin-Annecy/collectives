@@ -34,13 +34,14 @@
             formatter:"buttonCross",
             headerSort:false,
             cellClick:function(e, cell){
-              if(confirm('Voulez-vous vraiment retirer cet équipement de cet réservation ?')) {
+              if(confirm('Voulez-vous vraiment retirer cet équipement de cet réservation ???????')) {
 
                   let id = cell.getRow().getData().id
 
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
-                  axios.post('/api/remove_reservation_equipment/'+id)
+                  axios.post('/api/remove_reservation_equipment/'+id+'/'+reservation_id)
                   .then((response)=>{
+                    console.log(response)
                     window.location.reload()
                   })
 

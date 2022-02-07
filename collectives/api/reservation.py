@@ -292,10 +292,14 @@ def set_available_equipment(equipment_id):
 
 
 @blueprint.route(
+    "/remove_reservation_equipment/<int:equipment_id>/<int:reservation_id>",
+    methods=["POST"],
+)
+@blueprint.route(
     "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",
     methods=["POST"],
 )
-def remove_reservationLine_equipment(equipment_id, line_id):
+def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None):
     """
     API endpoint to remove an equipment from a réservation.
 
@@ -307,10 +311,13 @@ def remove_reservationLine_equipment(equipment_id, line_id):
 
     :rtype: (string, int, dict)
     """
-    line = ReservationLine.query.get(line_id)
     equipment = Equipment.query.get(equipment_id)
-    line.equipments.remove(equipment)
-    equipment.status = EquipmentStatus.Available
+    if reservation_id:
+        reservation = Reservation.query.get(reservation_id)
+        reservation.remove_equipment_decreasing_quantity(equipment)
+    else:
+        line = ReservationLine.query.get(line_id)
+        line.remove_equipment(equipment)
     db.session.commit()
 
     return (

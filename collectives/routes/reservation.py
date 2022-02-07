@@ -9,6 +9,7 @@ from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
 from collectives.models.equipment import Equipment
+from collectives.models.user import User
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
 from ..models import db
@@ -132,10 +133,14 @@ def new_rental(reservation_id=None):
         equipment = Equipment.query.get(form.add_equipment.data)
         if equipment:
             reservation.add_equipment(equipment)
-            if not reservation_id:
-                db.session.add(reservation)
-                db.session.commit()
-            return redirect(url_for(".new_rental", reservation_id=reservation.id))
+
+        user = User.query.get(form.user.data)
+        reservation.set_user(user)
+        if not reservation_id:
+            db.session.add(reservation)
+            db.session.commit()
+        return redirect(url_for(".new_rental", reservation_id=reservation.id))
+        
 
     return render_template(
         "reservation/new_rental.html",

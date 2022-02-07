@@ -20,6 +20,8 @@
 <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
 <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+{# Axios #}
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 {% endblock %}
 
@@ -30,24 +32,39 @@
         {{ form.add_equipment.label }}
             <input type="text" id="new-equipment" placeholder="Référence">
         {{ form.add_equipment(value=0) }}
+
+        {{ form.user.label }}
+            <input type="text" id="new-user" placeholder="Nom d'adhérent">
+        {{ form.user(value=0) }}
     </form>
 
     <div id="equipment-table"></div>
 
     <script>
         window.onload = function () {
-          const searchInput = document.getElementById('new-equipment');
           setupAutoComplete(
-          searchInput,
-          '{{url_for("api.autocomplete_availables_equipments") | safe}}',
-          function(item) {
-            return item.reference;
-          },
-          function(id, val) {
-            var field = document.getElementById('{{form.add_equipment.id}}');
-            field.value = id;
-            field.form.submit();
-          }
+            document.getElementById('new-equipment'),
+            '{{url_for("api.autocomplete_availables_equipments") | safe}}',
+            function(item) {
+              return item.reference;
+            },
+            function(id, val) {
+              var field = document.getElementById('{{form.add_equipment.id}}');
+              field.value = id;
+              field.form.submit();
+            }
+          );
+          setupAutoComplete(
+            document.getElementById('new-user'),
+            '{{url_for("api.autocomplete_users_create_rental") | safe}}',
+            function(item) {
+              return item.full_name;
+            },
+            function(id, val) {
+              var field = document.getElementById('{{form.user.id}}');
+              field.value = id;
+              field.form.submit();
+            }
           );
         }
       </script>
@@ -55,7 +72,9 @@
       {% if reservation.id %}
         <script>
             let ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
+            const token_csrf = "{{ csrf_token() }}";
+            let reservation_id = "{{reservation.id}}"
         </script>
-      <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_line.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/reservation/tabulator_new_rental.js') }}"></script>
       {% endif %}
 {% endblock %}

@@ -272,12 +272,19 @@ class Equipment(db.Model):
 
     def set_status_to_rented(self):
         """
-        :return: True if the equipment is rented
+        :return: True if the equipment has been set to rented
         :rtype: bool"""
         if self.is_available():
             self.status = EquipmentStatus.Rented
             return True
         return False
+
+    def set_status_to_available(self):
+        """
+        :return: True if the equipment has been set to Available
+        :rtype: bool"""
+        self.status = EquipmentStatus.Available
+        return True
 
     def is_available(self):
         """
