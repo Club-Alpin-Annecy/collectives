@@ -44,13 +44,14 @@
 
   <div class="panel">
 
-    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+    <h3>
+      <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
       <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
     </h3>
 
     <h4>STOCK</h4>
 
-    <p class="button button-primary button-small button-open-modal">Ajouter</p>
+    <a href="{{ url_for('equipment.add_equipment')}}" class="button button-primary button-small"> Ajouter </a>
 
     <div id="equipment-table"></div>
     <script>
@@ -59,15 +60,6 @@
 
     <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment.js') }}"></script>
   </div>
-
-    {% with form=addEquipmentForm, route=url_for("equipment.stock_situation_stock"),
-    includePath='equipment/gestion/equipment/edit_equipment.html', titre="Ajouter un équipement" %}
-
-      {% include 'partials/modal.html' %}
-
-    {% endwith %}
-
-
 
 
 {% endblock %}
