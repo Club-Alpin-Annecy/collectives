@@ -1,6 +1,6 @@
       //initialize table
-      let table = new Tabulator("#reservations-table", {
-        ajaxURL:ajaxURL,
+      let tableReservations = new Tabulator("#my-reservation-table", {
+        ajaxURL:ajaxURLMyReservation,
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
         tooltips:true,            //show tool tips on cells
@@ -14,7 +14,7 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.reservationURL
+          location = row._row.data.reservationURLUser
       },
         columns:[
           {
@@ -34,9 +34,9 @@
             },
           },
           {
-            title:"Utilisateur",
+            title:"Licence",
             headerFilter:"input",
-            field:"userFullname",
+            field:"userLicence",
           },
           {
             title:"État",

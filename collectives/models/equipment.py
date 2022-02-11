@@ -132,7 +132,7 @@ class EquipmentType(db.Model):
         nbTotalUnavailable = 0
         for aModel in self.models:
             for aEquipment in aModel.equipments:
-                if aEquipment.status == EquipmentStatus.Unavailable:
+                if aEquipment.status != EquipmentStatus.Available:
                     nbTotalUnavailable += 1
 
         return nbTotalUnavailable
@@ -174,6 +174,10 @@ class EquipmentModel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     """Name of this type.
 
+    :type: string"""
+
+    manufacturer = db.Column(db.String(50))
+    """Manufacturer of this equipment.
     :type: string"""
 
     equipments = db.relationship(
@@ -222,10 +226,6 @@ class Equipment(db.Model):
 
     :type: float"""
 
-    manufacturer = db.Column(db.String(50))
-    """Manufacturer of this equipment.
-    :type: string"""
-
     serial_number = db.Column(db.String(50))
     """Serial number of this equipment.
     :type: String"""
@@ -253,11 +253,38 @@ class Equipment(db.Model):
         back_populates="equipments",
     )
 
+    def get_reservations(self):
+        """
+        :return: List of all the reservations related to this equipment
+        :rtype: list[:py:class:`collectives.models.reservation.Reservation]
+        """
+        reservations = []
+        for aReservationLine in self.reservationLines:
+            reservations.append(aReservationLine.reservation)
+
+        return reservations
+
     def is_rented(self):
         """
         :return: True if the equipment is rented
         :rtype: bool"""
         return self.status == EquipmentStatus.Rented
+
+    def set_status_to_rented(self):
+        """
+        :return: True if the equipment has been set to rented
+        :rtype: bool"""
+        if self.is_available():
+            self.status = EquipmentStatus.Rented
+            return True
+        return False
+
+    def set_status_to_available(self):
+        """
+        :return: True if the equipment has been set to Available
+        :rtype: bool"""
+        self.status = EquipmentStatus.Available
+        return True
 
     def is_available(self):
         """

@@ -33,7 +33,8 @@
 
   <div class="panel" id="equipmentDetail">
 
-    <h3><a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
+    <h3>
+      <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
       <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
     </h3>
 
@@ -52,8 +53,8 @@
         <div class="container_equipmentInfo_txt">
           <div class="container_main_info">
             <h5>Informations :</h5>
-            <p> <span class="type_info">Fabricant :</span>  {{ equipment.manufacturer or "Non renseigné" }} </p>
-            <p> <span class="type_info">Référence :</span>  {{ equipment.reference }} </p>
+            <p> <span class="type_info">Fabricant :</span>  {{ equipment.model.manufacturer or "Non renseigné" }} </p>
+            <p> <span class="type_info">Référence interne :</span>  {{ equipment.reference }} </p>
             <p> <span class="type_info">N° de série :</span>  {{ equipment.serial_number or "Non renseigné" }} </p>
             <p> <span class="type_info">Type :</span>  {{ equipment.model.equipmentType.name }} </p>
             <p> <span class="type_info">Modèle :</span>  {{ equipment.model.name }} </p>
@@ -82,6 +83,11 @@
 
     <h4>Historique de révision</h4>
     <h4>Historique de location</h4>
+    <div id="reservations-table"></div>
+    <script>
+      var ajaxURL = "{{url_for('api.equipment_histo_reservations', equipment_id=equipment.id)}}";
+    </script>
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservations.js') }}"></script>
 
     <div class="administration">
       <h4>Administration</h4>

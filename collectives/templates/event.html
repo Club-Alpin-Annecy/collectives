@@ -210,10 +210,6 @@
         {% elif current_time > event.registration_close_time %}
         <p>Les inscriptions sont closes.</p>
         {% endif %}
-
-        {% if current_user.can_create_events() %}
-        <a href="{{url_for('reservation.register', event_id=event.id, role_id=10)}}" class="button button-primary">Réserver du matériel en tant qu'encadrant</a>
-        {% endif %}
     </div>
 
 
@@ -256,6 +252,13 @@
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
           </a>
+
+          {% if current_user.can_create_events() %}
+          <a href="{{url_for('reservation.register', event_id=event.id, role_id=10)}}" class="button button-secondary">
+            <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon" />
+            Réserver du matériel en tant qu'encadrant
+          </a>
+          {% endif %}
 
           {% if event.has_delete_rights(current_user) and not event.has_payments() %}
             <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">

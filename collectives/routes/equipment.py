@@ -61,26 +61,12 @@ def display_all_type():
     """
     Show all the equipment types and a form for to add one
     """
-    addingFrom = EquipmentTypeForm()
-    if addingFrom.validate_on_submit():
 
-        new_equipment_type = EquipmentType()
-
-        new_equipment_type.name = addingFrom.name.data
-        new_equipment_type.price = float(addingFrom.price.data)
-        new_equipment_type.deposit = float(addingFrom.deposit.data)
-        new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
-
-        db.session.add(new_equipment_type)
-        db.session.commit()
-        return redirect(url_for(".display_all_type"))
-
-    list_equipmentt_type = EquipmentType.query.all()
+    list_equipment_type = EquipmentType.query.all()
 
     return render_template(
         "equipment/gestion/equipmentType/equipment_types.html",
-        list_equipmentt_type=list_equipmentt_type,
-        addingFrom=addingFrom,
+        list_equipmentt_type=list_equipment_type,
     )
 
 
@@ -93,6 +79,7 @@ def detail_equipment_type(typeId):
     if adding_from_model.validate_on_submit():
         new_equipment_model = EquipmentModel()
         new_equipment_model.name = adding_from_model.name.data
+        new_equipment_model.manufacturer = adding_from_model.manufacturer.data
         new_equipment_model.equipment_type_id = typeId
         db.session.add(new_equipment_model)
         db.session.commit()
@@ -117,6 +104,33 @@ def detail_equipment_type(typeId):
         adding_from_model=adding_from_model,
         formEdit=formEdit,
         deleteForm=deleteForm,
+    )
+
+
+@blueprint.route("/equipment_type/add", methods=["GET", "POST"])
+def add_equipment_type():
+    """
+    Route to add an equipment type
+    """
+    title = "Ajouter un type d'équipement"
+    addingFrom = EquipmentTypeForm()
+    if addingFrom.validate_on_submit():
+
+        new_equipment_type = EquipmentType()
+
+        new_equipment_type.name = addingFrom.name.data
+        new_equipment_type.price = float(addingFrom.price.data)
+        new_equipment_type.deposit = float(addingFrom.deposit.data)
+        new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
+
+        db.session.add(new_equipment_type)
+        db.session.commit()
+        return redirect(url_for(".display_all_type"))
+
+    return render_template(
+        "equipment/gestion/equipmentType/add_equipment_type.html",
+        form=addingFrom,
+        title=title,
     )
 
 
@@ -170,6 +184,7 @@ def edit_equipment_model(typeId, modelId):
     if formEditModel.validate_on_submit():
 
         equipmentModelModified.name = formEditModel.name.data
+        equipmentModelModified.manufacturer = formEditModel.manufacturer.data
         equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
@@ -206,6 +221,30 @@ def stock_situation_stock():
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
+    equipmentTypeList = EquipmentType.query.all()
+
+    deleteForm = DeleteForm()
+
+    return render_template(
+        "equipment/gestion/equipment/equipments.html",
+        equipmentTypeList=equipmentTypeList,
+        deleteForm=deleteForm,
+    )
+
+
+@blueprint.route("/stock/add", methods=["GET", "POST"])
+def add_equipment():
+    """
+    Route to add an equipment
+    """
+
+    if not current_user.matching_roles(
+        [RoleIds.EquipmentManager, RoleIds.Administrator]
+    ):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
+    title = "Ajouter un équipement"
     addEquipmentForm = EquipmentForm()
 
     if addEquipmentForm.validate_on_submit():
@@ -215,20 +254,14 @@ def stock_situation_stock():
         new_equipment.serial_number = addEquipmentForm.serial_number.data
         new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
         new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
-        new_equipment.manufacturer = addEquipmentForm.manufacturer.data
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
 
-    equipmentTypeList = EquipmentType.query.all()
-
-    deleteForm = DeleteForm()
-
     return render_template(
-        "equipment/gestion/equipment/equipments.html",
-        equipmentTypeList=equipmentTypeList,
-        addEquipmentForm=addEquipmentForm,
-        deleteForm=deleteForm,
+        "equipment/gestion/equipment/add_equipment.html",
+        form=addEquipmentForm,
+        title=title,
     )
 
 
@@ -247,7 +280,6 @@ def detail_equipment(equipment_id):
         equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
         equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
         equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
-        equipmentSelected.manufacturer = editEquipmentForm.manufacturer.data
         db.session.commit()
         return redirect(url_for(".detail_equipment", equipment_id=equipment_id))
 

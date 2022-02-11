@@ -137,6 +137,12 @@
                                 </a>
                             </li>
                             {% endif %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('reservation.my_reservations')}}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-bag.svg') }}"  class="legacy-icon" />
+                                    Mes Locations
+                                </a>
+                            </li>
                             {% if config["PAYMENTS_ENABLED"] %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.my_payments')}}" class="menu-dropdown-item-link">

@@ -14,7 +14,7 @@
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
-  {# Leader autocomplete #}
+  {# Equipment autocomplete #}
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
@@ -29,7 +29,7 @@
 
     <h3>
       <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
-      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION {{ reservationLine.reservation.id }} </span> </a>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservationLine.reservation.id }} </span> </a>
     </h3>
 
     <h4>{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
@@ -58,7 +58,7 @@
 
   <script>
     var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
-    const token_csrf = "{{ csrf_token() }}" ;
+    const token_csrf = "{{ csrf_token() }}";
     const line_id = "{{reservationLine.id}}"
 
     window.onload = function () {

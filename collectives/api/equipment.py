@@ -78,15 +78,6 @@ class EquipmentTypeSchema(marshmallow.Schema):
         )
 
 
-class EquipmentModelSchema(marshmallow.Schema):
-    """Schema to describe equipment model"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = ("id", "name")
-
-
 @blueprint.route("/equipmentType")
 def equipmentTypes():
     """API endpoint to list equipment types.
@@ -105,6 +96,78 @@ def equipmentTypes():
 
     data = EquipmentTypeSchema(many=True).dump(query)
     return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+class EquipmentModelSchema(marshmallow.Schema):
+    """Schema to describe equipment model"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "name", "manufacturer")
+
+
+@blueprint.route("/modelsfromtype/<int:typeId>")
+def equipmentModel(typeId):
+    """API endpoint to list equipment models.
+
+    It can be filtered using tabulator filter and sorter.
+
+    :return: A tuple:
+
+        - JSON containing information describe in EquipmentModelSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = EquipmentType.query.get(typeId).models
+    data = EquipmentModelSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route(
+    "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
+)
+def equipmentModelEdit(model_id, name, manufacturer):
+    """
+    API endpoint to edit a model.
+
+    :return: A tuple:
+
+        - JSON containing information if OK
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    model = EquipmentModel.query.get(model_id)
+    model.name = name
+    model.manufacturer = manufacturer
+    db.session.commit()
+
+    return "{'response': 'Model Edit OK'}", 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
+def equipmentModelDelete(model_id):
+    """
+    API endpoint to delete a model.
+
+    :return: A tuple:
+
+        - JSON containing information if OK
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    model = EquipmentModel.query.get(model_id)
+    db.session.delete(model)
+
+    return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}
 
 
 class EquipmentSchema(marshmallow.Schema):
@@ -157,63 +220,3 @@ def equipment():
     data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
-
-
-@blueprint.route("/modelsfromtype/<int:typeId>")
-def equipmentModel(typeId):
-    """API endpoint to list equipment models.
-
-    It can be filtered using tabulator filter and sorter.
-
-    :return: A tuple:
-
-        - JSON containing information describe in EquipmentModelSchema
-        - HTTP return code : 200
-        - additional header (content as JSON)
-
-    :rtype: (string, int, dict)
-    """
-
-    query = EquipmentType.query.get(typeId).models
-    data = EquipmentModelSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
-
-
-@blueprint.route("/modelEdit/<int:model_id>/<string:name>", methods=["POST"])
-def equipmentModelEdit(model_id, name):
-    """
-    API endpoint to edit a model.
-
-    :return: A tuple:
-
-        - JSON containing information if OK
-        - HTTP return code : 200
-        - additional header (content as JSON)
-
-    :rtype: (string, int, dict)
-    """
-    model = EquipmentModel.query.get(model_id)
-    model.name = name
-    db.session.commit()
-
-    return "{'response': 'Model Edit OK'}", 200, {"content-type": "application/json"}
-
-
-@blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
-def equipmentModelDelete(model_id):
-    """
-    API endpoint to delete a model.
-
-    :return: A tuple:
-
-        - JSON containing information if OK
-        - HTTP return code : 200
-        - additional header (content as JSON)
-
-    :rtype: (string, int, dict)
-    """
-    model = EquipmentModel.query.get(model_id)
-    db.session.delete(model)
-
-    return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}

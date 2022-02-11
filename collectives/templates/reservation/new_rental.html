@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+{% block title %}Reservations{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+
+
+{# Tabulator: for tables#}
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+{# Equipment autocomplete #}
+<script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+<link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+{# Axios #}
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="panel">
+
+    <h3>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+      <span class="title_second_path">/ Nouvelle location</span>
+    </h3>
+
+    
+    <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
+      {{ cancel_form.hidden_tag() }}
+      {{ cancel_form.cancel(class="button button-danger") }}
+    </form>
+    
+    {% if not reservation.user %}
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      {{ form.user.label }}
+      <input type="text" id="new-user" placeholder="Nom d'adhérent">
+      {{ form.user(value=0) }}
+    </form>
+    
+    {% else %}
+    <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="button button-primary">Valider</a>
+
+    
+    <h4>INFORMATIONS UTILISATEUR</h4>
+    <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
+    <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
+    <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
+    
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      <label for="user">Changer d'hadhérent</label>
+      <input type="text" id="new-user" placeholder="Nom d'adhérent">
+      {{ form.user(value=0) }}
+
+      {{ form.hidden_tag() }}
+      {{ form.add_equipment.label }}
+      <input type="text" id="new-equipment" placeholder="Référence">
+      {{ form.add_equipment(value=0) }}
+    </form>
+    
+    
+    <div id="equipment-table"></div>
+    
+    {% endif %}
+  </div>
+  
+      <script>
+        window.onload = function () {
+          setupAutoComplete(
+            document.getElementById('new-equipment'),
+            '{{url_for("api.autocomplete_availables_equipments") | safe}}',
+            function(item) {
+              return item.reference;
+            },
+            function(id, val) {
+              var field = document.getElementById('{{form.add_equipment.id}}');
+              field.value = id;
+              field.form.submit();
+            }
+            );
+            setupAutoComplete(
+              document.getElementById('new-user'),
+              '{{url_for("api.autocomplete_users_create_rental") | safe}}',
+              function(item) {
+                return item.full_name;
+              },
+              function(id, val) {
+              var field = document.getElementById('{{form.user.id}}');
+              field.value = id;
+              field.form.submit();
+            }
+            );
+        }
+      </script>
+      
+      {% if reservation.id %}
+      <script>
+        let ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
+        const token_csrf = "{{ csrf_token() }}";
+        let reservation_id = "{{reservation.id}}"
+      </script>
+      <script src="{{ url_for('static', filename='js/reservation/tabulator_new_rental.js') }}"></script>
+      {% endif %}
+{% endblock %}

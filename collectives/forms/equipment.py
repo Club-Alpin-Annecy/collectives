@@ -2,7 +2,7 @@
 """
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
+from wtforms import StringField, SubmitField, DateField, SelectField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
 
@@ -43,10 +43,10 @@ class EquipmentModelForm(FlaskForm):
 
     class Meta:
         model = EquipmentModel
-        only = ["name", "equipmentType"]
+        only = ["name", "equipmentType", "manufacturer"]
 
     name = StringField("Modèle d'équipement :")
-
+    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
     submit = SubmitField("Enregistrer")
 
 
@@ -73,7 +73,6 @@ class EquipmentForm(FlaskForm):
     equipment_model_id = SelectField(
         label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
-    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
 
     submit = SubmitField("Enregistrer")
 
@@ -88,9 +87,3 @@ class DeleteForm(FlaskForm):
     """Form for deleting an equipment"""
 
     delete = SubmitField("Supprimer")
-
-
-class AddEquipmentInReservation(FlaskForm):
-    """Form to add an equipment in a reservation"""
-
-    add_equipment = HiddenField("Ajouter un equipment")

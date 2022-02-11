@@ -1,5 +1,5 @@
       //initialize table
-      let table = new Tabulator("#reservations-table", {
+      let table = new Tabulator("#reservation-table", {
         ajaxURL:ajaxURL,
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
@@ -13,36 +13,17 @@
         initialSort:[             //set the initial sort order of the data
             {column:"name", dir:"asc"},
         ],
-        rowClick: function (e, row) {
-          location = row._row.data.reservationURL
-      },
         columns:[
           {
-            title:"Date de collecte",
+            title:"Quantité",
             headerFilter:"input",
-            field:"collect_date",
-            formatter:"datetime", formatterParams:{
-              outputFormat:"DD/MM/YYYY"
-            },
+            field:"quantity"
           },
           {
-            title:"Date de retour",
+            title:"Type d'équipement",
             headerFilter:"input",
-            field:"return_date",
-            formatter:"datetime", formatterParams:{
-              outputFormat:"DD/MM/YYYY"
-            },
+            field:"equipmentTypeName",
           },
-          {
-            title:"Utilisateur",
-            headerFilter:"input",
-            field:"userFullname",
-          },
-          {
-            title:"État",
-            headerFilter:"input",
-            field:"statusName",
-          },
-
         ],
+         //create columns from data field names
       });
