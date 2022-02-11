@@ -28,7 +28,7 @@ from .common import blueprint, marshmallow
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe a reservation"""
 
-    userLicence = fields.Function(lambda obj: obj.user.license)
+    userLicence = fields.Function(lambda obj: obj.user.license if obj.user else "")
     statusName = fields.Function(lambda obj: obj.status.display_name())
     userFullname = fields.Function(lambda obj: obj.user.full_name())
     reservationURL = fields.Function(
@@ -167,7 +167,7 @@ class ReservationLineSchema(marshmallow.Schema):
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
-def reservation(reservation_id):
+def reservationLines(reservation_id):
     """API endpoint to list reservation lines.
 
     :return: A tuple:
@@ -182,6 +182,26 @@ def reservation(reservation_id):
     query = Reservation.query.get(reservation_id).lines
 
     data = ReservationLineSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservation/new_rental/<int:reservation_id>")
+def new_rental(reservation_id):
+    """API endpoint to list reservation lines.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationLineSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Reservation.query.get(reservation_id).get_equipments()
+
+    data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
@@ -273,10 +293,14 @@ def set_available_equipment(equipment_id):
 
 
 @blueprint.route(
+    "/remove_reservation_equipment/<int:equipment_id>/<int:reservation_id>",
+    methods=["POST"],
+)
+@blueprint.route(
     "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",
     methods=["POST"],
 )
-def remove_reservationLine_equipment(equipment_id, line_id):
+def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None):
     """
     API endpoint to remove an equipment from a réservation.
 
@@ -288,10 +312,13 @@ def remove_reservationLine_equipment(equipment_id, line_id):
 
     :rtype: (string, int, dict)
     """
-    line = ReservationLine.query.get(line_id)
     equipment = Equipment.query.get(equipment_id)
-    line.equipments.remove(equipment)
-    equipment.status = EquipmentStatus.Available
+    if reservation_id:
+        reservation = Reservation.query.get(reservation_id)
+        reservation.remove_equipment_decreasing_quantity(equipment)
+    else:
+        line = ReservationLine.query.get(line_id)
+        line.remove_equipment(equipment)
     db.session.commit()
 
     return (

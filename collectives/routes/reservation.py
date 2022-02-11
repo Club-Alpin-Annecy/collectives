@@ -8,17 +8,20 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
-from collectives.forms.equipment import AddEquipmentInReservation
 from collectives.models.equipment import Equipment
+from collectives.models.user import User
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
 from ..models import db
 from ..models import Event, RoleIds
 from ..models.reservation import Reservation, ReservationLine, ReservationStatus
 from ..forms.reservation import (
+    CancelRentalForm,
     EndLocationForm,
     LeaderReservationForm,
+    NewRentalForm,
     ReservationToLocationForm,
+    AddEquipmentInReservationForm,
 )
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
@@ -85,7 +88,7 @@ def view_reservation(reservation_id=None):
     form = None
     form_add = None
     if reservation.is_planned():
-        form_add = AddEquipmentInReservation()
+        form_add = AddEquipmentInReservationForm()
         if form_add.validate_on_submit():
             equipment = Equipment.query.get(form_add.add_equipment.data)
             if equipment:
@@ -114,6 +117,50 @@ def view_reservation(reservation_id=None):
     )
 
 
+@blueprint.route("/new", methods=["GET", "POST"])
+@blueprint.route("/new/<int:reservation_id>", methods=["GET", "POST"])
+def new_rental(reservation_id=None):
+    """
+    Create a new Rental from no reservation
+    """
+
+    reservation = (
+        Reservation()
+        if reservation_id is None
+        else Reservation.query.get(reservation_id)
+    )
+    form = NewRentalForm()
+    if form.validate_on_submit():
+        equipment = Equipment.query.get(form.add_equipment.data)
+        if equipment:
+            reservation.add_equipment(equipment)
+
+        user = User.query.get(form.user.data)
+        reservation.set_user(user)
+        if not reservation_id:
+            db.session.add(reservation)
+            db.session.commit()
+        return redirect(url_for(".new_rental", reservation_id=reservation.id))
+
+    cancel_form = CancelRentalForm()
+    return render_template(
+        "reservation/new_rental.html",
+        reservation=reservation,
+        form=form,
+        cancel_form=cancel_form,
+    )
+
+
+@blueprint.route("/cancel", methods=["POST"])
+@blueprint.route("/cancel/<int:reservation_id>", methods=["POST"])
+def cancel_rental(reservation_id=None):
+
+    if reservation_id:
+        reservation = Reservation.query.get(reservation_id)
+        db.session.delete(reservation)
+    return redirect(url_for(".view_reservations"))
+
+
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])
 def view_reservationLine(reservationLine_id):
     """
@@ -121,7 +168,7 @@ def view_reservationLine(reservationLine_id):
     """
     reservationLine = ReservationLine.query.get(reservationLine_id)
     if reservationLine.reservation.status == ReservationStatus.Planned:
-        form = AddEquipmentInReservation()
+        form = AddEquipmentInReservationForm()
         if form.validate_on_submit():
             equipment = Equipment.query.get(form.add_equipment.data)
             reservationLine.add_equipment(equipment)

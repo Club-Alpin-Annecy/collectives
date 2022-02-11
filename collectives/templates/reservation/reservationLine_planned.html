@@ -58,7 +58,7 @@
 
   <script>
     var ajaxURL = "{{url_for('api.reservation_line', line_id=reservationLine.id)}}";
-    const token_csrf = "{{ csrf_token() }}" ;
+    const token_csrf = "{{ csrf_token() }}";
     const line_id = "{{reservationLine.id}}"
 
     window.onload = function () {

@@ -31,7 +31,7 @@
       <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservation.id }} </span> </a>
     </h3>
 
-    <h4>INFORMATIONS UTILISATEURS</h4>
+    <h4>INFORMATIONS UTILISATEUR</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
@@ -99,7 +99,7 @@
 
 
     <script>
-        var ajaxURL = "{{url_for('api.reservation', reservation_id=reservation.id)}}";
+        var ajaxURL = "{{url_for('api.reservationLines', reservation_id=reservation.id)}}";
     </script>
 
     {% if not reservation.is_completed() %}
