@@ -236,6 +236,8 @@ class Reservation(db.Model):
     """ Primary key of the related user (see  :py:class:`collectives.models.event.Event`).
     :type: int"""
 
+    event = db.relationship("Event", back_populates="reservations")
+
     lines = db.relationship(
         "ReservationLine",
         lazy="select",

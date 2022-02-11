@@ -3,14 +3,14 @@
 This modules contains the /reservation Blueprint
 """
 
-
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
-
+from wtforms import IntegerField
 from collectives.models.equipment import Equipment
 from collectives.models.user import User
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
+from collectives.models.equipment import Equipment, EquipmentType
 
 from ..models import db
 from ..models import Event, RoleIds
@@ -232,13 +232,15 @@ def manage_reservation(reservation_id=None):
     )
 
 
-@blueprint.route("/<int:event_id>/<int:role_id>/register", methods=["GET"])
-def register(event_id=None, role_id=None):
+@blueprint.route(
+    "event/<int:event_id>/role/<int:role_id>/register", methods=["GET", "POST"]
+)
+def register(event_id, role_id=None):
     """Page for user to create a new reservation.
 
     The displayed form depends on the role_id, a leader can create an reservation without paying
     and without a max number of equipment.
-    The reservation will relate to the event of event_id.
+    The reservation will related to the event of event_id.
 
     :param int role_id: Role that the user wishes to register has.
     :param int event_id: Primary key of the related event.
@@ -253,18 +255,59 @@ def register(event_id=None, role_id=None):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not role.relates_to_activity():
-        flash("Role not implemented yet")
+        flash("Role non implémenté")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    event = Reservation() if event_id is None else Event.query.get(event_id)
-    form = LeaderReservationForm()
+    event = Event.query.get(event_id)
+    # print("\nREQUEST FORM -", request.form)
 
-    if not form.validate_on_submit():
-        return render_template(
-            "reservation/editreservation.html", form=form, event=event
+    class F(LeaderReservationForm):
+        """Empty class to create fields dynamically"""
+
+        pass
+
+    for e in EquipmentType.query.all():
+        field = IntegerField(f"{e.name}", default=0)
+        setattr(F, f"field{e.id}", field)
+
+    form = F(obj=event)
+
+    if form.is_submitted():
+        if not form.validate():
+            flash("La réservation est incorrecte")
+            return render_template(
+                "reservation/editreservation.html",
+                event=event,
+                role_id=role_id,
+                form=form,
+            )
+
+        reservation = Reservation()
+        for e in EquipmentType.query.all():
+            quantity = getattr(form, f"field{e.id}").data
+            if quantity <= 0:
+                continue
+            resa_line = ReservationLine()
+            resa_line.reservation_id = reservation.id
+            resa_line.quantity = quantity
+            resa_line.equipment_type_id = e.id
+            reservation.lines.append(resa_line)
+
+        reservation.event = event
+        reservation.user = current_user
+        reservation.collect_date = form.collect_date.data
+        db.session.add(reservation)
+        db.session.commit()
+
+        return redirect(
+            url_for("reservation.view_reservation", reservation_id=reservation.id)
         )
-
-    return redirect(url_for("reservation.view_reservations"))
+    return render_template(
+        "reservation/editreservation.html",
+        event=event,
+        role_id=role_id,
+        form=form,
+    )
 
 
 @blueprint.route("/my_reservations", methods=["GET"])

@@ -198,6 +198,15 @@ class Event(db.Model):
 
     :type: :py:class:`collectives.models.user.User`"""
 
+    reservations = db.relationship(
+        "Reservation",
+        back_populates="event",
+    )
+    """ Reservations linked to this event.
+
+    :type: list(:py:class:`collectives.models.reservation.Reservation`)
+    """
+
     payment_items = db.relationship(
         "PaymentItem", backref="event", lazy=True, cascade="all, delete-orphan"
     )
