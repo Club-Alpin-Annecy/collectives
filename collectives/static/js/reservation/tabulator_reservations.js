@@ -21,11 +21,17 @@
             title:"Date de collecte",
             headerFilter:"input",
             field:"collect_date",
+            formatter:"datetime", formatterParams:{
+              outputFormat:"DD/MM/YYYY"
+            },
           },
           {
             title:"Date de retour",
             headerFilter:"input",
             field:"return_date",
+            formatter:"datetime", formatterParams:{
+              outputFormat:"DD/MM/YYYY"
+            },
           },
           {
             title:"Utilisateur",
