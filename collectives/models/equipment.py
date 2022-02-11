@@ -132,7 +132,7 @@ class EquipmentType(db.Model):
         nbTotalUnavailable = 0
         for aModel in self.models:
             for aEquipment in aModel.equipments:
-                if aEquipment.status == EquipmentStatus.Unavailable:
+                if aEquipment.status != EquipmentStatus.Available:
                     nbTotalUnavailable += 1
 
         return nbTotalUnavailable
@@ -269,6 +269,22 @@ class Equipment(db.Model):
         :return: True if the equipment is rented
         :rtype: bool"""
         return self.status == EquipmentStatus.Rented
+
+    def set_status_to_rented(self):
+        """
+        :return: True if the equipment has been set to rented
+        :rtype: bool"""
+        if self.is_available():
+            self.status = EquipmentStatus.Rented
+            return True
+        return False
+
+    def set_status_to_available(self):
+        """
+        :return: True if the equipment has been set to Available
+        :rtype: bool"""
+        self.status = EquipmentStatus.Available
+        return True
 
     def is_available(self):
         """

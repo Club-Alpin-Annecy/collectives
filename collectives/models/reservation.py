@@ -95,6 +95,43 @@ class ReservationLine(db.Model):
         :rtype: bool"""
         return self.quantity <= len(self.equipments)
 
+    def add_equipment(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if not self.is_full():
+            if equipment.set_status_to_rented():
+                self.equipments.append(equipment)
+                return True
+        return False
+
+    def remove_equipment(self, equipment):
+        """
+        :return: True the equipment has been removed well
+        :rtype: bool"""
+        if equipment in self.equipments:
+            self.equipments.remove(equipment)
+            equipment.set_status_to_available()
+            return True
+        return False
+
+    def remove_equipment_decreasing_quantity(self, equipment):
+        """
+        :return: True the equipment has been removed well
+        :rtype: bool"""
+        if self.remove_equipment(equipment):
+            self.quantity -= 1
+            return True
+        return False
+
+    def add_equipment_by_increasing_quantity(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if self.is_full():
+            self.quantity += 1
+        return self.add_equipment(equipment)
+
     def get_equipments_rented(self):
         """
         :return: List of all the equipments Rented
@@ -228,6 +265,15 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.status == ReservationStatus.Completed
 
+    def is_full(self):
+        """
+        :return: True if the reservation is full
+        :rtype: bool"""
+        for reservationLine in self.lines:
+            if not reservationLine.is_full():
+                return False
+        return True
+
     def count_equipments_returned(self):
         """
         :return: Number of equipments returned
@@ -276,3 +322,71 @@ class Reservation(db.Model):
         :return: True if the reservation is all the equipments rented are returned
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
+
+    def get_line_of_type(self, equipmentType):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        for reservationLine in self.lines:
+            if reservationLine.equipmentType == equipmentType:
+                return reservationLine
+        return None
+
+    def get_or_create_line_of_type(self, equipmentType):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        reservationLine = self.get_line_of_type(equipmentType)
+        if not reservationLine:
+            reservationLine = ReservationLine()
+            reservationLine.quantity = 0
+            reservationLine.equipmentType = equipmentType
+            self.lines.append(reservationLine)
+        return reservationLine
+
+    def add_equipment(self, equipment):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if equipment:
+            reservationLine = self.get_or_create_line_of_type(
+                equipment.model.equipmentType
+            )
+            return reservationLine.add_equipment_by_increasing_quantity(equipment)
+
+        return False
+
+    def get_equipments(self):
+        """
+        :return: the line containing the type
+        :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
+        """
+        equipments = []
+        for reservationLine in self.lines:
+            equipments.extend(reservationLine.equipments)
+        return equipments
+
+    def set_user(self, user):
+        """
+        :return: True the equipment has been added well
+        :rtype: bool"""
+        if user:
+            self.user = user
+            return True
+        return False
+
+    def remove_equipment_decreasing_quantity(self, equipment):
+        """
+        :return: True the equipment has been removed well
+        :rtype: bool"""
+        if equipment:
+            line = self.get_line_of_type(equipment.model.equipmentType)
+            if (
+                line.remove_equipment_decreasing_quantity(equipment)
+                and line.quantity == 0
+            ):
+                self.lines.remove(line)
+                return True
+        return False
