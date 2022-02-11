@@ -332,7 +332,6 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
 
-
     def total_price(self):
         """
         :return: Total price of the reservation
@@ -409,4 +408,3 @@ class Reservation(db.Model):
                 self.lines.remove(line)
                 return True
         return False
-
