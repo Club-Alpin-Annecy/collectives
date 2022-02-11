@@ -154,7 +154,9 @@ def new_rental(reservation_id=None):
 @blueprint.route("/cancel", methods=["POST"])
 @blueprint.route("/cancel/<int:reservation_id>", methods=["POST"])
 def cancel_rental(reservation_id=None):
-
+    """
+    Cancel a rental
+    """
     if reservation_id:
         reservation = Reservation.query.get(reservation_id)
         db.session.delete(reservation)
