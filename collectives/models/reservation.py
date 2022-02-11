@@ -181,6 +181,13 @@ class ReservationLine(db.Model):
             )
         return str(self.count_equipments()) + "/" + str(self.quantity)
 
+    def total_price(self):
+        """
+        :return: Total price of the reservation line
+        :rtype: Float
+        """
+        return float(self.quantity * self.equipmentType.price)
+
 
 class Reservation(db.Model):
     """Class of an reservation.
@@ -325,6 +332,16 @@ class Reservation(db.Model):
         :rtype: bool"""
         return self.count_equipments_returned() == self.count_equipments()
 
+
+    def total_price(self):
+        """
+        :return: Total price of the reservation
+        :rtype: Float"""
+        total_price = 0
+        for reservationLine in self.lines:
+            total_price += reservationLine.total_price()
+        return total_price
+
     def get_line_of_type(self, equipmentType):
         """
         :return: the line containing the type
@@ -392,3 +409,4 @@ class Reservation(db.Model):
                 self.lines.remove(line)
                 return True
         return False
+

@@ -35,6 +35,10 @@
             title:"Ratio",
             field:"ratio_equipments",
           },
+          {
+            title:"Prix total",
+            field:"total_price"
+          },
         ],
          //create columns from data field names
       });
