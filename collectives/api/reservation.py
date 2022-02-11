@@ -16,6 +16,7 @@ from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.reservation import (
     Reservation,
     ReservationLine,
+    ReservationStatus,
 )
 from collectives.models.user import User
 
@@ -111,11 +112,12 @@ def reservations_returns_of_day():
     :rtype: (string, int, dict)
     """
     dt = datetime.today()
-    start = dt - timedelta(days=dt.weekday())
-    end = start + timedelta(days=6)
+    startWeek = dt - timedelta(days=dt.weekday())
+    endWeek = startWeek + timedelta(days=6)
 
     query = Reservation.query.filter(
-        Reservation.return_date >= start, Reservation.return_date <= end
+        Reservation.return_date <= endWeek,
+        Reservation.status == ReservationStatus.Ongoing,
     )
     data = ReservationSchema(many=True).dump(query)
 
