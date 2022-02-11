@@ -16,6 +16,7 @@ from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.reservation import (
     Reservation,
     ReservationLine,
+    ReservationStatus,
 )
 from collectives.models.user import User
 from collectives.utils.numbers import format_currency
@@ -29,7 +30,7 @@ from .common import blueprint, marshmallow
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe a reservation"""
 
-    userLicence = fields.Function(lambda obj: obj.user.license)
+    userLicence = fields.Function(lambda obj: obj.user.license if obj.user else "")
     statusName = fields.Function(lambda obj: obj.status.display_name())
     userFullname = fields.Function(lambda obj: obj.user.full_name())
     reservationURL = fields.Function(
@@ -112,11 +113,12 @@ def reservations_returns_of_day():
     :rtype: (string, int, dict)
     """
     dt = datetime.today()
-    start = dt - timedelta(days=dt.weekday())
-    end = start + timedelta(days=6)
+    startWeek = dt - timedelta(days=dt.weekday())
+    endWeek = startWeek + timedelta(days=6)
 
     query = Reservation.query.filter(
-        Reservation.return_date >= start, Reservation.return_date <= end
+        Reservation.return_date <= endWeek,
+        Reservation.status == ReservationStatus.Ongoing,
     )
     data = ReservationSchema(many=True).dump(query)
 
@@ -171,7 +173,7 @@ class ReservationLineSchema(marshmallow.Schema):
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
-def reservation(reservation_id):
+def reservationLines(reservation_id):
     """API endpoint to list reservation lines.
 
     :return: A tuple:
@@ -186,6 +188,26 @@ def reservation(reservation_id):
     query = Reservation.query.get(reservation_id).lines
 
     data = ReservationLineSchema(many=True).dump(query)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/reservation/new_rental/<int:reservation_id>")
+def new_rental(reservation_id):
+    """API endpoint to list reservation lines.
+
+    :return: A tuple:
+
+        - JSON containing information describe in ReservationLineSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+
+    query = Reservation.query.get(reservation_id).get_equipments()
+
+    data = EquipmentSchema(many=True).dump(query)
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 
@@ -277,10 +299,14 @@ def set_available_equipment(equipment_id):
 
 
 @blueprint.route(
+    "/remove_reservation_equipment/<int:equipment_id>/<int:reservation_id>",
+    methods=["POST"],
+)
+@blueprint.route(
     "/remove_reservationLine_equipment/<int:equipment_id>/<int:line_id>",
     methods=["POST"],
 )
-def remove_reservationLine_equipment(equipment_id, line_id):
+def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None):
     """
     API endpoint to remove an equipment from a réservation.
 
@@ -292,10 +318,13 @@ def remove_reservationLine_equipment(equipment_id, line_id):
 
     :rtype: (string, int, dict)
     """
-    line = ReservationLine.query.get(line_id)
     equipment = Equipment.query.get(equipment_id)
-    line.equipments.remove(equipment)
-    equipment.status = EquipmentStatus.Available
+    if reservation_id:
+        reservation = Reservation.query.get(reservation_id)
+        reservation.remove_equipment_decreasing_quantity(equipment)
+    else:
+        line = ReservationLine.query.get(line_id)
+        line.remove_equipment(equipment)
     db.session.commit()
 
     return (
@@ -400,7 +429,8 @@ def find_equipments_by_reference(q):
 
 
 @blueprint.route("/reservation/autocomplete/<int:line_id>")
-def autocomplete_availables_equipments(line_id):
+@blueprint.route("/reservation/autocomplete")
+def autocomplete_availables_equipments(line_id=None):
     """API endpoint to list equipment in a reservation line.
 
     :return: A tuple:
@@ -411,15 +441,24 @@ def autocomplete_availables_equipments(line_id):
 
     :rtype: (string, int, dict)
     """
-    eType = ReservationLine.query.get(line_id).equipmentType
 
-    equipments_of_type = eType.get_all_equipments_availables()
     q = request.args.get("q")
+
     equipments_of_autocomplete = []
     if q:
         equipments_of_autocomplete = find_equipments_by_reference(q)
 
-    query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+    if line_id:
+        eType = ReservationLine.query.get(line_id).equipmentType
+        equipments_of_type = eType.get_all_equipments_availables()
+        query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+    else:
+        equipments_availables = Equipment.query.filter_by(
+            status=EquipmentStatus.Available
+        )
+        query = list(
+            set(equipments_availables).intersection(equipments_of_autocomplete)
+        )
 
     data = EquipmentSchema(many=True).dump(query)
 

@@ -63,6 +63,37 @@ def find_users_by_fuzzy_name(q, limit=8):
     return found_users
 
 
+@blueprint.route("/users/autocomplete/create_rental")
+@valid_user(True)
+@confidentiality_agreement(True)
+def autocomplete_users_create_rental():
+    """API endpoint to list users for autocomplete.
+
+    At least 2 characters are required to make a name search.
+
+    :param string q: Search string.
+    :param int l: Maximum number of returned items.
+    :return: A tuple:
+
+        - JSON containing information describe in AutocompleteUserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+    # if not current_user.can_create_events():
+    #     abort(403)
+
+    q = request.args.get("q")
+    if q is None or (len(q) < 2):
+        found_users = []
+    else:
+        limit = request.args.get("l", type=int) or 8
+        found_users = find_users_by_fuzzy_name(q, limit)
+
+    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    return content, 200, {"content-type": "application/json"}
+
+
 @blueprint.route("/users/autocomplete/")
 @valid_user(True)
 @confidentiality_agreement(True)

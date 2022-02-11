@@ -1,5 +1,5 @@
       //initialize table
-      let table = new Tabulator("#reservations-table", {
+      let table = new Tabulator("#equipment-table", {
         ajaxURL:ajaxURL,
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
@@ -13,36 +13,40 @@
         initialSort:[             //set the initial sort order of the data
             {column:"name", dir:"asc"},
         ],
-        rowClick: function (e, row) {
-          location = row._row.data.reservationURL
-      },
+
         columns:[
           {
-            title:"Date de collecte",
+            title:"Référence",
             headerFilter:"input",
-            field:"collect_date",
-            formatter:"datetime", formatterParams:{
-              outputFormat:"DD/MM/YYYY"
-            },
+            field:"reference"
           },
           {
-            title:"Date de retour",
+            title:"Type d'équipement",
             headerFilter:"input",
-            field:"return_date",
-            formatter:"datetime", formatterParams:{
-              outputFormat:"DD/MM/YYYY"
-            },
+            field:"typeName",
+            formatter:"link",
+            formatterParams:{
+              urlField:"equipmentURL"
+            }
           },
           {
-            title:"Utilisateur",
-            headerFilter:"input",
-            field:"userFullname",
-          },
-          {
-            title:"État",
-            headerFilter:"input",
-            field:"statusName",
-          },
+            title:"Supprimer",
+            formatter:"buttonCross",
+            headerSort:false,
+            cellClick:function(e, cell){
+              if(confirm('Voulez-vous vraiment retirer cet équipement de cet réservation ???????')) {
 
+                  let id = cell.getRow().getData().id
+
+                  axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
+                  axios.post('/api/remove_reservation_equipment/'+id+'/'+reservation_id)
+                  .then((response)=>{
+                    console.log(response)
+                    window.location.reload()
+                  })
+
+              }
+            }
+          },
         ],
       });

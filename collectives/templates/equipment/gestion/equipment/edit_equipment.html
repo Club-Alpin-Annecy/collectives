@@ -1,20 +1,20 @@
-<h1 class="modal_form_title">{{ titre or 'Ajouter un équipement' }}</h1>
+<h1 class="modal_form_title">{{ title or 'Éditer un équipement' }}</h1>
 
 <div class="form-errors">
     {% for field in form %}
-      {% for error in form.errors[field.name] %}
+    {% for error in form.errors[field.name] %}
 
-      <div class="flash flash-error">
+    <div class="flash flash-error">
         <strong>Erreur : {{field.label}}</strong> {{error}}
-      </div>
+    </div>
 
-      {% endfor %}
+    {% endfor %}
     {% endfor %}
 
     {% if form.generic_error %}
-      <div class="flash flash-error">
-      <strong>Erreur :</strong> {{form.generic_error}}
-      </div>
+    <div class="flash flash-error">
+        <strong>Erreur :</strong> {{form.generic_error}}
+    </div>
     {% endif %}
 </div>
 
@@ -58,3 +58,4 @@
     </form>
 
 </div>
+
