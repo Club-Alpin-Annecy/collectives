@@ -34,9 +34,6 @@
       <span class="title_second_path">/ Nouvelle location</span>
     </h3>
 
-
-
-
     {% if not reservation.user %}
     <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
       {{ cancel_form.hidden_tag() }}
