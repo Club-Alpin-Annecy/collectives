@@ -4,6 +4,8 @@
 from datetime import datetime
 from sqlalchemy import CheckConstraint
 
+from collectives.utils.numbers import format_currency
+
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -188,6 +190,17 @@ class ReservationLine(db.Model):
         """
         return float(self.quantity * self.equipmentType.price)
 
+    def total_price_str(self):
+        """
+        :return: Total price of the reservation line
+        :rtype: String
+        """
+        return (
+            format_currency(self.total_price())
+            if not self.reservation.user.is_supervisor()
+            else "-"
+        )
+
 
 class Reservation(db.Model):
     """Class of an reservation.
@@ -321,12 +334,16 @@ class Reservation(db.Model):
         if self.is_ongoing():
             return (
                 "Équipements à rendre : "
-                +
-                str(self.count_equipments_returned())
+                + str(self.count_equipments_returned())
                 + "/"
                 + str(self.count_equipments())
             )
-        return "Équipements à donner : " + str(self.count_equipments()) + "/" + str(self.count_total_quantity())
+        return (
+            "Équipements à donner : "
+            + str(self.count_equipments())
+            + "/"
+            + str(self.count_total_quantity())
+        )
 
     def can_be_completed(self):
         """
@@ -342,6 +359,17 @@ class Reservation(db.Model):
         for reservationLine in self.lines:
             total_price += reservationLine.total_price()
         return total_price
+
+    def total_price_str(self):
+        """
+        :return: Total price of the reservation
+        :rtype: String
+        """
+        return (
+            format_currency(self.total_price())
+            if not self.user.is_supervisor()
+            else "-"
+        )
 
     def get_line_of_type(self, equipmentType):
         """
