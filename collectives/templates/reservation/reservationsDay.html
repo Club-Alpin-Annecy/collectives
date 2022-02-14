@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
++{% extends 'base.html' %}
 
 
 {% import 'macros.html' as macros with context %}
@@ -25,11 +25,10 @@
       <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
     </h3>
 
-    <h4>ACCÈS DIRECT</h4>
     <a href="{{ url_for('reservation.view_reservations')}}" class="button button-secondary">TOUTES LES RÉSERVATIONS</a>
     <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-secondary button-selected">RÉSERVATIONS DE LA SEMAINE</a>
     <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-secondary">RETOUR DE LA SEMAINE</a>
-
+    <a href="{{ url_for('reservation.new_rental')}}" class="button button-secondary">Nouvelle location</a>
 
     <h4>RÉSERVATIONS DE LA SEMAINE</h4>
 

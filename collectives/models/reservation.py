@@ -311,11 +311,13 @@ class Reservation(db.Model):
         """
         if self.is_ongoing():
             return (
+                "Équipements à rendre : "
+                +
                 str(self.count_equipments_returned())
                 + "/"
                 + str(self.count_equipments())
             )
-        return str(self.count_equipments()) + "/" + str(self.count_total_quantity())
+        return "Équipements à donner : " + str(self.count_equipments()) + "/" + str(self.count_total_quantity())
 
     def can_be_completed(self):
         """
