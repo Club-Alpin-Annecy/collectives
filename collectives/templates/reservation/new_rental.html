@@ -34,13 +34,13 @@
       <span class="title_second_path">/ Nouvelle location</span>
     </h3>
 
-
+    {% if not reservation.user %}
     <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
       {{ cancel_form.hidden_tag() }}
       {{ cancel_form.cancel(class="button button-danger") }}
     </form>
 
-    {% if not reservation.user %}
+    <h4>Sélectionner un adhérent</h4>
     <form action="" method="post">
       {{ form.hidden_tag() }}
       {{ form.user.label }}
@@ -49,22 +49,34 @@
     </form>
 
     {% else %}
-    <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="button button-primary">Valider</a>
 
+    <div class="new-reservation-container-btn-action">
+      <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
+        {{ cancel_form.hidden_tag() }}
+        {{ cancel_form.cancel(class="button button-danger") }}
+      </form>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="button button-primary">Valider</a>
+    </div>
 
-    <h4>INFORMATIONS UTILISATEUR</h4>
+    <h4>Changer d'adhérent</h4>
+    <form action="" method="post">
+      {{ form.hidden_tag() }}
+      <div class="controls" style="padding-bottom: 10px">
+        <label for="user">Nom d'adhérent</label>
+        <input type="text" id="new-user" placeholder="Nom d'adhérent">
+        {{ form.user(value=0) }}
+      </div>
+    </form>
+
+    <h4>INFORMATIONS ADHÉRENT</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
 
+
+    <h4>AJOUTER UN ÉQUIPEMENT</h4>
     <form action="" method="post">
       {{ form.hidden_tag() }}
-      <div class="controls" style="padding-bottom: 10px">
-        <label for="user">Changer d'hadhérent</label>
-        <input type="text" id="new-user" placeholder="Nom d'adhérent">
-        {{ form.user(value=0) }}
-      </div>
-
       <div class="controls">
         {{ form.add_equipment.label }}
         <input type="text" id="new-equipment" placeholder="Référence">
