@@ -25,10 +25,15 @@
       <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
     </h3>
 
-    <a href="{{ url_for('reservation.view_reservations')}}" class="button button-secondary">TOUTES LES RÉSERVATIONS</a>
-    <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-secondary button-selected">RÉSERVATIONS DE LA SEMAINE</a>
-    <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-secondary">RETOUR DE LA SEMAINE</a>
-    <a href="{{ url_for('reservation.new_rental')}}" class="button button-secondary">Nouvelle location</a>
+    <div class="reservations-navigation">
+      <div class="container-types">
+        <a href="{{ url_for('reservation.view_reservations')}}" class="button button-secondary ">TOUTES LES RÉSERVATIONS</a>
+        <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-secondary button-selected">RÉSERVATIONS DE LA SEMAINE</a>
+        <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-secondary">RETOUR DE LA SEMAINE</a>
+      </div>
+
+      <a href="{{ url_for('reservation.new_rental')}}" class="button button-primary">Nouvelle location</a>
+    </div>
 
     <h4>RÉSERVATIONS DE LA SEMAINE</h4>
 
