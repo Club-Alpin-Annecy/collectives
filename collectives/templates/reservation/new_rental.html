@@ -34,12 +34,12 @@
       <span class="title_second_path">/ Nouvelle location</span>
     </h3>
 
-    
+
     <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
       {{ cancel_form.hidden_tag() }}
       {{ cancel_form.cancel(class="button button-danger") }}
     </form>
-    
+
     {% if not reservation.user %}
     <form action="" method="post">
       {{ form.hidden_tag() }}
@@ -47,34 +47,37 @@
       <input type="text" id="new-user" placeholder="Nom d'adhérent">
       {{ form.user(value=0) }}
     </form>
-    
+
     {% else %}
     <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="button button-primary">Valider</a>
 
-    
+
     <h4>INFORMATIONS UTILISATEUR</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
-    
+
     <form action="" method="post">
       {{ form.hidden_tag() }}
-      <label for="user">Changer d'hadhérent</label>
-      <input type="text" id="new-user" placeholder="Nom d'adhérent">
-      {{ form.user(value=0) }}
+      <div class="controls" style="padding-bottom: 10px">
+        <label for="user">Changer d'hadhérent</label>
+        <input type="text" id="new-user" placeholder="Nom d'adhérent">
+        {{ form.user(value=0) }}
+      </div>
 
-      {{ form.hidden_tag() }}
-      {{ form.add_equipment.label }}
-      <input type="text" id="new-equipment" placeholder="Référence">
-      {{ form.add_equipment(value=0) }}
+      <div class="controls">
+        {{ form.add_equipment.label }}
+        <input type="text" id="new-equipment" placeholder="Référence">
+        {{ form.add_equipment(value=0) }}
+      </div>
     </form>
-    
-    
+
+
     <div id="equipment-table"></div>
-    
+
     {% endif %}
   </div>
-  
+
       <script>
         window.onload = function () {
           setupAutoComplete(
@@ -103,7 +106,7 @@
             );
         }
       </script>
-      
+
       {% if reservation.id %}
       <script>
         let ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";

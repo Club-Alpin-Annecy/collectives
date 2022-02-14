@@ -39,7 +39,7 @@
     <p><span class="bold">Téléphone :</span> {{reservation.user.phone}}</p>
 
 
-    <h4>INFORMATIONS RÉSERVATIONS</h4>
+    <h4>INFORMATIONS RÉSERVATION</h4>
     <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
@@ -98,7 +98,7 @@
     <h1>{{reservation.get_ratio_equipments()}}</h1>
     {% endif %}
 
-    
+
 
     <h4>ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>

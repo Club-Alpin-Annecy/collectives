@@ -36,20 +36,20 @@ class ReservationToLocationForm(FlaskForm):
 class EndLocationForm(FlaskForm):
     """Form for deleting an equipment"""
 
-    validate = SubmitField("Valider la retour de la location")
+    validate = SubmitField("Valider le retour de la location")
 
 
 class AddEquipmentInReservationForm(FlaskForm):
     """Form to add an equipment in a reservation"""
 
-    add_equipment = HiddenField("Ajouter un equipment")
+    add_equipment = HiddenField("Ajouter un équipement")
 
 
 class NewRentalForm(FlaskForm):
     """Form to create a new rental from no reservation"""
 
     user = HiddenField("Adhérent")
-    add_equipment = HiddenField("Ajouter un equipment")
+    add_equipment = HiddenField("Ajouter un équipement")
 
 
 class CancelRentalForm(FlaskForm):
