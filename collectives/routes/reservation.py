@@ -283,15 +283,27 @@ def register(event_id, role_id=None):
             )
 
         reservation = Reservation()
+        has_equipment = False
         for e in EquipmentType.query.all():
             quantity = getattr(form, f"field{e.id}").data
             if quantity <= 0:
                 continue
+            has_equipment = True
             resa_line = ReservationLine()
             resa_line.reservation_id = reservation.id
             resa_line.quantity = quantity
             resa_line.equipment_type_id = e.id
             reservation.lines.append(resa_line)
+
+        # Check if user selected at least one equipment
+        if not has_equipment:
+            flash("Veuillez choisir au moins un équipment")
+            return render_template(
+                "reservation/editreservation.html",
+                event=event,
+                role_id=role_id,
+                form=form,
+            )
 
         reservation.event = event
         reservation.user = current_user

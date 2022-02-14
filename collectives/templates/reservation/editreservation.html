@@ -63,6 +63,8 @@
     const start = document.getElementById("collect_date");
     const start_in_past = document.getElementById("start_in_past_error");
     start_in_past.style.display = "none";
+    start.removeAttribute("required");
+    start.setCustomValidity("");
     if(moment(start.value) < new Date()) {
       start_in_past.style.display = "inline";
       start.setCustomValidity("Doit être après la date du jour");
