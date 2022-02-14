@@ -44,6 +44,14 @@
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
 
+    <p><span class="bold">Prix total :</span>
+      {% if reservation.user.is_supervisor() %}
+         - €
+      {% else %}
+        {{format_currency(reservation.total_price())}}
+      {% endif %}
+    </p>
+
     {% if reservation.is_planned() %}
     <form action="" method="post" >
       {{ form.hidden_tag() }}

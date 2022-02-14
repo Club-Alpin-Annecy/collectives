@@ -8,7 +8,7 @@
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
-  
+
   {# Specific for this page #}
   <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
 
@@ -29,27 +29,27 @@
       window.onload = function () {
         const searchInput = document.getElementById('new-leader');
         setupAutoComplete(
-          searchInput, 
+          searchInput,
           '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids()) | safe}}',
-          function(item) { 
-            return item.full_name; 
+          function(item) {
+            return item.full_name;
           },
-          function(id, val) { 
+          function(id, val) {
             var field = document.getElementById('{{form.add_leader.id}}');
             field.value = id;
             updateLeaders(field);
           }
           );
-        
+
         const eventSearchInput = document.getElementById('parent-event-search');
         const parentEventId = document.getElementById('{{form.parent_event_id.id}}');
         setupAutoComplete(
-          eventSearchInput, 
+          eventSearchInput,
           '{{url_for("api.autocomplete_event", aid=form.leader_activity_ids(), eid=[event.id]) | safe}}',
-          function(item) { 
-            return formatParentEvent(item.id, item.title, item.start) ; 
+          function(item) {
+            return formatParentEvent(item.id, item.title, item.start) ;
           },
-          function(id, val) { 
+          function(id, val) {
             parentEventId.value = id;
           }
           );
@@ -165,10 +165,10 @@
       <div class="controls">
         <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
         <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date et heure de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
-      </div>
         <span id="starts_before_ends_error" class="date_error flash flash-error">
             L'événement doit commencer avant de se terminer.
         </span>
+      </div>
 
     </div>
 

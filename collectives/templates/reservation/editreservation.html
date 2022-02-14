@@ -5,6 +5,7 @@
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
 {% endblock %}
 
 {% block header %}
@@ -25,18 +26,50 @@
     {% endfor %}
   </div>
 
-  <div class="dates">
-    <div class="controls">
-      <div class="datetimepicker" id="datetimepickerstart">
-        {{ form.collect_date.label }} : {{ form.collect_date(type="datetime") }}
+  <form
+    action="{{ url_for('reservation.register', event_id=event.id, role_id=role_id) }}"
+    method="POST"
+    enctype="multipart/form-data"
+    class="form"
+  >
+    <div class="dates">
+      <div class="controls">
+        <div class="datetimepicker" id="datetimepickerstart">
+          <label for="collect_date">Date : </label>{{ form.collect_date(onchange="checkDate()") }}
+        </div>
+        <span id="start_in_past_error" class="date_error flash flash-error">
+          La date de réservation est déjà passée
+        </span>
       </div>
-    </div>
-    <div class="controls">
+
+      <h4>Votre panier</h4>
+      {% for field in form %}
+        {% if ( field.type in [ "IntegerField" ]) %}
+            <div class="controls">
+                <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+                {{ field() }}
+            </div>
+        {% endif %}
+      {% endfor %}
+      {{ form.hidden_tag() }}
+
       {{ form.submit(class="button button-primary") }}
     </div>
-  </div>
+  </form>
 </div>
 <script>
+
+  function checkDate() {
+    const start = document.getElementById("collect_date");
+    const start_in_past = document.getElementById("start_in_past_error");
+    start_in_past.style.display = "none";
+    start.removeAttribute("required");
+    start.setCustomValidity("");
+    if(moment(start.value) < new Date()) {
+      start_in_past.style.display = "inline";
+      start.setCustomValidity("Doit être après la date du jour");
+    }
+  }
   document.querySelectorAll("input[type=datetime]").forEach(function(input){
     var datepicker = tail.DateTime(input,{
         animate: false,

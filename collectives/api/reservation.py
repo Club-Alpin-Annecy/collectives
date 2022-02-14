@@ -16,8 +16,10 @@ from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 from collectives.models.reservation import (
     Reservation,
     ReservationLine,
+    ReservationStatus,
 )
 from collectives.models.user import User
+from collectives.utils.numbers import format_currency
 
 from ..models import db
 
@@ -111,11 +113,12 @@ def reservations_returns_of_day():
     :rtype: (string, int, dict)
     """
     dt = datetime.today()
-    start = dt - timedelta(days=dt.weekday())
-    end = start + timedelta(days=6)
+    startWeek = dt - timedelta(days=dt.weekday())
+    endWeek = startWeek + timedelta(days=6)
 
     query = Reservation.query.filter(
-        Reservation.return_date >= start, Reservation.return_date <= end
+        Reservation.return_date <= endWeek,
+        Reservation.status == ReservationStatus.Ongoing,
     )
     data = ReservationSchema(many=True).dump(query)
 
@@ -155,6 +158,8 @@ class ReservationLineSchema(marshmallow.Schema):
 
     ratio_equipments = fields.Function(lambda obj: obj.get_ratio_equipments())
 
+    total_price = fields.Function(lambda obj: format_currency(obj.total_price()))
+
     class Meta:
         """Fields to expose"""
 
@@ -163,6 +168,7 @@ class ReservationLineSchema(marshmallow.Schema):
             "equipmentTypeName",
             "reservationLineURL",
             "ratio_equipments",
+            "total_price",
         )
 
 
