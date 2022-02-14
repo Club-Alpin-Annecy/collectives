@@ -193,45 +193,6 @@ def view_reservationLine(reservationLine_id):
     )
 
 
-@blueprint.route("/add", methods=["GET"])
-@blueprint.route("/<int:reservation_id>", methods=["GET"])
-def manage_reservation(reservation_id=None):
-    """Reservation creation and modification page.
-
-    If an ``reservation_id`` is given, it is a modification of an existing reservation.
-
-    :param int reservation_id: Primary key of the reservation to manage.
-    """
-    reservation = (
-        Reservation()
-        if reservation_id is None
-        else Reservation.query.get(reservation_id)
-    )
-
-    form = (
-        LeaderReservationForm()
-        if reservation_id is None
-        else LeaderReservationForm(obj=reservation)
-    )
-    action = "Ajout" if reservation_id is None else "Édition"
-
-    if not form.validate_on_submit():
-        return render_template(
-            "basicform.html",
-            form=form,
-            title=f"{action} de réservation",
-        )
-
-    form.populate_obj(reservation)
-
-    db.session.add(reservation)
-    db.session.commit()
-
-    return redirect(
-        url_for("reservation.view_reservation", reservation_id=reservation_id)
-    )
-
-
 @blueprint.route(
     "event/<int:event_id>/role/<int:role_id>/register", methods=["GET", "POST"]
 )
