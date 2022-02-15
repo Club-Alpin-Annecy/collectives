@@ -342,9 +342,7 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
     "/remove_reservation_equipment_decreasing_quantity/<int:equipment_id>/<int:reservation_id>",
     methods=["POST"],
 )
-def remove_reservation_equipment_decreasing_quantity(
-    equipment_id, reservation_id=None
-):
+def remove_reservation_equipment_decreasing_quantity(equipment_id, reservation_id=None):
     """
     API endpoint to remove an equipment from a réservation.
 
