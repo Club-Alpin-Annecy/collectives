@@ -333,13 +333,13 @@ class Reservation(db.Model):
         """
         if self.is_ongoing():
             return (
-                "Équipements à rendre : "
+                "Équipements rendus : "
                 + str(self.count_equipments_returned())
                 + "/"
                 + str(self.count_equipments())
             )
         return (
-            "Équipements à donner : "
+            "Équipements donnés : "
             + str(self.count_equipments())
             + "/"
             + str(self.count_total_quantity())

@@ -47,7 +47,7 @@
     <p><span class="bold">Prix total :</span> {{ reservation.total_price_str() }} </p>
 
     {% if reservation.is_planned() %}
-    <form action="" method="post" >
+    <form action="" method="post" onsubmit="return confirm('Etes-vous sûr de vouloir valider la réservation ? \n ({{ reservation.get_ratio_equipments() }})')" >
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
