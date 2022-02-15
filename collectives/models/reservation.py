@@ -438,3 +438,13 @@ class Reservation(db.Model):
                 self.lines.remove(line)
                 return True
         return False
+
+    def remove_equipment(self, equipment):
+        """
+        :return: True the equipment has been removed well
+        :rtype: bool"""
+        if equipment:
+            line = self.get_line_of_type(equipment.model.equipmentType)
+            line.remove_equipment(equipment)
+            return True
+        return False

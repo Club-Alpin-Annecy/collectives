@@ -320,10 +320,45 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
     equipment = Equipment.query.get(equipment_id)
     if reservation_id:
         reservation = Reservation.query.get(reservation_id)
-        reservation.remove_equipment_decreasing_quantity(equipment)
+        if not reservation.remove_equipment(equipment):
+            return (
+                "{'response': 'Pas OK'}",
+                200,
+                {"content-type": "application/json"},
+            )
     else:
         line = ReservationLine.query.get(line_id)
         line.remove_equipment(equipment)
+    db.session.commit()
+
+    return (
+        "{'response': 'Status changed OK'}",
+        200,
+        {"content-type": "application/json"},
+    )
+
+
+@blueprint.route(
+    "/remove_reservation_equipment_decreasing_quantity/<int:equipment_id>/<int:reservation_id>",
+    methods=["POST"],
+)
+def remove_reservation_equipment_decreasing_quantity(
+    equipment_id, reservation_id=None
+):
+    """
+    API endpoint to remove an equipment from a réservation.
+
+    :return: A tuple:
+
+        - JSON containing information if OK
+        - HTTP return code : 200
+        - additional header (content as JSON)
+
+    :rtype: (string, int, dict)
+    """
+    equipment = Equipment.query.get(equipment_id)
+    reservation = Reservation.query.get(reservation_id)
+    reservation.remove_equipment_decreasing_quantity(equipment)
     db.session.commit()
 
     return (
