@@ -249,8 +249,17 @@ def register(event_id, role_id=None):
 
         reservation = Reservation()
         has_equipment = False
+        has_too_many = False
         for e in EquipmentType.query.all():
             quantity = getattr(form, f"field{e.id}").data
+            if quantity > e.nb_total_available():
+                flash(
+                    f"Vous ne pouvez pas réserver {quantity} {e.name}, {e.format_availability()}",
+                    "error",
+                )
+                has_too_many = True
+                has_equipment = True
+                continue
             if quantity <= 0:
                 continue
             has_equipment = True
@@ -260,9 +269,11 @@ def register(event_id, role_id=None):
             resa_line.equipment_type_id = e.id
             reservation.lines.append(resa_line)
 
-        # Check if user selected at least one equipment
+        # Message user if they didn't reserved any equipment
         if not has_equipment:
-            flash("Veuillez choisir au moins un équipment")
+            flash("Veuillez choisir au moins un équipment", "error")
+        # Redirects if the number of equipments is invalid
+        if not has_equipment or has_too_many:
             return render_template(
                 "reservation/editreservation.html",
                 event=event,

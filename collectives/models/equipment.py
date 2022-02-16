@@ -144,6 +144,18 @@ class EquipmentType(db.Model):
         """
         return self.nb_total() - self.nb_total_unavailable()
 
+    def format_availability(self):
+        """
+        :return: Custom message depending on the number of available equipments
+        :rtype: string
+        """
+        nb_available = self.nb_total_available()
+        if nb_available > 1:
+            return f"{nb_available} {self.name} sont disponibles"
+        if nb_available == 1:
+            return f"{nb_available} {self.name} est disponible"
+        return f"aucun {self.name} n'est disponible"
+
     def get_all_equipments_availables(self):
         """
         :return: List of all the equipments available of the type
