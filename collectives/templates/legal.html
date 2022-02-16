@@ -1,12 +1,8 @@
 {% extends 'base.html' %}
 
-{% block header %}
-<h1>{% block title %}Mentions légales{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="legal">
-    <h3>Mentions légales</h3>
+<div class="page-content" id="legal">
+    <h1 class="heading-1">Mentions légales</h1>
 
     {% if  current_user.is_authenticated  %}
         {% if current_user.has_signed_legal_text() %}
@@ -24,12 +20,8 @@
         {% endif %}
     {% endif %}
 
-    {% if config['STATISTICS_ENABLED'] %}
-        <h4>Gestion des cookies de statistiques</h4>
-        <p>
-            Le suivi statistique et anonyme des utilisateurs est détaillé <u><a href="#statistics" >ci-dessous</a></u>. Votre suivi est <b>{% if is_tracking_disabled() %}désactivé{% else %}activé{% endif %}</b>.
-            <a class="button" href="{{ url_for('root.stat_cookie', status='agree' if is_tracking_disabled() else 'disagree' )}}">{{ 'Accepter' if is_tracking_disabled() else 'Refuser' }}</a>.
-        </p>
+    {% if config['GOOGLE_ANALYTICS_UA'] %}
+        <p><input type="button" value="Panneau de gestion des cookies" class="button button-primary" onclick="tarteaucitron.userInterface.openPanel();"/> </p>
     {% endif %}
 
     {% include 'legal_text.html' %}

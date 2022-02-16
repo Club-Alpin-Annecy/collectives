@@ -253,11 +253,14 @@ FAVICON = "caf/favicon.ico"
 :type: string
 """
 
-STATISTICS_ENABLED = True
-"""Enable flask-statistics to track website user.
+GOOGLE_ANALYTICS_UA = False
+""" Identifier for google analytics.
 
-:type: boolean
-"""
+Set to False to deactivate it.
+
+Example: `GOOGLE_ANALYTICS_UA = "UA-XXXXXXX-X"`
+
+:type: string or boolean"""
 
 CURRENT_LEGAL_TEXT_VERSION = 1
 """Current version of the legal text.
@@ -273,9 +276,9 @@ TZ_NAME = "Europe/Paris"
 :type: string
 """
 
-# Event type:
+# Activity type:
 # fmt: off
-TYPES = {
+ACTIVITY_TYPES = {
     1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "ASA"},
     2:  {"short": "escalade", "name": "Escalade", "trigram" : "AES"},
     3:  {"short": "ski_rando", "name": "Ski de randonnée", "trigram" : "ASM"},
@@ -288,17 +291,85 @@ TYPES = {
     10: {"short": "parapente", "name": "Parapente", "trigram" : "AVR"},
     11: {"short": "randonnee", "name": "Randonnée montagne", "trigram" : "ARP"},
     12: {"short": "cyclisme", "name": "VTT", "trigram" : "AVTT"},
-    13: {"short": "formation", "name": "Formation", "trigram" : "FOR"},
-    14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "SCL"},
-    15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL"},
+    13: {"short": "formation", "name": "Formation", "trigram" : "FOR", "deprecated" : True},
+    14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "SCL", "deprecated" : True},
+    15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL", "deprecated" : True},
     16: {"short": "slackline", "name": "Slackline", "trigram" : "ASL"},
     17: {"short": "marche_nordique", "name": "Marche nordique", "trigram" : "ANW"},
     18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "ASF"},
-    20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL"},
-    21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL"},
+    20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL", "deprecated" : True},
+    21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL", "deprecated" : True},
     22: {"short": "viaferrata", "name": "Via ferrata", "trigram": "AVF"},
 }
-"""List of event type
+# fmt: on
+"""List of activity type
+
+Contains the list of activity type as a dictionnary. id is an int, value is
+a hash. ``short`` is the name of the icon.
+
+:type: dict
+"""
+
+GUIDE_TITLE = (
+    "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"
+)
+""" Name of the guide to accept to register to an event of most types.
+
+:type: string """
+
+GUIDE_FILENAME = "2022-02-01 - CAF Annecy Organisation des sorties.pdf"
+""" Guide file name to accept to register to an event of most types.
+
+:type: string """
+
+# Event type:
+EVENT_TYPES = {
+    1: {
+        "short": "collective",
+        "name": "Collective",
+        "requires_activity": True,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    2: {
+        "short": "jeune",
+        "name": "Jeunes",
+        "requires_activity": True,
+        "license_types": ["J1", "J2", "E1", "E2"],
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    3: {
+        "short": "formation",
+        "name": "Formation",
+        "requires_activity": False,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    4: {
+        "short": "soiree",
+        "name": "Soirée",
+        "requires_activity": False,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    5: {
+        "short": "randonnees_lointaines",
+        "name": "Randonnées lointaines",
+        "requires_activity": True,
+        "terms_title": "guide d'organisation des randonnées lointaines du Club Alpin Français d'Annecy",
+        "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
+    },
+    6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
+    7: {
+        "short": "inscription",
+        "name": "Inscription en ligne",
+        "requires_activity": False,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+}
+"""List of event types
 
 Contains the list of event type as a dictionnary. id is an int, value is
 a hash. ``short`` is the name of the icon.
@@ -307,17 +378,24 @@ a hash. ``short`` is the name of the icon.
 """
 
 EVENT_TAGS = {
-    1:  {"short": "tag_green_transport", "name": "Mobilité douce"},
-    2:  {"short": "tag_mountain_protection", "name": "Connaissance et protection de la montagne"},
-    3:  {"short": "tag_trip", "name": "Séjour", "csv_code": "Séjour/WE"},
-    4:  {"short": "tag_training", "name": "Formation"},
-    5:  {"short": "tag_rando_montagne", "name": "Randonnée alpine"},
-    6:  {"short": "tag_handicaf", "name": "Handicaf"},
-    7:  {"short": "tag_jeune_alpi", "name": "Groupe Jeunes Alpinistes"},
-    8:  {"short": "tag_evenement", "name": "Evènement"},
-    9:  {"short": "tag_decouverte", "name": "Cycle découverte", "csv_code": "Débutant/Cycle Découverte"},
-    10:  {"short": "tag_rando_cool", "name": "Rando Cool"},
-    11:  {"short": "tag_shopping", "name": "Achat"},
+    1: {"short": "tag_green_transport", "name": "Mobilité douce"},
+    2: {
+        "short": "tag_mountain_protection",
+        "name": "Connaissance et protection de la montagne",
+    },
+    3: {"short": "tag_trip", "name": "Séjour", "csv_code": "Séjour/WE"},
+    4: {"short": "tag_training", "name": "Formation", "deprecated": True},
+    5: {"short": "tag_rando_montagne", "name": "Randonnée alpine"},
+    6: {"short": "tag_handicaf", "name": "Handicaf"},
+    7: {"short": "tag_jeune_alpi", "name": "Groupe Jeunes Alpinistes"},
+    8: {"short": "tag_evenement", "name": "Evénement"},
+    9: {
+        "short": "tag_decouverte",
+        "name": "Cycle découverte",
+        "csv_code": "Débutant/Cycle Découverte",
+    },
+    10: {"short": "tag_rando_cool", "name": "Rando Cool"},
+    11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
 }
 
 LICENSE_CATEGORIES = {
@@ -348,14 +426,12 @@ This error message is only used in form validation on client. `[size]` is a
 placeholder which will be replaced by the actual size of the file.
 
 :type: int """
-UPLOADED_PHOTOS_DEST = os.path.join(basedir,
-                                    "collectives/static/uploads")
+UPLOADED_PHOTOS_DEST = os.path.join(basedir, "collectives/static/uploads")
 """Folder path for uploaded event photos.
 
 :type: string
 """
-UPLOADED_AVATARS_DEST = os.path.join(basedir,
-                                    "collectives/static/uploads/avatars")
+UPLOADED_AVATARS_DEST = os.path.join(basedir, "collectives/static/uploads/avatars")
 """Folder path for uploaded user avatars.
 
 
@@ -367,7 +443,7 @@ UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(basedir,
 :type: string
 """
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 """ Allowed extension for uploaded images
 
 :type: array
@@ -397,11 +473,6 @@ Place holder can be inserted, and will be used for CSV import.
 
 :type: string"""
 
-GUIDE_FILENAME = "2020-12-03 - CAF Annecy Organisation des sorties.pdf"
-""" Guide file name to validate to subscribe to an event.
-
-:type: string """
-
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
@@ -428,23 +499,106 @@ REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 :type: int """
 
 CSV_COLUMNS = {
-    "nom_encadrant": {"short_desc": "Encadrant", "description": "Prénom et nom de l'encadrant", "type": "string"},
-    "id_encadrant": {"short_desc": "Numéro de licence", "description": "Numéro de licence de l'encadrant", "type": "int"},
-    "debut": {"short_desc": "Date de début", "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
-    "fin": {"short_desc": "Date de fin", "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime"},
-    "titre": {"short_desc": "Titre de la collective", "description": "Titre de la collective", "type": "string"},
-    "secteur": {"short_desc": "Secteur", "description": "Secteur / massif de la collective (ex: Bornes / Aravis)", "type": "string", "optional": 1},
-    "carte_IGN": {"short_desc": "Carte IGN", "description": "Référence de la carte IGN", "type": "string", "optional": 1},
-    "altitude": {"short_desc": "Altitude (en m)", "description": "Altitude du sommet (en m)", "type": "int", "optional": 1},
-    "denivele": {"short_desc": "Dénivelé (en m)", "description": "Dénivelé total de la collective (en m)", "type": "int", "optional": 1},
-    "cotation": {"short_desc": "Cotation", "description": "Cotation / difficulté de la collective", "type": "int", "optional": 1},
-    "distance": {"short_desc": "Distance (en km)", "description": "Distance totale de la collective (en km)", "type": "int", "optional": 1},
-    "observations": {"short_desc": "Observations", "description": "Observations et description de la collective", "type": "string", "optional": 1},
-    "places": {"short_desc": "Nombre de places", "description": "Nombre de places", "type": "int"},
-    "places_internet": {"short_desc": "Nombre de places par internet", "description": "Nombre de places par internet", "type": "int", "optional": 1, "default": str(DEFAULT_ONLINE_SLOTS)},
-    "debut_internet": {"short_desc": "Date d'ouverture des inscriptions par internet", "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h"},
-    "fin_internet": {"short_desc": "Date de fin des inscriptions par internet", "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)", "type": "datetime", "optional": 1, "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h"},
-    "parent": {"short_desc": "Collective parente", "description": "ID (nombre) de la collective parente", "type": "int", "optional": 1, "default": None},
+    "nom_encadrant": {
+        "short_desc": "Encadrant",
+        "description": "Prénom et nom de l'encadrant",
+        "type": "string",
+    },
+    "id_encadrant": {
+        "short_desc": "Numéro de licence",
+        "description": "Numéro de licence de l'encadrant",
+        "type": "int",
+    },
+    "debut": {
+        "short_desc": "Date de début",
+        "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "type": "datetime",
+    },
+    "fin": {
+        "short_desc": "Date de fin",
+        "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "type": "datetime",
+    },
+    "titre": {
+        "short_desc": "Titre de la collective",
+        "description": "Titre de la collective",
+        "type": "string",
+    },
+    "secteur": {
+        "short_desc": "Secteur",
+        "description": "Secteur / massif de la collective (ex: Bornes / Aravis)",
+        "type": "string",
+        "optional": 1,
+    },
+    "carte_IGN": {
+        "short_desc": "Carte IGN",
+        "description": "Référence de la carte IGN",
+        "type": "string",
+        "optional": 1,
+    },
+    "altitude": {
+        "short_desc": "Altitude (en m)",
+        "description": "Altitude du sommet (en m)",
+        "type": "int",
+        "optional": 1,
+    },
+    "denivele": {
+        "short_desc": "Dénivelé (en m)",
+        "description": "Dénivelé total de la collective (en m)",
+        "type": "int",
+        "optional": 1,
+    },
+    "cotation": {
+        "short_desc": "Cotation",
+        "description": "Cotation / difficulté de la collective",
+        "type": "int",
+        "optional": 1,
+    },
+    "distance": {
+        "short_desc": "Distance (en km)",
+        "description": "Distance totale de la collective (en km)",
+        "type": "int",
+        "optional": 1,
+    },
+    "observations": {
+        "short_desc": "Observations",
+        "description": "Observations et description de la collective",
+        "type": "string",
+        "optional": 1,
+    },
+    "places": {
+        "short_desc": "Nombre de places",
+        "description": "Nombre de places",
+        "type": "int",
+    },
+    "places_internet": {
+        "short_desc": "Nombre de places par internet",
+        "description": "Nombre de places par internet",
+        "type": "int",
+        "optional": 1,
+        "default": str(DEFAULT_ONLINE_SLOTS),
+    },
+    "debut_internet": {
+        "short_desc": "Date d'ouverture des inscriptions par internet",
+        "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "type": "datetime",
+        "optional": 1,
+        "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h",
+    },
+    "fin_internet": {
+        "short_desc": "Date de fin des inscriptions par internet",
+        "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "type": "datetime",
+        "optional": 1,
+        "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h",
+    },
+    "parent": {
+        "short_desc": "Collective parente",
+        "description": "ID (nombre) de la collective parente",
+        "type": "int",
+        "optional": 1,
+        "default": None,
+    },
 }
 """Dictionnary of columns to import from CSV files.
 
@@ -460,8 +614,7 @@ Key is the column name. And for each column:
 :type: dict
 """
 
-XLSX_TEMPLATE = os.path.join(basedir,
-                             "collectives/templates/exported_event.xlsx")
+XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx")
 """Path to Excel template.
 
 :type: string

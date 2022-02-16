@@ -7,6 +7,7 @@ Modules ``collectives.forms``
 Module ``collectives.forms.auth``
 ---------------------------------------
 .. automodule:: collectives.forms.auth
+    :noindex:
     :members:
     :noindex:
 
@@ -14,6 +15,7 @@ Module ``collectives.forms.auth``
 Module ``collectives.forms.event``
 ---------------------------------------
 .. automodule:: collectives.forms.event
+    :noindex:
     :members:
     :noindex:
 
@@ -21,6 +23,7 @@ Module ``collectives.forms.event``
 module ``collectives.forms.payment``
 ---------------------------------------
 .. automodule:: collectives.forms.payment
+    :noindex:
     :members:
     :noindex:
 
@@ -28,6 +31,7 @@ module ``collectives.forms.payment``
 Module ``collectives.forms.user``
 ---------------------------------------
 .. automodule:: collectives.forms.user
+    :noindex:
     :members:
     :noindex:
 

@@ -7,7 +7,7 @@ import flask_testing
 
 # pylint: disable=C0301
 from collectives import create_app
-from collectives.models import db, User, ActivityType, Role, RoleIds, Event
+from collectives.models import db, User, ActivityType, EventType, Role, RoleIds, Event
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 
 # pylint: enable=C0301
@@ -85,7 +85,7 @@ def commit_role(role):
 
 
 def make_event():
-    return Event(
+    event = Event(
         title="Event",
         description="",
         num_slots=2,
@@ -93,6 +93,10 @@ def make_event():
         start=datetime.datetime.now() + datetime.timedelta(days=1),
         end=datetime.datetime.now() + datetime.timedelta(days=2),
     )
+    event.event_type = EventType(
+        name="Collective", short="collective", requires_activity=True
+    )
+    return event
 
 
 def make_registration(user):
@@ -374,7 +378,7 @@ class TestImportCSV(ModelTest):
         assert len(events) == 1
         event = events[0]
         assert processed == 1
-        assert failed == []
+        assert not failed
         assert event.title == "Aiguille des Calvaires"
         assert event.num_slots == 8
         assert event.num_online_slots == 4

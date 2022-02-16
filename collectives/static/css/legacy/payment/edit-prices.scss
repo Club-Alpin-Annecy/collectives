@@ -1,11 +1,18 @@
 #existing_prices {
     width: 100%;
     margin:auto;
+    border-spacing : 0;
+    border-collapse : collapse;
 }
 
 #existing_prices input{
+    margin: auto;
     width:90%;
-    padding:0.5em;
+    padding: 10% 0.25em;
+}
+
+#existing_prices input[type=checkbox] {
+    margin: 0.5em;
 }
 
 #existing_prices input[type=number]{
@@ -22,10 +29,25 @@
     font-weight: normal;
 }
 
-td.error-cell {
+#existing_prices td {
+    vertical-align: middle;
+    text-align:center;
+}
+
+#existing_prices td.error-cell {
     text-align:left;
 }
 
-td.actions{
-   min-width:8em;
+#existing_prices td.actions{
+    min-width:8em;
+    text-align:left;
+}
+
+#existing_prices tr.item_row td {
+    padding-top: 0.5em;
+    border-top: 1px solid $color-gray-medium;
+}
+
+#existing_prices tr.even td {
+    background-color: $color-blue-bg-light;
 }

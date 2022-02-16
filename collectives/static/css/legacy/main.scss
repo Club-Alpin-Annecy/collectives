@@ -1,27 +1,3 @@
-.panel{
-	max-width: 1100px;
-	margin: auto;
-	min-height: 100vh;
-	padding: 60px 10px 20px;
-    background-color: white;
-}
-
-.panel h3{
-	margin: 0 0 1em;
-	text-align: left;
-	text-transform: uppercase;
-	font-size: 3em;
-	font-weight: bolder;
-}
-
-.panel h4{
-  text-align: left;
-  font-size: 1.5em;
-  margin:auto;
-  margin-top: 2em;
-  color:  rgb(235,105,28);
-}
-
 .contact-link{
 	text-align: justify;
 }
@@ -131,58 +107,6 @@
 	width: 200px;
 }
 
-/* User icon display*/
-.usericon {
-	position: relative;
-	min-width: 150px;
-	height: 60px;
-	display: inline-block;
-	margin : 10px 20px;
-	padding-right: 15px;
-
-	background: #F5F5F5;
-	border: 2px solid #006880;
-	border-left: none;
-	box-sizing: border-box;
-	border-radius: 30px;
-
-	font-size: 20px;
-}
-.usericon img.avatar{
-	width: 60px;
-	height: 60px;
-	border-radius: 30px;
-	position: relative;
-	top: -2px;
-	left: -2px;
-	background-color: #CDCDCD;
-	vertical-align: middle;
-}
-
-.usericon .name a{
-	color: #121F22 !important;
-}
-
-.usericon span.license-tag{
-	border-radius: 5px;
-	padding: 2px;
-}
-.usericon span.youth{
-	background-color:orange;
-}
-.usericon span.minor{
-	background-color:orangered;
-}
-.usericon span.pending-renewal{
-	color: white;
-	background-color:darkred;
-	margin-right:3px;
-}
-.usericon span.pending-renewal img{
-	height:2ex;
-	vertical-align: middle;
-}
-
 .tag{
 	border-radius: 5px;
 	display: inline-block;
@@ -250,22 +174,22 @@ form input, form select{
 	   margin: 0;
 	   width: 0;
 }
-@media (min-width: 500px) {
+@media (min-device-height: 500px) {
 	#cover{
 		background-image: url("/static/caf/cover_742-min.jpg");
 	}
 }
-@media (min-height: 742px) {
+@media (min-device-height: 742px) {
 	#cover{
 		background-image: url("/static/caf/cover_1080-min.jpg");
 	}
 }
-@media (min-height: 1080px) {
+@media (min-device-height: 1080px) {
 	#cover{
-		background-image: url("/static/caf/cover_1080-min.jpg");
+		background-image: url("/static/caf/cover_1440-min.jpg");
 	}
 }
-@media (min-height: 1440px) {
+@media (min-device-height: 1440px) {
 	#cover{
 		background-image: url("/static/caf/cover-min.jpg");
 	}

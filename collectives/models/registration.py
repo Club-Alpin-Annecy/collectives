@@ -21,7 +21,7 @@ class RegistrationStatus(ChoiceEnum):
     """Enum listing acceptable registration status."""
 
     Active = 0
-    """ Registered user is plann to be present. """
+    """ Registered user is planned to be present. """
 
     Rejected = 1
     """ Registered user has been rejected by a leader.
@@ -32,6 +32,19 @@ class RegistrationStatus(ChoiceEnum):
 
     This registration is temporarily holding up a spot, but may be removed after timeout
     """
+    SelfUnregistered = 3
+    """ User has self unregister to the event.
+
+    User should not be able to register again without leader help."""
+
+    JustifiedAbsentee = 4
+    """ User has been absent to the event, but excused by the leader. """
+
+    UnJustifiedAbsentee = 5
+    """ User has been absent to the event, but not excused by the leader. """
+
+    ToBeDeleted = 99999
+    """ Registration should be deleted. This is not a valid SQL enum entry and should only be used as a temporary marker"""
 
     @classmethod
     def display_names(cls):
@@ -40,10 +53,42 @@ class RegistrationStatus(ChoiceEnum):
         :rtype: dict
         """
         return {
-            cls.Active: "Active",
+            cls.Active: "Inscrit",
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
+            cls.SelfUnregistered: "Auto désinscrit",
+            cls.JustifiedAbsentee: "Absent justifié",
+            cls.UnJustifiedAbsentee: "Absent non justifié",
+            cls.ToBeDeleted: "Effacer l'inscription",
         }
+
+    @classmethod
+    def transition_table(cls, requires_payment):
+        """
+        :return: a dict defining possible transitions for all enum values
+        :param bool requires_payment: whether this is a paid event.
+        :rtype: dict
+        """
+
+        re_register_status = cls.PaymentPending if requires_payment else cls.Active
+
+        return {
+            cls.Active: [cls.Rejected, cls.UnJustifiedAbsentee, cls.JustifiedAbsentee],
+            cls.Rejected: [re_register_status, cls.ToBeDeleted],
+            cls.PaymentPending: [cls.Rejected],
+            cls.SelfUnregistered: [re_register_status, cls.ToBeDeleted],
+            cls.JustifiedAbsentee: [cls.Rejected, cls.Active, cls.UnJustifiedAbsentee],
+            cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
+            cls.ToBeDeleted: [],
+        }
+
+    def valid_transitions(self, requires_payment):
+        """
+        :return: The list of all achievable transitions for a given status (excluding itself)
+        :param bool requires_payment: whether this is a paid event.
+        :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
+        """
+        return self.__class__.transition_table(requires_payment)[self.value]
 
 
 class Registration(db.Model):
@@ -119,6 +164,13 @@ class Registration(db.Model):
         :rtype: boolean"""
         return self.status == RegistrationStatus.Rejected
 
+    def is_unregistered(self):
+        """Check if this registation is unregistered.
+
+        :return: Is :py:attr:`status` unregistered ?
+        :rtype: boolean"""
+        return self.status == RegistrationStatus.SelfUnregistered
+
     def is_pending_payment(self):
         """Check if this registation is pending payment.
 
@@ -139,3 +191,12 @@ class Registration(db.Model):
         :return: The list of payments with 'Initiated' status
         :rtype: list[:py:class:`collectives.modes.payment.Payment`]"""
         return [p for p in self.payments if p.is_unsettled()]
+
+    def valid_transitions(self):
+        """
+        :return: The list of all achievable transitions from the current status
+        :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
+        """
+        return [self.status] + self.status.valid_transitions(
+            self.event.requires_payment()
+        )

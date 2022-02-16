@@ -6,17 +6,18 @@
     Versions are simple numbers without dots (eg v1 v2 v3 v4)
 
 #}
-<h4>Versionnement des mentions légales:</h4>
+<h4 class="heading-4">Versionnement des mentions légales:</h4>
 <p>
     <ul>
-        {% if config['STATISTICS_ENABLED'] %}
-            <li><b>v2</b> : (version actuelle) Ajout de <a href="#statistiics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
+        {% if config['GOOGLE_ANALYTICS_UA'] %}
+            <li><b>v3</b> : (version actuelle) Mise à jour de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
+            <li><b>v2</b> : Ajout de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
         {% endif %}
         <li><b>v1</b> : Document initial</li>
     </ul>
 </p>
 
-<h4>Identité</h4>
+<h4 class="heading-4">Identité</h4>
     <p>
         <b>Club Alpin Français d'Annecy</b><br/>
         17 Rue du Mont Blanc<br/>
@@ -29,15 +30,17 @@
     </p>
 
 
-<h4>Mentions relatives à l'utilisation des cookies</h4>
+<h4 class="heading-4">Mentions relatives à l'utilisation des cookies</h4>
     <p>Un cookie est un petit fichier informatique qui permet de suivre les usagers lors de la
     visite d'un site internet.<br/>
-    Sur ce site, les cookies ne sont utilisés que pour organiser l'accès aux fonctionnalités
-    réservées aux membres (cookie de sessions).<br/>
-    La durée de validité d'un cookie dans ce cadre est de 13 mois maximum, ou la durée de la session utilisateur.
+    Sur ce site, les cookies obligatoires ne sont utilisés que pour organiser l'accès aux fonctionnalités
+    réservées aux membres (cookie de sessions), et pour enregistrer votre choix de gestion des cookies facultatifs.<br/>
+    La durée de validité d'un cookie dans ce cadre est de 13 mois maximum, ou la durée de la session utilisateur.<br/>
+    Nous pouvons aussi utiliser des cookies facultatifs pour la réalisation de statistiques d'utilisation. Plus
+    d'information dans la section <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a>.
     </p>
 
-<h4>Mentions relatives à l'utilisation de données personnelles</h4>
+<h4 class="heading-4">Mentions relatives à l'utilisation de données personnelles</h4>
     <p>Conformément
     au Règlement général sur la protection des données (RGPD) du 25 mai 2018, les données
     personnelles des adhérents ayant un compte activé sur
@@ -47,7 +50,7 @@
     </p>
 
      <!-- FIXME should be 1.1em -->
-    <h5>Information générales récupérées à l'activation de son compte</h5>
+    <h5 class="heading-5">Information générales récupérées à l'activation de son compte</h5>
 
     <p>
     Les données personnelles présentes sur le site des collectives sont une copie de celles
@@ -168,7 +171,7 @@
         </li>
     </ol>
 
-<h5>Droits de la personne concernée</h5>
+<h5 class="heading-5">Droits de la personne concernée</h5>
     <p>Chaque adhérent ayant un compte activé sur le site des
     collectives dispose d'un droit d'accès, de rectification ou de suppression des données
     personnelles le concernant&nbsp;:
@@ -185,34 +188,15 @@
         <li>Droit à la limitation du traitement des données</li>
     </ul>
 
-    {% if config['STATISTICS_ENABLED'] %}
-    <h4 id="statistics">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
-        <p>
-            Conformément au Règlement général sur la protection des données (RGPD) du 25 mai 2018,
-            les données personnelles des visiteurs du site ne sont pas enregistrées. Pour la réalisation de
-            statistiques d'utilisation du site, chaque requête est enregistrée avec ces données:
-        </p>
-
-        <ul>
-            <li><b>response_time :</b>	Le temps du serveur à générer la requête</li>
-            <li><b>date :</b>	La date de la requête</li>
-            <li><b>method :</b>	La méthode HTTP de la requête</li>
-            <li><b>size :</b>	La taille de la réponse de la requête</li>
-            <li><b>status_code :</b>	Le code de retour HTTP de la requête</li>
-            <li><b>user_agent :</b>	Le User-Agent de la requête</li>
-            <li><b>remote_address :</b>	L’IP anonymisée de la requête (masquage des deux derniers octets)</li>
-            <li><b>exception :</b>	L’erreur éventuelle de la requête</li>
-            <li><b>referrer :</b>	Le lien qui a renvoyé vers la page de la requête</li>
-            <li><b>browser :</b>	Le type de client du visiteur</li>
-            <li><b>platform :</b>	La plateforme du client du visiteur</li>
-            <li><b>mimetype :</b>	Le Mime type de la requête</li>
-
-        </ul>
-
-        <p>
-            Ces données ne sont collectées que pour améliorer le service. Elles ne sont à destination que des équipes du site et ne sont pas communiquées à des tiers.
-        </p>
-        <p>
-            Vous pouvez désactiver les statistiques grâce au bouton en début de page. Votre choix est conservé pendant 1 an et est rattaché au navigateur (cookie).
-        </p>
+    {% if config['GOOGLE_ANALYTICS_UA'] %}
+    <h4 id="statistics" class="heading-4">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
+    <p>
+        Google Analytics est utilisé pour les statistiques d'utilisation du site. La participation à ces statistiques est optionnelle
+        et peut être configurée dans le <a href="" onclick="tarteaucitron.userInterface.openPanel();return false">Panneau de gestion des cookies</a>.
+    </p>
+    <p>
+        Si vous accepter de participer à ces statistiques, Google Analytics pourra collecter et compiler des données vous concernant.
+        Vous pouvez avoir plus d'information sur le site de <a href="https://policies.google.com/privacy">Google</a>, et sur
+        le site de <a href="https://tarteaucitron.io/service/gajs/" >tarteaucitron</a>, le gestionnaire de consentement.
+    </p>
     {% endif %}

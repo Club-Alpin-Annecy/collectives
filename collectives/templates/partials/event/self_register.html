@@ -1,5 +1,10 @@
 <p>Les inscriptions en ligne sont possibles jusqu'au {{format_datetime(event.registration_close_time)}}. </p>
 {% if event.requires_payment() %}
+    <p>
+        Cet événement est payant ; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
+        Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
+        vous référer aux <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
+    </p>
     {% include 'partials/event/payment_item_choice.html' %}
 {% else %}
     <form
@@ -10,11 +15,9 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <div
-                class="usericon selfsubscribe"
+                class="button button-primary"
                 onclick= "this.nextSibling.nextSibling.style.display='block'"
             >
-            <img class="avatar" src="{{ url_for('static', filename='img/icon/ionicon/md-person-add.svg')   }}" />
-
             <span class="name" >S'inscrire</span>
         </div>
 
@@ -25,11 +28,14 @@
                                 class="close"
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
-                <h3>Confirmation</h3>
-                <p>L'inscription à un événement vous engage à y participer.<br/>
-                    <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a></label><br/>
+                <h1 class="heading-1">Confirmation</h1>
+                {% if event.event_type.terms_file %}
+                <p>L'inscription à un événement vous engage à y participer.</p>
+                <p>
+                    <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a></label><br/>
                 </p>
-                <h4 class="centeralign">Confirmez-vous l'inscription? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
+                {% endif %}
+                <h4 class="centeralign">Confirmez-vous l'inscription ? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
             </div>
             <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
         </div>

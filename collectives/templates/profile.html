@@ -13,13 +13,9 @@
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
 
-{% block header %}
-<h1>{% block title %} {{user.full_name()}} {% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="profile">
-    <h3>{{user.full_name()}}</h3>
+<div class="page-content" id="profile">
+    <h1 class="heading-1">{{user.full_name()}}</h1>
 
     <div><img src="{%   if user.avatar
                                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
@@ -51,7 +47,7 @@
     {% endif %}
 
 
-    <h4>Informations FFCAM </h4>
+    <h4 class="heading-4">Informations FFCAM </h4>
 
     <table id="profile_info">
         <tr>
@@ -103,12 +99,12 @@
     </form>
     {% endif %}
 
-    <h4>Sorties à venir</h4>
-    <div id="eventstable">
+    <h4 class="heading-4">Sorties à venir</h4>
+    <div id="eventstable" class="collectives-list">
     </div>
 
-    <h4>Sorties effectuées</h4>
-    <div id="pasteventstable">
+    <h4 class="heading-4">Sorties effectuées</h4>
+    <div id="pasteventstable" class="collectives-list">
     </div>
 </div>
 

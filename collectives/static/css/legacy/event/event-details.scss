@@ -5,6 +5,10 @@
     line-height: 50px;
 }
 
+#eventlist a {
+    color: inherit;
+}
+
 #eventlist #filters input.button {
     display: none;
 }
@@ -62,17 +66,11 @@
     height: 130px;
     width: 200px;
 }
-#eventlist #eventstable h4 {
-    font-size: 160%;
-    margin: 0;
-}
 
 #eventlist #eventstable .tabulator-table {
     width: 100%;
 }
-#eventlist #eventstable .row div div {
-    font-size: 120%;
-}
+
 #eventlist #eventstable .activities {
     height: 130px;
     display: flex;
@@ -87,50 +85,11 @@
     opacity: 0.5;
 }
 
-span.event-status {
-    padding: 0.4em 0.5em 0.3em;
-    color: white;
-    background-color: red;
-    border-radius: 5px;
-    font-size: 1.2rem;
-    vertical-align: middle;
-}
 
 /* Event details */
-#eventdetail h5 {
-    font-size: 20px;
-    margin: 0.5em 20px;
-}
+
 #eventdetail .slots {
     text-align: left;
-}
-#eventdetail .photo {
-    width: 50%;
-    margin: 2em auto;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    display: block;
-}
-#eventdetail .type {
-    float: right;
-}
-#eventdetail #description {
-    text-align: justify;
-    max-width: 1000px;
-    margin: 2em auto 1em;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    padding: 30px 40px;
-    overflow-wrap: break-word;
-}
-
-#eventdetail .subscriptions,
-#eventdetail #encadrement {
-    padding: 3px 20px;
-}
-
-#eventdetail .date,
-#eventdetail .subscriptions h5,
-#eventdetail #encadrement h5 {
-    color: rgb(235, 105, 28);
 }
 
 #eventdetail .useractionmenu {
@@ -179,33 +138,30 @@ span.event-status {
     vertical-align: middle;
 }
 
-#eventdetail .administration {
-    background-color: #cccccc;
-    margin-top: 5em;
-    padding: 20px 10px;
-}
-
-#eventdetail .administration h4 {
+#eventdetail .administration .buttons {
     text-align: center;
-}
-
-#eventdetail .administration h5 {
-    margin-top: 2em;
 }
 
 #eventdetail .search-input {
     max-width: 400px;
 }
 
-#eventdetail p {
-    padding: 1em 20px;
-}
 
 #description a {
     text-decoration: underline;
 }
 #description a:hover {
     text-decoration: none;
+}
+#attendancelistform{
+    text-align: center;
+}
+#attendancelistform table{
+    margin: auto;
+    text-align: left;
+}
+#attendancelistform td select{
+    width: 100%;
 }
 
 .select {

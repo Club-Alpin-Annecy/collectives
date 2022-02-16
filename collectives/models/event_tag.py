@@ -65,7 +65,7 @@ class EventTag(db.Model):
         """All information about the tag type.
 
         :type: dict"""
-        tag = self.all()[self.type]
+        tag = self.all(True)[self.type]
         tag["id"] = self.type
         return tag
 
@@ -77,11 +77,19 @@ class EventTag(db.Model):
         return [(tag[0], tag[1]["name"]) for tag in cls.all().items()]
 
     @classmethod
-    def all(cls):
-        """Alias for EVENT_TAGS in config.
+    def all(cls, include_deprecated=False):
+        """Returns tag dictionnary as defined by EVENT_TAGS in config.
+
+        :param include_deprecated: Whether to include deprecated activity types
+        :type include_deprecated: bool
 
         :type: dict"""
-        return current_app.config["EVENT_TAGS"]
+
+        tags = current_app.config["EVENT_TAGS"]
+        if include_deprecated:
+            return tags
+
+        return {id: tag for id, tag in tags.items() if not tag.get("deprecated", False)}
 
     @classmethod
     def get_type_from_short(cls, short):
@@ -90,7 +98,7 @@ class EventTag(db.Model):
         :param string short: Shortname of the searched tag
         :returns: Tag id
         :rtype: int"""
-        for i, tag in cls.all().items():
+        for i, tag in cls.all(True).items():
             if tag["short"] == short:
                 return i
         return None

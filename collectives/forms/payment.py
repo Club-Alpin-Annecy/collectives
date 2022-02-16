@@ -49,6 +49,7 @@ class ItemPriceForm(ModelForm, AmountForm):
             "end_date",
             "license_types",
             "max_uses",
+            "leader_only",
         ]
 
     delete = BooleanField("Supprimer")
@@ -107,6 +108,8 @@ class PaymentItemForm(ModelForm):
     item_id = HiddenField()
     item_prices = FieldList(FormField(ItemPriceForm, default=ItemPrice()))
 
+    owner_form = None
+
     def get_item(self, event):
         """
         :param event: Event to which the payment item belongs
@@ -147,6 +150,16 @@ class PaymentItemForm(ModelForm):
             field_form.total_use_count = price.total_use_count()
             field_form.active_use_count = price.active_use_count()
 
+    def validate_title(form, field):
+        """Validates that the item title is unique for this event
+        See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
+        """
+        title = field.data
+        item_id = int(form.item_id.data)
+        other_titles = form.owner_form.other_item_titles(item_id)
+        if title.lower() in [t.lower() for t in other_titles]:
+            raise ValidationError(f"Plusieurs objets portent le nom '{title}'")
+
 
 class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
@@ -160,6 +173,7 @@ class NewItemPriceForm(ModelForm, AmountForm):
             "end_date",
             "license_types",
             "max_uses",
+            "leader_only",
         ]
 
     item_title = StringField("Intitulé du nouvel objet")
@@ -177,11 +191,18 @@ class NewItemPriceForm(ModelForm, AmountForm):
 
     def validate_item_title(form, field):
         """Validates that if a new item is created, then the
-        new item title field is not empty.
+        new item title field is not empty, and is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
-        if not form.existing_item.data and len(field.data) == 0:
+        title = field.data
+        if not form.existing_item.data and not title:
             raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
+
+        existing_titles = [t.lower() for (i, t) in form.existing_item.choices]
+        if title.lower() in existing_titles:
+            raise ValidationError(
+                f"Un objet portant le nom '{title}' existe déjà; pour ajouter un nouveau tarif à cet objet, sélectionnez le dans la liste 'Objet du paiement'"
+            )
 
     def __init__(self, items, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -194,6 +215,12 @@ class PaymentItemsForm(FlaskForm):
     items = FieldList(FormField(PaymentItemForm, default=PaymentItem()))
 
     update = SubmitField("Enregistrer")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_form in self.items:
+            field_form.form.owner_form = self
 
     def populate_items(self, items):
         """
@@ -213,8 +240,21 @@ class PaymentItemsForm(FlaskForm):
         # Update fields
         for k, field_form in enumerate(self.items):
             item = items[k]
+            field_form.owner_form = self
             field_form.item_id.data = item.id
             field_form.populate_prices(item)
+
+    def other_item_titles(self, item_id):
+        """Returns the titles of all items other than the one with id item_id
+        :param item_id: Id of item to exclude
+        :type item_id: int
+        :return: List of other item titles
+        :rtype: list[str]
+        """
+
+        return [
+            form.title.data for form in self.items if int(form.item_id.data) != item_id
+        ]
 
 
 class OfflinePaymentForm(ModelForm, OrderedForm):

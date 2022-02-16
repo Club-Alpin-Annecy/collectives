@@ -359,6 +359,8 @@ class User(db.Model, UserMixin):
         if self.is_test:
             # Test users licenses never expire
             return True
+        if self.license_expiry_date is None:
+            return False
         return self.license_expiry_date > time.date()
 
     def is_youth(self):
@@ -511,6 +513,15 @@ class User(db.Model, UserMixin):
         """
 
         return self.has_role(RoleIds.all_reservation_management_roles())
+    def can_lead_at_least_one_activity(self):
+        """Check if user has a role which allow him to lead at least one activity.
+
+        See :py:meth:`collectives.models.role.RoleIds.all_activity_leader_roles`
+
+        :return: True if user can lead at least one activity.
+        :rtype: boolean
+        """
+        return self.has_role(RoleIds.all_activity_leader_roles())
 
     def can_lead_activity(self, activity_id):
         """Check if user has a role which allow him to lead a specific activity.
@@ -632,7 +643,7 @@ class User(db.Model, UserMixin):
         :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
         """
         if self.is_admin() or self.has_role([RoleIds.President]):
-            return ActivityType.query.order_by(ActivityType.order).all()
+            return ActivityType.get_all_types(True)
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]

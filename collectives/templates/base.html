@@ -22,25 +22,46 @@
             }
         </script>
         <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+        {% if config['GOOGLE_ANALYTICS_UA'] %}
+        <!-- Analytics -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tarteaucitronjs/1.9.5/tarteaucitron.js"
+                integrity="sha512-Z59cuz/ZybHWC3/3UZNQnihn3Xmp2MZJKF6P2HX6WHbkHLrmoW0FHUhpNw+76ms9RuJC88uu3RxWW1IHrfOeug=="
+                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script type="text/javascript">
+               tarteaucitron.init({
+                   "privacyUrl": "{{ url_for('root.legal')}}",
+                   "closePopup": true,
+                   "orientation"   : "bottom",
+                   "showAlertSmall": false,
+                   "showIcon"      : false,
+               });
+
+                tarteaucitron.user.gtagUa = '{{ config['GOOGLE_ANALYTICS_UA'] }}';
+                // tarteaucitron.user.gtagCrossdomain = ['example.com', 'example2.com'];
+                tarteaucitron.user.gtagMore = function () { /* add here your optionnal gtag() */ };
+                (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
+
+        </script>
+        {% endif %}
+
         {% block additionalhead %}{% endblock %}
     </head>
     <body>
         {%include 'partials/main-navigation.html' %}
-        <div id="playground">
-
+        <section class="page">
             {% block content %}{% endblock %}
-
-        </div>
+        </section>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="messages">
                 <div class="innermessages">
                     <img
-                                    src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                                    class="close"
-                                    onclick= "this.parentNode.parentNode.style.display='none'"
-                                />
-                    <h3>Message</h3>
+                        src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                        class="close"
+                        onclick= "this.parentNode.parentNode.style.display='none'"
+                    />
+                    <h3 class="heading-3">Message</h3>
                 {% for category, message in messages %}
                 <p class="{{category}} message">{{ message }}</p>
                 {% endfor %}

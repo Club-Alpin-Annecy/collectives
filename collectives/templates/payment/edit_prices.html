@@ -12,19 +12,15 @@
   </script>
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}{{event.title}}{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="administration">
-  <h3>{{event.title}}</h3>
+<div class="page-content" id="administration">
+  <h1 class="heading-1">{{event.title}}</h1>
   <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
 
-  <h4>Édition des tarifs</h4>
+  <h4 class="heading-4">Édition des tarifs</h4>
   Pour rendre la collective payante, définissez un ou plusieurs tarifs.
 
-  <h5> Tarifs existants </h5>
+  <h5 class="heading-5"> Tarifs existants </h5>
   {% if form.items %}
 
     <form method="POST">
@@ -36,14 +32,15 @@
       <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
-      <th> Dispo </th>
-      <th> Actif </th>
+      <th> Max dispo </th>
+      <th> Tarif encadrant </th>
+      <th> Utilisations</th>
     </thead>
     {% for item_form in form.items %}
       {{item_form.item_id}}
     
       {% for field in item_form.item_prices %}
-        <tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %}" >
           <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
           <td> {{ field.title() }} </td>
           <td>
@@ -53,13 +50,15 @@
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
           <td> {{ field.max_uses() }} </td>
-          <td> {{ field.enabled() }} </td>
+          <td> {{ field.leader_only() }} </td>
           <td class="actions"> {{field.price_id}} 
-          {% if field.total_use_count %}
-            {{field.active_use_count}} utilisations actives ({{field.total_use_count}} total) 
-          {% else %}
+          {{field.active_use_count}} actives ({{field.total_use_count}} tot.)
+          <br/>
+          <label>{{field.enabled}} Activer</label>
+          {% if field.total_use_count == 0 %}
+          <br />
             {{field.delete}}&nbsp;{{field.delete.label}}
-          {% endif %}
+          {% endif %} 
           </td>
         </tr>
         {% if field.errors %}
@@ -76,6 +75,18 @@
         </td> </tr>
         {%endif%}
       {% endfor %}
+
+      {% if item_form.errors["title"]  %}
+      <tr> <td colspan="4" class="error-cell">
+        <div class="form-errors">
+            {% for error in item_form.errors["title"] %}
+            <div class="flash flash-error">
+                <strong>Erreur: {{item_form.title.label}}:</strong> {{error}}
+            </div>
+            {% endfor %}
+        </div>
+      </td> </tr>
+      {%endif%}
     {% endfor %}
     </table>
 
@@ -86,7 +97,7 @@
       Aucun tarif n'a été défini pour le moment.
     {%endif%}
 
-    <h5> Nouveau tarif </h5>
+    <h5 class="heading-5"> Nouveau tarif </h5>
     <form method="POST">
 
     <div class="form-errors">
@@ -132,13 +143,17 @@
     {{ new_price_form.end_date}}
     <div class="field">{{ new_price_form.max_uses.label }}<span class="help">Nombre max d'utilisations du tarif ('0' pour illimité)</span></div>
     {{ new_price_form.max_uses}}
+    <div class="field">
+    {{ new_price_form.leader_only }} 
+    </div>
+    {{new_price_form.leader_only.label}}
     </fieldset>
 
     {{ new_price_form.hidden_tag() }}
     <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
 
-    <h4>Catégories de licence</h4>
+    <h4 class="heading-4">Catégories de licence</h4>
     <p>
       Pour rappel, les catégories de licence FFCAM sont les suivantes:
       <ul>

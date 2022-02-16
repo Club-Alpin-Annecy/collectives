@@ -1,11 +1,6 @@
 
 {% extends 'base.html' %}
 
-
-{% block header %}
-  <h1>{% block title %}Login{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
@@ -14,7 +9,7 @@
 
         <form method="POST" action="#" class="form form-vertical">
             <div class="controls">
-                <h3>Connexion</h3>
+                <h1 class="heading-1">Connexion</h1>
             </div>
             {{ form.hidden_tag() }}
             <div class="controls">

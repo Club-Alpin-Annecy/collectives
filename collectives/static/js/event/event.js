@@ -22,3 +22,13 @@ function copyToClipboard(id){
     input.setSelectionRange(0, 99999); /*For mobile devices*/
     document.execCommand("copy");
 }
+
+
+function attendanceSelectAll(value){
+    document.querySelectorAll(`#attendancelist select`).forEach(function(i){
+                                                if(i.value=="0"){
+                                                    i.value = value;
+                                                    i.onchange();
+                                                }
+                                            });
+}

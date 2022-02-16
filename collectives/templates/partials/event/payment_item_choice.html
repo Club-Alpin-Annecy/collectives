@@ -1,18 +1,22 @@
 
    {% if payment_item_choice_form and payment_item_choice_form.item_price.choices | length %}
 
-    <p>
-        Cette collective est payante; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
-        Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
-        vous référer aux <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
-    </p>
-    {% if registration %}
-        <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
-        <strong>Finaliser l'inscription</strong>
+    {% if is_leader %}
+            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
+            <strong>Participer aux frais</strong>
     {% else %}
-        <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
-        <strong>Inscription</strong>
+        {% if registration %}
+            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
+            <strong>Finaliser l'inscription</strong>
+        {% else %}
+            <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
+            <strong>Inscription</strong>
+        {% endif %}
+        <div>
+            L'inscription à un événement vous engage à y participer.
+        </div>
     {% endif %}
+
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div>
             {{payment_item_choice_form.item_price.label}} :
@@ -23,20 +27,19 @@
             </ul>
         </div>
         <div>
-            L'inscription à un événement vous engage à y participer.
-        </div>
-        <div>
             <label>
                 {{payment_item_choice_form.accept_payment_terms}}
                 J'ai lu et j'accepte les <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
             </label>
         </div>
+        {% if event.event_type.terms_file and not is_leader %}
         <div>
             <label>
                 {{payment_item_choice_form.accept_guide}} J'ai lu et j'accepte le
-                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}">guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy</a>
+                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a>
             </label>
         </div>
+        {% endif %}
         <br/>
         {{payment_item_choice_form.submit(class="button button-primary")}}
     </form>

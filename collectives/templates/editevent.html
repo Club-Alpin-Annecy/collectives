@@ -69,14 +69,10 @@
 
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Rédaction d'activité{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="eventedit">
+<div class="page-content" id="eventedit">
   <!-- Logging Windows -->
-  <h3>Rédaction d'activité</h3>
+  <h1 class="heading-1">Rédaction d'activité</h1>
   <div class="form-errors">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
@@ -99,19 +95,31 @@
     {# For this add a hidden submit button before 'update_leaders' #}
     {{form.save_all(id="hidden_save_all", style="visibility:hidden;position:absolute;") }}
 
-    <h4>Activité et encadrants</h4>
+    <h4 class="heading-4">Type d'événement et encadrants</h4>
     <div class="controls">
-      {{form.update_activity(value=0)}}
+        {{form.update_activity(value=0)}}
+        {{form.event_type_id.label}}
+        {{ form.event_type_id(onchange="javascript:updateActivity(this)") }}
+    </div>
+    
+    {% if form.can_switch_multi_activity_mode() %}
+    <div class="controls">
       <div class="inline_field">
          {{form.multi_activities_mode(onchange="javascript:updateActivity(this)") }}
          {{form.multi_activities_mode.label}}
       </div>
     </div>
+    {% else %}
+         {{form.multi_activities_mode(style="display:none") }}
+    {% endif %}
+
     <div class="controls">
       {% if form.multi_activities_mode.data %}
-        <label for="{{form.types.id_for_label}}">Activités:</label> {{form.types(class="choices")}}
+        <label for="{{form.multi_activity_types.id_for_label}}">
+          Activités {%if not form.current_event_type().requires_activity %} (Optionnel) {%endif%}:
+        </label> {{form.multi_activity_types(class="choices")}}
       {% else %}
-        <label for="{{form.type.id_for_label}}">Activités:</label> {{ form.type(onchange="javascript:updateActivity(this)") }}
+        <label for="{{form.single_activity_type.id_for_label}}">Activité:</label> {{ form.single_activity_type(onchange="javascript:updateActivity(this)") }}
       {% endif %}
     </div>
       <fieldset>
@@ -148,7 +156,7 @@
       {{ form.update_leaders(value=0) }}
     </fieldset>
 
-    <h4>Informations</h4>
+    <h4 class="heading-4">Informations</h4>
     <div class="controls">
       <label for="title">Titre : </label> {{ form.title(size=200) }}
     </div>
@@ -160,7 +168,7 @@
     </div>
 
     <div class="dates">
-      <h4>Dates</h4>
+      <h4 class="heading-4">Dates</h4>
 
       <div class="controls">
         <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
@@ -173,7 +181,7 @@
     </div>
 
     <div class="dates">
-      <h4>Inscriptions par internet</h4>
+      <h4 class="heading-4">Inscriptions par internet</h4>
       <div class="controls">
         <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
       </div>
@@ -192,13 +200,13 @@
       </span>
     </div>
 
-    <h4>Restrictions d'inscription</h4>
+    <h4 class="heading-4">Restrictions d'inscription</h4>
     Restreindre les inscriptions aux participants de la collective:
     {{ form.parent_event_id }}
     <input type="text" id="parent-event-search" placeholder="Titre ou ID…">
 
 
-    <h4>Description</h4>
+    <h4 class="heading-4">Description</h4>
     <div id="editor">
         {{ form.description }}
     </div>
@@ -248,10 +256,11 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
 });
 var easymde = makeEditor("description");
 
-var activities_multiselect = document.getElementById("types");
+var activities_multiselect = document.getElementById("multi_activity_types");
 if(activities_multiselect) {
   const choices = new Choices(activities_multiselect, {
-    removeItemButton:true
+    removeItemButton:true,
+    noChoicesText: 'Veuillez d\'abord ajouter un encadrant de l\'activité désirée.',
   });
 }
 const labelsChoices = new Choices(document.getElementById("tag_list"), {

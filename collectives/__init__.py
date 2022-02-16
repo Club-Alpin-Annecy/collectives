@@ -16,8 +16,6 @@ from flask import Flask, current_app
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
-from flask_statistics import Statistics
-
 from click import pass_context
 
 from . import models, api, forms
@@ -34,7 +32,7 @@ from .routes import (
     reservation,
 )
 from .routes import activity_supervison
-from .utils import extranet, init, jinja, error, access, payline, statistics
+from .utils import extranet, init, jinja, error, access, payline
 
 
 @pass_context
@@ -74,6 +72,7 @@ def populate_db(app):
     app.logger.info("Populating database with initial values")
     auth.init_admin(app)
     init.activity_types(app)
+    init.event_types(app)
 
 
 class ReverseProxied:
@@ -134,15 +133,20 @@ def create_app(config_filename="config"):
             filters = "libsass, cssmin"
             assets.auto_build = False
             assets.debug = False
+            assets.cache = True
+        else:
+            assets.auto_build = True
+            assets.debug = True
         scss = Bundle(
             "css/all.scss",
             filters=filters,
-            depends=("/static/css/**/*.scss"),
+            depends=("/static/css/**/*.scss", "**/*.scss", "**/**/*.scss"),
             output="dist/css/all.css",
         )
 
         assets.register("scss_all", scss)
-        scss.build()
+        if app.config["ENV"] == "production":
+            scss.build()
 
         # Register blueprints
         app.register_blueprint(root.blueprint)
@@ -169,15 +173,6 @@ def create_app(config_filename="config"):
         # models.db.create_all()
 
         populate_db(app)
-
-        if app.config["STATISTICS_ENABLED"]:
-            Statistics(
-                app,
-                models.db,
-                models.Request,
-                access.technician_required_f,
-                disable_f=statistics.disable_f,
-            )
 
         return app
 

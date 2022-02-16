@@ -1,0 +1,26 @@
+.event-status-badge {
+    padding: 0.3em 0.4em 0.3em;
+    border-radius: 5px;
+    font-size: $font-size-m;
+    vertical-align: middle;
+    text-transform: initial;
+    background-color: $solitude;
+
+    // Confirmed
+    &.event-status-0 {
+        background-color: $solitude;
+        color: $color-gray-dark;
+    }
+
+    // Pending
+    &.event-status-1  {
+        background-color: $color-warning-dark;
+        color: $color-gray-dark;
+    }
+
+    // Cancelled
+    &.event-status-2 {
+        background-color: $color-error-dark;
+        color: $color-white;
+    }
+}

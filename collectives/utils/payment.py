@@ -45,7 +45,7 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                     query = query.filter(Payment.creation_time < end)
             elif field == "item.event.title":
                 query = query.filter(Event.title.like(f"%{value}%"))
-            elif field == "item.event.activity_type_names":
+            elif field == "item.event.activity_type_names" and value is not None:
                 try:
                     query = query.filter(
                         Event.activity_types.any(ActivityType.id == int(value))
@@ -54,6 +54,8 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                     current_app.logger.warn(
                         f"payment_list: {value} cannot be converted to an int"
                     )
+            elif field == "item.event.event_type.name" and value is not None:
+                query = query.filter(Event.event_type_id == int(value))
             elif field == "item.title":
                 query = query.filter(PaymentItem.title.like(f"%{value}%"))
             elif field == "price.title":
@@ -64,11 +66,11 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                 query = query.filter(
                     User.first_name + " " + User.last_name.ilike(f"%{value}%")
                 )
-            elif field == "payment_type":
+            elif field == "payment_type" and value is not None:
                 query = query.filter(Payment.payment_type == PaymentType(int(value)))
-            elif field == "status":
+            elif field == "status" and value is not None:
                 query = query.filter(Payment.status == PaymentStatus(int(value)))
-            elif field == "registration_status":
+            elif field == "registration_status" and value is not None:
                 query = query.filter(Registration.id == Payment.registration_id)
                 query = query.filter(
                     Registration.status == RegistrationStatus(int(value))

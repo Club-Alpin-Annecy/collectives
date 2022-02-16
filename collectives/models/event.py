@@ -158,6 +158,11 @@ class Event(db.Model):
 
     :type: int"""
 
+    event_type_id = db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)
+    """ Primary key of the associated event type  (see  :py:class:`collectives.models.eventtype.EventType`)
+
+    :type: int"""
+
     # Relationships
     leaders = db.relationship(
         "User",
@@ -176,6 +181,11 @@ class Event(db.Model):
     """ Main leader of this event.
 
     :type: :py:class:`collectives.models.user.User`"""
+
+    event_type = db.relationship("EventType")
+    """ Type of this event.
+
+    :type: :py:class:`collectives.models.eventtype.Event`"""
 
     activity_types = db.relationship(
         "ActivityType",
@@ -490,22 +500,14 @@ class Event(db.Model):
         :return: All registration of this event which are active
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
-        return [
-            registration
-            for registration in self.registrations
-            if registration.is_active()
-        ]
+        return [r for r in self.registrations if r.is_active()]
 
     def active_registrations_with_level(self, level):
         """
         :return Active registrations with a given registration level.
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
-        return [
-            registration
-            for registration in self.active_registrations()
-            if registration.level == level
-        ]
+        return [r for r in self.active_registrations() if r.level == level]
 
     def active_normal_registrations(self):
         """
@@ -513,6 +515,16 @@ class Event(db.Model):
         :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return self.active_registrations_with_level(RegistrationLevels.Normal)
+
+    def holding_slot_registrations(self):
+        """Returns all holding slot registrations.
+
+        See :py:meth:`collectives.models.registration.Registration.is_holding_slot`
+
+        :return: All registration of this event which are valid
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [r for r in self.registrations if r.is_holding_slot()]
 
     def coleaders(self):
         """
@@ -644,6 +656,18 @@ class Event(db.Model):
         """
         return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
 
+    def is_unregistered(self, user):
+        """Check if a user has unregistered this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``unregistered`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(
+            user, [RegistrationStatus.SelfUnregistered]
+        )
+
     def is_user_registered_to_parent_event(self, user):
         """Check if a user has a confirmed registration for the parent event
 
@@ -668,6 +692,7 @@ class Event(db.Model):
             time.
           - there are available online slots
           - user is registered to the parent event if any
+          - user license is compatible with event type
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -682,6 +707,9 @@ class Event(db.Model):
             return False
         if not self.is_user_registered_to_parent_event(user):
             return False
+        if not self.event_type.has_valid_license(user):
+            return False
+
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 
     # Status
@@ -735,8 +763,8 @@ class Event(db.Model):
         :rtype: bool"""
         return any(self.payment_items)
 
-    def has_pending_payment(self, user):
-        """Check if a user has a pending . payment this event.
+    def is_pending_payment(self, user):
+        """Check if a user has registration pending payment this event.
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -752,3 +780,25 @@ class Event(db.Model):
         :rtype: boolean
         """
         return any(pi.payments for pi in self.payment_items)
+
+    def user_payments(self, user):
+        """Checks whether payements have been  made for this event
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: The list of payments belonging to the user
+        :rtype: list[:py:class:`collectives.modes.payment.Payment`]
+        """
+        return [p for pi in self.payment_items for p in pi.payments if p.buyer == user]
+
+    def has_approved_or_unsettled_payments(self, user):
+        """Check if a user has valid or potentially valid payments .
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: Whether the user has payments with 'Initiated' or 'Approved' status
+        :rtype: bool
+        """
+        return any(
+            p for p in self.user_payments(user) if p.is_unsettled() or p.is_approved()
+        )

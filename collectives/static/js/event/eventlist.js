@@ -43,7 +43,7 @@ function buildEventsTable() {
         initialFilter: [{field:"end", type:">=", value:"now" }],
         columns:[
             {title:"Titre", field:"title", sorter:"string", headerFilter:true},
-            {title:"Date", field:"start", sorter:"string"},
+            {title:"Date", field:"start", sorter:"string", headerFilter:true, headerFilter:dateFilterEditor,},
             {title:"Encadrant", field:"leaders", headerSort:false, headerFilter:true},
         ],
         rowFormatter: eventRowFormatter,
@@ -111,46 +111,48 @@ function eventRowFormatter(row){
 
         //define a table layout structure and set width of row
         divRow = document.createElement("a");
-        divRow.className = "row tabulator-cell";
+        divRow.className = "row tabulator-cell collectives-list--item";
         divRow.setAttribute("role","gridcell");
         divRow.setAttribute("href", data.view_uri);
         divRow.style.width = (width - 18) + "px";
 
         //add row data on right hand side
-        html += `<div class="activities section">`;
+        html += `<div class="activities section collectives-list--item--activity-type">`;
+        for (const event_type of data.event_types)
+                    html += `<span class="activity ${event_type['short']} type"></span>`;
         for (const activity of data.activity_types)
                     html += `<span class="activity ${activity['short']} type"></span>`;
         html += `</div>`;
 
-        html += `<div class="section section-photo">
+        html += `<div class="section section-photo collectives-list--item--photo">
                     <img src="${data.photo_uri}" class="photo"/>
                  </div>`;
 
         var status_string = ''
-        if(!data.is_confirmed) status_string = `<span class="event-status">${data.status}</span>`
+        if(!data.is_confirmed) status_string = `<span class="event-status-badge event-status-${data.status} ">${EnumEventStatus[data.status]}</span>`
 
 
         html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
         html_tags = html_tags.join(' - ')
 
-        html += `<div class="section">
-                     <h4>
-                     ${status_string}
+        html += `<div class="section collectives-list--item--details">
+                     <h3 class="heading-3 collectives-list--item--details-heading">
                      ${escapeHTML(data.title)}
-                     </h4>
-                     <div class="date">
+                     ${status_string}
+                     </h3>
+                     <div class="date collectives-list--item--details-date">
                          <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
                          ${localInterval(data.start, data.end)}
                      </div>
 
-                     <div class="leader">
+                     <div class="leader collectives-list--item--details-leader">
                         Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
                      </div>
-                     <div class="slots">
+                     <div class="slots collectives-list--item--details-slots">
                         ${slots(data.num_slots - data.free_slots)}
                         ${slots(data.free_slots, 'free_slot')}
                      </div>
-                     <div>${html_tags}</div>
+                     <div class="collectives-list--item--details-tags">${html_tags}</div>
                  </div>
                  <div class="breaker"></div>`;
         divRow.innerHTML = html;
@@ -228,14 +230,17 @@ function refreshFilterDisplay(){
     // Unselect all activity filter buttons
     document.getElementById('select_all').checked = true;
     document.getElementById('select_all_tags').checked = true;
+    document.getElementById('select_all_event_types').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
         if (filter['field'] == 'activity_type')
-            document.getElementById('select_'+filter['value']).checked = true;
+            document.getElementById('select_activity_type_'+filter['value']).checked = true;
+        if (filter['field'] == 'event_type')
+            document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
-            document.getElementById('select_'+filter['value']).checked = true;
+            document.getElementById('select_tag_'+filter['value']).checked = true;
     }
 
 
@@ -275,4 +280,23 @@ function getLeaderHeaderFilter() {
 function onSelectLeaderAutocomplete(id, val) {
     const searchInput = getLeaderHeaderFilter();
     searchInput.value = val;
+}
+
+function dateFilterEditor(cell, onRendered, success, cancel, editorParams){
+
+	var container = document.createElement('span');
+    start = document.createElement('input');
+    start.type = 'datetime';
+    start.style.width="100%";
+    start.style.padding= "4px";
+    start.placeholder = 'A partir de';
+    start.setAttribute("readonly", "readonly");
+
+    start.addEventListener("change", function(){success(start.value); });
+
+    var tailOpts = {locale: "fr", dateFormat: "dd/mm/YYYY", timeFormat: false,};
+    tail.DateTime(start, tailOpts);
+
+    container.append(start);
+	return container;
 }

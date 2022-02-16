@@ -76,22 +76,38 @@ class PaymentItem(db.Model):
             if p.is_available_to_user(user) and p.has_available_use()
         ]
 
-    def available_prices_to_user_now(self, user):
+    def available_prices_to_user_at_date(self, user, date):
         """Returns all prices that are available to a given user
-        at the current time
+        at a given date
 
         :param user:  The candidate user
         :type user: :py:class:`collectives.models.user.User`
-
+        :param date:  The considered date
+        :type date: :py:class:`datetime.date`
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        current_date = current_time().date()
         return [
             p
             for p in self.available_prices_to_user(user)
-            if p.is_available_at_date(current_date)
+            if p.is_available_at_date(date)
         ]
+
+    def cheapest_price_for_user_at_date(self, user, date):
+        """Returns the cheapest price available to a given user
+        at a given date
+
+        :param user:  The candidate user
+        :type user: :py:class:`collectives.models.user.User`
+        :param date:  The considered date
+        :type date: :py:class:`datetime.date`
+        :return: List of available prices
+        :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
+        """
+        available_prices = self.available_prices_to_user_at_date(user, date)
+        if len(available_prices) == 0:
+            return None
+        return min(available_prices, key=lambda p: p.amount)
 
     def cheapest_price_for_user_now(self, user):
         """Returns the cheapest price available to a given user
@@ -103,10 +119,8 @@ class PaymentItem(db.Model):
         :return: List of available prices
         :rtype: list[:py:class:`collectives.models.payment.ItemPrice`]
         """
-        available_prices = self.available_prices_to_user_now(user)
-        if len(available_prices) == 0:
-            return None
-        return min(available_prices, key=lambda p: p.amount)
+        current_date = current_time().date()
+        return self.cheapest_price_for_user_at_date(user, current_date)
 
 
 class ItemPrice(db.Model):
@@ -172,7 +186,17 @@ class ItemPrice(db.Model):
     )
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted
-    one people have started paying them
+    once at least one person has used the
+
+    :type: bool"""
+
+    leader_only = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        info={"label": "Tarif encadrant"},
+    )
+    """ Whether this price is only available to the event leaders.
 
     :type: bool"""
 
@@ -202,7 +226,8 @@ class ItemPrice(db.Model):
     def active_use_count(self):
         """
         Number of currently active or payment pending registrations
-        (i.e, registrations holding a slot) that are usein this price
+        (i.e, registrations holding a slot or event leaders) that are using
+        this price
 
         :return: number of payments associated with this price and an active registration
         :rtype: int
@@ -210,7 +235,13 @@ class ItemPrice(db.Model):
         return sum(
             1
             for p in self.payments
-            if p.registration and p.registration.is_holding_slot()
+            if (
+                (p.is_approved() or p.is_unsettled())
+                and (
+                    (p.registration and p.registration.is_holding_slot())
+                    or self.item.event.is_leader(p.buyer)
+                )
+            )
         )
 
     def has_available_use(self):
@@ -251,6 +282,8 @@ class ItemPrice(db.Model):
         :rtype: bool
         """
         if not self.enabled:
+            return False
+        if self.leader_only and not self.item.event.is_leader(user):
             return False
         if not self.license_types:
             return True
@@ -505,19 +538,25 @@ class Payment(db.Model):
             and self.status == PaymentStatus.Refunded
         )
 
-    def __init__(self, registration=None, item_price=None):
+    def __init__(self, registration=None, item_price=None, buyer=None):
         """Overloaded constructor.
         Pre-fill a Payment object from an existing registration and item price
         """
 
         super().__init__()
 
-        if registration is not None and item_price is not None:
+        if registration is not None:
             self.registration_id = registration.id
+            if buyer is None:
+                buyer = registration.user
+
+        if buyer is not None:
+            self.buyer_id = buyer.id
+            self.reporter_id = buyer.id
+
+        if item_price is not None:
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
-            self.buyer_id = registration.user.id
-            self.reporter_id = registration.user.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal(0)
             self.payment_type = PaymentType.Online

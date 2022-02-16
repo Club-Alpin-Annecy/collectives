@@ -63,7 +63,7 @@ def edit_prices(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Only populate the form corresponding to the submit button
-    # that gas been clicked
+    # that has been clicked
 
     # Add a new payment option
     if "add" in request.form:
@@ -138,6 +138,7 @@ def edit_prices(event_id):
                             price.start_date = price_form.start_date.data
                             price.end_date = price_form.end_date.data
                             price.license_types = price_form.license_types.data
+                            price.leader_only = price_form.leader_only.data
                             price.max_uses = price_form.max_uses.data or None
                             if price.amount != price_form.amount.data:
                                 price.amount = price_form.amount.data
@@ -550,18 +551,21 @@ def finalize_payment(payment, details):
     payment.raw_metadata = details.raw_metadata()
 
     if payment.status == PaymentStatus.Approved:
-        if payment.registration is None:
-            # This should not be possible, but still check nonetheless
-            flash(
-                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
-                "warning",
-            )
-        else:
+        if payment.registration is not None:
             flash(
                 "Votre paiement a été accepté, votre inscription est désormais confirmée."
             )
             payment.registration.status = RegistrationStatus.Active
             db.session.add(payment.registration)
+        elif payment.item.event.is_leader(payment.buyer):
+            # Buyer is a leader and does not need registration
+            flash("Votre paiement a été accepté.")
+        else:
+            # This should not be possible, but still check nonetheless
+            flash(
+                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+                "warning",
+            )
     else:
         if payment.registration is not None and payment.registration.is_self:
             flash(

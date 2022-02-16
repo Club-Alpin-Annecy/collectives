@@ -4,15 +4,11 @@
   {% include 'partials/form-additionalhead.html' %}
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}{{ title }}{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 <div class="panel" id="administration">
   <!-- Logging Windows -->
-  <h3>{{ title }}</h3>
-  {% if subtitle %}<h4>{{subtitle}}</h4>{% endif  %}
+  <h1 class="heading-1">{{ title }}</h1>
+  {% if subtitle %}<h4 class="heading-4">{{subtitle}}</h4>{% endif  %}
 
   {% include 'partials/form-fields.html' %}
 

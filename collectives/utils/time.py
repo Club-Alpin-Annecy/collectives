@@ -67,28 +67,32 @@ def current_time():
     return now.replace(tzinfo=None)
 
 
-def format_date(value):
-    """Format a date. (eg "Samedi 16 février 2020").
-
-    :param value: Date to format
-    :type value: :py:class:`datetime.datetime`
-    :return: Formatted date
-    :rtype: string"""
-    if value is None:
-        return "N/A"
-    return f"{fr_week_days[value.weekday()]} {value.day} {fr_months[value.month - 1]} {value.year}"
-
-
 def format_date_short(value):
     """Format a date. (eg "Sam 16 février").
 
     :param value: Date to format
-    :type value: :py:class:`datetime.datetime`
+    :type value: :py:class:`datetime.datetime` or :py:class:`datetime.date`
     :return: Formatted date
     :rtype: string"""
     if value is None:
         return "N/A"
     return f"{fr_week_days[value.weekday()][0:3]}. {value.day} {fr_short_months[value.month - 1]}"
+
+
+def format_date(value, short=False):
+    """Format a date. (eg "Samedi 16 février 2020").
+
+    :param value: Date to format
+    :type value: :py:class:`datetime.datetime` or :py:class:`datetime.date`
+    :param short: If True, display a short version of the date as :py:meth:`format_date_short()`
+    :type short: bool
+    :return: Formatted date
+    :rtype: string"""
+    if short:
+        return format_date_short(value)
+    if value is None:
+        return "N/A"
+    return f"{fr_week_days[value.weekday()]} {value.day} {fr_months[value.month - 1]} {value.year}"
 
 
 def format_time(value):
@@ -140,19 +144,21 @@ def format_datetime_range(start, end):
     return f"du {format_date(start)} à {format_time(start)} au {format_date(end)} à {format_time(end)}"
 
 
-def format_date_range(start, end):
+def format_date_range(start, end, short=True):
     """Format a range of dates without their time. (eg "Samedi 12 février 2018 au
     Dimanche 13 février 2018").
 
     :param start: Range start date.
-    :type start: :py:class:`datetime.datetime`
+    :type start: :py:class:`datetime.datetime` or :py:class:`datetime.date`
     :param end: Range end date.
-    :type end: :py:class:`datetime.datetime`
+    :type end: :py:class:`datetime.datetime` or :py:class:`datetime.date`
+    :param short: If True, display short version of the dates as :py:meth:`format_date_short()`
+    :type short: bool
     :return: Formatted date range.
     :rtype: string"""
-    if start.date() == end.date():
-        return f"{format_date_short(start)}"
-    return f"du {format_date_short(start)} au {format_date_short(end)}"
+    if end.year == start.year and end.month == start.month and end.day == start.day:
+        return f"{format_date(start, short)}"
+    return f"du {format_date(start, short)} au {format_date(end, short)}"
 
 
 def server_local_time():

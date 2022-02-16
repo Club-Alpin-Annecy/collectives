@@ -1,7 +1,7 @@
 """add_equipment
 
 Revision ID: 78eeaa194828
-Revises: bc252bdfe1a5
+Revises: b738ba262419
 Create Date: 2022-01-14 09:12:26.367868
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '78eeaa194828'
-down_revision = 'bc252bdfe1a5'
+down_revision = 'b738ba262419'
 branch_labels = None
 depends_on = None
 

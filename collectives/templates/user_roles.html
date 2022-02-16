@@ -1,15 +1,11 @@
 
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}{{ title }}{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-<div class="panel" id="administration">
-  <h2>{{user.full_name()}}</h2>
+<div class="page-content" id="administration">
+  <h2 class="heading-2">{{user.full_name()}}</h2>
 
-  <h4>Roles existants</h4>
+  <h4 class="heading-4">Roles existants</h4>
   <ul>
   {% for role in user.roles %}
   <li>{{role.name}}
@@ -24,7 +20,7 @@
   {% endfor %}
   </ul>
 
-  <h4>Nouveau role</h4>
+  <h4 class="heading-4">Nouveau role</h4>
   <form action="{{url_for('administration.add_user_role', user_id=user.id)}}" method="POST" >
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}

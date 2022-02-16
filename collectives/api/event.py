@@ -6,8 +6,9 @@ from flask import url_for, request, abort
 from flask_login import current_user
 from sqlalchemy import desc, or_, func
 from marshmallow import fields
+from dateutil import parser
 
-from ..models import Event, EventStatus, ActivityType, User, EventTag
+from ..models import Event, EventStatus, EventType, ActivityType, User, EventTag
 from ..utils.url import slugify
 from ..utils.time import current_time
 from .common import blueprint, marshmallow, avatar_url
@@ -99,6 +100,15 @@ class ActivityTypeSchema(marshmallow.Schema):
         fields = ("id", "short", "name")
 
 
+class EventTypeSchema(marshmallow.Schema):
+    """Schema to describe event types"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = ("id", "short", "name")
+
+
 class EventSchema(marshmallow.Schema):
     """Schema used to describe event in index page."""
 
@@ -112,7 +122,9 @@ class EventSchema(marshmallow.Schema):
     """ Number of free user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function` """
-    occupied_slots = fields.Function(lambda event: len(event.active_registrations()))
+    occupied_slots = fields.Function(
+        lambda event: len(event.holding_slot_registrations())
+    )
     """ Number of occupied user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
@@ -122,6 +134,14 @@ class EventSchema(marshmallow.Schema):
     """ Information about event leaders in JSON.
 
     See also: :py:class:`UserSimpleSchema`
+
+    :type: :py:class:`marshmallow.fields.Function`"""
+    event_types = fields.Function(
+        lambda event: EventTypeSchema(many=True).dump([event.event_type])
+    )
+    """ Type of event.
+    Note: this is a list so that the frontend code can be shared with activity types / tags.
+    Only one value is ever expected.
 
     :type: :py:class:`marshmallow.fields.Function`"""
     activity_types = fields.Function(
@@ -141,10 +161,6 @@ class EventSchema(marshmallow.Schema):
 
     is_confirmed = fields.Function(lambda event: event.is_confirmed())
     """ Current event status is confirmed.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    status = fields.Function(lambda event: event.status_string())
-    """ Current status event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
     tags = fields.Function(lambda event: event.tags)
@@ -170,6 +186,7 @@ class EventSchema(marshmallow.Schema):
             "occupied_slots",
             "leaders",
             "activity_types",
+            "event_types",
             "is_confirmed",
             "status",
             "tags",
@@ -217,6 +234,8 @@ def events():
             )
         elif field == "title":
             query_filter = Event.title.like(f"%{value}%")
+        elif field == "start":
+            query_filter = Event.start >= parser.parse(value, dayfirst=True)
         elif field == "end":
             if filter_type == ">=":
                 query_filter = Event.end >= current_time().date()
@@ -228,6 +247,9 @@ def events():
                 query_filter = Event.status != value
         elif field == "tags":
             query_filter = Event.tag_refs.any(type=EventTag.get_type_from_short(value))
+        elif field == "event_type":
+            query = query.filter(EventType.id == Event.event_type_id)
+            query_filter = EventType.short == value
 
         if query_filter is not None:
             query = query.filter(query_filter)

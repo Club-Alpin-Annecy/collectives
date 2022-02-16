@@ -11,7 +11,14 @@ from ..forms import EventForm, photos
 from ..forms import RegistrationForm
 
 from ..forms.event import PaymentItemChoiceForm
-from ..models import Event, ActivityType, Registration, RegistrationLevels, EventStatus
+from ..models import (
+    Event,
+    ActivityType,
+    EventType,
+    Registration,
+    RegistrationLevels,
+    EventStatus,
+)
 from ..models import RegistrationStatus, User, db
 from ..models import EventTag
 from ..models.activitytype import activities_without_leader, leaders_without_activities
@@ -46,9 +53,6 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
     :return: whether all tests succeeded
     :rtype: bool
     """
-    if len(activities) == 0:
-        flash("Aucune activité définie", "error")
-        return False
 
     if current_user.is_moderator():
         return True
@@ -154,7 +158,8 @@ def index(activity_type_id=None, name=""):
     :param int activity_type_id: Optional, ID of the activity_type to filter on.
     :param string title: Name of the activity type, only for URL cosmetic purpose.
     """
-    types = ActivityType.query.order_by("order", "name").all()
+    event_types = EventType.get_all_types()
+    activity_types = ActivityType.get_all_types()
 
     filtered_activity = None
     if activity_type_id:
@@ -185,7 +190,8 @@ def index(activity_type_id=None, name=""):
 
     return render_template(
         "index.html",
-        types=types,
+        activity_types=activity_types,
+        event_types=event_types,
         photos=photos,
         filtered_activity=filtered_activity,
     )
@@ -221,11 +227,11 @@ def view_event(event_id, name=""):
 
     payment_item_choice_form = None
     if event.requires_payment():
-        # If the user can register or if they have yet to pay, create payment
-        # item choice form
-        if event.can_self_register(
-            current_user, current_time()
-        ) or event.has_pending_payment(current_user):
+        # If the user is not registered yet or is pending payment, prepare item choice form
+        # Even if they cannot register, the form will be useful to display price info
+        if not event.is_registered(current_user) or event.is_pending_payment(
+            current_user
+        ):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
     return render_template(
@@ -300,6 +306,14 @@ def manage_event(event_id=None):
 
     # Get current activites from form
     tentative_activities = form.current_activities()
+
+    requires_activity = form.current_event_type().requires_activity
+    if requires_activity and len(tentative_activities) == 0:
+        flash(
+            f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
+            "error",
+        )
+        return render_template("editevent.html", event=event, form=form)
 
     # Fetch existing readers leaders minus removed ones
     previous_leaders = []
@@ -572,21 +586,31 @@ def select_payment_item(event_id):
     :param int event_id: Primary key of the event .
     """
     event = Event.query.filter_by(id=event_id).first()
+    if not event or not event.requires_payment():
+        flash("Pas de paiement requis pour cet événement", "error")
+        return redirect(url_for(".index"))
 
-    if not event or not event.has_pending_payment(current_user):
-        flash("Vous n'avez pas de paiement en attente", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
-
-    # Find associated registration which is pending payment but
-    # with no currently unsettled payments
+    is_leader = event.is_leader(current_user)
     registration = None
-    for r in event.existing_registrations(current_user):
-        if r.is_pending_payment() and not r.unsettled_payments():
-            registration = r
-            break
-    if not registration:
-        flash("Vous n'avez pas de paiement en attente", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
+
+    if is_leader:
+        if event.has_approved_or_unsettled_payments(current_user):
+            flash("Vous avez déjà un paiement approuvé ou en cours", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+    else:
+        if not event.is_pending_payment(current_user):
+            flash("Vous n'avez pas de paiement en attente", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+        # Find associated registration which is pending payment but
+        # with no currently unsettled payments
+        for r in event.existing_registrations(current_user):
+            if r.is_pending_payment() and not r.unsettled_payments():
+                registration = r
+                break
+        if not registration:
+            flash("Vous n'avez pas de paiement en attente", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
 
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
@@ -601,7 +625,9 @@ def select_payment_item(event_id):
             flash("Tarif invalide.", "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
-        payment = Payment(registration=registration, item_price=item_price)
+        payment = Payment(
+            registration=registration, item_price=item_price, buyer=current_user
+        )
         payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
 
         db.session.add(payment)
@@ -681,55 +707,31 @@ def self_unregister(event_id):
 
     :param int event_id: Primary key of the event to manage.
     """
-    event = Event.query.filter_by(id=event_id).first()
+    event = Event.query.get(event_id)
 
-    if event.end > current_time():
-        existing_registration = [
-            r for r in event.active_registrations() if r.user == current_user
-        ]
-
-    if (
-        not existing_registration
-        or existing_registration[0].status == RegistrationStatus.Rejected
-    ):
-        flash("Impossible de vous désinscrire, vous n'êtes pas inscrit.", "error")
+    if event.start < current_time():
+        flash("Désinscription impossible: la collective a déjà commencé.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    db.session.delete(existing_registration[0])
+    query = Registration.query.filter_by(user=current_user)
+    registration = query.filter_by(event=event).first()
+
+    if registration.status == RegistrationStatus.Rejected:
+        flash(
+            "Désinscription impossible: vous avez déjà été refusé de la collective.",
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    registration.status = RegistrationStatus.SelfUnregistered
+
+    db.session.add(registration)
     db.session.commit()
 
     # Send notification e-mail to leaders
     send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))
-
-
-@blueprint.route("/registrations/<reg_id>/reject", methods=["POST"])
-@valid_user()
-def reject_registration(reg_id):
-    """Route for a leader to reject a user participation to the event.
-
-    :param int reg_id: Primary key of the registration.
-    """
-    registration = Registration.query.filter_by(id=reg_id).first()
-    if registration is None:
-        flash("Inscription inexistante", "error")
-        return redirect(url_for("event.index"))
-
-    if not registration.event.has_edit_rights(current_user):
-        flash("Non autorisé", "error")
-        return redirect(url_for("event.index"))
-
-    registration.status = RegistrationStatus.Rejected
-    db.session.add(registration)
-    db.session.commit()
-
-    # Send notification e-mail to user
-    send_reject_subscription_notification(
-        current_user.full_name(), registration.event, registration.user.mail
-    )
-
-    return redirect(url_for("event.view_event", event_id=registration.event_id))
 
 
 @blueprint.route("/registrations/<reg_id>/level/<int:reg_level>", methods=["POST"])
@@ -828,3 +830,60 @@ def delete_event(event_id):
 
     flash("Événement supprimé", "success")
     return redirect(url_for("event.index"))
+
+
+@blueprint.route("/<int:event_id>/attendance", methods=["POST"])
+@valid_user()
+@confidentiality_agreement()
+def update_attendance(event_id):
+    """Route to update attendance list.
+
+    :param int event_id: Primary key of the event to update.
+    """
+    event = Event.query.get(event_id)
+
+    if event is None:
+        raise Exception("Unknown Event")
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
+    for registration in event.registrations:
+        field_name = f"reg_{registration.id}"
+        if field_name in request.form:
+            try:
+                value = request.form.get(field_name, type=int)
+                new_status = RegistrationStatus(value)
+            except ValueError:
+                continue
+
+            if new_status == registration.status:
+                continue
+
+            if new_status not in registration.valid_transitions():
+                flash(
+                    f"Transition impossible de {registration.status.display_name()} vers {new_status.display_name} pour {registration.user.full_name()}.",
+                    "warning",
+                )
+                continue
+
+            if new_status == RegistrationStatus.ToBeDeleted:
+                db.session.delete(registration)
+            else:
+                registration.status = new_status
+                db.session.add(registration)
+
+                if registration.status == RegistrationStatus.Rejected:
+                    # Send notification e-mail to user
+                    send_reject_subscription_notification(
+                        current_user.full_name(),
+                        registration.event,
+                        registration.user.mail,
+                    )
+
+    db.session.commit()
+
+    return redirect(
+        url_for("event.view_event", event_id=event_id) + "#attendancelistform"
+    )

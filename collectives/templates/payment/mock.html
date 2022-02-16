@@ -4,14 +4,10 @@
 
 {% endblock %}
 
-{% block header %}
-  <h1>{% block title %}Fausse page de paiement{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
 
-<div class="panel">
-    <h4>
+<div class="page-content">
+    <h4 class="heading-4">
     Paiement de "{{payment.item.title}} &mdash; {{payment.price.title}}" pour {{format_currency(payment.amount_charged)}}.
     </h4>
     <p>
