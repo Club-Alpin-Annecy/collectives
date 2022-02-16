@@ -19,7 +19,8 @@ from ..forms.reservation import (
     CancelRentalForm,
     EndLocationForm,
     LeaderReservationForm,
-    NewRentalForm,
+    NewRentalEquipmentForm,
+    NewRentalUserForm,
     ReservationToLocationForm,
     AddEquipmentInReservationForm,
 )
@@ -129,13 +130,15 @@ def new_rental(reservation_id=None):
         if reservation_id is None
         else Reservation.query.get(reservation_id)
     )
-    form = NewRentalForm()
-    if form.validate_on_submit():
-        equipment = Equipment.query.get(form.add_equipment.data)
+    form_equipment = NewRentalEquipmentForm()
+    if form_equipment.validate_on_submit():
+        equipment = Equipment.query.get(form_equipment.add_equipment.data)
         if equipment:
             reservation.add_equipment(equipment)
 
-        user = User.query.get(form.user.data)
+    form_user = NewRentalUserForm()
+    if form_user.validate_on_submit():
+        user = User.query.get(form_user.user.data)
         reservation.set_user(user)
         if not reservation_id:
             db.session.add(reservation)
@@ -146,7 +149,8 @@ def new_rental(reservation_id=None):
     return render_template(
         "reservation/new_rental.html",
         reservation=reservation,
-        form=form,
+        form_user=form_user,
+        form_equipment=form_equipment,
         cancel_form=cancel_form,
     )
 

@@ -42,10 +42,10 @@
 
     <h4>Sélectionner un adhérent</h4>
     <form action="" method="post">
-      {{ form.hidden_tag() }}
-      {{ form.user.label }}
+      {{ form_user.hidden_tag() }}
+      {{ form_user.user.label }}
       <input type="text" id="new-user" placeholder="Nom d'adhérent">
-      {{ form.user(value=0) }}
+      {{ form_user.user(value=0) }}
     </form>
 
     {% else %}
@@ -60,11 +60,11 @@
 
     <h4>Changer d'adhérent</h4>
     <form action="" method="post">
-      {{ form.hidden_tag() }}
+      {{ form_user.hidden_tag() }}
       <div class="controls" style="padding-bottom: 10px">
         <label for="user">Nom d'adhérent</label>
         <input type="text" id="new-user" placeholder="Nom d'adhérent">
-        {{ form.user(value=0) }}
+        {{ form_user.user(value=0) }}
       </div>
     </form>
 
@@ -76,14 +76,13 @@
 
     <h4>AJOUTER UN ÉQUIPEMENT</h4>
     <form action="" method="post">
-      {{ form.hidden_tag() }}
+      {{ form_equipment.hidden_tag() }}
       <div class="controls">
-        {{ form.add_equipment.label }}
+        {{ form_equipment.add_equipment.label }}
         <input type="text" id="new-equipment" placeholder="Référence">
-        {{ form.add_equipment(value=0) }}
+        {{ form_equipment.add_equipment(value=0) }}
       </div>
     </form>
-
 
     <div id="equipment-table"></div>
 
@@ -99,7 +98,7 @@
               return item.reference;
             },
             function(id, val) {
-              var field = document.getElementById('{{form.add_equipment.id}}');
+              var field = document.getElementById('{{form_equipment.add_equipment.id}}');
               field.value = id;
               field.form.submit();
             }
@@ -111,7 +110,7 @@
                 return item.full_name;
               },
               function(id, val) {
-              var field = document.getElementById('{{form.user.id}}');
+              var field = document.getElementById('{{form_user.user.id}}');
               field.value = id;
               field.form.submit();
             }
