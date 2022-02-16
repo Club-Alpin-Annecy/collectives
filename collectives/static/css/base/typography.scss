@@ -10,14 +10,14 @@
 	src: url('/static/fonts/DINWeb.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
-} 
+}
 
 @font-face {
 	font-family: 'DIN';
 	src: url('/static/fonts/DINWeb-Medium.woff') format('woff');
 	font-weight: 500;
 	font-style: normal;
-} 
+}
 
 
 @font-face {
@@ -84,7 +84,7 @@ html, body {
 		color: $color-black;
 		text-decoration: none;
 	}
-}    
+}
 
 
 .title_second_path {
@@ -98,7 +98,7 @@ html, body {
 }
 
 
-// Links 
+// Links
 
 a, .link {
 	color: darken($color-blue-secondary-dark, 5%);
@@ -114,6 +114,16 @@ a, .link {
 
 	&:hover {
 		text-decoration: none;
+	}
+
+}
+
+.link_title {
+	color: $color-orange-primary-light;
+
+	&:hover {
+		text-decoration: none;
+		color: $color-orange-primary-light;
 	}
 }
 
