@@ -41,10 +41,10 @@
 
   <h3>
     <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
-    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a>
+    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  TYPES DE MATÉRIELS</span> </a>
   </h3>
 
-  <h4>Type équipement: {{ equipmentType.name }} </h4>
+  <h4>Type de matériel : {{ equipmentType.name }} </h4>
   <div class="container_equipmentInfo">
     <div class="container_equipmentInfo_top">
       <div class="container_equipmentInfo_img">
@@ -59,6 +59,8 @@
         <div class="container_main_info">
           <h5>Informations :</h5>
           <p> <span class="type_info">Type :</span>  {{ equipmentType.name }} </p>
+          <p> <span class="type_info">Total :</span>  {{ equipmentType.nb_total() }} </p>
+          <p> <span class="type_info">Disponibles :</span>  {{ equipmentType.nb_total_available() }} </p>
         </div>
 
         <div class="container_location_info">
