@@ -45,10 +45,15 @@ class AddEquipmentInReservationForm(FlaskForm):
     add_equipment = HiddenField("Ajouter un équipement")
 
 
-class NewRentalForm(FlaskForm):
+class NewRentalUserForm(FlaskForm):
     """Form to create a new rental from no reservation"""
 
     user = HiddenField("Nom d'adhérent")
+
+
+class NewRentalEquipmentForm(FlaskForm):
+    """Form to create a new rental from no reservation"""
+
     add_equipment = HiddenField("Référence équipement")
 
 
