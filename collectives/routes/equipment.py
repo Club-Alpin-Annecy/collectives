@@ -92,6 +92,7 @@ def detail_equipment_type(typeId):
         equipmentType.name = formEdit.name.data
         equipmentType.price = float(formEdit.price.data)
         equipmentType.deposit = float(formEdit.deposit.data)
+        equipmentType.reference_prefix = formEdit.reference_prefix.data
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -121,6 +122,7 @@ def add_equipment_type():
         new_equipment_type.name = addingFrom.name.data
         new_equipment_type.price = float(addingFrom.price.data)
         new_equipment_type.deposit = float(addingFrom.deposit.data)
+        new_equipment_type.reference_prefix = addingFrom.reference_prefix.data
         new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
 
         db.session.add(new_equipment_type)
@@ -147,6 +149,7 @@ def edit_equipment_type(typeId):
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
         typeModified.deposit = float(formEdit.deposit.data)
+        typeModified.reference_prefix = formEdit.reference_prefix.data
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))

@@ -58,6 +58,10 @@ class EquipmentType(db.Model):
 
     :type: string"""
 
+    reference_prefix = db.Column(db.String(10), nullable=False, unique=True)
+    """Prefix of the reference used for all the equipment of this type
+    :type: string
+    """
     pathImg = db.Column(db.String(100), nullable=True)
 
     price = db.Column(db.Numeric(precision=5, scale=2))

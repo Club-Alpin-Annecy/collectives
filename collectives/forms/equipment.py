@@ -5,19 +5,25 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, DateField, SelectField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
-
+from wtforms_alchemy import ModelForm
 from collectives.utils.numbers import FlexibleDecimalField
-from ..models import Equipment, EquipmentType, EquipmentModel, photos
+from .validators import UniqueValidator
+from ..models import Equipment, EquipmentType, EquipmentModel, photos, db
 
 
-class EquipmentTypeForm(FlaskForm):
+class EquipmentTypeForm(FlaskForm, ModelForm):
     """Form for adding an equipment type, specifying its name, price, deposit, and related image"""
 
-    class Meta:
-        model = EquipmentType
-        only = ["type_name"]
-
     name = StringField(label="Type d'équipement :", validators=[DataRequired()])
+    reference_prefix = StringField(
+        label="Préfixe de la référence :",
+        validators=[
+            DataRequired(),
+            UniqueValidator(
+                EquipmentType.reference_prefix, get_session=lambda: db.session
+            ),
+        ],
+    )
     price = FlexibleDecimalField(
         label="Prix :",
         render_kw={

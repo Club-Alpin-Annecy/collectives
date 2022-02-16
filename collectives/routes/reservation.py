@@ -258,7 +258,7 @@ def register(event_id, role_id=None):
 
         # Check if user selected at least one equipment
         if not has_equipment:
-            flash("Veuillez choisir au moins un équipment")
+            flash("Veuillez choisir au moins un équipement")
             return render_template(
                 "reservation/editreservation.html",
                 event=event,
