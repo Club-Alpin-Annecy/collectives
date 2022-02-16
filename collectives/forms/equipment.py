@@ -2,7 +2,7 @@
 """
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, DateField, SelectField
+from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
@@ -79,8 +79,10 @@ class EquipmentForm(FlaskForm):
     equipment_model_id = SelectField(
         label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
-
-    submit = SubmitField("Enregistrer")
+    #This field is used to let the form know that we didn't submit, we just changed the model
+    update_model = HiddenField()
+    #We can't this field 'submit', it'll block force submitting in js
+    save_all = SubmitField("Enregistrer")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
