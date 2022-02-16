@@ -79,9 +79,9 @@ class EquipmentForm(FlaskForm):
     equipment_model_id = SelectField(
         label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
-    #This field is used to let the form know that we didn't submit, we just changed the model
+    # This field is used to let the form know that we didn't submit, we just changed the model
     update_model = HiddenField()
-    #We can't this field 'submit', it'll block force submitting in js
+    # We can't this field 'submit', it'll block force submitting in js
     save_all = SubmitField("Enregistrer")
 
     def __init__(self, *args, **kwargs):

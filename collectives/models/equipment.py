@@ -161,6 +161,24 @@ class EquipmentType(db.Model):
 
         return equiments
 
+    def get_new_reference(self):
+        """
+        :return: The automatic reference for the creation of a new equipment of this type
+        :rtype: string
+        """
+        return f"{self.reference_prefix} {self.nb_equipments()}"
+
+    def nb_equipments(self):
+        """
+        :return: Count of all the equipments of the type
+        :rtype: int
+        """
+        nb = 0
+        for i_model in self.models:
+            for _ in i_model.equipments:
+                nb += 1
+        return nb
+
 
 class EquipmentModel(db.Model):
     """Class of a model of equipment.

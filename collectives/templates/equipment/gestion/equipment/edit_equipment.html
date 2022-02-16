@@ -50,7 +50,7 @@
         <div class="modal_form_info_supp_box">
             <a href="{{ url_for('equipment.display_all_type' )}}" target="_blank" >Ajouter ou modifier un modèle</a>
         </div>
-        {{ form.hidden_tag() }}
+        {{ form.csrf_token }}
         {{ form.save_all(class="button button-primary") }}
 
     </form>
