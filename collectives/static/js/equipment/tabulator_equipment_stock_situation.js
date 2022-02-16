@@ -13,6 +13,9 @@
         initialSort:[             //set the initial sort order of the data
             {column:"name", dir:"asc"},
         ],
+        rowClick: function (e, row) {
+          location = row._row.data.urlEquipmentTypeDetail
+        },
         columns:[                 //define the table columns
           //{title:"id", field:"id", formatter:"number"},
           {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '4em'}},
