@@ -86,7 +86,7 @@ class EquipmentForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.equipment_model_id.choices = [
+        self.equipment_model_id.choices = [(-1, "")] + [
             (i.id, i.name) for i in EquipmentModel.query.all()
         ]
 

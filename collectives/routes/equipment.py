@@ -249,15 +249,18 @@ def add_equipment():
 
     title = "Ajouter un équipement"
     addEquipmentForm = EquipmentForm()
+    e_model = EquipmentModel.query.get(addEquipmentForm.equipment_model_id.data)
 
     # Recalculating the new reference
-    if addEquipmentForm.equipment_model_id.data is not None:
-        i_model = EquipmentModel.query.get(addEquipmentForm.equipment_model_id.data)
-        i_type = EquipmentType.query.get(i_model.equipment_type_id)
-        addEquipmentForm.reference.data = i_type.get_new_reference()
+    if e_model is not None:
+        e_type = EquipmentType.query.get(e_model.equipment_type_id)
+        addEquipmentForm.reference.data = e_type.get_new_reference()
+    else:
+        addEquipmentForm.reference.data = None
 
-    # If update_model is True, this is only a change of model, not a real submit
-    if not addEquipmentForm.update_model.data and addEquipmentForm.validate_on_submit():
+    has_changed_model = addEquipmentForm.update_model.data
+    # If has_changed_model is True, this is only a change of model, not a real submit
+    if not has_changed_model and addEquipmentForm.validate_on_submit():
         new_equipment = Equipment()
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
