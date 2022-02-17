@@ -92,6 +92,7 @@ def detail_equipment_type(typeId):
         equipmentType.name = formEdit.name.data
         equipmentType.price = float(formEdit.price.data)
         equipmentType.deposit = float(formEdit.deposit.data)
+        equipmentType.reference_prefix = formEdit.reference_prefix.data
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -121,6 +122,7 @@ def add_equipment_type():
         new_equipment_type.name = addingFrom.name.data
         new_equipment_type.price = float(addingFrom.price.data)
         new_equipment_type.deposit = float(addingFrom.deposit.data)
+        new_equipment_type.reference_prefix = addingFrom.reference_prefix.data
         new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
 
         db.session.add(new_equipment_type)
@@ -147,6 +149,7 @@ def edit_equipment_type(typeId):
         typeModified.name = formEdit.name.data
         typeModified.price = float(formEdit.price.data)
         typeModified.deposit = float(formEdit.deposit.data)
+        typeModified.reference_prefix = formEdit.reference_prefix.data
         typeModified.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
@@ -246,8 +249,18 @@ def add_equipment():
 
     title = "Ajouter un équipement"
     addEquipmentForm = EquipmentForm()
+    e_model = EquipmentModel.query.get(addEquipmentForm.equipment_model_id.data)
 
-    if addEquipmentForm.validate_on_submit():
+    # Recalculating the new reference
+    if e_model is not None:
+        e_type = EquipmentType.query.get(e_model.equipment_type_id)
+        addEquipmentForm.reference.data = e_type.get_new_reference()
+    else:
+        addEquipmentForm.reference.data = None
+
+    has_changed_model = addEquipmentForm.update_model.data
+    # If has_changed_model is True, this is only a change of model, not a real submit
+    if not has_changed_model and addEquipmentForm.validate_on_submit():
         new_equipment = Equipment()
         new_equipment.reference = addEquipmentForm.reference.data
         new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data

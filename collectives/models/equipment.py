@@ -58,6 +58,10 @@ class EquipmentType(db.Model):
 
     :type: string"""
 
+    reference_prefix = db.Column(db.String(10), nullable=False, unique=True)
+    """Prefix of the reference used for all the equipment of this type
+    :type: string
+    """
     pathImg = db.Column(db.String(100), nullable=True)
 
     price = db.Column(db.Numeric(precision=5, scale=2))
@@ -168,6 +172,24 @@ class EquipmentType(db.Model):
                     equiments.append(anEquipment)
 
         return equiments
+
+    def get_new_reference(self):
+        """
+        :return: The automatic reference for the creation of a new equipment of this type
+        :rtype: string
+        """
+        return f"{self.reference_prefix} {self.nb_equipments()}"
+
+    def nb_equipments(self):
+        """
+        :return: Count of all the equipments of the type
+        :rtype: int
+        """
+        nb = 0
+        for i_model in self.models:
+            for _ in i_model.equipments:
+                nb += 1
+        return nb
 
 
 class EquipmentModel(db.Model):

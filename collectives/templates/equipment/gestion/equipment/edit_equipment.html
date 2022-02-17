@@ -21,12 +21,10 @@
 
 <div class="modal_form_container">
     <form action="{{ route }}" method="post" class="modal_form">
-
-        {{ form.hidden_tag() }}
-
+        {{ form.update_model(value=false)}}
         <div class="modal_form_input_box">
             {{ form.equipment_model_id.label }}
-            {{ form.equipment_model_id }}
+            {{ form.equipment_model_id(onchange="javascript:updateModel(this)") }}
         </div>
 
         <div class="modal_form_input_box">
@@ -52,10 +50,15 @@
         <div class="modal_form_info_supp_box">
             <a href="{{ url_for('equipment.display_all_type' )}}" target="_blank" >Ajouter ou modifier un modèle</a>
         </div>
-
-        {{ form.submit(class="button button-primary") }}
+        {{ form.csrf_token }}
+        {{ form.save_all(class="button button-primary") }}
 
     </form>
 
 </div>
-
+<script>
+    function updateModel(element) {
+        document.getElementById('update_model').value=true;
+        element.form.submit();
+    }
+</script>
