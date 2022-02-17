@@ -249,24 +249,24 @@ def add_equipment():
 
     title = "Ajouter un équipement"
     addEquipmentForm = EquipmentForm()
-    if addEquipmentForm.is_submitted():
-        # This is only a change of model, not a real submit
-        # When we change model, we need to recalculate the new reference
-        print(addEquipmentForm.update_model.data)
-        if addEquipmentForm.update_model.data == 1:
-            i_model = EquipmentModel.query.get(addEquipmentForm.equipment_model_id.data)
-            i_type = EquipmentType.query.get(i_model.equipment_type_id)
-            addEquipmentForm.reference.data = i_type.get_new_reference()
-        elif addEquipmentForm.validate():
-            new_equipment = Equipment()
-            new_equipment.reference = addEquipmentForm.reference.data
-            new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
-            new_equipment.serial_number = addEquipmentForm.serial_number.data
-            new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
-            new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
-            db.session.add(new_equipment)
-            db.session.commit()
-            return redirect(url_for(".stock_situation_stock"))
+
+    # Recalculating the new reference
+    if addEquipmentForm.equipment_model_id.data is not None:
+        i_model = EquipmentModel.query.get(addEquipmentForm.equipment_model_id.data)
+        i_type = EquipmentType.query.get(i_model.equipment_type_id)
+        addEquipmentForm.reference.data = i_type.get_new_reference()
+
+    # If update_model is True, this is only a change of model, not a real submit
+    if not addEquipmentForm.update_model.data and addEquipmentForm.validate_on_submit():
+        new_equipment = Equipment()
+        new_equipment.reference = addEquipmentForm.reference.data
+        new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
+        new_equipment.serial_number = addEquipmentForm.serial_number.data
+        new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
+        new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
+        db.session.add(new_equipment)
+        db.session.commit()
+        return redirect(url_for(".stock_situation_stock"))
 
     return render_template(
         "equipment/gestion/equipment/add_equipment.html",

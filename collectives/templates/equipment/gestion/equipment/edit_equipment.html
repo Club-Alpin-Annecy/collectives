@@ -21,7 +21,7 @@
 
 <div class="modal_form_container">
     <form action="{{ route }}" method="post" class="modal_form">
-        {{ form.update_model(value=0)}}
+        {{ form.update_model(value=false)}}
         <div class="modal_form_input_box">
             {{ form.equipment_model_id.label }}
             {{ form.equipment_model_id(onchange="javascript:updateModel(this)") }}
@@ -58,7 +58,7 @@
 </div>
 <script>
     function updateModel(element) {
-        document.getElementById('update_model').value=1;
+        document.getElementById('update_model').value=true;
         element.form.submit();
     }
 </script>
