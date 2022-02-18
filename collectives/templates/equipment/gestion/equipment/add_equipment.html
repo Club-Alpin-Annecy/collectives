@@ -32,11 +32,11 @@
 
 
 {% block content %}
-    <div class="panel">
-        <h3>
+    <div class="page-content">
+        <h1 class="heading-1">
             <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
             <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
-        </h3>
+        </h1>
 
         {% include 'equipment/gestion/equipment/edit_equipment.html' %}
 

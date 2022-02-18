@@ -34,13 +34,13 @@
 
 {% block content %}
 
-<div class="panel">
+<div class="page-content">
 
-  <h3>
+  <h1 class="heading-1">
     <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
     <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  TYPES DE MATÉRIELS</span> </a>
-  </h3>
-  <h4>Liste des types de matériels</h4>
+  </h1>
+  <h4 class="heading-4">Liste des types de matériels</h4>
   <a href="{{ url_for('equipment.add_equipment_type')}}" class="button button-primary button-small">Ajouter</a>
   <div id="equipment-type-table"></div>
   <script>

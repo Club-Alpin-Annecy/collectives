@@ -31,14 +31,14 @@
 
 {% block content %}
 
-  <div class="panel" id="equipmentDetail">
+  <div class="page-content" id="equipmentDetail">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
       <a href="{{ url_for('equipment.stock_situation_stock')}}" class="link_path"> <span class="title_second_path">/  STOCK</span> </a>
-    </h3>
+    </h1>
 
-    <h4> <a href="{{ url_for('equipment.detail_equipment_type', typeId=equipment.model.equipmentType.id )}}" class="link_title"> {{ equipment.model.equipmentType.name }} </a>  - {{ equipment.model.name }} - {{ equipment.reference }} </h4>
+    <h4 class="heading-4"> <a href="{{ url_for('equipment.detail_equipment_type', typeId=equipment.model.equipmentType.id )}}" class="link_title"> {{ equipment.model.equipmentType.name }} </a>  - {{ equipment.model.name }} - {{ equipment.reference }} </h4>
 
     <div class="container_equipmentInfo">
       <div class="container_equipmentInfo_top">
@@ -81,8 +81,8 @@
       </div>
     </div>
 
-    <h4>Historique de révision</h4>
-    <h4>Historique de location</h4>
+    <h4 class="heading-4">Historique de révision</h4>
+    <h4 class="heading-4">Historique de location</h4>
     <div id="reservations-table"></div>
     <script>
       var ajaxURL = "{{url_for('api.equipment_histo_reservations', equipment_id=equipment.id)}}";

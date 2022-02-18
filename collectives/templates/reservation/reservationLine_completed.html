@@ -25,15 +25,15 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
       <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservationLine.reservation.id }} </span> </a>
-    </h3>
+    </h1>
 
-    <h4>{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
-    <h4>Équipements rendus</h4>
+    <h4 class="heading-4">{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
+    <h4 class="heading-4">Équipements rendus</h4>
 
     <div id="returned-equipment-table" style="min-height: 500px;"></div>
   </div>

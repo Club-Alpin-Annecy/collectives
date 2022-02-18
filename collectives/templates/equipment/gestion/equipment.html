@@ -30,17 +30,17 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
-    </h3>
+    </h1>
 
-    <h4>ACCÈS DIRECT</h4>
+    <h4 class="heading-4">ACCÈS DIRECT</h4>
     <a href="{{ url_for('equipment.display_all_type')}}" class="button button-primary">TYPES DE MATÉRIELS</a>
     <a href="{{ url_for('equipment.stock_situation_stock')}}" class="button button-primary">STOCK</a>
 
-    <h4>ÉTAT DES STOCKS EN TEMPS RÉEL</h4>
+    <h4 class="heading-4">ÉTAT DES STOCKS EN TEMPS RÉEL</h4>
 
     <div id="equipment-state"></div>
 

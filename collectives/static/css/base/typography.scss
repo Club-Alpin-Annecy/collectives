@@ -39,7 +39,7 @@ html, body {
 // Reset headings default styles
 h1, h2, h3, h4, h5, h6 {
 	font-size: 1rem;
-	font-weight: normal;	
+	font-weight: normal;
 }
 
 // Custom heading styles, top be applied independently of page structure
@@ -95,11 +95,11 @@ h1, h2, h3, h4, h5, h6 {
 
 
 .title_second_path {
-	font-size: $font-size-xxl;
-	color: $color-orange-primary-light;
+	font-size: $font-size-xl;
+	color: $color-black;
 
 	&:hover {
-		color: $color-orange-primary-light;
+		color: $color-black;
 		text-decoration: none;
 	}
 }
@@ -126,11 +126,11 @@ a, .link {
 }
 
 .link_title {
-	color: $color-orange-primary-light;
+	color: $color-black;
 
 	&:hover {
 		text-decoration: none;
-		color: $color-orange-primary-light;
+		color: $color-black;
 	}
 }
 

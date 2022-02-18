@@ -27,12 +27,12 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
       <span class="title_second_path">/ Nouvelle location</span>
-    </h3>
+    </h1>
 
     {% if not reservation.user %}
     <form action="{{url_for('reservation.cancel_rental', reservation_id=reservation.id)}}" method="post">
@@ -40,7 +40,7 @@
       {{ cancel_form.cancel(class="button button-danger") }}
     </form>
 
-    <h4>Sélectionner un adhérent</h4>
+    <h4 class="heading-4">Sélectionner un adhérent</h4>
     <form action="" method="post">
       {{ form_user.hidden_tag() }}
       {{ form_user.user.label }}
@@ -58,7 +58,7 @@
       <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="button button-primary">Valider</a>
     </div>
 
-    <h4>Changer d'adhérent</h4>
+    <h4 class="heading-4">Changer d'adhérent</h4>
     <form action="" method="post">
       {{ form_user.hidden_tag() }}
       <div class="controls" style="padding-bottom: 10px">
@@ -68,13 +68,13 @@
       </div>
     </form>
 
-    <h4>INFORMATIONS ADHÉRENT</h4>
+    <h4 class="heading-4">INFORMATIONS ADHÉRENT</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
 
 
-    <h4>AJOUTER UN ÉQUIPEMENT</h4>
+    <h4 class="heading-4">AJOUTER UN ÉQUIPEMENT</h4>
     <form action="" method="post">
       {{ form_equipment.hidden_tag() }}
       <div class="controls">

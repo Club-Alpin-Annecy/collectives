@@ -37,14 +37,14 @@
 
 {% block content %}
 
-<div class="panel"  id="equipmentDetail">
+<div class="page-content"  id="equipmentDetail">
 
-  <h3>
+  <h1 class="heading-1">
     <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
     <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  TYPES DE MATÉRIELS</span> </a>
-  </h3>
+  </h1>
 
-  <h4>Type de matériel : {{ equipmentType.name }} </h4>
+  <h4 class="heading-4">Type de matériel : {{ equipmentType.name }} </h4>
   <div class="container_equipmentInfo">
     <div class="container_equipmentInfo_top">
       <div class="container_equipmentInfo_img">
@@ -76,7 +76,7 @@
   </div>
 
 
-  <h4>Modèle{{"s" if equipmentType.nb_models()>1}} ({{equipmentType.nb_models()}}) : </h4>
+  <h4 class="heading-4">Modèle{{"s" if equipmentType.nb_models()>1}} ({{equipmentType.nb_models()}}) : </h4>
   <p class="button button-primary button-small" id="btn_display_form_model">Ajouter</p>
 
   <div class="form_model display-none">

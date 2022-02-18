@@ -33,13 +33,13 @@
 
 {% block content %}
 
-<div class="panel">
+<div class="page-content">
 
 
-  <h3>
+  <h1 class="heading-1">
     <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">GESTION DU MATÉRIEL</span></a>
-    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  MATÉRIEL</span> </a>
-  </h3>
+    <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  TYPES DE MATÉRIELS</span> </a>
+  </h1>
 
   {% include 'equipment/gestion/equipmentType/edit_equipment_type.html' %}
 

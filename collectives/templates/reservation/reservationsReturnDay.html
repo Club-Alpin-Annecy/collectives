@@ -19,11 +19,11 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
-    </h3>
+    </h1>
 
     <div class="reservations-navigation">
       <div class="container-types">
@@ -35,7 +35,7 @@
       <a href="{{ url_for('reservation.new_rental')}}" class="button button-primary">Nouvelle location</a>
     </div>
 
-    <h4>RETOUR DE LA SEMAINE</h4>
+    <h4 class="heading-4">RETOUR DE LA SEMAINE</h4>
 
     <div id="reservations-table"></div>
 

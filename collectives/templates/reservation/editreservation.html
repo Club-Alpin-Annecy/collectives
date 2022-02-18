@@ -9,11 +9,11 @@
 {% endblock %}
 
 {% block header %}
-  <h1>{% block title %}Réservation{% endblock %}</h1>
+  <h1 class="heading-1">{% block title %}Réservation{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<div class="panel">
+<div class="page-content">
   <!-- Logging Windows -->
   <h3>Réservation en tant qu'encadrant</h3>
   <div class="form-errors">
@@ -42,7 +42,7 @@
         </span>
       </div>
 
-      <h4>Votre panier</h4>
+      <h4 class="heading-4">Votre panier</h4>
       {% for field in form %}
         {% if ( field.type in [ "IntegerField" ]) %}
             <div class="controls">

@@ -27,14 +27,14 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
       <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservation.id }} </span> </a>
-    </h3>
+    </h1>
 
-    <h4>INFORMATIONS UTILISATEUR</h4>
+    <h4 class="heading-4">INFORMATIONS UTILISATEUR</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
@@ -42,32 +42,32 @@
     <p><span class="bold">Téléphone :</span> {{reservation.user.phone}}</p>
 
 
-    <h4>INFORMATIONS RÉSERVATION</h4>
+    <h4 class="heading-4">INFORMATIONS RÉSERVATION</h4>
     <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
 
     <p><span class="bold">Prix total :</span> {{ reservation.total_price_str() }} </p>
 
-    
+
     {% if reservation.is_planned() %}
     <form action="" method="post" onsubmit="return confirm('Etes-vous sûr de vouloir valider la réservation ? \n ({{ reservation.get_ratio_equipments() }})')" >
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
     {% endif %}
-    
+
     {% if reservation.is_ongoing() and reservation.can_be_completed() %}
     <form action="" method="post" >
       {{ form.hidden_tag() }}
       {{ form.validate(class="button button-primary") }}
     </form>
     {% endif %}
-    
+
     {% if not reservation.is_completed() %}
-    <h2>{{reservation.get_ratio_equipments()}}</h2>
+    <h2 class="heading-2">{{reservation.get_ratio_equipments()}}</h2>
     {% endif %}
-    
+
     {% if reservation.is_planned() and not reservation.is_full() %}
     <div class="controls">
       <form action="" method="post">
@@ -96,13 +96,13 @@
       }
     </script>
     {% endif %}
-    
 
 
-    <h4>TYPES D'ÉQUIPEMENTS</h4>
+
+    <h4 class="heading-4">TYPES D'ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>
 
-    <h4>TOUS LES ÉQUIPEMENTS</h4>
+    <h4 class="heading-4">TOUS LES ÉQUIPEMENTS</h4>
     <div id="equipment-table"></div>
 
   </div>
