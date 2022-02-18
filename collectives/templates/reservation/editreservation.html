@@ -27,7 +27,7 @@
   </div>
 
   <form
-    action="{{ url_for('reservation.register', event_id=event.id, role_id=role_id) }}"
+    action="{{ url_for('reservation.register', event_id=event.id if event else None, role_id=role_id) }}"
     method="POST"
     enctype="multipart/form-data"
     class="form"
