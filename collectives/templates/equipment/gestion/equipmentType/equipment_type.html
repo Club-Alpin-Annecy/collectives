@@ -100,7 +100,7 @@
       {% endwith %}
 
       {% if formEdit is defined %}
-        {% with form=formEdit, route=url_for("equipment.edit_equipment_type", typeId=equipmentType.id),
+        {% with form=formEdit, route=url_for("equipment.detail_equipment_type", typeId=equipmentType.id),
         includePath='equipment/gestion/equipmentType/edit_equipment_type.html', titre="Editer un équipement" %}
           {% include 'partials/modal.html' %}
         {% endwith %}

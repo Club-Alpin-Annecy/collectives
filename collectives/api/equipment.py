@@ -166,6 +166,7 @@ def equipmentModelDelete(model_id):
     """
     model = EquipmentModel.query.get(model_id)
     db.session.delete(model)
+    db.session.commit()
 
     return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}
 

@@ -98,17 +98,20 @@ def view_reservation(reservation_id=None):
                 )
                 if reservationLine:
                     reservationLine.add_equipment(equipment)
+                    db.session.commit()
                 return redirect(
                     url_for(".view_reservation", reservation_id=reservation_id)
                 )
         form = ReservationToLocationForm()
         if form.validate_on_submit():
             reservation.status = ReservationStatus.Ongoing
+            db.session.commit()
             return redirect(url_for(".view_reservation", reservation_id=reservation_id))
     elif reservation.is_ongoing():
         form = EndLocationForm()
         if form.validate_on_submit():
             reservation.status = ReservationStatus.Completed
+            db.session.commit()
             return redirect(url_for(".view_reservation", reservation_id=reservation_id))
     return render_template(
         "reservation/reservation.html",
@@ -135,6 +138,7 @@ def new_rental(reservation_id=None):
         equipment = Equipment.query.get(form_equipment.add_equipment.data)
         if equipment:
             reservation.add_equipment(equipment)
+            db.session.commit()
 
     form_user = NewRentalUserForm()
     if form_user.validate_on_submit():
@@ -164,6 +168,7 @@ def cancel_rental(reservation_id=None):
     if reservation_id:
         reservation = Reservation.query.get(reservation_id)
         db.session.delete(reservation)
+        db.session.commit()
     return redirect(url_for(".view_reservations"))
 
 
@@ -178,6 +183,7 @@ def view_reservationLine(reservationLine_id):
         if form.validate_on_submit():
             equipment = Equipment.query.get(form.add_equipment.data)
             reservationLine.add_equipment(equipment)
+            db.session.commit()
             return redirect(
                 url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
             )

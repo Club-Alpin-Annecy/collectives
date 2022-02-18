@@ -95,7 +95,7 @@ def detail_equipment_type(typeId):
         equipmentType.reference_prefix = formEdit.reference_prefix.data
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
-        return redirect(url_for(".display_all_type"))
+        return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
     deleteForm = DeleteForm()
 
@@ -136,41 +136,12 @@ def add_equipment_type():
     )
 
 
-@blueprint.route("/equipment_type/<int:typeId>/edit", methods=["GET", "POST"])
-def edit_equipment_type(typeId):
-    """
-    Route to delete a specific equipment type
-    """
-
-    typeModified = EquipmentType.query.get(typeId)
-    formEdit = EquipmentTypeForm(obj=typeModified)
-
-    if formEdit.validate_on_submit():
-        typeModified.name = formEdit.name.data
-        typeModified.price = float(formEdit.price.data)
-        typeModified.deposit = float(formEdit.deposit.data)
-        typeModified.reference_prefix = formEdit.reference_prefix.data
-        typeModified.save_typeImg(formEdit.imageType_file.data)
-        db.session.commit()
-        return redirect(url_for(".display_all_type"))
-
-    list_equipmentt_type = EquipmentType.query.all()
-    addingFrom = EquipmentTypeForm()
-
-    return render_template(
-        "equipment/gestion/equipmentType/equipment_types.html",
-        list_equipmentt_type=list_equipmentt_type,
-        addingFrom=addingFrom,
-        formEdit=formEdit,
-        typeId=typeId,
-    )
-
-
 @blueprint.route("/delete_equipmentType/<int:equipmentTypeId>", methods=["POST"])
 def delete_equipment_type(equipmentTypeId):
     """Route to delete a specific type"""
     equipmentType = EquipmentType.query.get(equipmentTypeId)
     db.session.delete(equipmentType)
+    db.session.commit()
     return redirect(url_for(".stock_situation"))
 
 
@@ -317,14 +288,3 @@ def delete_equipment(equipmentId):
     del_equipment = Equipment.query.get(equipmentId)
     db.session.delete(del_equipment)
     return redirect(url_for(".stock_situation_stock"))
-
-
-@blueprint.route("/delete_equipmentModel/<int:modelId>", methods=["POST"])
-def delete_equipment_model(modelId):
-    """
-    Route to delete a specific model from an equipment type
-    """
-    model = EquipmentModel.query.get(modelId)
-    typeId = model.equipmentType.id
-    db.session.delete(model)
-    return redirect(url_for(".detail_equipment_type", typeId=typeId))
