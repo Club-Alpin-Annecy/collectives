@@ -211,7 +211,7 @@ def register(event_id, role_id=None):
 
     The displayed form depends on the role_id, a leader can create an reservation without paying
     and without a max number of equipment.
-    The reservation will related to the event of event_id.
+    The reservation will relate to the event of event_id.
 
     :param int role_id: Role that the user wishes to register has.
     :param int event_id: Primary key of the related event.
@@ -230,7 +230,6 @@ def register(event_id, role_id=None):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     event = Event.query.get(event_id)
-    # print("\nREQUEST FORM -", request.form)
 
     class F(LeaderReservationForm):
         """Empty class to create fields dynamically"""
@@ -248,7 +247,6 @@ def register(event_id, role_id=None):
             flash("La réservation est incorrecte")
             return render_template(
                 "reservation/editreservation.html",
-                event=event,
                 role_id=role_id,
                 form=form,
             )
@@ -282,7 +280,6 @@ def register(event_id, role_id=None):
         if not has_equipment or has_too_many:
             return render_template(
                 "reservation/editreservation.html",
-                event=event,
                 role_id=role_id,
                 form=form,
             )
@@ -298,7 +295,6 @@ def register(event_id, role_id=None):
         )
     return render_template(
         "reservation/editreservation.html",
-        event=event,
         role_id=role_id,
         form=form,
     )
