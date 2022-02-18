@@ -213,7 +213,7 @@ def register(event_id=None, role_id=None):
 
     The displayed form depends on the role_id, a leader can create an reservation without paying
     and without a max number of equipment.
-    The reservation will related to the event of event_id.
+    The reservation will relate to the event of event_id.
 
     :param int role_id: Role that the user wishes to register has.
     :param int event_id: Primary key of the related event.
@@ -249,7 +249,6 @@ def register(event_id=None, role_id=None):
             flash("La réservation est incorrecte")
             return render_template(
                 "reservation/editreservation.html",
-                event=event,
                 role_id=role_id,
                 form=form,
             )
@@ -283,7 +282,6 @@ def register(event_id=None, role_id=None):
         if not has_equipment or has_too_many:
             return render_template(
                 "reservation/editreservation.html",
-                event=event,
                 role_id=role_id,
                 form=form,
             )
@@ -299,7 +297,6 @@ def register(event_id=None, role_id=None):
         )
     return render_template(
         "reservation/editreservation.html",
-        event=event,
         role_id=role_id,
         form=form,
     )

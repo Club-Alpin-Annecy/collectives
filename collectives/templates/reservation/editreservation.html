@@ -9,13 +9,20 @@
 {% endblock %}
 
 {% block header %}
-  <h1 class="heading-1">{% block title %}Réservation{% endblock %}</h1>
+  {% block title %}Réservation{% endblock %}
 {% endblock %}
 
 {% block content %}
 <div class="page-content">
   <!-- Logging Windows -->
-  <h3>Réservation en tant qu'encadrant</h3>
+  <h1 class="heading-1">Réservation d'encadrant</h1>
+  Ici, vous pouvez réserver autant de matériel que voulu, gratuitement
+
+  {% if form.event %}
+      <h4 class="heading-4">Infos evénément</h4>
+      Vous souhaitez réserver pour l'événement : <a href="{{ url_for('event.view_event', event_id=form.event.id) }}">{{ form.event.title }}</a>
+  {% endif %}
+
   <div class="form-errors">
     {% for field in form%}
       {% for error in form.errors[field.name] %}
@@ -32,10 +39,10 @@
     enctype="multipart/form-data"
     class="form"
   >
-    <div class="dates">
+      <h4 class="heading-4">Date</h4>
       <div class="controls">
         <div class="datetimepicker" id="datetimepickerstart">
-          <label for="collect_date">Date : </label>{{ form.collect_date(onchange="checkDate()") }}
+          <label for="collect_date">Date de votre réservation : </label>{{ form.collect_date(onchange="checkDate()") }}
         </div>
         <span id="start_in_past_error" class="date_error flash flash-error">
           La date de réservation est déjà passée
@@ -44,7 +51,7 @@
 
       <h4 class="heading-4">Votre panier</h4>
       {% for field in form %}
-        {% if ( field.type in [ "IntegerField" ]) %}
+        {% if (field.type in [ "IntegerField" ]) %}
             <div class="controls">
                 <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
                 {{ field() }}
@@ -56,7 +63,6 @@
       {{ form.submit(class="button button-primary") }}
     </div>
   </form>
-</div>
 <script>
 
   function checkDate() {
