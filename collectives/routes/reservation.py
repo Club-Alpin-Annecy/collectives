@@ -233,16 +233,11 @@ def register(event_id=None, role_id=None):
 
     event = Event.query.get(event_id)
 
-    class F(LeaderReservationForm):
-        """Empty class to create fields dynamically"""
-
-        pass
-
     for e in EquipmentType.query.all():
         field = IntegerField(f"{e.name}", default=0)
-        setattr(F, f"field{e.id}", field)
+        setattr(LeaderReservationForm, f"field{e.id}", field)
 
-    form = F(event=event)
+    form = LeaderReservationForm(event=event)
 
     if form.is_submitted():
         if not form.validate():

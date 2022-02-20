@@ -6,11 +6,7 @@ from wtforms_alchemy import ModelForm
 from ..models.reservation import Reservation
 
 
-class LeaderReservationForm(FlaskForm, ModelForm):
-    """Form for leaders to reserve equipment
-    Contrary to lambda user, they don't need to pay nor specify a return date
-    """
-
+class ReservationForm(FlaskForm, ModelForm):
     class Meta:
         model = Reservation
         include = ["collect_date"]
@@ -25,6 +21,12 @@ class LeaderReservationForm(FlaskForm, ModelForm):
             self.collect_date.data = self.event.start
         else:
             self.collect_date.data = datetime.now()
+
+
+class LeaderReservationForm(ReservationForm):
+    """Form for leaders to reserve equipment
+    Contrary to lambda user, they don't need to pay nor specify a return date
+    """
 
 
 class ReservationToLocationForm(FlaskForm):
