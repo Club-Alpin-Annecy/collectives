@@ -4,7 +4,11 @@ import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
 
-from collectives.models.reservation import ReservationLine_Equipment
+from ..models.reservation import (
+    Reservation,
+    ReservationLine_Equipment,
+    ReservationStatus,
+)
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -130,16 +134,20 @@ class EquipmentType(db.Model):
 
     def nb_total_unavailable(self):
         """
-        :return: number of total equipments no available of the type
+        :return: Number of unavailable equipments of the type
         :rtype: int
         """
-        nbTotalUnavailable = 0
-        for aModel in self.models:
-            for aEquipment in aModel.equipments:
-                if not aEquipment.is_available():
-                    nbTotalUnavailable += 1
-
-        return nbTotalUnavailable
+        nb_unavailable = 0
+        ongoing_res = Reservation.query.filter(
+            Reservation.status.in_(
+                [ReservationStatus.Ongoing, ReservationStatus.Planned]
+            )
+        ).all()
+        for res in ongoing_res:
+            for line in res.lines:
+                if line.equipmentType.id == self.id:
+                    nb_unavailable += line.quantity
+        return nb_unavailable
 
     def nb_total_available(self):
         """
