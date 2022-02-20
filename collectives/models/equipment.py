@@ -4,7 +4,11 @@ import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
 
-from ..models.reservation import Reservation, ReservationLine, ReservationLine_Equipment, ReservationStatus
+from ..models.reservation import (
+    Reservation,
+    ReservationLine_Equipment,
+    ReservationStatus,
+)
 from .globals import db
 from .utils import ChoiceEnum
 
@@ -134,7 +138,11 @@ class EquipmentType(db.Model):
         :rtype: int
         """
         nb_unavailable = 0
-        ongoing_res = Reservation.query.filter(Reservation.status.in_([ReservationStatus.Ongoing, ReservationStatus.Planned])).all()
+        ongoing_res = Reservation.query.filter(
+            Reservation.status.in_(
+                [ReservationStatus.Ongoing, ReservationStatus.Planned]
+            )
+        ).all()
         for res in ongoing_res:
             for line in res.lines:
                 if line.equipmentType.id == self.id:
@@ -229,6 +237,7 @@ class EquipmentModel(db.Model):
     """ Primary key of the type to which the model is related (see  :py:class:`collectives.models.equipment.EquipmentType`)
 
     :type: int"""
+
 
 class Equipment(db.Model):
     """Class of an equipment.
