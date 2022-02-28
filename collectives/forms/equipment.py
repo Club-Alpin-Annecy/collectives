@@ -29,7 +29,7 @@ class EquipmentTypeForm(FlaskForm, ModelForm):
         render_kw={
             "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
             "placeholder": "Prix",
-            "title":"Utilisez uniquement des chiffres",
+            "title": "Utilisez uniquement des chiffres",
         },
     )
     deposit = FlexibleDecimalField(
