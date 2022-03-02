@@ -287,4 +287,5 @@ def delete_equipment(equipmentId):
     """
     del_equipment = Equipment.query.get(equipmentId)
     db.session.delete(del_equipment)
+    db.session.commit()
     return redirect(url_for(".stock_situation_stock"))
