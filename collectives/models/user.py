@@ -514,6 +514,13 @@ class User(db.Model, UserMixin):
 
         return self.has_role(RoleIds.all_reservation_management_roles())
 
+    def can_create_reservation(self):
+        """Check if user has role to create reservations
+        :return: True if user can create reservations
+        :rtype: boolean
+        """
+        return self.has_role(RoleIds.all_reservation_creator_roles())
+
     def can_lead_at_least_one_activity(self):
         """Check if user has a role which allow him to lead at least one activity.
 

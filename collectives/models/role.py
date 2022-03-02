@@ -114,6 +114,14 @@ class RoleIds(ChoiceEnum):
         return [cls.Staff] + cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
     @classmethod
+    def all_reservation_creator_roles(cls):
+        """
+        :return: List of all roles that allow users to create reservation
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return cls.all_reservation_management_roles() + cls.all_moderator_roles()
+
+    @classmethod
     def get(cls, required_id):
         """
         :return: Get a :py:class:`RodeIds` from its id

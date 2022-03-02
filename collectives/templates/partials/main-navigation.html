@@ -38,6 +38,15 @@
                             </li>
                             {% endif %}
 
+                            {% if current_user.can_create_reservation() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('reservation.register', role_id=10)}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}" class="legacy-icon"/>
+                                    Créer une réservation
+                                </a>
+                            </li>
+                            {% endif %}
+
                             {% if current_user.can_manage_reservation() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('reservation.view_reservations')}}" class="menu-dropdown-item-link">
