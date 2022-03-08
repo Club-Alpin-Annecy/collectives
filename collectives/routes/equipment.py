@@ -88,10 +88,7 @@ def detail_equipment_type(typeId):
     formEdit = EquipmentTypeForm(obj=equipmentType)
 
     if formEdit.validate_on_submit():
-        equipmentType.name = formEdit.name.data
-        equipmentType.price = float(formEdit.price.data)
-        equipmentType.deposit = float(formEdit.deposit.data)
-        equipmentType.reference_prefix = formEdit.reference_prefix.data
+        formEdit.populate_obj(equipmentType)
         equipmentType.save_typeImg(formEdit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
