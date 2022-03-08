@@ -232,11 +232,7 @@ def add_equipment():
     # If has_changed_model is True, this is only a change of model, not a real submit
     if not has_changed_model and addEquipmentForm.validate_on_submit():
         new_equipment = Equipment()
-        new_equipment.reference = addEquipmentForm.reference.data
-        new_equipment.purchaseDate = addEquipmentForm.purchaseDate.data
-        new_equipment.serial_number = addEquipmentForm.serial_number.data
-        new_equipment.purchasePrice = addEquipmentForm.purchasePrice.data
-        new_equipment.equipment_model_id = addEquipmentForm.equipment_model_id.data
+        addEquipmentForm.populate_obj(new_equipment)
         db.session.add(new_equipment)
         db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
@@ -258,11 +254,7 @@ def detail_equipment(equipment_id):
     editEquipmentForm = EquipmentForm(obj=equipmentSelected)
 
     if editEquipmentForm.validate_on_submit():
-        equipmentSelected.reference = editEquipmentForm.reference.data
-        equipmentSelected.serial_number = editEquipmentForm.serial_number.data
-        equipmentSelected.purchaseDate = editEquipmentForm.purchaseDate.data
-        equipmentSelected.purchasePrice = editEquipmentForm.purchasePrice.data
-        equipmentSelected.equipment_model_id = editEquipmentForm.equipment_model_id.data
+        editEquipmentForm.populate_obj(equipmentSelected)
         db.session.commit()
         return redirect(url_for(".detail_equipment", equipment_id=equipment_id))
 
