@@ -195,8 +195,7 @@ class EquipmentType(db.Model):
         """
         nb = 0
         for i_model in self.models:
-            for _ in i_model.equipments:
-                nb += 1
+            nb += len(i_model.equipments)
         return nb
 
 
