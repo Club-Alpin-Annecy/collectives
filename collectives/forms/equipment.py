@@ -45,15 +45,13 @@ class EquipmentTypeForm(FlaskForm, ModelForm):
     submit = SubmitField("Enregistrer")
 
 
-class EquipmentModelForm(FlaskForm):
+class EquipmentModelForm(FlaskForm, ModelForm):
     """Form for adding an equipment model, specifying its name and type"""
 
     class Meta:
         model = EquipmentModel
-        only = ["name", "equipmentType", "manufacturer"]
+        only = ["name", "equipment_type_id", "manufacturer"]
 
-    name = StringField("Modèle d'équipement :")
-    manufacturer = StringField(label="Fabricant :", validators=[DataRequired()])
     submit = SubmitField("Enregistrer")
 
 

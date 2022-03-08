@@ -77,11 +77,10 @@ def detail_equipment_type(typeId):
     """
     adding_from_model = EquipmentModelForm()
     if adding_from_model.validate_on_submit():
-        new_equipment_model = EquipmentModel()
-        new_equipment_model.name = adding_from_model.name.data
-        new_equipment_model.manufacturer = adding_from_model.manufacturer.data
-        new_equipment_model.equipment_type_id = typeId
-        db.session.add(new_equipment_model)
+        new_model = EquipmentModel()
+        adding_from_model.populate_obj(new_model)
+        new_model.equipment_type_id = typeId
+        db.session.add(new_model)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
