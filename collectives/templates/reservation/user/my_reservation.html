@@ -19,20 +19,20 @@
 
 {% block content %}
 
-  <div class="panel">
+  <div class="page-content">
 
-    <h3>
+    <h1 class="heading-1">
       <a href="{{ url_for('reservation.my_reservations')}}" class="link_path"> <span class="title_first_path">MES LOCATIONS</span></a>
       <a href="{{ url_for('reservation.my_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  LOCATION N°{{ reservation.id }} </span> </a>
-    </h3>
+    </h1>
 
-    <h4>INFORMATIONS RÉSERVATIONS</h4>
+    <h4 class="heading-4">INFORMATIONS RÉSERVATIONS</h4>
     <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
     <p><span class="bold">Prix total :</span> {{format_currency(reservation.total_price())}}</p>
 
-    <h4>ÉQUIPEMENTS</h4>
+    <h4 class="heading-4">ÉQUIPEMENTS</h4>
     <div id="reservation-table"></div>
 
   </div>
