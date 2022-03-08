@@ -2,20 +2,24 @@
 
 <div class="modal_form_container">
   <form action="{{ route }}" method="post" class="modal_form">
-
-      {{ form.hidden_tag() }}
+      {% for field in form%}
+        {% for error in form.errors[field.name] %}
+          <div class="flash flash-error">
+            <strong>Erreur : {{field.label}} :</strong> {{error}}
+          </div>
+        {% endfor %}
+      {% endfor %}
 
       <div class="modal_form_input_box">
-        {{ form.name.label }}
-        {{ form.name }}
+        Nom {{ form.name }}
       </div>
 
       <div class="modal_form_input_box">
-        {{ form.manufacturer.label }}
-        {{ form.manufacturer }}
+        Fabricant {{ form.manufacturer }}
       </div>
 
       {{ form.submit(class="button button-primary") }}
 
+      {{ form.hidden_tag() }}
     </form>
 </div>
