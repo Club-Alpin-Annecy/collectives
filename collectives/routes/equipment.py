@@ -115,15 +115,9 @@ def add_equipment_type():
     title = "Ajouter un type d'équipement"
     addingFrom = EquipmentTypeForm()
     if addingFrom.validate_on_submit():
-
         new_equipment_type = EquipmentType()
-
-        new_equipment_type.name = addingFrom.name.data
-        new_equipment_type.price = float(addingFrom.price.data)
-        new_equipment_type.deposit = float(addingFrom.deposit.data)
-        new_equipment_type.reference_prefix = addingFrom.reference_prefix.data
+        addingFrom.populate_obj(new_equipment_type)
         new_equipment_type.save_typeImg(addingFrom.imageType_file.data)
-
         db.session.add(new_equipment_type)
         db.session.commit()
         return redirect(url_for(".display_all_type"))
