@@ -133,6 +133,7 @@ def equipmentModel(typeId):
         return json.dumps(data), 200, {"content-type": "application/json"}
     return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
+
 @blueprint.route(
     "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
 )
