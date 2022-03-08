@@ -727,3 +727,9 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 
 :type: string
 """
+
+RESERVATION_ENABLED = False
+"""Whether to enable the reservation/rental-related functionalities
+
+:type: bool
+"""
