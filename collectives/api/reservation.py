@@ -69,9 +69,12 @@ def reservations():
 
     query = Reservation.query.all()
 
-    data = ReservationSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservations_of_day")
@@ -94,9 +97,11 @@ def reservations_of_day():
     query = Reservation.query.filter(
         Reservation.collect_date >= start, Reservation.collect_date <= end
     )
-    data = ReservationSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservations_returns_of_day")
@@ -119,9 +124,12 @@ def reservations_returns_of_day():
         Reservation.return_date <= endWeek,
         Reservation.status == ReservationStatus.Ongoing,
     )
-    data = ReservationSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservation/histo_reservations_for_an_equipment<int:equipment_id>")
@@ -139,9 +147,11 @@ def equipment_histo_reservations(equipment_id):
 
     query = Equipment.query.get(equipment_id).get_reservations()
 
-    data = ReservationSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 class ReservationLineSchema(marshmallow.Schema):
@@ -186,9 +196,11 @@ def reservationLines(reservation_id):
 
     query = Reservation.query.get(reservation_id).lines
 
-    data = ReservationLineSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationLineSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservation/new_rental/<int:reservation_id>")
@@ -206,9 +218,12 @@ def new_rental(reservation_id):
 
     query = Reservation.query.get(reservation_id).get_equipments()
 
-    data = EquipmentSchema(many=True).dump(query)
+    if query is not None:
+        data = EquipmentSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservation/ligne/<int:line_id>")
@@ -225,9 +240,12 @@ def reservation_line(line_id):
     """
     query = ReservationLine.query.get(line_id).equipments
 
-    data = EquipmentSchema(many=True).dump(query)
+    if query is not None:
+        data = EquipmentSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservation/lignerented/<int:line_id>")
@@ -244,9 +262,12 @@ def reservation_line_equipments_rented(line_id):
     """
     query = ReservationLine.query.get(line_id).get_equipments_rented()
 
-    data = EquipmentSchema(many=True).dump(query)
+    if query is not None:
+        data = EquipmentSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/reservation/lignereturned/<int:line_id>")
@@ -263,9 +284,12 @@ def reservation_line_equipments_returned(line_id):
     """
     query = ReservationLine.query.get(line_id).get_equipments_returned()
 
-    data = EquipmentSchema(many=True).dump(query)
+    if query is not None:
+        data = EquipmentSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route(
@@ -286,15 +310,16 @@ def set_available_equipment(equipment_id):
     """
 
     equipment = Equipment.query.get(equipment_id)
+    if equipment is not None:
+        equipment.status = EquipmentStatus.Available
+        db.session.commit()
 
-    equipment.status = EquipmentStatus.Available
-    db.session.commit()
-
-    return (
-        "{'response': 'Status changed OK'}",
-        200,
-        {"content-type": "application/json"},
-    )
+        return (
+            "{'response': 'Status changed OK'}",
+            200,
+            {"content-type": "application/json"},
+        )
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route(
@@ -318,24 +343,26 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
     :rtype: (string, int, dict)
     """
     equipment = Equipment.query.get(equipment_id)
-    if reservation_id:
-        reservation = Reservation.query.get(reservation_id)
-        if not reservation.remove_equipment(equipment):
-            return (
-                "{'response': 'Pas OK'}",
-                200,
-                {"content-type": "application/json"},
-            )
-    else:
-        line = ReservationLine.query.get(line_id)
-        line.remove_equipment(equipment)
-    db.session.commit()
+    if equipment is not None:
+        if reservation_id:
+            reservation = Reservation.query.get(reservation_id)
+            if not reservation.remove_equipment(equipment):
+                return (
+                    "{'response': 'Pas OK'}",
+                    200,
+                    {"content-type": "application/json"},
+                )
+        else:
+            line = ReservationLine.query.get(line_id)
+            line.remove_equipment(equipment)
+        db.session.commit()
 
-    return (
-        "{'response': 'Status changed OK'}",
-        200,
-        {"content-type": "application/json"},
-    )
+        return (
+            "{'response': 'Status changed OK'}",
+            200,
+            {"content-type": "application/json"},
+        )
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route(
@@ -356,14 +383,16 @@ def remove_reservation_equipment_decreasing_quantity(equipment_id, reservation_i
     """
     equipment = Equipment.query.get(equipment_id)
     reservation = Reservation.query.get(reservation_id)
-    reservation.remove_equipment_decreasing_quantity(equipment)
-    db.session.commit()
+    if equipment is not None and reservation is not None:
+        reservation.remove_equipment_decreasing_quantity(equipment)
+        db.session.commit()
 
-    return (
-        "{'response': 'Status changed OK'}",
-        200,
-        {"content-type": "application/json"},
-    )
+        return (
+            "{'response': 'Status changed OK'}",
+            200,
+            {"content-type": "application/json"},
+        )
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 # ---------------------------------------------------------------- User ----------------------------------------------------
@@ -381,10 +410,12 @@ def my_reservations():
     """
 
     query = User.query.get(current_user.id).get_reservations_planned_and_ongoing()
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    data = ReservationSchema(many=True).dump(query)
+        return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/my_reservations_completed/")
@@ -401,10 +432,11 @@ def my_reservations_completed():
     """
 
     query = User.query.get(current_user.id).get_reservations_completed()
+    if query is not None:
+        data = ReservationSchema(many=True).dump(query)
 
-    data = ReservationSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/my_reservation/<int:reservation_id>")
@@ -422,9 +454,12 @@ def my_reservation(reservation_id):
 
     query = Reservation.query.get(reservation_id).lines
 
-    data = ReservationLineSchema(many=True).dump(query)
+    if query is not None:
+        data = ReservationLineSchema(many=True).dump(query)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 # ---------------------------------------------------------------- Autocomplete ----------------------------------------------------
@@ -477,21 +512,25 @@ def autocomplete_availables_equipments(line_id=None):
     q = request.args.get("q")
 
     equipments_of_autocomplete = []
-    if q:
+    if q is not None:
         equipments_of_autocomplete = find_equipments_by_reference(q)
 
-    if line_id:
-        eType = ReservationLine.query.get(line_id).equipmentType
-        equipments_of_type = eType.get_all_equipments_availables()
-        query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
-    else:
-        equipments_availables = Equipment.query.filter_by(
-            status=EquipmentStatus.Available
-        )
-        query = list(
-            set(equipments_availables).intersection(equipments_of_autocomplete)
-        )
+        if line_id:
+            eType = ReservationLine.query.get(line_id).equipmentType
+            equipments_of_type = eType.get_all_equipments_availables()
+            query = list(
+                set(equipments_of_type).intersection(equipments_of_autocomplete)
+            )
+        else:
+            equipments_availables = Equipment.query.filter_by(
+                status=EquipmentStatus.Available
+            )
+            query = list(
+                set(equipments_availables).intersection(equipments_of_autocomplete)
+            )
+        if query is not None:
+            data = EquipmentSchema(many=True).dump(query)
 
-    data = EquipmentSchema(many=True).dump(query)
+            return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}

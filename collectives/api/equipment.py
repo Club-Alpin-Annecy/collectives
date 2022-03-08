@@ -93,9 +93,12 @@ def equipmentTypes():
     :rtype: (string, int, dict)
     """
     query = EquipmentType.query.all()
+    if query is not None:
 
-    data = EquipmentTypeSchema(many=True).dump(query)
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        data = EquipmentTypeSchema(many=True).dump(query)
+        return json.dumps(data), 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 class EquipmentModelSchema(marshmallow.Schema):
@@ -122,11 +125,13 @@ def equipmentModel(typeId):
     :rtype: (string, int, dict)
     """
 
-    query = EquipmentType.query.get(typeId).models
-    data = EquipmentModelSchema(many=True).dump(query)
+    equipmentType = EquipmentType.query.get(typeId)
+    if equipmentType is not None:
+        models = equipmentType.models
+        data = EquipmentModelSchema(many=True).dump(models)
 
-    return json.dumps(data), 200, {"content-type": "application/json"}
-
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 @blueprint.route(
     "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
@@ -144,11 +149,13 @@ def equipmentModelEdit(model_id, name, manufacturer):
     :rtype: (string, int, dict)
     """
     model = EquipmentModel.query.get(model_id)
-    model.name = name
-    model.manufacturer = manufacturer
-    db.session.commit()
+    if model is not None:
+        model.name = name
+        model.manufacturer = manufacturer
+        db.session.commit()
+        return "{'response': 'OK'}", 200, {"content-type": "application/json"}
 
-    return "{'response': 'Model Edit OK'}", 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
@@ -165,10 +172,13 @@ def equipmentModelDelete(model_id):
     :rtype: (string, int, dict)
     """
     model = EquipmentModel.query.get(model_id)
-    db.session.delete(model)
-    db.session.commit()
+    if model is not None:
+        db.session.delete(model)
+        db.session.commit()
 
-    return "{'response': 'Model Delete OK'}", 200, {"content-type": "application/json"}
+        return "{'response': 'OK'}", 200, {"content-type": "application/json"}
+
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
 
 
 class EquipmentSchema(marshmallow.Schema):
@@ -217,7 +227,8 @@ def equipment():
     """
 
     query = Equipment.query.all()
+    if query is not None:
+        data = EquipmentSchema(many=True).dump(query)
 
-    data = EquipmentSchema(many=True).dump(query)
-
-    return json.dumps(data), 200, {"content-type": "application/json"}
+        return json.dumps(data), 200, {"content-type": "application/json"}
+    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
