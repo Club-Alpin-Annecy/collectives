@@ -95,7 +95,10 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users manage equipment
         :rtype: list[:py:class:`RodeIds`]
         """
-        return [cls.EquipmentVolunteer, cls.EquipmentManager, cls.Administrator]
+        return [
+            cls.EquipmentVolunteer,
+            cls.EquipmentManager,
+        ] + cls.all_moderator_roles()
 
     @classmethod
     def all_reservation_management_roles(cls):
@@ -103,7 +106,10 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users manage reservation
         :rtype: list[:py:class:`RodeIds`]
         """
-        return [cls.EquipmentVolunteer, cls.EquipmentManager, cls.Administrator]
+        return [
+            cls.EquipmentVolunteer,
+            cls.EquipmentManager,
+        ] + cls.all_moderator_roles()
 
     @classmethod
     def all_event_creator_roles(cls):
@@ -119,7 +125,7 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users to create reservation
         :rtype: list[:py:class:`RodeIds`]
         """
-        return cls.all_reservation_management_roles() + cls.all_moderator_roles()
+        return [cls.EventLeader] + cls.all_reservation_management_roles()
 
     @classmethod
     def get(cls, required_id):
