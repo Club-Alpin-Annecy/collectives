@@ -193,6 +193,8 @@ def add_equipment():
         addEquipmentForm.populate_obj(new_equipment)
         db.session.add(new_equipment)
         db.session.commit()
+        new_equipment.get_type().increment_last_reference()
+        db.session.commit()
         return redirect(url_for(".stock_situation_stock"))
 
     return render_template(
