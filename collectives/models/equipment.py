@@ -1,5 +1,6 @@
 """Module for equipment related classes
 """
+from email.policy import default
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
@@ -56,6 +57,11 @@ class EquipmentType(db.Model):
     """Database primary key.
 
     :type: int"""
+
+    last_reference = db.Column(db.Integer, default=0)
+    """Total number of equipment created, regardless of the ones being deleted
+    :type: int
+    """
 
     name = db.Column(db.String(100), nullable=False)
     """Name of this type.
@@ -332,3 +338,10 @@ class Equipment(db.Model):
         :rtype: bool"""
         self.status = EquipmentStatus.Available
         return True
+
+    def get_type(self):
+        """
+        :return: Type of this equipment
+        :rtype: :py:class:`collectives.models.equipment.EquipmentType
+        """
+        return self.model.equipment_type
