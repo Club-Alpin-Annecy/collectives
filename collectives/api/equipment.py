@@ -3,7 +3,7 @@
 """
 import json
 
-from flask import url_for
+from flask import url_for, abort
 from marshmallow import fields
 
 from ..models import db, Equipment, EquipmentType, EquipmentModel
@@ -98,7 +98,7 @@ def equipmentTypes():
         data = EquipmentTypeSchema(many=True).dump(query)
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment types not found")
 
 
 class EquipmentModelSchema(marshmallow.Schema):
@@ -131,7 +131,7 @@ def equipmentModel(typeId):
         data = EquipmentModelSchema(many=True).dump(models)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment type not found")
 
 
 @blueprint.route(
@@ -156,7 +156,7 @@ def equipmentModelEdit(model_id, name, manufacturer):
         db.session.commit()
         return "{'response': 'OK'}", 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment model not found")
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
@@ -179,7 +179,7 @@ def equipmentModelDelete(model_id):
 
         return "{'response': 'OK'}", 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment model not found")
 
 
 class EquipmentSchema(marshmallow.Schema):
@@ -232,4 +232,4 @@ def equipment():
         data = EquipmentSchema(many=True).dump(query)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment not found")

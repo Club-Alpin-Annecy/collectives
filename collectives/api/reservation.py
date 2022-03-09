@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import json
 
 from flask_login import current_user
-from flask import url_for, request
+from flask import url_for, request, abort
 from marshmallow import fields
 from sqlalchemy.sql import text
 
@@ -74,7 +74,7 @@ def reservations():
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservations not found")
 
 
 @blueprint.route("/reservations_of_day")
@@ -101,7 +101,7 @@ def reservations_of_day():
         data = ReservationSchema(many=True).dump(query)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservations not found")
 
 
 @blueprint.route("/reservations_returns_of_day")
@@ -129,7 +129,7 @@ def reservations_returns_of_day():
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservations not found")
 
 
 @blueprint.route("/reservation/histo_reservations_for_an_equipment<int:equipment_id>")
@@ -151,7 +151,7 @@ def equipment_histo_reservations(equipment_id):
         data = ReservationSchema(many=True).dump(query)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservations not found")
 
 
 class ReservationLineSchema(marshmallow.Schema):
@@ -200,7 +200,7 @@ def reservationLines(reservation_id):
         data = ReservationLineSchema(many=True).dump(query)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservation lines not found")
 
 
 @blueprint.route("/reservation/new_rental/<int:reservation_id>")
@@ -223,7 +223,7 @@ def new_rental(reservation_id):
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipments not found")
 
 
 @blueprint.route("/reservation/ligne/<int:line_id>")
@@ -245,7 +245,7 @@ def reservation_line(line_id):
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservation line not found")
 
 
 @blueprint.route("/reservation/lignerented/<int:line_id>")
@@ -267,7 +267,7 @@ def reservation_line_equipments_rented(line_id):
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipments not found")
 
 
 @blueprint.route("/reservation/lignereturned/<int:line_id>")
@@ -289,7 +289,7 @@ def reservation_line_equipments_returned(line_id):
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipments not found")
 
 
 @blueprint.route(
@@ -319,7 +319,7 @@ def set_available_equipment(equipment_id):
             200,
             {"content-type": "application/json"},
         )
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment not found")
 
 
 @blueprint.route(
@@ -362,7 +362,7 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
             200,
             {"content-type": "application/json"},
         )
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment not found")
 
 
 @blueprint.route(
@@ -392,7 +392,7 @@ def remove_reservation_equipment_decreasing_quantity(equipment_id, reservation_i
             200,
             {"content-type": "application/json"},
         )
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Equipment or reservation not found")
 
 
 # ---------------------------------------------------------------- User ----------------------------------------------------
@@ -415,7 +415,7 @@ def my_reservations():
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "No reservations found for this user")
 
 
 @blueprint.route("/my_reservations_completed/")
@@ -436,7 +436,7 @@ def my_reservations_completed():
         data = ReservationSchema(many=True).dump(query)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "No reservation completed")
 
 
 @blueprint.route("/my_reservation/<int:reservation_id>")
@@ -459,7 +459,7 @@ def my_reservation(reservation_id):
 
         return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Reservation not found")
 
 
 # ---------------------------------------------------------------- Autocomplete ----------------------------------------------------
@@ -533,4 +533,4 @@ def autocomplete_availables_equipments(line_id=None):
 
             return json.dumps(data), 200, {"content-type": "application/json"}
 
-    return "{'response': 'Error'}", 500, {"content-type": "application/json"}
+    return abort(404, "Autocomplete didn't succeed")
