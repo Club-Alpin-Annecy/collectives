@@ -293,7 +293,7 @@
             {% if current_user.can_create_events() %}
             <a href="{{url_for('reservation.register', event_id=event.id, role_id=10)}}" class="button button-secondary">
               <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon" />
-              Réserver du matériel en tant qu'encadrant
+              Réserver du matériel
             </a>
             {% endif %}
 
