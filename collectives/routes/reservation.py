@@ -35,7 +35,6 @@ This blueprint contains all routes for reservations
 @blueprint.before_request
 @valid_user()
 @confidentiality_agreement()
-@user_is("can_manage_reservation")
 def before_request():
     """Protect all of the admin endpoints.
 
@@ -48,6 +47,7 @@ def before_request():
     pass
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/", methods=["GET"])
 def view_reservations():
     """
@@ -58,6 +58,7 @@ def view_reservations():
     )
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/reservation_of_day", methods=["GET"])
 def view_reservations_of_week():
     """
@@ -68,6 +69,7 @@ def view_reservations_of_week():
     )
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/reservations_returns_of_day", methods=["GET"])
 def view_reservations_returns_of_week():
     """
@@ -78,6 +80,7 @@ def view_reservations_returns_of_week():
     )
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/<int:reservation_id>", methods=["GET", "POST"])
 def view_reservation(reservation_id=None):
     """
@@ -121,6 +124,7 @@ def view_reservation(reservation_id=None):
     )
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/new", methods=["GET", "POST"])
 @blueprint.route("/new/<int:reservation_id>", methods=["GET", "POST"])
 def new_rental(reservation_id=None):
@@ -159,6 +163,7 @@ def new_rental(reservation_id=None):
     )
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/cancel", methods=["POST"])
 @blueprint.route("/cancel/<int:reservation_id>", methods=["POST"])
 def cancel_rental(reservation_id=None):
@@ -172,6 +177,7 @@ def cancel_rental(reservation_id=None):
     return redirect(url_for(".view_reservations"))
 
 
+@user_is("can_manage_reservation")
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])
 def view_reservationLine(reservationLine_id):
     """
