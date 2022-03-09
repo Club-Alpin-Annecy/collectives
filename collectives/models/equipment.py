@@ -1,6 +1,5 @@
 """Module for registration related classes
 """
-from email.policy import default
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension
@@ -192,7 +191,13 @@ class EquipmentType(db.Model):
         :return: The automatic reference for the creation of a new equipment of this type
         :rtype: string
         """
-        return f"{self.reference_prefix} {self.nb_equipments()}"
+        return f"{self.reference_prefix} {self.last_reference+1}"
+
+    def increment_last_reference(self):
+        """
+        :return: Increment the last reference of this type
+        """
+        self.last_reference += 1
 
     def nb_equipments(self):
         """
@@ -345,4 +350,4 @@ class Equipment(db.Model):
         :return: Type of this equipment
         :rtype: :py:class:`collectives.models.equipment.EquipmentType
         """
-        return self.model.equipment_type
+        return self.model.equipmentType
