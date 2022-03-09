@@ -76,14 +76,6 @@ def detail_equipment_type(typeId):
     Show one equipment type and its models
     """
     adding_from_model = EquipmentModelForm()
-    if adding_from_model.validate_on_submit():
-        new_model = EquipmentModel()
-        adding_from_model.populate_obj(new_model)
-        new_model.equipment_type_id = typeId
-        db.session.add(new_model)
-        db.session.commit()
-        return redirect(url_for(".detail_equipment_type", typeId=typeId))
-
     equipmentType = EquipmentType.query.get(typeId)
     formEdit = EquipmentTypeForm(obj=equipmentType)
 
@@ -102,6 +94,21 @@ def detail_equipment_type(typeId):
         formEdit=formEdit,
         deleteForm=deleteForm,
     )
+
+
+@blueprint.route("/equipment_type/<int:typeId>/add", methods=["GET", "POST"])
+def add_equipment_model(typeId):
+    """
+    Route to add an equipment model
+    """
+    adding_from_model = EquipmentModelForm()
+    if adding_from_model.validate_on_submit():
+        new_model = EquipmentModel()
+        adding_from_model.populate_obj(new_model)
+        new_model.equipment_type_id = typeId
+        db.session.add(new_model)
+        db.session.commit()
+    return redirect(url_for(".detail_equipment_type", typeId=typeId))
 
 
 @blueprint.route("/equipment_type/add", methods=["GET", "POST"])
