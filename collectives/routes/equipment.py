@@ -135,39 +135,6 @@ def delete_equipment_type(equipmentTypeId):
     return redirect(url_for(".stock_situation"))
 
 
-@blueprint.route(
-    "/equipment_type/<int:typeId>/model<int:modelId>", methods=["GET", "POST"]
-)
-def edit_equipment_model(typeId, modelId):
-    """
-    Unused route
-    """
-    equipmentModelModified = EquipmentModel.query.get(modelId)
-    formEditModel = EquipmentModelForm(obj=equipmentModelModified)
-
-    if formEditModel.validate_on_submit():
-
-        equipmentModelModified.name = formEditModel.name.data
-        equipmentModelModified.manufacturer = formEditModel.manufacturer.data
-        equipmentModelModified.equipment_type_id = formEditModel.equipmentType.data
-        db.session.commit()
-        return redirect(url_for(".detail_equipment_type", typeId=typeId))
-
-    typeSelected = EquipmentType.query.get(typeId)
-    adding_from_model = EquipmentModelForm()
-    listEquipmentModel = EquipmentModel.query.all()
-    deleteFormModel = DeleteForm()
-    return render_template(
-        "equipment/gestion/equipmentType/equipment_type.html",
-        listEquipmentModel=listEquipmentModel,
-        adding_from_model=adding_from_model,
-        equipmentType=typeSelected,
-        formEditModel=formEditModel,
-        modelId=modelId,
-        deleteFormModel=deleteFormModel,
-    )
-
-
 # -------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------- EQUIPMENT ---------------------------------------------------
