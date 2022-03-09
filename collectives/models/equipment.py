@@ -1,4 +1,4 @@
-"""Module for registration related classes
+"""Module for equipment related classes
 """
 import os
 from genericpath import isfile
