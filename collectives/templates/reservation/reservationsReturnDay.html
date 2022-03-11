@@ -22,20 +22,20 @@
   <div class="page-content">
 
     <h1 class="heading-1">
-      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">Gestion des réservations</span></a>
     </h1>
 
     <div class="reservations-navigation">
       <div class="container-types">
-        <a href="{{ url_for('reservation.view_reservations')}}" class="button button-secondary">TOUTES LES RÉSERVATIONS</a>
-        <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-secondary">RÉSERVATIONS DE LA SEMAINE</a>
-        <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-secondary button-selected">RETOUR DE LA SEMAINE</a>
+        <a href="{{ url_for('reservation.view_reservations')}}" class="button button-secondary">Toutes les réservations</a>
+        <a href="{{ url_for('reservation.view_reservations_of_week')}}" class="button button-secondary">Réservations de la semaine</a>
+        <a href="{{ url_for('reservation.view_reservations_returns_of_week')}}" class="button button-secondary button-selected">Retour de la semaine</a>
       </div>
 
       <a href="{{ url_for('reservation.new_rental')}}" class="button button-primary">Nouvelle location</a>
     </div>
 
-    <h4 class="heading-4">RETOUR DE LA SEMAINE</h4>
+    <h4 class="heading-4">Retour de la semaine</h4>
 
     <div id="reservations-table"></div>
 
