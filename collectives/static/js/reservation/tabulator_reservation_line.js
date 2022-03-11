@@ -34,7 +34,7 @@
             formatter:"buttonCross",
             headerSort:false,
             cellClick:function(e, cell){
-              if(confirm('Voulez-vous vraiment retirer cet équipement de cet réservation ?')) {
+              if(confirm('Voulez-vous vraiment retirer cet équipement de cette réservation ?')) {
 
                   let id = cell.getRow().getData().id
 

@@ -19,7 +19,7 @@
         columns:[                 //define the table columns
           //{title:"id", field:"id", formatter:"number"},
           {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '4em'}},
-          {title:"Name", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
+          {title:"Nom", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
           {title:"Total", field:"nbTotal"},
           {title:"Indisponible", field:"nbTotalUnavailable"},
           {title:"Disponible", field:"nbTotalAvailable"},
