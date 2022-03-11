@@ -8,7 +8,7 @@ function onclickTriggerInsideForm(e, cell){
 
 function cellInTable(tab, value){
   for(row of tab.getData()) {
-    if(row.id == value) { console.log("true"); return true }
+    if(row.id == value) { return true }
   }
   return false;
 }
