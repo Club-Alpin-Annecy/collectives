@@ -28,8 +28,8 @@
   <div class="page-content">
 
     <h1 class="heading-1">
-      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
-      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservationLine.reservation.id }} </span> </a>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">Gestion des réservations</span></a>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  Réservation N°{{ reservationLine.reservation.id }} </span> </a>
     </h1>
 
     <h4 class="heading-4">{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>

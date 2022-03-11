@@ -30,7 +30,7 @@
   <div class="page-content">
 
     <h1 class="heading-1">
-      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">Gestion des reservations</span></a>
       <span class="title_second_path">/ Nouvelle location</span>
     </h1>
 
@@ -68,13 +68,13 @@
       </div>
     </form>
 
-    <h4 class="heading-4">INFORMATIONS ADHÉRENT</h4>
+    <h4 class="heading-4">Informations adhérent</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
 
 
-    <h4 class="heading-4">AJOUTER UN ÉQUIPEMENT</h4>
+    <h4 class="heading-4">Ajouter un équipement</h4>
     <form action="" method="post">
       {{ form_equipment.hidden_tag() }}
       <div class="controls">

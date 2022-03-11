@@ -30,11 +30,11 @@
   <div class="page-content">
 
     <h1 class="heading-1">
-      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">GESTION DES RÉSERVATIONS</span></a>
-      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  RÉSERVATION N°{{ reservation.id }} </span> </a>
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">Gestion des réservations</span></a>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  Réservation N°{{ reservation.id }} </span> </a>
     </h1>
 
-    <h4 class="heading-4">INFORMATIONS UTILISATEUR</h4>
+    <h4 class="heading-4">Informations utilisateur</h4>
     <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
     <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
     <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
@@ -42,7 +42,7 @@
     <p><span class="bold">Téléphone :</span> {{reservation.user.phone}}</p>
 
 
-    <h4 class="heading-4">INFORMATIONS RÉSERVATION</h4>
+    <h4 class="heading-4">Informations réservation</h4>
     <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
     <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
     <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
@@ -99,10 +99,10 @@
 
 
 
-    <h4 class="heading-4">TYPES D'ÉQUIPEMENTS</h4>
+    <h4 class="heading-4">Types d'équipements</h4>
     <div id="reservation-table"></div>
 
-    <h4 class="heading-4">TOUS LES ÉQUIPEMENTS</h4>
+    <h4 class="heading-4">Tous les équipements</h4>
     <div id="equipment-table"></div>
 
   </div>
