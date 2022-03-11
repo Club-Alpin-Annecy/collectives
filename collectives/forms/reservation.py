@@ -29,14 +29,14 @@ class LeaderReservationForm(ReservationForm):
     """
 
 
-class ReservationToLocationForm(FlaskForm):
-    """Form for deleting an equipment"""
+class ReservationToRentalForm(FlaskForm):
+    """Form to change the status of a rental to OnGoing"""
 
     validate = SubmitField("Valider la réservation")
 
 
-class EndLocationForm(FlaskForm):
-    """Form for deleting an equipment"""
+class EndRentalForm(FlaskForm):
+    """Form to end a rental"""
 
     validate = SubmitField("Valider le retour de la location")
 
@@ -48,13 +48,13 @@ class AddEquipmentInReservationForm(FlaskForm):
 
 
 class NewRentalUserForm(FlaskForm):
-    """Form to create a new rental from no reservation"""
+    """Form to put an user for a rental from no reservation"""
 
     user = HiddenField("Nom d'adhérent")
 
 
 class NewRentalEquipmentForm(FlaskForm):
-    """Form to create a new rental from no reservation"""
+    """Form to put a new equipment for a rental from no reservation"""
 
     add_equipment = HiddenField("Référence équipement")
 
