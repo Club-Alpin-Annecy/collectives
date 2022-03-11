@@ -37,7 +37,7 @@
             }
           },
           {
-            title:"Reference",
+            title:"Référence",
             headerFilter:"input",
             field:"reference",
             formatter:"link",
@@ -46,7 +46,7 @@
             }
           },
           {
-            title:"Etat",
+            title:"État",
             field:"statusName",
             headerFilter: "select",
 	          headerFilterParams:{
