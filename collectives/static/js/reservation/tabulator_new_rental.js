@@ -41,7 +41,6 @@
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
                   axios.post('/api/remove_reservation_equipment_decreasing_quantity/'+id+'/'+reservation_id)
                   .then((response)=>{
-                    console.log(response)
                     window.location.reload()
                   })
 

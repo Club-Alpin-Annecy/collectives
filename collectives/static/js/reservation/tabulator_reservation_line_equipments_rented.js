@@ -44,7 +44,6 @@
             cellClick:function(e, cell){
               if(confirm('Voulez-vous vraiment rendre cet équipement ?')) {
 
-                  console.log(cell.getRow().getData().comment)
                   let id = cell.getRow().getData().id
                   axios.defaults.headers.common['X-CSRF-TOKEN'] = token_csrf;
                   axios.post('/api/set_available_equipment/'+id)
