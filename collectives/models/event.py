@@ -703,6 +703,17 @@ class Event(db.Model):
 
         return self.has_free_online_slots() and self.is_registration_open_at_time(time)
 
+    def dates_intersect(self, start, end):
+        """Check if a specified timespan and the event timespan intersects
+        :return: True if timespans intersects
+        :rtype: boolean"""
+        return (
+            (self.start <= end)
+            and (self.start <= self.end)
+            and (start <= self.end)
+            and (start <= end)
+        )
+
     # Status
     def is_confirmed(self):
         """Check if this event is confirmed.
