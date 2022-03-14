@@ -395,6 +395,10 @@ def manage_event(event_id=None):
     if not validate_dates_and_slots(trial_event):
         return render_template("editevent.html", event=event, form=form)
 
+    if not current_user.can_lead_on(trial_event.start, trial_event.end, event_id):
+        flash("Vous encadrer déjà une activité à cette date", "error")
+        return render_template("editevent.html", event=event, form=form)
+
     has_new_activity = any(a not in event.activity_types for a in tentative_activities)
 
     tentative_leaders_set = set(tentative_leaders)

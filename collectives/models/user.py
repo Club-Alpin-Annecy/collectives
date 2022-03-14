@@ -10,9 +10,8 @@ from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
-
-from collectives.models.reservation import ReservationStatus
-
+from .reservation import ReservationStatus
+from .event import event_leaders, Event
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
@@ -617,6 +616,29 @@ class User(db.Model, UserMixin):
         :rtype: boolean
         """
         return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
+
+    def can_lead_on(self, start, end, excluded_event_id=None):
+        """Check if user is already leading an event on a specified timespan
+
+        :param start: Start of the timespan
+        :type start: :py:class:`datetime.datetime`
+        :param end: End of the timespan
+        :type end: :py:class:`datetime.datetime`
+        :param excluded_event_id: Event id to exclude (often the event being edited)
+        :type excluded_event_id: int
+        :return: True if user can lead on the specified timespan.
+        :rtype: boolean
+        """
+        query = db.session.query(event_leaders).filter(
+            event_leaders.c.user_id == self.id
+        )
+        query = query.filter(event_leaders.c.event_id != excluded_event_id)
+        leadings = query.all()
+        for lead in leadings:
+            event = Event.query.get(lead.event_id)
+            if event.is_confirmed() and event.dates_intersect(start, end):
+                return False
+        return True
 
     def led_activities(self):
         """Get activities the user can lead.
