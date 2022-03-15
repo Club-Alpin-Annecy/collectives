@@ -605,6 +605,26 @@ class User(db.Model, UserMixin):
                 return False
         return True
 
+    def can_register_on(self, start, end, excluded_event_id=None):
+        """Check if user is already registered to an event on a specified timespan
+
+        :param start: Start of the timespan
+        :type start: :py:class:`datetime.datetime`
+        :param end: End of the timespan
+        :type end: :py:class:`datetime.datetime`
+        :param excluded_event_id: Event id to exclude (often the event being edited)
+        :type excluded_event_id: int
+        :return: True if user can register on the specified timespan.
+        :rtype: boolean
+        """
+        for regis in self.registrations:
+            event = regis.event
+            if event.id == excluded_event_id:
+                continue
+            if regis.is_active() and event.dates_intersect(start, end):
+                return False
+        return True
+
     def led_activities(self):
         """Get activities the user can lead.
 

@@ -395,10 +395,6 @@ def manage_event(event_id=None):
     if not validate_dates_and_slots(trial_event):
         return render_template("editevent.html", event=event, form=form)
 
-    if not current_user.can_lead_on(trial_event.start, trial_event.end, event_id):
-        flash("Vous encadrer déjà une activité à cette date", "error")
-        return render_template("editevent.html", event=event, form=form)
-
     has_new_activity = any(a not in event.activity_types for a in tentative_activities)
 
     tentative_leaders_set = set(tentative_leaders)
@@ -413,6 +409,15 @@ def manage_event(event_id=None):
             tentative_leaders,
             form.multi_activities_mode.data,
         ):
+            return render_template("editevent.html", event=event, form=form)
+
+    # Check if leaders don't already lead an activity during the event
+    for leader in tentative_leaders_set:
+        if not leader.can_lead_on(trial_event.start, trial_event.end, event_id):
+            flash(
+                f"L'encadrant {leader.full_name()} encadre déjà une activité à cette date",
+                "error",
+            )
             return render_template("editevent.html", event=event, form=form)
 
     # If event has not been created yet use current activities to check rights
@@ -530,6 +535,11 @@ def self_register(event_id):
     now = current_time()
     if not event or not event.can_self_register(current_user, now):
         flash("Vous ne pouvez pas vous inscrire vous-même.", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+    print("Test date")
+    if not current_user.can_register_on(event.start, event.end, event_id):
+        print("Date invalide !")
+        flash("Vous participer déjà une activité à cette date", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.requires_payment():
