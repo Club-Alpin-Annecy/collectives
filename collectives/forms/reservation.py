@@ -29,13 +29,13 @@ class LeaderReservationForm(ReservationForm):
     """
 
 
-class ReservationToLocationForm(FlaskForm):
+class ReservationToRentalForm(FlaskForm):
     """Form for deleting an equipment"""
 
     validate = SubmitField("Valider la réservation")
 
 
-class EndLocationForm(FlaskForm):
+class EndRentalForm(FlaskForm):
     """Form for deleting an equipment"""
 
     validate = SubmitField("Valider le retour de la location")

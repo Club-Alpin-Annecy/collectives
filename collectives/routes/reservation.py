@@ -17,11 +17,11 @@ from ..models import Event, RoleIds
 from ..models.reservation import Reservation, ReservationLine, ReservationStatus
 from ..forms.reservation import (
     CancelRentalForm,
-    EndLocationForm,
+    EndRentalForm,
     LeaderReservationForm,
     NewRentalEquipmentForm,
     NewRentalUserForm,
-    ReservationToLocationForm,
+    ReservationToRentalForm,
     AddEquipmentInReservationForm,
 )
 
@@ -105,13 +105,13 @@ def view_reservation(reservation_id=None):
                 return redirect(
                     url_for(".view_reservation", reservation_id=reservation_id)
                 )
-        form = ReservationToLocationForm()
+        form = ReservationToRentalForm()
         if form.validate_on_submit():
             reservation.status = ReservationStatus.Ongoing
             db.session.commit()
             return redirect(url_for(".view_reservation", reservation_id=reservation_id))
     elif reservation.is_ongoing():
-        form = EndLocationForm()
+        form = EndRentalForm()
         if form.validate_on_submit():
             reservation.status = ReservationStatus.Completed
             db.session.commit()
