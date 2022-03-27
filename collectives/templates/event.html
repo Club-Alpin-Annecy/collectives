@@ -59,11 +59,11 @@
         {% endfor %}
       </div>
     </div>
-      
+
 
 
     <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
-      
+
 
 
     {# Leaders #}
@@ -154,8 +154,8 @@
           {% endif %}
         {% endif %}
       {% else %}  {#  Not registered, display registration conditions #}
-        {% if event.event_type.license_types %}  
-            Les inscriptions en ligne sont restreintes aux licenses de type {{event.event_type.license_types}}, 
+        {% if event.event_type.license_types %}
+            Les inscriptions en ligne sont restreintes aux licenses de type {{event.event_type.license_types}},
             {% if event.event_type.has_valid_license(current_user) %}
               ce qui est votre cas.
             {% else %}
@@ -163,7 +163,7 @@
             {% endif %}
             <br/>
         {% endif %}
-        {% if event.parent_event %}  
+        {% if event.parent_event %}
             Les inscriptions en ligne sont restreintes aux participants à la collective
             <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
             {% if event.is_user_registered_to_parent_event(current_user) %}
@@ -229,13 +229,13 @@
     </div>
 
 
-    {# Leader payment #}    
+    {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cet événement est payante; en tant qu'encadrant, vous pouvez participer aux frais.</p>
+      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, tu peux participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}
-          {%if payment.is_unsettled() %}    
+          {%if payment.is_unsettled() %}
             <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
           {%elif payment.is_approved()%}
             <li>Vous avez réglé <a href="{{url_for('payment.payment_details', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></li>
