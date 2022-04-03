@@ -262,7 +262,6 @@ def export_payments(event_id=None):
         "amount_paid": "Prix payé",
         "finalization_time": "Date du paiement",
         "payment_status_str": "État",
-        "refund_time": "Date de remboursement",
         "payment_type_str": "Type",
         "processor_order_ref": "Référence",
     }
@@ -274,7 +273,7 @@ def export_payments(event_id=None):
         ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
 
     # set column width
-    for c in "CDEFGHJL":
+    for c in "CDEFGHJLOR":
         ws.column_dimensions[c].width = 25
     for c in "ABIKMN":
         ws.column_dimensions[c].width = 16
