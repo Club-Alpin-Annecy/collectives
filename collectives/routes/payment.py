@@ -246,6 +246,7 @@ def export_payments(event_id=None):
     wb = Workbook()
     ws = wb.active
     FIELDS = {
+        "item.event.event_type.name": "Type d'événement",
         "item.event.activity_type_names": "Activités",
         "item.event.main_leader.first_name": "Prénom encadrant",
         "item.event.main_leader.last_name": "Nom encadrant",
@@ -273,9 +274,9 @@ def export_payments(event_id=None):
         ws.append([str(deepgetattr(payment, field, "-")) for field in FIELDS])
 
     # set column width
-    for c in "BCDEFGIK":
+    for c in "CDEFGHJL":
         ws.column_dimensions[c].width = 25
-    for c in "AHJLM":
+    for c in "ABIKMN":
         ws.column_dimensions[c].width = 16
 
     out = BytesIO()
