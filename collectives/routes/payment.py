@@ -271,13 +271,16 @@ def export_payments(event_id=None):
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
         payment.payment_status_str = payment.status.display_name()
-        ws.append([str(deepgetattr(payment, field, "-")) for field in FIELDS])
+        ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
 
     # set column width
     for c in "CDEFGHJL":
         ws.column_dimensions[c].width = 25
     for c in "ABIKMN":
         ws.column_dimensions[c].width = 16
+
+    # set "Amount paid" column format
+    ws.column_dimensions["N"].number_format = "#,##0.00€"
 
     out = BytesIO()
     wb.save(out)
