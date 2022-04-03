@@ -16,7 +16,7 @@
 {% block content %}
 <div class="page-content">
     <h1 class="heading-1">{{user.full_name()}}</h1>
-    
+
     <div><img src="{%   if user.avatar
                                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
                         else
@@ -25,7 +25,7 @@
                 alt="Avatar de l'utilisateur"
                 class="avatar big float_right" />
     </div>
-    
+
     <h4 class="heading-4">Rôles</h4>
     <ul>
         {% for role in user.roles %}
@@ -47,7 +47,7 @@
     <div id="eventstable" class="collectives-list">
     </div>
 
-    <h4 class="heading-4">Sorties encadrées effectuées</h4>
+    <h4 class="heading-4">Sorties encadrées passées</h4>
     <div id="pasteventstable" class="collectives-list">
     </div>
 </div>
