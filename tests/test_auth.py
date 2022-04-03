@@ -8,17 +8,20 @@ def test_login(client):
     response = client.post(
         "/auth/login", data={"mail": "unknown", "password": "foobar2"}
     )
-    assert response.headers["Location"] == "http://localhost/auth/login"
+    assert response.headers["Location"] in [
+        "http://localhost/auth/login",
+        "/auth/login",
+    ]
 
     """"Valide login redirected to home page"""
     response = client.post("/auth/login", data={"mail": "admin", "password": "foobar2"})
-    assert response.headers["Location"] == "http://localhost/"
+    assert response.headers["Location"] in ["http://localhost/", "/"]
 
 
 def test_loginout(dbauth, client):
-    assert dbauth.login(client) == "http://localhost/"
+    assert dbauth.login(client) in ["http://localhost/", "/"]
     # FIXME test userID in session
-    assert dbauth.logout() == "http://localhost/auth/login"
+    assert dbauth.logout() in ["http://localhost/auth/login", "/auth/login"]
 
 
 def test_admin_create_valideuser(dbauth, client):
@@ -35,7 +38,10 @@ def test_admin_create_valideuser(dbauth, client):
             "phone": "0123456789",
         },
     )
-    assert response.headers["Location"] == "http://localhost/administration/"
+    assert response.headers["Location"] in [
+        "http://localhost/administration/",
+        "/administration/",
+    ]
     users = User.query.all()
     # user = User.query.filter_by(mail='user1@mail')
     assert users[1].mail == "user1@mail.domain"
