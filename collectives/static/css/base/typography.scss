@@ -10,14 +10,14 @@
 	src: url('/static/fonts/DINWeb.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
-} 
+}
 
 @font-face {
 	font-family: 'DIN';
 	src: url('/static/fonts/DINWeb-Medium.woff') format('woff');
 	font-weight: 500;
 	font-style: normal;
-} 
+}
 
 
 @font-face {
@@ -39,7 +39,7 @@ html, body {
 // Reset headings default styles
 h1, h2, h3, h4, h5, h6 {
 	font-size: 1rem;
-	font-weight: normal;	
+	font-weight: normal;
 }
 
 // Custom heading styles, top be applied independently of page structure
@@ -84,7 +84,28 @@ h1, h2, h3, h4, h5, h6 {
 	line-height: $line-height-xs;
 }
 
-// Links 
+.title_first_path {
+	color: $color-black;
+
+	&:hover {
+		color: $color-black;
+		text-decoration: none;
+	}
+}
+
+
+.title_second_path {
+	font-size: $font-size-xl;
+	color: $color-black;
+
+	&:hover {
+		color: $color-black;
+		text-decoration: none;
+	}
+}
+
+
+// Links
 
 a, .link {
 	color: darken($color-blue-secondary-dark, 5%);
@@ -95,6 +116,26 @@ a, .link {
 		color: darken($color-blue-secondary-dark, 15%);
 	}
 }
+
+.link_path {
+
+	&:hover {
+		text-decoration: none;
+	}
+
+}
+
+.link_title {
+	color: $color-black;
+
+	&:hover {
+		text-decoration: none;
+		color: $color-black;
+	}
+}
+
+
+
 
 .link-danger {
 	color: $color-error-light;

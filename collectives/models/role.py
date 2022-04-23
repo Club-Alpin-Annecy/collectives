@@ -36,6 +36,10 @@ class RoleIds(ChoiceEnum):
     ActivitySupervisor = 11
     Trainee = 12
 
+    # Equipment-related roles
+    EquipmentManager = 21
+    EquipmentVolunteer = 22
+
     @classmethod
     def display_names(cls):
         """Display name of the current role
@@ -54,6 +58,8 @@ class RoleIds(ChoiceEnum):
             cls.EventLeader: "Encadrant",
             cls.ActivitySupervisor: "Responsable d'activité",
             cls.Trainee: "Encadrant en formation",
+            cls.EquipmentVolunteer: "Bénévole matériel",
+            cls.EquipmentManager: "Responsable matériel",
         }
 
     def relates_to_activity(self):
@@ -84,12 +90,42 @@ class RoleIds(ChoiceEnum):
         return [cls.EventLeader, cls.ActivitySupervisor]
 
     @classmethod
+    def all_equipment_management_roles(cls):
+        """
+        :return: List of all roles that allow users manage equipment
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [
+            cls.EquipmentVolunteer,
+            cls.EquipmentManager,
+        ] + cls.all_moderator_roles()
+
+    @classmethod
+    def all_reservation_management_roles(cls):
+        """
+        :return: List of all roles that allow users manage reservation
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [
+            cls.EquipmentVolunteer,
+            cls.EquipmentManager,
+        ] + cls.all_moderator_roles()
+
+    @classmethod
     def all_event_creator_roles(cls):
         """
         :return: List of all roles that allow users to create events
         :rtype: list[:py:class:`RodeIds`]
         """
         return [cls.Staff] + cls.all_activity_leader_roles() + cls.all_moderator_roles()
+
+    @classmethod
+    def all_reservation_creator_roles(cls):
+        """
+        :return: List of all roles that allow users to create reservation
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [cls.EventLeader] + cls.all_reservation_management_roles()
 
     @classmethod
     def get(cls, required_id):

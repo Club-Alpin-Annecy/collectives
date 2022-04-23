@@ -11,6 +11,8 @@ from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
 
+from collectives.models.reservation import ReservationStatus
+
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
@@ -266,6 +268,15 @@ class User(db.Model, UserMixin):
     :type: list(:py:class:`collectives.models.registration.Registration`)
     """
 
+    reservations = db.relationship(
+        "Reservation",
+        back_populates="user",
+    )
+    """ List of reservations made by the user.
+
+    :type: list(:py:class:`collectives.models.reservation.Reservation`)
+    """
+
     payments = db.relationship(
         "Payment", backref="buyer", foreign_keys="[Payment.buyer_id]", lazy=True
     )
@@ -485,6 +496,31 @@ class User(db.Model, UserMixin):
         """
         return self.has_role(RoleIds.all_event_creator_roles())
 
+    def can_manage_equipment(self):
+        """Check if user has an equipment_manager role.
+
+        :return: True if user has an equiment_manager role.
+        :rtype: boolean
+        """
+
+        return self.has_role(RoleIds.all_equipment_management_roles())
+
+    def can_manage_reservation(self):
+        """Check if user has an equipment_manager role.
+
+        :return: True if user has an equiment_manager role.
+        :rtype: boolean
+        """
+
+        return self.has_role(RoleIds.all_reservation_management_roles())
+
+    def can_create_reservation(self):
+        """Check if user has role to create reservations
+        :return: True if user can create reservations
+        :rtype: boolean
+        """
+        return self.has_role(RoleIds.all_reservation_creator_roles())
+
     def can_lead_at_least_one_activity(self):
         """Check if user has a role which allow him to lead at least one activity.
 
@@ -619,6 +655,31 @@ class User(db.Model, UserMixin):
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]
+
+    def get_reservations_planned_and_ongoing(self):
+        """Get all reservations planned and ongoing from user.
+
+        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
+        """
+        reservation_list = []
+        for aReservation in self.reservations:
+            if aReservation.status in (
+                ReservationStatus.Planned,
+                ReservationStatus.Ongoing,
+            ):
+                reservation_list.append(aReservation)
+        return reservation_list
+
+    def get_reservations_completed(self):
+        """Get all reservations completed from user.
+
+        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
+        """
+        reservation_list = []
+        for aReservation in self.reservations:
+            if aReservation.status == ReservationStatus.Completed:
+                reservation_list.append(aReservation)
+        return reservation_list
 
     @property
     def is_active(self):

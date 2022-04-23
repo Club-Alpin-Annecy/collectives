@@ -1,0 +1,8 @@
+<form action="{{ route }}" method="post" onsubmit="return confirm('{{ message }}');">
+    {{ form.hidden_tag() }}
+
+    <button class="button button-danger">
+        <img src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}" alt="" class="icon">
+        SUPPRIMER
+    </button>
+</form>

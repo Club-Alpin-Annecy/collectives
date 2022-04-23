@@ -65,7 +65,6 @@
     <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
 
 
-
     {# Leaders #}
 
     <div id="encadrement">
@@ -207,7 +206,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-          {% include 'partials/event/self_register.html' %}
+        {% include 'partials/event/self_register.html' %}
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>
         {% elif not event.has_free_online_slots() %}
@@ -288,6 +287,13 @@
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
               Fiche collective
             </a>
+
+            {% if current_user.can_create_events() %}
+            <a href="{{url_for('reservation.register', event_id=event.id, role_id=10)}}" class="button button-secondary">
+              <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon" />
+              Réserver du matériel
+            </a>
+            {% endif %}
 
             {% if event.has_delete_rights(current_user) and not event.has_payments() %}
               <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">

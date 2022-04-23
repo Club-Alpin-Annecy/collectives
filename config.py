@@ -434,6 +434,13 @@ UPLOADED_PHOTOS_DEST = os.path.join(basedir, "collectives/static/uploads")
 UPLOADED_AVATARS_DEST = os.path.join(basedir, "collectives/static/uploads/avatars")
 """Folder path for uploaded user avatars.
 
+
+"""
+UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(
+    basedir, "collectives/static/uploads/typeEquipmentImg"
+)
+"""Folder path for uploaded type images.
+
 :type: string
 """
 
@@ -444,7 +451,11 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 """
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
-IMAGES_PATH = ["static/uploads", "static/uploads/avatars"]
+IMAGES_PATH = [
+    "static/uploads",
+    "static/uploads/avatars",
+    "static/uploads/typeEquipmentImg",
+]
 
 
 DESCRIPTION_TEMPLATE = """
@@ -715,4 +726,10 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 """Email template content for registered users when an event is cancelled
 
 :type: string
+"""
+
+RESERVATION_ENABLED = environ.get("RESERVATION_ENABLED") or False
+"""Whether to enable the reservation/rental-related functionalities
+
+:type: bool
 """

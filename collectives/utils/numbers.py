@@ -1,6 +1,24 @@
 """ Module for formatting number and currencies
 """
 import babel
+from wtforms import DecimalField
+
+
+class FlexibleDecimalField(DecimalField):
+    """
+    Replace the "," into "." and then uses the DecimalField
+    """
+
+    def process_formdata(self, valuelist):
+        """
+        Replace the "," into "." and then uses the DecimalField
+
+        :return: The DecimalField using "." instead of "," or if it already has a ".", simply return the DecimalField
+        :rtype: DecimalField
+        """
+        if valuelist:
+            valuelist[0] = valuelist[0].replace(",", ".")
+        return super().process_formdata(valuelist)
 
 
 def format_currency(amount):

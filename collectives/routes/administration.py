@@ -344,7 +344,7 @@ def generate_token():
     license_number = form.license.data
     license_info = extranet.api.check_license(license_number)
     if not license_info.exists:
-        flash("Le numéro de license n'existe pas ou n'a pas été renouvellé", "error")
+        flash("Le numéro de licence n'existe pas ou n'a pas été renouvellé", "error")
         return redirect(url_for(".administration"))
 
     # Check that the license number has an email associated to it

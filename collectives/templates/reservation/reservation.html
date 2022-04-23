@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+
+{% import 'macros.html' as macros with context %}
+
+{% block header %}
+  {% block title %}Reservations{% endblock %}
+{% endblock %}
+
+{% block additionalhead %}
+
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  {# Equipment autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+  {# Axios #}
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+{% endblock %}
+
+{% block content %}
+
+  <div class="page-content">
+
+    <h1 class="heading-1">
+      <a href="{{ url_for('reservation.view_reservations')}}" class="link_path"> <span class="title_first_path">Gestion des réservations</span></a>
+      <a href="{{ url_for('reservation.view_reservation', reservation_id=reservation.id )}}" class="link_path"> <span class="title_second_path">/  Réservation N°{{ reservation.id }} </span> </a>
+    </h1>
+
+    <h4 class="heading-4">Informations utilisateur</h4>
+    <p><span class="bold">Nom :</span>  {{reservation.user.last_name}}</p>
+    <p><span class="bold">Prénom :</span>  {{reservation.user.first_name}}</p>
+    <p><span class="bold">Licence :</span> {{reservation.user.license}}</p>
+    <p><span class="bold">Mail :</span> {{reservation.user.mail}}</p>
+    <p><span class="bold">Téléphone :</span> {{reservation.user.phone}}</p>
+
+
+    <h4 class="heading-4">Informations réservation</h4>
+    <p><span class="bold">Date de collecte :</span> {{format_date(reservation.collect_date).capitalize()}}</p>
+    <p><span class="bold">Date de retour :</span> {{format_date(reservation.return_date).capitalize()}}</p>
+    <p><span class="bold">Statut :</span> {{reservation.status.display_name()}}</p>
+
+    <p><span class="bold">Prix total :</span> {{ reservation.total_price_str() }} </p>
+
+
+    {% if reservation.is_planned() %}
+    <form action="" method="post" onsubmit="return confirm('Etes-vous sûr de vouloir valider la réservation ? \n ({{ reservation.get_ratio_equipments() }})')" >
+      {{ form.hidden_tag() }}
+      {{ form.validate(class="button button-primary") }}
+    </form>
+    {% endif %}
+
+    {% if reservation.is_ongoing() and reservation.can_be_completed() %}
+    <form action="" method="post" >
+      {{ form.hidden_tag() }}
+      {{ form.validate(class="button button-primary") }}
+    </form>
+    {% endif %}
+
+    {% if not reservation.is_completed() %}
+    <h2 class="heading-2">{{reservation.get_ratio_equipments()}}</h2>
+    {% endif %}
+
+    {% if reservation.is_planned() and not reservation.is_full() %}
+    <div class="controls">
+      <form action="" method="post">
+        {{ form_add.hidden_tag() }}
+        {{ form_add.add_equipment.label }}
+          <input type="text" id="new-equipment" placeholder="Référence">
+        {{ form_add.add_equipment(value=0) }}
+      </form>
+
+    </div>
+    <script>
+      window.onload = function () {
+        const searchInput = document.getElementById('new-equipment');
+        setupAutoComplete(
+        searchInput,
+        '{{url_for("api.autocomplete_availables_equipments") | safe}}',
+        function(item) {
+          return item.reference;
+        },
+        function(id, val) {
+          var field = document.getElementById('{{form_add.add_equipment.id}}');
+          field.value = id;
+          field.form.submit();
+        }
+        );
+      }
+    </script>
+    {% endif %}
+
+
+
+    <h4 class="heading-4">Types d'équipements</h4>
+    <div id="reservation-table"></div>
+
+    <h4 class="heading-4">Tous les équipements</h4>
+    <div id="equipment-table"></div>
+
+  </div>
+
+
+    <script>
+        var ajaxURL = "{{url_for('api.reservationLines', reservation_id=reservation.id)}}";
+    </script>
+
+    {% if not reservation.is_completed() %}
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation.js') }}"></script>
+    {% else %}
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_completed.js') }}"></script>
+    {% endif %}
+
+    <script>
+      ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
+      const token_csrf = "{{ csrf_token() }}";
+      let reservation_id = "{{reservation.id}}"
+    </script>
+    <script src="{{ url_for('static', filename='js/reservation/tabulator_reservation_all_equipments.js') }}"></script>
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  {# DateTime picker#}
+  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+{% endblock %}
+
+{% block header %}
+  {% block title %}Réservation{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <!-- Logging Windows -->
+  <h1 class="heading-1">Réservation par un encadrant</h1>
+  Ici, vous pouvez réserver autant de matériel que voulu, gratuitement
+
+  {% if form.event %}
+      <h4 class="heading-4">Infos evénément</h4>
+      Vous souhaitez réserver pour l'événement : <a href="{{ url_for('event.view_event', event_id=form.event.id) }}">{{ form.event.title }}</a>
+  {% endif %}
+
+  <div class="form-errors">
+    {% for field in form%}
+      {% for error in form.errors[field.name] %}
+        <div class="flash flash-error">
+          <strong>Erreur : {{field.label}} :</strong> {{error}}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <form
+    action="{{ url_for('reservation.register', event_id=event.id if event else None, role_id=role_id) }}"
+    method="POST"
+    enctype="multipart/form-data"
+    class="form"
+  >
+      <h4 class="heading-4">Date</h4>
+      <div class="controls">
+        <div class="datetimepicker" id="datetimepickerstart">
+          <label for="collect_date">Date de votre réservation : </label>{{ form.collect_date(onchange="checkDate()") }}
+        </div>
+        <span id="start_in_past_error" class="date_error flash flash-error">
+          La date de réservation est déjà passée
+        </span>
+      </div>
+
+      <h4 class="heading-4">Votre panier</h4>
+      {% for field in form %}
+        {% if (field.type in [ "IntegerField" ]) %}
+            <div class="controls">
+                <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+                {{ field() }}
+            </div>
+        {% endif %}
+      {% endfor %}
+      {{ form.hidden_tag() }}
+
+      {{ form.submit(class="button button-primary") }}
+    </div>
+  </form>
+<script>
+
+  function checkDate() {
+    const start = document.getElementById("collect_date");
+    const start_in_past = document.getElementById("start_in_past_error");
+    start_in_past.style.display = "none";
+    start.removeAttribute("required");
+    start.setCustomValidity("");
+    if(moment(start.value) < new Date()) {
+      start_in_past.style.display = "inline";
+      start.setCustomValidity("Doit être après la date du jour");
+    }
+  }
+  document.querySelectorAll("input[type=datetime]").forEach(function(input){
+    var datepicker = tail.DateTime(input,{
+        animate: false,
+        weekStart: 1,
+        locale: "fr",
+        timeStepMinutes: 15,
+        timeSeconds: false,
+        closeButton: false,
+        startOpen: true,
+        stayOpen: true,
+        position: "#"+input.parentElement.id,
+        classNames:"form-tail-datetime default",
+    });
+  });
+</script>
+{% endblock %}

@@ -6,6 +6,7 @@
                     title="{{ config['TITLE'] }}">
             </a>
 
+
             {% if current_user.is_authenticated %}
                 <div class="menu-dropdown menu-dropdown-left">
                     <div class="menu-dropdown-trigger main-navigation-menu">
@@ -27,6 +28,7 @@
                                     Organisation des sorties
                                 </a>
                             </li>
+                            
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
@@ -34,6 +36,7 @@
                                         class="legacy-icon" /> Ajouter un événement</a>
                             </li class="menu-dropdown-item">
                             {% endif %}
+
                             {% if current_user.get_supervised_activities() | length %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
@@ -48,6 +51,38 @@
                                 </a>
                             </li>
                             {% endif %}
+                            
+                            {% if config['RESERVATION_ENABLED'] %}
+                                
+                                {% if current_user.can_manage_equipment() %}
+                                <li class="menu-dropdown-item">
+                                    <a href="{{ url_for('equipment.stock_situation')}}"  class="menu-dropdown-item-link">
+                                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-box.svg') }}"  class="legacy-icon" />
+                                        Gestion du matériel
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% if current_user.can_create_reservation() %}
+                                <li class="menu-dropdown-item">
+                                    <a href="{{ url_for('reservation.register', role_id=10)}}" class="menu-dropdown-item-link">
+                                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}" class="legacy-icon"/>
+                                        Créer une réservation
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% if current_user.can_manage_reservation() %}
+                                <li class="menu-dropdown-item">
+                                    <a href="{{ url_for('reservation.view_reservations')}}" class="menu-dropdown-item-link">
+                                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="legacy-icon" />
+                                        Gestion des réservations
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                            {% endif %}
+
                             {% if current_user.is_hotline() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('administration.administration')}}" class="menu-dropdown-item-link"><img
@@ -69,7 +104,6 @@
                                     Logs du serveur</a>
                             </li>
                             {% endif %}
-
 
                             {%  if config["PAYMENTS_ENABLED"] and current_user.is_accountant() %}
                             <li class="menu-dropdown-item">
@@ -114,6 +148,14 @@
                                     class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
                                         class="legacy-icon" /> Profil encadrant
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if config['RESERVATION_ENABLED'] %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('reservation.my_reservations')}}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-bag.svg') }}"  class="legacy-icon" />
+                                    Mes Locations
                                 </a>
                             </li>
                             {% endif %}

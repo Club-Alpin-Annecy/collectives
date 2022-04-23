@@ -1,0 +1,64 @@
+<h3 class="heading-3">{{ title or 'Éditer un équipement' }}</h3>
+
+<div class="form-errors">
+    {% for field in form %}
+    {% for error in form.errors[field.name] %}
+
+    <div class="flash flash-error">
+        <strong>Erreur : {{field.label}}</strong> {{error}}
+    </div>
+
+    {% endfor %}
+    {% endfor %}
+
+    {% if form.generic_error %}
+    <div class="flash flash-error">
+        <strong>Erreur :</strong> {{form.generic_error}}
+    </div>
+    {% endif %}
+</div>
+
+
+<div class="modal_form_container">
+    <form action="{{ route }}" method="post" class="modal_form">
+        {{ form.update_model(value=false)}}
+        <div class="modal_form_input_box">
+            {{ form.equipment_model_id.label }}
+            {{ form.equipment_model_id(onchange="javascript:updateModel(this)") }}
+        </div>
+
+        <div class="modal_form_input_box">
+            {{ form.reference.label }}
+            {{ form.reference }}
+        </div>
+
+        <div class="modal_form_input_box">
+            {{ form.serial_number.label }}
+            {{ form.serial_number }}
+        </div>
+
+        <div class="modal_form_input_box">
+            {{ form.purchaseDate.label }}
+            {{ form.purchaseDate }}
+        </div>
+
+        <div class="modal_form_input_box">
+            {{ form.purchasePrice.label }}
+            {{ form.purchasePrice }}
+        </div>
+
+        <div class="modal_form_info_supp_box">
+            <a href="{{ url_for('equipment.display_all_type' )}}" target="_blank" >Ajouter ou modifier un modèle</a>
+        </div>
+        {{ form.csrf_token }}
+        {{ form.save_all(class="button button-primary") }}
+
+    </form>
+
+</div>
+<script>
+    function updateModel(element) {
+        document.getElementById('update_model').value=true;
+        element.form.submit();
+    }
+</script>
