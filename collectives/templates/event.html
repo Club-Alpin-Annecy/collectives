@@ -65,8 +65,6 @@
     <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
 
 
-
-
     {# Leaders #}
 
     <div id="encadrement">
@@ -232,7 +230,7 @@
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cet événement est payante; en tant qu'encadrant, vous pouvez participer aux frais.</p>
+      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, tu peux participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}
