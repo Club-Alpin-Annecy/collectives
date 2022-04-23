@@ -28,6 +28,30 @@
                                     Organisation des sorties
                                 </a>
                             </li>
+                            
+                            {% if current_user.can_create_events() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
+                                        class="legacy-icon" /> Ajouter un événement</a>
+                            </li class="menu-dropdown-item">
+                            {% endif %}
+
+                            {% if current_user.get_supervised_activities() | length %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
+                                        class="legacy-icon" />Import CSV
+                                </a>
+                            </li>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('activity_supervision.leader_list')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"
+                                        class="legacy-icon" />Encadrants
+                                </a>
+                            </li>
+                            {% endif %}
+                            
                             {% if config['RESERVATION_ENABLED'] %}
                                 
                                 {% if current_user.can_manage_equipment() %}
@@ -57,29 +81,6 @@
                                 </li>
                                 {% endif %}
 
-                            {% endif %}
-                            
-                            {% if current_user.can_create_events() %}
-                            <li class="menu-dropdown-item">
-                                <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
-                                        class="legacy-icon" /> Ajouter un événement</a>
-                            </li class="menu-dropdown-item">
-                            {% endif %}
-
-                            {% if current_user.get_supervised_activities() | length %}
-                            <li class="menu-dropdown-item">
-                                <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
-                                        class="legacy-icon" />Import CSV
-                                </a>
-                            </li>
-                            <li class="menu-dropdown-item">
-                                <a href="{{ url_for('activity_supervision.leader_list')}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"
-                                        class="legacy-icon" />Encadrants
-                                </a>
-                            </li>
                             {% endif %}
 
                             {% if current_user.is_hotline() %}
