@@ -1,7 +1,7 @@
 """add_reference_prefix
 
 Revision ID: 70d17f3cd49f
-Revises: 8bea958748e8
+Revises: d9ae51d134ea
 Create Date: 2022-02-16 16:30:12.525345
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "70d17f3cd49f"
-down_revision = "8bea958748e8"
+down_revision = "d9ae51d134ea"
 branch_labels = None
 depends_on = None
 

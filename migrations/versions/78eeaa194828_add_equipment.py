@@ -32,6 +32,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
         sa.Column("equipment_type_id", sa.Integer(), nullable=True),
+        sa.Column("manufacturer", sa.String(length=50), nullable=True),
         sa.ForeignKeyConstraint(
             ["equipment_type_id"],
             ["equipment_types.id"],
@@ -44,7 +45,6 @@ def upgrade():
         sa.Column("reference", sa.String(length=100), nullable=False),
         sa.Column("purchaseDate", sa.DateTime(), nullable=False),
         sa.Column("purchasePrice", sa.Numeric(precision=8, scale=2), nullable=True),
-        sa.Column("manufacturer", sa.String(length=50), nullable=True),
         sa.Column("serial_number", sa.String(length=50), nullable=True),
         sa.Column(
             "status",
