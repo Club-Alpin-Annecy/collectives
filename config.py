@@ -729,9 +729,10 @@ Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
 """
 
 RESERVATION_ENABLED = environ.get("RESERVATION_ENABLED") or False
-"""Whether to enable the reservation/rental-related functionalities"""
+"""Whether to enable the reservation/rental-related functionalities
 
 :type: bool
+"""
 
 ACTIVATED_REGISTRATION_MESSAGE = """
 Bonjour,

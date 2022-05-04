@@ -1,0 +1,26 @@
+.leader-entry {
+    display: grid;
+    grid-template-columns: auto max-content;
+    grid-template-areas: "leader-left leader-right";
+    align-items: end;
+    gap: 0 .25rem;
+}
+.leader-left {
+grid-area: leader-left;
+position: relative;
+overflow: hidden;
+} 
+.leader-left::after {
+position: absolute;
+padding-left: .25ch;
+content: " . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ";
+text-align: right;
+}
+.leader-right {
+grid-area: leader-right;
+}

@@ -11,7 +11,7 @@ from .common import blueprint, marshmallow
 from ..utils.access import payments_enabled, valid_user
 
 from ..models.event import Event
-from ..models.payment import ItemPrice, Payment, PaymentStatus, PaymentItem
+from ..models.payment import ItemPrice, Payment, PaymentStatus
 from ..utils.numbers import format_currency
 from ..utils.payment import extract_payments
 
@@ -220,12 +220,11 @@ def list_prices(event_id):
 
     result = (
         ItemPrice.query.filter_by(enabled=True)
-        .filter(PaymentItem.event_id == event_id)
+        .filter(ItemPrice.item.has(event_id=event_id))
         .all()
     )
 
     data = ItemPriceSchema(many=True).dump(result)
-    # response = {"data": data, "last_page": result.pages}
 
     return json.dumps(data), 200, {"content-type": "application/json"}
 

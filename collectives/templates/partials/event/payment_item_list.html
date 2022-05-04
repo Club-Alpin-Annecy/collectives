@@ -1,10 +1,42 @@
 
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
-  <script type="text/javascript" > const event_id = {{event.id}} ;</script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/event/payment_item_list.js') }}"></script>
 
   <div id="prices">
-    <h3 class="heading-3">Table des tarifs</h3>
-    <div id="payment_item_table"></div>
+    <h3 class="heading-3">Tarifs</h3>
+    <div id="payment_item_table" >
+      {% for item in event.payment_items %}
+      {% for price in item.prices %}
+
+      {%- set condition = "" %}
+      {%- if(price['start_date']) %}
+      {%-   set condition = condition + 'à partir du ' + price['start_date'].strftime('%d/%m/%Y') + ", " %}
+      {%- endif %}
+
+      {%- if(price['end_date']) %}
+      {%-   set condition = condition + 'jusqu\'au ' + price['end_date'].strftime('%d/%m/%Y') + ", " %}
+      {%- endif %}
+
+      {%- if(price['max_uses']) %}
+      {%-   set condition = condition + price['max_uses']|string + " maximum (" + price.active_use_count()|string + " déjà commandés), " %}
+      {%- endif %}
+
+
+      {%- if(price['leader_only']) %}
+      {%-   set condition = condition + "réservé aux encadrants de la sortie, " %}
+      {%- endif %}
+
+      {%- if(price['license_types']) %}
+      {%-   set condition = condition + 'réservé aux licences ' + price['license_types'] + ', ' %}
+      {%- endif %}
+
+      {# Some formatting #}
+      {%- if(condition != '') %}
+      {%- set condition = ' - ' + condition[0]|upper + condition[1:-2] %}
+      {%- endif %}
+
+        <div class="leader-entry">
+          <div class="leader-left"><b>{{item.title}}</b> - {{ price.title }} <i>{{condition}}</i> </div>
+          <div class="leader-right">{{ price.amount }}€</div>
+        </div>
+      {% endfor %}{% endfor %}
+    </div>
   </div>

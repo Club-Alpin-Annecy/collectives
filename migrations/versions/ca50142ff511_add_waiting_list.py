@@ -1,7 +1,7 @@
 """Add waiting list
 
 Revision ID: ca50142ff511
-Revises: db73e93bf2b4
+Revises: 800a231d8e8e
 Create Date: 2021-10-26 22:17:42.020726
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "ca50142ff511"
-down_revision = "b738ba262419"
+down_revision = "800a231d8e8e"
 branch_labels = None
 depends_on = None
 
