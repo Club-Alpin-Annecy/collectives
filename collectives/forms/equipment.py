@@ -66,7 +66,6 @@ class EquipmentForm(FlaskForm):
     serial_number = StringField(label="Numéro de série :", validators=[DataRequired()])
     purchaseDate = DateField(
         label="Date d'achat :",
-        format="%d/%m/%Y",
         default=datetime.now(),
         validators=[DataRequired()],
     )
