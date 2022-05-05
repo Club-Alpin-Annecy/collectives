@@ -2,6 +2,8 @@
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
+{% import 'partials/event/self_register.html' as self_register with context %}
+
 
 {% block additionalhead %}
   {# Specific for this page #}
@@ -11,6 +13,8 @@
 
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+  <script src="{{ url_for('api.models_to_js') }}"></script>
 
   <script>
       window.onload = function () {
@@ -147,8 +151,11 @@
 
           {% if current_time < event.start %}
           <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <a class="button button-secondary" onclick="if(confirm(unregister_message)) this.parentNode.submit()"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</a>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  
+            <a  class="button button-secondary" 
+                onclick="if(confirm(unregister_message{% if event.is_registered_with_status(current_user, [models.RegistrationStatus.Waiting]) %}_waiting{%endif%})) this.parentNode.submit()" >
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
+            </a>
           </form><br/><br/>
           {% endif %}
         {% endif %}
@@ -206,7 +213,7 @@
 
 
         {% if event.can_self_register(current_user, current_time) %}
-        {% include 'partials/event/self_register.html' %}
+          {{ self_register.button() }}
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>
         {% elif not event.has_free_online_slots() %}
@@ -225,6 +232,26 @@
         {% elif current_time > event.registration_close_time %}
         <p>Les inscriptions sont closes.</p>
         {% endif %}
+
+        {% if event.num_waiting_list != 0 and not event.has_free_online_slots() %}  
+          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() |length }} / {{ event.num_waiting_list }}
+              {% if not event.has_free_waiting_slots() %}
+                <span class="tag red">COMPLET</span>
+              {% endif %}
+          </h3>
+          {% if event.can_self_register(current_user, current_time, true) %}
+              {{ self_register.button(True) }}
+          {% endif %}
+          <br/>
+          {% for registration in event.waiting_registrations() %}
+              <div class="useractionmenu">
+                {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
+                  {{ macros.usericon(user, leader_info, user_info) }}
+                {% endwith %}
+              </div>
+          {% endfor %}
+        {% endif %}
+
     </div>
 
 
@@ -265,6 +292,9 @@
     {% endif %}
 
     <div id="description" class="collective-display--description">{{ event.rendered_description | safe  }}</div>
+
+    {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
+    <br/>
 
     {# Administration #}
 

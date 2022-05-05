@@ -25,7 +25,9 @@ window.onload = function(){
             {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
                     formatterParams:{   outputFormat:"D/M/YY", invalidPlaceholder:"(invalid date)"}},
             {title: "Insc.", field:"occupied_slots", maxWidth:80,},
-            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2 }
+            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2 },
+            { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
+                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} }
         ],
         rowClick: function(e, row){ document.location= row.getData().view_uri},
     };
@@ -34,18 +36,24 @@ window.onload = function(){
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:">", value:getServerLocalTime() },
                             ]}));
+    var waitingtable= new Tabulator("#waitingtable",
+    Object.assign(common_options, {   initialFilter: [
+                {field:"end", type:">", value:getServerLocalTime() },
+            ]}));
     var pasteventstable= new Tabulator("#pasteventstable",
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:"<", value:getServerLocalTime()  }
                             ]}));
 
     if(ajaxURL.match(/^\/api\/user/)){
-        var statusColumn = { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
-                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} }
-        eventstable.addColumn(statusColumn);
+
         eventstable.hideColumn("registration.status")
-        pasteventstable.addColumn(statusColumn);
         eventstable.addFilter("registration.status", "=", 0);
+
+        waitingtable.hideColumn("registration.status")
+        waitingtable.addFilter("registration.status", "=", 6);
+
+        pasteventstable.addFilter("registration.status", "!=", 6);
     }
 
 }

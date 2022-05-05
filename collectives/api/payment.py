@@ -11,9 +11,38 @@ from .common import blueprint, marshmallow
 from ..utils.access import payments_enabled, valid_user
 
 from ..models.event import Event
-from ..models.payment import Payment, PaymentStatus
+from ..models.payment import ItemPrice, Payment, PaymentStatus
 from ..utils.numbers import format_currency
 from ..utils.payment import extract_payments
+
+
+class ItemPriceSchema(marshmallow.Schema):
+    """Schema to serialiaze a price"""
+
+    total_use_count = fields.Function(lambda p: p.total_use_count())
+    """ Total number of times this price has been used, even if the
+    corresponding registration is no longer active
+
+    :type: string"""
+    amount = fields.Function(lambda p: format_currency(p.amount))
+    """ Amount as string
+
+    :type: string"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "title",
+            "amount",
+            "start_date",
+            "end_date",
+            "leader_only",
+            "license_types",
+            "max_uses",
+            "item.title",
+        )
 
 
 class PaymentSchema(marshmallow.Schema):
@@ -172,6 +201,32 @@ def list_payments(event_id=None):
     response = {"data": data, "last_page": result.pages}
 
     return json.dumps(response), 200, {"content-type": "application/json"}
+
+
+@blueprint.route("/event/<int:event_id>/prices", methods=["GET"])
+@valid_user(True)
+@payments_enabled(True)
+def list_prices(event_id):
+    """Api endpoint for listing all payments items and prices associated to an event.
+
+    :param event_id: The primary key of the event we're listing the payments of
+    :type event_id: int
+    """
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(404)
+    if not event.requires_payment():
+        return abort(400)
+
+    result = (
+        ItemPrice.query.filter_by(enabled=True)
+        .filter(ItemPrice.item.has(event_id=event_id))
+        .all()
+    )
+
+    data = ItemPriceSchema(many=True).dump(result)
+
+    return json.dumps(data), 200, {"content-type": "application/json"}
 
 
 @blueprint.route("/payments/my/<status_code>", methods=["GET"])

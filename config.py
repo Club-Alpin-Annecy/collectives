@@ -733,3 +733,30 @@ RESERVATION_ENABLED = environ.get("RESERVATION_ENABLED") or False
 
 :type: bool
 """
+
+ACTIVATED_REGISTRATION_MESSAGE = """
+Bonjour,
+
+Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
+Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit
+à la collective.
+
+Si vous ne pouvez pas participer, merci de vous désincrire au plus tôt.
+
+Merci de vérifier si la collective nécessite un paiement de votre part:
+{link}
+
+Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+"""
+"""Email template content for registered users when an event is cancelled
+
+:type: string
+"""
+
+
+ACTIVATED_REGISTRATION_SUBJECT = "Participation à la collective {event_title}"
+"""Email subject for registered users when an event is cancelled
+
+:type: string
+"""
