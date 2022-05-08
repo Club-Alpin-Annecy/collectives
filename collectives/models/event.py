@@ -840,3 +840,13 @@ class Event(db.Model):
         return any(
             p for p in self.user_payments(user) if p.is_unsettled() or p.is_approved()
         )
+
+    def copy_payment_items(self, source_event):
+        """Copy Payment item of another event into this event.
+
+        Do not copy payments.
+
+        :param source_event: Event that will be copied
+        :type source_event: :py:class:`collectives.models.event.Event`"""
+        for payment in source_event.payment_items:
+            self.payment_items.append(payment.copy())

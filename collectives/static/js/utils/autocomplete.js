@@ -67,3 +67,12 @@ function setupAutoComplete(
 }
 
 window.setupAutoComplete = setupAutoComplete;
+
+
+
+// Formats "parent event" autocomplete options
+function formatParentEvent(id, title, start_date)
+{
+    const dateString = moment(start_date).format('ddd D MMM YY');
+    return `#${id} ${title} (${dateString})`;
+}

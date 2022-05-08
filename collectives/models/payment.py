@@ -53,6 +53,18 @@ class PaymentItem(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
+    def copy(self):
+        """Copy current payment item.
+
+        Copy also price but not payments.
+
+        :returns: Copied :py:class:`collectives.models.payments.PaymentItem`"""
+        item = PaymentItem()
+        item.title = self.title
+        for price in self.prices:
+            item.prices.append(price.copy())
+        return item
+
     def active_prices(self):
         """
         :return: All active prices associated to this item
@@ -212,6 +224,17 @@ class ItemPrice(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
+
+    def copy(self):
+        """Copy this price.
+
+        :returns: Copied :py:class:`collectives.models.payments.ItemPrice`"""
+        d = dict(self.__dict__)
+        d.pop("id")  # get rid of id
+        d.pop("item_id")  # get rid of item_id
+        d.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
+        copy = self.__class__(**d)
+        return copy
 
     def total_use_count(self):
         """
