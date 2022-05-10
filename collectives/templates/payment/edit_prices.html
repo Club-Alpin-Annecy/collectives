@@ -5,9 +5,36 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/payment/edit_prices.js') }}"></script>
+
+  <!-- Auto complete scripts -->
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
   <script> window.onload = function() {
     updateNewItemTitleVisibility(); 
     dateInputsFallback(tail);
+
+    const eventSearchInput = document.getElementById('copy-item-event-search');
+    const parentEventId = document.getElementById('copy-item-event-id');
+    setupAutoComplete(
+      eventSearchInput,
+      '{{url_for("api.autocomplete_event", eid=[event.id]) | safe}}',
+      function(item) {
+        return formatParentEvent(item.id, item.title, item.start) ;
+      },
+      function(id, val) {
+        parentEventId.value = id;
+      }
+      );
+
+    eventSearchInput.addEventListener('change', function(event) {
+        if(!event.target.value) {
+          var field = document.getElementById('copy-item-event-id');
+          parentEventId.value = "";
+        }
+    });
   };
   </script>
 {% endblock %}
@@ -162,6 +189,27 @@
         {% endfor %}
       </ul>
     </p>
+
+    <h4 class="heading-4">Copie de tarif</h4>
+    <form method="POST" class="form" action="{{url_for('payment.copy_prices', event_id=event.id)}}">
+        <p>Copier les tarifs d'un autre collective.</p>
+
+          
+        <div class="field">{{copy_item_form.copied_event_search.label}}  <span class="help">Titre ou ID</span></div>
+        {{ copy_item_form.copied_event_search(id='copy-item-event-search') }}
+        {{ copy_item_form.copied_event_id(id='copy-item-event-id') }}
+
+        <div class="field"> 
+          {{ copy_item_form.purge.label }} 
+          <span class="help">Les tarifs actuels seront supprimés. 
+          Si un tarif a déjà fait l'objet d'un paiement, il sera seulement désactivé.</span>
+        </div>
+        {{ copy_item_form.purge }}
+        
+
+        {{ copy_item_form.hidden_tag() }}
+        {{ copy_item_form.submit(class="button button-primary") }}
+    </form>
 </div>
 
 {% endblock %}

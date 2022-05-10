@@ -153,7 +153,7 @@ class EventForm(ModelForm, FlaskForm):
         exclude = ["photo"]
 
     photo_file = FileField(validators=[FileAllowed(photos, "Image only!")])
-    duplicate_photo = HiddenField()
+    duplicate_event = HiddenField()
     event_type_id = SelectField("Type d'événement", choices=[], coerce=int)
     single_activity_type = SelectField("Activité", choices=[], coerce=int)
     multi_activity_types = SelectMultipleField("Activités", choices=[], coerce=int)

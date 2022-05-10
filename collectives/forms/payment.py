@@ -317,3 +317,12 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
             (p.id, f"{p.item.title} — {p.title} ({format_currency(p.amount)})")
             for p in all_prices
         ]
+
+
+class CopyItemForm(ModelForm, OrderedForm):
+    """Form to copy payment item from an event to another."""
+
+    submit = SubmitField("Copier")
+    purge = BooleanField("Purge")
+    copied_event_id = HiddenField()
+    copied_event_search = StringField("Evènement à copier")

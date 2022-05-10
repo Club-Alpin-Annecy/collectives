@@ -12,7 +12,8 @@ from flask_login import current_user
 
 from openpyxl import Workbook
 
-from ..forms.payment import PaymentItemsForm, OfflinePaymentForm, NewItemPriceForm
+from ..forms.payment import CopyItemForm, PaymentItemsForm, OfflinePaymentForm
+from ..forms.payment import NewItemPriceForm, CopyItemForm
 from ..utils import payline
 
 from ..utils.access import payments_enabled, valid_user, user_is
@@ -180,6 +181,7 @@ def edit_prices(event_id):
         event=event,
         form=form,
         new_price_form=new_price_form,
+        copy_item_form=CopyItemForm(),
     )
 
 
@@ -691,3 +693,51 @@ def refund_all(event_id):
         db.session.commit()
 
     return redirect(url_for("event.view_event", event_id=event_id))
+
+
+@blueprint.route("/event/<event_id>/copy_prices", methods=["POST"])
+@valid_user()
+@confidentiality_agreement()
+def copy_prices(event_id):
+    """Route copy prices from another event
+
+    :param event_id: Id of receiving event
+    :type event_id: int
+
+    :return: Redirection to price edit page
+    """
+    # Check that the user is allowed to modify this event
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(403)
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    form = CopyItemForm()
+    if not form.validate_on_submit():
+        flash("Erreur en recopiant les tarifs. Contactez le support.")
+        return redirect(url_for("payment.edit_prices"))
+
+    copied_event = Event.query.get(form.copied_event_id.data)
+    if copied_event is None:
+        abort(400)
+
+    if len(copied_event.payment_items) == 0:
+        flash("Cet événement ne possède pas de tarif.", "error")
+        return redirect(url_for("payment.edit_prices", event_id=event_id))
+
+    if form.purge.data:
+        for payment in event.payment_items:
+            for price in payment.prices:
+                if price.total_use_count() == 0:
+                    db.session.delete(price)
+                else:
+                    price.enabled = False
+
+    time_shift = event.start - copied_event.start
+    event.copy_payment_items(copied_event, time_shift)
+
+    db.session.commit()
+
+    flash("Import réalisé.", "success")
+    return redirect(url_for("payment.edit_prices", event_id=event_id))

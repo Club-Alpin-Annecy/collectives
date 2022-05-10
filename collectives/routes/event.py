@@ -459,10 +459,11 @@ def manage_event(event_id=None):
         event.save_photo(form.photo_file.data)
         db.session.add(event)
         db.session.commit()
-    elif form.duplicate_photo.data != "":
-        duplicated_event = Event.query.get(form.duplicate_photo.data)
+    elif form.duplicate_event.data != "":
+        duplicated_event = Event.query.get(form.duplicate_event.data)
         if duplicated_event != None:
             event.photo = duplicated_event.photo
+            event.copy_payment_items(duplicated_event)
             db.session.add(event)
             db.session.commit()
 
@@ -505,7 +506,7 @@ def duplicate(event_id=None):
 
     form = EventForm(obj=event)
     form.setup_leader_actions()
-    form.duplicate_photo.data = event_id
+    form.duplicate_event.data = event_id
 
     return render_template(
         "editevent.html",
