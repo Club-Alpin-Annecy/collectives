@@ -2,19 +2,17 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to admin only.
  """
-from io import BytesIO
+
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
-from openpyxl import Workbook
 
 from ..forms.user import AdminUserForm, AdminTestUserForm, RoleForm
 from ..forms.auth import AdminTokenCreationForm
 from ..models import User, ActivityType, Role, RoleIds, db
 from ..models.auth import ConfirmationToken
-from ..utils import extranet
+from ..utils import extranet, export
 from ..utils.access import confidentiality_agreement, user_is, valid_user
-from ..utils.misc import deepgetattr
 from ..email_templates import send_confirmation_email
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
@@ -296,29 +294,7 @@ def export_role(raw_filters=""):
 
     roles = query_filter.all()
 
-    wb = Workbook()
-    ws = wb.active
-    FIELDS = {
-        "user.license": "Licence",
-        "user.first_name": "Prénom",
-        "user.last_name": "Nom",
-        "user.mail": "Email",
-        "user.phone": "Téléphone",
-        "activity_type.name": "Activité",
-        "name": "Role",
-    }
-    ws.append(list(FIELDS.values()))
-
-    for role in roles:
-        ws.append([deepgetattr(role, field, "-") for field in FIELDS])
-
-    # set column width
-    for i in range(ord("A"), ord("A") + len(FIELDS)):
-        ws.column_dimensions[chr(i)].width = 25
-
-    out = BytesIO()
-    wb.save(out)
-    out.seek(0)
+    out = export.export_roles(roles)
 
     return send_file(
         out,

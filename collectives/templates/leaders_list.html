@@ -17,7 +17,7 @@
       window.onload = function () {
         loadLeadersTable('{{url_for("api.leaders")}}', '{{csrf_token()}}');
 
-        const searchInput = document.getElementById('user-search');
+        const searchInput = document.getElementById('user_search');
         setupAutoComplete(
           searchInput,
           '{{url_for("api.autocomplete_users")}}',
@@ -33,13 +33,13 @@
   <h4 class="heading-4">Encadrants</h4>
   <div id="leaders-table"></div>
 
-  <h4 class="heading-4">Encadrants en formation</h4>
+  <h4 class="heading-4">Ajout d'un encadrant</h4>
 
   <div class="action">
 
         <div class="form-errors">
-            {% for field in add_trainee_form%}
-            {% for error in add_trainee_form.errors[field.name] %}
+            {% for field in add_leader_form%}
+            {% for error in add_leader_form.errors[field.name] %}
 
             <div class="flash flash-error">
                 <strong>Erreur : {{field.label}}:</strong> {{error}}
@@ -49,15 +49,45 @@
             {% endfor %}
         </div>
 
-      <form action="{{url_for('activity_supervision.add_trainee')}}" id="user-search-form" method="POST" >
+      <form action="{{url_for('activity_supervision.add_leader')}}" id="user-search-form" method="POST" >
         <div id="user-search-data" class="form-search search-data">
-        {{ add_trainee_form.activity_id }}
-        <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom..." >
-        {{ add_trainee_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
-        {{ add_trainee_form.hidden_tag() }}
-        {{ add_trainee_form.submit(class="button button-primary") }}
-      </div>
+          {% for field in [add_leader_form.activity_id, add_leader_form.role_id, add_leader_form.user_search] %}
+            <div class="controls">
+              <div class="field">{{ field.label }} </div> 
+              {{ field }}
+            </div>
+          {% endfor %}
+
+          {{ add_leader_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
+          {{ add_leader_form.hidden_tag() }}
+          {{ add_leader_form.submit(class="button button-primary") }}
+        </div>
       </form>
   </div>
+  <h4 class="heading-4">Export de la liste des encadrants</h4>
+
+  <div class="action">
+        <div class="form-errors">
+            {% for field in export_form%}
+            {% for error in export_form.errors[field.name] %}
+
+            <div class="flash flash-error">
+                <strong>Erreur : {{field.label}}:</strong> {{error}}
+            </div>
+
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+      <form action="{{url_for('activity_supervision.export_role')}}" method="POST" >
+        <div id="user-search-data" class="form-search search-data">
+          <div>{{ export_form.activity_id }}</div>
+          {{ export_form.hidden_tag() }}
+          <div>{{ export_form.submit(class="button button-primary") }}</div>
+        </div>
+      </form>
+  </div>
+
+  
 </div>
 {% endblock %}
