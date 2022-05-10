@@ -2,6 +2,7 @@
 """
 
 from decimal import Decimal
+from datetime import timedelta
 
 from wtforms.validators import NumberRange
 
@@ -53,16 +54,18 @@ class PaymentItem(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
-    def copy(self):
+    def copy(self, time_shift=timedelta(0)):
         """Copy current payment item.
 
         Copy also price but not payments.
 
+        :param time_shift: Optionnal shift of copied item prices dates
+        :type time_shift: :py:class:`datetime.timedelta`
         :returns: Copied :py:class:`collectives.models.payments.PaymentItem`"""
         item = PaymentItem()
         item.title = self.title
         for price in self.prices:
-            item.prices.append(price.copy())
+            item.prices.append(price.copy(time_shift))
         return item
 
     def active_prices(self):
@@ -225,15 +228,23 @@ class ItemPrice(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
-    def copy(self):
+    def copy(self, time_shift=timedelta(0)):
         """Copy this price.
 
+        :type time_shift: :py:class:`datetime.timedelta`
+        :returns: Copied :py:class:`collectives.models.payments.PaymentItem`
         :returns: Copied :py:class:`collectives.models.payments.ItemPrice`"""
         d = dict(self.__dict__)
         d.pop("id")  # get rid of id
         d.pop("item_id")  # get rid of item_id
         d.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
         copy = self.__class__(**d)
+
+        if copy.start_date is not None:
+            copy.start_date = copy.start_date + time_shift
+        if self.end_date is not None:
+            copy.end_date = copy.end_date + time_shift
+
         return copy
 
     def total_use_count(self):

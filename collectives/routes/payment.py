@@ -723,7 +723,7 @@ def copy_prices(event_id):
         abort(400)
 
     if len(copied_event.payment_items) == 0:
-        flash("Cet évènement ne possède pas de tarif.", "error")
+        flash("Cet événement ne possède pas de tarif.", "error")
         return redirect(url_for("payment.edit_prices", event_id=event_id))
 
     if form.purge.data:
@@ -734,7 +734,8 @@ def copy_prices(event_id):
                 else:
                     price.enabled = False
 
-    event.copy_payment_items(copied_event)
+    time_shift = event.start - copied_event.start
+    event.copy_payment_items(copied_event, time_shift)
 
     db.session.commit()
 
