@@ -71,7 +71,21 @@ class RoleIds(ChoiceEnum):
         :rtype: boolean
         """
         cls = self.__class__
-        return self.value in [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee]
+        return self.value in cls.all_relates_to_activity()
+
+    @classmethod
+    def all_relates_to_activity(cls):
+        """:return: List of all roles that are related to an activity.
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee]
+
+    @classmethod
+    def all_supervisor_manageable(cls):
+        """:return: List of all roles that can be managed by an activity supervisor.
+        :rtype: list[:py:class:`RodeIds`]
+        """
+        return [cls.EventLeader, cls.Trainee]
 
     @classmethod
     def all_moderator_roles(cls):

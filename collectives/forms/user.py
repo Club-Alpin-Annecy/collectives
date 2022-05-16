@@ -3,15 +3,16 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import PasswordField, SubmitField
+from wtforms import PasswordField, SubmitField, StringField
 from wtforms import SelectField, BooleanField, HiddenField
 from wtforms.validators import EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
 
 
 from .order import OrderedModelForm
-from ..models import User, photos, ActivityType, Role
+from ..models import User, photos, ActivityType, Role, RoleIds
 from .validators import UniqueValidator, PasswordValidator
+from .activity_type import ActivityTypeSelectionForm
 
 
 class AvatarForm:
@@ -122,17 +123,29 @@ class RoleForm(ModelForm, FlaskForm):
         ]
 
 
-class AddTraineeForm(FlaskForm):
-    """Form for supervisors to add "Trainee" role to users"""
+class AddLeaderForm(ActivityTypeSelectionForm):
+    """Form for supervisors to add "Trainee" or "EventLeader" role to users"""
 
     user_id = HiddenField()
-    activity_id = SelectField("Activité", coerce=int, validators=[DataRequired()])
-    submit = SubmitField("Ajouter un encadrant en formation")
+    user_search = StringField(
+        "Utilisateur",
+        render_kw={
+            "autocomplete": "off",
+            "class": "search-input",
+            "placeholder": "Nom...",
+        },
+    )
+    role_id = SelectField(
+        "Rôle",
+        coerce=int,
+        validators=[DataRequired()],
+        choices=[
+            (int(r), r.display_name()) for r in RoleIds.all_supervisor_manageable()
+        ],
+    )
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
+        kwargs["activity_list"] = current_user.get_supervised_activities()
+        kwargs["submit_label"] = "Ajouter un encadrant"
         super().__init__(*args, **kwargs)
-
-        activity_list = current_user.get_supervised_activities()
-        self.activity_id.choices = [(0, "Activité...")]
-        self.activity_id.choices += [(a.id, a.name) for a in activity_list]

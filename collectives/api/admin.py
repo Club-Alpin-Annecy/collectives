@@ -184,14 +184,14 @@ def users():
 
 
 class LeaderRoleSchema(marshmallow.Schema):
-    """Schema for a "Trainee" role
+    """Schema for a leader role
 
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
     delete_uri = fields.Function(
-        lambda role: url_for("activity_supervision.remove_trainee", role_id=role.id)
-        if role.role_id == RoleIds.Trainee
+        lambda role: url_for("activity_supervision.remove_leader", role_id=role.id)
+        if role.role_id in RoleIds.all_supervisor_manageable()
         else ""
     )
     """ URI to delete this user (WIP)
