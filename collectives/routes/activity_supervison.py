@@ -103,7 +103,7 @@ def leader_list():
 
     add_leader_form = AddLeaderForm()
     export_form = ActivityTypeSelectionForm(
-        submit_label="Générer Excell",
+        submit_label="Générer Excel",
         activity_list=current_user.get_supervised_activities(),
     )
     return render_template(
@@ -116,7 +116,7 @@ def leader_list():
 
 @blueprint.route("/roles/export/", methods=["POST"])
 def export_role():
-    """Create an Excell document with the contact information of activity users.
+    """Create an Excel document with the contact information of activity users.
 
     :return: The Excel file with the roles.
     """
