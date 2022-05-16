@@ -233,7 +233,7 @@
         <p>Les inscriptions sont closes.</p>
         {% endif %}
 
-        {% if event.num_waiting_list != 0 and not event.has_free_online_slots() %}  
+        {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}  
           <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() |length }} / {{ event.num_waiting_list }}
               {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
