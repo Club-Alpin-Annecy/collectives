@@ -499,6 +499,8 @@ class Event(db.Model):
         :return: True if registration is open at ``time``
         :rtype: boolean
         """
+        if self.registration_open_time is None or self.registration_close_time is None:
+            return False
         # pylint: disable=C0301
         return self.registration_open_time <= time <= self.registration_close_time
 

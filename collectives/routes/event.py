@@ -117,10 +117,10 @@ def validate_dates_and_slots(event):
         valid = False
     if event.num_online_slots is None:
         event.num_online_slots = 0
-    if event.num_online_slots > 0:
+    if event.num_online_slots > 0 or event.num_waiting_list > 0:
         if not event.has_defined_registration_date():
             flash(
-                "Les date de début ou fin d'ouverture ou de fermeture d'inscription ne peuvent être nulles."
+                "Les date de début ou fin d'ouverture ou de fermeture d'inscription ne peuvent être nulles si les inscriptions par Internet (et/ou la liste d'attente) sont activées."
             )
             valid = False
         else:
@@ -902,9 +902,9 @@ def update_attendance(event_id):
 def update_waiting_list(event):
     """Update the attendance list of an event of waiting registrations
 
-    If a waiting registration has a free slot to become active, its
-    status will be changed. Function will returns the modified
-    registrations.
+    If a waiting registration has a free slot to become active, and online
+    registration is still authorized, its status will be changed. Function
+    will returns the modified registrations.
 
     This function will do the db.session.add() but not the commit.
     Ensure you have a db.session.commit() after the function call.
@@ -917,6 +917,11 @@ def update_waiting_list(event):
     :rtype: :py:class:`collectives.models.registration.Registration`
     """
     registrations = []
+
+    # If registrations are not open, nothing happen
+    if not event.is_registration_open_at_time(current_time()):
+        return registrations
+
     while event.has_free_online_slots() != 0 and event.waiting_registrations():
         new_registration = event.waiting_registrations()[0]
         registrations.append(new_registration)
