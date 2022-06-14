@@ -11,7 +11,7 @@ from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
 from .reservation import ReservationStatus
-from .event import event_leaders, Event
+from .event import  Event
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
@@ -629,13 +629,13 @@ class User(db.Model, UserMixin):
         :return: True if user can lead on the specified timespan.
         :rtype: boolean
         """
-        query = db.session.query(event_leaders).filter(
-            event_leaders.c.user_id == self.id
-        )
-        query = query.filter(event_leaders.c.event_id != excluded_event_id)
-        leadings = query.all()
-        for lead in leadings:
-            event = Event.query.get(lead.event_id)
+
+        query = db.session.query(Event)
+        query = query.filter(Event.leaders.contains(self))
+        query = query.filter(Event.id != excluded_event_id)
+        events = query.all()
+
+        for event in events:
             if event.is_confirmed() and event.dates_intersect(start, end):
                 return False
         return True
