@@ -10,12 +10,13 @@ from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
-
-from collectives.models.reservation import ReservationStatus
-
+from .reservation import ReservationStatus
+from .event import Event
+from .eventtype import EventType
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
+from .registration import Registration
 from .utils import ChoiceEnum
 from ..utils.time import current_time
 
@@ -617,6 +618,57 @@ class User(db.Model, UserMixin):
         :rtype: boolean
         """
         return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
+
+    def can_lead_on(self, start, end, excluded_event_id=None) -> bool:
+        """Check if user is already leading an event on a specified timespan.
+        The check only considers events that require an activity (e.g 'Collectives' but not 'Soirées')
+
+        :param start: Start of the timespan
+        :type start: :py:class:`datetime.datetime`
+        :param end: End of the timespan
+        :type end: :py:class:`datetime.datetime`
+        :param excluded_event_id: Event id to exclude (often the event being edited)
+        :type excluded_event_id: int
+        :return: True if user can lead on the specified timespan.
+        :rtype: boolean
+        """
+
+        query = db.session.query(Event)
+        query = query.filter(Event.start <= end)
+        query = query.filter(Event.end >= start)
+        query = query.filter(Event.leaders.contains(self))
+        query = query.filter(Event.id != excluded_event_id)
+        query = query.filter(EventType.id == Event.event_type_id)
+        query = query.filter(EventType.requires_activity == True)
+        events = query.all()
+
+        return not any(event.is_confirmed() for event in events)
+
+    def can_register_on(self, start, end, excluded_event_id=None) -> bool:
+        """Check if user is already registered to an event on a specified timespan
+        The check only considers events that require an activity (e.g 'Collectives' but not 'Soirées')
+
+        :param start: Start of the timespan
+        :type start: :py:class:`datetime.datetime`
+        :param end: End of the timespan
+        :type end: :py:class:`datetime.datetime`
+        :param excluded_event_id: Event id to exclude (often the event being edited)
+        :type excluded_event_id: int
+        :return: True if user can register on the specified timespan.
+        :rtype: boolean
+        """
+
+        query = db.session.query(Event)
+        query = query.filter(Event.start <= end)
+        query = query.filter(Event.end >= start)
+        query = query.filter(Registration.user_id == self.id)
+        query = query.filter(Event.id == Registration.event_id)
+        query = query.filter(Event.id != excluded_event_id)
+        query = query.filter(EventType.id == Event.event_type_id)
+        query = query.filter(EventType.requires_activity == True)
+        events = query.all()
+
+        return not any(event.is_confirmed() for event in events)
 
     def led_activities(self):
         """Get activities the user can lead.

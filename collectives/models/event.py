@@ -754,6 +754,17 @@ class Event(db.Model):
             return False
         return len(self.waiting_registrations()) < self.num_waiting_list
 
+    def dates_intersect(self, start, end):
+        """Check if a specified timespan and the event timespan intersects
+        :return: True if timespans intersects
+        :rtype: boolean"""
+        return (
+            (self.start <= end)
+            and (self.start <= self.end)
+            and (start <= self.end)
+            and (start <= end)
+        )
+
     # Status
     def is_confirmed(self):
         """Check if this event is confirmed.
