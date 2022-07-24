@@ -412,10 +412,11 @@ def manage_event(event_id=None):
             return render_template("editevent.html", event=event, form=form)
 
     # Check if leaders don't already lead an activity during the event
-    for leader in tentative_leaders_set:
-        if not leader.can_lead_on(trial_event.start, trial_event.end, event_id):
-            flash(f"{leader.full_name()} encadre déjà une activité à cette date")
-            return render_template("editevent.html", event=event, form=form)
+    if requires_activity:
+        for leader in tentative_leaders_set:
+            if not leader.can_lead_on(trial_event.start, trial_event.end, event_id):
+                flash(f"{leader.full_name()} encadre déjà une activité à cette date")
+                return render_template("editevent.html", event=event, form=form)
 
     # If event has not been created yet use current activities to check rights
     if event_id is None:
@@ -552,9 +553,11 @@ def self_register(event_id):
         event.registrations.append(registration)
         db.session.commit()
         return redirect(url_for("event.view_event", event_id=event_id))
-    
-    if not current_user.can_register_on(event.start, event.end, event_id):
-        flash("Vous participer déjà une activité à cette date")
+
+    if event.event_type.requires_activity and not current_user.can_register_on(
+        event.start, event.end, event_id
+    ):
+        flash("Vous participez déjà une activité à cette date", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.requires_payment():
