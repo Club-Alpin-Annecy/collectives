@@ -63,7 +63,7 @@
                     />
                     <h3 class="heading-3">Message</h3>
                 {% for category, message in messages %}
-                <p class="{{category}} message">{{ message }}</p>
+                <div class="{{category}} message">{{ message }}</div>
                 {% endfor %}
                 </div>
                 <div class="veil" onclick= "this.parentNode.style.display='none'"></div>

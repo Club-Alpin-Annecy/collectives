@@ -195,7 +195,7 @@ class Event(db.Model):
     event_type = db.relationship("EventType")
     """ Type of this event.
 
-    :type: :py:class:`collectives.models.eventtype.Event`"""
+    :type: :py:class:`collectives.models.eventtype.EventType`"""
 
     activity_types = db.relationship(
         "ActivityType",

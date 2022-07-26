@@ -27,3 +27,4 @@ email_validator
 openpyxl
 babel
 python-dateutil
+phonenumbers

@@ -3,6 +3,14 @@
 
 <p>Les inscriptions en ligne sont possibles jusqu'au {{format_datetime(event.registration_close_time)}}. </p>
 
+
+{% if not current_user.has_valid_phone_number() %}
+    <div class="flash-warning flash">
+        {{get_bad_phone_message(current_user) | safe }}
+    </div>
+
+{% endif %}
+
 {% if event.requires_payment() %}
 <p>
     Cet événement est payant ; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
