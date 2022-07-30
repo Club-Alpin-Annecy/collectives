@@ -3,11 +3,12 @@
 import sqlite3
 import uuid, datetime, traceback
 
-from flask import flash, render_template, redirect, url_for, request
+from flask import flash, render_template, redirect, url_for, request, Markup, escape
 from flask import current_app, Blueprint, Markup
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 from werkzeug.urls import url_parse
+from flask_wtf.csrf import generate_csrf
 
 import sqlalchemy.exc
 from sqlalchemy import or_
@@ -133,6 +134,9 @@ def login():
         return redirect(url_for("auth.login"))
 
     login_user(user, remember=form.remember_me.data)
+
+    if not current_user.has_valid_phone_number():
+        flash(Markup(get_bad_phone_message(user)), "warning")
 
     # We ask users with roles to sign the confidentiality agreement.
     # Signature is compulsory to view user profiles.
@@ -400,6 +404,25 @@ def check_token(license_number):
         )
 
     return redirect(url_for(".login"))
+
+
+def get_bad_phone_message(user):
+    """Craft a message for user with a bad phone number.
+
+    :param user: User with a bad phone number
+    :returns: The html safe message to display to the user to help him change phone number."""
+
+    return f"""Votre numéro de téléphone ({escape(user.phone)}) n'est pas ou mal renseigné:
+        un encadrant ne pourrait donc pas vous contacter en cas de besoin.<br/>
+        Veuillez saisir un numéro de téléphone valide dans <a 
+        href="https://extranet-clubalpin.com/mesinfos/">
+        votre espace personnel FFCAM </a>, menu "Mes informations", puis resynchronisez vos 
+        informations en cliquant 
+        <form action="{url_for('profile.force_user_sync')}" method="post" style="display: inline">
+            <a onclick="this.closest('form').submit(); return false;" href="#"/>  ici </a>
+            <input type="hidden" name="csrf_token" value="{generate_csrf()}"/>
+        </form>.
+        """
 
 
 # Init: Setup admin (if db is ready)

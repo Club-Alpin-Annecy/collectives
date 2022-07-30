@@ -10,9 +10,12 @@ from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
 from flask_uploads import UploadSet, IMAGES
 from wtforms.validators import Email
+import phonenumbers
 from .reservation import ReservationStatus
 from .event import Event
 from .eventtype import EventType
+
+
 from .globals import db
 from .role import RoleIds, Role
 from .activitytype import ActivityType
@@ -743,6 +746,24 @@ class User(db.Model, UserMixin):
         :rtype: boolean
         """
         return self.enabled and self.check_license_valid_at_time(current_time())
+
+    def has_valid_phone_number(self):
+        """Check if the user has a valid phone number.
+
+        Phone numbers are checked using pip phonenumbers.
+
+        :returns: True if user has a valid number
+        """
+        try:
+            number = phonenumbers.parse(self.phone, "FR")
+            if not phonenumbers.is_possible_number(number):
+                return False
+            if not phonenumbers.is_valid_number(number):
+                return False
+
+        except phonenumbers.NumberParseException:
+            return False
+        return True
 
 
 def activity_supervisors(activities):
