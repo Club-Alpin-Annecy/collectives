@@ -11,7 +11,6 @@ Typical usage example::
 
 from logging.config import fileConfig
 import werkzeug
-import datetime
 
 from flask import Flask, current_app
 from flask_assets import Environment, Bundle
