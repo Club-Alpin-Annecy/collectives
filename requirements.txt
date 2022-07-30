@@ -28,4 +28,4 @@ openpyxl
 babel
 python-dateutil
 phonenumbers
-PyPDF2
+xhtml2pdf
