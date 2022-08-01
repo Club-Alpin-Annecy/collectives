@@ -14,7 +14,7 @@ from flask_images import Images
 
 from ..utils.access import valid_user
 from ..forms import UserForm
-from ..models import User, Role, db
+from ..models import User, Role, RoleIds, db
 from .auth import sync_user
 
 images = Images()
@@ -141,7 +141,7 @@ def show_volunteer_card():
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
-    president_role = Role.query.filter_by(role_id="President").first()
+    president_role = User.query.filter(Role.role_id==RoleIds.President).first()
     if not president_role:
         # No president in roles table
         flash(
@@ -153,9 +153,9 @@ def show_volunteer_card():
 
     # Render HTML template
     html_template = render_template(
-        "attestation_benevole/attestation_benevole.html",
+        "attestation_benevole.html",
         user=current_user,
-        president=president_role.user,
+        president=president_role,
         today=date.today(),
     )
 
@@ -179,7 +179,7 @@ def show_volunteer_card():
         out,
         mimetype="application/pdf",
         attachment_filename=str(
-            "Attestation Benevole - " + current_user.full_name() + ".pdf"
+            "Attestation Benevole CAF Annecy.pdf"
         ),
         as_attachment=True,
     )

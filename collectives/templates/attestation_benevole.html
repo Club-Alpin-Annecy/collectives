@@ -6,6 +6,7 @@
 				margin-right:50px;
 				margin-top:50px;
 				margin-bottom:50px;
+				font-size: 14px;
 			}
 			img {
 				width: 100%;
@@ -23,9 +24,9 @@
 		</style>
 	</head>
 	<body>
-		<img src="./collectives/templates/attestation_benevole/header_attestation_benevole.png" />
+		<img src="./collectives/{{ url_for('static', filename='caf/header_attestation_benevole.png') }}" /><br />
 		<h1>Attestation de fonction Bénévole au CLUB ALPIN d’ANNECY</h1>
-		<h2>Je soussigné, {{ president.full_name() }}, Président du Club l’Alpin d’Annecy,</h2>
+		<p>Je soussigné, {{ president.full_name() }}, Président du Club l’Alpin d’Annecy,</p>
 		<p>
 			certifie que Mme ou M. : {{ user.full_name() }}<br />
 			est licencié(e) au Club Alpin d’Annecy (74),<br />
@@ -49,6 +50,6 @@
 			Fait à Annecy, le {{ today.today().strftime("%d/%m/%Y") }}<br />
 			Cachet et signature du Président
 		</p>
-		<img src="./collectives/templates/attestation_benevole/footer_attestation_benevole.png" />
+		<img src="./collectives/static/caf/footer_attestation_benevole.png" />
 	</body>
 </html>
