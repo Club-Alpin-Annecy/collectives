@@ -2,7 +2,10 @@
 
 This modules contains the /profile Blueprint
 """
-from datetime import datetime
+from datetime import date, datetime
+from io import BytesIO
+from xhtml2pdf import pisa
+from flask import send_file
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import Blueprint
@@ -11,7 +14,7 @@ from flask_images import Images
 
 from ..utils.access import valid_user
 from ..forms import UserForm
-from ..models import User, db
+from ..models import User, Role, RoleIds, db
 from .auth import sync_user
 
 images = Images()
@@ -129,3 +132,52 @@ def confidentiality_agreement():
 def my_payments():
     """Route to show payments associated to the current user"""
     return render_template("profile/my_payments.html", title="Mes paiements")
+
+
+@blueprint.route("/user/volunteer_card")
+def show_volunteer_card():
+    """Route to show the volunteer card of a regular user."""
+    if not current_user.has_any_role():
+        flash("Non autorisé", "error")
+        return redirect(url_for("event.index"))
+
+    president_role = User.query.filter(Role.role_id == RoleIds.President).first()
+    if not president_role:
+        # No president in roles table
+        flash(
+            """Impossible de générer l'attestation bénévole.
+                Le club n'a pas de président, merci de contacter le support.""",
+            "error",
+        )
+        return redirect(url_for("profile.show_user", user_id=current_user.id))
+
+    # Render HTML template
+    html_template = render_template(
+        "attestation_benevole.html",
+        user=current_user,
+        president=president_role,
+        today=date.today(),
+    )
+
+    # Generate PDF V2
+    out = BytesIO()
+
+    pisa_status = pisa.CreatePDF(html_template, dest=out)
+
+    if pisa_status.err:
+        # Error while generating PDF file
+        flash(
+            """Impossible de générer l'attestation bénévole.""",
+            "error",
+        )
+        return redirect(url_for("profile.show_user", user_id=current_user.id))
+
+    out.seek(0)
+
+    # Show file to user
+    return send_file(
+        out,
+        mimetype="application/pdf",
+        attachment_filename=str("Attestation Benevole CAF Annecy.pdf"),
+        as_attachment=True,
+    )

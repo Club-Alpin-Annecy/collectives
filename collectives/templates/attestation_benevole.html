@@ -1,0 +1,55 @@
+<html>
+	<head>
+		<style>
+			body { 
+				margin-left:50px;
+				margin-right:50px;
+				margin-top:50px;
+				margin-bottom:50px;
+				font-size: 14px;
+			}
+			img {
+				width: 100%;
+			}
+			h1 {
+				margin: 40px;
+				text-align: center;
+				font-size: 20px;
+			}
+			h2 {
+				margin: 30px;
+				font-size: 15px;
+				font-weight: normal;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="./collectives/static/caf/header_attestation_benevole.png" /><br />
+		<h1>Attestation de fonction Bénévole au CLUB ALPIN d’ANNECY</h1>
+		<p>Je soussigné, {{ president.full_name() }}, Président du Club l’Alpin d’Annecy,</p>
+		<p>
+			certifie que Mme ou M. : {{ user.full_name() }}<br />
+			est licencié(e) au Club Alpin d’Annecy (74),<br />
+			membre de la FFCAM, Fédération Française des Clubs Alpins et de Montagne,<br />
+			et est bénévole dans l’association pour l’année 
+			{% if today.month >= 9 %}
+				{{ today.year }} / {{ today.year+1 }}
+			{% else %}
+				{{ today.year-1 }} / {{ today.year }}
+			{% endif %}
+			.<br />
+		</p>
+		<p>
+			Nom et adresse de la structure :<br />
+			Club Alpin d’Annecy 17 rue du Mont Blanc 74000 Annecy
+		</p>
+		<p>
+			J’atteste sur l’honneur l’exactitude des renseignements fournis ci-dessus.
+		</p>
+		<p style="text-align: right;" >
+			Fait à Annecy, le {{ today.today().strftime("%d/%m/%Y") }}<br />
+			Cachet et signature du Président
+		</p>
+		<img src="./collectives/static/caf/footer_attestation_benevole.png" />
+	</body>
+</html>
