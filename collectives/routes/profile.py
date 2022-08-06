@@ -141,7 +141,7 @@ def show_volunteer_card():
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
-    president_role = User.query.filter(Role.role_id == RoleIds.President).first()
+    president_role = User.query.filter(User.roles.any(Role.role_id == RoleIds.President)).first()
     if not president_role:
         # No president in roles table
         flash(
