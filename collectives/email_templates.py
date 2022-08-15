@@ -7,7 +7,6 @@ from flask import current_app, url_for
 
 from collectives.models import db, Configuration
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
-from collectives.models.user import activity_supervisors
 from collectives.utils import mail
 from collectives.utils.time import format_date
 from collectives.utils.url import slugify
@@ -19,28 +18,28 @@ def send_new_event_notification(event):
     :param event: The new created event.
     :type event: :py:class:`collectives.modes.event.Event`
     """
-    supervisors = activity_supervisors(event.activity_types)
-    emails = [u.mail for u in supervisors]
-    leader_names = [l.full_name() for l in event.leaders]
-    activity_names = [a.name for a in event.activity_types]
-    message = Configuration.NEW_EVENT_MESSAGE.format(
-        leader_name=",".join(leader_names),
-        activity_name=",".join(activity_names),
-        event_title=event.title,
-        link=url_for(
-            "event.view_event",
-            event_id=event.id,
-            name=slugify(event.title),
-            _external=True,
-        ),
-    )
-    try:
-        mail.send_mail(
-            subject=Configuration.NEW_EVENT_SUBJECT, email=emails, message=message
+    emails = [a.email for a in event.activity_types if a.email is not None]
+    if emails:
+        leader_names = [l.full_name() for l in event.leaders]
+        activity_names = [a.name for a in event.activity_types]
+        message = Configuration.NEW_EVENT_MESSAGE.format(
+            leader_name=",".join(leader_names),
+            activity_name=",".join(activity_names),
+            event_title=event.title,
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
         )
-    # pylint: disable=broad-except
-    except BaseException as err:
-        current_app.logger.error(f"Mailer error: {err}")
+        try:
+            mail.send_mail(
+                subject=Configuration.NEW_EVENT_SUBJECT, email=emails, message=message
+            )
+        # pylint: disable=broad-except
+        except BaseException as err:
+            current_app.logger.error(f"Mailer error: {err}")
 
 
 def send_unregister_notification(event, user):
