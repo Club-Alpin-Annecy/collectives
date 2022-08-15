@@ -145,37 +145,38 @@ FAVICON = "caf/favicon.ico"
 # fmt: off
 # pylint: disable=line-too-long
 ACTIVITY_TYPES = {
-    1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "ASA"},
-    2:  {"short": "escalade", "name": "Escalade", "trigram" : "AES"},
-    3:  {"short": "ski_rando", "name": "Ski de randonnée", "trigram" : "ASM"},
-    4:  {"short": "trail", "name": "Trail", "trigram" : "ATRAIL"},
-    5:  {"short": "canyon", "name": "Canyon", "trigram" : "ACA"},
-    6:  {"short": "raquette", "name": "Randonnée raquettes", "trigram" : "ARR"},
-    7:  {"short": "snow_rando", "name": "Snow de randonnée", "trigram" : "ASUM"},
-    8:  {"short": "cascade_glace", "name": "Cascade de glace", "trigram" : "AAL"},
-    9:  {"short": "alpinisme", "name": "Alpinisme", "trigram" : "AAL"},
-    10: {"short": "parapente", "name": "Parapente", "trigram" : "AVR"},
-    11: {"short": "randonnee", "name": "Randonnée montagne", "trigram" : "ARP"},
-    12: {"short": "cyclisme", "name": "VTT", "trigram" : "AVTT"},
+    1:  {"short": "ski_alpin", "name": "Ski et surf en station", "email":"skisurfalpin@cafannecy.fr", "trigram" : "ASA"},
+    2:  {"short": "escalade", "name": "Escalade", "email":"escalade@cafannecy.fr", "trigram" : "AES"},
+    3:  {"short": "ski_rando", "name": "Ski de randonnée", "email":"skirando@cafannecy.fr", "trigram" : "ASM"},
+    4:  {"short": "trail", "name": "Trail", "email":"trail@cafannecy.fr", "trigram" : "ATRAIL"},
+    5:  {"short": "canyon", "name": "Canyon", "email":"canyon@cafannecy.fr", "trigram" : "ACA"},
+    6:  {"short": "raquette", "name": "Randonnée raquettes", "email":"raquettes@cafannecy.fr", "trigram" : "ARR"},
+    7:  {"short": "snow_rando", "name": "Snow de randonnée", "email":"snowboardrando@cafannecy.fr", "trigram" : "ASUM"},
+    8:  {"short": "cascade_glace", "name": "Cascade de glace", "email":"alpinisme@cafannecy.fr", "trigram" : "AAL"},
+    9:  {"short": "alpinisme", "name": "Alpinisme", "email":"alpinisme@cafannecy.fr", "trigram" : "AAL"},
+    10: {"short": "parapente", "name": "Parapente", "email":"volrando@cafannecy.fr", "trigram" : "AVR"},
+    11: {"short": "randonnee", "name": "Randonnée montagne", "email":"rando@cafannecy.fr", "trigram" : "ARP"},
+    12: {"short": "cyclisme", "name": "VTT", "email":"vtt@cafannecy.fr", "trigram" : "AVTT"},
     13: {"short": "formation", "name": "Formation", "trigram" : "FOR", "deprecated" : True},
     14: {"short": "soiree", "name": "Soirée", "order": 99, "trigram" : "SCL", "deprecated" : True},
     15: {"short": "none", "name": "Non classé", "order": 100, "trigram" : "NCL", "deprecated" : True},
-    16: {"short": "slackline", "name": "Slackline", "trigram" : "ASL"},
-    17: {"short": "marche_nordique", "name": "Marche nordique", "trigram" : "ANW"},
-    18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "trigram" : "ASF"},
+    16: {"short": "slackline", "name": "Slackline", "email":"slackline@cafannecy.fr", "trigram" : "ASL"},
+    17: {"short": "marche_nordique", "name": "Marche nordique", "email":"marchenordique@cafannecy.fr", "trigram" : "ANW"},
+    18: {"short": "ski_fond", "name": "Ski de fond et rando nordique", "email":"skinordique@cafannecy.fr", "trigram" : "ASF"},
     20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL", "deprecated" : True},
     21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL", "deprecated" : True},
-    22: {"short": "viaferrata", "name": "Via ferrata", "trigram": "AVF"},
+    22: {"short": "viaferrata", "name": "Via ferrata", "email":"viaferrata@cafannecy.fr", "trigram": "AVF"},
 }
 # fmt: on
 # pylint: enable=line-too-long
 """List of activity type
 
-Contains the list of activity type as a dictionnary. id is an int, value is
-a hash. ``short`` is the name of the icon.
+Contains the list of activity type as a dictionnary. id is an int, value is a hash.
+``short`` is the name of the icon.
+``trigram`` is the activity id for accounting.
+``email`` is the dedicated activity email
 
-:type: dict
-"""
+:type: dict"""
 
 GUIDE_TITLE = (
     "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"

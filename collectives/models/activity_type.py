@@ -33,6 +33,14 @@ class ActivityType(db.Model):
     :type: string
     """
 
+    email = db.Column(db.String(256), nullable=True)
+    """ Activity dedicated email.
+
+    Mail to be used to send notifications to activity leader.
+
+    :type: string
+    """
+
     trigram = db.Column(db.String(8), nullable=False)
     """ Three-letter code.
 
