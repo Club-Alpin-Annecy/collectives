@@ -21,6 +21,21 @@
 				font-size: 15px;
 				font-weight: normal;
 			}
+			#benevole {
+				font-weight: bold;
+			}
+			.center {
+				width: 100%;
+				margin: 20px 40px 40px 40px;
+				text-align: center;
+				font-weight: bold;
+			}
+			.spacing {
+				text-indent:20px;
+			}
+			.underline {
+				text-decoration: underline;
+			}
 		</style>
 	</head>
 	<body>
@@ -28,20 +43,22 @@
 		<h1>Attestation de fonction Bénévole au CLUB ALPIN d’ANNECY</h1>
 		<p>Je soussigné, {{ president.full_name() }}, Président du Club l’Alpin d’Annecy,</p>
 		<p>
-			certifie que Mme ou M. : {{ user.full_name() }}<br />
-			est licencié(e) au Club Alpin d’Annecy (74),<br />
-			membre de la FFCAM, Fédération Française des Clubs Alpins et de Montagne,<br />
-			et est bénévole dans l’association pour l’année 
-			{% if today.month >= 9 %}
-				{{ today.year }} / {{ today.year+1 }}
-			{% else %}
-				{{ today.year-1 }} / {{ today.year }}
-			{% endif %}
-			.<br />
+			<span id="benevole" >certifie que Mme ou M. : {{ user.full_name() }}</span><br /><br />
+			<div class="center" >
+				licencié(e) au Club Alpin d’Annecy (74),<br />
+				membre de la FFCAM, Fédération Française des Clubs Alpins et de Montagne,<br />
+				et est bénévole dans l’association du 
+				{% if today.month >= 9 %}
+					1er septembre {{ today.year }} au 30 septembre {{ today.year+1 }}.<br />
+				{% else %}
+					1er septembre {{ today.year-1 }} au 30 septembre {{ today.year }}.<br />
+				{% endif %}
+			</div>
 		</p>
 		<p>
-			Nom et adresse de la structure :<br />
-			Club Alpin d’Annecy 17 rue du Mont Blanc 74000 Annecy
+			<span class="underline">Nom et adresse de la structure :</span><br />
+			Club Alpin d’Annecy<br />
+			17 rue du Mont Blanc 74000 Annecy
 		</p>
 		<p>
 			J’atteste sur l’honneur l’exactitude des renseignements fournis ci-dessus.
