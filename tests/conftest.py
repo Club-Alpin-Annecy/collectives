@@ -28,7 +28,9 @@ def app():
 
     with app.app_context():
         db.init_app(app)
+        print("all created", flush=True)
         db.create_all()
+        print("all created", flush=True)
         config_sql.load_initial_config()
         init.init_admin(app)
 
