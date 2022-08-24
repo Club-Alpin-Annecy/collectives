@@ -267,7 +267,7 @@ def export_role_no_filter():
 
 @blueprint.route("/roles/export/<raw_filters>", methods=["GET"])
 def export_role(raw_filters=""):
-    """Create an Excell document with the contact information of roled users.
+    """Create an Excel document with the contact information of roled users.
 
     Input is a string with id of role or activity. EG `r2-t1` for role 2 and type 1.
 
