@@ -3,6 +3,7 @@
 This modules contains the /profile Blueprint
 """
 from datetime import date, datetime
+from os.path import exists
 from io import BytesIO
 from xhtml2pdf import pisa
 from flask import send_file
@@ -149,6 +150,15 @@ def show_volunteer_card():
         flash(
             """Impossible de générer l'attestation bénévole.
                 Le club n'a pas de président, merci de contacter le support.""",
+            "error",
+        )
+        return redirect(url_for("profile.show_user", user_id=current_user.id))
+
+    if not exists("./collectives/static/caf/footer_attestation_benevole.png"):
+        # No president signature
+        flash(
+            """Impossible de générer l'attestation bénévole.
+                La signature du président n'est pas sur le serveur, merci de contacter le support.""",
             "error",
         )
         return redirect(url_for("profile.show_user", user_id=current_user.id))
