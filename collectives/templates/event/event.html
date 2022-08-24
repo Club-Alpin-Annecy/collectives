@@ -334,6 +334,11 @@
             </a>
             {% endif %}
 
+            <a class="button button-secondary" target="_blank" href="{{ url_for('event.export_list_of_registered_users', event_id=event.id)}}">
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"/>
+              Liste des inscrits
+            </a>
+
             {% if event.has_delete_rights(current_user) and not event.has_payments() %}
               <form class="inline" action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

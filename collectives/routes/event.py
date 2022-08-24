@@ -2,7 +2,9 @@
 
 This modules contains the /event Blueprint
 """
-from flask import flash, render_template, redirect, url_for, request
+# pylint: disable=too-many-lines
+
+from flask import flash, render_template, redirect, url_for, request, send_file
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
@@ -29,6 +31,8 @@ from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 from collectives.utils.access import confidentiality_agreement, valid_user
 from collectives.utils.crawlers import crawlers_catcher
+
+from collectives.utils import export
 
 
 blueprint = Blueprint("event", __name__, url_prefix="/collectives")
@@ -243,6 +247,36 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
+    )
+
+
+@blueprint.route("/<int:event_id>/export_registered_users")
+@valid_user()
+@confidentiality_agreement()
+def export_list_of_registered_users(event_id):
+    """Create an Excel document with the contact information of registered users at an event.
+
+    Only accessible to a user with edit right on this page (at least the leader). It
+    contains personnal information on subscribed users.
+
+    :param int event_id: Primary key of the event.
+    :return: The Excel file with the users informations.
+    """
+    event = Event.query.get(event_id)
+
+    if event is None or not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.index"))
+
+    out = export.export_users_registered(event)
+
+    filename = slugify(event.title)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        attachment_filename=f"CAF Annecy - Collective {filename}.xlsx",
+        as_attachment=True,
     )
 
 
