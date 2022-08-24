@@ -6,11 +6,11 @@ from .misc import deepgetattr
 
 
 def export_roles(roles):
-    """Create an excell with the input role and related user.
+    """Create an excel with the input role and related user.
 
     :param roles:
     :type roles: array of :py:class:`collectives.models.role.Role`
-    :returns: The excell with all info
+    :returns: The excel with all info
     :rtype: :py:class:`io.BytesIO`
     """
     wb = Workbook()
