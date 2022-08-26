@@ -8,6 +8,8 @@
 #    Dictionnary = 7
 #    Boolean = 8
 #    File = 9
+#
+# A LongString and a ShortString are the same object, but LongString is modifiable by a textarea
 
 Sécurité:
     AUTH_FAILURE_WAIT:

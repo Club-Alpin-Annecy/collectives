@@ -60,6 +60,10 @@ def test_config_update(dbauth, client):
     response = client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
+    data = {"name": "test_hidden", "content": "*****"}
+    response = client.post("/technician/configuration", data=data)
+    assert response.status_code == 302
+
     long_test = """long test é^
     1236555"""
     data = {"name": "test_longstring", "content": long_test}
@@ -100,3 +104,5 @@ test2: oooooé$£¤"""
     object = yaml.safe_load(get_textarea_value(soup, "test_dict"))
     assert object["test2"] == "oooooé$£¤"
     assert Configuration.test_dict["test2"] == "oooooé$£¤"
+
+    assert Configuration.test_hidden == "Mot de pass"

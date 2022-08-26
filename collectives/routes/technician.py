@@ -141,6 +141,12 @@ def update_configuration():
         except json.decoder.JSONDecodeError as e:
             flash(str(e), "error")
             return redirect(url_for("technician.configuration"))
+    elif item.hidden and form.content.data == "*****":
+        flash(
+            "Abandon de la mise à jour, la valeur ne semble pas avoir été renseignée (champ *****)",
+            "error",
+        )
+        redirect(url_for("technician.configuration"))
     else:
         item.content = form.content.data
 

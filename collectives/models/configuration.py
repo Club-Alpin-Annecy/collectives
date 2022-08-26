@@ -58,10 +58,7 @@ class Meta(type):
 
         :param string name: Name of the configuration item
         :returns: the configuration item"""
-        config = ConfigurationItem.query.filter_by(name=name).first()
-        if config is None:
-            return None
-        return config
+        return ConfigurationItem.query.filter_by(name=name).first()
 
 
 class Configuration(metaclass=Meta):
