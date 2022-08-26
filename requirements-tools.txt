@@ -4,7 +4,7 @@ flask-testing
 # See #233
 git+https://github.com/PyCQA/astroid#2.4
 
-pylint
+pylint==2.4.1
 pylint-quotes
 pylint-flask-sqlalchemy
 
