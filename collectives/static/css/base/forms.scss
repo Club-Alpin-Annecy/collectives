@@ -10,7 +10,7 @@ label {
 }
 
 form {
-    input, select {
+    input, select, textarea {
         outline: none;
         border: none;
         background: $color-gray-bg-light;

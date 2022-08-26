@@ -6,7 +6,7 @@ from flask import current_app
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 
-from ..models import Gender
+from ..models import Gender, Configuration
 from .time import current_time
 
 
@@ -206,8 +206,8 @@ class ExtranetApi:
             soap_client = SoapClient(wsdl=config["EXTRANET_WSDL"])
             auth_response = soap_client.auth()
             self.auth_info = auth_response["authReturn"]
-            self.auth_info["utilisateur"] = config["EXTRANET_ACCOUNT_ID"]
-            self.auth_info["motdepasse"] = config["EXTRANET_ACCOUNT_PWD"]
+            self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
+            self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
             self.soap_client = soap_client
 
         except pysimplesoap.client.SoapFault as err:

@@ -1,7 +1,6 @@
 """ Module for user authentification routes. """
 
-import sqlite3
-import uuid, datetime, traceback
+import datetime, traceback
 
 from flask import flash, render_template, redirect, url_for, request, Markup, escape
 from flask import current_app, Blueprint, Markup
@@ -10,12 +9,11 @@ from flask_login import LoginManager
 from werkzeug.urls import url_parse
 from flask_wtf.csrf import generate_csrf
 
-import sqlalchemy.exc
 from sqlalchemy import or_
 
 from ..forms.auth import LoginForm, AccountCreationForm
 from ..forms.auth import PasswordResetForm, AccountActivationForm
-from ..models import User, Role, RoleIds, db
+from ..models import User, db, Configuration
 from ..models.auth import ConfirmationTokenType, ConfirmationToken, TokenEmailStatus
 from ..utils.time import current_time
 from ..utils import extranet
@@ -115,7 +113,7 @@ def login():
         flash("Nom d'utilisateur ou mot de passe invalide.", "error")
         return redirect(url_for("auth.login"))
 
-    maxdelta = datetime.timedelta(seconds=current_app.config["AUTH_FAILURE_WAIT"])
+    maxdelta = datetime.timedelta(seconds=Configuration.AUTH_FAILURE_WAIT)
     if current_time() - user.last_failed_login < maxdelta:
         flash("Merci d'attendre quelques secondes avant de retenter un login", "error")
         return redirect(url_for("auth.login"))
@@ -423,41 +421,3 @@ def get_bad_phone_message(user):
             <input type="hidden" name="csrf_token" value="{generate_csrf()}"/>
         </form>.
         """
-
-
-# Init: Setup admin (if db is ready)
-def init_admin(app):
-    """Create an ``admin`` account if it does not exists. Enforce its password.
-
-    Password is :py:data:`config:ADMINPWD`"""
-    try:
-        user = User.query.filter_by(mail="admin").first()
-        if user is None:
-            user = User()
-            user.mail = "admin"
-            # Generate unique license number
-            user.license = str(uuid.uuid4())[:12]
-            user.first_name = "Compte"
-            user.last_name = "Administrateur"
-            user.confidentiality_agreement_signature_date = datetime.datetime.now()
-            version = current_app.config["CURRENT_LEGAL_TEXT_VERSION"]
-            user.legal_text_signed_version = version
-            user.legal_text_signature_date = datetime.datetime.now()
-            user.password = app.config["ADMINPWD"]
-            admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
-            user.roles.append(admin_role)
-            db.session.add(user)
-            db.session.commit()
-            current_app.logger.warning("create admin user")
-        if not user.password == app.config["ADMINPWD"]:
-            user.password = app.config["ADMINPWD"]
-            db.session.commit()
-            current_app.logger.warning("Reset admin password")
-    except sqlite3.OperationalError:
-        current_app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.InternalError:
-        current_app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.OperationalError:
-        current_app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.ProgrammingError:
-        current_app.logger.warning("Cannot configure admin: db is not available")

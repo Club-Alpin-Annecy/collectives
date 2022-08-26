@@ -4,13 +4,13 @@ Restricted to activity supervisor, adminstrators, and President.
  """
 
 from flask import flash, render_template, redirect, url_for
-from flask import current_app, Blueprint, send_file, abort
+from flask import Blueprint, send_file, abort
 from flask_login import current_user
 
 from ..forms.csv import CSVForm
 from ..forms.user import AddLeaderForm
 from ..forms.activity_type import ActivityTypeSelectionForm
-from ..models import User, Role, RoleIds, ActivityType, db
+from ..models import User, Role, RoleIds, ActivityType, db, Configuration
 
 from ..utils.access import confidentiality_agreement, valid_user, user_is
 from ..utils.csv import process_stream
@@ -155,7 +155,7 @@ def csv_import():
     form = CSVForm(choices)
 
     if not form.is_submitted():
-        form.description.data = current_app.config["DESCRIPTION_TEMPLATE"]
+        form.description.data = Configuration.DESCRIPTION_TEMPLATE
 
     failed = []
     if form.validate_on_submit():

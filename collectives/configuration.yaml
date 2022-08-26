@@ -1,0 +1,293 @@
+# Avalaible types:
+#    Integer = 1
+#    Float = 2
+#    Date = 3
+#    ShortString = 4
+#    LongString = 5
+#    Array = 6
+#    Dictionnary = 7
+#    Boolean = 8
+#    File = 9
+#
+# A LongString and a ShortString are the same object, but LongString is modifiable by a textarea
+
+Sécurité:
+    AUTH_FAILURE_WAIT:
+        content: 10
+        description : Time a user has to wait after a wrong auth in seconds
+        type: Integer
+
+    TOKEN_DURATION:
+        content: 2
+        description: Duration (in hours) of a token before expiration
+        type: Integer
+
+Paiements:
+    PAYMENTS_ENABLED:
+        content: true
+        description: Whether to enable the payment-related functionalities
+        type: Boolean
+    REFUND_ENABLED:
+        content: false
+        description: Whether to enable refunding payments
+        type: Boolean
+
+    PAYLINE_WSDL:
+        content: 'collectives/utils/payline.wsdl'
+        description: Path to WDSL file describing Payline WebPayment SOAP API
+        type: ShortString
+
+    PAYLINE_DIRECTPAYMENT_WSDL:
+        content: 'collectives/utils/payline_directpayment.wsdl'
+        description: Path to WDSL file describing Payline DirectPayment SOAP API
+        type: ShortString
+
+    PAYLINE_MERCHANT_ID:
+        content: ""
+        description: Payline merchant id, refer to payline account. If left empty the payline API will operate in mock mode.
+        type: ShortString
+
+    PAYLINE_ACCESS_KEY: 
+        content: ""
+        description: Payline access key (to be set in payline backoffice)
+        type: ShortString
+        hidden: true
+
+    PAYLINE_CONTRACT_NUMBER: 
+        content: ""
+        description: Payline contract number
+        type: ShortString
+    
+    PAYLINE_MERCHANT_NAME: 
+        content: "CAF"
+        description: Payline merchant name
+        type: ShortString
+
+    PAYLINE_CURRENCY: 
+        content: "978"
+        description: Code of the currency to be used for payments, '978' means euros. See https://docs.payline.com/display/DT/Codes+-+Currency
+        type: ShortString
+    
+    PAYLINE_COUNTRY:
+        content: "FR"
+        description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
+        type: ShortString
+
+Divers: 
+    GOOGLE_ANALYTICS_UA:
+        content: ""
+        description: "Identifiant google analytics. Ex: UA-XXXXXXX-X. Vide pour désactiver"
+        type: ShortString
+
+    CURRENT_LEGAL_TEXT_VERSION:
+        content: 1
+        description: Current version of the legal text. Increment to force all site to sign it again.
+        type: Integer
+
+    TZ_NAME:
+        content: "Europe/Paris"
+        description: "Timezone to use for time comparisons"
+        type: ShortString
+
+    LICENSE_CATEGORIES:
+        content:
+            '00': Membre à vie
+            A1: Membre de plus de 65 ans et cafiste depuis plus de 10 ans
+            C1: Conjoint(e) de membre dans le même club
+            E1: Enfant de 18 à 24 ans de membre dans le même club
+            E2: Enfant ou petit-enfant de moins de 18 ans de membre dans le même club
+            J1: Jeune de 18 à 24 ans
+            J2: Jeune de moins de 18 ans
+            P1: Professionel
+            T1: Membre  titulaire de plus de 24 ans
+
+        description: Dictionary of FFCAM licence categories with their description
+        type: Dictionnary
+
+
+
+
+    DESCRIPTION_TEMPLATE:
+        content: |
+            {observations}
+
+            Secteur : {secteur}
+            Carte IGN : {carte_IGN}
+            Altitude max. : {altitude}m
+            Dénivelé : {denivele}m
+            Distance : {distance}km
+            Cotation : {cotation}
+
+            Lieu et heure de départ :
+
+            Matériel requis :
+        description: Default event description template. Place holder can be inserted, and will be used for CSV import.
+        type: LongString
+
+    RESERVATION_ENABLED:
+        content: false
+        description: Whether to enable the reservation/rental-related functionalities
+        type: Boolean
+
+    EXTRANET_ACCOUNT_ID:
+        content: ""
+        description: Identifiant de connexion à l'extranet FFCAM
+        type: ShortString
+
+    EXTRANET_ACCOUNT_PWD:
+        content: ""
+        description: Mot de passe de la connexion à l'extranet FFCAM
+        type: ShortString
+        hidden: true
+
+Mail:
+    SMTP_HOST:
+        content: smtp.example.org
+        description: Host SMTP to send mail
+        type: ShortString
+
+    SMTP_PORT: 
+        content: 25
+        description: TCP port for SMTP server
+        type: Integer
+
+    SMTP_ADDRESS:
+        content: noreply@example.org
+        description: Sending address to send administration mails. Will be used as a reply address
+        type: ShortString
+    SMTP_LOGIN:
+        content: ''
+        description: SMTP login to be used
+        type: ShortString
+    SMTP_PASSWORD:
+        content: ""
+        description: SMTP password to be used along SMTP_LOGIN as login
+        type: ShortString
+        hidden: true
+    DKIM_KEY:
+        content: ""
+        description: | 
+            DKIM private KEY
+            Contain the PEM encoded PKCS#8 format private key (not the file name, but its
+            content).
+            Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
+        type: LongString
+        hidden: true
+    DKIM_SELECTOR:
+        content: default
+        description: The DKIM selector
+        type: ShortString
+
+
+    CONFIRMATION_MESSAGE:
+        content: |
+            Bonjour {name},
+
+            Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous :
+            {link}
+
+            Ce lien expirera après {expiry_hours} heures.
+
+            Ce mail est envoyé par un automate, répondre à ce mail sera sans effet.
+        description: "Template of confirmation email."
+        type: LongString
+
+    NEW_EVENT_SUBJECT:
+        content: "Notification de création d'événement"
+        description: Email subject for event creation
+        type: ShortString
+
+    NEW_EVENT_MESSAGE:
+        content: |
+            Bonjour,
+
+            Une nouvel événement '{event_title}' a été crée par '{leader_name}' pour l'activité '{activity_name}'.
+            Vous pouvez le consulter à l'adresse ci-dessous :
+            {link}
+
+            Vous recevez cet e-mail en tant que Responsable de l'activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for event creation
+        type: LongString
+
+    
+    SELF_UNREGISTER_SUBJECT:
+        content: "Notification de désinscription"
+        description: Email subject for user self unregister
+        type: ShortString
+
+    SELF_UNREGISTER_MESSAGE:
+        content: |
+            Bonjour,
+
+            '{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'encadrant d'une activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for user self unregister
+        type: LongString
+
+
+    REJECTED_REGISTRATION_SUBJECT:
+        content: "Refus d'insription à la collective {event_title}"
+        description: Email subject for rejected registration to an event
+        type: ShortString
+
+    REJECTED_REGISTRATION_MESSAGE:
+        content: |
+            Bonjour,
+
+            {rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à une collective.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for rejected registration to an event
+        type: LongString
+
+
+    CANCELLED_EVENT_SUBJECT:
+        content: "Annulation de la collective {event_title}"
+        description: Email subject for registered users when an event is cancelled
+        type: ShortString
+
+    CANCELLED_EVENT_MESSAGE:
+        content: |
+            Bonjour,
+
+            {originator_name} vient d'annuler la collective {event_title} débutant le {event_date}.
+            Vous pouvez la consulter à l'adresse ci-dessous:
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for registered users when an event is cancelled
+        type: LongString
+
+
+
+    ACTIVATED_REGISTRATION_SUBJECT:
+        content: "Participation à la collective {event_title}"
+        description: Email subject for a waiting user when his subscription is activated
+        type: ShortString
+
+    ACTIVATED_REGISTRATION_MESSAGE:
+        content: |
+            Bonjour,
+
+            Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
+            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit
+            à la collective.
+
+            Si vous ne pouvez pas participer, merci de vous désincrire au plus tôt.
+
+            Merci de vérifier si la collective nécessite un paiement de votre part:
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for a waiting user when his subscription is activated
+        type: LongString

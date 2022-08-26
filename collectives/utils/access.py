@@ -7,8 +7,9 @@ on Internet.
 See `https://docs.python.org/3.8/library/functools.html <https://docs.python.org/3.8/library/functools.html>`_
 """
 from functools import wraps
-from flask import redirect, url_for, flash, abort, current_app
+from flask import redirect, url_for, flash, abort
 import flask_login
+from ..models import Configuration
 
 
 def access_requires(f, test, api=False):
@@ -171,7 +172,7 @@ def payments_enabled(api=False):
             """
             message = "Fonctionnalité désactivée"
             return (
-                current_app.config["PAYMENTS_ENABLED"],
+                Configuration.PAYMENTS_ENABLED,
                 message,
                 url_for("event.index"),
             )

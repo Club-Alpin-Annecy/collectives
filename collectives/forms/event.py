@@ -13,7 +13,7 @@ from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultip
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..models import Event, photos
+from ..models import Event, photos, Configuration
 from ..models.event import EventStatus
 from ..models import Registration
 from ..models import ActivityType, EventType, EventTag
@@ -319,7 +319,7 @@ class EventForm(ModelForm, FlaskForm):
         """
         Populates optional online registration fields with default value and description field with event description template
         """
-        description = current_app.config["DESCRIPTION_TEMPLATE"]
+        description = Configuration.DESCRIPTION_TEMPLATE
         columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}
 
         # Remove placeholders

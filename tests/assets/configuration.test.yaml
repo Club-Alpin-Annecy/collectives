@@ -1,0 +1,48 @@
+TEST:
+    test_bool:
+        content: true
+        description: "TEST Boolean"
+        type: Boolean
+
+    test_int:
+        content: 1235
+        description: "TEST integer"
+        type: Integer
+
+    test_date:
+        content: 2022/02/03 00:02:02
+        description: "TEST date"
+        type: Date
+
+    test_float:
+        content: 5.0
+        description: "TEST Float"
+        type: Float
+
+    test_string:
+        content: "ceci est un test 2 ü éè à"
+        description: "TEST string"
+        type: ShortString
+
+    test_longstring:
+        content: |
+            On en profite pour tester l'utf-8 : ü éè à 
+
+            in Spanish, "El veloz murciélago hindú comía feliz cardillo y kiwi. La cigüeña tocaba el saxofón detrás del palenque de paja." (all 27 letters and diacritics).
+
+            in Russian, "Съешь же ещё этих мягких французских булок, да выпей чаю" (all 33 Russian Cyrillic alphabet letters).
+        description: "TEST string"
+        type: LongString
+    
+    test_hidden:
+        content: Mot de pass
+        description: "TEST string invisible"
+        hidden: true
+        type: ShortString
+
+    test_dict:
+        content: 
+          test1: ü éè à
+          test2: Lorem Ipsum
+        description: "TEST dict"
+        type: Dictionnary
