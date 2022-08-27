@@ -519,14 +519,14 @@ class PaylineApi:
 
         try:
             self.webpayment_client = SoapClient(
-                wsdl=Configuration.PAYLINE_WSDL,
+                wsdl=current_app.config["PAYLINE_WSDL"],
                 http_headers={
                     "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",
                 },
             )
             self.directpayment_client = SoapClient(
-                wsdl=Configuration.PAYLINE_DIRECTPAYMENT_WSDL,
+                wsdl=current_app.config["PAYLINE_DIRECTPAYMENT_WSDL"],
                 http_headers={
                     "Authorization": f"Basic {encoded_auth}",
                     "Content-Type": "text/plain",

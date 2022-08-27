@@ -167,6 +167,12 @@ def init_config(force=False, path="collectives/configuration.yaml"):
                 for name, config in config_item.items():
 
                     item = Configuration.get_item(name)
+
+                    if config.get("obsolete", False):
+                        if item is not None:
+                            db.session.delete(item)
+                        continue
+
                     if item is None:
                         item = ConfigurationItem(name)
                         item.content = config["content"]
