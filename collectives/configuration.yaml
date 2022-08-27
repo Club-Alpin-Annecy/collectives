@@ -33,14 +33,10 @@ Paiements:
         type: Boolean
 
     PAYLINE_WSDL:
-        content: 'collectives/utils/payline.wsdl'
-        description: Path to WDSL file describing Payline WebPayment SOAP API
-        type: ShortString
+        obsolete: true
 
     PAYLINE_DIRECTPAYMENT_WSDL:
-        content: 'collectives/utils/payline_directpayment.wsdl'
-        description: Path to WDSL file describing Payline DirectPayment SOAP API
-        type: ShortString
+        obsolete: true
 
     PAYLINE_MERCHANT_ID:
         content: ""
