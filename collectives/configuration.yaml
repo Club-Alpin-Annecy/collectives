@@ -136,6 +136,12 @@ Divers:
         type: ShortString
         hidden: true
 
+    BANNER_MESSAGE:
+        content: ""
+        description: Communication affichée sur la première page.
+        type: LongString
+
+
 Mail:
     SMTP_HOST:
         content: smtp.example.org
