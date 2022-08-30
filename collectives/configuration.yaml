@@ -138,7 +138,7 @@ Divers:
 
     BANNER_MESSAGE:
         content: ""
-        description: Communication affichée sur la première page.
+        description: Communication affichée sur la première page. MarkDown.
         type: LongString
 
 
