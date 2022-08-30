@@ -26,3 +26,4 @@ email_validator
 openpyxl
 babel
 python-dateutil
+zeep
