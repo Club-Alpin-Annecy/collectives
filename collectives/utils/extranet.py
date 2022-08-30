@@ -3,8 +3,7 @@
 from datetime import datetime, date
 from flask import current_app
 
-import pysimplesoap
-from pysimplesoap.client import SoapClient
+from zeep import Client
 
 from ..models import Gender, Configuration
 from .time import current_time
@@ -202,18 +201,11 @@ class ExtranetApi:
             current_app.logger.warning("extranet API disabled, using mock API")
             return
 
-        try:
-            soap_client = SoapClient(wsdl=config["EXTRANET_WSDL"])
-            auth_response = soap_client.auth()
-            self.auth_info = auth_response["authReturn"]
-            self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
-            self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
-            self.soap_client = soap_client
-
-        except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error(f"Extranet API error: {err}")
-            self.soap_client = None
-            raise err
+        soap_client = Client(wsdl=config["EXTRANET_WSDL"])
+        self.auth_info = soap_client.service.auth()
+        self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
+        self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
+        self.soap_client = soap_client.service
 
     def disabled(self):
         """Check if soap client has been initialized.
@@ -242,26 +234,21 @@ class ExtranetApi:
             info.renewal_date = datetime.now()
             return info
 
-        try:
-            response = self.soap_client.verifierUnAdherent(
-                connect=self.auth_info, id=license_number
-            )
-            result = response["verifierUnAdherentReturn"]
+        result = self.soap_client.verifierUnAdherent(
+            connect=self.auth_info, id=license_number
+        )
 
-            if result["existe"] == 1:
-                try:
-                    info.renewal_date = datetime.strptime(
-                        result["inscription"], "%Y-%m-%d"
-                    ).date()
-                    info.exists = True
-                except ValueError:
-                    # Date parsing as failed, this happens for exprired licenses
-                    # which return '0000-00-00' as date
-                    # In that case simply return an invalid license
-                    pass
-
-        except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error(f"Extranet API error: {err}")
+        if result["existe"] == 1:
+            try:
+                info.renewal_date = datetime.strptime(
+                    result["inscription"], "%Y-%m-%d"
+                ).date()
+                info.exists = True
+            except ValueError:
+                # Date parsing as failed, this happens for exprired licenses
+                # which return '0000-00-00' as date
+                # In that case simply return an invalid license
+                pass
 
         return info
 
@@ -285,27 +272,22 @@ class ExtranetApi:
             info.date_of_birth = date(1970, 1, 1)
             return info
 
-        try:
-            response = self.soap_client.extractionAdherent(
-                connect=self.auth_info, id=license_number
-            )
-            result = response["extractionAdherentReturn"]
+        result = self.soap_client.extractionAdherent(
+            connect=self.auth_info, id=license_number
+        )
 
-            info.first_name = result["prenom"]
-            info.last_name = result["nom"]
-            info.phone = result["portable"]
-            info.email = result["email"]
-            info.emergency_contact_name = result["accident_qui"] or "Non renseigné"
-            info.emergency_contact_phone = result["accident_tel"] or "Non renseigné"
-            info.license_category = result["categorie"]
-            info.date_of_birth = datetime.strptime(
-                result["date_naissance"], "%Y-%m-%d"
-            ).date()
-            info.qualite = result["qualite"]
-            info.is_valid = True
-
-        except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error(f"Extranet API error: {err}")
+        info.first_name = result["prenom"]
+        info.last_name = result["nom"]
+        info.phone = result["portable"]
+        info.email = result["email"]
+        info.emergency_contact_name = result["accident_qui"] or "Non renseigné"
+        info.emergency_contact_phone = result["accident_tel"] or "Non renseigné"
+        info.license_category = result["categorie"]
+        info.date_of_birth = datetime.strptime(
+            result["date_naissance"], "%Y-%m-%d"
+        ).date()
+        info.qualite = result["qualite"]
+        info.is_valid = True
 
         return info
 

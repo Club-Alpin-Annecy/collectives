@@ -29,3 +29,4 @@ babel
 python-dateutil
 phonenumbers
 xhtml2pdf
+zeep
