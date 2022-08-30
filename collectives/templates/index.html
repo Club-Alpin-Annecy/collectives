@@ -68,6 +68,14 @@
 {% endif %}
 
 <div id="eventlist" class="page-content">
+    {% if Configuration.BANNER_MESSAGE %}
+        <div id="banner-message">
+            <h5 class="heading-1">Message important</h5>
+            {{ markdown_to_html(Configuration.BANNER_MESSAGE) | safe }}
+        </div>
+    {% endif %}
+
+
     <h1 class="heading-1">
         Événements du club
     </h1>

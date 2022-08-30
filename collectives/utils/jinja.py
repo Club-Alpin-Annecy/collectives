@@ -10,6 +10,7 @@ from . import numbers
 from .misc import isMobileUser
 from .. import models
 from ..routes.auth import get_bad_phone_message
+from .render_markdown import markdown_to_html
 
 
 def helpers_processor():
@@ -25,6 +26,7 @@ def helpers_processor():
     helper_functions["models"] = models
     helper_functions["get_bad_phone_message"] = get_bad_phone_message
     helper_functions["Configuration"] = models.Configuration
+    helper_functions["markdown_to_html"] = markdown_to_html
 
     return helper_functions
 
