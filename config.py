@@ -58,6 +58,12 @@ in production.
 :type: string
 """
 
+CONFIGURATION_CACHE_TIME = 60
+""" Number of second a configuration item can be cached before requiring
+an update from DB.
+
+:type: int"""
+
 # User/password for accessing extranet API
 default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
 EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")

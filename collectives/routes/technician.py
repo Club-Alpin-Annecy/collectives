@@ -155,4 +155,6 @@ def update_configuration():
     db.session.add(item)
     db.session.commit()
 
+    Configuration.uncache(item.name)
+
     return redirect(url_for("technician.configuration"))

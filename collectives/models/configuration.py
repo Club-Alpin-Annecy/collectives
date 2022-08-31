@@ -1,8 +1,10 @@
 """Model to store flask config into sql. """
 
 import enum, json
+from threading import Lock
 from datetime import datetime
 from sqlalchemy.sql import func
+from flask import current_app
 
 from .globals import db
 
@@ -24,6 +26,9 @@ class ConfigurationTypeEnum(enum.Enum):
 class Meta(type):
     """Meta Class of Configuration to build __getattr__. Allow
     using Configuration.xxxx"""
+
+    _cache = {}
+    _lock: Lock = Lock()
 
     # pylint: disable=no-value-for-parameter
 
@@ -48,17 +53,38 @@ class Meta(type):
     def get(cls, name):
         """Get content of the named configuration item.
 
+        If it exists in cache, it will check age and returns the
+        cache if it not too old. Else, the function will retrieve
+        it.
+
         :param string name: Name of the configuration item
         :returns: the configuration item content"""
+        if name in cls._cache:
+            age = (datetime.now() - cls._cache[name]["creation"]).total_seconds()
+            if age < current_app.config["CONFIGURATION_CACHE_TIME"]:
+                return cls._cache[name]["content"]
         return cls.get_item(name).content
 
     # pylint: disable=no-self-use
     def get_item(cls, name):
         """Get the named configuration item.
 
+        It caches its content with a thread safe method.
+
         :param string name: Name of the configuration item
         :returns: the configuration item"""
-        return ConfigurationItem.query.filter_by(name=name).first()
+
+        with cls._lock:
+            item = ConfigurationItem.query.filter_by(name=name).first()
+            if item is not None:
+                cls._cache[name] = {"creation": datetime.now(), "content": item.content}
+        return item
+
+    def uncache(cls, name):
+        """Remove the configuration item from cache.
+
+        :param string name: Name of the configuration item"""
+        del cls._cache[name]
 
 
 class Configuration(metaclass=Meta):
