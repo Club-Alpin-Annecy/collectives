@@ -293,6 +293,15 @@
 
     <div id="description" class="collective-display--description">{{ event.rendered_description | safe  }}</div>
 
+    {% if event.uploaded_files | length %}
+    <div id="uploaded_files">
+      <strong>Fichier joints: </strong>
+      {% for file in event.uploaded_files %}
+        <a class="collective-display--uploaded-file-link" href="{{file.url()}}">{{file.name}} <span>({{format_bytes(file.size)}})</span></a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
     <br/>
 

@@ -16,6 +16,7 @@ from flask import Flask, current_app
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 from . import models, api, forms
 from .routes import (
@@ -32,6 +33,8 @@ from .routes import (
 )
 from .routes import activity_supervison
 from .utils import extranet, init, jinja, error, access, payline
+
+csrf = CSRFProtect()
 
 
 class ReverseProxied:
@@ -78,6 +81,7 @@ def create_app(config_filename="config"):
     profile.images.init_app(app)
     extranet.api.init_app(app)
     payline.api.init_app(app)
+    csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
     app.context_processor(jinja.helpers_processor)
 

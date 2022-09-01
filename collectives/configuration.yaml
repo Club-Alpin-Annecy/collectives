@@ -141,6 +141,10 @@ Divers:
         description: Communication affichée sur la première page. MarkDown.
         type: LongString
 
+    MAX_UPLOADS_PER_EVENT:
+        content : 5
+        description: Maximum number of file uploads per event
+        type: Integer
 
 Mail:
     SMTP_HOST:

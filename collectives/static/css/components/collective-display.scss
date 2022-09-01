@@ -34,4 +34,32 @@
     &--administration-title {
        color: $color-blue-primary-dark;
     }
+    
+    &--uploaded-file-link {
+        display: inline-block;
+        border-radius: 25px;
+        padding: 5px 15px 5px 15px;
+        background: $color-white;
+        height: 52px;
+        line-height: 40px;
+        width: -moz-fit-content;
+        width: fit-content;
+        color: $color-blue-primary-dark;
+        border: 1px solid $color-white;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-s;
+        box-sizing: border-box;
+
+        span {
+            text-decoration: none;
+            color: $color-black;
+
+        }
+
+        &:hover {
+            background: $color-white;
+            border: 1px solid $color-gray-light;
+            text-decoration: none;
+        }
+    }
 }

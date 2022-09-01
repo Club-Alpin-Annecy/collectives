@@ -2,125 +2,9 @@
 
 Markdown is mainly used in event description.
 """
-import re
-import markdown
-from markdown.preprocessors import Preprocessor
-from markdown.extensions import Extension
 
-# pylint: disable=C0301
-URI_REGEX = re.compile(
-    r'(?i)(^|^\s|[^(]\s+|[^\]]\(\s*)((?:https?:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))'
-)
-"""
- Regexp for detecting links.
-
- From https://daringfireball.net/2010/07/improved_regex_for_matching_urls
-
- :type: :py:class:`re.Pattern`
-"""
-
-BLANK_REGEX = re.compile(r"^\s*$")
-"""
-Regexp for detecting blank lines
-
-:type: :py:class:`re.Pattern`
-"""
-
-LIST_REGEX = re.compile(r"^\s*([-*+]|[0-9]+\.)\s")
-"""
-Regexp for detecting list items
-
-:type: :py:class:`re.Pattern`
-"""
-
-
-class UrifyExtension(Extension):
-    """
-    A markdown extension that adds link tags around URIs.
-    """
-
-    class Impl(Preprocessor):
-        """A preprocessor for :py:class:`UrifyExtension`"""
-
-        def run(self, lines):
-            """Takes all lines and add a link on standalone URL.
-
-            :param lines: All lines where a URL could be found.
-            :type lines: list(String)
-            :return: Lines with standalone URL replaced by markdown link.
-            :rtype: list(String)
-            """
-
-            def replace(match):
-                """Functor in charge of replacing URI regex matches
-                :param match: the matching fragments
-                :type match: :py:class: `re.Match`
-                :return: the reconstructed link string
-                """
-                href = match.group(2)
-                if len(href) < 4 or href[0:4] != "http":
-                    # Add default protocol for links like 'www.domain.com'
-                    href = "//" + href
-                return f"{match.group(1)}[{match.group(2)}]({href})"
-
-            return [URI_REGEX.sub(replace, line) for line in lines]
-
-    def extendMarkdown(self, md):
-        """Fonction that will add the :py:class:`UrifyExtension` to the Markdown
-        preprocessor.
-
-        :param md: Markdown processor object.
-        :type md: :py:class:`markdown.core.Markdown`
-        :return: Nothing
-        """
-        md.preprocessors.register(UrifyExtension.Impl(md), "urify", 10)
-
-
-class PrependBlankLineExtension(Extension):
-    """
-    A markdown extension that ensures there is a blank line before the
-    first item of each list.
-    (Otherwise markdown does not interpret it as a proper list)
-    """
-
-    class Impl(Preprocessor):
-        """A preprocessor for :py:class:`PrependBlankLineExtension`"""
-
-        def run(self, lines):
-            """Fonction that will  ensures there is a blank line before the
-            first item of each list.
-
-            :param lines: All lines where a list could be found.
-            :type lines: list(String)
-            :return: Lines with an additional blank line before lists.
-            :rtype: list(String)
-            """
-            result = []
-            was_blank = False
-            was_list = False
-            for line in lines:
-                if LIST_REGEX.match(line):
-                    if not (was_blank or was_list):
-                        # Insert a blank line before start of list
-                        result.append("\n")
-
-                    was_blank = False
-                    was_list = True
-                else:
-                    was_list = False
-                    was_blank = BLANK_REGEX.match(line)
-                result.append(line)
-            return result
-
-    def extendMarkdown(self, md):
-        """Fonction that will add the :py:class:`PrependBlankLineExtension` to the Markdown
-        preprocessor.
-
-        :param md: Markdown processor object.
-        :type md: :py:class:`markdown.core.Markdown`
-        :return: Nothing
-        """
-        md.preprocessors.register(PrependBlankLineExtension.Impl(md), "prepend", 20)
+import cmarkgfm
+from cmarkgfm.cmark import Options as cmarkgfmOptions
 
 
 def markdown_to_html(text):
@@ -132,6 +16,7 @@ def markdown_to_html(text):
     :rtype: String
 
     """
-
-    extensions = ["nl2br", UrifyExtension(), PrependBlankLineExtension()]
-    return markdown.markdown(text, extensions=extensions)
+    return cmarkgfm.github_flavored_markdown_to_html(
+        text,
+        options=cmarkgfmOptions.CMARK_OPT_SMART | cmarkgfmOptions.CMARK_OPT_HARDBREAKS,
+    )

@@ -18,6 +18,6 @@ import collectives.api.payment
 import collectives.api.models
 import collectives.api.equipment
 import collectives.api.reservation
-
+import collectives.api.upload
 
 from .common import blueprint, marshmallow

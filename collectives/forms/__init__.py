@@ -9,6 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
 from ..models import photos, avatars, imgtypeequip
+from ..models.upload import documents
 
 from .csv import CSVForm
 from .auth import LoginForm, AccountCreationForm
@@ -23,6 +24,4 @@ def configure_forms(app):
     configure_uploads(app, photos)
     configure_uploads(app, avatars)
     configure_uploads(app, imgtypeequip)
-
-    # set maximum file size, default is 3MB
-    patch_request_class(app, app.config["MAX_FILE_SIZE"])
+    configure_uploads(app, documents)
