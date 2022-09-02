@@ -84,7 +84,7 @@ class Meta(type):
         """Remove the configuration item from cache.
 
         :param string name: Name of the configuration item"""
-        del cls._cache[name]
+        cls._cache[name]["creation"] = datetime(2000, 1, 1, 0, 0, 0)
 
 
 class Configuration(metaclass=Meta):
