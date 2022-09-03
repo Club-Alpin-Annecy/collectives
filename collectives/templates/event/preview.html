@@ -1,0 +1,34 @@
+{% macro summary(event) -%}
+{{event.event_type.name}}
+{% for atype in event.activity_types %}
+    {{atype.name}}
+{% endfor %} - {{format_datetime_range(event.start, event.end)}} - {{event.num_slots}} places - <br/>
+Par  
+{% for user in event.ranked_leaders() %}
+        {{user.full_name() }}
+{% endfor %}
+-<br/> {{ event.rendered_description | striptags | truncate(100) }}
+
+{% endmacro -%}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Collectives: {{event.title}}</title>
+
+        <meta property="og:url"                content="{{url}}" />
+        <meta property="og:type"               content="website" />
+        <meta property="og:title"              content="Collectives: {{event.title}}" />
+        <meta property="og:description"        content="{{summary(event) | striptags  }}" />
+        {% if event.photo %}
+            <meta property="og:image"              content="{{ url_for('static', filename=event.photo) }}" />
+        {% else %}
+            <meta property="og:image"              content="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" />
+        {% endif %}
+
+    </head>
+    <body>
+        <h1>Collectives: {{event.title}}</h1>
+        <p><img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="" /></p>
+        <p>{{ summary(event)}}</p>
+    </body>
+</html>
