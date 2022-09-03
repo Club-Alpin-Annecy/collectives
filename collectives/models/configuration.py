@@ -59,10 +59,15 @@ class Meta(type):
 
         :param string name: Name of the configuration item
         :returns: the configuration item content"""
-        if name in cls._cache:
-            age = (datetime.now() - cls._cache[name]["creation"]).total_seconds()
+
+        with cls._lock:
+            cached_entry = cls._cache.get(name)
+
+        if cached_entry:
+            age = (datetime.now() - cached_entry["creation"]).total_seconds()
             if age < current_app.config["CONFIGURATION_CACHE_TIME"]:
-                return cls._cache[name]["content"]
+                return cached_entry["content"]
+
         return cls.get_item(name).content
 
     # pylint: disable=no-self-use
@@ -74,9 +79,9 @@ class Meta(type):
         :param string name: Name of the configuration item
         :returns: the configuration item"""
 
-        with cls._lock:
-            item = ConfigurationItem.query.filter_by(name=name).first()
-            if item is not None:
+        item = ConfigurationItem.query.filter_by(name=name).first()
+        if item is not None:
+            with cls._lock:
                 cls._cache[name] = {"creation": datetime.now(), "content": item.content}
         return item
 
@@ -84,7 +89,9 @@ class Meta(type):
         """Remove the configuration item from cache.
 
         :param string name: Name of the configuration item"""
-        cls._cache[name]["creation"] = datetime(2000, 1, 1, 0, 0, 0)
+
+        with cls._lock:
+            cls._cache[name] = None
 
 
 class Configuration(metaclass=Meta):
