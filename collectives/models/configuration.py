@@ -1,8 +1,10 @@
 """Model to store flask config into sql. """
 
 import enum, json
+from threading import Lock
 from datetime import datetime
 from sqlalchemy.sql import func
+from flask import current_app
 
 from .globals import db
 
@@ -24,6 +26,9 @@ class ConfigurationTypeEnum(enum.Enum):
 class Meta(type):
     """Meta Class of Configuration to build __getattr__. Allow
     using Configuration.xxxx"""
+
+    _cache = {}
+    _lock: Lock = Lock()
 
     # pylint: disable=no-value-for-parameter
 
@@ -48,17 +53,45 @@ class Meta(type):
     def get(cls, name):
         """Get content of the named configuration item.
 
+        If it exists in cache, it will check age and returns the
+        cache if it not too old. Else, the function will retrieve
+        it.
+
         :param string name: Name of the configuration item
         :returns: the configuration item content"""
+
+        with cls._lock:
+            cached_entry = cls._cache.get(name)
+
+        if cached_entry:
+            age = (datetime.now() - cached_entry["creation"]).total_seconds()
+            if age < current_app.config["CONFIGURATION_CACHE_TIME"]:
+                return cached_entry["content"]
+
         return cls.get_item(name).content
 
     # pylint: disable=no-self-use
     def get_item(cls, name):
         """Get the named configuration item.
 
+        It caches its content with a thread safe method.
+
         :param string name: Name of the configuration item
         :returns: the configuration item"""
-        return ConfigurationItem.query.filter_by(name=name).first()
+
+        item = ConfigurationItem.query.filter_by(name=name).first()
+        if item is not None:
+            with cls._lock:
+                cls._cache[name] = {"creation": datetime.now(), "content": item.content}
+        return item
+
+    def uncache(cls, name):
+        """Remove the configuration item from cache.
+
+        :param string name: Name of the configuration item"""
+
+        with cls._lock:
+            cls._cache[name] = None
 
 
 class Configuration(metaclass=Meta):
