@@ -13,7 +13,7 @@ from .common import blueprint, marshmallow
 from ..utils.numbers import format_currency
 
 
-def photo_uri(equipmentType):
+def photo_uri(equipment_type):
     """Generate an URI for event image using Flask-Images.
 
     Returned images are thumbnail of 200x130 px.
@@ -23,9 +23,9 @@ def photo_uri(equipmentType):
     :return: The URL to the thumbnail
     :rtype: string
     """
-    if equipmentType.pathImg is not None:
+    if equipment_type.pathImg is not None:
         return url_for(
-            "static", filename="uploads/typeEquipmentImg/" + equipmentType.pathImg
+            "static", filename="uploads/typeEquipmentImg/" + equipment_type.pathImg
         )
     return url_for("static", filename="img/icon/ionicon/md-images.svg")
 
@@ -79,7 +79,7 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
 
 @blueprint.route("/equipmentType")
-def equipmentTypes():
+def equipment_types():
     """API endpoint to list equipment types.
 
     It can be filtered using tabulator filter and sorter.
@@ -111,7 +111,7 @@ class EquipmentModelSchema(marshmallow.Schema):
 
 
 @blueprint.route("/modelsfromtype/<int:typeId>")
-def equipmentModel(typeId):
+def equipment_model(type_id):
     """API endpoint to list equipment models.
 
     It can be filtered using tabulator filter and sorter.
@@ -125,9 +125,9 @@ def equipmentModel(typeId):
     :rtype: (string, int, dict)
     """
 
-    equipmentType = EquipmentType.query.get(typeId)
-    if equipmentType is not None:
-        models = equipmentType.models
+    equipment_type = EquipmentType.query.get(type_id)
+    if equipment_type is not None:
+        models = equipment_type.models
         data = EquipmentModelSchema(many=True).dump(models)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
@@ -137,7 +137,7 @@ def equipmentModel(typeId):
 @blueprint.route(
     "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
 )
-def equipmentModelEdit(model_id, name, manufacturer):
+def equipment_model_edit(model_id, name, manufacturer):
     """
     API endpoint to edit a model.
 
@@ -160,7 +160,7 @@ def equipmentModelEdit(model_id, name, manufacturer):
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
-def equipmentModelDelete(model_id):
+def equipment_model_delete(model_id):
     """
     API endpoint to delete a model.
 

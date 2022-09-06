@@ -1,6 +1,7 @@
 """Module containing custom WTForms validators.
 
-See `WTForms documentation <https://wtforms.readthedocs.io/en/latest/validators/#custom-validators>`_
+See `WTForms documentation
+<https://wtforms.readthedocs.io/en/latest/validators/#custom-validators>`_
 """
 import re
 
@@ -32,7 +33,10 @@ class LicenseValidator:
         :rtype: boolean
         """
         if not re.match(self.pattern(), field.data):
-            error_message = f"Le numéro de licence doit contenir 12 chiffres et commencer par '{self.prefix}'"
+            error_message = (
+                f"Le numéro de licence doit contenir "
+                f"12 chiffres et commencer par '{self.prefix}'"
+            )
             raise ValidationError(error_message)
 
     def help_string(self):
@@ -59,6 +63,8 @@ class LicenseValidator:
 
 
 class PasswordValidator:
+    """Custom validator to check that password are strong enough when set."""
+
     min_length = 8
     min_classes = 3
 
@@ -87,10 +93,12 @@ class PasswordValidator:
 
         if num_classes < self.min_classes:
             raise ValidationError(
-                f"Le mot de passe doit contenir au moins {self.min_classes} classes de caractères parmi majuscules, minuscules, chiffres et caractères spéciaux"
+                f"Le mot de passe doit contenir au moins {self.min_classes} classes de "
+                "caractères parmi majuscules, minuscules, chiffres et caractères spéciaux"
             )
 
     def help_string(self):
+        """:returns: A string explaining what is accepted as a suitable password"""
         return (
             "Au moins {len} caractères dont majuscules, minuscules,"
             + " chiffres ou caractère spéciaux"
@@ -98,11 +106,14 @@ class PasswordValidator:
 
 
 class UniqueValidator(Unique):
+    """Validator to check if a license number already exists in database"""
+
     def __init__(
         self,
         column=None,
         get_session=None,
-        message="déjà associé(e) à un compte Collectives. Vous souhaitez peut-être récupérer un compte existant ?",
+        message="déjà associé(e) à un compte Collectives. Vous souhaitez "
+        "peut-être récupérer un compte existant ?",
     ):
         Unique.__init__(self, column=column, get_session=get_session, message=message)
 

@@ -1,3 +1,4 @@
+""" Module for equipment reservation forms"""
 from datetime import datetime
 from wtforms import SubmitField, HiddenField
 
@@ -7,7 +8,11 @@ from ..models.reservation import Reservation
 
 
 class ReservationForm(FlaskForm, ModelForm):
+    """Form to create an equipment reservation"""
+
     class Meta:
+        """Fields to expose"""
+
         model = Reservation
         include = ["collect_date"]
 

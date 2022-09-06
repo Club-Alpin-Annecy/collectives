@@ -8,8 +8,8 @@ other form submodules and create some configuration for all forms.
 from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
-from ..models import photos, avatars, imgtypeequip
 from ..models.upload import documents
+from ..models import photos, avatars, image_equipment_type
 
 from .csv import CSVForm
 from .auth import LoginForm, AccountCreationForm
@@ -21,7 +21,8 @@ csrf = CSRFProtect()
 
 
 def configure_forms(app):
+    """Configure forms at app startup (eg uploads)"""
     configure_uploads(app, photos)
     configure_uploads(app, avatars)
-    configure_uploads(app, imgtypeequip)
     configure_uploads(app, documents)
+    configure_uploads(app, image_equipment_type)

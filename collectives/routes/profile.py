@@ -157,8 +157,8 @@ def show_volunteer_card():
     if not exists("./collectives/static/caf/footer_attestation_benevole.png"):
         # No president signature
         flash(
-            """Impossible de générer l'attestation bénévole.
-                La signature du président n'est pas sur le serveur, merci de contacter le support.""",
+            "Impossible de générer l'attestation bénévole.<br/>"
+            "La signature du président n'est pas sur le serveur, merci de contacter le support.",
             "error",
         )
         return redirect(url_for("profile.show_user", user_id=current_user.id))

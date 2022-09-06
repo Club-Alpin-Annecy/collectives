@@ -1,12 +1,15 @@
 """Module containing forms related to equipment management
 """
 from datetime import datetime
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
 from flask_wtf.file import FileField, FileAllowed
+
+from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
-from collectives.utils.numbers import FlexibleDecimalField
+
+from ..utils.numbers import FlexibleDecimalField
 from .validators import UniqueValidator
 from ..models import Equipment, EquipmentType, EquipmentModel, photos, db
 
@@ -49,6 +52,8 @@ class EquipmentModelForm(FlaskForm, ModelForm):
     """Form for adding an equipment model, specifying its name and type"""
 
     class Meta:
+        """Fields to expose"""
+
         model = EquipmentModel
         only = ["name", "equipment_type_id", "manufacturer"]
 
@@ -59,6 +64,8 @@ class EquipmentForm(FlaskForm):
     """Form for adding an equipment, specifying its reference, model, purchase date and price"""
 
     class Meta:
+        """Fields to expose"""
+
         model = Equipment
         only = ["reference", "purchase"]
 

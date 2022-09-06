@@ -35,7 +35,7 @@ def deepgetattr(obj, attr, default=NoDefault()):
         raise exception
 
 
-def isMobileUser():
+def is_mobile_user():
     """Read browser user agent from the request and return True if a mobile
     browser is detected
     """

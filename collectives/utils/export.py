@@ -13,9 +13,9 @@ def export_roles(roles):
     :returns: The excel with all info
     :rtype: :py:class:`io.BytesIO`
     """
-    wb = Workbook()
-    ws = wb.active
-    FIELDS = {
+    workbook = Workbook()
+    worksheet = workbook.active
+    fields = {
         "user.license": "Licence",
         "user.first_name": "Prénom",
         "user.last_name": "Nom",
@@ -24,17 +24,17 @@ def export_roles(roles):
         "activity_type.name": "Activité",
         "name": "Role",
     }
-    ws.append(list(FIELDS.values()))
+    worksheet.append(list(fields.values()))
 
     for role in roles:
-        ws.append([deepgetattr(role, field, "-") for field in FIELDS])
+        worksheet.append([deepgetattr(role, field, "-") for field in fields])
 
     # set column width
-    for i in range(ord("A"), ord("A") + len(FIELDS)):
-        ws.column_dimensions[chr(i)].width = 25
+    for i in range(ord("A"), ord("A") + len(fields)):
+        worksheet.column_dimensions[chr(i)].width = 25
 
     out = BytesIO()
-    wb.save(out)
+    workbook.save(out)
     out.seek(0)
 
     return out

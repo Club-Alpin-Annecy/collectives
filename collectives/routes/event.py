@@ -121,7 +121,9 @@ def validate_dates_and_slots(event):
     if event.num_online_slots > 0 or event.num_waiting_list > 0:
         if not event.has_defined_registration_date():
             flash(
-                "Les date de début ou fin d'ouverture ou de fermeture d'inscription ne peuvent être nulles si les inscriptions par Internet (et/ou la liste d'attente) sont activées."
+                "Les date de début ou fin d'ouverture ou de fermeture d'inscription ne peuvent "
+                "être nulles si les inscriptions par Internet (et/ou la liste d'attente) "
+                "sont activées."
             )
             valid = False
         else:
@@ -275,6 +277,7 @@ def print_event(event_id):
     )
 
 
+# pylint: disable=too-many-locals,too-many-statements
 @blueprint.route("/add", methods=["GET", "POST"])
 @blueprint.route("/<int:event_id>/edit", methods=["GET", "POST"])
 @valid_user()
@@ -445,7 +448,8 @@ def manage_event(event_id=None):
             leader_registrations = event.existing_registrations(leader)
             if any(leader_registrations):
                 flash(
-                    f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été ajouté(e) comme encadrant(e)."
+                    f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été "
+                    "ajouté(e) comme encadrant(e)."
                 )
             for registration in leader_registrations:
                 event.registrations.remove(registration)
@@ -499,6 +503,9 @@ def manage_event(event_id=None):
             send_cancelled_event_notification(current_user.full_name(), event)
 
     return redirect(url_for("event.view_event", event_id=event.id))
+
+
+# pylint: enable=too-many-locals,too-many-statements
 
 
 @blueprint.route("/<int:event_id>/duplicate", methods=["GET"])
@@ -636,9 +643,12 @@ def select_payment_item(event_id):
 
         # Find associated registration which is pending payment but
         # with no currently unsettled payments
-        for r in event.existing_registrations(current_user):
-            if r.is_pending_payment() and not r.unsettled_payments():
-                registration = r
+        for existing_registration in event.existing_registrations(current_user):
+            if (
+                existing_registration.is_pending_payment()
+                and not registration.unsettled_payments()
+            ):
+                registration = existing_registration
                 break
         if not registration:
             flash("Vous n'avez pas de paiement en attente", "error")
@@ -715,12 +725,15 @@ def register_user(event_id):
 
             if not user.check_license_valid_at_time(event.end):
                 flash(
-                    "La licence de l'utilisateur va expirer avant la fin de l'événement, son inscription ne sera confirmée qu'après renouvellement"
+                    "La licence de l'utilisateur va expirer avant la fin de l'événement, son "
+                    "inscription ne sera confirmée qu'après renouvellement"
                 )
 
             if payment_required and registration.status != RegistrationStatus.Active:
                 flash(
-                    f"La collective est payante: l'inscription de {user.full_name()} ne sera définitive qu'après qu'il/elle aie payé en ligne, ou après saisie manuelle des informations de paiement en bas de page."
+                    f"La collective est payante: l'inscription de {user.full_name()} ne sera "
+                    "définitive qu'après qu'il/elle aie payé en ligne, ou après saisie "
+                    "manuelle des informations de paiement en bas de page."
                 )
                 registration.status = RegistrationStatus.PaymentPending
             else:
@@ -795,7 +808,8 @@ def change_registration_level(reg_id, reg_level):
     if level == RegistrationLevels.CoLeader:
         if not registration.event.can_be_coleader(registration.user):
             flash(
-                "L'utilisateur n'est pas encadrant en formation. Merci de vous rapprocher du responsable d'activité",
+                "L'utilisateur n'est pas encadrant en formation. Merci de vous rapprocher du "
+                "responsable d'activité",
                 "error",
             )
             return redirect(url_for("event.view_event", event_id=registration.event.id))
@@ -897,7 +911,8 @@ def update_attendance(event_id):
 
             if new_status not in registration.valid_transitions():
                 flash(
-                    f"Transition impossible de {registration.status.display_name()} vers {new_status.display_name} pour {registration.user.full_name()}.",
+                    f"Transition impossible de {registration.status.display_name()} vers "
+                    f"{new_status.display_name} pour {registration.user.full_name()}.",
                     "warning",
                 )
                 continue

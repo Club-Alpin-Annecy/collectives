@@ -35,7 +35,8 @@ def before_request():
     Protection is done by the decorator:
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+      :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
 
@@ -62,7 +63,8 @@ def add_leader():
         role.activity_id,
     ):
         flash(
-            "L'utilisateur a déjà un rôle pour cette activité. Vous devez le supprimer avant de pouvoir en ajouter un sur la même activité.",
+            "L'utilisateur a déjà un rôle pour cette activité. Vous devez le supprimer avant "
+            "de pouvoir en ajouter un sur la même activité.",
             "error",
         )
         return redirect(url_for(".leader_list"))

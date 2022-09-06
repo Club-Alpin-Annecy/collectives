@@ -16,6 +16,8 @@ from .validators import remove_unique_validators
 
 
 class LoginForm(FlaskForm):
+    """Form to log a user ."""
+
     mail = StringField("Email", validators=[DataRequired()], filters=[strip_string])
     password = PasswordField("Mot de passe", validators=[DataRequired()])
     remember_me = BooleanField("Se souvenir de la connexion")
@@ -23,7 +25,11 @@ class LoginForm(FlaskForm):
 
 
 class AccountCreationForm(ModelForm, OrderedForm):
+    """Form to create an account fro extranet"""
+
     class Meta:
+        """Fields to expose"""
+
         model = User
         only = ["mail", "license", "date_of_birth"]
         unique_validator = UniqueValidator
@@ -47,6 +53,9 @@ class AccountCreationForm(ModelForm, OrderedForm):
     submit = SubmitField("Activer le compte")
 
     def __init__(self, is_recover, *args, **kwargs):
+        """Constructor to specialize the form regarding if it is a creation or a recover.
+
+        :param bool is_recover: True if form is for a password recover, False for a creation"""
         super().__init__(*args, **kwargs)
 
         if is_recover:
@@ -57,6 +66,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
 
 
 class PasswordResetForm(FlaskForm):
+    """Form for a user to set or reset his password."""
 
     password = PasswordField(
         label="Choisissez un mot de passe",
@@ -76,6 +86,8 @@ class PasswordResetForm(FlaskForm):
 
 
 class LegalAcceptation(FlaskForm):
+    """Form to accept or reject the legal terms of the site"""
+
     legal_accepted = BooleanField(
         Markup(
             """
@@ -93,6 +105,8 @@ class LegalAcceptation(FlaskForm):
 
 
 class AccountActivationForm(PasswordResetForm, LegalAcceptation):
+    """Final form merging password (re)set and legal acceptance."""
+
     pass
 
 

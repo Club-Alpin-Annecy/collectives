@@ -1,8 +1,9 @@
 """ Module for user authentification routes. """
 
-import datetime, traceback
+import datetime
+import traceback
 
-from flask import flash, render_template, redirect, url_for, request, Markup, escape
+from flask import flash, render_template, redirect, url_for, request, escape
 from flask import current_app, Blueprint, Markup
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
@@ -72,8 +73,10 @@ def sync_user(user, force):
                 extranet.sync_user(user, user_info, license_info)
                 db.session.add(user)
                 db.session.commit()
+        # pylint: disable=broad-except
         except Exception:
             traceback.print_exc()
+        # pylint: enable=broad-except
 
 
 def create_confirmation_token(license_number, user):
@@ -220,7 +223,8 @@ def process_confirmation(token_uuid):
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
         flash(
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte.",
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir "
+            "créer ou récupérer votre compte.",
             "error",
         )
         return render_confirmation_form(form, is_recover)
@@ -319,7 +323,10 @@ def signup():
         # Check that a single existing account is matching the
         # provided identifiers
         if num_existing_users > 1:
-            form.generic_error = "Identifiant ambigus: plusieurs comptes peuvent correspondre. Veuillez contacter le support."
+            form.generic_error = (
+                "Identifiant ambigus: plusieurs comptes peuvent correspondre. "
+                "Veuillez contacter le support."
+            )
             return render_signup_form(form, is_recover)
         if num_existing_users == 0:
             form.error_must_activate = True
@@ -331,14 +338,17 @@ def signup():
     license_number = form.license.data
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
-        form.generic_error = "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir créer ou récupérer votre compte."
+        form.generic_error = (
+            "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
+            "de pouvoir créer ou récupérer votre compte."
+        )
         return render_signup_form(form, is_recover)
 
     user_info = extranet.api.fetch_user_info(license_number)
 
     if user_info.email == None:
-        form.generic_error = """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au club.
-            Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
+        form.generic_error = """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
+            club. Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
             fait, vous pourrez alors activer votre compte"""
         return render_signup_form(form, is_recover)
@@ -347,7 +357,10 @@ def signup():
         user.date_of_birth != user_info.date_of_birth
         or user.mail.lower() != user_info.email.lower()
     ):
-        form.generic_error = "L'e-mail et/ou la date de naissance ne correspondent pas au numéro de licence."
+        form.generic_error = (
+            "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
+            "de licence."
+        )
         return render_signup_form(form, is_recover)
 
     # User-provided info is correct,

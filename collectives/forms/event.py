@@ -27,8 +27,8 @@ from ..utils.numbers import format_currency
 def available_leaders(leaders, activity_ids):
     """Creates a list of leaders that can be added to an event.
 
-    Available leaders are users that have 'event creator' roles (EventLeader, ActivitySupervisor, etc),
-    are not in the list of current leaders, and, if `activity_ids` is not empty, can lead
+    Available leaders are users that have 'event creator' roles (EventLeader, ActivitySupervisor,
+    etc), are not in the list of current leaders, and, if `activity_ids` is not empty, can lead
     any of the corresponding activities.
 
     :param leaders: list of current leaders
@@ -59,7 +59,8 @@ def available_event_types(source_event_type, leaders):
 
      - All existing event types if the current user is a moderator
      - All existing event types if any of the current leaders can lead at least one activity
-     - All event types that do not require an activity in other cases, plus the source event type if provided
+     - All event types that do not require an activity in other cases, plus the source event
+       type if provided
 
     :param source_event_type: Event type to unconditionally include
     :type source_event_type: :py:class:`collectives.models.eventtype.EventType`
@@ -94,7 +95,8 @@ def available_activities(activities, leaders, union):
     :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
     :param leaders: list of leader used to build activity list.
     :type leaders: list[:py:class:`collectives.models.user.User`]
-    :param union: If true, return the union all activities that can be led, otherwise returns the intersection
+    :param union: If true, return the union all activities that can be led, otherwise returns
+                  the intersection
     :type union: bool
     :return: List of authorized activities
     :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
@@ -120,7 +122,11 @@ def available_activities(activities, leaders, union):
 
 
 class RegistrationForm(ModelForm, FlaskForm):
+    """Form for a leader to register an user to an event"""
+
     class Meta:
+        """Fields to expose"""
+
         model = Registration
         exclude = ["status", "level"]
 
@@ -144,12 +150,18 @@ class LeaderAction:
 
 
 class LeaderActionForm(FlaskForm):
+    """Form to remove a leader from the event."""
+
     leader_id = HiddenField()
     delete = SubmitField("Supprimer")
 
 
 class EventForm(ModelForm, FlaskForm):
+    """Form to create or modify an event."""
+
     class Meta:
+        """Fields to expose"""
+
         model = Event
         exclude = ["photo"]
 
@@ -272,8 +284,8 @@ class EventForm(ModelForm, FlaskForm):
             ]
 
         self.main_leader_id.choices = []
-        for l in self.current_leaders:
-            self.main_leader_id.choices.append((l.id, "Responsable"))
+        for leader in self.current_leaders:
+            self.main_leader_id.choices.append((leader.id, "Responsable"))
 
         if self.main_leader_id.raw_data is None:
             if self.source_event is None or self.source_event.main_leader_id is None:
@@ -292,7 +304,8 @@ class EventForm(ModelForm, FlaskForm):
 
     def current_event_type(self):
         """
-        :return: The currently selected event type, of the first available if none has been elected yet
+        :return: The currently selected event type, of the first available if none has been
+                 elected yet
         :rtype: :py:class:`collectives.models.eventtype.EventType`
         """
         if self.event_type_id.data:
@@ -323,8 +336,8 @@ class EventForm(ModelForm, FlaskForm):
             self.leader_actions.append_entry(action_form)
 
     def set_default_values(self):
-        """
-        Populates optional online registration fields with default value and description field with event description template
+        """Populates optional online registration fields with default value and description field
+        with event description template
         """
         description = Configuration.DESCRIPTION_TEMPLATE
         columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}
@@ -457,7 +470,10 @@ class PriceDateInterval:
             return ""
 
         if self.end:
-            return f"{format_date_range(self.start, self.end, False)}: {format_currency(self.amount)}"
+            return (
+                f"{format_date_range(self.start, self.end, False)}: "
+                f"{format_currency(self.amount)}"
+            )
         return f"à partir du {format_date(self.start)}: {format_currency(self.amount)}"
 
 
@@ -481,20 +497,20 @@ def generate_price_intervals(item, user):
     boundaries = set()
     current_date = current_time().date()
     boundaries.add(current_date)
-    for p in all_prices:
-        if p.end_date and p.end_date >= current_date:
-            boundaries.add(p.end_date + timedelta(1))
-        if p.start_date and p.start_date > current_date:
-            boundaries.add(p.start_date)
+    for price in all_prices:
+        if price.end_date and price.end_date >= current_date:
+            boundaries.add(price.end_date + timedelta(1))
+        if price.start_date and price.start_date > current_date:
+            boundaries.add(price.start_date)
 
     # Sort boundaries, generate intervals
     boundaries = sorted(list(boundaries))
 
     intervals = []
     current_start = boundaries[0]
-    for b in boundaries[1:]:
-        intervals.append(PriceDateInterval(current_start, b - timedelta(1)))
-        current_start = b
+    for boundary in boundaries[1:]:
+        intervals.append(PriceDateInterval(current_start, boundary - timedelta(1)))
+        current_start = boundary
     intervals.append(PriceDateInterval(current_start, None))
 
     # Merge intervals with same price
@@ -502,12 +518,12 @@ def generate_price_intervals(item, user):
     current_start = None
     current_end = None
     current_amount = None
-    for iv in intervals:
-        price = item.cheapest_price_for_user_at_date(user, iv.start)
+    for interval in intervals:
+        price = item.cheapest_price_for_user_at_date(user, interval.start)
         amount = price.amount if price else None
         if amount == current_amount:
             # Same price, extend current interval
-            current_end = iv.end
+            current_end = interval.end
         else:
             # Price change, start a new interval
             if current_amount is not None:
@@ -518,8 +534,8 @@ def generate_price_intervals(item, user):
                         current_amount,
                     )
                 )
-            current_start = iv.start
-            current_end = iv.end
+            current_start = interval.start
+            current_end = interval.end
             current_amount = amount
 
     if current_amount is not None:

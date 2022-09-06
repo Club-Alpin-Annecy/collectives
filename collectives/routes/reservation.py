@@ -7,7 +7,6 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 from wtforms import IntegerField
-from collectives.models.equipment import Equipment
 from collectives.models.user import User
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 from collectives.models.equipment import Equipment, EquipmentType
@@ -41,7 +40,8 @@ def before_request():
     Protection is done by the decorator:
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+      :py:func:`collectives.utils.access.confidentiality_agreement`
     - check if user is allowed to manage reservation :py:func:`collectives.utils.access.user_is`
     """
     pass
@@ -96,11 +96,11 @@ def view_reservation(reservation_id=None):
         if form_add.validate_on_submit():
             equipment = Equipment.query.get(form_add.add_equipment.data)
             if equipment:
-                reservationLine = reservation.get_line_of_type(
+                reservation_line = reservation.get_line_of_type(
                     equipment.model.equipmentType
                 )
-                if reservationLine:
-                    reservationLine.add_equipment(equipment)
+                if reservation_line:
+                    reservation_line.add_equipment(equipment)
                     db.session.commit()
                 return redirect(
                     url_for(".view_reservation", reservation_id=reservation_id)
@@ -179,33 +179,33 @@ def cancel_rental(reservation_id=None):
 
 @user_is("can_manage_reservation")
 @blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])
-def view_reservationLine(reservationLine_id):
+def view_reservation_line(reservation_line_id):
     """
     Show a reservation line
     """
-    reservationLine = ReservationLine.query.get(reservationLine_id)
-    if reservationLine.reservation.status == ReservationStatus.Planned:
+    reservation_line = ReservationLine.query.get(reservation_line_id)
+    if reservation_line.reservation.status == ReservationStatus.Planned:
         form = AddEquipmentInReservationForm()
         if form.validate_on_submit():
             equipment = Equipment.query.get(form.add_equipment.data)
-            reservationLine.add_equipment(equipment)
+            reservation_line.add_equipment(equipment)
             db.session.commit()
             return redirect(
-                url_for(".view_reservationLine", reservationLine_id=reservationLine_id)
+                url_for(".view_reservationLine", reservationLine_id=reservation_line_id)
             )
         return render_template(
             "reservation/reservationLine_planned.html",
-            reservationLine=reservationLine,
+            reservationLine=reservation_line,
             form=form,
         )
-    if reservationLine.reservation.status == ReservationStatus.Ongoing:
+    if reservation_line.reservation.status == ReservationStatus.Ongoing:
         return render_template(
-            "reservation/reservationLine_ongoing.html", reservationLine=reservationLine
+            "reservation/reservationLine_ongoing.html", reservationLine=reservation_line
         )
 
     return render_template(
         "reservation/reservationLine_completed.html",
-        reservationLine=reservationLine,
+        reservationLine=reservation_line,
     )
 
 
@@ -239,9 +239,9 @@ def register(event_id=None, role_id=None):
 
     event = Event.query.get(event_id)
 
-    for e in EquipmentType.query.all():
-        field = IntegerField(f"{e.name}", default=0)
-        setattr(LeaderReservationForm, f"field{e.id}", field)
+    for equipment in EquipmentType.query.all():
+        field = IntegerField(f"{equipment.name}", default=0)
+        setattr(LeaderReservationForm, f"field{equipment.id}", field)
 
     form = LeaderReservationForm(event=event)
 
@@ -257,11 +257,12 @@ def register(event_id=None, role_id=None):
         reservation = Reservation()
         has_equipment = False
         has_too_many = False
-        for e in EquipmentType.query.all():
-            quantity = getattr(form, f"field{e.id}").data
-            if quantity > e.nb_total_available():
+        for equipment in EquipmentType.query.all():
+            quantity = getattr(form, f"field{equipment.id}").data
+            if quantity > equipment.nb_total_available():
                 flash(
-                    f"Vous ne pouvez pas réserver {quantity} {e.name}, {e.format_availability()}",
+                    f"Vous ne pouvez pas réserver {quantity} {equipment.name},"
+                    f"{equipment.format_availability()}",
                     "error",
                 )
                 has_too_many = True
@@ -273,7 +274,7 @@ def register(event_id=None, role_id=None):
             resa_line = ReservationLine()
             resa_line.reservation_id = reservation.id
             resa_line.quantity = quantity
-            resa_line.equipment_type_id = e.id
+            resa_line.equipment_type_id = equipment.id
             reservation.lines.append(resa_line)
 
         # Message user if they didn't reserved any equipment

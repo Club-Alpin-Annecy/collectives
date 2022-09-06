@@ -40,7 +40,8 @@ def fill_from_csv(event, row, template):
         event.num_online_slots = parse(row, "places_internet")
         if event.num_online_slots > event.num_slots:
             raise Exception(
-                "Le nombre de places par internet doit être inférieur au nombre de places de la collective"
+                "Le nombre de places par internet doit être inférieur au nombre de places de "
+                "la collective"
             )
         if row["debut_internet"] != None and row["debut_internet"].strip():
             event.registration_open_time = parse(row, "debut_internet")
@@ -76,7 +77,8 @@ def fill_from_csv(event, row, template):
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
         raise Exception(
-            f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a pas encore créé de compte"
+            f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
+            "pas encore créé de compte"
         )
 
     # Check if event already exists in same activity
@@ -84,7 +86,8 @@ def fill_from_csv(event, row, template):
         main_leader_id=leader.id, title=event.title, start=event.start
     ).first():
         raise Exception(
-            f"La collective {event.title} démarrant le {format_date(event.start)} et encadrée par {row['nom_encadrant']} existe déjà."
+            f"La collective {event.title} démarrant le {format_date(event.start)} et encadrée "
+            f"par {row['nom_encadrant']} existe déjà."
         )
 
     event.leaders = [leader]
@@ -122,7 +125,8 @@ def parse(row, column_name):
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
         except ValueError as err:
             raise Exception(
-                f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
+                f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le "
+                "bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
             ) from err
     elif column_type == "int":
         if value_str:
@@ -130,7 +134,8 @@ def parse(row, column_name):
                 return int(value_str)
             except ValueError as err:
                 raise Exception(
-                    f"La valeur '{value_str}' de la colonne '{column_name}' doit être un nombre entier"
+                    f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
+                    "nombre entier"
                 ) from err
 
     return value_str
@@ -194,8 +199,10 @@ def csv_to_events(stream, description):
         try:
             fill_from_csv(event, row, description)
             events.append(event)
-        except Exception as e:
+        # pylint: disable=broad-except
+        except Exception as ex:
             failed.append(
-                f"Impossible d'importer la ligne {processed+1}: [{type(e).__name__}] {str(e)}"
+                f"Impossible d'importer la ligne {processed+1}: [{type(ex).__name__}] {str(ex)}"
             )
+        # pylint: enable=broad-except
     return events, processed, failed

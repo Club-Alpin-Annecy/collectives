@@ -18,7 +18,8 @@ from ..email_templates import send_confirmation_email
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 """ Administration blueprint
 
-This blueprint contains all routes for administration. It is reserved to administrator with :py:func:`before_request`.
+This blueprint contains all routes for administration. It is reserved to administrator
+with :py:func:`before_request`.
 """
 
 
@@ -33,7 +34,8 @@ def before_request():
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
     - check if user is an admin :py:func:`collectives.utils.access.admin_required`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+      :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
 
@@ -327,7 +329,8 @@ def generate_token():
     user_info = extranet.api.fetch_user_info(license_number)
     if user_info.email == None:
         flash(
-            "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de créer un compte",
+            "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de "
+            "créer un compte",
             "error",
         )
         return redirect(url_for(".administration"))

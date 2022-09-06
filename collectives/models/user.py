@@ -30,6 +30,7 @@ avatars = UploadSet("avatars", IMAGES)
 class Gender(ChoiceEnum):
     """Enum to store User gender"""
 
+    # pylint: disable=invalid-name
     Unknown = 0
     """Default gender if not known """
     Woman = 1
@@ -38,6 +39,7 @@ class Gender(ChoiceEnum):
     """Man gender"""
     Other = 3
     """Other gender"""
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -56,6 +58,7 @@ class Gender(ChoiceEnum):
 
 
 # Models
+# pylint: disable=too-many-public-methods
 class User(db.Model, UserMixin):
     """Class to manage user.
 
@@ -576,7 +579,8 @@ class User(db.Model, UserMixin):
     def can_read_other_users(self):
         """Check if user can see another user profile.
 
-        Only users with roles and which have sign confidentiality agreement can look other users profiles.
+        Only users with roles and which have sign confidentiality agreement can look other users
+        profiles.
 
         :return: True if user is authorized to see other profiles.
         :rtype: boolean
@@ -624,7 +628,8 @@ class User(db.Model, UserMixin):
 
     def can_lead_on(self, start, end, excluded_event_id=None) -> bool:
         """Check if user is already leading an event on a specified timespan.
-        The check only considers events that require an activity (e.g 'Collectives' but not 'Soirées')
+        The check only considers events that require an activity (e.g 'Collectives'
+        but not 'Soirées')
 
         :param start: Start of the timespan
         :type start: :py:class:`datetime.datetime`
@@ -648,8 +653,9 @@ class User(db.Model, UserMixin):
         return not any(event.is_confirmed() for event in events)
 
     def can_register_on(self, start, end, excluded_event_id=None) -> bool:
-        """Check if user is already registered to an event on a specified timespan
-        The check only considers events that require an activity (e.g 'Collectives' but not 'Soirées')
+        """Check if user is already registered to an event on a specified timespan.
+        The check only considers events that require an activity (e.g 'Collectives'
+        but not 'Soirées')
 
         :param start: Start of the timespan
         :type start: :py:class:`datetime.datetime`
@@ -717,12 +723,12 @@ class User(db.Model, UserMixin):
         :rtype: list(:py:class:`collectives.models.reservation.reservations`)
         """
         reservation_list = []
-        for aReservation in self.reservations:
-            if aReservation.status in (
+        for reservation in self.reservations:
+            if reservation.status in (
                 ReservationStatus.Planned,
                 ReservationStatus.Ongoing,
             ):
-                reservation_list.append(aReservation)
+                reservation_list.append(reservation)
         return reservation_list
 
     def get_reservations_completed(self):
@@ -731,9 +737,9 @@ class User(db.Model, UserMixin):
         :rtype: list(:py:class:`collectives.models.reservation.reservations`)
         """
         reservation_list = []
-        for aReservation in self.reservations:
-            if aReservation.status == ReservationStatus.Completed:
-                reservation_list.append(aReservation)
+        for reservation in self.reservations:
+            if reservation.status == ReservationStatus.Completed:
+                reservation_list.append(reservation)
         return reservation_list
 
     @property

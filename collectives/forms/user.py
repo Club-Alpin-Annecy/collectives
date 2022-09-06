@@ -50,6 +50,8 @@ class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     """Form for admins to edit test users info"""
 
     class Meta:
+        """Fields to expose"""
+
         model = User
         # Avatar is selected/modified by another field
         exclude = ["avatar", "license_expiry_date", "last_extranet_sync_time"]
@@ -75,6 +77,8 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
     """Form for admins to edit real users info"""
 
     class Meta:
+        """Fields to expose"""
+
         model = User
         # User should not be able to change a protected parameter
         only = ["enabled"]
@@ -92,6 +96,8 @@ class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
     """Form for users to edit their own info"""
 
     class Meta:
+        """Fields to expose"""
+
         model = User
         # User should not be able to change a protected parameter
         only = ["password"]
@@ -110,6 +116,8 @@ class RoleForm(ModelForm, FlaskForm):
     """Form for administrators to add roles to users"""
 
     class Meta:
+        """Fields to expose"""
+
         model = Role
 
     activity_type_id = SelectField("Activité", choices=[], coerce=int)

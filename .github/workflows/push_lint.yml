@@ -22,7 +22,7 @@ jobs:
         pip install -r requirements-tools.txt
     - name: Lint with pylint
       run: |
-        pylint *.py collectives/*.py collectives/*/*.py
+        pylint config.py collectives/*.py collectives/*/*.py
 
     - name: Format with black
       run: |

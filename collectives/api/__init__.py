@@ -1,7 +1,9 @@
 """API of ``collectives`` website.
 
 This is a very simple API meant to be used with Ajax frontend, mainly
-`Tabulator <http://tabulator.info/>`_ . It offers ``GET`` endpoint to serve various tables dynamically.
+`Tabulator <http://tabulator.info/>`_ . It offers ``GET`` endpoint to
+serve various tables dynamically.
+
 But it could be extended to ``POST`` and ``DELETE`` request later.
 This module is initialized by the application factory, and contains the
 ``/api`` blueprint.

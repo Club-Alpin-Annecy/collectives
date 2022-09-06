@@ -37,6 +37,7 @@ def send_new_event_notification(event):
         mail.send_mail(
             subject=Configuration.NEW_EVENT_SUBJECT, email=emails, message=message
         )
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
 
@@ -66,6 +67,7 @@ def send_unregister_notification(event, user):
             email=leader_emails,
             message=message,
         )
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
 
@@ -92,8 +94,8 @@ def send_confirmation_email(email, name, token):
     )
 
     @wraps(token)
-    # pylint: disable=W0613
-    def has_failed(e):
+    # pylint: disable=unused-argument
+    def has_failed(ex):
         """Mark and register this token as failed.
 
         :param e: current exceptions
@@ -150,6 +152,7 @@ def send_reject_subscription_notification(rejector_name, event, rejected_user_em
             email=rejected_user_email,
             message=message,
         )
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
 
@@ -181,6 +184,7 @@ def send_cancelled_event_notification(name, event):
                 email=emails,
                 message=message,
             )
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
 
@@ -211,5 +215,6 @@ def send_update_waiting_list_notification(registration):
             email=registration.user.mail,
             message=message,
         )
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")

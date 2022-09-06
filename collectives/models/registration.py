@@ -4,11 +4,12 @@ import enum
 from .globals import db
 from .utils import ChoiceEnum
 
-
+# pylint: disable=invalid-name
 class RegistrationLevels(enum.IntEnum):
     """Enum listing acceptable registration levels.
 
-    A registration level is type of event participant, such as a co-leader or a regular participant."""
+    A registration level is type of event participant, such as a co-leader or a regular
+    participant."""
 
     Normal = 0
     """ Normal participant, no specific power. """
@@ -44,10 +45,12 @@ class RegistrationStatus(ChoiceEnum):
     """ User has been absent to the event, but not excused by the leader. """
 
     ToBeDeleted = 99999
-    """ Registration should be deleted. This is not a valid SQL enum entry and should only be used as a temporary marker"""
+    """ Registration should be deleted. This is not a valid SQL enum entry and should only be used
+    as a temporary marker"""
 
     Waiting = 6
     """ User is in waiting list. """
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -125,7 +128,8 @@ class Registration(db.Model):
     :type: int"""
 
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
-    """ Primary key of the event to which the user is registered (see  :py:class:`collectives.models.event.Event`)
+    """ Primary key of the event to which the user is registered (see
+        :py:class:`collectives.models.event.Event`)
 
     :type: int"""
 

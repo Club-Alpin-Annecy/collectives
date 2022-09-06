@@ -35,14 +35,14 @@ class AutocompleteUserSchema(marshmallow.Schema):
         )
 
 
-def find_users_by_fuzzy_name(q, limit=8):
+def find_users_by_fuzzy_name(pattern, limit=8):
     """Find user for autocomplete from a part of their full name.
 
     Comparison are case insensitive.
 
-    :param string q: Part of the name that will be searched.
+    :param string pattern: Part of the name that will be searched.
     :param int limit: Maximum number of response.
-    :return: List of users corresponding to ``q``
+    :return: List of users corresponding to ``pattern``
     :rtype: list(:py:class:`collectives.models.user.User`)
     """
     if db.session.bind.dialect.name == "sqlite":
@@ -51,13 +51,16 @@ def find_users_by_fuzzy_name(q, limit=8):
     else:
         concat_clause = "CONCAT(first_name, ' ', last_name)"
 
-    sql = f"SELECT id, first_name, last_name from users WHERE LOWER({concat_clause}) LIKE :pattern LIMIT :limit"
+    sql = (
+        f"SELECT id, first_name, last_name from users WHERE "
+        f"LOWER({concat_clause}) LIKE :pattern LIMIT :limit"
+    )
 
-    pattern = f"%{q.lower()}%"
+    sql_pattern = f"%{pattern.lower()}%"
     found_users = (
         db.session.query(User)
         .from_statement(text(sql))
-        .params(pattern=pattern, limit=limit)
+        .params(pattern=sql_pattern, limit=limit)
     )
 
     return found_users
@@ -83,12 +86,12 @@ def autocomplete_users_create_rental():
     # if not current_user.can_create_events():
     #     abort(403)
 
-    q = request.args.get("q")
-    if q is None or (len(q) < 2):
+    pattern = request.args.get("q")
+    if pattern is None or (len(pattern) < 2):
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8
-        found_users = find_users_by_fuzzy_name(q, limit)
+        found_users = find_users_by_fuzzy_name(pattern, limit)
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
     return content, 200, {"content-type": "application/json"}
@@ -114,12 +117,12 @@ def autocomplete_users():
     if not current_user.can_create_events():
         abort(403)
 
-    q = request.args.get("q")
-    if q is None or (len(q) < 2):
+    pattern = request.args.get("q")
+    if pattern is None or (len(pattern) < 2):
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8
-        found_users = find_users_by_fuzzy_name(q, limit)
+        found_users = find_users_by_fuzzy_name(pattern, limit)
 
     content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
     return content, 200, {"content-type": "application/json"}
@@ -141,14 +144,16 @@ def autocomplete_leaders():
     :rtype: (string, int, dict)
     """
 
-    q = request.args.get("q").lower()
-    if q is None or (len(q) < 2):
+    pattern = request.args.get("q").lower()
+    if pattern is None or (len(pattern) < 2):
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8
 
         query = db.session.query(User)
-        condition = func.lower(User.first_name + " " + User.last_name).like(f"%{q}%")
+        condition = func.lower(User.first_name + " " + User.last_name).like(
+            f"%{pattern}%"
+        )
         query = query.filter(condition)
         query = query.filter(User.led_events)
         found_users = query.order_by(User.id).all()
@@ -167,7 +172,8 @@ def autocomplete_available_leaders():
 
     :param string q: Search string.
     :param int l: Maximum number of returned items.
-    :param list[int] aid: List of activity ids to include. Empty means include leaders of any activity
+    :param list[int] aid: List of activity ids to include. Empty means include leaders
+                          of any activity
     :param list[int] eid: List of leader ids to exclude
     :return: A tuple:
 
@@ -177,8 +183,8 @@ def autocomplete_available_leaders():
     :rtype: (string, int, dict)
     """
 
-    q = request.args.get("q")
-    if q is None or (len(q) < 2):
+    pattern = request.args.get("q")
+    if pattern is None or (len(pattern) < 2):
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8
@@ -195,7 +201,9 @@ def autocomplete_available_leaders():
                 query = query.filter(Role.activity_id.in_(activity_ids))
 
         query = query.filter(~User.id.in_(existing_ids))
-        condition = func.lower(User.first_name + " " + User.last_name).ilike(f"%{q}%")
+        condition = func.lower(User.first_name + " " + User.last_name).ilike(
+            f"%{pattern}%"
+        )
         query = query.filter(condition)
 
         query = query.order_by(User.first_name, User.last_name, User.id)

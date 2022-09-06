@@ -7,6 +7,8 @@ from wtforms.validators import InputRequired
 
 
 class CSVForm(FlaskForm):
+    """Form to load events from a csv file."""
+
     csv_file = FileField("Fichier Csv", validators=[InputRequired()])
     description = TextAreaField("Template de description")
     submit = SubmitField("Import")

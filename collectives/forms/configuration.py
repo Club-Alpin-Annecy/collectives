@@ -16,8 +16,9 @@ from wtforms_alchemy.utils import strip_string
 
 
 class ConfigurationBaseForm(FlaskForm):
+    """Base form for all configuration item."""
+
     name = HiddenField()
-    """ Base form for all configuration item. """
     submit = SubmitField("Update")
 
 
@@ -54,18 +55,21 @@ class ConfigurationShortStringForm(ConfigurationBaseForm):
 class ConfigurationLongStringForm(ConfigurationTextAreaForm):
     """Form for long string configuration item (textarea)"""
 
+    # pylint: disable=unnecessary-pass
     pass
 
 
 class ConfigurationArrayForm(ConfigurationTextAreaForm):
     """Form for Array configuration item."""
 
+    # pylint: disable=unnecessary-pass
     pass
 
 
 class ConfigurationDictionnaryForm(ConfigurationTextAreaForm):
     """Form for dictionnary configuration item."""
 
+    # pylint: disable=unnecessary-pass
     pass
 
 
@@ -82,4 +86,7 @@ class ConfigurationFileForm(ConfigurationBaseForm):
 
 
 def get_form_from_configuration(item):
+    """Select right type of form from the input configuration item.
+
+    :param ConfigurationItem item: configuration item that will determine the field type"""
     return globals()[f"Configuration{item.type.name}Form"]

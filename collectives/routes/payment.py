@@ -12,7 +12,7 @@ from flask_login import current_user
 
 from openpyxl import Workbook
 
-from ..forms.payment import CopyItemForm, PaymentItemsForm, OfflinePaymentForm
+from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
 from ..forms.payment import NewItemPriceForm, CopyItemForm
 from ..utils import payline
 
@@ -41,11 +41,13 @@ def before_request():
     """Protect all of the payment endpoints.
 
     Protection is done by the decorator:
-    - check if payments are enabled for the site :py:func:`collectives.utils.access.payments_enabled`
+    - check if payments are enabled for the site
+      :py:func:`collectives.utils.access.payments_enabled`
     """
     pass
 
 
+# pylint: disable=too-many-statements,too-many-nested-blocks
 @blueprint.route("/event/<event_id>/edit_prices", methods=["GET", "POST"])
 @valid_user()
 def edit_prices(event_id):
@@ -82,11 +84,14 @@ def edit_prices(event_id):
                 if event.registrations and not event.requires_payment():
                     # Event was free, it is now paid.
                     # Switch all existing registrations back to 'PaymentPending'
-                    for r in event.registrations:
-                        if r.status == RegistrationStatus.Active:
-                            r.status = RegistrationStatus.PaymentPending
+                    for registration in event.registrations:
+                        if registration.status == RegistrationStatus.Active:
+                            registration.status = RegistrationStatus.PaymentPending
                     flash(
-                        "L'événement est devenu payant ; les inscriptions existantes sont passées 'en attente'. Elles ne seront validées qu'après paiement en ligne sur la page de l'événement ou saisie manuelle par un encadrant.",
+                        "L'événement est devenu payant ; les inscriptions existantes sont "
+                        "passées 'en attente'. Elles ne seront validées qu'après paiement "
+                        "en ligne sur la page de l'événement ou saisie manuelle par un "
+                        "encadrant.",
                         "info",
                     )
 
@@ -122,7 +127,8 @@ def edit_prices(event_id):
                         if price_form.delete.data:
                             if len(price.payments) > 0:
                                 flash(
-                                    f'Impossible de supprimer le tarif "{item.title} {price.title}" car il a déjà été utilisé',
+                                    f'Impossible de supprimer le tarif "{item.title} '
+                                    f'{price.title}" car il a déjà été utilisé',
                                     "warning",
                                 )
                                 continue
@@ -162,12 +168,13 @@ def edit_prices(event_id):
                 # If all items have been deleted, the event is now free
                 # Transition all registration in "PaymentPending" state to "Active"
                 if event.registrations and not event.requires_payment():
-                    for r in event.registrations:
-                        if r.status == RegistrationStatus.PaymentPending:
-                            r.status = RegistrationStatus.Active
-                            db.session.add(r)
+                    for registration in event.registrations:
+                        if registration.status == RegistrationStatus.PaymentPending:
+                            registration.status = RegistrationStatus.Active
+                            db.session.add(registration)
                     flash(
-                        "L'événement est devenu gratuit ; les inscriptions existantes en attente de paiement sont passées 'confirmées'. ",
+                        "L'événement est devenu gratuit ; les inscriptions existantes en attente"
+                        " de paiement sont passées 'confirmées'. ",
                         "info",
                     )
                     db.session.commit()
@@ -183,6 +190,9 @@ def edit_prices(event_id):
         new_price_form=new_price_form,
         copy_item_form=CopyItemForm(),
     )
+
+
+# pylint: enable=too-many-statements,too-many-nested-blocks
 
 
 @blueprint.route("/list", methods=["GET"])
@@ -245,9 +255,9 @@ def export_payments(event_id=None):
     payments = extract_payments(event_id, None, None, filters)
 
     # Create the excel document
-    wb = Workbook()
-    ws = wb.active
-    FIELDS = {
+    workbook = Workbook()
+    worksheet = workbook.active
+    fields = {
         "item.event.event_type.name": "Type d'événement",
         "item.event.activity_type_names": "Activités",
         "item.event.main_leader.first_name": "Prénom encadrant",
@@ -267,24 +277,24 @@ def export_payments(event_id=None):
         "payment_type_str": "Type",
         "processor_order_ref": "Référence",
     }
-    ws.append(list(FIELDS.values()))
+    worksheet.append(list(fields.values()))
 
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
         payment.payment_status_str = payment.status.display_name()
-        ws.append([deepgetattr(payment, field, "-") for field in FIELDS])
+        worksheet.append([deepgetattr(payment, field, "-") for field in fields])
 
     # set column width
-    for c in "CDEFGHJLOR":
-        ws.column_dimensions[c].width = 25
-    for c in "ABIKMN":
-        ws.column_dimensions[c].width = 16
+    for column in "CDEFGHJLOR":
+        worksheet.column_dimensions[column].width = 25
+    for column in "ABIKMN":
+        worksheet.column_dimensions[column].width = 16
 
     # set "Amount paid" column format
-    ws.column_dimensions["N"].number_format = "#,##0.00€"
+    worksheet.column_dimensions["N"].number_format = "#,##0.00€"
 
     out = BytesIO()
-    wb.save(out)
+    workbook.save(out)
     out.seek(0)
 
     time_str = current_time().strftime("%d_%m_%Y %H_%M")
@@ -498,7 +508,7 @@ def request_payment(payment_id):
     order_info = payline.OrderInfo(payment)
     buyer_info = payline.BuyerInfo(current_user)
 
-    payment_request = payline.api.doWebPayment(order_info, buyer_info)
+    payment_request = payline.api.do_web_payment(order_info, buyer_info)
 
     if payment_request is not None:
         if not payment_request.result.is_accepted():
@@ -568,7 +578,8 @@ def finalize_payment(payment, details):
         else:
             # This should not be possible, but still check nonetheless
             flash(
-                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher de l'encadrant de la collective concernée.",
+                "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher "
+                "de l'encadrant de la collective concernée.",
                 "warning",
             )
     else:
@@ -623,7 +634,7 @@ def process():
         flash("Le paiement a déjà été finalisé")
         return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
-    details = payline.api.getWebPaymentDetails(token)
+    details = payline.api.get_web_payment_details(token)
     if details is not None:
         if details.result.payment_status() != PaymentStatus.Initiated:
             finalize_payment(payment, details)
@@ -668,7 +679,7 @@ def refund_all(event_id):
     # For each payment, do refund call
     for payment in payments:
         details = payline.PaymentDetails.from_metadata(payment.raw_metadata)
-        refund_details = payline.api.doRefund(details)
+        refund_details = payline.api.do_refund(details)
 
         if refund_details is not None and refund_details.result.is_accepted():
             # Successful refund, update payment
@@ -680,11 +691,15 @@ def refund_all(event_id):
         else:
             # Do not update payment, warn user
             if refund_details is not None:
-                error_str = f"Erreur {refund_details.result.code} {refund_details.result.long_message}"
+                error_str = (
+                    f"Erreur {refund_details.result.code} "
+                    f"{refund_details.result.long_message}"
+                )
             else:
                 error_str = "API indisponible"
             flash(
-                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº {payment.processor_order_ref}: {error_str}.",
+                f"Remboursement échoué pour {payment.buyer.full_name()}, commande nº "
+                f"{payment.processor_order_ref}: {error_str}.",
                 "error",
             )
 

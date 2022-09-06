@@ -337,19 +337,19 @@ class OrderInfo:
         :return: Metadata in the Payline key-value list format
         :rtype: dict
         """
-        kv = []
-        for k, v in self.metadata.items():
-            if isinstance(v, list):
-                for i, multi_v in enumerate(v):
-                    kv.append({"key": f"{k}_{i+1}", "value": multi_v})
+        key_value = []
+        for key, value in self.metadata.items():
+            if isinstance(value, list):
+                for i, multi_v in enumerate(value):
+                    key_value.append({"key": f"{key}_{i+1}", "value": multi_v})
             else:
-                kv.append({"key": k, "value": v})
+                key_value.append({"key": key, "value": value})
 
-        for pair in kv:
+        for pair in key_value:
             ascii_val = to_ascii(pair["value"])
             pair["value"] = ascii_val[:50]
 
-        return {"privateData": kv}
+        return {"privateData": key_value}
 
     def __init__(self, payment=None):
         """Constructor from an optional payment object
@@ -363,7 +363,8 @@ class OrderInfo:
             self.date = payment.creation_time.strftime("%d/%m/%Y %H:%M")
             item_details = {
                 "ref": payment.price.id,
-                "comment": f"{payment.item.event.title} -- {payment.item.title} -- {payment.price.title}",
+                "comment": f"{payment.item.event.title} -- {payment.item.title} -- "
+                f"{payment.price.title}",
                 "price": self.amount_in_cents,
             }
             self.details = {"details": [item_details]}
@@ -388,12 +389,12 @@ class BuyerInfo:
 
     :type: string
     """
-    lastName = ""
+    last_name = ""
     """ Buyer last name
 
     :type: string
     """
-    firstName = ""
+    first_name = ""
     """ Buyer first name
 
     :type: string
@@ -403,7 +404,7 @@ class BuyerInfo:
 
     :type: string
     """
-    birthDate = ""
+    birth_date = ""
     """ Data of birth, ptional
 
     :type: string
@@ -416,14 +417,14 @@ class BuyerInfo:
         :type payment: :py:class:`collectives.models.user.User`, optional
         """
         if user is not None:
-            self.firstName = user.first_name
-            self.lastName = user.last_name
+            self.first_name = user.first_name
+            self.last_name = user.last_name
             self.email = user.mail
             if "@" not in user.mail:
                 # For testing with admin account
                 self.email += "@example.com"
 
-            self.birthDate = user.date_of_birth.strftime("%Y/%m/%d")
+            self.birth_date = user.date_of_birth.strftime("%Y/%m/%d")
 
 
 class PaylineApi:
@@ -539,7 +540,7 @@ class PaylineApi:
             self.directpayment_client = None
             raise err
 
-    def doWebPayment(self, order_info, buyer_info):
+    def do_web_payment(self, order_info, buyer_info):
         """Initiates a payment request with Payline and returns the
         resulting token identifier on success, or information about the error
 
@@ -613,10 +614,10 @@ class PaylineApi:
 
         return None
 
-    def getWebPaymentDetails(self, token):
+    def get_web_payment_details(self, token):
         """Returns the details about a payment that has been previously initiated
 
-        :param token: The unique identifer returned by the :py:meth:`doWebPayment()` call
+        :param token: The unique identifer returned by the :py:meth:`do_web_payment()` call
         :type token: string
         :return: An object representing the payment details, or None if the API call failed
         :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
@@ -650,7 +651,7 @@ class PaylineApi:
 
         return None
 
-    def doRefund(self, payment_details):
+    def do_refund(self, payment_details):
         """Tries to refund a previously approved online payment.
 
         Will first try a 'reset' call (cancel immediately the payment if it has not

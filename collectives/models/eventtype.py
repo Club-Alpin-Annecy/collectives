@@ -69,7 +69,8 @@ class EventType(db.Model):
 
         :param user: The user whose license should be checked
         :param user: :py:class:`collectives.models.user.User`
-        :return: True if no license types are defined or if the user license category is included in those types
+        :return: True if no license types are defined or if the user license category is included
+                 in those types
         :rtype: bool"""
         if not self.license_types:
             return True

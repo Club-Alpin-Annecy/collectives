@@ -2,7 +2,13 @@
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
  """
-import logging, os.path, os, json, datetime, yaml
+import logging
+import os.path
+import os
+import json
+import datetime
+import yaml
+
 from flask import Blueprint, render_template, send_from_directory
 from flask import url_for, redirect, request, flash
 from flask_login import current_user
@@ -15,7 +21,8 @@ from ..forms.configuration import get_form_from_configuration
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint
 
-This blueprint contains all routes for technicians. It is reserved to technicians with :py:func:`before_request`.
+This blueprint contains all routes for technicians. It is reserved to technicians with
+:py:func:`before_request`.
 """
 
 
@@ -30,7 +37,8 @@ def before_request():
 
     - check if user is valid :py:func:`collectives.utils.access.valid_user`
     - check if user is an admin :py:func:`collectives.utils.access.technician_required`
-    - check if user has signed the confidentiality agreement :py:func:`collectives.utils.access.confidentiality_agreement`
+    - check if user has signed the confidentiality agreement
+      :py:func:`collectives.utils.access.confidentiality_agreement`
     """
     pass
 
@@ -138,8 +146,8 @@ def update_configuration():
     if item.type in [ConfigurationTypeEnum.Array, ConfigurationTypeEnum.Dictionnary]:
         try:
             item.content = yaml.safe_load(form.content.data)
-        except json.decoder.JSONDecodeError as e:
-            flash(str(e), "error")
+        except json.decoder.JSONDecodeError as ex:
+            flash(str(ex), "error")
             return redirect(url_for("technician.configuration"))
     elif item.hidden and form.content.data == "*****":
         flash(

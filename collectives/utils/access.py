@@ -4,7 +4,8 @@ Knowledge of python decorator is usefull to understand this module. The document
 will not cover this subject, however, there is a lot of information about decorator
 on Internet.
 
-See `https://docs.python.org/3.8/library/functools.html <https://docs.python.org/3.8/library/functools.html>`_
+See `https://docs.python.org/3.8/library/functools.html
+  <https://docs.python.org/3.8/library/functools.html>`_
 """
 from functools import wraps
 from flask import redirect, url_for, flash, abort
@@ -12,7 +13,7 @@ import flask_login
 from ..models import Configuration
 
 
-def access_requires(f, test, api=False):
+def access_requires(function, test, api=False):
     """Decorator to do a test before granting access
 
     It is a very generic decorator meant to have a way to create any test to
@@ -29,7 +30,7 @@ def access_requires(f, test, api=False):
     :rtype: function
     """
 
-    @wraps(f)
+    @wraps(function)
     @wraps(test)
     @wraps(api)
     def decorated_function(*args, **kwargs):
@@ -52,7 +53,7 @@ def access_requires(f, test, api=False):
             else:
                 flash(message, "error")
                 return redirect(redirection)
-        return f(*args, **kwargs)
+        return function(*args, **kwargs)
 
     return decorated_function
 
@@ -71,7 +72,8 @@ def user_is(method, api=False, **kwargs):
 
     :param api: If True and access is denied, trigger a 403. Otherwise return an error message
     :type api: bool
-    :param method: the user method to call. WARNING: this parameter should always be a constant (no user generated data)
+    :param method: the user method to call. WARNING: this parameter should always be a constant
+                   (no user generated data)
     :type method: string
     :return: the protected (decorated) `f` function
     :rtype: function
@@ -80,15 +82,14 @@ def user_is(method, api=False, **kwargs):
     message = kwargs.get("message", "Non autorisé. Droits insuffisants")
     url = kwargs.get("url", "event.index")
 
-    def innerF(f):
-        """Function that will wraps `f`.
+    def inner_function(function):
+        """Function that will wraps `function`.
 
-        :param f: function to protect.
-        :type f: function
-        :return: the protected (decorated) `f` function
+        :param function function: function to protect.
+        :return: the protected (decorated) `function` function
         :rtype: function
         """
-
+        # pylint: disable=unused-argument
         def tester(*args, **kwargs):
             """Test the user.
 
@@ -106,9 +107,11 @@ def user_is(method, api=False, **kwargs):
             test = getattr(flask_login.current_user, method)()
             return (test, message, url_for(url))
 
-        return flask_login.login_required(access_requires(f, tester, api))
+        # pylint: disable=unused-argument
 
-    return innerF
+        return flask_login.login_required(access_requires(function, tester, api))
+
+    return inner_function
 
 
 def valid_user(api=False):
@@ -161,9 +164,9 @@ def payments_enabled(api=False):
     :rtype: function
     """
 
-    def innerF(f):
+    def inner_function(function):
         """Function that will wraps `f`."""
-
+        # pylint: disable=unused-argument
         def tester(*args, **kwargs):
             """Check if user is an admin.
 
@@ -177,6 +180,8 @@ def payments_enabled(api=False):
                 url_for("event.index"),
             )
 
-        return access_requires(f, tester, api)
+        # pylint: enable=unused-argument
 
-    return innerF
+        return access_requires(function, tester, api)
+
+    return inner_function
