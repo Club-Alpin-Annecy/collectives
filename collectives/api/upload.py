@@ -1,3 +1,6 @@
+""" API endpoint for managing uploaded files.
+
+"""
 import json
 
 from flask import request, abort, url_for
@@ -23,6 +26,13 @@ THUMB_HEIGHT = 480
     methods=["POST"],
 )
 def upload_event_file(event_id=None, edit_session_id=None):
+    """Api endpoint for adding an uploaded file to an event.
+
+    :param event_id: The primary key of the event
+    :type event_id: int
+    :param edit_session_id: If the event has not been saved yet, identifier for the current editing session
+    :type edit_session_id: int
+    """
 
     file = request.files.get("image", None)
     if not file:
@@ -81,12 +91,18 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
 
 class UploadedFileSchema(marshmallow.Schema):
-    """Schema to serialiaze a price"""
+    """Schema to serialize an uploaded file description"""
 
     url = fields.Function(lambda file: file.url())
+    """ Public url for the uploaded file
+
+    :type: string"""
     delete_url = fields.Function(
         lambda file: url_for("api.delete_uploaded_file", file_id=file.id)
     )
+    """ Url of the endpoint to delete the file
+
+    :type: string"""
     thumbnail_url = fields.Function(
         lambda file: url_for(
             "images.crop",
@@ -98,8 +114,7 @@ class UploadedFileSchema(marshmallow.Schema):
         if file.is_image()
         else None
     )
-
-    """ Amount as string
+    """ For images, public url for generating a thumbnail
 
     :type: string"""
 
@@ -123,6 +138,13 @@ class UploadedFileSchema(marshmallow.Schema):
     endpoint="list_new_event_files",
 )
 def list_event_files(event_id=None, edit_session_id=None):
+    """Api endpoint to list files associated to an event.
+
+    :param event_id: The primary key of the event
+    :type event_id: int
+    :param edit_session_id: If the event has not been saved yet, identifier for the current editing session
+    :type edit_session_id: int
+    """
     if event_id:
         event = Event.query.get(event_id)
         if event is None:
@@ -143,6 +165,11 @@ def list_event_files(event_id=None, edit_session_id=None):
 @valid_user(api=True)
 @blueprint.route("/upload/delete/<int:file_id>", methods=["POST"])
 def delete_uploaded_file(file_id):
+    """Api endpoint for deleting an uploaded file.
+
+    :param file_id: The primary key of the file
+    :type file_id: int
+    """
     file = UploadedFile.query.get(file_id)
     if not file:
         abort(404)
