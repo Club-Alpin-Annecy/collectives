@@ -2,6 +2,7 @@
 
 """
 import json
+from datetime import timedelta
 
 from flask import request, abort, url_for
 from flask_login import current_user
@@ -13,6 +14,7 @@ from ..models import db, Event, UploadedFile, Configuration
 from .common import blueprint, marshmallow
 from ..utils.access import valid_user
 from ..utils.time import current_time
+
 
 THUMB_WIDTH = 640
 THUMB_HEIGHT = 480
@@ -39,6 +41,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
         response = {"error": "noFileGiven"}
         return json.dumps(response), 400, {"content-type": "application/json"}
 
+    # Check access rights
     if event_id:
         event = Event.query.get(event_id)
         if event is None:
@@ -54,6 +57,17 @@ def upload_event_file(event_id=None, edit_session_id=None):
             session_id=edit_session_id
         ).count()
 
+    # While we're at it, delete old uploads from unfinished edit sessions
+    to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
+    to_delete = to_delete.filter(UploadedFile.session_id != edit_session_id)
+    to_delete = to_delete.filter(
+        UploadedFile.date <= current_time() - timedelta(days=1)
+    )
+    for file_to_delete in to_delete.all():
+        file_to_delete.delete_file()
+        db.session.delete(file_to_delete)
+
+    # Check that the storage quota is not exceeded
     if existing_file_count >= Configuration.MAX_UPLOADS_PER_EVENT:
         response = {"error": "fileTooLarge"}
         return json.dumps(response), 413, {"content-type": "application/json"}

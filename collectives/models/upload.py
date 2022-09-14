@@ -58,7 +58,7 @@ class UploadedFile(db.Model):
 
     :type: int"""
 
-    session_id = db.Column(db.String(32), nullable=True)
+    session_id = db.Column(db.String(36), nullable=True)
     """If the upload is not associated to an event yet, id of the edit session
 
     :type: string"""

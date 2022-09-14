@@ -27,7 +27,7 @@ def upgrade():
         sa.Column("size", sa.Integer(), nullable=False),
         sa.Column("event_id", sa.Integer(), nullable=True),
         sa.Column("user_id", sa.Integer(), nullable=True),
-        sa.Column("session_id", sa.String(length=32), nullable=True),
+        sa.Column("session_id", sa.String(length=36), nullable=True),
         sa.ForeignKeyConstraint(
             ["event_id"],
             ["events.id"],

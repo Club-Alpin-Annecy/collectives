@@ -76,11 +76,11 @@
 
 
           const easymde = makeEditor("description", {
-            imageUploadEndpoint : "{{url_for("api.upload_event_file", event_id=event.id) if event.id else url_for("api.upload_new_event_file", session_id = form.edit_session_id.data)}}",
+            imageUploadEndpoint : "{{url_for("api.upload_event_file", event_id=event.id) if event.id else url_for("api.upload_new_event_file", edit_session_id = form.edit_session_id.data)}}",
             imageCSRFToken : "{{csrf_token()}}"
           });
             
-          let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", session_id = form.edit_session_id.data)}}";
+          let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data)}}";
           const uploadedFilesTable = createUploadedFilesTable(uploadedFilesEndpoint, easymde, "{{csrf_token()}}") 
 
       };
