@@ -10,6 +10,7 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
   {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
 
   {# Wysiwyg Editor #}
@@ -80,7 +81,7 @@
             imageCSRFToken : "{{csrf_token()}}"
           });
             
-          let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data)}}";
+          let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id, activity_ids=form.current_activity_ids()) | safe if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data, activity_ids=form.current_activity_ids()) | safe}}";
           const uploadedFilesTable = createUploadedFilesTable(uploadedFilesEndpoint, easymde, "{{csrf_token()}}") 
 
       };

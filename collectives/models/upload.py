@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy.orm import validates
 
 from .globals import db
+from .user import User
 
 from ..utils.time import current_time
 
@@ -64,6 +65,11 @@ class UploadedFile(db.Model):
 
     :type: int"""
 
+    activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), index=True)
+    """ Primary key of the activity to which this file belong
+
+    :type: int"""
+
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
     """ Primary key of the user who uploaded this file
 
@@ -80,7 +86,17 @@ class UploadedFile(db.Model):
         backref=db.backref("uploaded_files", cascade="all, delete-orphan"),
         lazy=True,
     )
-    """ Event to which this file belongs
+    """ Event to which this file belongs. May be null
+
+    :type: :py:class:`collectives.models.event.Event`
+    """
+
+    activity = db.relationship(
+        "ActivityType",
+        backref=db.backref("uploaded_files", cascade="all, delete-orphan"),
+        lazy=True,
+    )
+    """ Activity to which this file belong. May be null
 
     :type: :py:class:`collectives.models.event.Event`
     """
@@ -189,6 +205,7 @@ class UploadedFile(db.Model):
         :type days: int
         """
         to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
+        to_delete = to_delete.filter(UploadedFile.activity_id == None)
         to_delete = to_delete.filter(UploadedFile.session_id != current_session_id)
         to_delete = to_delete.filter(
             UploadedFile.date <= current_time() - timedelta(days=days)
@@ -196,3 +213,24 @@ class UploadedFile(db.Model):
         for file_to_delete in to_delete.all():
             file_to_delete.delete_file()
             db.session.delete(file_to_delete)
+
+    def has_edit_rights(self, user: User):
+        """Checks whether an user has edit rights on this file
+
+         - if the file is associated to an activity, user needs to be a supervisor
+         - if the file is associated to an event, user needs edit rights on event
+         - if the file is unassociated, user needs to have uploaded it
+
+        :param user: user to check
+        :type user: :py:class:`collectives.models.User`
+        :return: whether the user has edit rights
+        :rtype: bool
+        """
+        if user.is_moderator():
+            return True
+
+        if self.activity_id is not None:
+            return user.supervises_activity(self.activity_id)
+        if self.event_id is not None:
+            return self.event.has_edit_rights(user)
+        return self.user_id == user.id

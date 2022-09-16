@@ -1,17 +1,18 @@
 
-{% extends 'base.html' %}
+{% extends 'activity_supervision/activity_supervision.html' %}
 
 {% block additionalhead %}
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
   <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
   <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 {% endblock %}
 
-{% block content %}
+{% block activity_supervision_content %}
 <div class="page-content" id="administration">
   <!-- Logging Windows -->
-  <h1 class="heading-1"> title }}</h1>
+  <h2 class="heading-2"> {{ title }}</h2>
 
   <div class="form-errors">
     {% for field in form%}
@@ -62,7 +63,7 @@
   </form>
 </div>
 <script>
-var easymde = makeEditor("description");
+var easymde = makeEditor("description", {uploadImage: false});
 </script>
 
 {% endblock %}

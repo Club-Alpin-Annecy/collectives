@@ -376,6 +376,13 @@ class EventForm(ModelForm, FlaskForm):
             activity = ActivityType.query.get(self.single_activity_type.choices[0][0])
         return [activity] if activity else []
 
+    def current_activity_ids(self):
+        """
+        :return: the list of currently selected activity ids.
+        :rtype: list[int]
+        """
+        return [a.id for a in self.current_activities()]
+
     def current_leader_ids(self):
         """
         :return: the list of current leader ids.

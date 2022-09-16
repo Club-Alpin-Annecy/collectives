@@ -39,15 +39,9 @@
 
                             {% if current_user.get_supervised_activities() | length %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('activity_supervision.csv_import')}}" class="menu-dropdown-item-link">
+                                <a href="{{ url_for('activity_supervision.activity_supervision')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"
-                                        class="legacy-icon" />Import CSV
-                                </a>
-                            </li>
-                            <li class="menu-dropdown-item">
-                                <a href="{{ url_for('activity_supervision.leader_list')}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"
-                                        class="legacy-icon" />Encadrants
+                                        class="legacy-icon" />Gestion des activités
                                 </a>
                             </li>
                             {% endif %}

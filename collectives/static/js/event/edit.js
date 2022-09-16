@@ -10,8 +10,8 @@ function copyStartDate() {
 }
 
 
-function makeEditorToolbar() {
-    return [
+function makeEditorToolbar(fileUploadButtons) {
+    toolbar = [
         {
             name: "bold",
             action: EasyMDE.toggleBold,
@@ -67,19 +67,25 @@ function makeEditorToolbar() {
             action: EasyMDE.drawImage,
             className: "fa fa-picture-o",
             title: "Image en ligne",
-        },
-        {
-            name: "upload-image",
-            action: EasyMDE.drawUploadedImage,
-            className: "fa fa-upload",
-            title: "Télécharger un document",
-        },
-        {
-            name: "list-uploaded-files",
-            action: listUploadedFiles,
-            className: "fa fas fa-folder-open",
-            title: "Documents téléchargés",
-        },
+        }
+    ]
+    if (fileUploadButtons) {
+        toolbar.push(
+            {
+                name: "upload-image",
+                action: EasyMDE.drawUploadedImage,
+                className: "fa fa-upload",
+                title: "Télécharger un document",
+            },
+            {
+                name: "list-uploaded-files",
+                action: listUploadedFiles,
+                className: "fa fas fa-folder-open",
+                title: "Documents téléchargés",
+            }
+        );
+    }
+    toolbar.push(
         "|",
         {
             name: "preview",
@@ -115,10 +121,10 @@ function makeEditorToolbar() {
             },
             className: "fa fa-power-off",
             title: "Désactiver Wysiwyg",
-        },
+        }
+    );
 
-
-    ]
+    return toolbar;
 
 }
 
@@ -150,13 +156,14 @@ function getEditorOptions(elementId) {
                 'La taille maximum autorisée est #image_max_size#.',
             importError: 'Une erreur est survenue lors du téléchargement de "#image_name#".',
         },
-        sideBySideFullscreen: false,
-        toolbar: makeEditorToolbar()
+        sideBySideFullscreen: false
     };
 }
 
 function makeEditor(elementId, options = {}) {
     var allOptions = Object.assign({}, getEditorOptions(elementId), options);
+    allOptions.toolbar = makeEditorToolbar(allOptions.uploadImage)
+
     var easymde = new EasyMDE(allOptions);
     easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
     return easymde;
@@ -297,16 +304,6 @@ function iconFormatter(cell, formatterParams, onRendered) {
 }
 
 
-function sizeFormatter(cell) {
-    value = cell.getValue();
-    units = [' B', ' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-    while (value > 1024) {
-        value = value / 1024;
-        units.shift();
-    }
-    return Math.round(value * 10) / 10 + units[0];
-}
-
 function createUploadedFilesTable(url, editor, csrf_token) {
     function insertFileAsLink(e, cell) {
         url = cell.getValue();
@@ -320,7 +317,25 @@ function createUploadedFilesTable(url, editor, csrf_token) {
         insertLink(editor, name, url, true);
     }
 
+    function sortFiles(a, b, aRow, bRow, column, dir, sorterParams){
+        if (aRow.getData().activity_name == bRow.getData().activity_name)
+        {
+            return a.localeCompare(b);
+        }
+
+        // Ensures that files with no activity are always on top
+        var nullOrder = dir == "asc" ? 1 : -1;
+        if(aRow.getData().activity_name == null) return -nullOrder;
+        if(bRow.getData().activity_name == null) return nullOrder;
+        return aRow.getData().activity_name.localeCompare(bRow.getData().activity_name);
+    }
+
     function deleteFile(e, cell) {
+        if(cell.getValue() == null) {
+            alert("Vous ne pouvez pas supprimer ce fichier");
+            return;
+        }
+        
         if (!confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
             return false;
         }
@@ -344,14 +359,17 @@ function createUploadedFilesTable(url, editor, csrf_token) {
             nestedFieldSeparator: false,
             columns: [
                 {
-                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }
+                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter:sortFiles
                 },
                 { title: "Taille", widthGrow: 1, field: "size", formatter: sizeFormatter },
                 { title: "Date", widthGrow: 1, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
                 { field: "url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink, headerSort: false },
                 { field: "thumbnail_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage, headerSort: false },
-                { field: "delete_url", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteFile, headerSort: false }
+                { field: "delete_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile, headerSort: false }
             ],
+
+            groupBy : "activity_name",
+            initialSort : [{column:"name", dir:"asc"}],
 
             locale: true,
             langs: {
@@ -361,6 +379,9 @@ function createUploadedFilesTable(url, editor, csrf_token) {
                         "error": "Erreur", //ajax error text
                     },
                 }
+            },
+            groupHeader:function(value, count, data, group){
+                return value == null ? "Cet événement" : value;
             },
         });
 }

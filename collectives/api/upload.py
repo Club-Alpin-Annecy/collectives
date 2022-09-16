@@ -7,6 +7,8 @@ from flask import request, abort, url_for
 from flask_login import current_user
 from flask_uploads import UploadNotAllowed
 
+from sqlalchemy import or_
+
 from marshmallow import fields
 
 from ..models import db, Event, UploadedFile, Configuration
@@ -96,12 +98,21 @@ class UploadedFileSchema(marshmallow.Schema):
     :type: string"""
     delete_url = fields.Function(
         lambda file: url_for("api.delete_uploaded_file", file_id=file.id)
+        if file.has_edit_rights(current_user)
+        else None
     )
     """ Url of the endpoint to delete the file
 
     :type: string"""
     thumbnail_url = fields.Function(lambda file: file.thumbnail_url())
     """ For images, public url for generating a thumbnail
+
+    :type: string"""
+
+    activity_name = fields.Function(
+        lambda file: file.activity.name if file.activity else None
+    )
+    """ Name of the assiociated activity or empty
 
     :type: string"""
 
@@ -115,6 +126,7 @@ class UploadedFileSchema(marshmallow.Schema):
             "url",
             "delete_url",
             "thumbnail_url",
+            "activity_name",
         )
 
 
@@ -133,18 +145,49 @@ def list_event_files(event_id=None, edit_session_id=None):
     current editing session
     :type edit_session_id: int
     """
+
     if event_id:
         event = Event.query.get(event_id)
         if event is None:
             abort(404)
         if not event.has_edit_rights(current_user):
             abort(403)
-        files = UploadedFile.query.filter_by(event_id=event_id).all()
+        query_filter = UploadedFile.event_id == event_id
 
     else:
         if not edit_session_id or not current_user.can_create_events():
             abort(403)
-        files = UploadedFile.query.filter_by(session_id=edit_session_id).all()
+        query_filter = UploadedFile.session_id == edit_session_id
+
+    # Add files associated to activities
+    activity_ids = request.args.getlist("activity_ids", type=int)
+    if activity_ids:
+        print(activity_ids, flush=True)
+        query_filter = or_(query_filter, UploadedFile.activity_id.in_(activity_ids))
+
+    files = UploadedFile.query.filter(query_filter).all()
+    response = UploadedFileSchema(many=True).dump(files)
+    return json.dumps(response), 200, {"content-type": "application/json"}
+
+
+@valid_user(api=True)
+@blueprint.route("/upload/activity_documents/list", methods=["GET"])
+def list_activity_documents():
+    """Api endpoint to list files associated to activities that the current_user can supervise
+
+    :param activity_id: The primary key of the activity
+    :type activity_id: int
+    :type edit_session_id: int
+    """
+
+    activities = current_user.get_supervised_activities()
+    activity_ids = [a.id for a in activities]
+
+    files = (
+        UploadedFile.query.filter(UploadedFile.activity_id.in_(activity_ids))
+        .order_by(UploadedFile.activity_id, UploadedFile.id)
+        .all()
+    )
 
     response = UploadedFileSchema(many=True).dump(files)
     return json.dumps(response), 200, {"content-type": "application/json"}
@@ -162,7 +205,7 @@ def delete_uploaded_file(file_id):
     if not file:
         abort(404)
 
-    if file.event and not file.event.has_edit_rights(current_user):
+    if not file.has_edit_rights(current_user):
         abort(403)
 
     file.delete_file()

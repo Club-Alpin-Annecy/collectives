@@ -1,0 +1,23 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" >
+  <!-- Logging Windows -->
+  <h1 class="heading-1">Gestion des activités</h1>
+
+  <div>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.leader_list')}}">
+      Encadrants
+    </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.csv_import')}}">
+      Import CSV
+    </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.activity_documents')}}">
+      Documents
+    </a>
+  </div>
+
+  {% block activity_supervision_content %}{% endblock %}
+</div>
+{% endblock %}
