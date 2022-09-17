@@ -4,8 +4,7 @@ Knowledge of python decorator is usefull to understand this module. The document
 will not cover this subject, however, there is a lot of information about decorator
 on Internet.
 
-See `https://docs.python.org/3.8/library/functools.html
-  <https://docs.python.org/3.8/library/functools.html>`_
+See `functools <https://docs.python.org/3.8/library/functools.html>`_
 """
 from functools import wraps
 from flask import redirect, url_for, flash, abort
