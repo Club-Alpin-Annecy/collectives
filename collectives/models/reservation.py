@@ -39,7 +39,7 @@ class ReservationStatus(ChoiceEnum):
         }
 
 
-ReservationLine_Equipment = db.Table(
+ReservationLineEquipment = db.Table(
     "reservation_lines_equipments",
     db.metadata,
     db.Column(
@@ -71,15 +71,17 @@ class ReservationLine(db.Model):
 
     equipments = db.relationship(
         "Equipment",
-        secondary=ReservationLine_Equipment,
-        back_populates="reservationLines",
+        secondary=ReservationLineEquipment,
+        back_populates="reservation_lines",
     )
     """ List of equipments of a line of reservation.
 
     :type: list(:py:class:`collectives.models.equipment.Equipment`)
     """
 
-    equipment_type = db.relationship("EquipmentType", back_populates="reservationLines")
+    equipment_type = db.relationship(
+        "EquipmentType", back_populates="reservation_lines"
+    )
     """ Equipments of a line of reservation.
 
     :type: list(:py:class:`collectives.models.equipment.EquipmentType`)
@@ -382,7 +384,7 @@ class Reservation(db.Model):
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
         for reservation_line in self.lines:
-            if reservation_line.equipmentType == equipment_type:
+            if reservation_line.equipment_type == equipment_type:
                 return reservation_line
         return None
 
@@ -406,7 +408,7 @@ class Reservation(db.Model):
         :rtype: bool"""
         if equipment:
             reservation_line = self.get_or_create_line_of_type(
-                equipment.model.equipmentType
+                equipment.model.equipment_type
             )
             return reservation_line.add_equipment_by_increasing_quantity(equipment)
 
@@ -436,7 +438,7 @@ class Reservation(db.Model):
         :return: True the equipment has been removed well
         :rtype: bool"""
         if equipment:
-            line = self.get_line_of_type(equipment.model.equipmentType)
+            line = self.get_line_of_type(equipment.model.equipment_type)
             if (
                 line.remove_equipment_decreasing_quantity(equipment)
                 and line.quantity == 0
@@ -450,7 +452,7 @@ class Reservation(db.Model):
         :return: True the equipment has been removed well
         :rtype: bool"""
         if equipment:
-            line = self.get_line_of_type(equipment.model.equipmentType)
+            line = self.get_line_of_type(equipment.model.equipment_type)
             line.remove_equipment(equipment)
             return True
         return False

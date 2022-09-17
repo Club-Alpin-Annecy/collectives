@@ -63,7 +63,7 @@ def display_all_type():
     list_equipment_type = EquipmentType.query.all()
 
     return render_template(
-        "equipment/gestion/equipmentType/equipment_types.html",
+        "equipment/gestion/equipment_type/equipment_types.html",
         list_equipmentt_type=list_equipment_type,
     )
 
@@ -81,16 +81,16 @@ def detail_equipment_type(type_id):
         form_edit.populate_obj(equipment_type)
         equipment_type.save_typeImg(form_edit.imageType_file.data)
         db.session.commit()
-        return redirect(url_for(".detail_equipment_type", typeId=type_id))
+        return redirect(url_for(".detail_equipment_type", type_id=type_id))
 
     delete_form = DeleteForm()
 
     return render_template(
-        "equipment/gestion/equipmentType/equipment_type.html",
-        equipmentType=equipment_type,
+        "equipment/gestion/equipment_type/equipment_type.html",
+        equipment_type=equipment_type,
         adding_from_model=adding_from_model,
         formEdit=form_edit,
-        deleteForm=delete_form,
+        delete_form=delete_form,
     )
 
 
@@ -106,7 +106,7 @@ def add_equipment_model(type_id):
         new_model.equipment_type_id = type_id
         db.session.add(new_model)
         db.session.commit()
-    return redirect(url_for(".detail_equipment_type", typeId=type_id))
+    return redirect(url_for(".detail_equipment_type", type_id=type_id))
 
 
 @blueprint.route("/equipment_type/add", methods=["GET", "POST"])
@@ -125,13 +125,13 @@ def add_equipment_type():
         return redirect(url_for(".display_all_type"))
 
     return render_template(
-        "equipment/gestion/equipmentType/add_equipment_type.html",
+        "equipment/gestion/equipment_type/add_equipment_type.html",
         form=adding_from,
         title=title,
     )
 
 
-@blueprint.route("/delete_equipmentType/<int:equipment_type_id>", methods=["POST"])
+@blueprint.route("/delete_equipment_type/<int:equipment_type_id>", methods=["POST"])
 def delete_equipment_type(equipment_type_id):
     """Route to delete a specific type"""
     equipment_type = EquipmentType.query.get(equipment_type_id)
@@ -158,8 +158,8 @@ def stock_situation_stock():
 
     return render_template(
         "equipment/gestion/equipment/equipments.html",
-        equipmentTypeList=equipment_type_list,
-        deleteForm=delete_form,
+        equipment_type_list=equipment_type_list,
+        delete_form=delete_form,
     )
 
 
@@ -223,7 +223,7 @@ def detail_equipment(equipment_id):
     return render_template(
         "equipment/gestion/equipment/equipment.html",
         equipment=selected_equipment,
-        deleteForm=delete_form,
+        delete_form=delete_form,
         editEquipmentForm=edit_equipment_form,
     )
 

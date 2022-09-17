@@ -11,7 +11,7 @@ let table_taken = new Tabulator("#equipment-type-taken-table", {
      ],
       columns:[                 //define the table columns
         //{title:"id", field:"id", formatter:"number"},
-        {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '7em'}},
+        {title:"Photo", field:"path_img", formatter:"image", formatterParams:{height: '7em'}},
         {title:"Type", field:"name"},
         {title:"Quantité", field:"quantity", editor:"number",
           editorParams:{

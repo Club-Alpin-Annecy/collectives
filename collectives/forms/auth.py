@@ -25,7 +25,7 @@ class LoginForm(FlaskForm):
 
 
 class AccountCreationForm(ModelForm, OrderedForm):
-    """Form to create an account fro extranet"""
+    """Form to create an account from extranet"""
 
     class Meta:
         """Fields to expose"""

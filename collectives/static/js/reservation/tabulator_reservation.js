@@ -25,7 +25,7 @@
           {
             title:"Type d'équipement",
             headerFilter:"input",
-            field:"equipmentTypeName",
+            field:"equipment_type_name",
             formatter:"link",
             formatterParams:{
               urlField:"reservationLineURL"

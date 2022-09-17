@@ -44,13 +44,13 @@
     <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  Types de matériels</span> </a>
   </h1>
 
-  <h4 class="heading-4">Type de matériel : {{ equipmentType.name }} </h4>
+  <h4 class="heading-4">Type de matériel : {{ equipment_type.name }} </h4>
   <div class="container_equipmentInfo">
     <div class="container_equipmentInfo_top">
       <div class="container_equipmentInfo_img">
         <img src=" {{
-          url_for('static', filename='uploads/typeEquipmentImg/') + equipmentType.pathImg
-          if equipmentType.pathImg else
+          url_for('static', filename='uploads/typeEquipmentImg/') + equipment_type.path_img
+          if equipment_type.path_img else
          url_for('static', filename='img/icon/ionicon/md-images.svg') }}" alt="">
 
       </div>
@@ -58,17 +58,17 @@
       <div class="container_equipmentInfo_txt">
         <div class="container_main_info">
           <h5>Informations :</h5>
-          <p> <span class="type_info">Type :</span>  {{ equipmentType.name }} </p>
-          <p> <span class="type_info">Total :</span>  {{ equipmentType.nb_total() }} </p>
-          <p> <span class="type_info">Disponibles :</span>  {{ equipmentType.nb_total_available() }} </p>
-          <p> <span class="type_info">Préfixe :</span>  {{ equipmentType.reference_prefix }} </p>
+          <p> <span class="type_info">Type :</span>  {{ equipment_type.name }} </p>
+          <p> <span class="type_info">Total :</span>  {{ equipment_type.nb_total() }} </p>
+          <p> <span class="type_info">Disponibles :</span>  {{ equipment_type.nb_total_available() }} </p>
+          <p> <span class="type_info">Préfixe :</span>  {{ equipment_type.reference_prefix }} </p>
         </div>
 
         <div class="container_location_info">
           <h5>Location :</h5>
           <div class="container_info_sub">
-            <p> <span class="type_info">Prix :</span> {{ equipmentType.price }} € </p>
-            <p> <span class="type_info">Caution :</span> {{ equipmentType.deposit or "- "}}€ </p>
+            <p> <span class="type_info">Prix :</span> {{ equipment_type.price }} € </p>
+            <p> <span class="type_info">Caution :</span> {{ equipment_type.deposit or "- "}}€ </p>
           </div>
         </div>
       </div>
@@ -76,12 +76,12 @@
   </div>
 
 
-  <h4 class="heading-4">Modèle{{"s" if equipmentType.nb_models()>1}} ({{equipmentType.nb_models()}}) : </h4>
+  <h4 class="heading-4">Modèle{{"s" if equipment_type.nb_models()>1}} ({{equipment_type.nb_models()}}) : </h4>
   <p class="button button-primary button-small" id="btn_display_form_model">Ajouter</p>
 
   <div class="form_model display-none">
-    {% with form=adding_from_model, route=url_for('equipment.add_equipment_model', typeId=equipmentType.id) %}
-    {% include "equipment/gestion/equipmentModel/edit_equipment_model.html" %}
+    {% with form=adding_from_model, route=url_for('equipment.add_equipment_model', type_id=equipment_type.id) %}
+    {% include "equipment/gestion/equipment_model/edit_equipment_model.html" %}
     {% endwith %}
   </div>
 
@@ -95,13 +95,13 @@
         Éditer
       </p>
 
-      {% with form=deleteForm, route=url_for("equipment.delete_equipment_type",equipmentTypeId=equipmentType.id), message="Êtes-vous sûr de vouloir supprimer ce type d\\'équipement ?\\nCette action supprimera tous les modèles liés à ce type ainsi que tous les équipements" %}
+      {% with form=delete_form, route=url_for("equipment.delete_equipment_type",equipment_type_id=equipment_type.id), message="Êtes-vous sûr de vouloir supprimer ce type d\\'équipement ?\\nCette action supprimera tous les modèles liés à ce type ainsi que tous les équipements" %}
         {% include 'equipment/gestion/delete_form.html' %}
       {% endwith %}
 
       {% if formEdit is defined %}
-        {% with form=formEdit, route=url_for("equipment.detail_equipment_type", typeId=equipmentType.id),
-        includePath='equipment/gestion/equipmentType/edit_equipment_type.html', titre="Editer un équipement" %}
+        {% with form=formEdit, route=url_for("equipment.detail_equipment_type", type_id=equipment_type.id),
+        includePath='equipment/gestion/equipment_type/edit_equipment_type.html', titre="Editer un équipement" %}
           {% include 'partials/modal.html' %}
         {% endwith %}
       {% endif %}
@@ -115,7 +115,7 @@
 
 
   <script>
-    var ajaxURL= "{{url_for('api.equipmentModel', typeId=equipmentType.id)}}";
+    var ajaxURL= "{{url_for('api.equipment_model', type_id=equipment_type.id)}}";
     const token_csrf = "{{ csrf_token() }}" ;
   </script>
 

@@ -14,12 +14,12 @@
               {column:"name", dir:"asc"},
           ],
           rowClick: function (e, row) {
-            location = row._row.data.urlEquipmentTypeDetail
+            location = row._row.data.url_equipment_type_detail
           },
           columns:[                 //define the table columns
             //{title:"id", field:"id", formatter:"number"},
-            {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '7em'}},
-            {title:"Nom", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
+            {title:"Photo", field:"path_img", formatter:"image", formatterParams:{height: '7em'}},
+            {title:"Nom", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"url_equipment_type_detail"}},
             {title:"Prix", field:"price"},
             {title:"Caution", field:"deposit"},
           ],

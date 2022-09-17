@@ -97,7 +97,7 @@ def view_reservation(reservation_id=None):
             equipment = Equipment.query.get(form_add.add_equipment.data)
             if equipment:
                 reservation_line = reservation.get_line_of_type(
-                    equipment.model.equipmentType
+                    equipment.model.equipment_type
                 )
                 if reservation_line:
                     reservation_line.add_equipment(equipment)
@@ -191,7 +191,9 @@ def view_reservation_line(reservation_line_id):
             reservation_line.add_equipment(equipment)
             db.session.commit()
             return redirect(
-                url_for(".view_reservationLine", reservationLine_id=reservation_line_id)
+                url_for(
+                    ".view_reservation_line", reservationLine_id=reservation_line_id
+                )
             )
         return render_template(
             "reservation/reservationLine_planned.html",

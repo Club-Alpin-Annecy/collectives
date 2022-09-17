@@ -29,7 +29,7 @@ let table = new Tabulator("#equipment-type-table", {
       ],
       columns:[                 //define the table columns
         //{title:"id", field:"id", formatter:"number"},
-        {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '7em'}},
+        {title:"Photo", field:"path_img", formatter:"image", formatterParams:{height: '7em'}},
         {title:"Type", headerFilter:"input",field:"name"},
         {title:"Quantité", field:"quantity", editor:"number",
           editorParams:{

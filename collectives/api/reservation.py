@@ -25,14 +25,14 @@ from .common import blueprint, marshmallow
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe a reservation"""
 
-    userLicence = fields.Function(lambda obj: obj.user.license if obj.user else "")
-    statusName = fields.Function(lambda obj: obj.status.display_name())
-    userFullname = fields.Function(lambda obj: obj.user.full_name())
-    reservationURL = fields.Function(
+    user_licence = fields.Function(lambda obj: obj.user.license if obj.user else "")
+    status_name = fields.Function(lambda obj: obj.status.display_name())
+    user_full_name = fields.Function(lambda obj: obj.user.full_name())
+    reservation_url = fields.Function(
         lambda obj: url_for("reservation.view_reservation", reservation_id=obj.id)
     )
 
-    reservationURLUser = fields.Function(
+    reservation_url_user = fields.Function(
         lambda obj: url_for("reservation.my_reservation", reservation_id=obj.id)
     )
 
@@ -42,11 +42,11 @@ class ReservationSchema(marshmallow.Schema):
         fields = (
             "collect_date",
             "return_date",
-            "statusName",
-            "userLicence",
-            "reservationURL",
-            "reservationURLUser",
-            "userFullname",
+            "status_name",
+            "user_licence",
+            "reservation_url",
+            "reservation_url_user",
+            "user_full_name",
         )
 
 
@@ -153,11 +153,11 @@ def equipment_histo_reservations(equipment_id):
 class ReservationLineSchema(marshmallow.Schema):
     """Schema to describe reservation line"""
 
-    equipmentTypeName = fields.Function(lambda obj: obj.equipmentType.name)
+    equipment_type_name = fields.Function(lambda obj: obj.equipment_type.name)
 
-    reservationLineURL = fields.Function(
+    reservation_line_url = fields.Function(
         lambda obj: url_for(
-            "reservation.view_reservationLine", reservationLine_id=obj.id
+            "reservation.view_reservation_line", reservationLine_id=obj.id
         )
     )
 
@@ -170,8 +170,8 @@ class ReservationLineSchema(marshmallow.Schema):
 
         fields = (
             "quantity",
-            "equipmentTypeName",
-            "reservationLineURL",
+            "equipment_type_name",
+            "reservation_line_url",
             "ratio_equipments",
             "total_price",
         )
@@ -513,7 +513,7 @@ def autocomplete_availables_equipments(line_id=None):
     equipments_of_autocomplete = find_equipments_by_reference(pattern)
 
     if line_id:
-        equipment_type = ReservationLine.query.get(line_id).equipmentType
+        equipment_type = ReservationLine.query.get(line_id).equipment_type
         equipments_of_type = equipment_type.get_all_equipments_availables()
         query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
     else:

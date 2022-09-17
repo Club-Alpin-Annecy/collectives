@@ -6,6 +6,7 @@
 {% block title %}Liste{% endblock %}
 {% endblock %}
 
+
 {% block additionalhead %}
 
 {# Tabulator: for tables#}
@@ -26,25 +27,26 @@
 {% block scriptJsBody %}
 
 {# Script JS in body tag #}
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 <script src="{{ url_for('api.models_to_js') }}"></script>
 
 {% endblock %}
-
 
 {% block content %}
 
 <div class="page-content">
 
-
   <h1 class="heading-1">
     <a href="{{ url_for('equipment.stock_situation')}}" class="link_path"> <span class="title_first_path">Gestion du matériel</span></a>
     <a href="{{ url_for('equipment.display_all_type')}}" class="link_path"> <span class="title_second_path">/  Types de matériels</span> </a>
   </h1>
+  <h4 class="heading-4">Liste des types de matériels</h4>
+  <a href="{{ url_for('equipment.add_equipment_type')}}" class="button button-primary button-small">Ajouter</a>
+  <div id="equipment-type-table"></div>
+  <script>
+    var ajaxURL = "{{url_for('api.equipment_types')}}";
+  </script>
 
-  {% include 'equipment/gestion/equipmentType/edit_equipment_type.html' %}
+  <script src="{{ url_for('static', filename='js/equipment/tabulator_equipment_types.js') }}"></script>
 
-</div>
 {% endblock %}
-
-
-

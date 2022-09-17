@@ -32,7 +32,7 @@
       <a href="{{ url_for('reservation.view_reservation', reservation_id=reservationLine.reservation.id )}}" class="link_path"> <span class="title_second_path">/  Réservation N°{{ reservationLine.reservation.id }} </span> </a>
     </h1>
 
-    <h4 class="heading-4">{{ reservationLine.equipmentType.name }} ({{ reservationLine.quantity }}) :</h4>
+    <h4 class="heading-4">{{ reservationLine.equipment_type.name }} ({{ reservationLine.quantity }}) :</h4>
     <h4 class="heading-4">Équipements rendus</h4>
 
     <div id="returned-equipment-table" style="min-height: 500px;"></div>

@@ -6,7 +6,7 @@ from flask_uploads import UploadSet, IMAGES, extension
 
 from ..models.reservation import (
     Reservation,
-    ReservationLine_Equipment,
+    ReservationLineEquipment,
     ReservationStatus,
 )
 from .globals import db
@@ -90,7 +90,7 @@ class EquipmentType(db.Model):
     models = db.relationship(
         "EquipmentModel",
         lazy="select",
-        backref=db.backref("equipmentType", lazy="joined"),
+        backref=db.backref("equipment_type", lazy="joined"),
         cascade="all,delete",
     )
     """ List of models associated to this type.
@@ -98,8 +98,8 @@ class EquipmentType(db.Model):
     :type: list(:py:class:`collectives.models.equipment.EquipmentModel`)
     """
 
-    reservationLines = db.relationship(
-        "ReservationLine", back_populates="equipmentType"
+    reservation_lines = db.relationship(
+        "ReservationLine", back_populates="equipment_type"
     )
 
     def save_type_img(self, file):
@@ -156,7 +156,7 @@ class EquipmentType(db.Model):
         ).all()
         for res in ongoing_res:
             for line in res.lines:
-                if line.equipmentType.id == self.id:
+                if line.equipment_type.id == self.id:
                     nb_unavailable += line.quantity
         return nb_unavailable
 
@@ -275,12 +275,12 @@ class Equipment(db.Model):
 
     :type: string"""
 
-    purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
+    purchase_date = db.Column(db.DateTime, nullable=False, index=True)
     """Purchase date of this equipment.
 
     :type: :py:class:`datetime.datetime`"""
 
-    purchasePrice = db.Column(db.Numeric(precision=8, scale=2), nullable=True)
+    purchase_price = db.Column(db.Numeric(precision=8, scale=2), nullable=True)
     """Purchase price of this equipment.
 
     :type: float"""
@@ -307,9 +307,9 @@ class Equipment(db.Model):
 
     :type: int"""
 
-    reservationLines = db.relationship(
+    reservation_lines = db.relationship(
         "ReservationLine",
-        secondary=ReservationLine_Equipment,
+        secondary=ReservationLineEquipment,
         back_populates="equipments",
     )
 
@@ -319,7 +319,7 @@ class Equipment(db.Model):
         :rtype: list[:py:class:`collectives.models.reservation.Reservation]
         """
         reservations = []
-        for reservation_line in self.reservationLines:
+        for reservation_line in self.reservation_lines:
             reservations.append(reservation_line.reservation)
 
         return reservations
@@ -357,4 +357,4 @@ class Equipment(db.Model):
         :return: Type of this equipment
         :rtype: :py:class:`collectives.models.equipment.EquipmentType
         """
-        return self.model.equipmentType
+        return self.model.equipment_type

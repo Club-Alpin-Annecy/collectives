@@ -14,7 +14,7 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.reservationURLUser
+          location = row._row.data.reservation_url_user
       },
         columns:[
           {
@@ -36,12 +36,12 @@
           {
             title:"Licence",
             headerFilter:"input",
-            field:"userLicence",
+            field:"user_licence",
           },
           {
             title:"État",
             headerFilter:"input",
-            field:"statusName",
+            field:"status_name",
           },
 
         ],
