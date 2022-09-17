@@ -20,15 +20,20 @@ Par
         <meta property="og:title"              content="Collectives: {{event.title}}" />
         <meta property="og:description"        content="{{summary(event) | striptags  }}" />
         {% if event.photo %}
-            <meta property="og:image"              content="{{ url_for('static', filename=event.photo) }}" />
+            <meta property="og:image"              content="{{ url_for('static', filename=event.photo, _external=True) }}" />
         {% else %}
-            <meta property="og:image"              content="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" />
+            <meta property="og:image"              content="{{ url_for('static', filename='caf/logo-caf-annecy.svg', _external=True) }}" />
         {% endif %}
 
     </head>
     <body>
         <h1>Collectives: {{event.title}}</h1>
-        <p><img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="" /></p>
+        {% if event.photo %}
+            <p><img src="{{ url_for('static', filename=event.photo, _external=True) }}" alt="" /></p>
+        {% else %}
+            <p><img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg', _external=True) }}" alt="" /></p>
+        {% endif %}
+        
         <p>{{ summary(event)}}</p>
     </body>
 </html>
