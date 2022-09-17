@@ -38,19 +38,42 @@ def is_crawler():
     return False
 
 
-def crawlers_catcher(func):
-    """Decorator to reroute unauthenticated crawlers to preview page.
+def crawlers_catcher(url):
+    """Function to create a specific decorator which will redirect unauthenticated crawlers
+    to the designated url.
 
-    :param func: Function to protect"""
+    Decorated function and redirected function MUST have the arguments.
 
-    @wraps(func)
-    def innerF(*args, **kwargs):
-        """Fonction to decide if an unauthenticated crawler tries to access"""
-        if current_user:
-            if current_user.is_authenticated:
-                return func(*args, **kwargs)
-        if is_crawler():
-            return redirect(url_for("event.preview", event_id=kwargs["event_id"]))
-        return func(*args, **kwargs)
+    How to use:
+    .. code-block:: python
 
-    return innerF
+        @crawlers_catcher('event.preview')
+        @blueprint.route("/", methods=["GET", "POST"])
+        def event():
+            return "for users"
+
+        def preview():
+            return "for crawler"
+
+    :param string url: the function to be called using url_for syntax. ie blueprint.function
+    :returns: the right decorator for the function"""
+
+    @wraps(url)
+    def crawlers_catcher_base(func):
+        """Decorator to reroute unauthenticated crawlers to preview page.
+
+        :param func: Function to protect"""
+
+        @wraps(func)
+        def innerF(*args, **kwargs):
+            """Fonction to decide if an unauthenticated crawler tries to access"""
+            if current_user:
+                if current_user.is_authenticated:
+                    return func(*args, **kwargs)
+            if is_crawler():
+                return redirect(url_for(url, **kwargs))
+            return func(*args, **kwargs)
+
+        return innerF
+
+    return crawlers_catcher_base

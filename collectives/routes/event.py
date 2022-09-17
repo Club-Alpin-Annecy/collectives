@@ -201,7 +201,7 @@ def index(activity_type_id=None, name=""):
 
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
-@crawlers_catcher
+@crawlers_catcher("event.preview")
 @valid_user()
 def view_event(event_id, name=""):
     """Display a specific event.
