@@ -113,6 +113,5 @@ def test_crawler(dbauth, client, event):
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, features="lxml")
     assert (
-        soup.select_one('meta[property="og:image"]')["content"]
-        == "http://localhost/static/test.jpg"
+        "imgsizer/test.jpg" in soup.select_one('meta[property="og:image"]')["content"]
     )
