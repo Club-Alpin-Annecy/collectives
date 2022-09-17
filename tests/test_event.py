@@ -84,9 +84,9 @@ def test_crawler(dbauth, client, event):
     print(response.headers["Location"])
     assert response.headers["Location"] == f"/collectives/{event.id}/preview"
 
-    response = client.get(response.headers["Location"], headers=headers)
-    assert response.status_code == 200
-    soup = BeautifulSoup(response.text, features="lxml")
+    response_preview = client.get(response.headers["Location"], headers=headers)
+    assert response_preview.status_code == 200
+    soup = BeautifulSoup(response_preview.text, features="lxml")
     assert (
         soup.select_one('meta[property="og:title"]')["content"]
         == "Collectives: New collective"
@@ -97,7 +97,7 @@ def test_crawler(dbauth, client, event):
     )
     assert (
         soup.select_one('meta[property="og:image"]')["content"]
-        == "/static/caf/logo-caf-annecy.svg"
+        == "http://localhost/static/caf/logo-caf-annecy.svg"
     )
 
     description = soup.select_one('meta[property="og:description"]')["content"]
@@ -105,4 +105,14 @@ def test_crawler(dbauth, client, event):
     assert (
         description
         == "Collective Alpinisme - jeudi 20 octobre 2022 - 10 places - Par - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque mollis vitae diam at hendrerit...."
+    )
+
+    # Test an event with a photo
+    event.photo = "test.jpg"
+    response = client.get(response.headers["Location"], headers=headers)
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, features="lxml")
+    assert (
+        soup.select_one('meta[property="og:image"]')["content"]
+        == "http://localhost/static/test.jpg"
     )
