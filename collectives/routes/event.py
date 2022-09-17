@@ -32,6 +32,7 @@ from ..email_templates import send_update_waiting_list_notification
 from ..utils.time import current_time
 from ..utils.url import slugify
 from ..utils.access import confidentiality_agreement, valid_user
+from ..utils.crawlers import crawlers_catcher
 
 
 blueprint = Blueprint("event", __name__, url_prefix="/collectives")
@@ -200,6 +201,7 @@ def index(activity_type_id=None, name=""):
 
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
+@crawlers_catcher("event.preview")
 @valid_user()
 def view_event(event_id, name=""):
     """Display a specific event.
@@ -236,7 +238,7 @@ def view_event(event_id, name=""):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
     return render_template(
-        "event.html",
+        "event/event.html",
         event=event,
         photos=photos,
         current_time=current_time(),
@@ -266,7 +268,7 @@ def print_event(event_id):
     activity_names = [at.name for at in event.activity_types]
     description = escape(event.description)
     return render_template(
-        "print_event.html",
+        "event/print_event.html",
         event=event,
         description=description,
         activity_names=activity_names,
@@ -303,7 +305,7 @@ def manage_event(event_id=None):
         else:
             form = EventForm(obj=event)
         form.setup_leader_actions()
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # Get current activites from form
     tentative_activities = form.current_activities()
@@ -314,7 +316,7 @@ def manage_event(event_id=None):
             f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
             "error",
         )
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # Fetch existing readers leaders minus removed ones
     previous_leaders = []
@@ -345,7 +347,7 @@ def manage_event(event_id=None):
         validate_event_leaders(
             tentative_activities, previous_leaders, form.multi_activities_mode.data
         )
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # Add new leader
     new_leader_id = int(form.add_leader.data)
@@ -364,7 +366,7 @@ def manage_event(event_id=None):
         main_leader_id = None
     if not any(l.id == main_leader_id for l in tentative_leaders):
         flash("Un encadrant responsable doit être défini")
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # Update leaders only
     # Do not process the remainder of the form
@@ -379,13 +381,13 @@ def manage_event(event_id=None):
             form.update_choices()
             form.setup_leader_actions()
 
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # The 'Update event' button has been clicked
     # Populate object, run custom validators
 
     if not form.validate():
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     # Do not populate the real event as errors may still be raised and we do not want
     # SQLAlchemy to flush the temp data
@@ -393,7 +395,7 @@ def manage_event(event_id=None):
     form.populate_obj(trial_event)
 
     if not validate_dates_and_slots(trial_event):
-        return render_template("editevent.html", event=event, form=form)
+        return render_template("event/editevent.html", event=event, form=form)
 
     has_new_activity = any(a not in event.activity_types for a in tentative_activities)
 
@@ -409,14 +411,14 @@ def manage_event(event_id=None):
             tentative_leaders,
             form.multi_activities_mode.data,
         ):
-            return render_template("editevent.html", event=event, form=form)
+            return render_template("event/editevent.html", event=event, form=form)
 
     # Check if leaders don't already lead an activity during the event
     if requires_activity:
         for leader in tentative_leaders_set:
             if not leader.can_lead_on(trial_event.start, trial_event.end, event_id):
                 flash(f"{leader.full_name()} encadre déjà une activité à cette date")
-                return render_template("editevent.html", event=event, form=form)
+                return render_template("event/editevent.html", event=event, form=form)
 
     # If event has not been created yet use current activities to check rights
     if event_id is None:
@@ -430,7 +432,7 @@ def manage_event(event_id=None):
                 f"Impossible de supprimer l'encadrant: {removed_leader.full_name()}",
                 "error",
             )
-            return render_template("editevent.html", event=event, form=form)
+            return render_template("event/editevent.html", event=event, form=form)
 
     # All good! Apply changes
     form.populate_obj(event)
@@ -516,7 +518,7 @@ def duplicate(event_id=None):
     form.duplicate_event.data = event_id
 
     return render_template(
-        "editevent.html",
+        "event/editevent.html",
         form=form,
         event=event,
         action=url_for("event.manage_event"),
@@ -909,6 +911,17 @@ def update_attendance(event_id):
     return redirect(
         url_for("event.view_event", event_id=event_id) + "#attendancelistform"
     )
+
+
+@blueprint.route("/<int:event_id>/preview")
+def preview(event_id):
+    """Route to let social media preview a collective
+
+    :param int event_id: Primary key of the event to update.
+    """
+    event = Event.query.get(event_id)
+    url = url_for("event.view_event", event_id=event.id, name=slugify(event.title))
+    return render_template("event/preview.html", event=event, url=url)
 
 
 def update_waiting_list(event):
