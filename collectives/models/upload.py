@@ -1,17 +1,28 @@
 """Module for file upload related classes
 """
 import os
+from datetime import timedelta
 
+from flask import url_for
 from flask_uploads import UploadSet, DOCUMENTS, IMAGES
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import validates
 
 from .globals import db
 
+from ..utils.time import current_time
+
 documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
 """Upload instance for documents
 
 :type: flask_uploads.UploadSet"""
+
+
+THUMBNAIL_WIDTH = 640
+"""Default width in pixels for image thumbnails """
+
+THUMBNAIL_HEIGHT = 480
+"""Default height in pixels for image thumbnails """
 
 
 class UploadedFile(db.Model):
@@ -126,7 +137,7 @@ class UploadedFile(db.Model):
         self.size = file_stats.st_size
 
     def full_path(self):
-        """:eturns: the full on-disk file path
+        """:returns: the full on-disk file path
         :rtype: string
         """
         return documents.path(self.path)
@@ -141,3 +152,46 @@ class UploadedFile(db.Model):
         :rtype: str
         """
         return documents.url(self.path)
+
+    def thumbnail_url(
+        self, width: int = THUMBNAIL_WIDTH, height: int = THUMBNAIL_HEIGHT
+    ):
+        """
+        If this file is an image, returns its thumbnail URL
+
+        :param width: max width of the thumbnail in pixels, defaults to THUMBNAIL_WIDTH
+        :type width: int, optional
+        :param height: max height of the thumnail in pixels, defaults to THUMBNAIL_HEIGHT
+        :type height: int, optional
+        :return: The thumbnail URL or None if not an image
+        :rtype: int
+        """
+        return (
+            url_for(
+                "images.crop",
+                filename=self.path,
+                width=width,
+                height=height,
+                _external=True,
+            )
+            if self.is_image()
+            else None
+        )
+
+    @staticmethod
+    def purge_old_uploads(current_session_id: int | None, days: int = 1):
+        """Removes uploaded files from temporary sessions that where never attached to an event
+
+        :param current_session_id: Id of current editing session, or None. Files from the current editing session will not be purged.
+        :type current_session_id: int | None
+        :param days: Number of days since upload to consider purging the file
+        :type days: int
+        """
+        to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
+        to_delete = to_delete.filter(UploadedFile.session_id != current_session_id)
+        to_delete = to_delete.filter(
+            UploadedFile.date <= current_time() - timedelta(days=days)
+        )
+        for file_to_delete in to_delete.all():
+            file_to_delete.delete_file()
+            db.session.delete(file_to_delete)

@@ -2,7 +2,6 @@
 
 """
 import json
-from datetime import timedelta
 
 from flask import request, abort, url_for
 from flask_login import current_user
@@ -14,10 +13,6 @@ from ..models import db, Event, UploadedFile, Configuration
 from .common import blueprint, marshmallow
 from ..utils.access import valid_user
 from ..utils.time import current_time
-
-
-THUMB_WIDTH = 640
-THUMB_HEIGHT = 480
 
 
 @valid_user(api=True)
@@ -58,14 +53,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
         ).count()
 
     # While we're at it, delete old uploads from unfinished edit sessions
-    to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
-    to_delete = to_delete.filter(UploadedFile.session_id != edit_session_id)
-    to_delete = to_delete.filter(
-        UploadedFile.date <= current_time() - timedelta(days=1)
-    )
-    for file_to_delete in to_delete.all():
-        file_to_delete.delete_file()
-        db.session.delete(file_to_delete)
+    UploadedFile.purge_old_uploads(edit_session_id)
 
     # Check that the storage quota is not exceeded
     if existing_file_count >= Configuration.MAX_UPLOADS_PER_EVENT:
@@ -90,13 +78,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
     response = {
         "data": {
-            "filePath": url_for(
-                "images.crop",
-                filename=uploaded_file.path,
-                width=THUMB_WIDTH,
-                height=THUMB_HEIGHT,
-                _external=True,
-            )
+            "filePath": uploaded_file.thumbnail_url()
             if uploaded_file.is_image()
             else uploaded_file.url()
         }
@@ -117,17 +99,7 @@ class UploadedFileSchema(marshmallow.Schema):
     """ Url of the endpoint to delete the file
 
     :type: string"""
-    thumbnail_url = fields.Function(
-        lambda file: url_for(
-            "images.crop",
-            filename=file.path,
-            width=THUMB_WIDTH,
-            height=THUMB_HEIGHT,
-            _external=True,
-        )
-        if file.is_image()
-        else None
-    )
+    thumbnail_url = fields.Function(lambda file: file.thumbnail_url())
     """ For images, public url for generating a thumbnail
 
     :type: string"""
