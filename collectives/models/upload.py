@@ -179,11 +179,11 @@ class UploadedFile(db.Model):
         )
 
     @staticmethod
-    def purge_old_uploads(current_session_id: int | None, days: int = 1):
+    def purge_old_uploads(current_session_id: int, days: int = 1):
         """Removes uploaded files from temporary sessions that where never attached to an event
 
         :param current_session_id: Id of current editing session, or None. Files from the current editing session will not be purged.
-        :type current_session_id: int | None
+        :type current_session_id: int
         :param days: Number of days since upload to consider purging the file
         :type days: int
         """
