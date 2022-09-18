@@ -14,7 +14,7 @@
             }
 
             function checkFileFieldSize(element){
-                var maxSize = parseInt("{{ config['MAX_FILE_SIZE']}}");
+                var maxSize = parseInt("{{ config['MAX_CONTENT_LENGTH']}}");
                 var maxSizeFileMessage = "{{config['MAX_FILE_SIZE_MESSAGE']}}";
                 if (element.files[0].size > maxSize)  {
                     alert(maxSizeFileMessage.replace('[size]', (element.files[0].size / 1024 / 1024).toFixed(2)));

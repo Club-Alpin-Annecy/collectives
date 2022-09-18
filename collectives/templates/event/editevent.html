@@ -14,6 +14,15 @@
 
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <style type="text/css">
+  /* Increase z-index so that fullscreen editor is above tail selects */
+   .EasyMDEContainer .CodeMirror-fullscreen {
+    z-index:108;
+  } 
+  .editor-toolbar.fullscreen {
+    z-index:109;
+  }
+  </style>
   <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
   {# Multi-select #}
@@ -64,9 +73,23 @@
          {% if form.parent_event %}
             eventSearchInput.value = formatParentEvent("{{form.parent_event.id}}", "{{form.parent_event.title}}", "{{form.parent_event.start}}");
          {% endif %}
+
+
+          const easymde = makeEditor("description", {
+            imageUploadEndpoint : "{{url_for("api.upload_event_file", event_id=event.id) if event.id else url_for("api.upload_new_event_file", edit_session_id = form.edit_session_id.data)}}",
+            imageCSRFToken : "{{csrf_token()}}"
+          });
+            
+          let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data)}}";
+          const uploadedFilesTable = createUploadedFilesTable(uploadedFilesEndpoint, easymde, "{{csrf_token()}}") 
+
       };
   </script>
 
+  <!-- file upload -->
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+  
 {% endblock %}
 
 {% block content %}
@@ -212,7 +235,16 @@
     <h4 class="heading-4">Description</h4>
     <div id="editor">
         {{ form.description }}
+        <div class="container_bg_modal display-none">
+          <div class="container_modal">
+            <div class="container_close">
+              <span></span>
+            </div>
+            <div id="uploaded-files-table"></div>
+          </div>
+        </div>
     </div>
+
     <div class="controls">
         <label for="photo_file">Image de présentation :<span class="label-help">&#9432; Photo uniquement, d'une taille maximum de 2Mo</span></label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }}
     </div>
@@ -257,7 +289,6 @@ document.querySelectorAll("input[type=datetime]").forEach(function(input){
                     classNames:"form-tail-datetime default",
                 });
 });
-var easymde = makeEditor("description");
 
 var activities_multiselect = document.getElementById("multi_activity_types");
 if(activities_multiselect) {

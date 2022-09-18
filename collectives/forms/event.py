@@ -1,6 +1,7 @@
 """Module containing forms related to event management
 """
 from operator import attrgetter
+from uuid import uuid4
 
 from datetime import timedelta
 from flask_wtf import FlaskForm
@@ -172,6 +173,7 @@ class EventForm(ModelForm, FlaskForm):
     tag_list = SelectMultipleField("Labels", coerce=int)
 
     parent_event_id = HiddenField(filters=[lambda id: id or None])
+    edit_session_id = HiddenField()
 
     source_event = None
     current_leaders = []
@@ -185,6 +187,11 @@ class EventForm(ModelForm, FlaskForm):
         from event data.
         """
         super().__init__(*args, **kwargs)
+
+        # Unique identifier for the editing session
+        # Useful to associate to temporary data when creating a new event
+        if not self.edit_session_id.data:
+            self.edit_session_id.data = uuid4()
 
         if "obj" in kwargs:
             # Reading from an existing event

@@ -266,11 +266,13 @@ EVENT_TAGS = {
 }
 
 # Technical stuff
-MAX_FILE_SIZE = 2 * 1024 * 1024
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024
 """ Max size to upload files.
 
+Note: this is a Flask setting that will make the server itself refuse to upload files larger than this
+
 :type: int """
-MAX_FILE_SIZE_MESSAGE = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_FILE_SIZE/1024/1024} Mo)"
+MAX_FILE_SIZE_MESSAGE = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
 """ Error message if uploaded file is too big.
 
 This error message is only used in form validation on client. `[size]` is a
@@ -294,6 +296,11 @@ UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(
 
 :type: string
 """
+UPLOADED_DOCUMENTS_DEST = os.path.join(basedir, "collectives/static/uploads/documents")
+"""Folder path for uploaded event documents.
+
+
+"""
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 """ Allowed extension for uploaded images
@@ -306,6 +313,7 @@ IMAGES_PATH = [
     "static/uploads",
     "static/uploads/avatars",
     "static/uploads/typeEquipmentImg",
+    "static/uploads/documents",
 ]
 
 

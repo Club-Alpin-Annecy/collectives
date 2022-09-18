@@ -9,6 +9,7 @@ function copyStartDate() {
         document.querySelector('input[name=end]').value = document.querySelector('input[name=start]').value;
 }
 
+
 function makeEditorToolbar() {
     return [
         {
@@ -48,6 +49,12 @@ function makeEditorToolbar() {
             className: "fa fa-list-ol",
             title: "Liste numérotée",
         },
+        {
+            name: "table",
+            action: EasyMDE.drawTable,
+            className: "fa fa-table",
+            title: "Tableau",
+        },
         "|",
         {
             name: "link",
@@ -59,13 +66,19 @@ function makeEditorToolbar() {
             name: "image",
             action: EasyMDE.drawImage,
             className: "fa fa-picture-o",
-            title: "Image",
+            title: "Image en ligne",
         },
         {
-            name: "table",
-            action: EasyMDE.drawTable,
-            className: "fa fa-table",
-            title: "Tableau",
+            name: "upload-image",
+            action: EasyMDE.drawUploadedImage,
+            className: "fa fa-upload",
+            title: "Télécharger un document",
+        },
+        {
+            name: "list-uploaded-files",
+            action: listUploadedFiles,
+            className: "fa fas fa-folder-open",
+            title: "Documents téléchargés",
         },
         "|",
         {
@@ -96,9 +109,9 @@ function makeEditorToolbar() {
         "|",
         {
             name: "nowysiwyg",
-            action: function(){
+            action: function () {
                 easymde.toTextArea();
-                document.getElementById("form_edit_event").onsubmit=null;
+                document.getElementById("form_edit_event").onsubmit = null;
             },
             className: "fa fa-power-off",
             title: "Désactiver Wysiwyg",
@@ -114,22 +127,44 @@ function getEditorOptions(elementId) {
         element: document.getElementById(elementId),
         blockStyles: { italic: "_" },
         spellChecker: false,
-        status: false,
         promptURLs: true,
+        uploadImage: true,
+        status: ['upload-image'],
+
+        imageAccept: "image/png, image/jpeg, image/gif, application/pdf, application/vnd.oasis.opendocument.spreadsheet, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/xml, application/gpx+xml",
+        imageCSRFName: "X-CSRFToken",
+        imageCSRFHeader: true,
+        imagePathAbsolute: true,
+        imageTexts: {
+            sbInit: 'Vous pouvez insérer des documents en les collant ou les déposant dans la zone de texte.',
+            sbOnDragEnter: 'Déposez le document pour le télécharger.',
+            sbOnDrop: 'Téléchargement de "#images_names#" en cours...',
+            sbProgress: 'Téléchargement de "#file_name#": #progress#%',
+            sbOnUploaded: 'Téléchargement de "#image_name#" terminé',
+            sizeUnits: ' B, KB, MB',
+        },
+        errorMessages: {
+            noFileGiven: 'Aucun fichier choisi.',
+            typeNotAllowed: 'Ce type de document n\'est pas autorisé.',
+            fileTooLarge: 'Le fichier "#image_name#" est trop volumineux (#image_size#) ou le nombre de fichiers maximum par événement a été atteint.\n' +
+                'La taille maximum autorisée est #image_max_size#.',
+            importError: 'Une erreur est survenue lors du téléchargement de "#image_name#".',
+        },
+        sideBySideFullscreen: false,
         toolbar: makeEditorToolbar()
     };
 }
 
-function makeEditor(elementId)
-{
-    var easymde = new EasyMDE(getEditorOptions(elementId));
+function makeEditor(elementId, options = {}) {
+    var allOptions = Object.assign({}, getEditorOptions(elementId), options);
+    var easymde = new EasyMDE(allOptions);
     easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
     return easymde;
 }
 
-function validateDateTime(element, canBeEmpty){
+function validateDateTime(element, canBeEmpty) {
     if (element.value == "") {
-        if(canBeEmpty) {
+        if (canBeEmpty) {
             element.setCustomValidity('');
         } else {
             element.setCustomValidity('Doit être défini');
@@ -137,7 +172,7 @@ function validateDateTime(element, canBeEmpty){
         return canBeEmpty;
     }
 
-    if (!moment(element.value).isValid()){
+    if (!moment(element.value).isValid()) {
         element.setCustomValidity('Doit être une date');
         return false;
     }
@@ -145,7 +180,7 @@ function validateDateTime(element, canBeEmpty){
     return true;
 }
 
-function checkDateOrder(){
+function checkDateOrder() {
     const start = document.getElementById('start');
     const end = document.getElementById('end');
     const registration_open_time = document.getElementById('registration_open_time');
@@ -171,46 +206,46 @@ function checkDateOrder(){
     hasDateError = hasDateError || !validateDateTime(registration_close_time, true);
 
     // Don't check order if some dates are invalid
-    if(hasDateError) return false;
+    if (hasDateError) return false;
 
     // Start of event is before the end 
-    if( moment(start.value) > moment(end.value) ){
+    if (moment(start.value) > moment(end.value)) {
         starts_before_ends.style.display = "inline";
         start.setCustomValidity('Doit être avant la fin');
         end.setCustomValidity('Doit être après le début');
-   
+
         hasDateError = true;
     }
 
     var hasRegistrationOpen = registration_open_time.value != "";
     var hasRegistrationClose = registration_close_time.value != "";
-    if(hasRegistrationClose || hasRegistrationOpen){
+    if (hasRegistrationClose || hasRegistrationOpen) {
         // If a registration bound is defined, check the other one definition
-        if(hasRegistrationOpen && hasRegistrationClose){
+        if (hasRegistrationOpen && hasRegistrationClose) {
             // End of registration is before opening of registrations
-            if(moment(registration_close_time.value) < moment(registration_open_time.value) ){
+            if (moment(registration_close_time.value) < moment(registration_open_time.value)) {
                 opens_before_closes.style.display = "inline";
                 registration_close_time.setCustomValidity("Doit être après l'ouverture");
                 registration_open_time.setCustomValidity("Doit être avant la fermeture");
-                
+
                 hasDateError = true;
             }
-        } else { 
+        } else {
             halfregistration.style.display = "inline";
-            if(!hasRegistrationClose)
+            if (!hasRegistrationClose)
                 registration_close_time.setCustomValidity('Doit être défini');
-            if(!hasRegistrationOpen)
+            if (!hasRegistrationOpen)
                 registration_open_time.setCustomValidity('Doit être défini');
-        
+
             hasDateError = true;
         }
     }
 
     // If there are already errors, do not proceed further on
-    if(hasDateError) return false;
+    if (hasDateError) return false;
 
     // End of registration is before start of event
-    if(registration_close_time.value != "" && moment(registration_close_time.value) > moment(start.value) ) {
+    if (registration_close_time.value != "" && moment(registration_close_time.value) > moment(start.value)) {
         closes_before_starts.style.display = "inline";
         registration_close_time.setCustomValidity("Doit être avant le début de l'événement");
         start.setCustomValidity('Doit être après fermeture des inscriptions');
@@ -220,14 +255,122 @@ function checkDateOrder(){
     return hasDateError;
 }
 
-function removeRequiredAttributes()
-{
+function removeRequiredAttributes() {
     Array.from(document.getElementsByTagName("input")).forEach(
-        function(element) {
+        function (element) {
             element.removeAttribute("required");
             element.setCustomValidity("");
         }
     );
 }
 
-    
+function insertLink(editor, name, url, asImage) {
+
+    if (!editor.codemirror) {
+        return;
+    }
+
+    cm = editor.codemirror
+
+    let absoluteUrl = new URL(url, document.baseURI);
+
+    alt = cm.getSelection()
+    if (!alt) {
+        alt = name;
+    }
+
+    text = `[${alt}](${absoluteUrl.href})`
+    if (asImage) text = '!' + text;
+
+    cm.replaceSelection(text);
+
+    const modal = document.querySelector('.container_bg_modal');
+    closeModal(modal);
+
+}
+
+function iconFormatter(cell, formatterParams, onRendered) {
+    if (cell.getValue()) {
+        return `<i class="fa ${formatterParams['icon']}" alt="${formatterParams['alt']}"></i>`;
+    }
+    return '';
+}
+
+
+function sizeFormatter(cell) {
+    value = cell.getValue();
+    units = [' B', ' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+    while (value > 1024) {
+        value = value / 1024;
+        units.shift();
+    }
+    return Math.round(value * 10) / 10 + units[0];
+}
+
+function createUploadedFilesTable(url, editor, csrf_token) {
+    function insertFileAsLink(e, cell) {
+        url = cell.getValue();
+        name = cell.getRow().getData().name
+        insertLink(editor, name, url, false);
+    }
+
+    function insertFileAsImage(e, cell) {
+        url = cell.getValue();
+        name = cell.getRow().getData().name
+        insertLink(editor, name, url, true);
+    }
+
+    function deleteFile(e, cell) {
+        if (!confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
+            return false;
+        }
+
+        var res = null;
+        var req = new XMLHttpRequest();
+
+        req.open('POST', cell.getValue(), true);
+        req.setRequestHeader('x-csrf-token', csrf_token);
+        req.onload = function () {
+            cell.getTable().replaceData()
+        };
+        req.send();
+    }
+
+    return new Tabulator("#uploaded-files-table",
+        {
+            ajaxURL: url,
+            layout: "fitColumns",
+
+            nestedFieldSeparator: false,
+            columns: [
+                {
+                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }
+                },
+                { title: "Taille", widthGrow: 1, field: "size", formatter: sizeFormatter },
+                { title: "Date", widthGrow: 1, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
+                { field: "url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink, headerSort: false },
+                { field: "thumbnail_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage, headerSort: false },
+                { field: "delete_url", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteFile, headerSort: false }
+            ],
+
+            locale: true,
+            langs: {
+                "fr": {
+                    "ajax": {
+                        "loading": "Chargement", //ajax loader text
+                        "error": "Erreur", //ajax error text
+                    },
+                }
+            },
+        });
+}
+
+function listUploadedFiles() {
+    var table = Tabulator.prototype.findTable("#uploaded-files-table")[0];
+    table.replaceData();
+
+    // Show modal dialog 
+    const modal = document.querySelector('.container_bg_modal');
+    openModal(modal);
+}
+

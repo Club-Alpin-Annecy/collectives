@@ -20,7 +20,7 @@ from ..models import (
     EventStatus,
 )
 from ..models import RegistrationStatus, User, db
-from ..models import EventTag
+from ..models import EventTag, UploadedFile
 from ..models.activitytype import activities_without_leader, leaders_without_activities
 from ..models.payment import ItemPrice, Payment
 from ..email_templates import send_new_event_notification
@@ -475,6 +475,16 @@ def manage_event(event_id=None):
             event.copy_payment_items(duplicated_event)
             db.session.add(event)
             db.session.commit()
+
+    # Set the event id to all files uploaded during this edit session
+    session_uploads = UploadedFile.query.filter_by(
+        session_id=form.edit_session_id.data
+    ).all()
+    for session_upload in session_uploads:
+        session_upload.event_id = event.id
+        db.session.add(session_upload)
+    if session_uploads:
+        db.session.commit()
 
     if event_id is None:
         # This is a new event, send notification to supervisor
