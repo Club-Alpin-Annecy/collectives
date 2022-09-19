@@ -13,9 +13,7 @@ It is based on Flask.
 2. Install Python (this app has been tested with Python 3.8) and pip3
 3. Install required dependencies with pip
     `pip install -r requirements.txt`
-4. Setup local database (sqlite) with
-    `FLASK_APP="collectives:create_app" flask db upgrade`
-5. Run the development server (it will be available at http://localhost:5000)
+4. Run the development server (it will be available at http://localhost:5000)
     `./run.py`
     (do not run this in production)
 
