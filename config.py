@@ -273,7 +273,8 @@ EVENT_TAGS = {
 MAX_CONTENT_LENGTH = 2 * 1024 * 1024
 """ Max size to upload files.
 
-Note: this is a Flask setting that will make the server itself refuse to upload files larger than this
+Note: this is a Flask setting that will make the server itself refuse to
+upload files larger than this
 
 :type: int """
 MAX_FILE_SIZE_MESSAGE = (

@@ -160,13 +160,13 @@ class PaymentItemForm(ModelForm):
             field_form.total_use_count = price.total_use_count()
             field_form.active_use_count = price.active_use_count()
 
-    def validate_title(self, form, field):
+    def validate_title(self, field):
         """Validates that the item title is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
         title = field.data
-        item_id = int(form.item_id.data)
-        other_titles = form.owner_form.other_item_titles(item_id)
+        item_id = int(self.item_id.data)
+        other_titles = self.owner_form.other_item_titles(item_id)
         if title.lower() in [t.lower() for t in other_titles]:
             raise ValidationError(f"Plusieurs objets portent le nom '{title}'")
 
@@ -200,16 +200,16 @@ class NewItemPriceForm(ModelForm, AmountForm):
 
     add = SubmitField("Ajouter le tarif")
 
-    def validate_item_title(self, form, field):
+    def validate_item_title(self, field):
         """Validates that if a new item is created, then the
         new item title field is not empty, and is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
         title = field.data
-        if not form.existing_item.data and not title:
+        if not self.existing_item.data and not title:
             raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
 
-        existing_titles = [t.lower() for (i, t) in form.existing_item.choices]
+        existing_titles = [t.lower() for (i, t) in self.existing_item.choices]
         if title.lower() in existing_titles:
             raise ValidationError(
                 f"Un objet portant le nom '{title}' existe déjà; pour ajouter un nouveau tarif à "
