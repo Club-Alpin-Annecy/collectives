@@ -25,14 +25,17 @@
   {% if propose_activate %}
   <div class="form-info">
     <div class="flash flash-info">
-      Ce formulaire vous permet de changer le mot de passe associé à un compte Collectives existant. 
-      Si vous n'avez pas encore créé votre compte sur le site des Collectives, <a href="{{url_for('auth.signup')}}">cliquez ici pour l'activer</a>. 
+      Ce formulaire vous permet de réactiver un compte Collectives existant
+      si vous en avez perdu le mot de passe ou si vous avec changé de numéro de licence
+      (dans ce dernier cas, entrez le numéro le plus récent). <br/>
+      Si vous n'avez jamais créé votre compte sur le site des Collectives, <a href="{{url_for('auth.signup')}}">rendez vous sur cette page</a>. 
     </div>
   </div>
   {% elif propose_recover %}
   <div class="form-info">
     <div class="flash flash-info">
-      Si vous avez déjà créé votre compte Collectives mais n'en connaissez plus le mot de passe, vous pouvez
+      Si vous avez déjà créé votre compte Collectives mais n'en connaissez plus le mot de passe, 
+      ou si vous avez changé de numéro de licence, vous pouvez
       <a href="{{url_for('auth.recover')}}">utiliser ce lien
        pour le récupérer.</a>
     </div>
