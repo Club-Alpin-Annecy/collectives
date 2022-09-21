@@ -289,7 +289,8 @@ def autocomplete_event():
 
     :param string q: Search string. Either the event id or a substring from the title
     :param int l: Maximum number of returned items.
-    :param list[int] aid: List of activity ids to include. Empty means include events for any activity
+    :param list[int] aid: List of activity ids to include. Empty means include
+                          events for any activity
     :param list[int] eid: List of event ids to exclude
     :return: A tuple:
 

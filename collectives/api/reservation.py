@@ -9,15 +9,11 @@ from flask import url_for, request, abort
 from marshmallow import fields
 from sqlalchemy.sql import text
 
-from collectives.api.equipment import EquipmentSchema, EquipmentSchema
+from collectives.api.equipment import EquipmentSchema
 from collectives.models.equipment import Equipment, EquipmentStatus
-from collectives.api.equipment import EquipmentSchema, EquipmentSchema
 
-from collectives.models.reservation import (
-    Reservation,
-    ReservationLine,
-    ReservationStatus,
-)
+from collectives.models.reservation import Reservation
+from collectives.models.reservation import ReservationLine, ReservationStatus
 from collectives.models.user import User
 
 from ..models import db
@@ -29,14 +25,14 @@ from .common import blueprint, marshmallow
 class ReservationSchema(marshmallow.Schema):
     """Schema to describe a reservation"""
 
-    userLicence = fields.Function(lambda obj: obj.user.license if obj.user else "")
-    statusName = fields.Function(lambda obj: obj.status.display_name())
-    userFullname = fields.Function(lambda obj: obj.user.full_name())
-    reservationURL = fields.Function(
+    user_licence = fields.Function(lambda obj: obj.user.license if obj.user else "")
+    status_name = fields.Function(lambda obj: obj.status.display_name())
+    user_full_name = fields.Function(lambda obj: obj.user.full_name())
+    reservation_url = fields.Function(
         lambda obj: url_for("reservation.view_reservation", reservation_id=obj.id)
     )
 
-    reservationURLUser = fields.Function(
+    reservation_url_user = fields.Function(
         lambda obj: url_for("reservation.my_reservation", reservation_id=obj.id)
     )
 
@@ -46,11 +42,11 @@ class ReservationSchema(marshmallow.Schema):
         fields = (
             "collect_date",
             "return_date",
-            "statusName",
-            "userLicence",
-            "reservationURL",
-            "reservationURLUser",
-            "userFullname",
+            "status_name",
+            "user_licence",
+            "reservation_url",
+            "reservation_url_user",
+            "user_full_name",
         )
 
 
@@ -90,8 +86,8 @@ def reservations_of_day():
     :rtype: (string, int, dict)
     """
 
-    dt = datetime.today()
-    start = dt - timedelta(days=dt.weekday())
+    current_date = datetime.today()
+    start = current_date - timedelta(days=current_date.weekday())
     end = start + timedelta(days=6)
 
     query = Reservation.query.filter(
@@ -116,12 +112,12 @@ def reservations_returns_of_day():
 
     :rtype: (string, int, dict)
     """
-    dt = datetime.today()
-    startWeek = dt - timedelta(days=dt.weekday())
-    endWeek = startWeek + timedelta(days=6)
+    current_date = datetime.today()
+    start_week = current_date - timedelta(days=current_date.weekday())
+    end_week = start_week + timedelta(days=6)
 
     query = Reservation.query.filter(
-        Reservation.return_date <= endWeek,
+        Reservation.return_date <= end_week,
         Reservation.status == ReservationStatus.Ongoing,
     )
     if query is not None:
@@ -157,11 +153,11 @@ def equipment_histo_reservations(equipment_id):
 class ReservationLineSchema(marshmallow.Schema):
     """Schema to describe reservation line"""
 
-    equipmentTypeName = fields.Function(lambda obj: obj.equipmentType.name)
+    equipment_type_name = fields.Function(lambda obj: obj.equipment_type.name)
 
-    reservationLineURL = fields.Function(
+    reservation_line_url = fields.Function(
         lambda obj: url_for(
-            "reservation.view_reservationLine", reservationLine_id=obj.id
+            "reservation.view_reservation_line", reservationLine_id=obj.id
         )
     )
 
@@ -174,15 +170,15 @@ class ReservationLineSchema(marshmallow.Schema):
 
         fields = (
             "quantity",
-            "equipmentTypeName",
-            "reservationLineURL",
+            "equipment_type_name",
+            "reservation_line_url",
             "ratio_equipments",
             "total_price",
         )
 
 
 @blueprint.route("/reservation/<int:reservation_id>")
-def reservationLines(reservation_id):
+def reservation_lines(reservation_id):
     """API endpoint to list reservation lines.
 
     :return: A tuple:
@@ -395,7 +391,6 @@ def remove_reservation_equipment_decreasing_quantity(equipment_id, reservation_i
     return abort(404, "Equipment or reservation not found")
 
 
-# ---------------------------------------------------------------- User ----------------------------------------------------
 @blueprint.route("/my_reservations/")
 def my_reservations():
     """API endpoint to list reservation lines of current user.
@@ -462,7 +457,6 @@ def my_reservation(reservation_id):
     return abort(404, "Reservation not found")
 
 
-# ---------------------------------------------------------------- Autocomplete ----------------------------------------------------
 class AutocompleteEquipmentSchema(marshmallow.Schema):
     """Schema to describe autocomplete equipment"""
 
@@ -475,21 +469,23 @@ class AutocompleteEquipmentSchema(marshmallow.Schema):
         )
 
 
-def find_equipments_by_reference(q):
+def find_equipments_by_reference(pattern):
     """Find equipment for autocomplete from a part of their full name.
 
     Comparison are case insensitive.
 
-    :param string q: Part of the name that will be searched.
+    :param string pattern: Part of the name that will be searched.
     :return: List of equipments corresponding to ``q``
     :rtype: list(:py:class:`collectives.models.equipment.Equipment`)
     """
 
     sql = "SELECT id, reference from equipments WHERE LOWER(reference) LIKE :pattern"
 
-    pattern = f"%{q.lower()}%"
+    sql_pattern = f"%{pattern.lower()}%"
     found_equipments = (
-        db.session.query(Equipment).from_statement(text(sql)).params(pattern=pattern)
+        db.session.query(Equipment)
+        .from_statement(text(sql))
+        .params(pattern=sql_pattern)
     )
 
     return found_equipments
@@ -509,28 +505,27 @@ def autocomplete_availables_equipments(line_id=None):
     :rtype: (string, int, dict)
     """
 
-    q = request.args.get("q")
+    pattern = request.args.get("q")
 
     equipments_of_autocomplete = []
-    if q is not None:
-        equipments_of_autocomplete = find_equipments_by_reference(q)
+    if pattern is None:
+        return abort(404, "Autocomplete didn't succeed")
+    equipments_of_autocomplete = find_equipments_by_reference(pattern)
 
-        if line_id:
-            eType = ReservationLine.query.get(line_id).equipmentType
-            equipments_of_type = eType.get_all_equipments_availables()
-            query = list(
-                set(equipments_of_type).intersection(equipments_of_autocomplete)
-            )
-        else:
-            equipments_availables = Equipment.query.filter_by(
-                status=EquipmentStatus.Available
-            )
-            query = list(
-                set(equipments_availables).intersection(equipments_of_autocomplete)
-            )
-        if query is not None:
-            data = EquipmentSchema(many=True).dump(query)
+    if line_id:
+        equipment_type = ReservationLine.query.get(line_id).equipment_type
+        equipments_of_type = equipment_type.get_all_equipments_availables()
+        query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
+    else:
+        equipments_availables = Equipment.query.filter_by(
+            status=EquipmentStatus.Available
+        )
+        query = list(
+            set(equipments_availables).intersection(equipments_of_autocomplete)
+        )
 
-            return json.dumps(data), 200, {"content-type": "application/json"}
+    if query is None:
+        return abort(404, "Autocomplete didn't succeed")
 
-    return abort(404, "Autocomplete didn't succeed")
+    data = EquipmentSchema(many=True).dump(query)
+    return json.dumps(data), 200, {"content-type": "application/json"}

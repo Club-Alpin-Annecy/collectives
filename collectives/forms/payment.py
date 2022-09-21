@@ -1,3 +1,4 @@
+""" Module for payment forms"""
 from decimal import Decimal
 
 from flask import current_app
@@ -42,6 +43,8 @@ class ItemPriceForm(ModelForm, AmountForm):
     """Form associated to the :py:class:`collectives.models.payment.ItemPrice` model"""
 
     class Meta:
+        """Fields to expose"""
+
         model = ItemPrice
         only = [
             "enabled",
@@ -64,8 +67,10 @@ class ItemPriceForm(ModelForm, AmountForm):
         :param event: Event to which the payment item belongs
         :type event: :py:class:`collectives.models.event.Event`
         :return: Returns both the price and its parent item from which this form was created
-                 If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
-        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+                 If the ids are inconsistent or do not correspond to valid elements,
+                 raise a ValueError
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`,
+                        :py:class:`collectives.models.payment.ItemPrice`)
         """
 
         price_id = int(self.price_id.data)
@@ -76,17 +81,17 @@ class ItemPriceForm(ModelForm, AmountForm):
             raise ValueError
         return price
 
-    # pylint: disable=R0201
-    def validate_license_types(form, field):
+    def validate_license_types(self, field):
         """Validator checking that the provided licence categories exist"""
         valid_types = Configuration.LICENSE_CATEGORIES
         for license_type in field.data.split():
             if not license_type in valid_types:
                 raise ValidationError(
-                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la liste des catégories en bas de page."
+                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
+                    "liste des catégories en bas de page."
                 )
 
-    def validate_max_uses(form, field):
+    def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
         if not field.data:
             field.data = None
@@ -103,6 +108,8 @@ class PaymentItemForm(ModelForm):
     """Form for editing a single payment item and associated prices"""
 
     class Meta:
+        """Fields to expose"""
+
         model = PaymentItem
         only = ["title"]
 
@@ -116,8 +123,10 @@ class PaymentItemForm(ModelForm):
         :param event: Event to which the payment item belongs
         :type event: :py:class:`collectives.models.event.Event`
         :return: Returns both the price and its parent item from which this form was created
-                 If the ids are inconsistent or do not correspond to valid elements, raise a ValueError
-        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`, :py:class:`collectives.models.payment.ItemPrice`)
+                 If the ids are inconsistent or do not correspond to valid elements,
+                 raise a ValueError
+        :rtype: tuple (:py:class:`collectives.models.payment.PaymentItem`,
+                        :py:class:`collectives.models.payment.ItemPrice`)
         """
 
         item_id = int(self.item_id.data)
@@ -151,13 +160,13 @@ class PaymentItemForm(ModelForm):
             field_form.total_use_count = price.total_use_count()
             field_form.active_use_count = price.active_use_count()
 
-    def validate_title(form, field):
+    def validate_title(self, field):
         """Validates that the item title is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
         title = field.data
-        item_id = int(form.item_id.data)
-        other_titles = form.owner_form.other_item_titles(item_id)
+        item_id = int(self.item_id.data)
+        other_titles = self.owner_form.other_item_titles(item_id)
         if title.lower() in [t.lower() for t in other_titles]:
             raise ValidationError(f"Plusieurs objets portent le nom '{title}'")
 
@@ -166,6 +175,8 @@ class NewItemPriceForm(ModelForm, AmountForm):
     """Form component for inputting a new item and price"""
 
     class Meta:
+        """Fields to expose"""
+
         model = ItemPrice
         only = [
             "enabled",
@@ -182,27 +193,27 @@ class NewItemPriceForm(ModelForm, AmountForm):
         "Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int
     )
 
-    # pylint: disable=R0201
-    def validate_max_uses(form, field):
+    def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
         if not field.data:
             field.data = None
 
     add = SubmitField("Ajouter le tarif")
 
-    def validate_item_title(form, field):
+    def validate_item_title(self, field):
         """Validates that if a new item is created, then the
         new item title field is not empty, and is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
         title = field.data
-        if not form.existing_item.data and not title:
+        if not self.existing_item.data and not title:
             raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
 
-        existing_titles = [t.lower() for (i, t) in form.existing_item.choices]
+        existing_titles = [t.lower() for (i, t) in self.existing_item.choices]
         if title.lower() in existing_titles:
             raise ValidationError(
-                f"Un objet portant le nom '{title}' existe déjà; pour ajouter un nouveau tarif à cet objet, sélectionnez le dans la liste 'Objet du paiement'"
+                f"Un objet portant le nom '{title}' existe déjà; pour ajouter un nouveau tarif à "
+                "cet objet, sélectionnez le dans la liste 'Objet du paiement'"
             )
 
     def __init__(self, items, *args, **kwargs):
@@ -262,6 +273,8 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
     """Form for notifying an offline payment"""
 
     class Meta:
+        """Fields to expose"""
+
         model = Payment
         only = ["amount_paid", "raw_metadata", "payment_type", "status"]
         field_args = {"raw_metadata": {"validators": [Optional()]}}

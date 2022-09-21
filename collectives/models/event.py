@@ -22,6 +22,7 @@ photos = UploadSet("photos", IMAGES)
 class EventStatus(ChoiceEnum):
     """Enum listing status of an event"""
 
+    # pylint: disable=invalid-name
     Confirmed = 0
     """Confirmed event"""
     Pending = 1
@@ -30,6 +31,7 @@ class EventStatus(ChoiceEnum):
     A pending event is not visible from most users"""
     Cancelled = 2
     """Cancelled event"""
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -169,7 +171,8 @@ class Event(db.Model):
     :type: int"""
 
     event_type_id = db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)
-    """ Primary key of the associated event type  (see  :py:class:`collectives.models.eventtype.EventType`)
+    """ Primary key of the associated event type  (see
+        :py:class:`collectives.models.eventtype.EventType`)
 
     :type: int"""
 
@@ -365,7 +368,8 @@ class Event(db.Model):
 
     def has_valid_leaders(self):
         """
-        :return: True if current leaders can lead all activities. If activities are empty, returns False.
+        :return: True if current leaders can lead all activities. If activities are empty,
+                 returns False.
         :seealso: :py:meth:`activities_without_leader`
         """
         if not any(self.activity_types):
@@ -379,11 +383,11 @@ class Event(db.Model):
         """
         main_leader = None
         other_leaders = []
-        for l in self.leaders:
-            if l.id == self.main_leader_id:
-                main_leader = l
+        for leader in self.leaders:
+            if leader.id == self.main_leader_id:
+                main_leader = leader
             else:
-                other_leaders.append(l)
+                other_leaders.append(leader)
         if main_leader is None:
             return other_leaders
         return [main_leader] + other_leaders

@@ -14,7 +14,8 @@ class FlexibleDecimalField(DecimalField):
         """
         Replace the "," into "." and then uses the DecimalField
 
-        :return: The DecimalField using "." instead of "," or if it already has a ".", simply return the DecimalField
+        :return: The DecimalField using "." instead of "," or if it already has a ".",
+                 simply return the DecimalField
         :rtype: DecimalField
         """
         if valuelist:

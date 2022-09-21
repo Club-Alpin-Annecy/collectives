@@ -19,20 +19,9 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 
 from . import models, api, forms
-from .routes import (
-    root,
-    profile,
-    auth,
-    administration,
-    event,
-    payment,
-    technician,
-    activity_supervison,
-    equipment,
-    reservation,
-)
-from .routes import activity_supervison
-from .utils import extranet, init, jinja, error, access, payline
+from .routes import root, profile, auth, administration, event, reservation
+from .routes import payment, technician, activity_supervison, equipment
+from .utils import extranet, init, jinja, error, payline
 
 csrf = CSRFProtect()
 

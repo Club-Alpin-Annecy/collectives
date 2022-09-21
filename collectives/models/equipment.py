@@ -6,27 +6,30 @@ from flask_uploads import UploadSet, IMAGES, extension
 
 from ..models.reservation import (
     Reservation,
-    ReservationLine_Equipment,
+    ReservationLineEquipment,
     ReservationStatus,
 )
 from .globals import db
 from .utils import ChoiceEnum
 
 
-imgtypeequip = UploadSet("imgtypeequip", IMAGES)
+image_equipment_type = UploadSet("imgtypeequip", IMAGES)
 
 
 class EquipmentStatus(ChoiceEnum):
     """Enum listing status of an equipment"""
 
+    # pylint: disable=invalid-name
     Available = 0
     """ Equipment is in stock, can be rented or put under review at any time """
     Rented = 1
-    """ Equipment in use is no longer in stock, can't be rented anymore, and will become available or unavaible at the end of its use """
+    """ Equipment in use is no longer in stock, can't be rented anymore, and will become available
+        or unavaible at the end of its use """
     Unavailable = 2
     """ Equipment is unavailable, it won't change status anymore """
     InReview = 3
     """ Equipment is under review, can either become unavailable or available at end of review"""
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -71,7 +74,7 @@ class EquipmentType(db.Model):
     """Prefix of the reference used for all the equipment of this type
     :type: string
     """
-    pathImg = db.Column(db.String(100), nullable=True)
+    path_img = db.Column(db.String(100), nullable=True)
 
     price = db.Column(db.Numeric(precision=5, scale=2))
     """Price for renting this type.
@@ -79,14 +82,15 @@ class EquipmentType(db.Model):
     :type: float"""
 
     deposit = db.Column(db.Numeric(precision=5, scale=2), nullable=True)
-    """Deposit price. This is the price that will cost the user if he brokes an equipment of this type.
+    """Deposit price. This is the price that will cost the user if he brokes an equipment of
+    this type.
 
     :type: float"""
 
     models = db.relationship(
         "EquipmentModel",
         lazy="select",
-        backref=db.backref("equipmentType", lazy="joined"),
+        backref=db.backref("equipment_type", lazy="joined"),
         cascade="all,delete",
     )
     """ List of models associated to this type.
@@ -94,11 +98,11 @@ class EquipmentType(db.Model):
     :type: list(:py:class:`collectives.models.equipment.EquipmentModel`)
     """
 
-    reservationLines = db.relationship(
-        "ReservationLine", back_populates="equipmentType"
+    reservation_lines = db.relationship(
+        "ReservationLine", back_populates="equipment_type"
     )
 
-    def save_typeImg(self, file):
+    def save_type_img(self, file):
         """Save an image as type image.
 
         It will both save the files into the file system and save the path into the database.
@@ -108,16 +112,18 @@ class EquipmentType(db.Model):
         :type file: :py:class:`werkzeug.datastructures.FileStorage`
         """
         if file is not None:
-            pathFile = (
+            path_file = (
                 "collectives/static/uploads/typeEquipmentImg/type-"
                 + str(self.name)
                 + "."
                 + extension(file.filename)
             )
-            if isfile(pathFile):
-                os.remove(pathFile)
-            filename = imgtypeequip.save(file, name="type-num" + str(self.id) + ".")
-            self.pathImg = filename
+            if isfile(path_file):
+                os.remove(path_file)
+            filename = image_equipment_type.save(
+                file, name="type-num" + str(self.id) + "."
+            )
+            self.path_img = filename
 
     def nb_models(self):
         """
@@ -131,11 +137,11 @@ class EquipmentType(db.Model):
         :return: number of total equipments of the type
         :rtype: int
         """
-        nbTotal = 0
-        for aModel in self.models:
-            nbTotal += len(aModel.equipments)
+        count = 0
+        for model in self.models:
+            count += len(model.equipments)
 
-        return nbTotal
+        return count
 
     def nb_total_unavailable(self):
         """
@@ -150,7 +156,7 @@ class EquipmentType(db.Model):
         ).all()
         for res in ongoing_res:
             for line in res.lines:
-                if line.equipmentType.id == self.id:
+                if line.equipment_type.id == self.id:
                     nb_unavailable += line.quantity
         return nb_unavailable
 
@@ -179,10 +185,10 @@ class EquipmentType(db.Model):
         :rtype: list[:py:class:`collectives.models.equipment.Equipment]
         """
         equiments = []
-        for aModel in self.models:
-            for anEquipment in aModel.equipments:
-                if anEquipment.status == EquipmentStatus.Available:
-                    equiments.append(anEquipment)
+        for model in self.models:
+            for equipment in model.equipments:
+                if equipment.status == EquipmentStatus.Available:
+                    equiments.append(equipment)
 
         return equiments
 
@@ -204,10 +210,10 @@ class EquipmentType(db.Model):
         :return: Count of all the equipments of the type
         :rtype: int
         """
-        nb = 0
+        count = 0
         for i_model in self.models:
-            nb += len(i_model.equipments)
-        return nb
+            count += len(i_model.equipments)
+        return count
 
 
 class EquipmentModel(db.Model):
@@ -244,7 +250,8 @@ class EquipmentModel(db.Model):
     """
 
     equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
-    """ Primary key of the type to which the model is related (see  :py:class:`collectives.models.equipment.EquipmentType`)
+    """ Primary key of the type to which the model is related (see
+    :py:class:`collectives.models.equipment.EquipmentType`)
 
     :type: int"""
 
@@ -252,8 +259,8 @@ class EquipmentModel(db.Model):
 class Equipment(db.Model):
     """Class of an equipment.
 
-    An equipment is an object with a determined reference, purchase price, purchase date, and status.
-    Status are declared in the EquipmentType enumeration.
+    An equipment is an object with a determined reference, purchase price, purchase date, and
+    status. Status are declared in the EquipmentType enumeration.
     It is related to one equipment model.
     """
 
@@ -268,12 +275,12 @@ class Equipment(db.Model):
 
     :type: string"""
 
-    purchaseDate = db.Column(db.DateTime, nullable=False, index=True)
+    purchase_date = db.Column(db.DateTime, nullable=False, index=True)
     """Purchase date of this equipment.
 
     :type: :py:class:`datetime.datetime`"""
 
-    purchasePrice = db.Column(db.Numeric(precision=8, scale=2), nullable=True)
+    purchase_price = db.Column(db.Numeric(precision=8, scale=2), nullable=True)
     """Purchase price of this equipment.
 
     :type: float"""
@@ -295,13 +302,14 @@ class Equipment(db.Model):
     # brand = db.Column(db.String(50), nullable = True)
 
     equipment_model_id = db.Column(db.Integer, db.ForeignKey("equipment_models.id"))
-    """ Primary key of the model to which the equipment is related (see  :py:class:`collectives.models.equipment.EquipmentModel`).
+    """ Primary key of the model to which the equipment is related (see
+        :py:class:`collectives.models.equipment.EquipmentModel`).
 
     :type: int"""
 
-    reservationLines = db.relationship(
+    reservation_lines = db.relationship(
         "ReservationLine",
-        secondary=ReservationLine_Equipment,
+        secondary=ReservationLineEquipment,
         back_populates="equipments",
     )
 
@@ -311,8 +319,8 @@ class Equipment(db.Model):
         :rtype: list[:py:class:`collectives.models.reservation.Reservation]
         """
         reservations = []
-        for aReservationLine in self.reservationLines:
-            reservations.append(aReservationLine.reservation)
+        for reservation_line in self.reservation_lines:
+            reservations.append(reservation_line.reservation)
 
         return reservations
 
@@ -349,4 +357,4 @@ class Equipment(db.Model):
         :return: Type of this equipment
         :rtype: :py:class:`collectives.models.equipment.EquipmentType
         """
-        return self.model.equipmentType
+        return self.model.equipment_type

@@ -4,7 +4,7 @@ import logging
 from flask import redirect, url_for, flash, request, render_template
 
 
-def not_found(e):
+def not_found(ex):
     # pylint: disable=unused-argument
     """If URL is unknown, redirect client or/and display an error message.
 
@@ -23,7 +23,7 @@ def not_found(e):
     return redirect(url_for("event.index"))
 
 
-def server_error(e):
+def server_error(ex):
     # pylint: disable=unused-argument
     """Return a very simple error page.
 
@@ -32,5 +32,5 @@ def server_error(e):
     :param e: exception which generated the error page
     :return: ``error.html page`` with a 500 error code
     """
-    logging.exception(e)
+    logging.exception(ex)
     return render_template("error.html"), 500

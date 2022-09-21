@@ -109,7 +109,7 @@
 
 
     <script>
-        var ajaxURL = "{{url_for('api.reservationLines', reservation_id=reservation.id)}}";
+        var ajaxURL = "{{url_for('api.reservation_lines', reservation_id=reservation.id)}}";
     </script>
 
     {% if not reservation.is_completed() %}

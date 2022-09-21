@@ -1,7 +1,9 @@
 """ List of crawler. Data comes from https://github.com/monperrus/crawler-user-agents"""
 
 from functools import wraps
-import json, os, re
+import json
+import os
+import re
 
 from flask import request, redirect, url_for
 from flask_login import current_user
@@ -16,11 +18,14 @@ def get_crawlers():
     from data/crawler-user-agents.json
 
     :returns: the list of known crawlers"""
+
+    # pylint: disable = global-statement
     global CRAWLERS
+    # pylint: enable = global-statement
     if not CRAWLERS:
         path = os.path.dirname(__file__) + "/../data/crawler-user-agents.json"
-        with open(path) as f:
-            CRAWLERS = json.load(f)
+        with open(path, encoding="utf-8") as file:
+            CRAWLERS = json.load(file)
 
     return CRAWLERS
 
@@ -65,7 +70,7 @@ def crawlers_catcher(url):
         :param func: Function to protect"""
 
         @wraps(func)
-        def innerF(*args, **kwargs):
+        def inner_function(*args, **kwargs):
             """Fonction to decide if an unauthenticated crawler tries to access"""
             if current_user:
                 if current_user.is_authenticated:
@@ -74,6 +79,6 @@ def crawlers_catcher(url):
                 return redirect(url_for(url, **kwargs))
             return func(*args, **kwargs)
 
-        return innerF
+        return inner_function
 
     return crawlers_catcher_base

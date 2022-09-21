@@ -13,7 +13,7 @@ from .common import blueprint, marshmallow
 from ..utils.numbers import format_currency
 
 
-def photo_uri(equipmentType):
+def photo_uri(equipment_type):
     """Generate an URI for event image using Flask-Images.
 
     Returned images are thumbnail of 200x130 px.
@@ -23,9 +23,9 @@ def photo_uri(equipmentType):
     :return: The URL to the thumbnail
     :rtype: string
     """
-    if equipmentType.pathImg is not None:
+    if equipment_type.path_img is not None:
         return url_for(
-            "static", filename="uploads/typeEquipmentImg/" + equipmentType.pathImg
+            "static", filename="uploads/typeEquipmentImg/" + equipment_type.path_img
         )
     return url_for("static", filename="img/icon/ionicon/md-images.svg")
 
@@ -33,32 +33,34 @@ def photo_uri(equipmentType):
 class EquipmentTypeSchema(marshmallow.Schema):
     """Schema to describe equipment types"""
 
-    pathImg = fields.Function(photo_uri)
-    urlEquipmentTypeDetail = fields.Function(
-        lambda equipmentType: url_for(
-            "equipment.detail_equipment_type", typeId=equipmentType.id
+    path_img = fields.Function(photo_uri)
+    url_equipment_type_detail = fields.Function(
+        lambda equipment_type: url_for(
+            "equipment.detail_equipment_type", type_id=equipment_type.id
         )
     )
     """:type: int"""
-    nbTotal = fields.Function(lambda equipmentType: equipmentType.nb_total())
+    nb_total = fields.Function(lambda equipment_type: equipment_type.nb_total())
 
     """:type: int"""
-    nbTotalUnavailable = fields.Function(
-        lambda equipmentType: equipmentType.nb_total_unavailable()
+    nb_total_unavailable = fields.Function(
+        lambda equipment_type: equipment_type.nb_total_unavailable()
     )
 
     """:type: int"""
-    nbTotalAvailable = fields.Function(
-        lambda equipmentType: equipmentType.nb_total_available()
+    nb_total_available = fields.Function(
+        lambda equipment_type: equipment_type.nb_total_available()
     )
 
     """:type: string"""
-    price = fields.Function(lambda equipmentType: format_currency(equipmentType.price))
+    price = fields.Function(
+        lambda equipment_type: format_currency(equipment_type.price)
+    )
 
     """:type: string"""
     deposit = fields.Function(
-        lambda equipmentType: format_currency(equipmentType.deposit)
-        if equipmentType.deposit
+        lambda equipment_type: format_currency(equipment_type.deposit)
+        if equipment_type.deposit
         else "-"
     )
 
@@ -68,18 +70,18 @@ class EquipmentTypeSchema(marshmallow.Schema):
         fields = (
             "id",
             "name",
-            "pathImg",
+            "path_img",
             "price",
             "deposit",
-            "urlEquipmentTypeDetail",
-            "nbTotal",
-            "nbTotalUnavailable",
-            "nbTotalAvailable",
+            "url_equipment_type_detail",
+            "nb_total",
+            "nb_total_unavailable",
+            "nb_total_available",
         )
 
 
-@blueprint.route("/equipmentType")
-def equipmentTypes():
+@blueprint.route("/equipment_type")
+def equipment_types():
     """API endpoint to list equipment types.
 
     It can be filtered using tabulator filter and sorter.
@@ -110,8 +112,8 @@ class EquipmentModelSchema(marshmallow.Schema):
         fields = ("id", "name", "manufacturer")
 
 
-@blueprint.route("/modelsfromtype/<int:typeId>")
-def equipmentModel(typeId):
+@blueprint.route("/modelsfromtype/<int:type_id>")
+def equipment_model(type_id):
     """API endpoint to list equipment models.
 
     It can be filtered using tabulator filter and sorter.
@@ -125,9 +127,9 @@ def equipmentModel(typeId):
     :rtype: (string, int, dict)
     """
 
-    equipmentType = EquipmentType.query.get(typeId)
-    if equipmentType is not None:
-        models = equipmentType.models
+    equipment_type = EquipmentType.query.get(type_id)
+    if equipment_type is not None:
+        models = equipment_type.models
         data = EquipmentModelSchema(many=True).dump(models)
 
         return json.dumps(data), 200, {"content-type": "application/json"}
@@ -137,7 +139,7 @@ def equipmentModel(typeId):
 @blueprint.route(
     "/modelEdit/<int:model_id>/<string:name>/<string:manufacturer>", methods=["POST"]
 )
-def equipmentModelEdit(model_id, name, manufacturer):
+def equipment_model_edit(model_id, name, manufacturer):
     """
     API endpoint to edit a model.
 
@@ -160,7 +162,7 @@ def equipmentModelEdit(model_id, name, manufacturer):
 
 
 @blueprint.route("/modelDelete/<int:model_id>", methods=["POST"])
-def equipmentModelDelete(model_id):
+def equipment_model_delete(model_id):
     """
     API endpoint to delete a model.
 
@@ -185,16 +187,16 @@ def equipmentModelDelete(model_id):
 class EquipmentSchema(marshmallow.Schema):
     """Schema to describe equipment"""
 
-    typeName = fields.Function(lambda obj: obj.model.equipmentType.name)
-    urlEquipmentTypeDetail = fields.Function(
+    type_name = fields.Function(lambda obj: obj.model.equipment_type.name)
+    url_equipment_type_detail = fields.Function(
         lambda obj: url_for(
-            "equipment.detail_equipment_type", typeId=obj.model.equipmentType.id
+            "equipment.detail_equipment_type", type_id=obj.model.equipment_type.id
         )
     )
-    modelName = fields.Function(lambda obj: obj.model.name)
-    statusName = fields.Function(lambda obj: obj.status.display_name())
+    model_name = fields.Function(lambda obj: obj.model.name)
+    status_name = fields.Function(lambda obj: obj.status.display_name())
 
-    equipmentURL = fields.Function(
+    equipment_url = fields.Function(
         lambda obj: url_for("equipment.detail_equipment", equipment_id=obj.id)
     )
 
@@ -204,11 +206,11 @@ class EquipmentSchema(marshmallow.Schema):
         fields = (
             "id",
             "reference",
-            "modelName",
-            "typeName",
-            "statusName",
-            "equipmentURL",
-            "urlEquipmentTypeDetail",
+            "model_name",
+            "type_name",
+            "status_name",
+            "equipment_url",
+            "url_equipment_type_detail",
         )
 
 

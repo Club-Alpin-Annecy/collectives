@@ -12,7 +12,7 @@ from .globals import db
 from ..utils.time import current_time
 from .configuration import Configuration
 
-
+# pylint: disable=invalid-name
 class ConfirmationTokenType(enum.IntEnum):
     """Enum listing types of token"""
 
@@ -31,6 +31,9 @@ class TokenEmailStatus(enum.IntEnum):
     """Token has been succesfully sent"""
     Failed = 2
     """Token has failed during its expedition"""
+
+
+# pylint: enable=invalid-name
 
 
 class ConfirmationToken(db.Model):

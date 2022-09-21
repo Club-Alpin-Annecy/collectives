@@ -2,7 +2,9 @@
 
 Usually export as js file to be directly used by js."""
 
-import inspect, sys, json
+import inspect
+import sys
+import json
 from flask import Response
 
 from .common import blueprint

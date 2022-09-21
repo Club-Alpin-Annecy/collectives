@@ -62,10 +62,12 @@ def send_mail_threaded(app, **kwargs):
     """
     with app.app_context():
         try:
-            s = smtplib.SMTP(host=Configuration.SMTP_HOST, port=Configuration.SMTP_PORT)
+            smtp = smtplib.SMTP(
+                host=Configuration.SMTP_HOST, port=Configuration.SMTP_PORT
+            )
 
-            s.starttls()
-            s.login(
+            smtp.starttls()
+            smtp.login(
                 Configuration.SMTP_LOGIN or Configuration.SMTP_ADDRESS,
                 Configuration.SMTP_PASSWORD,
             )
@@ -100,13 +102,15 @@ def send_mail_threaded(app, **kwargs):
                 )
                 msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
 
-            s.send_message(msg)
+            smtp.send_message(msg)
             if "success_action" in kwargs:
                 with app.app_context():
                     kwargs["success_action"]()
-        except Exception as e:
+        # pylint: disable=broad-except
+        except Exception as ex:
             dest = kwargs["email"]
             app.logger.exception(f"Unable to send mail to {dest}")
 
             if "error_action" in kwargs:
-                kwargs["error_action"](e)
+                kwargs["error_action"](ex)
+        # pylint: enable=broad-except

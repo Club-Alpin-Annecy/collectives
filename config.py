@@ -45,7 +45,8 @@ Secret key can also be set in instance/config.py
 LOGGING_CONFIGURATION = f"{basedir}/logging.cfg"
 """Logging configuration file path.
 
-File syntax is described here: `here <https://docs.python.org/3/library/logging.config.html#logging-config-fileformat>`_
+File syntax is described here:
+`here <https://docs.python.org/3/library/logging.config.html#logging-config-fileformat>`_
 
 :type: string"""
 
@@ -65,7 +66,7 @@ an update from DB.
 :type: int"""
 
 # User/password for accessing extranet API
-default_wsdl = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
+DEFAULT_WSDL = "https://extranet-clubalpin.com/app/soap/extranet_pro.wsdl"
 EXTRANET_DISABLE = environ.get("EXTRANET_DISABLE")
 """Use a connection to FFCAM server to activate accounts.
 
@@ -74,7 +75,7 @@ as github CI tests.
 
 :type: boolean
 """
-EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or default_wsdl
+EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or DEFAULT_WSDL
 """URL of WSDL to connect to FFCAM server
 
 :type: string
@@ -145,6 +146,7 @@ FAVICON = "caf/favicon.ico"
 
 # Activity type:
 # fmt: off
+# pylint: disable=line-too-long
 ACTIVITY_TYPES = {
     1:  {"short": "ski_alpin", "name": "Ski et surf en station", "trigram" : "ASA"},
     2:  {"short": "escalade", "name": "Escalade", "trigram" : "AES"},
@@ -169,6 +171,7 @@ ACTIVITY_TYPES = {
     22: {"short": "viaferrata", "name": "Via ferrata", "trigram": "AVF"},
 }
 # fmt: on
+# pylint: enable=line-too-long
 """List of activity type
 
 Contains the list of activity type as a dictionnary. id is an int, value is
@@ -224,7 +227,8 @@ EVENT_TYPES = {
         "short": "randonnees_lointaines",
         "name": "Randonnées lointaines",
         "requires_activity": True,
-        "terms_title": "guide d'organisation des randonnées lointaines du Club Alpin Français d'Annecy",
+        "terms_title": "guide d'organisation des randonnées lointaines "
+        "du Club Alpin Français d'Annecy",
         "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
     },
     6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
@@ -269,10 +273,15 @@ EVENT_TAGS = {
 MAX_CONTENT_LENGTH = 2 * 1024 * 1024
 """ Max size to upload files.
 
-Note: this is a Flask setting that will make the server itself refuse to upload files larger than this
+Note: this is a Flask setting that will make the server itself refuse to
+upload files larger than this
 
 :type: int """
-MAX_FILE_SIZE_MESSAGE = f"Le fichier est trop gros pour être chargé sur le serveur : [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
+MAX_FILE_SIZE_MESSAGE = (
+    f"Le fichier est trop gros pour être chargé sur le serveur :"
+    f" [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
+)
+
 """ Error message if uploaded file is too big.
 
 This error message is only used in form validation on client. `[size]` is a
@@ -355,12 +364,14 @@ CSV_COLUMNS = {
     },
     "debut": {
         "short_desc": "Date de début",
-        "description": "Date de début de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "description": "Date de début de la collective au format "
+        "jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
         "type": "datetime",
     },
     "fin": {
         "short_desc": "Date de fin",
-        "description": "Date de fin de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "description": "Date de fin de la collective au format "
+        "jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
         "type": "datetime",
     },
     "titre": {
@@ -424,17 +435,21 @@ CSV_COLUMNS = {
     },
     "debut_internet": {
         "short_desc": "Date d'ouverture des inscriptions par internet",
-        "description": "Date d'ouverture des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "description": "Date d'ouverture des inscriptions par internet de "
+        "la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
         "type": "datetime",
         "optional": 1,
-        "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_OPENING_HOUR}h",
+        "default": f"{REGISTRATION_OPENING_DELTA_DAYS}j avant la date de début "
+        f"de la collective à {REGISTRATION_OPENING_HOUR}h",
     },
     "fin_internet": {
         "short_desc": "Date de fin des inscriptions par internet",
-        "description": "Date de fin des inscriptions par internet de la collective au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
+        "description": "Date de fin des inscriptions par internet de la collective "
+        "au format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)",
         "type": "datetime",
         "optional": 1,
-        "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de la collective à {REGISTRATION_CLOSING_HOUR}h",
+        "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de "
+        f"la collective à {REGISTRATION_CLOSING_HOUR}h",
     },
     "parent": {
         "short_desc": "Collective parente",
@@ -446,7 +461,9 @@ CSV_COLUMNS = {
 }
 """Dictionnary of columns to import from CSV files.
 
-Ordered list of columns. Dictionnary keys will be used as variables during csv import and can be inserted in description using place holders.\n
+Ordered list of columns. Dictionnary keys will be used as variables during csv import
+and can be inserted in description using place holders.
+
 Key is the column name. And for each column:
 
 - *short_desc*: is the human readable column name

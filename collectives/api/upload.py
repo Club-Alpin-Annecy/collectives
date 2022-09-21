@@ -27,7 +27,8 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
     :param event_id: The primary key of the event
     :type event_id: int
-    :param edit_session_id: If the event has not been saved yet, identifier for the current editing session
+    :param edit_session_id: If the event has not been saved yet, identifier for the current
+    editing session
     :type edit_session_id: int
     """
 
@@ -128,7 +129,8 @@ def list_event_files(event_id=None, edit_session_id=None):
 
     :param event_id: The primary key of the event
     :type event_id: int
-    :param edit_session_id: If the event has not been saved yet, identifier for the current editing session
+    :param edit_session_id: If the event has not been saved yet, identifier for the
+    current editing session
     :type edit_session_id: int
     """
     if event_id:

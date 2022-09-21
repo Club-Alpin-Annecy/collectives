@@ -14,26 +14,26 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.equipmentURL
+          location = row._row.data.equipment_url
       },
         columns:[              //define the table columns
           //{title:"id", field:"id", formatter:"number"},
           {
             title:"Type",
             headerFilter:"input",
-            field:"typeName",
+            field:"type_name",
             formatter:"link",
             formatterParams:{
-              urlField:"urlEquipmentTypeDetail"
+              urlField:"url_equipment_type_detail"
             }
           },
           {
             title:"Modèle",
             headerFilter:"input",
-            field:"modelName",
+            field:"model_name",
             formatter:"link",
             formatterParams:{
-              urlField:"urlEquipmentTypeDetail"
+              urlField:"url_equipment_type_detail"
             }
           },
           {
@@ -42,12 +42,12 @@
             field:"reference",
             formatter:"link",
             formatterParams:{
-              urlField:"equipmentURL"
+              urlField:"equipment_url"
             }
           },
           {
             title:"État",
-            field:"statusName",
+            field:"status_name",
             headerFilter: "select",
 	          headerFilterParams:{
               "Libre":"Libre",

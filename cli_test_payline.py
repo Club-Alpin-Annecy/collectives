@@ -26,13 +26,13 @@ def doWebPayment():
     buyer = payline.BuyerInfo()
 
     buyer.title = "4"
-    buyer.lastName = "DO"
-    buyer.firstName = "JOHN"
+    buyer.last_name = "DO"
+    buyer.first_name = "JOHN"
     buyer.email = "johndoe@yopmail.com"
     buyer.mobilePhone = "0600000000"
-    buyer.birthDate = "1980-01-20"
+    buyer.birth_date = "1980-01-20"
 
-    doWebPaymentResponse = payline.api.doWebPayment(order, buyer)
+    doWebPaymentResponse = payline.api.do_web_payment(order, buyer)
     if doWebPaymentResponse is None:
         raise RuntimeError("Payline API error")
 
@@ -52,7 +52,7 @@ def getPaymentDetails(token):
     :return: The payment information
     :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
     """
-    details = payline.api.getWebPaymentDetails(token)
+    details = payline.api.get_web_payment_details(token)
     print(
         f"Result: {details.result.short_message} Transaction: {details.transaction['id']} Date: {details.transaction['date']}"
     )
@@ -67,7 +67,7 @@ def doRefund(payment_details):
     :type payment_details: :py:class:`collectives.utils.payline.PaymentDetails`
     """
     # Try refund
-    refundResponse = payline.api.doRefund(payment_details)
+    refundResponse = payline.api.do_refund(payment_details)
     if refundResponse is None:
         raise RuntimeError("Payline API error")
 

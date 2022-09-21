@@ -234,11 +234,11 @@ class ItemPrice(db.Model):
         :type time_shift: :py:class:`datetime.timedelta`
         :returns: Copied :py:class:`collectives.models.payments.PaymentItem`
         :returns: Copied :py:class:`collectives.models.payments.ItemPrice`"""
-        d = dict(self.__dict__)
-        d.pop("id")  # get rid of id
-        d.pop("item_id")  # get rid of item_id
-        d.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
-        copy = self.__class__(**d)
+        attributes = dict(self.__dict__)
+        attributes.pop("id")  # get rid of id
+        attributes.pop("item_id")  # get rid of item_id
+        attributes.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
+        copy = self.__class__(**attributes)
 
         if copy.start_date is not None:
             copy.start_date = copy.start_date + time_shift
@@ -328,6 +328,7 @@ class ItemPrice(db.Model):
 class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""
 
+    # pylint: disable=invalid-name
     Online = 0
     """ Payment has been made through the online payment processor
     """
@@ -343,6 +344,7 @@ class PaymentType(ChoiceEnum):
     Transfer = 4
     """ Payment has been using a bank transfer
     """
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -362,6 +364,7 @@ class PaymentType(ChoiceEnum):
 class PaymentStatus(ChoiceEnum):
     """Enum describing the current state of the payment at a high level"""
 
+    # pylint: disable=invalid-name
     Initiated = 0
     """ Payment has been initiated, waiting for a response from the processor
     """
@@ -380,6 +383,7 @@ class PaymentStatus(ChoiceEnum):
     Refunded = 5
     """ Payment has been refunded to the user
     """
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -397,6 +401,7 @@ class PaymentStatus(ChoiceEnum):
         }
 
 
+# pylint: disable=too-many-instance-attributes
 class Payment(db.Model):
     """Datable model describing the details of a payment"""
 

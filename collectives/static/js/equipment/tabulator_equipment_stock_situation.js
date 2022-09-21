@@ -14,15 +14,15 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.urlEquipmentTypeDetail
+          location = row._row.data.url_equipment_type_detail
         },
         columns:[                 //define the table columns
           //{title:"id", field:"id", formatter:"number"},
-          {title:"Photo", field:"pathImg", formatter:"image", formatterParams:{height: '4em'}},
-          {title:"Nom", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"urlEquipmentTypeDetail"}},
-          {title:"Total", field:"nbTotal"},
-          {title:"Indisponible", field:"nbTotalUnavailable"},
-          {title:"Disponible", field:"nbTotalAvailable"},
+          {title:"Photo", field:"path_img", formatter:"image", formatterParams:{height: '4em'}},
+          {title:"Nom", headerFilter:"input",field:"name", formatter:"link", formatterParams:{urlField:"url_equipment_type_detail"}},
+          {title:"Total", field:"nb_total"},
+          {title:"Indisponible", field:"nb_total_unavailable"},
+          {title:"Disponible", field:"nb_total_available"},
         ],
          //create columns from data field names
       });

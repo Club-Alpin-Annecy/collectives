@@ -22,6 +22,7 @@ class RoleIds(ChoiceEnum):
     - Trainee: Currently training to become a leader for an activity
     """
 
+    # pylint: disable=invalid-name
     # Global roles
     Moderator = 1
     Administrator = 2
@@ -39,6 +40,7 @@ class RoleIds(ChoiceEnum):
     # Equipment-related roles
     EquipmentManager = 21
     EquipmentVolunteer = 22
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):

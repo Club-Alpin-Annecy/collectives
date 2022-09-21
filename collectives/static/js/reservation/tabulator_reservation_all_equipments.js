@@ -23,10 +23,10 @@
           {
             title:"Type d'équipement",
             headerFilter:"input",
-            field:"typeName",
+            field:"type_name",
             formatter:"link",
             formatterParams:{
-              urlField:"equipmentURL"
+              urlField:"equipment_url"
             }
           },
         ],

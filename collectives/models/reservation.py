@@ -13,6 +13,7 @@ from .utils import ChoiceEnum
 class ReservationStatus(ChoiceEnum):
     """Enum listing status of an reservation"""
 
+    # pylint: disable=invalid-name
     Planned = 0
     """ Reservation is planned, equipment related to this reservation is locked"""
     Ongoing = 1
@@ -21,6 +22,7 @@ class ReservationStatus(ChoiceEnum):
     """ Equipment is done, it won't change status anymore"""
     Cancelled = 3
     """ Reservation has been cancelled"""
+    # pylint: enable=invalid-name
 
     @classmethod
     def display_names(cls):
@@ -37,7 +39,7 @@ class ReservationStatus(ChoiceEnum):
         }
 
 
-ReservationLine_Equipment = db.Table(
+ReservationLineEquipment = db.Table(
     "reservation_lines_equipments",
     db.metadata,
     db.Column(
@@ -69,26 +71,30 @@ class ReservationLine(db.Model):
 
     equipments = db.relationship(
         "Equipment",
-        secondary=ReservationLine_Equipment,
-        back_populates="reservationLines",
+        secondary=ReservationLineEquipment,
+        back_populates="reservation_lines",
     )
     """ List of equipments of a line of reservation.
 
     :type: list(:py:class:`collectives.models.equipment.Equipment`)
     """
 
-    equipmentType = db.relationship("EquipmentType", back_populates="reservationLines")
+    equipment_type = db.relationship(
+        "EquipmentType", back_populates="reservation_lines"
+    )
     """ Equipments of a line of reservation.
 
     :type: list(:py:class:`collectives.models.equipment.EquipmentType`)
     """
 
     equipment_type_id = db.Column(db.Integer, db.ForeignKey("equipment_types.id"))
-    """ Primary key of the related equipment type (see  :py:class:`collectives.models.equipment.EquipmentType`).
+    """ Primary key of the related equipment type (see
+        :py:class:`collectives.models.equipment.EquipmentType`).
     :type: int"""
 
     reservation_id = db.Column(db.Integer, db.ForeignKey("reservations.id"))
-    """ Primary key of the related reservation (see  :py:class:`collectives.models.reservation.Reservation`).
+    """ Primary key of the related reservation (see
+        :py:class:`collectives.models.reservation.Reservation`).
     :type: int"""
 
     def is_full(self):
@@ -139,22 +145,22 @@ class ReservationLine(db.Model):
         :return: List of all the equipments Rented
         :rtype: list[:py:class:`collectives.models.equipment.Equipment]
         """
-        equipmentsRented = []
+        rented_equipments = []
         for equipment in self.equipments:
             if equipment.is_rented():
-                equipmentsRented.append(equipment)
-        return equipmentsRented
+                rented_equipments.append(equipment)
+        return rented_equipments
 
     def get_equipments_returned(self):
         """
         :return: List of all the equipments available
         :rtype: list[:py:class:`collectives.models.equipment.Equipment]
         """
-        equipmentsAvailable = []
+        available_equipments = []
         for equipment in self.equipments:
             if equipment.is_available():
-                equipmentsAvailable.append(equipment)
-        return equipmentsAvailable
+                available_equipments.append(equipment)
+        return available_equipments
 
     def count_equipments_returned(self):
         """
@@ -188,7 +194,7 @@ class ReservationLine(db.Model):
         :return: Total price of the reservation line
         :rtype: Float
         """
-        return float(self.quantity * self.equipmentType.price)
+        return float(self.quantity * self.equipment_type.price)
 
     def total_price_str(self):
         """
@@ -203,11 +209,12 @@ class ReservationLine(db.Model):
 
 
 class Reservation(db.Model):
-    """Class of an reservation.
+    """Class of a reservation.
 
-    An reservation is an object with a determined collection date, return date, and status.
-    Status are declared in the :py:class:`collectives.models.reservation.ReservationStatus` enumeration.
-    It is related to many reservation lines (each equipment and it's quantity), to a user, and an optional event.
+    A reservation is an object with a determined collection date, return date, and status.
+    Status are declared in the :py:class:`collectives.models.reservation.ReservationStatus`
+    enumeration. It is related to many reservation lines (each equipment and its quantity),
+    to an user, and an optional event.
     """
 
     __tablename__ = "reservations"
@@ -291,8 +298,8 @@ class Reservation(db.Model):
         """
         :return: True if the reservation is full
         :rtype: bool"""
-        for reservationLine in self.lines:
-            if not reservationLine.is_full():
+        for reservation_line in self.lines:
+            if not reservation_line.is_full():
                 return False
         return True
 
@@ -302,8 +309,8 @@ class Reservation(db.Model):
         :rtype: Int
         """
         nb_equipments_rendered = 0
-        for reservationLine in self.lines:
-            nb_equipments_rendered += reservationLine.count_equipments_returned()
+        for reservation_line in self.lines:
+            nb_equipments_rendered += reservation_line.count_equipments_returned()
         return nb_equipments_rendered
 
     def count_equipments(self):
@@ -312,8 +319,8 @@ class Reservation(db.Model):
         :rtype: Int
         """
         nb_equipments = 0
-        for reservationLine in self.lines:
-            nb_equipments += reservationLine.count_equipments()
+        for reservation_line in self.lines:
+            nb_equipments += reservation_line.count_equipments()
         return nb_equipments
 
     def count_total_quantity(self):
@@ -322,8 +329,8 @@ class Reservation(db.Model):
         :rtype: Int
         """
         quantity = 0
-        for reservationLine in self.lines:
-            quantity += reservationLine.quantity
+        for reservation_line in self.lines:
+            quantity += reservation_line.quantity
         return quantity
 
     def get_ratio_equipments(self):
@@ -356,8 +363,8 @@ class Reservation(db.Model):
         :return: Total price of the reservation
         :rtype: Float"""
         total_price = 0
-        for reservationLine in self.lines:
-            total_price += reservationLine.total_price()
+        for reservation_line in self.lines:
+            total_price += reservation_line.total_price()
         return total_price
 
     def total_price_str(self):
@@ -371,38 +378,39 @@ class Reservation(db.Model):
             else "-"
         )
 
-    def get_line_of_type(self, equipmentType):
+    def get_line_of_type(self, equipment_type):
         """
         :return: the line containing the type
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
-        for reservationLine in self.lines:
-            if reservationLine.equipmentType == equipmentType:
-                return reservationLine
+        for reservation_line in self.lines:
+            if reservation_line.equipment_type == equipment_type:
+                return reservation_line
         return None
 
-    def get_or_create_line_of_type(self, equipmentType):
+    def get_or_create_line_of_type(self, equipment_type):
         """
+        :param equipment_type:
         :return: the line containing the type
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
-        reservationLine = self.get_line_of_type(equipmentType)
-        if not reservationLine:
-            reservationLine = ReservationLine()
-            reservationLine.quantity = 0
-            reservationLine.equipmentType = equipmentType
-            self.lines.append(reservationLine)
-        return reservationLine
+        reservation_line = self.get_line_of_type(equipment_type)
+        if not reservation_line:
+            reservation_line = ReservationLine()
+            reservation_line.quantity = 0
+            reservation_line.equipment_type = equipment_type
+            self.lines.append(reservation_line)
+        return reservation_line
 
     def add_equipment(self, equipment):
         """
         :return: True the equipment has been added well
         :rtype: bool"""
         if equipment:
-            reservationLine = self.get_or_create_line_of_type(
-                equipment.model.equipmentType
+            reservation_line = self.get_or_create_line_of_type(
+                equipment.model.equipment_type
             )
-            return reservationLine.add_equipment_by_increasing_quantity(equipment)
+            return reservation_line.add_equipment_by_increasing_quantity(equipment)
 
         return False
 
@@ -412,8 +420,8 @@ class Reservation(db.Model):
         :rtype: list[:py:class:`collectives.models.reservation.ReservationLine]
         """
         equipments = []
-        for reservationLine in self.lines:
-            equipments.extend(reservationLine.equipments)
+        for reservation_line in self.lines:
+            equipments.extend(reservation_line.equipments)
         return equipments
 
     def set_user(self, user):
@@ -430,7 +438,7 @@ class Reservation(db.Model):
         :return: True the equipment has been removed well
         :rtype: bool"""
         if equipment:
-            line = self.get_line_of_type(equipment.model.equipmentType)
+            line = self.get_line_of_type(equipment.model.equipment_type)
             if (
                 line.remove_equipment_decreasing_quantity(equipment)
                 and line.quantity == 0
@@ -444,7 +452,7 @@ class Reservation(db.Model):
         :return: True the equipment has been removed well
         :rtype: bool"""
         if equipment:
-            line = self.get_line_of_type(equipment.model.equipmentType)
+            line = self.get_line_of_type(equipment.model.equipment_type)
             line.remove_equipment(equipment)
             return True
         return False

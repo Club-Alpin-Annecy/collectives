@@ -1,6 +1,7 @@
 """Model to store flask config into sql. """
 
-import enum, json
+import enum
+import json
 from threading import Lock
 from datetime import datetime
 from sqlalchemy.sql import func
@@ -12,6 +13,7 @@ from .globals import db
 class ConfigurationTypeEnum(enum.Enum):
     """Enum to list type of configuration item"""
 
+    # pylint: disable=invalid-name
     Integer = 1
     Float = 2
     Date = 3
@@ -21,6 +23,9 @@ class ConfigurationTypeEnum(enum.Enum):
     Dictionnary = 7
     Boolean = 8
     File = 9
+
+
+# pylint: disable=invalid-name
 
 
 class Meta(type):
@@ -70,7 +75,6 @@ class Meta(type):
 
         return cls.get_item(name).content
 
-    # pylint: disable=no-self-use
     def get_item(cls, name):
         """Get the named configuration item.
 

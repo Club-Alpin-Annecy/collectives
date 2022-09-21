@@ -1,3 +1,6 @@
+"""
+Miscellaneous functions for forms
+"""
 from wtforms.fields import SelectMultipleField
 from wtforms import widgets
 
