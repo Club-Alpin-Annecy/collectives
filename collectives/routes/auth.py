@@ -131,7 +131,14 @@ def login():
     sync_user(user, False)
 
     if not user.is_active:
-        flash("Compte désactivé ou license expirée", "error")
+        flash(
+            Markup(
+                f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
+            Si vous avez changé de numéro de licence, utilisez le
+            <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
+            ),
+            "error",
+        )
         return redirect(url_for("auth.login"))
 
     login_user(user, remember=form.remember_me.data)
@@ -223,8 +230,11 @@ def process_confirmation(token_uuid):
     license_info = extranet.api.check_license(license_number)
     if not license_info.is_valid_at_time(current_time()):
         flash(
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin de pouvoir "
-            "créer ou récupérer votre compte.",
+            Markup(
+                f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
+            Si vous avez changé de numéro de licence, utilisez le
+            <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
+            ),
             "error",
         )
         return render_confirmation_form(form, is_recover)
