@@ -1,8 +1,7 @@
 cssmin
 itsdangerous
 flask
-# Pin Werkzeug as 2.2 breaks flask_login https://github.com/maxcountryman/flask-login/issues/686
-Werkzeug==2.1.*
+Werkzeug
 flask-assets
 flask-login
 sqlalchemy
