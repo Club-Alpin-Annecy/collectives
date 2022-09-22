@@ -1,7 +1,7 @@
 """Migration to camelcase
 
 Revision ID: 58444ee06c99
-Revises: 0110110fa81e
+Revises: 6b292b7e7d7b
 Create Date: 2022-09-17 20:02:44.148276
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "58444ee06c99"
-down_revision = "0110110fa81e"
+down_revision = "6b292b7e7d7b"
 branch_labels = None
 depends_on = None
 
