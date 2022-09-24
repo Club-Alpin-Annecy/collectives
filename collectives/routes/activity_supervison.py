@@ -9,16 +9,17 @@ from flask_login import current_user
 from flask_uploads import UploadNotAllowed
 from werkzeug.datastructures import CombinedMultiDict
 
-from ..forms.csv import CSVForm
-from ..forms.user import AddLeaderForm
-from ..forms.activity_type import ActivityTypeSelectionForm
-from ..forms.upload import AddActivityDocumentForm
-from ..models import User, Role, RoleIds, ActivityType, db, Configuration, UploadedFile
 
-from ..utils.access import confidentiality_agreement, valid_user, user_is
-from ..utils.csv import process_stream
-from ..utils.time import current_time
-from ..utils import export
+from collectives.forms.csv import CSVForm
+from collectives.forms.user import AddLeaderForm
+from collectives.forms.activity_type import ActivityTypeSelectionForm
+from collectives.models import User, Role, RoleIds, ActivityType, db
+from collectives.models import Configuration, UploadedFile
+from collectives.forms.upload import AddActivityDocumentForm
+from collectives.utils import export
+from collectives.utils.access import confidentiality_agreement, valid_user, user_is
+from collectives.utils.csv import process_stream
+from collectives.utils.time import current_time
 
 blueprint = Blueprint(
     "activity_supervision", __name__, url_prefix="/activity_supervision"

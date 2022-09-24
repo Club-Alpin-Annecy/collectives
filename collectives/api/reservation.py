@@ -9,17 +9,10 @@ from flask import url_for, request, abort
 from marshmallow import fields
 from sqlalchemy.sql import text
 
+from collectives.api.common import blueprint, marshmallow
 from collectives.api.equipment import EquipmentSchema
-from collectives.models.equipment import Equipment, EquipmentStatus
-
-from collectives.models.reservation import Reservation
-from collectives.models.reservation import ReservationLine, ReservationStatus
-from collectives.models.user import User
-
-from ..models import db
-
-
-from .common import blueprint, marshmallow
+from collectives.models import db, Equipment, EquipmentStatus, Reservation
+from collectives.models import ReservationLine, ReservationStatus, User
 
 
 class ReservationSchema(marshmallow.Schema):

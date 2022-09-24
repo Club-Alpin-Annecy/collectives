@@ -1,8 +1,9 @@
 
 # Python Coding Style
  * Always format Python code using [black](https://github.com/psf/black) 
- * Follow the guidelines from https://google.github.io/styleguide/pyguide.html
-   (except for Section 3, "Python Style rules" -- there `black` should prevail)
+ * Follow the guidelines from https://google.github.io/styleguide/pyguide.html, except:
+ ** for Section 3, "Python Style rules" -- there `black` should prevail
+ ** import (see 2.2), where import of functions and classes are authorized.
  * Code should be validated with `pylint` and the included `pylintrc`. 
  * Documentation shall be updated for every commit which modify a class or method parameters.
 

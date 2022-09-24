@@ -5,12 +5,12 @@ This module should not contains other functions than :py:func:`helpers_processor
 import inspect
 import html
 
-from . import time as custom_time
-from . import numbers
-from .misc import is_mobile_user
-from .. import models
-from ..routes.auth import get_bad_phone_message
-from .render_markdown import markdown_to_html
+from collectives import models
+from collectives.routes.auth import get_bad_phone_message
+from collectives.utils import time as custom_time
+from collectives.utils import numbers
+from collectives.utils.misc import is_mobile_user
+from collectives.utils.render_markdown import markdown_to_html
 
 
 def helpers_processor():

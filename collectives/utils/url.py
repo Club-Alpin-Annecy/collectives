@@ -3,7 +3,7 @@ Module which contains various helping functions for url management.
 """
 import re
 
-from .misc import to_ascii
+from collectives.utils.misc import to_ascii
 
 
 def slugify(value):

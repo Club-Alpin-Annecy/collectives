@@ -7,7 +7,7 @@ import json
 from flask import request, abort
 
 from collectives.models.equipment import EquipmentType
-from .common import blueprint, marshmallow
+from collectives.api.common import blueprint, marshmallow
 
 
 class AutocompleteEquipmentTypeSchema(marshmallow.Schema):

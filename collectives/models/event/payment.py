@@ -1,6 +1,7 @@
 """ Module for all Event methods related to payments."""
 
 from datetime import timedelta
+
 from collectives.models.registration import RegistrationStatus
 
 

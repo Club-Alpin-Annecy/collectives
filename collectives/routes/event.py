@@ -7,32 +7,28 @@ from flask import current_app, Blueprint, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 
-from ..forms import EventForm, photos
-from ..forms import RegistrationForm
+from collectives.email_templates import send_new_event_notification
+from collectives.email_templates import send_unregister_notification
+from collectives.email_templates import send_reject_subscription_notification
+from collectives.email_templates import send_cancelled_event_notification
+from collectives.email_templates import send_update_waiting_list_notification
 
-from ..forms.event import PaymentItemChoiceForm
-from ..models import (
-    Event,
-    ActivityType,
-    EventType,
-    Registration,
-    RegistrationLevels,
-    EventStatus,
-)
-from ..models import RegistrationStatus, User, db
-from ..models import EventTag, UploadedFile
-from ..models.activitytype import activities_without_leader, leaders_without_activities
-from ..models.payment import ItemPrice, Payment
-from ..email_templates import send_new_event_notification
-from ..email_templates import send_unregister_notification
-from ..email_templates import send_reject_subscription_notification
-from ..email_templates import send_cancelled_event_notification
-from ..email_templates import send_update_waiting_list_notification
+from collectives.forms import EventForm, photos
+from collectives.forms import RegistrationForm
+from collectives.forms.event import PaymentItemChoiceForm
 
-from ..utils.time import current_time
-from ..utils.url import slugify
-from ..utils.access import confidentiality_agreement, valid_user
-from ..utils.crawlers import crawlers_catcher
+from collectives.models import Event, ActivityType, EventType
+from collectives.models import Registration, RegistrationLevels, EventStatus
+from collectives.models import RegistrationStatus, User, db
+from collectives.models import EventTag, UploadedFile
+from collectives.models.activity_type import activities_without_leader
+from collectives.models.activity_type import leaders_without_activities
+from collectives.models.payment import ItemPrice, Payment
+
+from collectives.utils.time import current_time
+from collectives.utils.url import slugify
+from collectives.utils.access import confidentiality_agreement, valid_user
+from collectives.utils.crawlers import crawlers_catcher
 
 
 blueprint = Blueprint("event", __name__, url_prefix="/collectives")
@@ -49,7 +45,7 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
     (single) activitie in `activities`. If `True`, check that each activity in
     `activities` can be lead by one of the `leaders`.
     :param activities: List of activities to check.
-    :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
+    :type activities: list(:py:class:`collectives.models.activity_type.ActivityType`)
     :param activities: List of leaders.
     :type activities: list(:py:class:`collectives.models.user.User`)
     :return: whether all tests succeeded

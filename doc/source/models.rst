@@ -4,9 +4,9 @@ Module ``collectives.models``
     :members:
 
 
-Module ``collectives.models.activitytype``
+Module ``collectives.models.activity_type``
 ---------------------------------------------
-.. automodule:: collectives.models.activitytype
+.. automodule:: collectives.models.activity_type
     :members:
 
 
@@ -25,9 +25,9 @@ Module ``collectives.models.event``
    event
 
 
-Module ``collectives.models.eventtype``
+Module ``collectives.models.event_type``
 ---------------------------------------------
-.. automodule:: collectives.models.eventtype
+.. automodule:: collectives.models.event_type
     :members:
 
 

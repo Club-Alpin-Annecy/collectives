@@ -7,13 +7,13 @@ from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
 
-from ..forms.user import AdminUserForm, AdminTestUserForm, RoleForm
-from ..forms.auth import AdminTokenCreationForm
-from ..models import User, ActivityType, Role, RoleIds, db
-from ..models.auth import ConfirmationToken
-from ..utils import extranet, export
-from ..utils.access import confidentiality_agreement, user_is, valid_user
-from ..email_templates import send_confirmation_email
+from collectives.email_templates import send_confirmation_email
+from collectives.forms.user import AdminUserForm, AdminTestUserForm, RoleForm
+from collectives.forms.auth import AdminTokenCreationForm
+from collectives.models import User, ActivityType, Role, RoleIds, db
+from collectives.models.auth import ConfirmationToken
+from collectives.utils import extranet, export
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 """ Administration blueprint

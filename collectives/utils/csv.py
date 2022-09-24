@@ -6,8 +6,8 @@ import csv
 
 from flask import current_app
 
-from .time import format_date
-from ..models import User, Event, db
+from collectives.models import User, Event, db
+from collectives.utils.time import format_date
 
 
 def fill_from_csv(event, row, template):
@@ -150,7 +150,7 @@ def process_stream(base_stream, activity_type, description):
     :param base_stream: the csv file as a stream.
     :type base_stream: :py:class:`io.StringIO`
     :param activity_type: The type of activity of the new events.
-    :type activity_type: :py:class:`collectives.models.activitytype.ActivityType`
+    :type activity_type: :py:class:`collectives.models.activity_type.ActivityType`
     :param description: Description template that will be used to generate new events
                         description.
     :type description: String

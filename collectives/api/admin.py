@@ -8,11 +8,11 @@ from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
-from ..models import db, User, RoleIds, Role
-from ..utils.access import valid_user, user_is, confidentiality_agreement
+from collectives.models import db, User, RoleIds, Role
+from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
-from .common import blueprint, marshmallow, avatar_url
-from .event import ActivityTypeSchema
+from collectives.api.common import blueprint, marshmallow, avatar_url
+from collectives.api.event import ActivityTypeSchema
 
 
 class RoleSchema(marshmallow.Schema):

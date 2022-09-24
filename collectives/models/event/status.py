@@ -1,7 +1,7 @@
 """ Module for all Event methods related to date manipulation and check and related enum"""
 
 
-from ..utils import ChoiceEnum
+from collectives.models.utils import ChoiceEnum
 
 
 class EventStatus(ChoiceEnum):

@@ -3,6 +3,7 @@
 """
 import functools
 import unicodedata
+
 from flask import request
 
 

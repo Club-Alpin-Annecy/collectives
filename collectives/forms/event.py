@@ -14,14 +14,12 @@ from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultip
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..models import Event, photos, Configuration
-from ..models.event import EventStatus
-from ..models import Registration
-from ..models import ActivityType, EventType, EventTag
-from ..models import User, Role, RoleIds, db
-from ..models.activitytype import leaders_without_activities
-from ..utils.time import current_time, format_date, format_date_range
-from ..utils.numbers import format_currency
+from collectives.models import Event, photos, Configuration, Registration
+from collectives.models import ActivityType, EventType, EventTag
+from collectives.models import EventStatus, User, Role, RoleIds, db
+from collectives.models import leaders_without_activities
+from collectives.utils.time import current_time, format_date, format_date_range
+from collectives.utils.numbers import format_currency
 
 
 def available_leaders(leaders, activity_ids):
@@ -63,11 +61,11 @@ def available_event_types(source_event_type, leaders):
        type if provided
 
     :param source_event_type: Event type to unconditionally include
-    :type source_event_type: :py:class:`collectives.models.eventtype.EventType`
+    :type source_event_type: :py:class:`collectives.models.event_type.EventType`
     :param leaders: List of leaders currently added to the event
     :type leaders: list[:py:class:`collectives.models.user.User`]
     :return: Available event types
-    :rtype: list[:py:class:`collectives.models.eventtype.EventType`]
+    :rtype: list[:py:class:`collectives.models.event_type.EventType`]
     """
 
     query = EventType.query
@@ -92,14 +90,14 @@ def available_activities(activities, leaders, union):
     has a moderator role (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list
-    :type activities: list[:py:class:`collectives.models.activitytype.ActivityType`]
+    :type activities: list[:py:class:`collectives.models.activity_type.ActivityType`]
     :param leaders: list of leader used to build activity list.
     :type leaders: list[:py:class:`collectives.models.user.User`]
     :param union: If true, return the union all activities that can be led, otherwise returns
                   the intersection
     :type union: bool
     :return: List of authorized activities
-    :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
+    :rtype: list[:py:class:`collectives.models.activity_type.ActivityType`]
     """
     if current_user.is_moderator():
         choices = ActivityType.get_all_types()
@@ -306,7 +304,7 @@ class EventForm(ModelForm, FlaskForm):
         """
         :return: The currently selected event type, of the first available if none has been
                  elected yet
-        :rtype: :py:class:`collectives.models.eventtype.EventType`
+        :rtype: :py:class:`collectives.models.event_type.EventType`
         """
         if self.event_type_id.data:
             return EventType.query.get(self.event_type_id.data)
@@ -363,7 +361,7 @@ class EventForm(ModelForm, FlaskForm):
     def current_activities(self):
         """
         :return: the list of currently selected activities.
-        :rtype: list[:py:class:`collectives.models.activitytype.ActivityType`]
+        :rtype: list[:py:class:`collectives.models.activity_type.ActivityType`]
         """
         if self.multi_activities_mode.data:
             return ActivityType.query.filter(

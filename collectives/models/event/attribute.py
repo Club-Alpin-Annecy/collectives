@@ -1,8 +1,9 @@
 """ Module for all Event attributes. """
 
 from sqlalchemy.ext.declarative import declared_attr
-from collectives.models.globals import db
+
 from collectives.models.event.status import EventStatus
+from collectives.models.globals import db
 
 
 class AttributeEvent:
@@ -122,7 +123,7 @@ class AttributeEvent:
     @declared_attr
     def event_type_id(self):
         """Primary key of the associated event type  (see
-        :py:class:`collectives.models.eventtype.EventType`)
+        :py:class:`collectives.models.event_type.EventType`)
 
         :type: int"""
         return db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)

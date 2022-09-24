@@ -1,8 +1,8 @@
 """Module for registration related classes
 """
 import enum
-from .globals import db
-from .utils import ChoiceEnum
+from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
 
 # pylint: disable=invalid-name
 class RegistrationLevels(enum.IntEnum):

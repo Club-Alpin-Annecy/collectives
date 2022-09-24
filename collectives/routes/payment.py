@@ -12,20 +12,20 @@ from flask_login import current_user
 
 from openpyxl import Workbook
 
-from ..forms.payment import PaymentItemsForm, OfflinePaymentForm
-from ..forms.payment import NewItemPriceForm, CopyItemForm
-from ..utils import payline
+from collectives.forms.payment import PaymentItemsForm, OfflinePaymentForm
+from collectives.forms.payment import NewItemPriceForm, CopyItemForm
 
-from ..utils.access import payments_enabled, valid_user, user_is
-from ..utils.access import confidentiality_agreement
-from ..utils.payment import extract_payments
-from ..utils.time import current_time
-from ..utils.misc import deepgetattr
-from ..utils.url import slugify
-from ..models import db, Configuration
-from ..models.event import Event
-from ..models.payment import PaymentItem, ItemPrice, Payment, PaymentStatus, PaymentType
-from ..models.registration import RegistrationStatus, Registration
+from collectives.models import db, Configuration, Event, PaymentItem, ItemPrice, Payment
+from collectives.models import PaymentStatus, PaymentType, RegistrationStatus
+from collectives.models import Registration
+
+from collectives.utils import payline
+from collectives.utils.access import payments_enabled, valid_user, user_is
+from collectives.utils.access import confidentiality_agreement
+from collectives.utils.misc import deepgetattr
+from collectives.utils.payment import extract_payments
+from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")

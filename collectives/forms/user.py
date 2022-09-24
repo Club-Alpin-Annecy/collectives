@@ -9,10 +9,10 @@ from wtforms.validators import EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
 
 
-from .order import OrderedModelForm
-from ..models import User, photos, ActivityType, Role, RoleIds
-from .validators import UniqueValidator, PasswordValidator
-from .activity_type import ActivityTypeSelectionForm
+from collectives.forms.order import OrderedModelForm
+from collectives.forms.validators import UniqueValidator, PasswordValidator
+from collectives.forms.activity_type import ActivityTypeSelectionForm
+from collectives.models import User, photos, ActivityType, Role, RoleIds
 
 
 class AvatarForm:

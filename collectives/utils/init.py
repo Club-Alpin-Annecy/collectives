@@ -11,8 +11,8 @@ import sqlalchemy
 from flask import current_app
 from click import pass_context
 
-from ..models import ActivityType, EventType, User, Role, db, RoleIds
-from ..models import Configuration, ConfigurationTypeEnum, ConfigurationItem
+from collectives.models import ActivityType, EventType, User, Role, db, RoleIds
+from collectives.models import Configuration, ConfigurationTypeEnum, ConfigurationItem
 
 
 def activity_types(app):

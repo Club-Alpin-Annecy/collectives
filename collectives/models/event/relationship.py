@@ -2,6 +2,7 @@
 
 
 from sqlalchemy.ext.declarative import declared_attr
+
 from collectives.models.globals import db
 
 
@@ -58,14 +59,14 @@ class RelationshipEvent:
     def event_type(self):
         """Type of this event.
 
-        :type: :py:class:`collectives.models.eventtype.EventType`"""
+        :type: :py:class:`collectives.models.event_type.EventType`"""
         return db.relationship("EventType")
 
     @declared_attr
     def activity_types(self):
         """Types of activity of this Event
 
-        :type: :py:class:`collectives.models.activitytype.ActivityType`"""
+        :type: :py:class:`collectives.models.activity_type.ActivityType`"""
         return db.relationship(
             "ActivityType",
             secondary=event_activity_types,

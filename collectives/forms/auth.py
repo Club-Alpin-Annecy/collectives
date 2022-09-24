@@ -9,10 +9,12 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
 from wtforms_alchemy.utils import strip_string
-from ..models import User, db
-from .order import OrderedForm
-from .validators import UniqueValidator, PasswordValidator, LicenseValidator
-from .validators import remove_unique_validators
+
+from collectives.forms.order import OrderedForm
+from collectives.forms.validators import UniqueValidator, PasswordValidator
+from collectives.forms.validators import LicenseValidator
+from collectives.forms.validators import remove_unique_validators
+from collectives.models import User, db
 
 
 class LoginForm(FlaskForm):

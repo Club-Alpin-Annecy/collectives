@@ -6,10 +6,9 @@ from datetime import timedelta
 
 from wtforms.validators import NumberRange
 
-from .globals import db
-from .utils import ChoiceEnum
-
-from ..utils.time import current_time
+from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
+from collectives.utils.time import current_time
 
 
 class PaymentItem(db.Model):

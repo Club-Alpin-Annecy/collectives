@@ -1,7 +1,7 @@
 """Module for user roles related classes
 """
-from .utils import ChoiceEnum
-from .globals import db
+from collectives.models.utils import ChoiceEnum
+from collectives.models.globals import db
 
 
 class RoleIds(ChoiceEnum):
@@ -159,7 +159,7 @@ class Role(db.Model):
     """Role for a specific user.
 
     These objects are linked to :py:class:`collectives.models.user.User` and
-    sometimes to a :py:class:`collectives.models.activitytype.ActivityType`.
+    sometimes to a :py:class:`collectives.models.activity_type.ActivityType`.
     A same user can have several roles.
 
     Roles are stored in SQL table ``roles``.

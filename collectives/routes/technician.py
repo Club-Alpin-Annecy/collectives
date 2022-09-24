@@ -14,10 +14,10 @@ from flask import url_for, redirect, request, flash
 from flask_login import current_user
 from flask_uploads import UploadSet, IMAGES, DOCUMENTS
 
-from ..utils.access import confidentiality_agreement, user_is, valid_user
-
-from ..models import ConfigurationItem, db, ConfigurationTypeEnum, Configuration
-from ..forms.configuration import get_form_from_configuration, CoverUploadForm
+from collectives.forms.configuration import get_form_from_configuration, CoverUploadForm
+from collectives.models import ConfigurationItem, db
+from collectives.models import ConfigurationTypeEnum, Configuration
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint

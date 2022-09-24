@@ -8,11 +8,10 @@ from wtforms import HiddenField, BooleanField, SelectField
 from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm
 
-from .order import OrderedForm
-
-from ..models.payment import ItemPrice, PaymentItem, Payment, PaymentType, PaymentStatus
-from ..models import Configuration
-from ..utils.numbers import format_currency
+from collectives.forms.order import OrderedForm
+from collectives.models import ItemPrice, PaymentItem, Payment
+from collectives.models import PaymentType, PaymentStatus, Configuration
+from collectives.utils.numbers import format_currency
 
 
 class AmountForm(FlaskForm):

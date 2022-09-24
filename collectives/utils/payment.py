@@ -1,11 +1,12 @@
 """Module to help payment extraction
 """
 import datetime
+
 from flask import current_app
 
-from ..models import db, Payment, PaymentStatus, PaymentItem, Event
-from ..models import ActivityType, ItemPrice, User, PaymentType
-from ..models import Registration, RegistrationStatus
+from collectives.models import db, Payment, PaymentStatus, PaymentItem, Event
+from collectives.models import ActivityType, ItemPrice, User, PaymentType
+from collectives.models import Registration, RegistrationStatus
 
 
 def extract_payments(event_id=None, page=None, pagesize=50, filters=None):

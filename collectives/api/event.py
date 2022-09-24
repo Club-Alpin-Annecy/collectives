@@ -2,16 +2,18 @@
 
 """
 import json
-from flask import url_for, request, abort
-from flask_login import current_user
-from sqlalchemy import desc, or_, func
-from marshmallow import fields
 from dateutil import parser
 
-from ..models import Event, EventStatus, EventType, ActivityType, User, EventTag
-from ..utils.url import slugify
-from ..utils.time import current_time
-from .common import blueprint, marshmallow, avatar_url
+from flask import url_for, request, abort
+from flask_login import current_user
+from marshmallow import fields
+from sqlalchemy import desc, or_, func
+
+from collectives.api.common import blueprint, marshmallow, avatar_url
+from collectives.models import Event, EventStatus, EventType
+from collectives.models import ActivityType, User, EventTag
+from collectives.utils.url import slugify
+from collectives.utils.time import current_time
 
 
 def photo_uri(event):

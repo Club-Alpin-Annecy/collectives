@@ -1,7 +1,7 @@
 """ Module for all Event methods related to role manipulation and check."""
 
-from ..activitytype import activities_without_leader
-from ..registration import RegistrationLevels
+from collectives.models.activity_type import activities_without_leader
+from collectives.models.registration import RegistrationLevels
 
 
 class RoleEvent:

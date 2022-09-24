@@ -7,8 +7,8 @@ from flask import current_app
 from zeep import Client
 from zeep.exceptions import Error as ZeepError
 
-from ..models import Gender, Configuration
-from .time import current_time
+from collectives.models import Gender, Configuration
+from collectives.utils.time import current_time
 
 
 LICENSE_RENEWAL_MONTH = 9

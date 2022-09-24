@@ -6,21 +6,21 @@ import os
 from flask_login import UserMixin
 from flask_uploads import UploadSet, IMAGES
 import phonenumbers
-from collectives.models.reservation import ReservationStatus
-from collectives.models.event import Event
-from collectives.models.eventtype import EventType
 
-from collectives.models.registration import Registration
-from collectives.models.globals import db
-from collectives.models.role import RoleIds, Role
-from collectives.models.activitytype import ActivityType
-from collectives.utils.time import current_time
+from collectives.models.activity_type import ActivityType
 from collectives.models.configuration import Configuration
-
+from collectives.models.event import Event
+from collectives.models.event_type import EventType
+from collectives.models.globals import db
+from collectives.models.registration import Registration
+from collectives.models.role import RoleIds, Role
+from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender
 from collectives.models.user.attribute import AttributeUser
 from collectives.models.user.relationship import RelationshipUser
 from collectives.models.user.role import RoleUser
+from collectives.utils.time import current_time
+
 
 # Upload
 avatars = UploadSet("avatars", IMAGES)
@@ -148,7 +148,7 @@ class User(db.Model, UserMixin, AttributeUser, RelationshipUser, RoleUser):
 
         Admin and President supervise all.
 
-        :rtype: list(:py:class:`collectives.models.activitytype.ActivityType`)
+        :rtype: list(:py:class:`collectives.models.activity_type.ActivityType`)
         """
         if self.is_admin() or self.has_role([RoleIds.President]):
             return ActivityType.get_all_types(True)

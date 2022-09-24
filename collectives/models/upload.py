@@ -8,10 +8,9 @@ from flask_uploads import UploadSet, DOCUMENTS, IMAGES
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import validates
 
-from .globals import db
-from .user import User
-
-from ..utils.time import current_time
+from collectives.models.globals import db
+from collectives.models.user import User
+from collectives.utils.time import current_time
 
 documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
 """Upload instance for documents

@@ -8,16 +8,15 @@ other form submodules and create some configuration for all forms.
 from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
+from collectives.forms.csv import CSVForm
+from collectives.forms.auth import LoginForm, AccountCreationForm
+from collectives.forms.event import RegistrationForm, EventForm
+from collectives.forms.user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm
+from collectives.forms.reservation import LeaderReservationForm
+from collectives.models.upload import documents
+from collectives.models import photos, avatars, image_equipment_type
 from collectives.routes import technician
 
-from ..models.upload import documents
-from ..models import photos, avatars, image_equipment_type
-
-from .csv import CSVForm
-from .auth import LoginForm, AccountCreationForm
-from .event import RegistrationForm, EventForm
-from .user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm
-from .reservation import LeaderReservationForm
 
 csrf = CSRFProtect()
 

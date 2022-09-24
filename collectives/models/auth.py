@@ -8,9 +8,10 @@ from datetime import timedelta
 import enum
 import uuid
 
-from .globals import db
-from ..utils.time import current_time
-from .configuration import Configuration
+from collectives.models.globals import db
+from collectives.models.configuration import Configuration
+from collectives.utils.time import current_time
+
 
 # pylint: disable=invalid-name
 class ConfirmationTokenType(enum.IntEnum):

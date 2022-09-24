@@ -6,18 +6,18 @@ from flask import flash, render_template, redirect, url_for, request, escape
 from flask import current_app, Blueprint, Markup
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
-from werkzeug.urls import url_parse
 from flask_wtf.csrf import generate_csrf
-
 from sqlalchemy import or_
+from werkzeug.urls import url_parse
 
-from ..forms.auth import LoginForm, AccountCreationForm
-from ..forms.auth import PasswordResetForm, AccountActivationForm
-from ..models import User, db, Configuration
-from ..models.auth import ConfirmationTokenType, ConfirmationToken, TokenEmailStatus
-from ..utils.time import current_time
-from ..utils import extranet
-from ..email_templates import send_confirmation_email
+from collectives.email_templates import send_confirmation_email
+from collectives.forms.auth import LoginForm, AccountCreationForm
+from collectives.forms.auth import PasswordResetForm, AccountActivationForm
+from collectives.models import User, db, Configuration
+from collectives.models.auth import ConfirmationTokenType, ConfirmationToken
+from collectives.models.auth import TokenEmailStatus
+from collectives.utils import extranet
+from collectives.utils.time import current_time
 
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"

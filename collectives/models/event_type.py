@@ -2,7 +2,7 @@
 """
 from flask import escape
 
-from .globals import db
+from collectives.models.globals import db
 
 
 class EventType(db.Model):

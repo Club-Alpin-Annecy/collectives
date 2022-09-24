@@ -6,15 +6,14 @@ from flask_uploads import UploadSet, IMAGES
 from sqlalchemy.orm import validates
 
 from collectives.models.globals import db
-from collectives.utils import render_markdown
-
+from collectives.models.event.attribute import AttributeEvent
+from collectives.models.event.relationship import RelationshipEvent
+from collectives.models.event.date import DateEvent
+from collectives.models.event.payment import PaymentEvent
 from collectives.models.event.status import StatusEvent, EventStatus
 from collectives.models.event.role import RoleEvent
 from collectives.models.event.registration import RegistrationEvent
-from collectives.models.event.date import DateEvent
-from collectives.models.event.payment import PaymentEvent
-from collectives.models.event.attribute import AttributeEvent
-from collectives.models.event.relationship import RelationshipEvent
+from collectives.utils import render_markdown
 
 
 photos = UploadSet("photos", IMAGES)

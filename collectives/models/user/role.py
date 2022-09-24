@@ -1,8 +1,9 @@
 """ Module for all User methods related to role manipulation and check."""
 
-from collectives.models.role import RoleIds
 from collectives.models.globals import db
-from collectives.models import Event, EventType
+from collectives.models.event import Event
+from collectives.models.event_type import EventType
+from collectives.models.role import RoleIds
 
 
 class RoleUser:
@@ -181,7 +182,7 @@ class RoleUser:
         See :py:meth:`can_lead_activity`
 
         :param activities: Activities which will be tested.
-        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
+        :type activities: list(:py:class:`collectives.models.activity_type.ActivityType`)
         :return: True if user can lead all the activities.
         :rtype: boolean
         """
@@ -191,7 +192,7 @@ class RoleUser:
         """Check if user has a role which allow him to co-lead any of the specified activities.
 
         :param activities: Activities which will be tested.
-        :type activities: list(:py:class:`collectives.models.activitytype.ActivityType`)
+        :type activities: list(:py:class:`collectives.models.activity_type.ActivityType`)
         :return: True if user is a trainee for at least one activity
         :rtype: boolean
         """
@@ -260,7 +261,7 @@ class RoleUser:
         """Get activities the user can lead.
 
         :return: The list of activities the user can lead.
-        :rtype: set(:py:class:`collectives.models.activitytype.ActivityType`)
+        :rtype: set(:py:class:`collectives.models.activity_type.ActivityType`)
         """
         roles = self.matching_roles(RoleIds.all_activity_leader_roles())
         return set(role.activity_type for role in roles)

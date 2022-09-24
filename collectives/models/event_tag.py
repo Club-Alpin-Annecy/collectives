@@ -2,7 +2,7 @@
 """
 from flask import current_app
 
-from .globals import db
+from collectives.models.globals import db
 
 
 class EventTag(db.Model):
