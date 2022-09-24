@@ -22,7 +22,7 @@ photos = UploadSet("photos", IMAGES)
 
 :type: flask_uploads.UploadSet"""
 
-#pylint: disable=too-many-ancestors
+# pylint: disable=too-many-ancestors
 class Event(
     db.Model,
     AttributeEvent,

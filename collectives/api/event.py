@@ -248,7 +248,9 @@ def events():
         elif field == "tags":
             query_filter = Event.tag_refs.any(type=EventTag.get_type_from_short(value))
         elif field == "event_type":
+            # pylint: disable=comparison-with-callable
             query = query.filter(EventType.id == Event.event_type_id)
+            # pylint: enable=comparison-with-callable
             query_filter = EventType.short == value
 
         if query_filter is not None:
