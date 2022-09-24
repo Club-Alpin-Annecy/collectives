@@ -308,7 +308,7 @@ def export_payments(event_id=None):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        attachment_filename=filename,
+        download_name=filename,
         as_attachment=True,
     )
 

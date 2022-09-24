@@ -190,6 +190,6 @@ def show_volunteer_card():
     return send_file(
         out,
         mimetype="application/pdf",
-        attachment_filename=str("Attestation Benevole CAF Annecy.pdf"),
+        download_name=str("Attestation Benevole CAF Annecy.pdf"),
         as_attachment=True,
     )

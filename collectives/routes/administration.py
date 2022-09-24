@@ -301,7 +301,7 @@ def export_role(raw_filters=""):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        attachment_filename=f"CAF Annecy - Export {filename}.xlsx",
+        download_name=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
     )
 
