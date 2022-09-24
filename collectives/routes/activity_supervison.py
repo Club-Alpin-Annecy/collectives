@@ -140,7 +140,7 @@ def export_role():
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        attachment_filename=f"CAF Annecy - Export {activity_type.name}.xlsx",
+        download_name=f"CAF Annecy - Export {activity_type.name}.xlsx",
         as_attachment=True,
     )
 
