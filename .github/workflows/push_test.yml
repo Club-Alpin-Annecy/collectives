@@ -24,9 +24,4 @@ jobs:
         pip install -r requirements-tools.txt
     - name: Pytest
       run: |
-        pytest
-    - name: unittest
-      env:
-        EXTRANET_DISABLE: 1
-      run: |
-        python tests.py
+        pytest --cov=collectives tests/ --cov-fail-under=60

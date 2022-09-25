@@ -7,17 +7,25 @@ from collectives.models import Configuration
 
 
 def get_textarea_value(soup, name):
+    """Select and return a textarea value
+    :param soup: a beautiful soup object with the whole html page loaded
+    :param name: the name of the textarea to extract
+    :returns: the textarea value"""
     return soup.select_one(f'#form_{name} textarea[name="content"]').getText()[2:]
     # The [2:] is to remove the '\r\n' added by wtforms in textarea
 
 
 def get_input_value(soup, name):
+    """Select and return an input value
+    :param soup: a beautiful soup object with the whole html page loaded
+    :param name: the name of the input to extract
+    :returns: the input value"""
     return soup.select_one(f'#form_{name} input[name="content"]')["value"]
 
 
-def test_config_list(dbauth, client):
-    dbauth.login(client)
-    response = client.get("/technician/configuration")
+def test_config_list(admin_client):
+    """Test display of configuration page"""
+    response = admin_client.get("/technician/configuration")
     assert response.status_code == 200
 
     soup = BeautifulSoup(response.text, features="lxml")
@@ -33,50 +41,50 @@ def test_config_list(dbauth, client):
     )
     assert get_input_value(soup, "test_hidden") == "*****"
 
-    object = yaml.safe_load(get_textarea_value(soup, "test_dict"))
-    assert object["test1"] == "ü éè à"
+    configuration = yaml.safe_load(get_textarea_value(soup, "test_dict"))
+    assert configuration["test1"] == "ü éè à"
 
 
-def test_config_update(dbauth, client):
-    dbauth.login(client)
+def test_config_update(admin_client):
+    """Test update of a configuration item"""
 
     data = {"name": "test_bool"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_int", "content": "5689"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_date", "content": "2020-01-01 00:00:00"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_float", "content": "1.69"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_string", "content": "test é^"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_hidden", "content": "*****"}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     long_test = """long test é^
     1236555"""
     data = {"name": "test_longstring", "content": long_test}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
     dict_test = """test1: zzzzz
 test2: oooooé$£¤"""
     data = {"name": "test_dict", "content": dict_test}
-    response = client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration", data=data)
     assert response.status_code == 302
 
-    response = client.get("/technician/configuration")
+    response = admin_client.get("/technician/configuration")
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, features="lxml")
 
@@ -101,8 +109,8 @@ test2: oooooé$£¤"""
     assert get_textarea_value(soup, "test_longstring") == long_test
     assert Configuration.test_longstring == long_test
 
-    object = yaml.safe_load(get_textarea_value(soup, "test_dict"))
-    assert object["test2"] == "oooooé$£¤"
+    test_dict = yaml.safe_load(get_textarea_value(soup, "test_dict"))
+    assert test_dict["test2"] == "oooooé$£¤"
     assert Configuration.test_dict["test2"] == "oooooé$£¤"
 
     assert Configuration.test_hidden == "Mot de pass"

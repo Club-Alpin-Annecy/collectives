@@ -1,7 +1,11 @@
+""" Test payline"""
+
 import argparse
 
 from collectives import create_app
 from collectives.utils import payline
+
+# pylint: disable=invalid-name
 
 
 def doWebPayment():
@@ -29,6 +33,7 @@ def doWebPayment():
     buyer.last_name = "DO"
     buyer.first_name = "JOHN"
     buyer.email = "johndoe@yopmail.com"
+    # pylint: disable=invalid-name
     buyer.mobilePhone = "0600000000"
     buyer.birth_date = "1980-01-20"
 
@@ -37,7 +42,8 @@ def doWebPayment():
         raise RuntimeError("Payline API error")
 
     print(
-        f"token : {doWebPaymentResponse.token}, URL de paiement : {doWebPaymentResponse.redirect_url}"
+        f"token : {doWebPaymentResponse.token}, URL de paiement : "
+        f"{doWebPaymentResponse.redirect_url}"
     )
     input("appuyer sur une touche lorsque le paiement est validé")
 
@@ -54,7 +60,8 @@ def getPaymentDetails(token):
     """
     details = payline.api.get_web_payment_details(token)
     print(
-        f"Result: {details.result.short_message} Transaction: {details.transaction['id']} Date: {details.transaction['date']}"
+        f"Result: {details.result.short_message} Transaction: {details.transaction['id']}"
+        f" Date: {details.transaction['date']}"
     )
     print(details.raw_metadata())
     return details
@@ -83,7 +90,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t",
         "--token",
-        help="If provided fetch payment information from an existing payline token. Otherwise initiate a new payment",
+        help="If provided fetch payment information from an existing payline token."
+        " Otherwise initiate a new payment",
     )
     parser.add_argument(
         "-r",

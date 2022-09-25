@@ -40,14 +40,14 @@ class ReverseProxied:
         return self.app(environ, start_response)
 
 
-def create_app(config_filename="config"):
+def create_app(config_filename="config.py"):
     """Flask application factory.
 
     This is the flask application factory for this project. It loads the
     other submodules used to runs the collectives website. It also creates
     the blueprins and init apps.
 
-    :param config_filename: name of the application config file.
+    :param config_filename: name of the application config file relative to instance/.
     :type config_filename: string
 
     :return: A flask application for collectives
@@ -57,8 +57,8 @@ def create_app(config_filename="config"):
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     # Config options - Make sure you created a 'config.py' file.
-    app.config.from_object(config_filename)
-    app.config.from_pyfile("config.py")
+    app.config.from_object("config")
+    app.config.from_pyfile(config_filename, silent=True)
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)

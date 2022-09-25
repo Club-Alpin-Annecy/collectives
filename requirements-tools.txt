@@ -9,6 +9,7 @@ pylint-flask-sqlalchemy
 
 black
 pytest
+pytest-cov
 beautifulsoup4 
 
 Sphinx

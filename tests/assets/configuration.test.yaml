@@ -46,3 +46,41 @@ TEST:
           test2: Lorem Ipsum
         description: "TEST dict"
         type: Dictionnary
+
+Paiements:
+    PAYLINE_MERCHANT_ID:
+        content: "123456789"
+        description: Payline merchant id, refer to payline account. If left empty the payline API will operate in mock mode.
+        type: ShortString
+
+    PAYLINE_ACCESS_KEY: 
+        content: "123456789"
+        description: Payline access key (to be set in payline backoffice)
+        type: ShortString
+        hidden: true
+
+    PAYLINE_CONTRACT_NUMBER: 
+        content: "123456789"
+        description: Payline contract number
+        type: ShortString
+    
+    PAYLINE_MERCHANT_NAME: 
+        content: "CAF"
+        description: Payline merchant name
+        type: ShortString
+
+    PAYLINE_CURRENCY: 
+        content: "978"
+        description: Code of the currency to be used for payments, '978' means euros. See https://docs.payline.com/display/DT/Codes+-+Currency
+        type: ShortString
+    
+    PAYLINE_COUNTRY:
+        content: "FR"
+        description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
+        type: ShortString
+
+Divers: 
+    VOLUNTEER_CERT_IMAGE:
+        content : "tests/assets/img/blank_volunteer_certificate.png"
+        description: File path to the background volunteer certificate image. Empty to deactivate volunteer certificate generation.
+        type: ShortString

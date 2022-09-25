@@ -19,7 +19,7 @@
 
   </div>
 
-  <form action="" method="POST" enctype="multipart/form-data" class="form">
+  <form action="" method="POST" enctype="multipart/form-data" class="form" id="basic_form">
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
             <div class="controls">
