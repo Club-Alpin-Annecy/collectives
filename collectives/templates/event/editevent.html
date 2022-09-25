@@ -256,7 +256,10 @@
     </div>
 
 
-    {{ form.hidden_tag() }}
+    {{ form.duplicate_event }}
+    {{ form.edit_session_id }}
+    {{ form.csrf_token }}
+
     <div class="controls">
     {{ form.save_all(class="button button-primary") }}
     </div>
