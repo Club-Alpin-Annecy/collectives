@@ -9,8 +9,35 @@ function copyStartDate() {
         document.querySelector('input[name=end]').value = document.querySelector('input[name=start]').value;
 }
 
+function getActivityIds() {
+    var multiActivity = document.getElementById("multi_activities_mode").checked;
+    var ids;
+    if (multiActivity) {
+        ids = Array.from(document.querySelectorAll(`#multi_activity_types option:checked`), e => e.value);
+    } else {
+        ids = [document.getElementById("single_activity_type").value];
+    }
+    return ids;
+}
 
-function makeEditorToolbar(fileUploadButtons) {
+function listUploadedFiles(baseUrlString) {
+
+    // Add list of activity ids to query string
+    url = new URL(baseUrlString, document.baseURI)
+    params = new URLSearchParams(url);
+    getActivityIds().forEach(id => params.append('activity_ids', id));
+    url.search = params.toString();
+
+    // Reload tabulator data
+    var table = Tabulator.prototype.findTable("#uploaded-files-table")[0];
+    table.setData(url.toString());
+
+    // Show modal dialog 
+    const modal = document.querySelector('.container_bg_modal');
+    openModal(modal);
+}
+
+function makeEditorToolbar(options) {
     toolbar = [
         {
             name: "bold",
@@ -69,17 +96,23 @@ function makeEditorToolbar(fileUploadButtons) {
             title: "Image en ligne",
         }
     ]
-    if (fileUploadButtons) {
+    if (options.uploadImage) {
         toolbar.push(
             {
                 name: "upload-image",
                 action: EasyMDE.drawUploadedImage,
                 className: "fa fa-upload",
                 title: "Télécharger un document",
-            },
+            }
+        );
+    }
+    if (options.listUploadedFilesEndpoint) {
+        toolbar.push(
             {
                 name: "list-uploaded-files",
-                action: listUploadedFiles,
+                action: function () {
+                    listUploadedFiles(options.listUploadedFilesEndpoint);
+                },
                 className: "fa fas fa-folder-open",
                 title: "Documents téléchargés",
             }
@@ -162,7 +195,7 @@ function getEditorOptions(elementId) {
 
 function makeEditor(elementId, options = {}) {
     var allOptions = Object.assign({}, getEditorOptions(elementId), options);
-    allOptions.toolbar = makeEditorToolbar(allOptions.uploadImage)
+    allOptions.toolbar = makeEditorToolbar(allOptions)
 
     var easymde = new EasyMDE(allOptions);
     easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
@@ -304,7 +337,7 @@ function iconFormatter(cell, formatterParams, onRendered) {
 }
 
 
-function createUploadedFilesTable(url, editor, csrf_token) {
+function createUploadedFilesTable(editor, csrf_token) {
     function insertFileAsLink(e, cell) {
         url = cell.getValue();
         name = cell.getRow().getData().name
@@ -317,25 +350,24 @@ function createUploadedFilesTable(url, editor, csrf_token) {
         insertLink(editor, name, url, true);
     }
 
-    function sortFiles(a, b, aRow, bRow, column, dir, sorterParams){
-        if (aRow.getData().activity_name == bRow.getData().activity_name)
-        {
+    function sortFiles(a, b, aRow, bRow, column, dir, sorterParams) {
+        if (aRow.getData().activity_name == bRow.getData().activity_name) {
             return a.localeCompare(b);
         }
 
         // Ensures that files with no activity are always on top
         var nullOrder = dir == "asc" ? 1 : -1;
-        if(aRow.getData().activity_name == null) return -nullOrder;
-        if(bRow.getData().activity_name == null) return nullOrder;
+        if (aRow.getData().activity_name == null) return -nullOrder;
+        if (bRow.getData().activity_name == null) return nullOrder;
         return aRow.getData().activity_name.localeCompare(bRow.getData().activity_name);
     }
 
     function deleteFile(e, cell) {
-        if(cell.getValue() == null) {
+        if (cell.getValue() == null) {
             alert("Vous ne pouvez pas supprimer ce fichier");
             return;
         }
-        
+
         if (!confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
             return false;
         }
@@ -353,13 +385,12 @@ function createUploadedFilesTable(url, editor, csrf_token) {
 
     return new Tabulator("#uploaded-files-table",
         {
-            ajaxURL: url,
             layout: "fitColumns",
 
             nestedFieldSeparator: false,
             columns: [
                 {
-                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter:sortFiles
+                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles
                 },
                 { title: "Taille", widthGrow: 1, field: "size", formatter: sizeFormatter },
                 { title: "Date", widthGrow: 1, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
@@ -368,8 +399,8 @@ function createUploadedFilesTable(url, editor, csrf_token) {
                 { field: "delete_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile, headerSort: false }
             ],
 
-            groupBy : "activity_name",
-            initialSort : [{column:"name", dir:"asc"}],
+            groupBy: "activity_name",
+            initialSort: [{ column: "name", dir: "asc" }],
 
             locale: true,
             langs: {
@@ -380,18 +411,10 @@ function createUploadedFilesTable(url, editor, csrf_token) {
                     },
                 }
             },
-            groupHeader:function(value, count, data, group){
+            groupHeader: function (value, count, data, group) {
                 return value == null ? "Cet événement" : value;
             },
         });
 }
 
-function listUploadedFiles() {
-    var table = Tabulator.prototype.findTable("#uploaded-files-table")[0];
-    table.replaceData();
-
-    // Show modal dialog 
-    const modal = document.querySelector('.container_bg_modal');
-    openModal(modal);
-}
 

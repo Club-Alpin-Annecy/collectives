@@ -162,7 +162,6 @@ def list_event_files(event_id=None, edit_session_id=None):
     # Add files associated to activities
     activity_ids = request.args.getlist("activity_ids", type=int)
     if activity_ids:
-        print(activity_ids, flush=True)
         query_filter = or_(query_filter, UploadedFile.activity_id.in_(activity_ids))
 
     files = UploadedFile.query.filter(query_filter).all()
