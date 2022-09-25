@@ -4,7 +4,7 @@ from collectives.models.activity_type import activities_without_leader
 from collectives.models.registration import RegistrationLevels
 
 
-class RoleEvent:
+class EventRoleMixin:
     """Part of Event related to role.
 
     Not meant to be used alone."""

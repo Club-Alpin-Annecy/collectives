@@ -1,7 +1,7 @@
 """ Module for all Event methods related to date manipulation and check."""
 
 
-class DateEvent:
+class EventDateMixin:
     """Part of Event class for date manipulation and check.
 
     Not meant to be used alone."""

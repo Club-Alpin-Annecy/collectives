@@ -1,12 +1,12 @@
 """ Module for all User methods related to role manipulation and check."""
 
 from collectives.models.globals import db
-from collectives.models.event import Event
-from collectives.models.event_type import EventType
+from collectives.models.activity_type import ActivityType
+from collectives.models.event import Event, EventType
 from collectives.models.role import RoleIds
 
 
-class RoleUser:
+class UserRoleMixin:
     """Part of User related to role.
 
     Not meant to be used alone."""
@@ -265,3 +265,16 @@ class RoleUser:
         """
         roles = self.matching_roles(RoleIds.all_activity_leader_roles())
         return set(role.activity_type for role in roles)
+
+    def get_supervised_activities(self):
+        """Get activities the user supervises.
+
+        Admin and President supervise all.
+
+        :rtype: list(:py:class:`collectives.models.activity_type.ActivityType`)
+        """
+        if self.is_admin() or self.has_role([RoleIds.President]):
+            return ActivityType.get_all_types(True)
+
+        roles = self.matching_roles([RoleIds.ActivitySupervisor])
+        return [role.activity_type for role in roles]

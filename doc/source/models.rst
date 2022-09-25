@@ -23,12 +23,7 @@ Module ``collectives.models.event``
    :maxdepth: 2
 
    event
-
-
-Module ``collectives.models.event_type``
----------------------------------------------
-.. automodule:: collectives.models.event_type
-    :members:
+   
 
 
 Module ``collectives.models.globals``

@@ -5,7 +5,7 @@ from datetime import timedelta
 from collectives.models.registration import RegistrationStatus
 
 
-class PaymentEvent:
+class EventPaymentMixin:
     """Part of Event class for payments.
 
     Not meant to be used alone."""

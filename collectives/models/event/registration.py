@@ -5,7 +5,7 @@ from operator import attrgetter
 from collectives.models.registration import RegistrationLevels, RegistrationStatus
 
 
-class RegistrationEvent:
+class EventRegistrationMixin:
     """Part of Event class for registration manipulation and check.
 
     Not meant to be used alone."""
