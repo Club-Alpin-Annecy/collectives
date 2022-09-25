@@ -4,16 +4,20 @@ Restricted to activity supervisor, adminstrators, and President.
  """
 
 from flask import flash, render_template, redirect, url_for
-from flask import Blueprint, send_file, abort
+from flask import Blueprint, send_file, abort, request
 from flask_login import current_user
+from flask_uploads import UploadNotAllowed
+from werkzeug.datastructures import CombinedMultiDict
 
 from ..forms.csv import CSVForm
 from ..forms.user import AddLeaderForm
 from ..forms.activity_type import ActivityTypeSelectionForm
-from ..models import User, Role, RoleIds, ActivityType, db, Configuration
+from ..forms.upload import AddActivityDocumentForm
+from ..models import User, Role, RoleIds, ActivityType, db, Configuration, UploadedFile
 
 from ..utils.access import confidentiality_agreement, valid_user, user_is
 from ..utils.csv import process_stream
+from ..utils.time import current_time
 from ..utils import export
 
 blueprint = Blueprint(
@@ -109,7 +113,7 @@ def leader_list():
         activity_list=current_user.get_supervised_activities(),
     )
     return render_template(
-        "leaders_list.html",
+        "activity_supervision/leaders_list.html",
         add_leader_form=add_leader_form,
         export_form=export_form,
         title="Encadrants",
@@ -174,8 +178,49 @@ def csv_import():
         )
 
     return render_template(
-        "import_csv.html",
+        "activity_supervision/import_csv.html",
         form=form,
         failed=failed,
         title="Création d'event par CSV",
+    )
+
+
+@blueprint.route("/index", methods=["GET"])
+def activity_supervision():
+    """Route for activity supervision index page"""
+
+    return render_template(
+        "activity_supervision/activity_supervision.html",
+        title="Gestion des activités",
+    )
+
+
+@blueprint.route("/activity_documents", methods=["GET", "POST"])
+def activity_documents():
+    """Route for managing activity documents"""
+
+    add_document_form = AddActivityDocumentForm(
+        CombinedMultiDict((request.files, request.form))
+    )
+
+    if add_document_form.validate_on_submit():
+        uploaded_file = UploadedFile()
+        uploaded_file.date = current_time().date()
+        uploaded_file.event_id = None
+        uploaded_file.session_id = None
+        uploaded_file.activity_id = add_document_form.activity_id.data
+        uploaded_file.user_id = current_user.id
+
+        try:
+            uploaded_file.save_file(add_document_form.document_file.data)
+
+            db.session.add(uploaded_file)
+            db.session.commit()
+        except UploadNotAllowed:
+            flash("Type de fichier non autorisé", "error")
+
+    return render_template(
+        "activity_supervision/activity_documents.html",
+        add_document_form=add_document_form,
+        title="Gestion des activités",
     )

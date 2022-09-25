@@ -1,0 +1,58 @@
+
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% block additionalhead %}
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+  {# Specific for this page #}
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/activity_supervision/activity_documents.js') }}"></script>
+  <script>
+      window.onload = function () {
+        createActivityDocumentsTable('{{url_for("api.list_activity_documents")}}', '{{csrf_token()}}');
+      };
+  </script>
+{% endblock %}
+
+{% block activity_supervision_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">Documents</h2>
+ 
+  Cette page pous permet de télécharger des documents relatifs à une activité
+  afin de pouvoir les insérer facilement dans la description de collectives.
+ 
+  <div id="activity-documents-table"></div>
+
+  <h4 class="heading-4">Ajout d'un document</h4>
+
+  <div class="action">
+
+        <div class="form-errors">
+            {% for field in add_leader_form%}
+            {% for error in add_leader_form.errors[field.name] %}
+            <div class="flash flash-error">
+            <strong>Erreur : {{field.label}}:</strong> {{error}}
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+      <form action="{{url_for('.activity_documents')}}" method="POST" enctype="multipart/form-data">
+        <div class="controls">
+            <div class="field">{{ add_document_form.activity_id.label }} </div> 
+            {{ add_document_form.activity_id }}
+        </div>
+        <div class="controls">
+          <div class="field">{{ add_document_form.document_file.label }} </div> 
+          {{ add_document_form.document_file(onchange="checkFileFieldSize(this)") }}
+        </div>
+          {{ add_document_form.hidden_tag() }}
+          {{ add_document_form.submit(class="button button-primary") }}
+      </form>
+  </div>
+  
+</div>
+{% endblock %}

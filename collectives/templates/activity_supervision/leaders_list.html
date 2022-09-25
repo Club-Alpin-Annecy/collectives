@@ -1,5 +1,4 @@
-
-{% extends 'base.html' %}
+{% extends 'activity_supervision/activity_supervision.html' %}
 
 {% block additionalhead %}
 
@@ -11,7 +10,7 @@
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
 
   {# Specific for this page #}
-  <script src="{{ url_for('static', filename='js/leaders_list.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/activity_supervision/leaders_list.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
       window.onload = function () {
@@ -28,9 +27,9 @@
   </script>
 {% endblock %}
 
-{% block content %}
+{% block activity_supervision_content %}
 <div class="page-content" id="administration">
-  <h4 class="heading-4">Encadrants</h4>
+  <h2 class="heading-2">Encadrants</h2>
   <div id="leaders-table"></div>
 
   <h4 class="heading-4">Ajout d'un encadrant</h4>
