@@ -1,9 +1,11 @@
 """Module to handle connexions to FFCAM extranet.
 """
+import traceback
 from datetime import datetime, date
 from flask import current_app
 
 from zeep import Client
+from zeep.exceptions import Error as ZeepError
 
 from ..models import Gender, Configuration
 from .time import current_time
@@ -160,6 +162,10 @@ def sync_user(user, user_info, license_info):
     user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
     user.is_test = user_info.is_test
 
+class ExtranetError(Exception):
+    """An exception indicating that something has gone wrong with extranet API
+    """
+    pass
 
 class ExtranetApi:
     """SOAP Client to retrieve information from FFCAM servers."""
@@ -167,7 +173,7 @@ class ExtranetApi:
     soap_client = None
     """ SOAP client object user to connect to FFCAM client.
 
-    :type: :py:class:`pysimplesoap.client.SoapClient`
+    :type: :py:class:`zeep.Client`
     """
 
     auth_info = None
@@ -191,7 +197,8 @@ class ExtranetApi:
         self.app = app
 
     def init(self):
-        """Initialize the SOAP Client using `app` config."""
+        """Initialize the SOAP Client using `app` config
+        """
         if not self.soap_client is None:
             # Already initialized
             return
@@ -201,7 +208,13 @@ class ExtranetApi:
             current_app.logger.warning("extranet API disabled, using mock API")
             return
 
-        soap_client = Client(wsdl=config["EXTRANET_WSDL"])
+        try:
+            soap_client = Client(wsdl=config["EXTRANET_WSDL"])
+        except (IOError, ZeepError) as err:
+            current_app.logger.error("Error loading extranet WSDL: {err}")
+            current_app.logger.error(traceback.format_stack())
+            raise ExtranetError()
+
         self.auth_info = soap_client.service.auth()
         self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
         self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
@@ -225,6 +238,7 @@ class ExtranetApi:
         :return: Licence information
         :rtype: :py:class:`LicenseInfo`
         """
+
         self.init()
         info = LicenseInfo()
 
@@ -234,9 +248,16 @@ class ExtranetApi:
             info.renewal_date = datetime.now()
             return info
 
-        result = self.soap_client.verifierUnAdherent(
-            connect=self.auth_info, id=license_number
-        )
+        try:
+            result = self.soap_client.verifierUnAdherent(
+                connect=self.auth_info, id=license_number
+            )
+        except (IOError, AttributeError, ZeepError) as err:
+            current_app.logger.error(
+                f"Error calling extranet 'verifierUnAdherent' : {err}"
+            )
+            current_app.logger.error(traceback.format_stack())
+            raise ExtranetError()
 
         if result["existe"] == 1:
             try:
@@ -257,7 +278,7 @@ class ExtranetApi:
 
         :param license_number: User license to get information about.
         :type license_number: string
-        :return: Licence information
+        :return: Licence information, or None in case of API error
         :rtype: :py:class:`UserInfo`
         """
         self.init()
@@ -272,9 +293,16 @@ class ExtranetApi:
             info.date_of_birth = date(1970, 1, 1)
             return info
 
-        result = self.soap_client.extractionAdherent(
-            connect=self.auth_info, id=license_number
-        )
+        try:
+            result = self.soap_client.extractionAdherent(
+                connect=self.auth_info, id=license_number
+            )
+        except (IOError, AttributeError, ZeepError) as err:
+            current_app.logger.error(
+                f"Error calling extranet 'extractionAdherent' : {err}"
+            )
+            current_app.logger.error(traceback.format_stack())
+            raise ExtranetError()
 
         info.first_name = result["prenom"]
         info.last_name = result["nom"]

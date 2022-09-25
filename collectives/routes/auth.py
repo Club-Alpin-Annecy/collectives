@@ -61,22 +61,17 @@ def sync_user(user, force):
     :type force: boolean
     """
     if user.enabled and not user.is_test:
-        try:
-            # Check whether the license has been renewed
-            license_info = extranet.api.check_license(user.license)
-            if not license_info.exists:
-                return
+        # Check whether the license has been renewed
+        license_info = extranet.api.check_license(user.license)
+        if not license_info.exists:
+            return
 
-            if force or license_info.expiry_date() > user.license_expiry_date:
-                # License has been renewd, sync user data from API
-                user_info = extranet.api.fetch_user_info(user.license)
-                extranet.sync_user(user, user_info, license_info)
-                db.session.add(user)
-                db.session.commit()
-        # pylint: disable=broad-except
-        except Exception:
-            traceback.print_exc()
-        # pylint: enable=broad-except
+        if force or license_info.expiry_date() > user.license_expiry_date:
+            # License has been renewd, sync user data from API
+            user_info = extranet.api.fetch_user_info(user.license)
+            extranet.sync_user(user, user_info, license_info)
+            db.session.add(user)
+            db.session.commit()
 
 
 def create_confirmation_token(license_number, user):
@@ -128,7 +123,12 @@ def login():
         flash("Nom d'utilisateur ou mot de passe invalide.", "error")
         return redirect(url_for("auth.login"))
 
-    sync_user(user, False)
+    try:
+        sync_user(user, False)
+    except extranet.ExtranetError:
+        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        return redirect(url_for("auth.login"))
+
 
     if not user.is_active:
         flash(
@@ -227,23 +227,28 @@ def process_confirmation(token_uuid):
 
     # Check license validity
     license_number = token.user_license
-    license_info = extranet.api.check_license(license_number)
-    if not license_info.is_valid_at_time(current_time()):
-        flash(
-            Markup(
-                f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
-            Si vous avez changé de numéro de licence, utilisez le
-            <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
-            ),
-            "error",
-        )
+    try:
+        license_info = extranet.api.check_license(license_number)
+        if not license_info.is_valid_at_time(current_time()):
+            flash(
+                Markup(
+                    f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
+                Si vous avez changé de numéro de licence, utilisez le
+                <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
+                ),
+                "error",
+            )
+            return render_confirmation_form(form, is_recover)
+
+        # Fetch extranet data
+        user_info = extranet.api.fetch_user_info(license_number)
+        if not user_info.is_valid:
+            flash("Accès aux données FFCAM impossible actuellement", "error")
+            return render_confirmation_form(form, is_recover)
+    except extranet.ExtranetError:
+        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
         return render_confirmation_form(form, is_recover)
 
-    # Fetch extranet data
-    user_info = extranet.api.fetch_user_info(license_number)
-    if not user_info.is_valid:
-        flash("Accès aux données FFCAM impossible actuellement", "error")
-        return render_confirmation_form(form, is_recover)
 
     # Synchronize user info from API
     if is_recover:
@@ -346,15 +351,19 @@ def signup():
 
     # Check license validity
     license_number = form.license.data
-    license_info = extranet.api.check_license(license_number)
-    if not license_info.is_valid_at_time(current_time()):
-        form.generic_error = (
-            "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
-            "de pouvoir créer ou récupérer votre compte."
-        )
-        return render_signup_form(form, is_recover)
+    try:
+        license_info = extranet.api.check_license(license_number)
+        if not license_info.is_valid_at_time(current_time()):
+            form.generic_error = (
+                "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
+                "de pouvoir créer ou récupérer votre compte."
+            )
+            return render_signup_form(form, is_recover)
 
-    user_info = extranet.api.fetch_user_info(license_number)
+        user_info = extranet.api.fetch_user_info(license_number)
+    except extranet.ExtranetError:
+        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        return render_signup_form(form, is_recover)
 
     if user_info.email == None:
         form.generic_error = """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au

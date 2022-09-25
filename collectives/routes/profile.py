@@ -110,7 +110,12 @@ def update_user():
 @blueprint.route("/user/force_sync", methods=["POST"])
 def force_user_sync():
     """Route to force user synchronisation with extranet"""
-    sync_user(current_user, True)
+    
+    try:
+        sync_user(current_user, True)
+    except ExtranetError:
+        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+    
     return redirect(url_for("profile.show_user", user_id=current_user.id))
 
 

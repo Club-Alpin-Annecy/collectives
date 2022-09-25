@@ -320,20 +320,26 @@ def generate_token():
 
     # Check that the license number is valid
     license_number = form.license.data
-    license_info = extranet.api.check_license(license_number)
-    if not license_info.exists:
-        flash("Le numéro de licence n'existe pas ou n'a pas été renouvellé", "error")
+    
+    try:
+        license_info = extranet.api.check_license(license_number)
+        if not license_info.exists:
+            flash("Le numéro de licence n'existe pas ou n'a pas été renouvellé", "error")
+            return redirect(url_for(".administration"))
+
+        # Check that the license number has an email associated to it
+        user_info = extranet.api.fetch_user_info(license_number)
+        if user_info.email == None:
+            flash(
+                "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de "
+                "créer un compte",
+                "error",
+            )
+            return redirect(url_for(".administration"))
+    except extranet.ExtranetError:
+        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
         return redirect(url_for(".administration"))
 
-    # Check that the license number has an email associated to it
-    user_info = extranet.api.fetch_user_info(license_number)
-    if user_info.email == None:
-        flash(
-            "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de "
-            "créer un compte",
-            "error",
-        )
-        return redirect(url_for(".administration"))
 
     # Check whether there is an existing account
     user = User.query.filter_by(license=form.license.data).first()
