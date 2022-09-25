@@ -433,8 +433,15 @@ def get_bad_phone_message(user):
     :param user: User with a bad phone number
     :returns: The html safe message to display to the user to help him change phone number."""
 
-    return f"""Votre numéro de téléphone ({escape(user.phone)}) n'est pas ou mal renseigné:
-        un encadrant ne pourrait donc pas vous contacter en cas de besoin.<br/>
+    if user.phone is None:
+        phone = "n'est pas"
+    else:
+        phone = f"({escape(user.phone)}) est mal"
+
+    return f"""Votre numéro de téléphone {phone} renseigné:
+        un encadrant ne pourrait donc pas vous contacter pour vous communiquer des informations 
+        importantes comme un changement de lieu de rendez-vous, un changement du lieu de la sortie 
+        ou l'annulation de la sortie<br/>
         Veuillez saisir un numéro de téléphone valide dans <a 
         href="https://extranet-clubalpin.com/mesinfos/">
         votre espace personnel FFCAM </a>, menu "Mes informations", puis resynchronisez vos 
