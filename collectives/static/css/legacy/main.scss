@@ -152,8 +152,7 @@ form input, form select{
 /* Class for the cover image (skiing man) */
 #cover{
 	margin: 0;
-  	background-image: url("/static/caf/cover_500-min.jpg");
-  	background-position-x: 78%;
+  	background-image: url("/static/img/cover.jpg");
   	background-size: cover;
 	height: 100vh;
 	display: flex;
@@ -174,26 +173,7 @@ form input, form select{
 	   margin: 0;
 	   width: 0;
 }
-@media (min-device-height: 500px) {
-	#cover{
-		background-image: url("/static/caf/cover_742-min.jpg");
-	}
-}
-@media (min-device-height: 742px) {
-	#cover{
-		background-image: url("/static/caf/cover_1080-min.jpg");
-	}
-}
-@media (min-device-height: 1080px) {
-	#cover{
-		background-image: url("/static/caf/cover_1440-min.jpg");
-	}
-}
-@media (min-device-height: 1440px) {
-	#cover{
-		background-image: url("/static/caf/cover-min.jpg");
-	}
-}
+
 
 #cover div{
 	width: 100%;

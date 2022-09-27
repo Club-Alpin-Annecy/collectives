@@ -297,3 +297,25 @@ Mail:
             Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
         description: Email template content for a waiting user when his subscription is activated
         type: LongString
+
+
+APPEARANCE:
+    COVER_CREDIT:
+        content: Dwayne Reilander CC BY-SA 4.0
+        description: Credit of the cover on the front page. 
+        type: ShortString
+
+    COVER_CREDIT_URL:
+        content: https://commons.wikimedia.org/wiki/File:Ice_Climbing_in_the_Canadian_Rockies_3_-_2022.jpg
+        description: URL to the credit of the cover on the front page.
+        type: ShortString
+
+    COVER_POSITION:
+        content: 50
+        description: Horizontal percentage where cover should be positionned
+        type: Integer
+
+    COVER_LOGO_COLOR:
+        content: "white"
+        description: Color of the logo "l'esprit club alpin"
+        type: ShortString
