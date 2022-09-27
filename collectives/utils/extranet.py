@@ -162,10 +162,12 @@ def sync_user(user, user_info, license_info):
     user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
     user.is_test = user_info.is_test
 
+
 class ExtranetError(Exception):
-    """An exception indicating that something has gone wrong with extranet API
-    """
+    """An exception indicating that something has gone wrong with extranet API"""
+
     pass
+
 
 class ExtranetApi:
     """SOAP Client to retrieve information from FFCAM servers."""
@@ -197,8 +199,7 @@ class ExtranetApi:
         self.app = app
 
     def init(self):
-        """Initialize the SOAP Client using `app` config
-        """
+        """Initialize the SOAP Client using `app` config"""
         if not self.soap_client is None:
             # Already initialized
             return
@@ -213,7 +214,7 @@ class ExtranetApi:
         except (IOError, ZeepError) as err:
             current_app.logger.error("Error loading extranet WSDL: {err}")
             current_app.logger.error(traceback.format_stack())
-            raise ExtranetError()
+            raise ExtranetError() from err
 
         self.auth_info = soap_client.service.auth()
         self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
@@ -257,7 +258,7 @@ class ExtranetApi:
                 f"Error calling extranet 'verifierUnAdherent' : {err}"
             )
             current_app.logger.error(traceback.format_stack())
-            raise ExtranetError()
+            raise ExtranetError() from err
 
         if result["existe"] == 1:
             try:
@@ -302,7 +303,7 @@ class ExtranetApi:
                 f"Error calling extranet 'extractionAdherent' : {err}"
             )
             current_app.logger.error(traceback.format_stack())
-            raise ExtranetError()
+            raise ExtranetError() from err
 
         info.first_name = result["prenom"]
         info.last_name = result["nom"]

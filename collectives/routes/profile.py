@@ -13,6 +13,7 @@ from flask import Blueprint
 from flask_login import current_user
 from flask_images import Images
 
+from ..utils.extranet import ExtranetError
 from ..utils.access import valid_user
 from ..forms import UserForm
 from ..models import User, Role, RoleIds, db
@@ -110,12 +111,15 @@ def update_user():
 @blueprint.route("/user/force_sync", methods=["POST"])
 def force_user_sync():
     """Route to force user synchronisation with extranet"""
-    
+
     try:
         sync_user(current_user, True)
     except ExtranetError:
-        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
-    
+        flash(
+            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
+            "error",
+        )
+
     return redirect(url_for("profile.show_user", user_id=current_user.id))
 
 

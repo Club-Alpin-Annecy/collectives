@@ -320,11 +320,13 @@ def generate_token():
 
     # Check that the license number is valid
     license_number = form.license.data
-    
+
     try:
         license_info = extranet.api.check_license(license_number)
         if not license_info.exists:
-            flash("Le numéro de licence n'existe pas ou n'a pas été renouvellé", "error")
+            flash(
+                "Le numéro de licence n'existe pas ou n'a pas été renouvellé", "error"
+            )
             return redirect(url_for(".administration"))
 
         # Check that the license number has an email associated to it
@@ -337,9 +339,11 @@ def generate_token():
             )
             return redirect(url_for(".administration"))
     except extranet.ExtranetError:
-        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        flash(
+            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
+            "error",
+        )
         return redirect(url_for(".administration"))
-
 
     # Check whether there is an existing account
     user = User.query.filter_by(license=form.license.data).first()

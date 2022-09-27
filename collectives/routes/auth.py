@@ -1,7 +1,6 @@
 """ Module for user authentification routes. """
 
 import datetime
-import traceback
 
 from flask import flash, render_template, redirect, url_for, request, escape
 from flask import current_app, Blueprint, Markup
@@ -126,9 +125,11 @@ def login():
     try:
         sync_user(user, False)
     except extranet.ExtranetError:
-        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        flash(
+            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
+            "error",
+        )
         return redirect(url_for("auth.login"))
-
 
     if not user.is_active:
         flash(
@@ -246,9 +247,11 @@ def process_confirmation(token_uuid):
             flash("Accès aux données FFCAM impossible actuellement", "error")
             return render_confirmation_form(form, is_recover)
     except extranet.ExtranetError:
-        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        flash(
+            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
+            "error",
+        )
         return render_confirmation_form(form, is_recover)
-
 
     # Synchronize user info from API
     if is_recover:
@@ -362,7 +365,10 @@ def signup():
 
         user_info = extranet.api.fetch_user_info(license_number)
     except extranet.ExtranetError:
-        flash("Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement", "error")
+        flash(
+            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
+            "error",
+        )
         return render_signup_form(form, is_recover)
 
     if user_info.email == None:
