@@ -592,10 +592,10 @@ class PaylineApi:
                 ],
                 buyer={
                     "title": buyer_info.title,
-                    "lastName": buyer_info.lastName,
-                    "firstName": buyer_info.firstName,
+                    "lastName": buyer_info.last_name,
+                    "firstName": buyer_info.first_name,
                     "email": buyer_info.email,
-                    "birthDate": buyer_info.birthDate,
+                    "birthDate": buyer_info.birth_date,
                 },
                 merchantName=self.payline_merchant_name,
                 privateDataList=order_info.private_data(),
