@@ -12,7 +12,7 @@ from collectives.models.globals import db
 from collectives.models.user.enum import Gender
 
 
-class UserModelMixin(db.Model):
+class UserModelMixin:
     """Part of User class with all its attributes.
 
     Not meant to be used alone."""

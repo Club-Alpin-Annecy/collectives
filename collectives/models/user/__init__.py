@@ -15,7 +15,9 @@ from collectives.models.user.misc import UserMiscMixin, avatars
 from collectives.models.user.role import UserRoleMixin
 
 
-class User(UserModelMixin, flask_login.UserMixin, UserRoleMixin, UserMiscMixin):
+class User(
+    db.Model, UserModelMixin, flask_login.UserMixin, UserRoleMixin, UserMiscMixin
+):
     """Class to manage user.
 
     Persistence is managed by SQLAlchemy. This class is used by ``flask_login``

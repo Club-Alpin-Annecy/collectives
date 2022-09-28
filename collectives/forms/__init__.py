@@ -12,7 +12,16 @@ from collectives.forms.csv import CSVForm
 from collectives.forms.auth import LoginForm, AccountCreationForm
 from collectives.forms.event import RegistrationForm, EventForm
 from collectives.forms.user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm
-from collectives.forms.reservation import LeaderReservationForm
+from collectives.forms.reservation import (
+    CancelRentalForm,
+    EndRentalForm,
+    LeaderReservationForm,
+)
+from collectives.forms.reservation import NewRentalEquipmentForm, NewRentalUserForm
+from collectives.forms.reservation import (
+    ReservationToRentalForm,
+    AddEquipmentInReservationForm,
+)
 from collectives.models.upload import documents
 from collectives.models import photos, avatars, image_equipment_type
 from collectives.routes import technician

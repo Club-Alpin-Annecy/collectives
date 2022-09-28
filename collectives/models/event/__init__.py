@@ -15,6 +15,7 @@ from collectives.models.event.registration import EventRegistrationMixin
 
 
 class Event(
+    db.Model,
     EventModelMixin,
     EventRoleMixin,
     EventRegistrationMixin,

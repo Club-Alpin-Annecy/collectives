@@ -25,7 +25,7 @@ event_activity_types = db.Table(
 )
 
 
-class EventModelMixin(db.Model):
+class EventModelMixin:
     """Part of Event class with all its attributes and related sqlalchemy wizardies.
 
     Not really meant to be used alone."""
