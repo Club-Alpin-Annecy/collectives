@@ -11,7 +11,7 @@
                 <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a
                     href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br /><br />
                 Version du site : {{ version_link(config['VERSION'])|safe }}<br />
-                Photo de couverture: <a href="https://www.verticalflow.net/">&#169; Vertical Flow</a>
+                Photo de couverture: <a href="{{Configuration.COVER_CREDIT_URL}}">{{Configuration.COVER_CREDIT}}</a>
             </div>
 
         </div>

@@ -45,13 +45,26 @@
       };
   </script>
 
+  <style>
+    #cover{
+        background-position-x: {{Configuration.COVER_POSITION}}%;
+    }
+    {% for i in [600, 768, 900, 1080, 1200, 1440, 1600, 2160] %}
+        @media (min-device-height: {{i}}px) {
+        #cover{
+                background-image: url("{{ url_for('images', filename='cover.jpg', height=i ) | safe }}");
+            }
+        }
+    {% endfor %}
+  </style>
+
 {% endblock %}
 
 {% block content %}
 
 
 <div id="cover">
-    <div><img src="{{ url_for('static', filename='caf/esprit club alpin.png') }}" class="motto"/>
+    <div><img src="{{ url_for('static', filename='caf/esprit club alpin '+Configuration.COVER_LOGO_COLOR+'.png') }}" class="motto"/>
         <br/>
         <img
             src="{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}"

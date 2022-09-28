@@ -1,17 +1,11 @@
 """ List of Form used to modify configuration """
 
 from flask_wtf import FlaskForm
-from wtforms import (
-    SubmitField,
-    BooleanField,
-    IntegerField,
-    FloatField,
-    TextAreaField,
-    StringField,
-    DateTimeField,
-    FileField,
-    HiddenField,
-)
+from wtforms import SubmitField, BooleanField, IntegerField, FloatField
+from wtforms import TextAreaField, StringField, DateTimeField, FileField
+from wtforms import HiddenField, SelectField
+from wtforms.validators import NumberRange, DataRequired
+
 from wtforms_alchemy.utils import strip_string
 
 
@@ -90,3 +84,24 @@ def get_form_from_configuration(item):
 
     :param ConfigurationItem item: configuration item that will determine the field type"""
     return globals()[f"Configuration{item.type.name}Form"]
+
+
+class CoverUploadForm(FlaskForm):
+    """Base form for all configuration item."""
+
+    file = FileField(
+        "Nouvelle cover.", description="Hauteur de 2160px minimum (sinon, c'est moche)"
+    )
+    position = IntegerField(
+        "Centrage de l'image", description="en %", validators=[NumberRange(0, 100)]
+    )
+    credit = StringField(
+        "Credits de l'image",
+        description="Rajoutez la license (ex: ©)",
+        validators=[DataRequired()],
+    )
+    url = StringField("URL du credit de l'image")
+    color = SelectField(
+        choices=[("white", "Blanc"), ("black", "Noir")], validators=[DataRequired()]
+    )
+    submit = SubmitField("Update")

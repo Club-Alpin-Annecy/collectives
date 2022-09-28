@@ -12,11 +12,12 @@ import yaml
 from flask import Blueprint, render_template, send_from_directory
 from flask import url_for, redirect, request, flash
 from flask_login import current_user
+from flask_uploads import UploadSet, IMAGES, DOCUMENTS
 
 from ..utils.access import confidentiality_agreement, user_is, valid_user
 
 from ..models import ConfigurationItem, db, ConfigurationTypeEnum, Configuration
-from ..forms.configuration import get_form_from_configuration
+from ..forms.configuration import get_form_from_configuration, CoverUploadForm
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint
@@ -24,6 +25,10 @@ blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 This blueprint contains all routes for technicians. It is reserved to technicians with
 :py:func:`before_request`.
 """
+
+upload = UploadSet("tech", IMAGES + DOCUMENTS)
+# Override existing files
+upload.resolve_conflict = lambda folder, name: name
 
 
 @blueprint.before_request
@@ -166,3 +171,31 @@ def update_configuration():
     Configuration.uncache(item.name)
 
     return redirect(url_for("technician.configuration"))
+
+
+@blueprint.route("/cover", methods=["GET", "POST"])
+def cover():
+    """Endpoint to modify the site cover"""
+
+    form = CoverUploadForm()
+    if form.validate_on_submit():
+        Configuration.COVER_CREDIT = form.credit.data
+        Configuration.COVER_POSITION = form.position.data
+        Configuration.COVER_LOGO_COLOR = form.color.data
+        Configuration.COVER_CREDIT_URL = form.url.data
+
+        if form.file.data:
+            upload.save(form.file.data, name="cover.jpg")
+
+        flash("La mise à jour a été réalisée avec succès", "success")
+
+    form.credit.data = Configuration.COVER_CREDIT
+    form.position.data = Configuration.COVER_POSITION
+    form.color.data = Configuration.COVER_LOGO_COLOR
+    form.url.data = Configuration.COVER_CREDIT_URL
+
+    return render_template(
+        "basicform.html",
+        title="Changement de la couverture",
+        form=form,
+    )

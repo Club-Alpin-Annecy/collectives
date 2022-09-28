@@ -8,6 +8,8 @@ other form submodules and create some configuration for all forms.
 from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
+from collectives.routes import technician
+
 from ..models.upload import documents
 from ..models import photos, avatars, image_equipment_type
 
@@ -26,3 +28,4 @@ def configure_forms(app):
     configure_uploads(app, avatars)
     configure_uploads(app, documents)
     configure_uploads(app, image_equipment_type)
+    configure_uploads(app, technician.upload)

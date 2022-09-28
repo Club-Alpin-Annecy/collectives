@@ -270,7 +270,7 @@ EVENT_TAGS = {
 }
 
 # Technical stuff
-MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 """ Max size to upload files.
 
 Note: this is a Flask setting that will make the server itself refuse to
@@ -310,6 +310,11 @@ UPLOADED_DOCUMENTS_DEST = os.path.join(basedir, "collectives/static/uploads/docu
 
 
 """
+UPLOADED_TECH_DEST = os.path.join(basedir, "collectives/static/uploads/tech")
+"""Folder path for technician data.
+
+
+"""
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 """ Allowed extension for uploaded images
@@ -319,6 +324,8 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = [
+    "static/uploads/tech",
+    "static/img",
     "static/uploads",
     "static/uploads/avatars",
     "static/uploads/typeEquipmentImg",
