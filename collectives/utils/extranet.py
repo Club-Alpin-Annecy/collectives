@@ -212,7 +212,7 @@ class ExtranetApi:
         try:
             soap_client = Client(wsdl=config["EXTRANET_WSDL"])
         except (IOError, ZeepError) as err:
-            current_app.logger.error("Error loading extranet WSDL: {err}")
+            current_app.logger.error(f"Error loading extranet WSDL: {err}")
             current_app.logger.error(traceback.format_stack())
             raise ExtranetError() from err
 
