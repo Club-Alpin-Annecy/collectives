@@ -95,12 +95,12 @@ class CoverUploadForm(FlaskForm):
     position = IntegerField(
         "Centrage de l'image", description="en %", validators=[NumberRange(0, 100)]
     )
-    credit = TextAreaField(
+    credit = StringField(
         "Credits de l'image",
         description="Rajoutez la license (ex: ©)",
         validators=[DataRequired()],
     )
-    url = TextAreaField("URL du credit de l'image")
+    url = StringField("URL du credit de l'image")
     color = SelectField(
         choices=[("white", "Blanc"), ("black", "Noir")], validators=[DataRequired()]
     )

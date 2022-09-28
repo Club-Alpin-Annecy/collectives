@@ -187,6 +187,8 @@ def cover():
         if form.file.data:
             upload.save(form.file.data, name="cover.jpg")
 
+        flash("La mise à jour a été réalisée avec succès", "success")
+
     form.credit.data = Configuration.COVER_CREDIT
     form.position.data = Configuration.COVER_POSITION
     form.color.data = Configuration.COVER_LOGO_COLOR
