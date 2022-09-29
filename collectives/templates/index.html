@@ -49,12 +49,18 @@
     #cover{
         background-position-x: {{Configuration.COVER_POSITION}}%;
     }
-    {% for i in [600, 768, 900, 1080, 1200, 1440, 1600, 2160] %}
+    {% for i in [1, 600, 768, 900, 1080, 1200, 1440, 1600, 2160] %}
+        {% if loop.index0 !=0 %}
         @media (min-device-height: {{i}}px) {
+        {% endif %}
+
         #cover{
-                background-image: url("{{ url_for('images', filename='cover.jpg', height=i ) | safe }}");
+                background-image: url("{{ url_for('images', filename='cover.jpg', height=loop.nextitem ) | safe }}");
             }
+
+        {% if loop.index0 != 0 %}
         }
+        {% endif %}
     {% endfor %}
   </style>
 
