@@ -4,10 +4,9 @@
 from datetime import datetime
 from sqlalchemy import CheckConstraint
 
+from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
 from collectives.utils.numbers import format_currency
-
-from .globals import db
-from .utils import ChoiceEnum
 
 
 class ReservationStatus(ChoiceEnum):

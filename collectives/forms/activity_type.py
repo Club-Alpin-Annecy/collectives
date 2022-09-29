@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import SubmitField, SelectField, Label
 from wtforms.validators import DataRequired
 
-from collectives.models.activitytype import ActivityType
+from collectives.models import ActivityType
 
 
 class ActivityTypeSelectionForm(FlaskForm):

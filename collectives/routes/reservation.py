@@ -7,22 +7,14 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 from wtforms import IntegerField
-from collectives.models.user import User
-from collectives.utils.access import valid_user, confidentiality_agreement, user_is
-from collectives.models.equipment import Equipment, EquipmentType
 
-from ..models import db
-from ..models import Event, RoleIds
-from ..models.reservation import Reservation, ReservationLine, ReservationStatus
-from ..forms.reservation import (
-    CancelRentalForm,
-    EndRentalForm,
-    LeaderReservationForm,
-    NewRentalEquipmentForm,
-    NewRentalUserForm,
-    ReservationToRentalForm,
-    AddEquipmentInReservationForm,
-)
+from collectives.forms import CancelRentalForm, EndRentalForm, LeaderReservationForm
+from collectives.forms import NewRentalEquipmentForm, NewRentalUserForm
+from collectives.forms import ReservationToRentalForm, AddEquipmentInReservationForm
+from collectives.models import db, Event, RoleIds, User, Equipment, EquipmentType
+from collectives.models import Reservation, ReservationLine, ReservationStatus
+from collectives.utils.access import valid_user, confidentiality_agreement, user_is
+
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 """ Reservation blueprint

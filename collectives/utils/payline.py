@@ -6,14 +6,13 @@ import decimal
 import uuid
 
 from flask import url_for, request, current_app
-
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 
-from ..models.payment import PaymentStatus
-from ..models import Configuration
-from .time import format_date
-from .misc import to_ascii
+from collectives.models.payment import PaymentStatus
+from collectives.models import Configuration
+from collectives.utils.time import format_date
+from collectives.utils.misc import to_ascii
 
 PAYLINE_VERSION = 26
 """ Version of payline API

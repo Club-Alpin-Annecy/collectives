@@ -1,8 +1,10 @@
 """ Module to help export informations. """
 
 from io import BytesIO
+
 from openpyxl import Workbook
-from .misc import deepgetattr
+
+from collectives.utils.misc import deepgetattr
 
 
 def export_roles(roles):

@@ -7,9 +7,11 @@ on Internet.
 See `functools <https://docs.python.org/3.8/library/functools.html>`_
 """
 from functools import wraps
+
 from flask import redirect, url_for, flash, abort
 import flask_login
-from ..models import Configuration
+
+from collectives.models import Configuration
 
 
 def access_requires(function, test, api=False):

@@ -7,13 +7,11 @@ from flask import abort, url_for, request
 from flask_login import current_user
 from marshmallow import fields
 
-from .common import blueprint, marshmallow
-from ..utils.access import payments_enabled, valid_user
-
-from ..models.event import Event
-from ..models.payment import ItemPrice, Payment, PaymentStatus
-from ..utils.numbers import format_currency
-from ..utils.payment import extract_payments
+from collectives.api.common import blueprint, marshmallow
+from collectives.models import Event, ItemPrice, Payment, PaymentStatus
+from collectives.utils.access import payments_enabled, valid_user
+from collectives.utils.numbers import format_currency
+from collectives.utils.payment import extract_payments
 
 
 class ItemPriceSchema(marshmallow.Schema):

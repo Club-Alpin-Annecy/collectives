@@ -13,11 +13,12 @@ from flask import Blueprint
 from flask_login import current_user
 from flask_images import Images
 
-from ..utils.extranet import ExtranetError
-from ..utils.access import valid_user
-from ..forms import UserForm
-from ..models import User, Role, RoleIds, db
-from .auth import sync_user
+from collectives.forms import UserForm
+from collectives.models import User, Role, RoleIds, db
+from collectives.routes.auth import sync_user
+from collectives.utils.access import valid_user
+from collectives.utils.extranet import ExtranetError
+
 
 images = Images()
 

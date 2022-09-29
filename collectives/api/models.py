@@ -7,9 +7,9 @@ import sys
 import json
 from flask import Response
 
-from .common import blueprint
-from ..models.utils import ChoiceEnum
-from ..models import ActivityType, EventType, EventTag, Configuration
+from collectives.api.common import blueprint
+from collectives.models.utils import ChoiceEnum
+from collectives.models import ActivityType, EventType, EventTag, Configuration
 
 
 @blueprint.route("/models.js")

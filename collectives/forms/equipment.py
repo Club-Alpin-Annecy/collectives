@@ -9,9 +9,9 @@ from wtforms import StringField, SubmitField, DateField, SelectField, HiddenFiel
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
-from ..utils.numbers import FlexibleDecimalField
-from .validators import UniqueValidator
-from ..models import Equipment, EquipmentType, EquipmentModel, photos, db
+from collectives.forms.validators import UniqueValidator
+from collectives.models import Equipment, EquipmentType, EquipmentModel, photos, db
+from collectives.utils.numbers import FlexibleDecimalField
 
 
 class EquipmentTypeForm(FlaskForm, ModelForm):

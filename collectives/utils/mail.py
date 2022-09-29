@@ -23,7 +23,8 @@ import dkim
 # pylint: enable=E0001
 
 import flask
-from ..models import Configuration
+
+from collectives.models import Configuration
 
 
 def send_mail(**kwargs):

@@ -3,7 +3,7 @@
 from datetime import datetime, time
 from dateutil import tz
 
-from ..models.configuration import Configuration
+from collectives.models.configuration import Configuration
 
 fr_week_days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 """ Day of week in French.

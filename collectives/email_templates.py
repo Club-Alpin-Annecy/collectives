@@ -4,12 +4,13 @@ from functools import wraps
 
 from flask import current_app, url_for
 
-from .utils import mail
-from .utils.url import slugify
-from .models import db, Configuration
-from .models.auth import ConfirmationTokenType, TokenEmailStatus
-from .models.user import activity_supervisors
-from .utils.time import format_date
+
+from collectives.models import db, Configuration
+from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
+from collectives.models.user import activity_supervisors
+from collectives.utils import mail
+from collectives.utils.time import format_date
+from collectives.utils.url import slugify
 
 
 def send_new_event_notification(event):

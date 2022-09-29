@@ -4,9 +4,9 @@ Module ``collectives.models``
     :members:
 
 
-Module ``collectives.models.activitytype``
+Module ``collectives.models.activity_type``
 ---------------------------------------------
-.. automodule:: collectives.models.activitytype
+.. automodule:: collectives.models.activity_type
     :members:
 
 
@@ -23,12 +23,7 @@ Module ``collectives.models.event``
    :maxdepth: 2
 
    event
-
-
-Module ``collectives.models.eventtype``
----------------------------------------------
-.. automodule:: collectives.models.eventtype
-    :members:
+   
 
 
 Module ``collectives.models.globals``

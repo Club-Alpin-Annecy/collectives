@@ -4,7 +4,8 @@ from wtforms import SubmitField, HiddenField
 
 from flask_wtf.form import FlaskForm
 from wtforms_alchemy import ModelForm
-from ..models.reservation import Reservation
+
+from collectives.models import Reservation
 
 
 class ReservationForm(FlaskForm, ModelForm):

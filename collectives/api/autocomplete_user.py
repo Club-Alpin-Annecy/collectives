@@ -12,10 +12,9 @@ from sqlalchemy.sql import text
 from sqlalchemy import func
 from marshmallow import fields
 
-from ..models import db, User, Role, RoleIds
-
-from ..utils.access import confidentiality_agreement, valid_user
-from .common import blueprint, marshmallow
+from collectives.api.common import blueprint, marshmallow
+from collectives.models import db, User, Role, RoleIds
+from collectives.utils.access import confidentiality_agreement, valid_user
 
 
 class AutocompleteUserSchema(marshmallow.Schema):

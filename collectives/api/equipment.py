@@ -6,11 +6,9 @@ import json
 from flask import url_for, abort
 from marshmallow import fields
 
-from ..models import db, Equipment, EquipmentType, EquipmentModel
-
-
-from .common import blueprint, marshmallow
-from ..utils.numbers import format_currency
+from collectives.api.common import blueprint, marshmallow
+from collectives.models import db, Equipment, EquipmentType, EquipmentModel
+from collectives.utils.numbers import format_currency
 
 
 def photo_uri(equipment_type):

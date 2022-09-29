@@ -161,6 +161,7 @@ disable=raw-checker-failed,
         too-many-branches,
         too-many-return-statements,
         too-many-instance-attributes,
+        unexpected-keyword-arg, #false positive with attachment_filename
         no-member #False positives with SQLAlchemy
 
 # Enable the message, report, category or checker with the given id(s). You can

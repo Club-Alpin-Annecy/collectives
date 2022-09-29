@@ -6,18 +6,12 @@ from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
 
-from collectives.models.role import RoleIds
+from collectives.forms.equipment import EquipmentTypeForm, DeleteForm
+from collectives.forms.equipment import EquipmentModelForm
+from collectives.forms.equipment import EquipmentForm
+from collectives.models import db, Equipment, EquipmentType, EquipmentModel, RoleIds
 from collectives.utils.access import valid_user, confidentiality_agreement, user_is
 
-
-from ..forms.equipment import (
-    EquipmentTypeForm,
-    DeleteForm,
-    EquipmentModelForm,
-    EquipmentForm,
-)
-
-from ..models import db, Equipment, EquipmentType, EquipmentModel
 
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
 """ Equipment blueprint

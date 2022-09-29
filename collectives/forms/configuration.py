@@ -1,11 +1,10 @@
 """ List of Form used to modify configuration """
 
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, BooleanField, IntegerField, FloatField
-from wtforms import TextAreaField, StringField, DateTimeField, FileField
-from wtforms import HiddenField, SelectField
-from wtforms.validators import NumberRange, DataRequired
 
+from wtforms import SubmitField, BooleanField, IntegerField, FloatField, TextAreaField
+from wtforms import StringField, DateTimeField, FileField, HiddenField, SelectField
+from wtforms.validators import NumberRange, DataRequired
 from wtforms_alchemy.utils import strip_string
 
 

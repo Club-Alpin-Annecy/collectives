@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy.sql import func
 from flask import current_app
 
-from .globals import db
+from collectives.models.globals import db
 
 
 class ConfigurationTypeEnum(enum.Enum):

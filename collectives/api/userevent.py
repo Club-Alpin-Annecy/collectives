@@ -7,13 +7,10 @@ import json
 from flask_login import current_user
 from marshmallow import fields
 
-from ..models import db, User, Event
-from ..models import Registration
-
-from .common import blueprint, marshmallow
-
-from .event import EventSchema, filter_hidden_events
-from ..utils.access import valid_user
+from collectives.api.common import blueprint, marshmallow
+from collectives.api.event import EventSchema, filter_hidden_events
+from collectives.models import db, User, Event, Registration
+from collectives.utils.access import valid_user
 
 
 class RegistrationSchema(marshmallow.Schema):

@@ -11,10 +11,10 @@ from sqlalchemy import or_
 
 from marshmallow import fields
 
-from ..models import db, Event, UploadedFile, Configuration
-from .common import blueprint, marshmallow
-from ..utils.access import valid_user
-from ..utils.time import current_time
+from collectives.api.common import blueprint, marshmallow
+from collectives.models import db, Event, UploadedFile, Configuration
+from collectives.utils.access import valid_user
+from collectives.utils.time import current_time
 
 
 @valid_user(api=True)
