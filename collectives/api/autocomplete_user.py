@@ -44,7 +44,7 @@ def find_users_by_fuzzy_name(pattern, limit=8):
     :return: List of users corresponding to ``pattern``
     :rtype: list(:py:class:`collectives.models.user.User`)
     """
-    if db.session.bind.dialect.name == "sqlite":
+    if "sqlite" in db.engine.name:
         # SQLlite does not follow SQL standard
         concat_clause = "(first_name || ' ' || last_name)"
     else:
