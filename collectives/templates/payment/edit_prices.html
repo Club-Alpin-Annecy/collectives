@@ -12,12 +12,12 @@
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
 
-  <script> window.onload = function() {
-    updateNewItemTitleVisibility(); 
-    dateInputsFallback(tail);
+  <script> 
+  
+  function loadEventAutoComplete(eventSearchInputID, parentEventInputID){
+    const eventSearchInput = document.getElementById(eventSearchInputID);
+    const parentEventInput = document.getElementById(parentEventInputID);
 
-    const eventSearchInput = document.getElementById('copy-item-event-search');
-    const parentEventId = document.getElementById('copy-item-event-id');
     setupAutoComplete(
       eventSearchInput,
       '{{url_for("api.autocomplete_event", eid=[event.id]) | safe}}',
@@ -25,16 +25,34 @@
         return formatParentEvent(item.id, item.title, item.start) ;
       },
       function(id, val) {
-        parentEventId.value = id;
+        parentEventInput.value = id;
       }
       );
 
     eventSearchInput.addEventListener('change', function(event) {
         if(!event.target.value) {
           var field = document.getElementById('copy-item-event-id');
-          parentEventId.value = "";
+          parentEventInput.value = "";
         }
     });
+
+    eventSearchInput.value = parentEventInput.value;
+
+  };
+  
+
+  window.onload = function() {
+    updateNewItemTitleVisibility(); 
+    dateInputsFallback(tail);
+
+    
+    loadEventAutoComplete('copy-item-event-search', 'copy-item-event-id');
+    loadEventAutoComplete('parent-event-search', 'parent_event_id');
+    {% for item_form in form.items %}
+      {% for field in item_form.item_prices %}
+        loadEventAutoComplete('{{field.parent_event_id.id}}-search', '{{field.parent_event_id.id}}');
+      {% endfor %}
+    {% endfor %}
   };
   </script>
 {% endblock %}
@@ -59,6 +77,7 @@
       <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
+      <th> Parent </th>
       <th> Max dispo </th>
       <th> Tarif encadrant </th>
       <th> Utilisations</th>
@@ -76,7 +95,10 @@
           <td> {{ field.license_types() }} </td>
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
-          <td> {{ field.max_uses() }} </td>
+          <td> 
+            {{ field.parent_event_id(style="display:none") }} 
+            <input type="text" id="{{ field.parent_event_id.id }}-search" placeholder="Titre ou ID…"/>
+          </td>
           <td> {{ field.leader_only() }} </td>
           <td class="actions"> {{field.price_id}} 
           {{field.active_use_count}} actives ({{field.total_use_count}} tot.)
@@ -170,10 +192,15 @@
     {{ new_price_form.end_date}}
     <div class="field">{{ new_price_form.max_uses.label }}<span class="help">Nombre max d'utilisations du tarif ('0' pour illimité)</span></div>
     {{ new_price_form.max_uses}}
+    <div class="field"> {{ new_price_form.parent_event_id.label }}  <span class="help"> </span></div>
+    <input type="text" id="parent-event-search" placeholder="Titre ou ID…"/>
+    {{ new_price_form.parent_event_id(style="display:none") }} 
+
     <div class="field">
     {{ new_price_form.leader_only }} 
     </div>
     {{new_price_form.leader_only.label}}
+    
     </fieldset>
 
     {{ new_price_form.hidden_tag() }}

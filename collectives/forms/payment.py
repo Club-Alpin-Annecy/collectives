@@ -53,6 +53,7 @@ class ItemPriceForm(ModelForm, AmountForm):
             "license_types",
             "max_uses",
             "leader_only",
+            "parent_event_id",
         ]
 
     delete = BooleanField("Supprimer")
@@ -185,6 +186,7 @@ class NewItemPriceForm(ModelForm, AmountForm):
             "license_types",
             "max_uses",
             "leader_only",
+            "parent_event_id",
         ]
 
     item_title = StringField("Intitulé du nouvel objet")

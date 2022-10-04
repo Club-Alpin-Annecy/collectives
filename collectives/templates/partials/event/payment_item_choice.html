@@ -26,7 +26,7 @@
             {% endfor %}
             </ul>
         </div>
-        <div>
+        <div {% if payment_item_choice_form.accept_payment_terms.hidden %}style="display:none"{% endif %}>
             <label>
                 {{payment_item_choice_form.accept_payment_terms}}
                 J'ai lu et j'accepte les <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions générales de vente</a>.
