@@ -176,7 +176,7 @@ def users():
     # Pagination block
     page = int(request.args.get("page"))
     size = int(request.args.get("size"))
-    paginated_users = query.paginate(page, size, False)
+    paginated_users = query.paginate(page=page, per_page=size, error_out=False)
     data = UserSchema(many=True).dump(paginated_users.items)
     response = {"data": data, "last_page": paginated_users.pages}
 

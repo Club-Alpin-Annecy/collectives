@@ -269,7 +269,7 @@ def events():
 
     query = query.order_by(Event.id)
 
-    paginated_events = query.paginate(page, size, False)
+    paginated_events = query.paginate(page=page, per_page=size, error_out=False)
     data = EventSchema(many=True).dump(paginated_events.items)
     response = {"data": data, "last_page": paginated_events.pages}
 
