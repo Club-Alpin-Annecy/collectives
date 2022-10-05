@@ -82,5 +82,5 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
 
     query = query.order_by(Payment.id)
     if page is not None:
-        return query.paginate(page, pagesize, False)
+        return query.paginate(page=page, per_page=pagesize, error_out=False)
     return query.all()
