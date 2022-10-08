@@ -10,7 +10,7 @@ from flask_wtf.csrf import generate_csrf
 from sqlalchemy import or_
 from werkzeug.urls import url_parse
 
-from collectives.email_templates import send_confirmation_email
+from collectives import email_templates
 from collectives.forms.auth import LoginForm, AccountCreationForm
 from collectives.forms.auth import PasswordResetForm, AccountActivationForm
 from collectives.models import User, db, Configuration
@@ -259,6 +259,8 @@ def process_confirmation(token_uuid):
     else:
         user = User()
         user.legal_text_signature_date = current_time()
+        version = Configuration.CURRENT_LEGAL_TEXT_VERSION
+        user.legal_text_signed_version = version
         user.license = token.user_license
 
     extranet.sync_user(user, user_info, license_info)
@@ -393,7 +395,9 @@ def signup():
     token = create_confirmation_token(license_number, existing_user)
 
     # Send confirmation email with link to token
-    send_confirmation_email(user_info.email, user_info.first_name, token)
+    email_templates.send_confirmation_email(
+        user_info.email, user_info.first_name, token
+    )
 
     return redirect(url_for(".check_token", license_number=license_number))
 
