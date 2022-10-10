@@ -236,9 +236,7 @@ class ItemPrice(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
-    parent_event = db.relationship(
-        "Event", backref="children_payments", remote_side=[Event.id], lazy=True
-    )
+    parent_event = db.relationship("Event", remote_side=[Event.id], lazy=True)
     """ User has to have subscribed to this event to get this price.
 
     :type: list(:py:class:`collectives.models.event.Event`)
