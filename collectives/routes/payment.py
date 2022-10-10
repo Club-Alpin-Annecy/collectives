@@ -144,6 +144,7 @@ def edit_prices(event_id):
                             price.enabled = price_form.enabled.data
                             price.start_date = price_form.start_date.data
                             price.end_date = price_form.end_date.data
+                            price.parent_event_id = price_form.parent_event_id.data
                             price.license_types = price_form.license_types.data
                             price.leader_only = price_form.leader_only.data
                             price.max_uses = price_form.max_uses.data or None

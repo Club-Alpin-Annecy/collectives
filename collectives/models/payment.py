@@ -6,8 +6,10 @@ from datetime import timedelta
 
 from wtforms.validators import NumberRange
 
+from collectives.models.event import Event
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+from collectives.models.registration import RegistrationStatus
 from collectives.utils.time import current_time
 
 
@@ -219,12 +221,25 @@ class ItemPrice(db.Model):
 
     :type: :py:class:`datetime.datetime`"""
 
+    parent_event_id = db.Column(
+        db.Integer,
+        db.ForeignKey("events.id"),
+        info={"label": "Evènement parent"},
+    )
+    """ Parent event id, where user is required to have subscribed to get the price."""
+
     # Relationships
 
     payments = db.relationship("Payment", backref="price", lazy=True)
     """ List of payments associated to this payment option.
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
+    """
+
+    parent_event = db.relationship("Event", remote_side=[Event.id], lazy=True)
+    """ User has to have subscribed to this event to get this price.
+
+    :type: list(:py:class:`collectives.models.event.Event`)
     """
 
     def copy(self, time_shift=timedelta(0)):
@@ -318,6 +333,11 @@ class ItemPrice(db.Model):
             return False
         if self.leader_only and not self.item.event.is_leader(user):
             return False
+        if self.parent_event is not None:
+            if not self.parent_event.is_registered_with_status(
+                user, [RegistrationStatus.Active]
+            ):
+                return False
         if not self.license_types:
             return True
         license_types = self.license_types.split()

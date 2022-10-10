@@ -590,12 +590,20 @@ class PaymentItemChoiceForm(FlaskForm):
         if not event.event_type.terms_file or event.is_leader(current_user):
             del self.accept_guide
 
-        self.item_price.choices = []
-        for item in event.payment_items:
-            price = item.cheapest_price_for_user_now(current_user)
+        prices = [
+            item.cheapest_price_for_user_now(current_user)
+            for item in event.payment_items
+        ]
+        prices = list(filter(None, prices))
 
-            if price:
-                intervals = generate_price_intervals(item, current_user)
-                self.item_price.choices.append(
-                    (price.id, payment_item_choice_text(price, intervals))
-                )
+        self.item_price.choices = []
+        for price in prices:
+            intervals = generate_price_intervals(price.item, current_user)
+            self.item_price.choices.append(
+                (price.id, payment_item_choice_text(price, intervals))
+            )
+
+        if max(price.amount for price in prices) == 0:
+            self.submit.label.text = "Valider"
+            self.accept_payment_terms.data = True
+            self.accept_payment_terms.hidden = True
