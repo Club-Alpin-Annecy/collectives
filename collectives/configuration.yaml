@@ -146,6 +146,10 @@ Divers:
         description: Maximum number of file uploads per event
         type: Integer
 
+    VOLUNTEER_CERT_IMAGE:
+        content : ""
+        description: File path to the background volunteer certificate image. Empty to deactivate volunteer certificate generation.
+        type: ShortString
 Mail:
     SMTP_HOST:
         content: smtp.example.org

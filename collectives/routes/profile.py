@@ -14,7 +14,7 @@ from flask_login import current_user
 from flask_images import Images
 
 from collectives.forms import UserForm
-from collectives.models import User, Role, RoleIds, db
+from collectives.models import User, Role, RoleIds, Configuration, db
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
@@ -148,6 +148,16 @@ def my_payments():
 @blueprint.route("/user/volunteer_card")
 def show_volunteer_card():
     """Route to show the volunteer card of a regular user."""
+    if not Configuration.VOLUNTEER_CERT_IMAGE or not exists(
+        Configuration.VOLUNTEER_CERT_IMAGE
+    ):
+        # No president signature
+        flash(
+            "Impossible de générer l'attestation bénévole. "
+            "La fonctionnalité est désactivée",
+            "error",
+        )
+        return redirect(url_for("profile.show_user", user_id=current_user.id))
     if not current_user.has_any_role():
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
@@ -160,15 +170,6 @@ def show_volunteer_card():
         flash(
             """Impossible de générer l'attestation bénévole.
                 Le club n'a pas de président, merci de contacter le support.""",
-            "error",
-        )
-        return redirect(url_for("profile.show_user", user_id=current_user.id))
-
-    if not exists("./collectives/static/caf/footer_attestation_benevole.png"):
-        # No president signature
-        flash(
-            "Impossible de générer l'attestation bénévole.<br/>"
-            "La signature du président n'est pas sur le serveur, merci de contacter le support.",
             "error",
         )
         return redirect(url_for("profile.show_user", user_id=current_user.id))
