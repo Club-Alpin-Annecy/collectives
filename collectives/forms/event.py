@@ -603,7 +603,7 @@ class PaymentItemChoiceForm(FlaskForm):
                 (price.id, payment_item_choice_text(price, intervals))
             )
 
-        if max(price.amount for price in prices) == 0:
+        if prices and max(price.amount for price in prices) == 0:
             self.submit.label.text = "Valider"
             self.accept_payment_terms.data = True
             self.accept_payment_terms.hidden = True
