@@ -176,7 +176,8 @@ def volunteer_certificate():
         return redirect(url_for("profile.show_user", user_id=current_user.id))
 
     # usefull variables
-    font = ImageFont.truetype("arial.ttf", 50)
+    font_file = "collectives/static/fonts/DINWeb.woff"
+    font = ImageFont.truetype(font_file, 50)
     black = (0, 0, 0)
 
     # Setup rotated watermark
@@ -190,9 +191,9 @@ def volunteer_certificate():
     ImageDraw.Draw(image).multiline_text(
         (-1000, 0),
         watermark_text,
-        "#00000015",
+        "#00000018",
         font=font,
-        spacing=-20,
+        spacing=-10,
     )
     image = image.rotate(10)
     image = image.crop((size[0] * 0.1, size[1] * 0.05, size[0] * 1.1, size[1] * 1.05))
@@ -203,7 +204,7 @@ def volunteer_certificate():
         (width / 2, 500),
         "Attestation de fonction Bénévole\nau CAF d'Annecy",
         black,
-        font=ImageFont.truetype("arial.ttf", 100),
+        font=ImageFont.truetype(font_file, 100),
         anchor="ms",
         align="center",
     )
@@ -229,7 +230,8 @@ def volunteer_certificate():
         f"{current_user.license}, est membre de la FFCAM, la Fédération "
         "Française des Clubs Alpins et de Montagne, est à jour de cotisation "
         f"pour l'année en cours, du 1er septembre {expiry-1} au 30 septembre "
-        f"{expiry}, et est Bénévole reconnu au sein de notre association.\n\n"
+        f"{expiry}, et est Bénévole reconnu{conjugate} au sein de notre "
+        "association.\n\n"
         f"Nom et adresse de la structure:\n        {club_name}\n"
         "        17 rue du Mont Blanc\n"
         "        74000 Annecy\n"
@@ -240,7 +242,7 @@ def volunteer_certificate():
     )
 
     ImageDraw.Draw(image).multiline_text(
-        (width / 2, 800),
+        (width / 2, 900),
         "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
         black,
         font=font,
@@ -254,6 +256,7 @@ def volunteer_certificate():
         "Cachet et signature du président",
         black,
         font=font,
+        spacing=10,
     )
 
     no_alpha = Image.new("RGB", image.size, (255, 255, 255))
