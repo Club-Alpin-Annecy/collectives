@@ -5,6 +5,7 @@ uploads
 
 /collectives/static/.webassets-cache
 /collectives/static/dist/*
+/collectives/private_assets
 
 # Test DB
 collectives/testdb.sqlite

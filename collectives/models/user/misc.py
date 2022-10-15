@@ -203,3 +203,11 @@ class UserMiscMixin:
         events = query.all()
 
         return not any(event.is_confirmed() for event in events)
+
+    def form_of_address(self):
+        """The user form of address based on its gender."""
+        if self.gender == Gender.Woman:
+            return "Mme"
+        if self.gender == Gender.Man:
+            return "M."
+        return ""
