@@ -275,7 +275,7 @@ def export_list_of_registered_users(event_id):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        attachment_filename=f"CAF Annecy - Collective {filename}.xlsx",
+        download_name=f"CAF Annecy - Collective {filename}.xlsx",
         as_attachment=True,
     )
 
