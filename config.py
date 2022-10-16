@@ -110,10 +110,7 @@ NB: When using mysql, charset must be specified to allow UTF8 character in test 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Payline
-PAYLINE_WSDL = (
-    environ.get("PAYLINE_WSDL")
-    or f"file://{os.path.join(basedir, 'collectives/utils/payline.wsdl')}"
-)
+PAYLINE_WSDL = environ.get("PAYLINE_WSDL") or "./collectives/utils/payline.wsdl"
 """Path to WDSL file describing Payline WebPayment SOAP API
 
 :type: string
@@ -121,7 +118,7 @@ PAYLINE_WSDL = (
 
 PAYLINE_DIRECTPAYMENT_WSDL = (
     environ.get("PAYLINE_DIRECTPAYMENT_WSDL")
-    or f"file://{os.path.join(basedir, 'collectives/utils/payline_directpayment.wsdl')}"
+    or "./collectives/utils/payline_directpayment.wsdl"
 )
 """Path to WDSL file describing Payline DirectPayment SOAP API
 
