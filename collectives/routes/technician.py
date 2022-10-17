@@ -179,10 +179,22 @@ def cover():
 
     form = CoverUploadForm()
     if form.validate_on_submit():
-        Configuration.COVER_CREDIT = form.credit.data
-        Configuration.COVER_POSITION = form.position.data
-        Configuration.COVER_LOGO_COLOR = form.color.data
-        Configuration.COVER_CREDIT_URL = form.url.data
+        credit = Configuration.get_item("COVER_CREDIT")
+        position = Configuration.get_item("COVER_POSITION")
+        color = Configuration.get_item("COVER_LOGO_COLOR")
+        url = Configuration.get_item("COVER_CREDIT_URL")
+        credit.content = form.credit.data
+        position.content = form.position.data
+        color.content = form.color.data
+        url.content = form.url.data
+
+        db.session.add_all([credit, position, color, url])
+        db.session.commit()
+
+        Configuration.uncache("COVER_CREDIT")
+        Configuration.uncache("COVER_POSITION")
+        Configuration.uncache("COVER_LOGO_COLOR")
+        Configuration.uncache("COVER_CREDIT_URL")
 
         if form.file.data:
             upload.save(form.file.data, name="cover.jpg")
