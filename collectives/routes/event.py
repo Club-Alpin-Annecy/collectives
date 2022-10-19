@@ -676,7 +676,7 @@ def select_payment_item(event_id):
         for existing_registration in event.existing_registrations(current_user):
             if (
                 existing_registration.is_pending_payment()
-                and not registration.unsettled_payments()
+                and not existing_registration.unsettled_payments()
             ):
                 registration = existing_registration
                 break
