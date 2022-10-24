@@ -1,0 +1,71 @@
+name: DB migrations
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ['3.9']
+    env:
+      DB_DATABASE: testdb2
+      DB_USER: root
+      DB_PASSWORD: ''
+    steps:
+
+    # PREPARATION
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # SQLITE
+    - name: Load migrations on sqlite
+      env:
+        FLASK_APP: collectives:create_app
+        SQLALCHEMY_DATABASE_URI: sqlite+pysqlite:///app.version.db
+      run: |
+        flask db upgrade
+    - name: Test if migrations are ok on sqlite
+      env:
+        FLASK_APP: collectives:create_app
+        SQLALCHEMY_DATABASE_URI: sqlite+pysqlite:///app.version.db
+      run: |
+        EXPECTED="$(flask db heads)"
+        CURRENT="$(flask db current)"
+        echo Expected : $EXPECTED
+        echo Current : $CURRENT
+        [[ "$(flask db current)" == "$(flask db heads)"* ]]
+
+    # MARIADB
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+    - name: Set up MariaDB 
+      uses: ankane/setup-mariadb@v1
+      with:
+        database: ${{ env.DB_DATABASE }}
+        mariadb-version: "10.5"
+    - name: Load migrations on MariaDB
+      env:
+        FLASK_APP: collectives:create_app
+        SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
+      run: |
+        flask db upgrade
+    - name: Test if migrations are ok on MariaDB
+      env:
+        FLASK_APP: collectives:create_app
+        SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
+      run: |
+        EXPECTED="$(flask db heads)"
+        CURRENT="$(flask db current)"
+        echo Expected : $EXPECTED
+        echo Current : $CURRENT
+        [[ "$(flask db current)" == "$(flask db heads)"* ]]    
