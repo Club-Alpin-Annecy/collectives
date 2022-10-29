@@ -24,6 +24,7 @@ def upgrade():
                 "status",
                 sa.Enum("Pending", "Success", "Failed", name="tokenemailstatus"),
                 nullable=False,
+                server_default="Pending",
             )
         )
     # ### end Alembic commands ###

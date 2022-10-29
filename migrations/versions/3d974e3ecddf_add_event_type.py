@@ -45,9 +45,7 @@ def upgrade():
 
     with op.batch_alter_table("activity_types") as batch_op:
         batch_op.add_column(
-            sa.Column(
-                "deprecated", sa.Boolean(), nullable=False, server_default="0"
-            )
+            sa.Column("deprecated", sa.Boolean(), nullable=False, server_default="0")
         )
     # ### end Alembic commands ###
 
