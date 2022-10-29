@@ -29,3 +29,4 @@ python-dateutil
 phonenumbers
 zeep
 Pillow
+PyYAML
