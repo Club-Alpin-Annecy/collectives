@@ -43,33 +43,33 @@ Paiements:
         description: Payline merchant id, refer to payline account. If left empty the payline API will operate in mock mode.
         type: ShortString
 
-    PAYLINE_ACCESS_KEY: 
+    PAYLINE_ACCESS_KEY:
         content: ""
         description: Payline access key (to be set in payline backoffice)
         type: ShortString
         hidden: true
 
-    PAYLINE_CONTRACT_NUMBER: 
+    PAYLINE_CONTRACT_NUMBER:
         content: ""
         description: Payline contract number
         type: ShortString
-    
-    PAYLINE_MERCHANT_NAME: 
+
+    PAYLINE_MERCHANT_NAME:
         content: "CAF"
         description: Payline merchant name
         type: ShortString
 
-    PAYLINE_CURRENCY: 
+    PAYLINE_CURRENCY:
         content: "978"
         description: Code of the currency to be used for payments, '978' means euros. See https://docs.payline.com/display/DT/Codes+-+Currency
         type: ShortString
-    
+
     PAYLINE_COUNTRY:
         content: "FR"
         description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
         type: ShortString
 
-Divers: 
+Divers:
     GOOGLE_ANALYTICS_UA:
         content: ""
         description: "Identifiant google analytics. Ex: UA-XXXXXXX-X. Vide pour désactiver"
@@ -156,7 +156,7 @@ Mail:
         description: Host SMTP to send mail
         type: ShortString
 
-    SMTP_PORT: 
+    SMTP_PORT:
         content: 25
         description: TCP port for SMTP server
         type: Integer
@@ -176,7 +176,7 @@ Mail:
         hidden: true
     DKIM_KEY:
         content: ""
-        description: | 
+        description: |
             DKIM private KEY
             Contain the PEM encoded PKCS#8 format private key (not the file name, but its
             content).
@@ -220,7 +220,7 @@ Mail:
         description: Email template content for event creation
         type: LongString
 
-    
+
     SELF_UNREGISTER_SUBJECT:
         content: "Notification de désinscription"
         description: Email subject for user self unregister
@@ -290,7 +290,7 @@ Mail:
 
             Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
             Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit
-            à la collective.
+            à la collective, ou en attente de paiement si la collective en nécessite un.
 
             Si vous ne pouvez pas participer, merci de vous désincrire au plus tôt.
 
@@ -306,7 +306,7 @@ Mail:
 APPEARANCE:
     COVER_CREDIT:
         content: Dwayne Reilander CC BY-SA 4.0
-        description: Credit of the cover on the front page. 
+        description: Credit of the cover on the front page.
         type: ShortString
 
     COVER_CREDIT_URL:
