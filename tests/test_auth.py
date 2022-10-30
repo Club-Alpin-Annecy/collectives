@@ -4,10 +4,10 @@ from datetime import datetime
 from tests.fixtures import user
 
 
-def test_wrong_login(client):
+def test_wrong_login(client, app):
     """ "Invalide login redirected to login page"""
     response = client.post(
-        "/auth/login", data={"mail": "unknown", "password": "foobar2"}
+        "/auth/login", data={"mail": "unknown", "password": app.config["ADMINPWD"]}
     )
     assert response.headers["Location"] in [
         "http://localhost/auth/login",
@@ -15,9 +15,11 @@ def test_wrong_login(client):
     ]
 
 
-def test_login(client):
+def test_login(client, app):
     """ "Valid login redirected to home page"""
-    response = client.post("/auth/login", data={"mail": "admin", "password": "foobar2"})
+    response = client.post(
+        "/auth/login", data={"mail": "admin", "password": app.config["ADMINPWD"]}
+    )
     assert response.headers["Location"] in ["http://localhost/", "/"]
 
 

@@ -13,6 +13,6 @@ if __name__ == "__main__":
     auth_info["motdepasse"] = EXTRANET_ACCOUNT_PWD
     c = soap_client.service
 
-    result = c.extractionAdherent(connect=auth_info, id="740019870006")
+    result = c.extractionAdherent(connect=auth_info, id="74001987XXXX")
 
     print(result)

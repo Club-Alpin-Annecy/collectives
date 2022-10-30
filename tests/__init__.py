@@ -10,9 +10,9 @@ Tests
 Tests are divided into two categories:
 
 * Unit tests. They are grouped into :py:mod:`tests.unit`
-* Functionnal tests. They aims to test the application as a regular user.
+* Functionnal tests. They aim to test the application as a regular user.
 
-Functionnal tests are most of the tests. They shall not use outside ressources such
+Functional tests are most of the tests. They shall not use outside resources such
 as external website. Use mock if required (see :py:mod:`tests.mock`).
 
 File Architecture

@@ -13,8 +13,8 @@ Black is also used to standardize the code format.
 Workflow `Tests`
 ------------------
 
-Pytest is the preferred tests framework are functionnal tests. It shall test at least 
-60% of the app code. It works both as functionnal and unit tests. More info :doc:`tests`.
+Pytest is the preferred tests framework. It should test at least 60% of the app
+code. It works both as functional and unit tests. More info :doc:`tests`.
 
 
 Workflow `Sphinx`
