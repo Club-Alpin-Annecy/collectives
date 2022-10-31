@@ -75,9 +75,9 @@ def client(app):
 
 
 @pytest.fixture
-def admin_client(client, admin_user):
+def admin_client(client, admin_user, app):
     """Flask client authenticated as admin."""
-    login(client, admin_user, "foobar2")
+    login(client, admin_user, app.config["ADMINPWD"])
     yield client
     logout(client)
 
