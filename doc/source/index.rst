@@ -21,14 +21,19 @@ Code, participation, and issue reporting can be done on github: `https://github.
 <https://github.com/Club-Alpin-Annecy/collectives>`_
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Help:
 
    howto
    configuration
    architecture
-   tests
+   github_validation
    html
+   tests
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API:
 
    collectives
    models
@@ -37,6 +42,7 @@ Code, participation, and issue reporting can be done on github: `https://github.
    api
    utils
    helpers
+   tests_autodoc
 
 Indices and tables
 ==================

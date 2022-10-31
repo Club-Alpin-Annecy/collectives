@@ -2,14 +2,14 @@
    {% if payment_item_choice_form and payment_item_choice_form.item_price.choices | length %}
 
     {% if is_leader %}
-            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
+            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post" id="select_payment_item">
             <strong>Participer aux frais</strong>
     {% else %}
         {% if registration %}
-            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post">
+            <form action="{{url_for('event.select_payment_item', event_id=event.id)}}" method="post" id="select_payment_item">
             <strong>Finaliser l'inscription</strong>
         {% else %}
-            <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post">
+            <form action="{{url_for('event.self_register', event_id=event.id)}}" method="post" id="select_payment_item">
             <strong>Inscription</strong>
         {% endif %}
         <div>

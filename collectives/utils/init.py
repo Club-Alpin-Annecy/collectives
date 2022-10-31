@@ -177,6 +177,7 @@ def init_config(force=False, path="collectives/configuration.yaml"):
                         item = ConfigurationItem(name)
                         item.content = config["content"]
                     elif force:
+                        Configuration.uncache(item.name)
                         item.content = config["content"]
 
                     item.description = config["description"]
