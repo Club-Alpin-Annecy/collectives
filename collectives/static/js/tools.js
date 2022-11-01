@@ -19,3 +19,7 @@ function sizeFormatter(cell) {
     }
     return Math.round(value * 10) / 10 + units[0];
 }
+
+function getKey(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+}

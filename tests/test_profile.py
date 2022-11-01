@@ -3,7 +3,7 @@
 from tests import utils
 from tests.fixtures import client
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,too-many-arguments
 
 
 def test_show_user_profile(user1_client):
@@ -96,3 +96,21 @@ def test_change_password_unacceptable(user1_client, user1):
     assert response.status_code == 200
     assert client.login(user1_client, user1, "test123") == False
     assert client.login(user1_client, user1) == True
+
+
+def test_user_attendance(
+    leader_client, user1, user3, event1_with_reg, event2_with_reg, user5
+):
+    """Test display of user attendance."""
+    response = leader_client.get(f"/profile/user/{user1.id}")
+    assert response.status_code == 200
+    assert "Inscrit (2)" in response.text
+
+    response = leader_client.get(f"/profile/user/{user3.id}")
+    assert response.status_code == 200
+    assert "Inscrit (1)" in response.text
+    assert "Auto désinscrit (1)" in response.text
+
+    response = leader_client.get(f"/profile/user/{user5.id}")
+    assert response.status_code == 200
+    assert "Pas d'inscription" in response.text

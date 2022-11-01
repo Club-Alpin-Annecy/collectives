@@ -27,6 +27,16 @@ class ChoiceEnum(enum.IntEnum):
         return "{" + ",".join(items) + "}"
 
     @classmethod
+    def js_keys(cls):
+        """Class method to cast Enum keys as js dict
+
+        :return: enum as js Dictionnary
+        :rtype: String
+        """
+        items = [f'"{s.name}" : {s.value}' for s in cls]
+        return "{" + ",".join(items) + "}"
+
+    @classmethod
     def coerce(cls, item):
         """Check if an item if part the Enum
 

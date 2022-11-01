@@ -1,0 +1,43 @@
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+
+    & .tooltiptext {
+        visibility: hidden;
+        background-color: $color-gray-bg-light;
+        padding: 5px;
+        border-radius: 6px;
+        box-shadow: $box-shadow-default;
+        min-width: 200px;
+        color: $color-gray-dark;
+       
+        /* Position the tooltip text - see examples below! */
+        position: absolute;
+        z-index: 1;
+
+        &.tooltip-right{
+            top: -5px;
+            right: 105%; 
+        }
+        &.tooltip-left{
+            top: -5px;
+            left: 105%;  
+        }
+        &.tooltip-bottom{
+            top: 120%;
+            left: 50%;
+        }
+        &.tooltip-top{
+            bottom: 120%;
+            left: 50%;
+        }
+      }
+
+        /* Show the tooltip text when you mouse over the tooltip container */
+    &:hover .tooltiptext {
+        visibility: visible;
+    }
+}
+  
+  

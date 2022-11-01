@@ -1,4 +1,10 @@
 {% macro usericon(user, leader_info=None, user_info=None, is_pending_renewal=False) -%}
+{#
+      user: User object of the icon to create
+      leader_info: Boolean: True if displayed icon is for a leader
+      user_info: Boolean: True if user details should be displayed (eg, icon is for leader) 
+      is_pending_renewal: Boolean: True if user should be displayed as not having a valid license for when the event starts
+      #}
 <div class="usericon">
       <a class="usericon-wrapper" href="{% if leader_info %}{{url_for('profile.show_leader', leader_id=user.id)}}{% elif user_info %}{{url_for('profile.show_user', user_id=user.id)}}{%else%}#{% endif %}"
                   alt="Avatar de {{user.abbrev_name()}}">
@@ -21,6 +27,16 @@
                                     <img src="{{url_for('static', filename='img/icon/ionicon/md-time-white.svg')}}">
                                     Licence à renouveler
                               </span>
+                        {% endif %}
+                        {% set grade = user.attendance_grade(datetime.timedelta(days=30)) %}
+                        {% if grade >= 'D' %}
+                              <span class="license-tag attendance">
+                                    <span class="tooltip">
+                                          <img src="{{url_for('static', filename='img/icon/ionicon/md-warning-white.svg')}}">
+                                          Note d'absence: {{grade}}
+                                          <span class="tooltiptext">Cet utilisateur a plusieurs incidents à son actif.</span>
+                                    </span>
+                              </span> 
                         {% endif %}
                         {{user.full_name().title()}}
                   {% else %}

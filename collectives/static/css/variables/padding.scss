@@ -24,6 +24,7 @@ $padding-s: $padding-vertical-s $padding-horizontal-s;
 $padding-m: $padding-vertical-m $padding-horizontal-m;
 $padding-buttons-default: $padding-vertical-m $padding-horizontal-m;
 
+$margin-buttons-default:  ($padding-vertical-default /2 ) ($padding-vertical-default /2 );
 
 $padding-input-vertical-default: 0.8rem;
 $padding-input-horizontal-default: 1rem;

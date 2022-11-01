@@ -1,0 +1,18 @@
+.bar {
+    box-shadow: $box-shadow-default;
+    background: $color-white;
+    padding: 0px;
+    display:flex;
+    max-width: 800px;
+    margin: auto;
+    text-align: center;
+
+    & .item{
+        padding: 0.5em 0px;
+        width: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $color-gray-dark;
+    }
+}

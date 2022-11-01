@@ -219,6 +219,7 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": GUIDE_TITLE,
         "terms_file": GUIDE_FILENAME,
+        "attendance": False,
     },
     5: {
         "short": "randonnees_lointaines",
@@ -227,14 +228,21 @@ EVENT_TYPES = {
         "terms_title": "guide d'organisation des randonnées lointaines "
         "du Club Alpin Français d'Annecy",
         "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
+        "attendance": False,
     },
-    6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
+    6: {
+        "short": "shopping",
+        "name": "Achat groupé",
+        "requires_activity": False,
+        "attendance": False,
+    },
     7: {
         "short": "inscription",
         "name": "Inscription en ligne",
         "requires_activity": False,
         "terms_title": GUIDE_TITLE,
         "terms_file": GUIDE_FILENAME,
+        "attendance": False,
     },
 }
 """List of event types

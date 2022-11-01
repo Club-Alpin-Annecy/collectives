@@ -1,13 +1,15 @@
 """ Module for misc User methods which does not fit in another submodule"""
 import os
+import datetime
 
 import phonenumbers
 from flask_uploads import UploadSet, IMAGES
+from sqlalchemy import func
 
 from collectives.models.globals import db
 from collectives.models.event import Event, EventType
 from collectives.models.configuration import Configuration
-from collectives.models.registration import Registration
+from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender
 from collectives.utils.time import current_time
@@ -211,3 +213,60 @@ class UserMiscMixin:
         if self.gender == Gender.Man:
             return "M."
         return ""
+
+    def attendance_report(self, time=datetime.timedelta(days=99 * 365)):
+        """Compile an attendance report of the user by status.
+
+        Only Event types Collectives and Training are looked.
+
+        :returns: attendance report
+        :rtype: dict
+        :param datetime.timedelta time: How far in the past the registrations should be
+        searched.
+        """
+        start_date = datetime.datetime.now() - time
+        query = Registration.query.with_entities(
+            Registration.status, func.count(Registration.status)
+        )
+        query = query.filter_by(user=self)
+        query = query.filter(Registration.event.has(Event.start > start_date))
+        query = query.filter(
+            Registration.event.has(Event.event_type.has(EventType.attendance == True))
+        )
+        return dict(query.group_by(Registration.status).all())
+
+    def attendance_grade(self, time=datetime.timedelta(days=99 * 365)):
+        """Compile an attendance grade of the user by status, from A to E.
+
+        Basically, it counts infamous registration status. Algorithms select the most
+        favorable. For the time period:
+
+        * A: No infamous status
+        * B: Less than 5% infamous status.
+        * C: One infamous status
+        * D: Two infamous status
+        * E: others
+
+        :param datetime.timedelta time: How far in the past the registrations should be
+            searched.
+        :returns: A for good attendance, F for awful
+        :rtype: String
+        """
+        report = self.attendance_report(time)
+        infamous_strikes = sum(
+            report.get(status, 0) for status in RegistrationStatus.infamous_status()
+        )
+
+        if infamous_strikes == 0:
+            return "A"
+
+        total = sum(report.values())
+        percent = infamous_strikes / total
+
+        if percent < 0.05:
+            return "B"
+        if infamous_strikes == 1:
+            return "C"
+        if infamous_strikes == 2:
+            return "D"
+        return "E"

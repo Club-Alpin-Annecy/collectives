@@ -109,6 +109,61 @@ class RegistrationStatus(ChoiceEnum):
         """
         return self.__class__.transition_table(requires_payment)[self.value]
 
+    @classmethod
+    def colors(cls):
+        """
+        :return: a dict defining display colors for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Active: "#00a5cc",
+            cls.Rejected: "#005aa0",
+            cls.PaymentPending: "#eee8a9",
+            cls.SelfUnregistered: "#f49431",
+            cls.JustifiedAbsentee: "#005aa0",
+            cls.UnJustifiedAbsentee: "#ffad8f",
+            cls.ToBeDeleted: "",
+            cls.Waiting: "#e6f4f1",
+        }
+
+    def color(self):
+        """Select the value color.
+
+        :returns: a CSS color
+        :rtype: string"""
+        cls = self.__class__
+        return cls.colors()[self.value]
+
+    @classmethod
+    def absent_status(cls):
+        """
+        :return: a list of values defined as absent status
+        :rtype: list
+        """
+        return [
+            cls.PaymentPending,
+            cls.SelfUnregistered,
+            cls.JustifiedAbsentee,
+            cls.UnJustifiedAbsentee,
+        ]
+
+    def is_absent(self):
+        """Check if this status is considered as absent.
+
+        :rtype: bool"""
+        return self in self.__class__.absent_status()
+
+    @classmethod
+    def infamous_status(cls):
+        """
+        :return: a list of values defined as infamous status
+        :rtype: list
+        """
+        return [
+            cls.SelfUnregistered,
+            cls.UnJustifiedAbsentee,
+        ]
+
 
 class Registration(db.Model):
     """Object linking a user (participant) and an event.
@@ -139,7 +194,7 @@ class Registration(db.Model):
     :type: :py:class:`collectives.models.registration.RegistrationStatus`"""
 
     level = db.Column(
-        db.Enum(RegistrationLevels), nullable=False
+        db.Enum(RegistrationLevels), nullable=False, default=RegistrationLevels.Normal
     )  # Co-encadrant, Normal
     """ Level of the participant for this event (normal, co-leader...)
 

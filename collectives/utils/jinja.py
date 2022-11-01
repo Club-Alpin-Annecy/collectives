@@ -4,6 +4,7 @@ This module should not contains other functions than :py:func:`helpers_processor
 """
 import inspect
 import html
+import datetime
 
 from collectives import models
 from collectives.routes.auth import get_bad_phone_message
@@ -27,6 +28,8 @@ def helpers_processor():
     helper_functions["get_bad_phone_message"] = get_bad_phone_message
     helper_functions["Configuration"] = models.Configuration
     helper_functions["markdown_to_html"] = markdown_to_html
+    helper_functions["datetime"] = datetime
+    helper_functions["len"] = len
 
     return helper_functions
 

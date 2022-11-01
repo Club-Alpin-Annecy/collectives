@@ -6,11 +6,11 @@ from functools import wraps
 import pytest
 
 from collectives.models import db, ActivityType, EventType, Event, EventTag, EventStatus
-from collectives.models import Registration, RegistrationLevels, RegistrationStatus
+from collectives.models import Registration, RegistrationStatus
 
 from tests.fixtures import payment
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument,redefined-outer-name,redefined-builtin
 
 
 def inject_fixture(name, identifier):
@@ -166,6 +166,19 @@ def free_paying_event(prototype_free_paying_event):
     return prototype_free_paying_event
 
 
+inject_fixture("prototype_shopping_event", "paying")
+
+
+@pytest.fixture
+def shopping_event(prototype_shopping_event):
+    """:returns: An event with associated payment_item and prices"""
+    type = EventType.query.filter_by(short="shopping").first()
+    prototype_shopping_event.event_type = type
+    db.session.add(prototype_shopping_event)
+    db.session.commit()
+    return prototype_shopping_event
+
+
 @pytest.fixture
 def event1_with_reg(event1, user1, user2, user3, user4):
     """:returns: The fixture `event1`, with user registered.
@@ -175,8 +188,46 @@ def event1_with_reg(event1, user1, user2, user3, user4):
             Registration(
                 user_id=user.id,
                 status=RegistrationStatus.Active,
-                level=RegistrationLevels.Normal,
-                is_self=True,
             )
         )
     return event1
+
+
+@pytest.fixture
+def event2_with_reg(event2, user1, user2, user3, user4):
+    """:returns: The fixture `event1`, with user registered.
+    :rtype: :py:class:`collectives.models.event.Event`"""
+    for user in [user1, user2]:
+        event2.registrations.append(
+            Registration(
+                user_id=user.id,
+                status=RegistrationStatus.Active,
+            )
+        )
+    event2.registrations.append(
+        Registration(
+            user_id=user3.id,
+            status=RegistrationStatus.SelfUnregistered,
+        )
+    )
+    event2.registrations.append(
+        Registration(
+            user_id=user4.id,
+            status=RegistrationStatus.UnJustifiedAbsentee,
+        )
+    )
+    return event2
+
+
+@pytest.fixture
+def shopping_event_with_reg(shopping_event, user1, user2, user3, user4):
+    """:returns: The fixture `event1`, with user registered.
+    :rtype: :py:class:`collectives.models.event.Event`"""
+    for user in [user1, user2, user3, user4]:
+        shopping_event.registrations.append(
+            Registration(
+                user_id=user.id,
+                status=RegistrationStatus.Active,
+            )
+        )
+    return shopping_event

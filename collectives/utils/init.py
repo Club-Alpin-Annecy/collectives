@@ -97,6 +97,8 @@ def event_types(app):
             event_type.terms_title = etype.get("terms_title", None)
             event_type.terms_file = etype.get("terms_file", None)
 
+            event_type.attendance = etype.get("attendance", True)
+
             db.session.add(event_type)
 
         # Remove event trypes not in config

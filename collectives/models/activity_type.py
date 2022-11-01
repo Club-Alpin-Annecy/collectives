@@ -117,6 +117,17 @@ class ActivityType(db.Model):
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
 
+    @classmethod
+    def js_keys(cls):
+        """Class method to cast Activity keys as js dict
+
+        :return: all activity types as js Dictionnary
+        :rtype: String
+        """
+        types = cls.get_all_types()
+        items = [f'"{type.short}" : {type.id}' for type in types]
+        return "{" + ",".join(items) + "}"
+
 
 def activities_without_leader(activities, leaders):
     """Check if leaders has right to lead it.
