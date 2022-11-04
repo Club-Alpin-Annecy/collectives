@@ -51,6 +51,13 @@ Module ``collectives.models.user``
 
   user
 
+Module ``collectives.models.user_group``
+----------------------------------------
+.. toctree::
+  :maxdepth: 2
+
+  user_group
+
 Module ``collectives.models.payment``
 ---------------------------------------
 .. toctree::
