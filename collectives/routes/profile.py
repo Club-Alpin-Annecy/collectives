@@ -177,7 +177,9 @@ def volunteer_certificate():
 
     # usefull variables
     font_file = "collectives/static/fonts/DINWeb.woff"
-    font = ImageFont.truetype(font_file, 50)
+    font_file_bold = "collectives/static/fonts/DINWeb-Bold.woff"
+    font = ImageFont.truetype(font_file, 45)
+    font_bold = ImageFont.truetype(font_file_bold, 45)
     black = (0, 0, 0)
 
     # Setup rotated watermark
@@ -201,10 +203,10 @@ def volunteer_certificate():
 
     # Add Header text
     ImageDraw.Draw(image).multiline_text(
-        (width / 2, 500),
+        (width / 2, 600),
         "Attestation de fonction Bénévole\nau CAF d'Annecy",
         black,
-        font=ImageFont.truetype(font_file, 100),
+        font=ImageFont.truetype(font_file_bold, 80),
         anchor="ms",
         align="center",
     )
@@ -220,18 +222,122 @@ def volunteer_certificate():
         flash("""Erreur de date de license. Contactez le support.""", "error")
         return redirect(url_for("profile.show_user", user_id=current_user.id))
 
+    # Start drawing main text
+    current_line_position = 0
+    ImageDraw.Draw(image).multiline_text(
+        (350, 900),
+        "Je soussigné, ",
+        black,
+        font=font,
+        spacing=10,
+    )
+
+    current_line_position = ImageDraw.Draw(image).textlength(
+        "Je soussigné, ", font=font
+    )
+    ImageDraw.Draw(image).multiline_text(
+        (350 + current_line_position, 900),
+        f"{president.full_name().upper()}",
+        black,
+        font=font_bold,
+        spacing=10,
+    )
+
+    current_line_position += ImageDraw.Draw(image).textlength(
+        f"{president.full_name().upper()}", font=font_bold
+    )
+    ImageDraw.Draw(image).multiline_text(
+        (350 + current_line_position, 900),
+        f", président du {club_name},",
+        black,
+        font=font,
+        spacing=10,
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (270, 975),
+        "certifie que:",
+        black,
+        font=font,
+        spacing=10,
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (400, 1100),
+        f"{current_user.form_of_address()}",
+        black,
+        font=font,
+        spacing=10,
+    )
+    current_line_position = ImageDraw.Draw(image).textlength(
+        f"{current_user.form_of_address()}", font=font
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (600 + current_line_position, 1100),
+        f"{current_user.full_name()}",
+        black,
+        font=font_bold,
+        spacing=10,
+    )
+    current_line_position += ImageDraw.Draw(image).textlength(
+        f"{current_user.full_name()}", font=font_bold
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (600 + current_line_position, 1100),
+        f", né{conjugate} le {current_user.date_of_birth.strftime('%d/%m/%Y')}, ",
+        black,
+        font=font,
+        spacing=10,
+    )
+
     text = (
-        f"Je sous-signé, {president.full_name()}, président du {club_name} "
-        "certifie que:\n\n"
-        f"                       {current_user.form_of_address()} "
-        f"{current_user.full_name()}, né{conjugate} le "
-        f"{current_user.date_of_birth.strftime('%d/%m/%Y')}, \n\n"
-        f"est licencié{conjugate} au {club_name} sous le numéro d'adhérent "
-        f"{current_user.license}, est membre de la FFCAM, la Fédération "
+        f"est licencié{conjugate} au {club_name}\n"
+        "sous le numéro d'adhérent: "
+        f"{current_user.license}"
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (width / 2, 1300),
+        "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
+        black,
+        font=font_bold,
+        anchor="ms",
+        align="center",
+        spacing=45,
+    )
+
+    text = (
+        f"est membre de la FFCAM, la Fédération "
         "Française des Clubs Alpins et de Montagne, est à jour de cotisation "
         f"pour l'année en cours, du 1er septembre {expiry-1} au 30 septembre "
-        f"{expiry}, et est Bénévole reconnu{conjugate} au sein de notre "
-        "association.\n\n"
+        f"{expiry}, "
+    )
+
+    ImageDraw.Draw(image).multiline_text(
+        (width / 2, 1450),
+        "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
+        black,
+        font=font,
+        anchor="ms",
+        align="center",
+        spacing=30,
+    )
+
+    text = f"et est Bénévole reconnu{conjugate} au sein de notre association."
+
+    ImageDraw.Draw(image).multiline_text(
+        (width / 2, 1650),
+        "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
+        black,
+        font=font_bold,
+        anchor="ms",
+        align="center",
+        spacing=45,
+    )
+
+    text = (
         f"Nom et adresse de la structure:\n        {club_name}\n"
         "        17 rue du Mont Blanc\n"
         "        74000 Annecy\n"
@@ -242,12 +348,11 @@ def volunteer_certificate():
     )
 
     ImageDraw.Draw(image).multiline_text(
-        (width / 2, 900),
-        "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
+        (270, 1800),
+        "\n".join([textwrap.fill(line, width=90) for line in text.split("\n")]),
         black,
         font=font,
-        anchor="ms",
-        spacing=45,
+        spacing=40,
     )
 
     ImageDraw.Draw(image).multiline_text(
