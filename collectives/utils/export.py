@@ -46,7 +46,7 @@ def export_users_registered(event):
     """Create an Excel document with the contact information of registered users at an event.
 
     :param event:
-    :type event: array of :py:class:`collectives.models.event.event`
+    :type event: :py:class:`collectives.models.event.event`
     :returns: The excel with all info
     :rtype: :py:class:`io.BytesIO`
     """
