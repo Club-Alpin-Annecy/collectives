@@ -10,6 +10,7 @@ from collectives.models.globals import db
 from collectives.models.role import RoleIds, Role
 from collectives.models.user import User
 from collectives.models.event import Event
+from collectives.models.registration import Registration
 
 
 class GroupRoleCondition(db.Model):
@@ -49,12 +50,15 @@ class GroupRoleCondition(db.Model):
     def get_condition(self):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
         if self.role_id and self.activity_id:
-            return User.roles.any(and_(Role.role_id == self.role_id, Role.activity_id == self.activity_id))
+            return User.roles.any(
+                and_(Role.role_id == self.role_id, Role.activity_id == self.activity_id)
+            )
         if self.role_id:
-            return Role.role_id == self.role_id
+            return User.roles.any(Role.role_id == self.role_id)
         if self.activity_id:
-            Role.activity_id == self.activity_id
+            return User.roles.any(Role.activity_id == self.activity_id)
         return true
+
 
 class GroupEventCondition(db.Model):
     """Relationship indicating that group members must participate (or lead) a given event."""
@@ -73,16 +77,12 @@ class GroupEventCondition(db.Model):
 
     :type: int"""
 
-    event_id = db.Column(
-        db.Integer, db.ForeignKey("activity_types.id"), nullable=False
-    )
+    event_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=False)
     """ ID of the activity to which the user role should relate to. 
 
     :type: int"""
 
-    is_leader = db.Column(
-        db.Boolean, nullable=True
-    )
+    is_leader = db.Column(db.Boolean, nullable=True)
     """ Whether group members should be leaders of the activity or normal users.
     If null, both are allowed.
 
@@ -91,14 +91,20 @@ class GroupEventCondition(db.Model):
     def get_condition(self):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
         if self.is_leader is None:
-            return or_(User.events.any(Event.id == self.event_id), User.led_events.any(Event.id == self.event_id) )
+            return or_(
+                User.led_events.any(Event.id == self.event_id),
+                User.registrations.any(Registration.event_id == self.event_id),
+            )
         if self.is_leader:
             return User.led_events.any(Event.id == self.event_id)
 
-        return User.events.any(Event.id == self.event_id)
+        return User.registrations.any(Registration.event_id == self.event_id)
+
 
 class GroupLicenseCondition(db.Model):
     """Relationship indicating that group members must have a certain license type"""
+
+    __tablename__ = "group_license_conditions"
 
     id = db.Column(db.Integer, primary_key=True)
     """Database primary key
@@ -119,61 +125,71 @@ class GroupLicenseCondition(db.Model):
 
 
 class UserGroup(db.Model):
-    """ Dynamically-defined set of users based on various conditions.
+    """Dynamically-defined set of users based on various conditions.
 
-        Currently three type of conditions are available:
+    Currently three type of conditions are available:
 
-         - Role: User must have a specific role, optionnaly for a given activity
-         - Event: User must be registered or be a leader to a given event
-         - Licence: Use must have a specific licence type
+     - Role: User must have a specific role, optionnaly for a given activity
+     - Event: User must be registered or be a leader to a given event
+     - Licence: Use must have a specific licence type
 
-        Those conditions are multiplicative, i.e. the user must satisfy all conditions ("and").
-        However, within each condition, allowed values are additive ("or")
-        All three types of conditions are also optional.
+    Those conditions are multiplicative, i.e. the user must satisfy all conditions ("and").
+    However, within each condition, allowed values are additive ("or")
+    All three types of conditions are also optional.
 
-        For instance, a user group may be defined as follow:
-        Users which have ((the role President) or (the role Leader for activity "Ski")) 
-        and ((lead event "Foo") or (are registered to event "Bar"))
-        
+    For instance, a user group may be defined as follow:
+    Users which have ((the role President) or (the role Leader for activity "Ski"))
+    and ((lead event "Foo") or (are registered to event "Bar"))
+
     """
-    
+
+    __tablename__ = "user_groups"
+
     id = db.Column(db.Integer, primary_key=True)
     """Database primary key
 
     :type: int"""
 
-    role_conditions = db.relationship("GroupRoleConditions", backref="group", cascade="all, delete")
+    role_conditions = db.relationship(
+        "GroupRoleCondition", backref="group", cascade="all, delete"
+    )
     """ List of role conditions associated with this group
 
     :type: list(:py:class:`collectives.models.user_group.GroupRoleCondition`)
     """
 
-    event_conditions = db.relationship("GroupEventConditions", backref="group", cascade="all, delete")
+    event_conditions = db.relationship(
+        "GroupEventCondition", backref="group", cascade="all, delete"
+    )
     """ List of event conditions associated with this group
 
     :type: list(:py:class:`collectives.models.user_group.GroupRoleCondition`)
     """
 
-    license_conditions = db.relationship("GroupLicenceConditions", backref="group", cascade="all, delete")
+    license_conditions = db.relationship(
+        "GroupLicenseCondition", backref="group", cascade="all, delete"
+    )
     """ List of license conditions associated with this group
 
     :type: list(:py:class:`collectives.models.user_group.GroupRoleCondition`)
     """
 
-
     def get_members(self) -> List[User]:
-        """:return: the list of group members
-        """
-        query  = User.query
+        """:return: the list of group members"""
+        query = User.query
 
         if self.role_conditions:
             roles = [role.get_condition() for role in self.role_conditions]
-            query = query.filtee(or_(*roles))
-       
+            query = query.filter(or_(*roles))
+
         if self.event_conditions:
             events = [event.get_condition() for event in self.event_conditions]
-            query = query.filtee(or_(*events))
+            query = query.filter(or_(*events))
 
         if self.license_conditions:
-            categories = [condition.license_category for condition in self.license_conditions]
-            query = query.filter( User.license_category in categories)
+            categories = [
+                condition.license_category for condition in self.license_conditions
+            ]
+            query = query.filter(User.license_category.in_(categories))
+
+        return query.all()
