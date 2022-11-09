@@ -22,7 +22,7 @@ def generate_image(president, user):
 
     # Generate template with watermark
     template = Image.open(Configuration.VOLUNTEER_CERT_IMAGE)
-    image = generate_template(template, user)
+    image = generate_background(template, user)
 
     # usefull variables
     font_file_bold = "collectives/static/fonts/DINWeb-Bold.woff"
@@ -54,27 +54,27 @@ def generate_image(president, user):
 
     # Start drawing main text
     current_line_position = 0
+    text = "Je soussigné, "
     ImageDraw.Draw(image).multiline_text(
         (350, 900),
-        "Je soussigné, ",
+        text,
         text_color,
         font=font,
         spacing=10,
     )
-
     current_line_position = ImageDraw.Draw(image).textlength(
-        "Je soussigné, ", font=font
+        text, font=font
     )
+    text = f"{president.full_name().upper()}"
     ImageDraw.Draw(image).multiline_text(
         (350 + current_line_position, 900),
-        f"{president.full_name().upper()}",
+        text,
         text_color,
         font=font_bold,
         spacing=10,
     )
-
     current_line_position += ImageDraw.Draw(image).textlength(
-        f"{president.full_name().upper()}", font=font_bold
+        text, font=font_bold
     )
     ImageDraw.Draw(image).multiline_text(
         (350 + current_line_position, 900),
@@ -83,7 +83,6 @@ def generate_image(president, user):
         font=font,
         spacing=10,
     )
-
     ImageDraw.Draw(image).multiline_text(
         (270, 975),
         "certifie que:",
@@ -92,28 +91,28 @@ def generate_image(president, user):
         spacing=10,
     )
 
+    text = f"{user.form_of_address()}"
     ImageDraw.Draw(image).multiline_text(
         (400, 1100),
-        f"{user.form_of_address()}",
+        text,
         text_color,
         font=font,
         spacing=10,
     )
     current_line_position = ImageDraw.Draw(image).textlength(
-        f"{user.form_of_address()}", font=font
+        text, font=font
     )
-
+    text = f"{user.full_name()}"
     ImageDraw.Draw(image).multiline_text(
         (600 + current_line_position, 1100),
-        f"{user.full_name()}",
+        text,
         text_color,
         font=font_bold,
         spacing=10,
     )
     current_line_position += ImageDraw.Draw(image).textlength(
-        f"{user.full_name()}", font=font_bold
+        text, font=font_bold
     )
-
     ImageDraw.Draw(image).multiline_text(
         (600 + current_line_position, 1100),
         f", né{conjugate} le {user.date_of_birth.strftime('%d/%m/%Y')}, ",
@@ -127,7 +126,6 @@ def generate_image(president, user):
         "sous le numéro d'adhérent: "
         f"{user.license}"
     )
-
     ImageDraw.Draw(image).multiline_text(
         (width / 2, 1300),
         "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
@@ -144,7 +142,6 @@ def generate_image(president, user):
         f"pour l'année en cours, du 1er septembre {expiry-1} au 30 septembre "
         f"{expiry}, "
     )
-
     ImageDraw.Draw(image).multiline_text(
         (width / 2, 1450),
         "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
@@ -156,7 +153,6 @@ def generate_image(president, user):
     )
 
     text = f"et est Bénévole reconnu{conjugate} au sein de notre association."
-
     ImageDraw.Draw(image).multiline_text(
         (width / 2, 1650),
         "\n".join([textwrap.fill(line, width=80) for line in text.split("\n")]),
@@ -176,7 +172,6 @@ def generate_image(president, user):
         "partenaires@cafannecy.fr\n\n"
         "Ces informations sont certifiées conformes."
     )
-
     ImageDraw.Draw(image).multiline_text(
         (270, 1800),
         "\n".join([textwrap.fill(line, width=90) for line in text.split("\n")]),
@@ -196,8 +191,7 @@ def generate_image(president, user):
 
     return image
 
-
-def generate_template(template, user):
+def generate_background(template, user):
     """Generate an image containing the volunteer certificate.
 
     :param template:
