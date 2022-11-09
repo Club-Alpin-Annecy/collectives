@@ -62,9 +62,7 @@ def generate_image(president, user):
         font=font,
         spacing=10,
     )
-    current_line_position = ImageDraw.Draw(image).textlength(
-        text, font=font
-    )
+    current_line_position = ImageDraw.Draw(image).textlength(text, font=font)
     text = f"{president.full_name().upper()}"
     ImageDraw.Draw(image).multiline_text(
         (350 + current_line_position, 900),
@@ -73,9 +71,7 @@ def generate_image(president, user):
         font=font_bold,
         spacing=10,
     )
-    current_line_position += ImageDraw.Draw(image).textlength(
-        text, font=font_bold
-    )
+    current_line_position += ImageDraw.Draw(image).textlength(text, font=font_bold)
     ImageDraw.Draw(image).multiline_text(
         (350 + current_line_position, 900),
         f", président du {club_name},",
@@ -99,9 +95,7 @@ def generate_image(president, user):
         font=font,
         spacing=10,
     )
-    current_line_position = ImageDraw.Draw(image).textlength(
-        text, font=font
-    )
+    current_line_position = ImageDraw.Draw(image).textlength(text, font=font)
     text = f"{user.full_name()}"
     ImageDraw.Draw(image).multiline_text(
         (600 + current_line_position, 1100),
@@ -110,9 +104,7 @@ def generate_image(president, user):
         font=font_bold,
         spacing=10,
     )
-    current_line_position += ImageDraw.Draw(image).textlength(
-        text, font=font_bold
-    )
+    current_line_position += ImageDraw.Draw(image).textlength(text, font=font_bold)
     ImageDraw.Draw(image).multiline_text(
         (600 + current_line_position, 1100),
         f", né{conjugate} le {user.date_of_birth.strftime('%d/%m/%Y')}, ",
@@ -190,6 +182,7 @@ def generate_image(president, user):
     )
 
     return image
+
 
 def generate_background(template, user):
     """Generate an image containing the volunteer certificate.
