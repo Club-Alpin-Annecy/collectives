@@ -5,7 +5,6 @@ import phonenumbers
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models.globals import db
-from collectives.models.event import Event, EventType
 from collectives.models.configuration import Configuration
 from collectives.models.registration import Registration
 from collectives.models.reservation import ReservationStatus
@@ -189,6 +188,7 @@ class UserMiscMixin:
         :return: True if user can register on the specified timespan.
         :rtype: boolean
         """
+        from collectives.models.event import Event, EventType
 
         query = db.session.query(Event)
         query = query.filter(Event.start <= end)

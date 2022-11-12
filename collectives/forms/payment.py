@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList
+from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList, IntegerField
 from wtforms import HiddenField, BooleanField, SelectField
 from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm
@@ -50,13 +50,14 @@ class ItemPriceForm(ModelForm, AmountForm):
             "title",
             "start_date",
             "end_date",
-            "license_types",
             "max_uses",
-            "leader_only",
-            "parent_event_id",
         ]
 
     delete = BooleanField("Supprimer")
+
+    license_types = StringField("Catégories de license")
+    leader_only = BooleanField("Tarif encadrant")
+    parent_event_id = IntegerField("Événement parent", validators=[Optional()])
 
     price_id = HiddenField()
     total_use_count = 0
@@ -183,11 +184,12 @@ class NewItemPriceForm(ModelForm, AmountForm):
             "title",
             "start_date",
             "end_date",
-            "license_types",
             "max_uses",
-            "leader_only",
-            "parent_event_id",
         ]
+
+    license_types = StringField("Catégories de license")
+    leader_only = BooleanField("Tarif encadrant")
+    parent_event_id = IntegerField("Événement parent", validators=[Optional()])
 
     item_title = StringField("Intitulé du nouvel objet")
     existing_item = SelectField(

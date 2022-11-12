@@ -76,7 +76,6 @@ def edit_prices(event_id):
             new_price = ItemPrice(
                 update_time=current_time(),
             )
-            new_price_form.populate_obj(new_price)
 
             if new_price_form.existing_item.data:
                 new_price.item_id = new_price_form.existing_item.data
@@ -95,11 +94,12 @@ def edit_prices(event_id):
                         "info",
                     )
 
-                new_item = PaymentItem(title=new_price_form.item_title.data)
+                new_item = PaymentItem(title=new_price_form.item_title.data, event_id = event.id)
                 new_item.prices.append(new_price)
-                event.payment_items.append(new_item)
-                db.session.add(event)
+                
                 db.session.add(new_item)
+            
+            new_price_form.populate_obj(new_price)
             db.session.add(new_price)
             db.session.commit()
 

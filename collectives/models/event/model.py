@@ -134,11 +134,11 @@ class EventModelMixin:
         return db.Column(db.Integer, db.ForeignKey("users.id"))
 
     @declared_attr
-    def parent_event_id(self):
-        """Primary key of the parent curriculum event
+    def user_group_id(self):
+        """Primary key of the user group to which to restrict registrations
 
         :type: int"""
-        return db.Column(db.Integer, db.ForeignKey("events.id"))
+        return db.Column(db.Integer, db.ForeignKey("user_groups.id"))
 
     @declared_attr
     def event_type_id(self):
@@ -234,15 +234,15 @@ class EventModelMixin:
         )
 
     @declared_attr
-    def parent_event(self):
-        """Parent event
+    def user_group(self):
+        """User Group
 
-        Registrations to this event will we limited to users already registered on the parent event
+        Registrations to this event will we limited to users that are members of this group
 
         :type: :py:class:`collectives.models.event.Event`
         """
         return db.relationship(
-            "Event", backref="children_events", remote_side=[self.id], lazy=True
+            "UserGroup", single_parent=True, lazy=True
         )
 
     @validates("title")

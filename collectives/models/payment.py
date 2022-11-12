@@ -4,6 +4,8 @@
 from decimal import Decimal
 from datetime import timedelta
 
+from sqlalchemy.orm import make_transient
+
 from wtforms.validators import NumberRange
 
 from collectives.models.event import Event
@@ -55,7 +57,7 @@ class PaymentItem(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
-    def copy(self, time_shift=timedelta(0)):
+    def copy(self, time_shift=timedelta(0), old_event_id=None, new_event_id=None):
         """Copy current payment item.
 
         Copy also price but not payments.
@@ -66,7 +68,11 @@ class PaymentItem(db.Model):
         item = PaymentItem()
         item.title = self.title
         for price in self.prices:
-            item.prices.append(price.copy(time_shift))
+            item.prices.append(
+                price.copy(
+                    time_shift, old_event_id=old_event_id, new_event_id=new_event_id
+                )
+            )
         return item
 
     def active_prices(self):
@@ -168,12 +174,6 @@ class ItemPrice(db.Model):
 
     :type: string"""
 
-    license_types = db.Column(db.String(256), info={"label": "Catégories de licence"})
-    """ List of comma-separated license-types to which this price applies.
-    If the list is NULL or left empty, then the price applies to all licence types
-
-    :type: string"""
-
     start_date = db.Column(db.Date(), info={"label": "Date de début"})
     """ Date at which this price will start to be available
 
@@ -206,27 +206,16 @@ class ItemPrice(db.Model):
 
     :type: bool"""
 
-    leader_only = db.Column(
-        db.Boolean,
-        nullable=False,
-        default=False,
-        info={"label": "Tarif encadrant"},
-    )
-    """ Whether this price is only available to the event leaders.
-
-    :type: bool"""
-
     update_time = db.Column(db.DateTime, nullable=False)
     """ Time at which the price was last updated
 
     :type: :py:class:`datetime.datetime`"""
 
-    parent_event_id = db.Column(
+    user_group_id = db.Column(
         db.Integer,
-        db.ForeignKey("events.id"),
-        info={"label": "Evènement parent"},
+        db.ForeignKey("user_groups.id"),
     )
-    """ Parent event id, where user is required to have subscribed to get the price."""
+    """ User Group id, of whoch user is required to be a member to get the price."""
 
     # Relationships
 
@@ -236,28 +225,34 @@ class ItemPrice(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
-    parent_event = db.relationship("Event", remote_side=[Event.id], lazy=True)
-    """ User has to have subscribed to this event to get this price.
+    user_group = db.relationship("UserGroup", single_parent=True, lazy=True)
+    """ User has to be a member of this group to get this price.
 
-    :type: list(:py:class:`collectives.models.event.Event`)
+    :type: list(:py:class:`collectives.models.user_group.UserGroup`)
     """
 
-    def copy(self, time_shift=timedelta(0)):
+    def copy(self, time_shift=timedelta(0), old_event_id=None, new_event_id=None):
         """Copy this price.
 
         :type time_shift: :py:class:`datetime.timedelta`
         :returns: Copied :py:class:`collectives.models.payments.PaymentItem`
         :returns: Copied :py:class:`collectives.models.payments.ItemPrice`"""
-        attributes = dict(self.__dict__)
-        attributes.pop("id")  # get rid of id
-        attributes.pop("item_id")  # get rid of item_id
-        attributes.pop("_sa_instance_state")  # get rid of SQLAlchemy special attr
-        copy = self.__class__(**attributes)
+        copy = ItemPrice.query.get(self.id)
+        make_transient(copy)
+        copy.id = None
+        copy.item_id = None
 
         if copy.start_date is not None:
             copy.start_date = copy.start_date + time_shift
         if self.end_date is not None:
             copy.end_date = copy.end_date + time_shift
+
+        if self.user_group:
+            copy.user_group = self.user_group.clone()
+            # Adjust event id for leader-only prices
+            for event_cond in copy.user_group.event_conditions:
+                if event_cond.event_id == old_event_id:
+                    event_cond.event_id = new_event_id
 
         return copy
 
@@ -318,30 +313,102 @@ class ItemPrice(db.Model):
             return False
         return True
 
-    def is_available_to_user(self, user):
+    def is_available_to_user(self, user : "collectives.models.user.User") -> bool:
         """Returns whether this price is available to an user
         at any point in time
 
         :param user:  The candidate user
-        :type user: :py:class:`collectives.models.user.User`
-
-        :return: True if the user license belongs to the license
-                 types string (or no license types are provided)
-        :rtype: bool
+        :return: True if the user license belongs to the associated user group
         """
         if not self.enabled:
             return False
-        if self.leader_only and not self.item.event.is_leader(user):
-            return False
-        if self.parent_event is not None:
-            if not self.parent_event.is_registered_with_status(
-                user, [RegistrationStatus.Active]
-            ):
-                return False
-        if not self.license_types:
-            return True
-        license_types = self.license_types.split()
-        return len(license_types) == 0 or user.license_category in license_types
+        return self.user_group is None or self.user_group.contains(user)
+
+    @property
+    def parent_event_id(self):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        if self.user_group is None:
+            return None
+        parent_event_conditions = [
+            cond for cond in self.user_group.event_conditions if not cond.is_leader
+        ]
+        if not parent_event_conditions:
+            return None
+        return self.user_group.event_conditions[0].event_id
+
+    @parent_event_id.setter
+    def parent_event_id(self, id):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        from collectives.models import UserGroup, GroupEventCondition
+
+        if self.user_group is None:
+            self.user_group = UserGroup()
+
+        parent_event_conditions = [
+            cond for cond in self.user_group.event_conditions if not cond.is_leader
+        ]
+        if not parent_event_conditions:
+            if id is not None:
+                condition = GroupEventCondition(event_id=id, is_leader=False)
+                self.user_group.event_conditions.append(condition)
+        else:
+            if id is None:
+                self.user_group.event_conditions.remove(parent_event_conditions[0])
+            else:
+                parent_event_conditions[0].parent_event_id = id
+
+    @property
+    def leader_only(self):
+        """Temporary helper for migrating from leader_only to user groups"""
+        if self.user_group is None:
+            return None
+        leader_only_conditions = [
+            cond for cond in self.user_group.event_conditions if cond.is_leader
+        ]
+        return bool(leader_only_conditions)
+
+    @leader_only.setter
+    def leader_only(self, value):
+        """Temporary helper for migrating from leader_only to user groups"""
+        from collectives.models import UserGroup, GroupEventCondition
+
+        if self.user_group is None:
+            self.user_group = UserGroup()
+        leader_only_conditions = [
+            cond for cond in self.user_group.event_conditions if cond.is_leader
+        ]
+        if not leader_only_conditions:
+            if value:
+                condition = GroupEventCondition(
+                    event_id=self.item.event_id, is_leader=True
+                )
+                self.user_group.event_conditions.append(condition)
+        else:
+            if not value:
+                self.user_group.event_conditions.remove(leader_only_conditions[0])
+
+    @property
+    def license_types(self):
+        """Temporary helper for migrating from license_types to user groups"""
+        if self.user_group is None:
+            return []
+        return [cond.license_category for cond in self.user_group.license_conditions]
+
+    @license_types.setter
+    def license_types(self, types):
+        """Temporary helper for migrating from license_types to user groups"""
+        from collectives.models import UserGroup, GroupLicenseCondition
+
+        if self.user_group is None:
+            self.user_group = UserGroup()
+
+        if len(types) == len(self.user_group.license_conditions):
+            for (cat, cond) in zip(types, self.user_group.license_conditions):
+                cond.license_category = cat
+        else:
+            self.user_group.license_conditions = [
+                GroupLicenseCondition(license_category=cat) for cat in types
+            ]
 
 
 class PaymentType(ChoiceEnum):

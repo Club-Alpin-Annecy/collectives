@@ -3,6 +3,7 @@
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models.event.enum import EventStatus
+from collectives.models import db  
 from collectives.utils import render_markdown
 
 
@@ -111,3 +112,29 @@ class EventMiscMixin:
             and self.opens_before_closes()
             and self.has_defined_registration_date()
         )
+
+    @property
+    def parent_event_id(self):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        if self.user_group is None:
+            return None 
+        if not self.user_group.event_conditions:
+            return None 
+        return self.user_group.event_conditions[0].event_id
+
+    @parent_event_id.setter
+    def parent_event_id(self, id):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        if id is None:
+            self.user_group = None
+        else:
+            from collectives.models import UserGroup, GroupEventCondition
+
+            if self.user_group is None:
+                self.user_group = UserGroup()
+            if not self.user_group.event_conditions:
+                condition = GroupEventCondition(event_id = id, is_leader = False)
+                self.user_group.event_conditions.append(condition)
+            else:
+                self.user_group.event_conditions[0].parent_event_id = id
+

@@ -4,6 +4,7 @@ import enum
 from typing import List
 
 from sqlalchemy import and_, or_, true
+from sqlalchemy.orm import Query
 
 from collectives.models.globals import db
 
@@ -59,6 +60,10 @@ class GroupRoleCondition(db.Model):
             return User.roles.any(Role.activity_id == self.activity_id)
         return true
 
+    def clone(self) -> "GroupRoleCondition":
+        """:return: a deep copy of this object"""
+        return GroupRoleCondition(role_id=self.role_id, activity_id=self.activity_id)
+
 
 class GroupEventCondition(db.Model):
     """Relationship indicating that group members must participate (or lead) a given event."""
@@ -100,6 +105,10 @@ class GroupEventCondition(db.Model):
 
         return User.registrations.any(Registration.event_id == self.event_id)
 
+    def clone(self) -> "GroupEventCondition":
+        """:return: a deep copy of this object"""
+        return GroupEventCondition(is_leader=self.is_leader, event_id=self.event_id)
+
 
 class GroupLicenseCondition(db.Model):
     """Relationship indicating that group members must have a certain license type"""
@@ -122,6 +131,10 @@ class GroupLicenseCondition(db.Model):
     """ User club license category.
 
     :type: string (2 char)"""
+
+    def clone(self) -> "GroupLicenseCondition":
+        """:return: a deep copy of this object"""
+        return GroupLicenseCondition(license_category=self.license_category)
 
 
 class UserGroup(db.Model):
@@ -176,6 +189,14 @@ class UserGroup(db.Model):
 
     def get_members(self) -> List[User]:
         """:return: the list of group members"""
+        return self._build_query().all()
+
+    def contains(self, user: User) -> bool:
+        """:return: Whether a given user is a member of the group"""
+        return self._build_query().filter(User.id == user.id).one_or_none() is not None
+
+    def _build_query(self) -> Query:
+        """:return: the SQLAlchemy query used to check group members"""
         query = User.query
 
         if self.role_conditions:
@@ -192,4 +213,18 @@ class UserGroup(db.Model):
             ]
             query = query.filter(User.license_category.in_(categories))
 
-        return query.all()
+        return query
+
+    def clone(self) -> "UserGroup":
+        """:return: a deep copy of this object, cloning all conditions"""
+        clone = UserGroup()
+        clone.event_conditions = [
+            condition.clone() for condition in self.event_conditions
+        ]
+        clone.role_conditions = [
+            condition.clone() for condition in self.role_conditions
+        ]
+        clone.license_conditions = [
+            condition.clone() for condition in self.license_conditions
+        ]
+        return clone

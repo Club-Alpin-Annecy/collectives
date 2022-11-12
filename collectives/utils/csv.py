@@ -7,6 +7,7 @@ import csv
 from flask import current_app
 
 from collectives.models import User, Event, db
+from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
 
@@ -33,7 +34,10 @@ def fill_from_csv(event, row, template):
     if parent_event_id != "":
         if Event.query.get(parent_event_id) is None:
             raise Exception(f"La collective {parent_event_id} n'existe pas")
-        event.parent_event_id = parent_event_id
+        event.user_group = UserGroup()
+        event.user_group.event_conditions.add(
+            GroupEventCondition(event_id=parent_event_id, is_leader=False)
+        )
 
     # Online subscription dates and slots
     if row["places_internet"].strip():
