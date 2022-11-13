@@ -149,6 +149,13 @@ class EventModelMixin:
         return db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)
 
     @declared_attr
+    def _deprecated_parent_event_id(self):
+        """[Deprecated] Primary key of the user group to which to restrict registrations
+
+        :type: int"""
+        return db.Column("parent_event_id", db.Integer, db.ForeignKey("events.id"))
+
+    @declared_attr
     def leaders(self):
         """Users who lead this event.
 
@@ -241,9 +248,7 @@ class EventModelMixin:
 
         :type: :py:class:`collectives.models.event.Event`
         """
-        return db.relationship(
-            "UserGroup", single_parent=True, lazy=True
-        )
+        return db.relationship("UserGroup", single_parent=True, lazy=True)
 
     @validates("title")
     def truncate_string(self, key, value):

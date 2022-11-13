@@ -8,11 +8,14 @@ from sqlalchemy.orm import make_transient
 
 from wtforms.validators import NumberRange
 
-from collectives.models.event import Event
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
-from collectives.models.registration import RegistrationStatus
 from collectives.utils.time import current_time
+from collectives.models.user_group import (
+    UserGroup,
+    GroupEventCondition,
+    GroupLicenseCondition,
+)
 
 
 class PaymentItem(db.Model):
@@ -145,6 +148,7 @@ class PaymentItem(db.Model):
         return self.cheapest_price_for_user_at_date(user, current_date)
 
 
+# pylint: disable=too-many-instance-attributes
 class ItemPrice(db.Model):
     """Database model describing prices for a payment item
     E.g. 'Youth ', 'Early bird', ...
@@ -216,6 +220,31 @@ class ItemPrice(db.Model):
         db.ForeignKey("user_groups.id"),
     )
     """ User Group id, of whoch user is required to be a member to get the price."""
+
+    # Deprecated attributes
+
+    _deprecated_license_types = db.Column("license_types", db.String(256))
+    """ [Deprecated] List of comma-separated license-types to which this price applies.
+    If the list is NULL or left empty, then the price applies to all licence types
+
+    :type: string"""
+
+    _deprecated_leader_only = db.Column(
+        "leader_only",
+        db.Boolean,
+        nullable=True,
+        default=False,
+    )
+    """ [Deprecated] Whether this price is only available to the event leaders.
+
+    :type: bool"""
+
+    _deprecated_parent_event_id = db.Column(
+        "parent_event_id",
+        db.Integer,
+        db.ForeignKey("events.id"),
+    )
+    """ [Deprecated] Parent event id, where user is required to have subscribed to get the price."""
 
     # Relationships
 
@@ -313,7 +342,7 @@ class ItemPrice(db.Model):
             return False
         return True
 
-    def is_available_to_user(self, user : "collectives.models.user.User") -> bool:
+    def is_available_to_user(self, user: "collectives.models.user.User") -> bool:
         """Returns whether this price is available to an user
         at any point in time
 
@@ -322,11 +351,24 @@ class ItemPrice(db.Model):
         """
         if not self.enabled:
             return False
+
+        # Migrate old version of attributes
+        if self._deprecated_leader_only:
+            self.leader_only = self._deprecated_leader_only
+        if self._deprecated_license_types:
+            self.license_types = self._deprecated_license_types
+        if self._deprecated_parent_event_id:
+            self.parent_event_id = self._deprecated_parent_event_id
+
         return self.user_group is None or self.user_group.contains(user)
 
     @property
     def parent_event_id(self):
         """Temporary helper for migrating from parent_event_id to user groups"""
+        if self._deprecated_parent_event_id:
+            # Migrate to new version of attribute
+            self.parent_event_id = self._deprecated_parent_event_id
+
         if self.user_group is None:
             return None
         parent_event_conditions = [
@@ -337,9 +379,8 @@ class ItemPrice(db.Model):
         return self.user_group.event_conditions[0].event_id
 
     @parent_event_id.setter
-    def parent_event_id(self, id):
+    def parent_event_id(self, parent_event_id):
         """Temporary helper for migrating from parent_event_id to user groups"""
-        from collectives.models import UserGroup, GroupEventCondition
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -348,18 +389,25 @@ class ItemPrice(db.Model):
             cond for cond in self.user_group.event_conditions if not cond.is_leader
         ]
         if not parent_event_conditions:
-            if id is not None:
-                condition = GroupEventCondition(event_id=id, is_leader=False)
+            if parent_event_id is not None:
+                condition = GroupEventCondition(
+                    event_id=parent_event_id, is_leader=False
+                )
                 self.user_group.event_conditions.append(condition)
         else:
-            if id is None:
+            if parent_event_id is None:
                 self.user_group.event_conditions.remove(parent_event_conditions[0])
             else:
-                parent_event_conditions[0].parent_event_id = id
+                parent_event_conditions[0].parent_event_id = parent_event_id
+        self._deprecated_parent_event_id = None
 
     @property
     def leader_only(self):
         """Temporary helper for migrating from leader_only to user groups"""
+        if self._deprecated_leader_only:
+            # Migrate to new version of attribute
+            self.leader_only = self._deprecated_leader_only
+
         if self.user_group is None:
             return None
         leader_only_conditions = [
@@ -370,7 +418,6 @@ class ItemPrice(db.Model):
     @leader_only.setter
     def leader_only(self, value):
         """Temporary helper for migrating from leader_only to user groups"""
-        from collectives.models import UserGroup, GroupEventCondition
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -386,10 +433,15 @@ class ItemPrice(db.Model):
         else:
             if not value:
                 self.user_group.event_conditions.remove(leader_only_conditions[0])
+        self._deprecated_leader_only = None
 
     @property
     def license_types(self):
         """Temporary helper for migrating from license_types to user groups"""
+        if self._deprecated_license_types:
+            # Migrate to new version of attribute
+            self.license_types = self._deprecated_license_types
+
         if self.user_group is None:
             return []
         return [cond.license_category for cond in self.user_group.license_conditions]
@@ -397,7 +449,6 @@ class ItemPrice(db.Model):
     @license_types.setter
     def license_types(self, types):
         """Temporary helper for migrating from license_types to user groups"""
-        from collectives.models import UserGroup, GroupLicenseCondition
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -409,6 +460,7 @@ class ItemPrice(db.Model):
             self.user_group.license_conditions = [
                 GroupLicenseCondition(license_category=cat) for cat in types
             ]
+        self._deprecated_license_types = None
 
 
 class PaymentType(ChoiceEnum):

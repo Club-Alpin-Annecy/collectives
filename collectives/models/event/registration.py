@@ -4,6 +4,7 @@ from operator import attrgetter
 
 from collectives.models.registration import RegistrationLevels, RegistrationStatus
 
+
 class EventRegistrationMixin:
     """Part of Event class for registration manipulation and check.
 
@@ -214,13 +215,18 @@ class EventRegistrationMixin:
             user, [RegistrationStatus.SelfUnregistered]
         )
 
-    def is_user_in_user_group(self, user : "collectives.models.user.User") -> bool:
+    def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is part of the event user group
 
         :param user: User which will be tested.
         :return: True if there is no user group or the user is a member of the group
         :rtype: boolean
         """
+
+        if self._deprecated_parent_event_id:
+            # Migrate to new version of attribute
+            self.parent_event_id = self._deprecated_parent_event_id
+
         if self.user_group is None:
             return True
         return self.user_group.contains(user)

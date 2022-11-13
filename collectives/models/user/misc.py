@@ -188,6 +188,7 @@ class UserMiscMixin:
         :return: True if user can register on the specified timespan.
         :rtype: boolean
         """
+        # pylint: disable=(import-outside-toplevel
         from collectives.models.event import Event, EventType
 
         query = db.session.query(Event)

@@ -1,3 +1,5 @@
+"""Unit tests for user name auto-completion"""
+
 from collectives.api.autocomplete_user import find_users_by_fuzzy_name
 
 from collectives.models import db

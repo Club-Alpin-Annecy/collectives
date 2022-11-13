@@ -134,9 +134,9 @@ inject_fixture("prototype_paying_event", "paying")
 def paying_event(prototype_paying_event):
     """:returns: An event with associated payment_item and prices"""
 
-    db.session.add(prototype_paying_event)
-    db.session.commit()
-    prototype_paying_event.payment_items.append(payment.payment_item(prototype_paying_event))
+    prototype_paying_event.payment_items.append(
+        payment.payment_item(prototype_paying_event)
+    )
     db.session.add(prototype_paying_event)
     db.session.commit()
     return prototype_paying_event
@@ -149,9 +149,9 @@ inject_fixture("prototype_disabled_paying_event", "disabled paying")
 def disabled_paying_event(prototype_disabled_paying_event):
     """:returns: An event in draft status"""
 
-    db.session.add(prototype_disabled_paying_event)
-    db.session.commit()
-    prototype_disabled_paying_event.payment_items.append(payment.payment_item(prototype_disabled_paying_event))
+    prototype_disabled_paying_event.payment_items.append(
+        payment.payment_item(prototype_disabled_paying_event)
+    )
     db.session.add(prototype_disabled_paying_event)
     db.session.commit()
     return prototype_disabled_paying_event

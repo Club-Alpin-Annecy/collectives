@@ -3,7 +3,6 @@
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models.event.enum import EventStatus
-from collectives.models import db  
 from collectives.utils import render_markdown
 
 
@@ -116,25 +115,33 @@ class EventMiscMixin:
     @property
     def parent_event_id(self):
         """Temporary helper for migrating from parent_event_id to user groups"""
+        if self._deprecated_parent_event_id:
+            # Migrate to new version of attribute
+            self.parent_event_id = self._deprecated_parent_event_id
+
         if self.user_group is None:
-            return None 
+            return None
         if not self.user_group.event_conditions:
-            return None 
+            return None
         return self.user_group.event_conditions[0].event_id
 
+    # pylint: disable=import-outside-toplevel
     @parent_event_id.setter
-    def parent_event_id(self, id):
+    def parent_event_id(self, parent_event_id):
         """Temporary helper for migrating from parent_event_id to user groups"""
-        if id is None:
+        if parent_event_id is None:
             self.user_group = None
         else:
-            from collectives.models import UserGroup, GroupEventCondition
+            from collectives.models.user_group import UserGroup, GroupEventCondition
 
             if self.user_group is None:
                 self.user_group = UserGroup()
             if not self.user_group.event_conditions:
-                condition = GroupEventCondition(event_id = id, is_leader = False)
+                condition = GroupEventCondition(
+                    event_id=parent_event_id, is_leader=False
+                )
                 self.user_group.event_conditions.append(condition)
             else:
-                self.user_group.event_conditions[0].parent_event_id = id
+                self.user_group.event_conditions[0].parent_event_id = parent_event_id
 
+        self._deprecated_parent_event_id = None

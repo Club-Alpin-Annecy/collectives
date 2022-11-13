@@ -1,6 +1,4 @@
 """ Handle dynamic user groups, for restricting or payment options """
-from asyncio import events
-import enum
 from typing import List
 
 from sqlalchemy import and_, or_, true
@@ -10,8 +8,8 @@ from collectives.models.globals import db
 
 from collectives.models.role import RoleIds, Role
 from collectives.models.user import User
-from collectives.models.event import Event
 from collectives.models.registration import Registration
+from collectives.models.event import Event
 
 
 class GroupRoleCondition(db.Model):
@@ -83,7 +81,7 @@ class GroupEventCondition(db.Model):
     :type: int"""
 
     event_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=False)
-    """ ID of the activity to which the user role should relate to. 
+    """ ID of the activity to which the user role should relate to.
 
     :type: int"""
 
@@ -95,6 +93,7 @@ class GroupEventCondition(db.Model):
 
     def get_condition(self):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
+
         if self.is_leader is None:
             return or_(
                 User.led_events.any(Event.id == self.event_id),
@@ -200,16 +199,19 @@ class UserGroup(db.Model):
         query = User.query
 
         if self.role_conditions:
-            roles = [role.get_condition() for role in self.role_conditions]
+            roles = [role_cond.get_condition() for role_cond in self.role_conditions]
             query = query.filter(or_(*roles))
 
         if self.event_conditions:
-            events = [event.get_condition() for event in self.event_conditions]
+            events = [
+                event_cond.get_condition() for event_cond in self.event_conditions
+            ]
             query = query.filter(or_(*events))
 
         if self.license_conditions:
             categories = [
-                condition.license_category for condition in self.license_conditions
+                license_cond.license_category
+                for license_cond in self.license_conditions
             ]
             query = query.filter(User.license_category.in_(categories))
 

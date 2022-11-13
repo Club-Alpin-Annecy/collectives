@@ -1,3 +1,5 @@
+"""Unit tests for Role class"""
+
 from collectives.models.role import RoleIds, Role
 from collectives.models.user import User, activity_supervisors
 from collectives.models.activity_type import ActivityType
@@ -13,8 +15,6 @@ def test_add_role(user1):
 
     db.session.add(user1)
     db.session.commit()
-
-    assert admin_role in db.session
 
     retrieved_user = User.query.filter_by(id=user1.id).first()
     assert len(retrieved_user.roles) == 1

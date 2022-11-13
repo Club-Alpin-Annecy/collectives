@@ -1,9 +1,6 @@
-import unittest
-import datetime
-from os import environ
-from io import StringIO
+""" Unit tests for Event class """
 
-import flask_testing
+import datetime
 
 # pylint: disable=C0301
 from collectives.models import db, ActivityType, Event

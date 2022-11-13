@@ -162,7 +162,8 @@ disable=raw-checker-failed,
         too-many-return-statements,
         too-many-instance-attributes,
         unexpected-keyword-arg, #false positive with attachment_filename
-        no-member #False positives with SQLAlchemy
+        no-member, #False positives with SQLAlchemy
+        cyclic-import #False positives with conf.test.py
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

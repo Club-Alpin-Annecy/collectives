@@ -94,11 +94,13 @@ def edit_prices(event_id):
                         "info",
                     )
 
-                new_item = PaymentItem(title=new_price_form.item_title.data, event_id = event.id)
+                new_item = PaymentItem(
+                    title=new_price_form.item_title.data, event_id=event.id
+                )
                 new_item.prices.append(new_price)
-                
+
                 db.session.add(new_item)
-            
+
             new_price_form.populate_obj(new_price)
             db.session.add(new_price)
             db.session.commit()

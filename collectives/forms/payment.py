@@ -3,7 +3,14 @@ from decimal import Decimal
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, StringField, DecimalField, FormField, FieldList, IntegerField
+from wtforms import (
+    SubmitField,
+    StringField,
+    DecimalField,
+    FormField,
+    FieldList,
+    IntegerField,
+)
 from wtforms import HiddenField, BooleanField, SelectField
 from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm

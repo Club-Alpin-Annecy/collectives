@@ -116,12 +116,11 @@ def upgrade():
             "fkey_ip_user_group_id", "user_groups", ["user_group_id"], ["id"]
         )
 
+
 def downgrade():
     with op.batch_alter_table("item_prices") as batch_op:
         batch_op.drop_constraint("fkey_ip_user_group_id", type_="foreignkey")
-        batch_op.alter_column(
-            "leader_only", existing_type=sa.Integer(), nullable=False
-        )
+        batch_op.alter_column("leader_only", existing_type=sa.Integer(), nullable=False)
         batch_op.drop_column("user_group_id")
 
     with op.batch_alter_table("events") as batch_op:
