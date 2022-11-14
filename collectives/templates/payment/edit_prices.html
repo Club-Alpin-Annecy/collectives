@@ -99,6 +99,7 @@
             {{ field.parent_event_id(style="display:none") }} 
             <input type="text" id="{{ field.parent_event_id.id }}-search" placeholder="Titre ou ID…"/>
           </td>
+          <td> {{ field.max_uses() }} </td>
           <td> {{ field.leader_only() }} </td>
           <td class="actions"> {{field.price_id}} 
           {{field.active_use_count}} actives ({{field.total_use_count}} tot.)

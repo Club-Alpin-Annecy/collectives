@@ -113,6 +113,14 @@ class EventMiscMixin:
         )
 
     @property
+    def parent_event(self):
+        """Temporary helper for migrating from parent_event user groups"""
+        parent_event_id = self.parent_event_id
+        if parent_event_id is None:
+            return None
+        return self.query.get(parent_event_id)
+
+    @property
     def parent_event_id(self):
         """Temporary helper for migrating from parent_event_id to user groups"""
         if self._deprecated_parent_event_id:
@@ -142,6 +150,6 @@ class EventMiscMixin:
                 )
                 self.user_group.event_conditions.append(condition)
             else:
-                self.user_group.event_conditions[0].parent_event_id = parent_event_id
+                self.user_group.event_conditions[0].event_id = parent_event_id
 
         self._deprecated_parent_event_id = None

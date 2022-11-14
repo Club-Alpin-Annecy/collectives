@@ -362,6 +362,17 @@ class ItemPrice(db.Model):
 
         return self.user_group is None or self.user_group.contains(user)
 
+    # pylint: disable=import-outside-toplevel
+    @property
+    def parent_event(self):
+        """Temporary helper for migrating from parent_event user groups"""
+        from collectives.models.event import Event
+
+        parent_event_id = self.parent_event_id
+        if parent_event_id is None:
+            return None
+        return Event.query.get(parent_event_id)
+
     @property
     def parent_event_id(self):
         """Temporary helper for migrating from parent_event_id to user groups"""
@@ -397,8 +408,9 @@ class ItemPrice(db.Model):
         else:
             if parent_event_id is None:
                 self.user_group.event_conditions.remove(parent_event_conditions[0])
+                db.session.delete(parent_event_conditions[0])
             else:
-                parent_event_conditions[0].parent_event_id = parent_event_id
+                parent_event_conditions[0].event_id = parent_event_id
         self._deprecated_parent_event_id = None
 
     @property
@@ -433,26 +445,31 @@ class ItemPrice(db.Model):
         else:
             if not value:
                 self.user_group.event_conditions.remove(leader_only_conditions[0])
+                db.session.delete(leader_only_conditions[0])
         self._deprecated_leader_only = None
 
     @property
-    def license_types(self):
+    def license_types(self) -> str:
         """Temporary helper for migrating from license_types to user groups"""
         if self._deprecated_license_types:
             # Migrate to new version of attribute
             self.license_types = self._deprecated_license_types
 
         if self.user_group is None:
-            return []
-        return [cond.license_category for cond in self.user_group.license_conditions]
+            return ""
+
+        return " ".join(
+            cond.license_category for cond in self.user_group.license_conditions
+        )
 
     @license_types.setter
-    def license_types(self, types):
+    def license_types(self, types: str):
         """Temporary helper for migrating from license_types to user groups"""
 
         if self.user_group is None:
             self.user_group = UserGroup()
 
+        types = types.split()
         if len(types) == len(self.user_group.license_conditions):
             for (cat, cond) in zip(types, self.user_group.license_conditions):
                 cond.license_category = cat
