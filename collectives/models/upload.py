@@ -183,7 +183,7 @@ class UploadedFile(db.Model):
         """
         return (
             url_for(
-                "images.crop",
+                "images.fit",
                 filename=self.path,
                 width=width,
                 height=height,
