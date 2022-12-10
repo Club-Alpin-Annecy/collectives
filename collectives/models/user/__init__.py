@@ -16,7 +16,12 @@ from collectives.models.user.role import UserRoleMixin
 
 
 class User(
-    db.Model, UserModelMixin, flask_login.UserMixin, UserRoleMixin, UserMiscMixin
+    # flask_login.UserMixin needs to be last so that is_active is properly overidden
+    db.Model,
+    UserModelMixin,
+    UserRoleMixin,
+    UserMiscMixin,
+    flask_login.UserMixin,
 ):
     """Class to manage user.
 
