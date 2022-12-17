@@ -191,8 +191,8 @@ class UserMiscMixin:
         """
 
         query = db.session.query(Event)
-        query = query.filter(Event.start <= end)
-        query = query.filter(Event.end >= start)
+        query = query.filter(Event.start < end)
+        query = query.filter(Event.end > start)
         query = query.filter(Registration.user_id == self.id)
         # pylint: disable=comparison-with-callable
         query = query.filter(Event.id == Registration.event_id)
