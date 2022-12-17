@@ -245,8 +245,8 @@ class UserRoleMixin:
         """
 
         query = db.session.query(Event)
-        query = query.filter(Event.start <= end)
-        query = query.filter(Event.end >= start)
+        query = query.filter(Event.start < end)
+        query = query.filter(Event.end > start)
         query = query.filter(Event.leaders.contains(self))
         query = query.filter(Event.id != excluded_event_id)
         # pylint: disable=comparison-with-callable
