@@ -10,6 +10,7 @@ Typical usage example::
 """
 
 from logging.config import fileConfig
+import os
 import werkzeug
 
 from flask import Flask, current_app
@@ -53,6 +54,10 @@ def create_app(config_filename="config.py"):
     :return: A flask application for collectives
     :rtype: :py:class:`flask.Flask`
     """
+
+    # Set up cwd 
+    os.chdir(os.path.dirname(os.path.dirname(__file__)))
+
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
@@ -65,6 +70,8 @@ def create_app(config_filename="config.py"):
 
     # Initialize plugins
     models.db.init_app(app)
+    _migrate = Migrate(app, models.db)
+
     auth.login_manager.init_app(app)  # app is a Flask object
     api.marshmallow.init_app(app)
     profile.images.init_app(app)
@@ -72,9 +79,7 @@ def create_app(config_filename="config.py"):
     payline.api.init_app(app)
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
-    app.context_processor(jinja.helpers_processor)
-
-    _migrate = Migrate(app, models.db)
+    app.context_processor(jinja.helpers_processor)    
 
     with app.app_context():
 
