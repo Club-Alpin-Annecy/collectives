@@ -14,6 +14,7 @@ import os
 import werkzeug
 
 from flask import Flask, current_app
+from flask_sqlalchemy import SQLAlchemy
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
@@ -58,6 +59,9 @@ def create_app(config_filename="config.py"):
     # Set up cwd 
     os.chdir(os.path.dirname(os.path.dirname(__file__)))
 
+    _migrate = Migrate.init_app(app, SQLAlchemy())
+
+
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
@@ -70,8 +74,6 @@ def create_app(config_filename="config.py"):
 
     # Initialize plugins
     models.db.init_app(app)
-    _migrate = Migrate.init_app(app, models.db)
-
     auth.login_manager.init_app(app)  # app is a Flask object
     api.marshmallow.init_app(app)
     profile.images.init_app(app)
