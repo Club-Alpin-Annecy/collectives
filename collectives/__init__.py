@@ -59,10 +59,10 @@ def create_app(config_filename="config.py"):
     # Set up cwd 
     os.chdir(os.path.dirname(os.path.dirname(__file__)))
 
+    app = Flask(__name__, instance_relative_config=True)
+
     _migrate = Migrate.init_app(app, SQLAlchemy())
 
-
-    app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     # Config options - Make sure you created a 'config.py' file.
