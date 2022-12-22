@@ -60,9 +60,6 @@ def create_app(config_filename="config.py"):
     os.chdir(os.path.dirname(os.path.dirname(__file__)))
 
     app = Flask(__name__, instance_relative_config=True)
-
-    _migrate = Migrate.init_app(app, SQLAlchemy())
-
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     # Config options - Make sure you created a 'config.py' file.
@@ -71,6 +68,9 @@ def create_app(config_filename="config.py"):
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
+
+    _migrate = Migrate.init_app(app, SQLAlchemy())
+
 
     # Initialize plugins
     models.db.init_app(app)
