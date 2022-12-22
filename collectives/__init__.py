@@ -70,7 +70,7 @@ def create_app(config_filename="config.py"):
 
     # Initialize plugins
     models.db.init_app(app)
-    _migrate = Migrate(app, models.db)
+    _migrate = Migrate.init_app(app, models.db)
 
     auth.login_manager.init_app(app)  # app is a Flask object
     api.marshmallow.init_app(app)
