@@ -2,6 +2,7 @@
 """
 from operator import attrgetter
 from uuid import uuid4
+from typing import List
 
 from datetime import timedelta
 from flask_wtf import FlaskForm
@@ -17,12 +18,16 @@ from wtforms_alchemy import ModelForm
 from collectives.models import Event, photos, Configuration, Registration
 from collectives.models import ActivityType, EventType, EventTag
 from collectives.models import EventStatus, User, Role, RoleIds, db
+from collectives.models import ItemPrice, UserGroup
 from collectives.models import leaders_without_activities
-from collectives.utils.time import current_time, format_date, format_date_range
+from collectives.utils.time import current_time
 from collectives.utils.numbers import format_currency
+from collectives.utils.payment import generate_price_intervals, PriceDateInterval
+
+from collectives.forms.user_group import UserGroupForm
 
 
-def available_leaders(leaders, activity_ids):
+def available_leaders(leaders: List[User], activity_ids: List[int]) -> List[User]:
     """Creates a list of leaders that can be added to an event.
 
     Available leaders are users that have 'event creator' roles (EventLeader, ActivitySupervisor,
@@ -30,9 +35,8 @@ def available_leaders(leaders, activity_ids):
     any of the corresponding activities.
 
     :param leaders: list of current leaders
-    :type leaders: list[:py:class:`collectives.models.user.User`]
+    :param activity_ids: if not empty, leaders must be able to lead at least one those activities
     :return: List of available leaders
-    :rtype: list[:py:class:`collectives.models.user.User`]
     """
     existing_leaders = set(leaders)
 
@@ -51,7 +55,9 @@ def available_leaders(leaders, activity_ids):
     return [u for u in choices if u not in existing_leaders]
 
 
-def available_event_types(source_event_type, leaders):
+def available_event_types(
+    source_event_type: EventType, leaders: List[User]
+) -> List[EventType]:
     """Returns all available event types given the current leaders.
     This means:
 
@@ -61,11 +67,8 @@ def available_event_types(source_event_type, leaders):
        type if provided
 
     :param source_event_type: Event type to unconditionally include
-    :type source_event_type: :py:class:`collectives.models.event_type.EventType`
     :param leaders: List of leaders currently added to the event
-    :type leaders: list[:py:class:`collectives.models.user.User`]
     :return: Available event types
-    :rtype: list[:py:class:`collectives.models.event_type.EventType`]
     """
 
     query = EventType.query
@@ -81,7 +84,9 @@ def available_event_types(source_event_type, leaders):
     return query.all()
 
 
-def available_activities(activities, leaders, union):
+def available_activities(
+    activities: List[ActivityType], leaders: List[User], union: bool
+) -> List[ActivityType]:
     """Creates a list of activities theses leaders can lead.
 
     This list can be used in a select form input. It will contain activities
@@ -90,14 +95,10 @@ def available_activities(activities, leaders, union):
     has a moderator role (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list
-    :type activities: list[:py:class:`collectives.models.activity_type.ActivityType`]
     :param leaders: list of leader used to build activity list.
-    :type leaders: list[:py:class:`collectives.models.user.User`]
     :param union: If true, return the union all activities that can be led, otherwise returns
                   the intersection
-    :type union: bool
     :return: List of authorized activities
-    :rtype: list[:py:class:`collectives.models.activity_type.ActivityType`]
     """
     if current_user.is_moderator():
         choices = ActivityType.get_all_types()
@@ -182,13 +183,13 @@ class EventForm(ModelForm, FlaskForm):
 
     tag_list = SelectMultipleField("Labels", coerce=int)
 
-    parent_event_id = HiddenField(filters=[lambda id: id or None])
     edit_session_id = HiddenField()
+
+    user_group = FormField(UserGroupForm, default=UserGroup)
 
     source_event = None
     current_leaders = []
     main_leader_fields = []
-    parent_event = None
 
     def __init__(self, *args, **kwargs):
         """
@@ -235,15 +236,11 @@ class EventForm(ModelForm, FlaskForm):
         else:
             del self.multi_activity_types
 
-        if self.parent_event_id.data:
-            self.parent_event = Event.query.get(self.parent_event_id.data)
-
-    def set_current_leaders(self, leaders):
+    def set_current_leaders(self, leaders: List[User]):
         """
         Stores the list of current leaders, used to populate form fields
 
         :param leaders: list of current leaders
-        :type leaders: list[:py:class:`collectives.models.user.User`]
         """
         self.current_leaders = list(leaders)
         if not any(leaders):
@@ -300,21 +297,19 @@ class EventForm(ModelForm, FlaskForm):
                 (k, v) for (k, v) in EventStatus.choices() if k != EventStatus.Pending
             ]
 
-    def current_event_type(self):
+    def current_event_type(self) -> EventType:
         """
         :return: The currently selected event type, of the first available if none has been
                  elected yet
-        :rtype: :py:class:`collectives.models.event_type.EventType`
         """
         if self.event_type_id.data:
             return EventType.query.get(self.event_type_id.data)
         return EventType.query.get(self.event_type_id.choices[0][0])
 
-    def can_switch_multi_activity_mode(self):
+    def can_switch_multi_activity_mode(self) -> bool:
         """
         :return: Whether the current user can switch between single-activty/multi-activity modes.
                  If False, this means that editing is restricted to multi-activty mode.
-        :rtype: bool
         """
         return self.current_event_type().requires_activity
 
@@ -358,10 +353,9 @@ class EventForm(ModelForm, FlaskForm):
                 current_time() - timedelta(days=closing_delta)
             ).replace(hour=closing_hour, minute=0, second=0, microsecond=0)
 
-    def current_activities(self):
+    def current_activities(self) -> List[ActivityType]:
         """
         :return: the list of currently selected activities.
-        :rtype: list[:py:class:`collectives.models.activity_type.ActivityType`]
         """
         if self.multi_activities_mode.data:
             return ActivityType.query.filter(
@@ -374,21 +368,19 @@ class EventForm(ModelForm, FlaskForm):
             activity = ActivityType.query.get(self.single_activity_type.choices[0][0])
         return [activity] if activity else []
 
-    def current_activity_ids(self):
+    def current_activity_ids(self) -> List[int]:
         """
         :return: the list of currently selected activity ids.
-        :rtype: list[int]
         """
         return [a.id for a in self.current_activities()]
 
-    def current_leader_ids(self):
+    def current_leader_ids(self) -> List[int]:
         """
         :return: the list of current leader ids.
-        :rtype: list[int]
         """
         return [l.id for l in self.current_leaders]
 
-    def leader_activity_ids(self):
+    def leader_activity_ids(self) -> List[int]:
         """Returns the list of activities with which to filter
         potential new leaders.
 
@@ -396,7 +388,6 @@ class EventForm(ModelForm, FlaskForm):
         leaders with not be filtered by activity.
 
         :return: List of activity ids
-        :rtype: list[id]
         """
         if self.multi_activities_mode.data:
             # Multi-activity, do not filter leaders by activity type
@@ -409,7 +400,7 @@ class EventForm(ModelForm, FlaskForm):
             activity_ids = [a[0] for a in self.single_activity_type.choices]
         return activity_ids
 
-    def can_remove_leader(self, event, leader):
+    def can_remove_leader(self, event: Event, leader: User) -> int:
         """
         Checks whether the current user has the right to remove a leader from the form.
         This is prevented if:
@@ -434,133 +425,13 @@ class EventForm(ModelForm, FlaskForm):
         return event.can_remove_leader(current_user, leader)
 
 
-class PriceDateInterval:
-    """Class describing a date interval for which a charged amount applies.
-    Used to build the timeline of future prices for informative purpose
-    """
-
-    start = None
-    """Start date of the interval (inclusive)
-
-    :type: :py:class:`datetime.date`"""
-
-    end = None
-    """End date of the interval (inclusive)
-
-    :type: :py:class:`datetime.date`"""
-
-    amount = None
-    """Charged  amount in the interval
-
-    :type: :py:class:`decimal.Decimal`
-    """
-
-    def __init__(self, start, end, amount=None):
-        """Constructor"""
-        self.start = start
-        self.end = end
-        self.amount = amount
-
-    def __str__(self):
-        """
-        :return: Display string corresponding to the inverval
-        :rtype: string
-        """
-        current_date = current_time().date()
-        if self.start == current_date:
-            if self.end:
-                return (
-                    f"jusqu'au {format_date(self.end)}: {format_currency(self.amount)}"
-                )
-            return ""
-
-        if self.end:
-            return (
-                f"{format_date_range(self.start, self.end, False)}: "
-                f"{format_currency(self.amount)}"
-            )
-        return f"à partir du {format_date(self.start)}: {format_currency(self.amount)}"
-
-
-def generate_price_intervals(item, user):
-    """Generates a timeline of how the item price will evolve in the future.
-
-    That is, generate a list of cheapest prices at all points in the future,
-    along with the date intervals for which those prices stay the cheapest
-
-    :param item: Payment item to consider
-    :type item: :py:class:`collectives.models.payment.PaymentItem`
-    :param user: User for whom the price should be compute
-    :type user: :py:class:`collectives.models.user.User`
-    :return: The sorted list of date intervals with the corresponding charged amount
-    :rtype: list[:py:class:`PriceDateInterval`]
-    """
-
-    all_prices = item.available_prices_to_user(user)
-
-    # Conservatively generate potential boundaries at each price start/end
-    boundaries = set()
-    current_date = current_time().date()
-    boundaries.add(current_date)
-    for price in all_prices:
-        if price.end_date and price.end_date >= current_date:
-            boundaries.add(price.end_date + timedelta(1))
-        if price.start_date and price.start_date > current_date:
-            boundaries.add(price.start_date)
-
-    # Sort boundaries, generate intervals
-    boundaries = sorted(list(boundaries))
-
-    intervals = []
-    current_start = boundaries[0]
-    for boundary in boundaries[1:]:
-        intervals.append(PriceDateInterval(current_start, boundary - timedelta(1)))
-        current_start = boundary
-    intervals.append(PriceDateInterval(current_start, None))
-
-    # Merge intervals with same price
-    merged_intervals = []
-    current_start = None
-    current_end = None
-    current_amount = None
-    for interval in intervals:
-        price = item.cheapest_price_for_user_at_date(user, interval.start)
-        amount = price.amount if price else None
-        if amount == current_amount:
-            # Same price, extend current interval
-            current_end = interval.end
-        else:
-            # Price change, start a new interval
-            if current_amount is not None:
-                merged_intervals.append(
-                    PriceDateInterval(
-                        current_start,
-                        current_end,
-                        current_amount,
-                    )
-                )
-            current_start = interval.start
-            current_end = interval.end
-            current_amount = amount
-
-    if current_amount is not None:
-        merged_intervals.append(
-            PriceDateInterval(current_start, current_end, current_amount)
-        )
-
-    return merged_intervals
-
-
-def payment_item_choice_text(price, intervals):
+def payment_item_choice_text(price: ItemPrice, intervals : List[PriceDateInterval]) -> str:
     """Generates the text to be used for the payment item choice radio fields.
     Informs the user about the evolution of the item price across time
 
     :param price: Cheapest currently available price
-    :type price: :py:class:`collectives.modes.payment.ItemPrice`
     :param intervals: Price intervals as generated by :py:meth:`generate_price_intervals()`
-    :type intervals: list[:py:class:`PriceDateInterval`]
     :return: Price selection radio field text
-    :rtype: string
     """
     text = f"{price.item.title} — {price.title} : {format_currency(price.amount)} "
 
@@ -583,7 +454,7 @@ class PaymentItemChoiceForm(FlaskForm):
 
     submit = SubmitField("Valider et accéder au paiement en ligne")
 
-    def __init__(self, event, *args, **kwargs):
+    def __init__(self, event: Event, *args, **kwargs):
         """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 

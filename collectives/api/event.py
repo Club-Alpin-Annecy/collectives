@@ -290,11 +290,20 @@ def events():
 
 class AutocompleteEventSchema(marshmallow.Schema):
     """Schema under which autocomplete suggestions are returned"""
+    
+    view_uri = fields.Function(
+        lambda event: url_for(
+            "event.view_event", event_id=event.id, name=slugify(event.title)
+        )
+    )
+    """ URI to the event page.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
 
     class Meta:
         """Fields to expose"""
 
-        fields = ("id", "title", "start")
+        fields = ("id", "title", "start", "view_uri")
 
 
 @blueprint.route("/event/autocomplete/")

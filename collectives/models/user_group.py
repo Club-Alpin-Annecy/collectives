@@ -163,7 +163,7 @@ class UserGroup(db.Model):
     :type: int"""
 
     role_conditions = db.relationship(
-        "GroupRoleCondition", backref="group", cascade="all, delete"
+        "GroupRoleCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of role conditions associated with this group
 
@@ -171,7 +171,7 @@ class UserGroup(db.Model):
     """
 
     event_conditions = db.relationship(
-        "GroupEventCondition", backref="group", cascade="all, delete"
+        "GroupEventCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of event conditions associated with this group
 
@@ -179,7 +179,7 @@ class UserGroup(db.Model):
     """
 
     license_conditions = db.relationship(
-        "GroupLicenseCondition", backref="group", cascade="all, delete"
+        "GroupLicenseCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of license conditions associated with this group
 

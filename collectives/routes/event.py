@@ -421,6 +421,9 @@ def manage_event(event_id=None):
     # Populate object, run custom validators
 
     if not form.validate():
+        for err in form.user_group.event_conditions.errors:
+            print(err, flush=True)
+
         return render_template("event/editevent.html", event=event, form=form)
 
     # Do not populate the real event as errors may still be raised and we do not want
@@ -468,8 +471,21 @@ def manage_event(event_id=None):
             )
             return render_template("event/editevent.html", event=event, form=form)
 
-    # All good! Apply changes
+    # All good! Get rid of trial even and apply change
+    trial_event.user_group = None
+    del trial_event
     form.populate_obj(event)
+    
+    for cond in event.user_group.role_conditions:
+        print(cond, flush=True)
+        db.session.add(cond)
+    for cond in event.user_group.event_conditions:
+        print(cond, flush=True)
+        db.session.add(cond)
+    for cond in event.user_group.license_conditions:
+        print(cond, flush=True)
+        db.session.add(cond)
+    
     event.activity_types = tentative_activities
     event.leaders = tentative_leaders
 
