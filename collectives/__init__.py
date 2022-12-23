@@ -10,14 +10,12 @@ Typical usage example::
 """
 
 from logging.config import fileConfig
-import os
 import werkzeug
 
 from flask import Flask, current_app
-from flask_sqlalchemy import SQLAlchemy
 from flask_assets import Environment, Bundle
 from flask_login import LoginManager, current_user
-from flask_migrate import Migrate
+import flask_migrate
 from flask_wtf.csrf import CSRFProtect
 
 from collectives import models, api, forms
@@ -55,10 +53,6 @@ def create_app(config_filename="config.py"):
     :return: A flask application for collectives
     :rtype: :py:class:`flask.Flask`
     """
-
-    # Set up cwd 
-    os.chdir(os.path.dirname(os.path.dirname(__file__)))
-
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
@@ -69,14 +63,8 @@ def create_app(config_filename="config.py"):
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
 
-    
-
-
     # Initialize plugins
     models.db.init_app(app)
-    
-    _migrate = Migrate.init_app(app, models.db)
-
     auth.login_manager.init_app(app)  # app is a Flask object
     api.marshmallow.init_app(app)
     profile.images.init_app(app)
@@ -84,9 +72,12 @@ def create_app(config_filename="config.py"):
     payline.api.init_app(app)
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
-    app.context_processor(jinja.helpers_processor)    
+    app.context_processor(jinja.helpers_processor)
+
+    _migrate = flask_migrate.Migrate(app, models.db)
 
     with app.app_context():
+        flask_migrate.upgrade()
 
         init.populate_db(app)
 
