@@ -53,7 +53,7 @@ def create_app(config_filename="config.py"):
     :return: A flask application for collectives
     :rtype: :py:class:`flask.Flask`
     """
-    app = Flask(__name__, instance_relative_config=True, static_folder = '/_static')
+    app = Flask(__name__, instance_relative_config=True, static_url_path = '/_static')
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     # Config options - Make sure you created a 'config.py' file.
