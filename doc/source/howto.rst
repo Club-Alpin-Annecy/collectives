@@ -13,26 +13,32 @@ will help you to follow it.
 Please READ the CODING file before creating the PR.
 In particular:
 
-1. Format Python files using `black`. `black` is available as a formatter in some IDEs, or can be run manually from the repo root as ``python -m black *.py collectives``
-2. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+``
-3. Make sure you are documenting your classes, methods and functions.
+#. Format Python files using `black`. `black` is available as a formatter in some IDEs, or can be run manually from the repo root as ``python -m black *.py collectives``
+#. Check Python files for errors using `pylint`, ``find collectives -name "*.py" -exec python -m pylint {} \+``
+#. Make sure you are documenting your classes, methods and functions.
 
-I want to test it on my computer
-----------------------------------
-Regular method
-................
+I want to install it on my computer to develop it
+------------------------------------------------------
+Regular method with VS Code
+............................
 For Windows, Linux and probably Mac:
 
-1. Please install `git` and `python3`.
-2. Clone the repository in any folder: ``git clone git@github.com:Club-Alpin-Annecy/collectives-flask2.git``
-3. Install all the pip in a console: ``pip3 install -r requirements.txt``
-4. If needed, modify the configuration in ``instance/config.py``
-5. Run it : ``./run.py``
-6. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
+#. Please install `git` and `python3` and `VS Code`.
+#. Create an empty folder somewhere on your computer. The folder will be the workspace.
+#. Open VSCode. 
+#. In Extension (Ctrl+Shift+X), install `Python` module. Other recommended modules are `SQLite`.
+#. Click on  `Clone git repository`. Select `Clone from github`. Sign into Github. 
+#. Clone "Club-Alpin-Annecy/collectives" or your personnal fork.
+#. When asked, open the cloned repository
+#. Open terminal (Ctrl+shift+ù)
+#. Execute `pip install virtualenv` (Virtualenv is highly recommended)
+#. Create a virtual in `.env`: `virtualenv .env`
+#. If VSCode notice the new environment (bottom right popup), select Yes
+#. Activate it: `. .env/Scripts/activate` for Windows, `. .env/bin/activate` for Linux.
+#. Install required pip: `pip install -r requirements.txt; pip install -r requirements-tools.txt`.
+#. Start debugging (F5)
+#. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
 
-Docker Installation
-....................
-TODO
 
 I want to generate the documentation
 --------------------------------------
@@ -56,8 +62,8 @@ I want to deploy the website into production on my server
 -----------------------------------------------------------
 Installation
 ..............
-For development, you can run ./run.py. However, it is not the recommended
-method for production environment.
+For development, you can run `FLASK_APP=collectives:create_app flask run`. 
+However, it is not the recommended method for production environment.
 
 You can choose any production method you like, however, you can use waitress
 behind an nginx for SSL offloading. Waitress can be install with a pip
@@ -80,3 +86,15 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+
+I want to file a bug
+---------------------
+Bugs can be opened on the github issue system: 
+`https://github.com/Club-Alpin-Annecy/collectives/issues <https://github.com/Club-Alpin-Annecy/collectives/issues>`_
+
+Fixes are very welcomed since we cannot treat bugs very quickly.
+
+I want to talk with the developper team
+----------------------------------------
+The CAF Annecy has a Slack where collectives development is discussed.
+Please contact digital@cafannecy.fr for access.
