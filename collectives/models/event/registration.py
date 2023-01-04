@@ -215,19 +215,21 @@ class EventRegistrationMixin:
             user, [RegistrationStatus.SelfUnregistered]
         )
 
-    def is_user_registered_to_parent_event(self, user):
-        """Check if a user has a confirmed registration for the parent event
+    def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
+        """Check if a user is part of the event user group
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
-        :return: True if there is no parent event or the user is registered with a ``Active`` status
+        :return: True if there is no user group or the user is a member of the group
         :rtype: boolean
         """
-        if self.parent_event is None:
+
+        if self._deprecated_parent_event_id:
+            # Migrate to new version of attribute
+            self.parent_event_id = self._deprecated_parent_event_id
+
+        if self.user_group is None:
             return True
-        return self.parent_event.is_registered_with_status(
-            user, [RegistrationStatus.Active]
-        )
+        return self.user_group.contains(user)
 
     def can_self_register(self, user, time, waiting=False):
         """Check if a user can self-register.
@@ -254,7 +256,7 @@ class EventRegistrationMixin:
             return False
         if self.is_leader(user) or self.is_registered(user):
             return False
-        if not self.is_user_registered_to_parent_event(user):
+        if not self.is_user_in_user_group(user):
             return False
         if not self.is_registration_open_at_time(time):
             return False

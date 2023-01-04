@@ -191,7 +191,7 @@ def test_event_duplication(admin_client, paying_event):
         "event_type",
         "activity_types",
         "tags",
-        "parent_event",
+        "user_group",
     ]
     for attribute in attributes:
         assert getattr(new_event, attribute) == getattr(paying_event, attribute)

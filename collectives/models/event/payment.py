@@ -66,4 +66,8 @@ class EventPaymentMixin:
         :param time_shift: Optionnal shift of copied item prices dates
         :type time_shift: :py:class:`datetime.timedelta`"""
         for payment in source_event.payment_items:
-            self.payment_items.append(payment.copy(time_shift))
+            self.payment_items.append(
+                payment.copy(
+                    time_shift, old_event_id=source_event.id, new_event_id=self.id
+                )
+            )

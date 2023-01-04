@@ -17,9 +17,10 @@ def regular_price():
     return price
 
 
-def leader_price():
+def leader_price(item):
     """:returns: A free ItemPrice only for leaders"""
     price = ItemPrice()
+    price.item = item
     price.amount = 0
     price.title = "Encadrant"
     price.enabled = True
@@ -48,11 +49,12 @@ def disabled_price():
     return price
 
 
-def payment_item():
+def payment_item(event):
     """A standard payment item, with three prices, two actives"""
     item = PaymentItem()
+    item.event_id = event.id
     item.title = "Repas"
-    item.prices = [regular_price(), leader_price(), disabled_price()]
+    item.prices = [regular_price(), leader_price(item), disabled_price()]
 
     return item
 

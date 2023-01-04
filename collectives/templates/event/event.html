@@ -169,10 +169,12 @@
             {% endif %}
             <br/>
         {% endif %}
-        {% if event.parent_event %}
+        
+        {% if event.user_group and event.user_group.event_conditions %}
+          {# TODO: handle other group conditions #}
             Les inscriptions en ligne sont restreintes aux participants à la collective
-            <a href="{{url_for('.view_event', event_id=event.parent_event.id)}}">{{event.parent_event.title}}</a>
-            {% if event.is_user_registered_to_parent_event(current_user) %}
+            <a href="{{url_for('.view_event', event_id=event.user_group.event_conditions[0].event_id)}}">{{event.parent_event.title}}</a>
+            {% if event.user_group.contains(current_user) %}
               dont vous faites partie.
             {% else %}
               dont vous ne faites pas partie.

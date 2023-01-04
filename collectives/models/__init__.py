@@ -22,3 +22,5 @@ from collectives.models.reservation import ReservationStatus
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
 from collectives.models.user import User, Gender, avatars
+from collectives.models.user_group import UserGroup, GroupEventCondition
+from collectives.models.user_group import GroupLicenseCondition, GroupRoleCondition

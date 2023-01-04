@@ -34,7 +34,7 @@
                 {%- endif %}
 
                 {%- if(price['parent_event_id']) %}
-                  -<i>  Réservé aux participants de <a href="{{url_for("event.view_event", event_id=price.parent_event.id)}}">{{price.parent_event.title}}</a></i>
+                  -<i>  Réservé aux participants de <a href="{{url_for("event.view_event", event_id=price.parent_event_id)}}">{{price.parent_event.title}}</a></i>
                 {%- endif %}
               
               {%- endif %}

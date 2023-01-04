@@ -111,3 +111,45 @@ class EventMiscMixin:
             and self.opens_before_closes()
             and self.has_defined_registration_date()
         )
+
+    @property
+    def parent_event(self):
+        """Temporary helper for migrating from parent_event user groups"""
+        parent_event_id = self.parent_event_id
+        if parent_event_id is None:
+            return None
+        return self.query.get(parent_event_id)
+
+    @property
+    def parent_event_id(self):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        if self._deprecated_parent_event_id:
+            # Migrate to new version of attribute
+            self.parent_event_id = self._deprecated_parent_event_id
+
+        if self.user_group is None:
+            return None
+        if not self.user_group.event_conditions:
+            return None
+        return self.user_group.event_conditions[0].event_id
+
+    # pylint: disable=import-outside-toplevel
+    @parent_event_id.setter
+    def parent_event_id(self, parent_event_id):
+        """Temporary helper for migrating from parent_event_id to user groups"""
+        if parent_event_id is None:
+            self.user_group = None
+        else:
+            from collectives.models.user_group import UserGroup, GroupEventCondition
+
+            if self.user_group is None:
+                self.user_group = UserGroup()
+            if not self.user_group.event_conditions:
+                condition = GroupEventCondition(
+                    event_id=parent_event_id, is_leader=False
+                )
+                self.user_group.event_conditions.append(condition)
+            else:
+                self.user_group.event_conditions[0].event_id = parent_event_id
+
+        self._deprecated_parent_event_id = None
