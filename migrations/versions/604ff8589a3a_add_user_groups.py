@@ -1,7 +1,7 @@
 """Add UserGrpup and related tables
 
 Revision ID: 604ff8589a3a
-Revises: 03efbbcc54de
+Revises: 701afd89fc19
 Create Date: 2022-11-13 21:13:05.010246
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
 revision = "604ff8589a3a"
-down_revision = "03efbbcc54de"
+down_revision = "701afd89fc19"
 branch_labels = None
 depends_on = None
 
