@@ -230,3 +230,9 @@ class UserGroup(db.Model):
             condition.clone() for condition in self.license_conditions
         ]
         return clone
+
+    def has_conditions(self) -> bool:
+        """:return: whether the group defines at least one condition"""
+        return bool(
+            self.event_conditions or self.role_conditions or self.license_conditions
+        )

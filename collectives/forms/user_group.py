@@ -27,10 +27,12 @@ from flask import Markup, url_for
 def _coerce_optional(coerce):
     return lambda item: None if item is None or item == "" else coerce(item)
 
+
 def _empty_string_if_none(value):
-    if value is None: 
+    if value is None:
         return ""
     return value
+
 
 class GroupRoleConditionForm(ModelForm):
     class Meta:
@@ -41,8 +43,8 @@ class GroupRoleConditionForm(ModelForm):
 
     condition_id = HiddenField()
 
-    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
     role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
+    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
 
     delete = BooleanField("Supprimer")
 
@@ -73,6 +75,11 @@ class GroupRoleConditionForm(ModelForm):
             return RoleIds.display_name(RoleIds(self.role_id.data))
         return "N'importe quel rôle"
 
+    def validate_activity_id(self, field):
+        role_id = self.role_id.coerce(self.role_id.data)
+        if role_id is not None and not role_id.relates_to_activity():
+            field.data = None
+
 
 class GroupEventConditionForm(ModelForm):
     class Meta:
@@ -84,9 +91,7 @@ class GroupEventConditionForm(ModelForm):
     condition_id = HiddenField()
 
     event_id = IntegerField("Événement")
-    is_leader = SelectField(
-        "Rôle", coerce=_coerce_optional(lambda val: int(val)), validators=[]
-    )
+    is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -100,12 +105,6 @@ class GroupEventConditionForm(ModelForm):
             (False, "Participant"),
             (True, "Encadrant"),
         ]
-
-    def validate_is_leader(self, field):
-        print(self.data, flush=True)
-        print(field.data, flush=True)
-
-        print(field.choices, flush=True)
 
     def event(self) -> Event:
         if self.event_id.data:
@@ -210,10 +209,10 @@ class UserGroupForm(ModelForm):
         event_conditions = [
             {
                 "id": id,
-                "condition_id":  _empty_string_if_none(condition_form.condition_id.data),
-                "role_id":  _empty_string_if_none(condition_form.role_id.data),
+                "condition_id": _empty_string_if_none(condition_form.condition_id.data),
+                "role_id": _empty_string_if_none(condition_form.role_id.data),
                 "role_name": Markup(condition_form.role_name()),
-                "activity_id":  _empty_string_if_none(condition_form.activity_id.data),
+                "activity_id": _empty_string_if_none(condition_form.activity_id.data),
                 "activity_name": Markup(condition_form.activity_name()),
             }
             for id, condition_form in enumerate(self.role_conditions)
