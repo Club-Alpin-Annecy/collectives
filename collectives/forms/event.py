@@ -193,9 +193,7 @@ class EventForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         """
-        event is only used to populate activity/leader field choices.
-        It is different from passing obj=event, which would populate all form fields
-        from event data.
+        Constructor
         """
         super().__init__(*args, **kwargs)
 
@@ -204,7 +202,7 @@ class EventForm(ModelForm, FlaskForm):
         if not self.edit_session_id.data:
             self.edit_session_id.data = uuid4()
 
-        if "obj" in kwargs:
+        if "obj" in kwargs and not self.is_submitted():
             # Reading from an existing event
             self.source_event = kwargs["obj"]
             activities = self.source_event.activity_types
