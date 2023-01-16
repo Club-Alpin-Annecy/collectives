@@ -25,7 +25,8 @@ def upgrade():
 
     with op.batch_alter_table("group_event_conditions") as batch_op:
         for existing_fkey in existing_foreign_keys:
-            batch_op.drop_constraint(existing_fkey.name, type_="foreignkey")
+            if existing_fkey.name:
+                batch_op.drop_constraint(existing_fkey.name, type_="foreignkey")
         batch_op.create_foreign_key("fk_event_id", "events", ["event_id"], ["id"])
 
 
