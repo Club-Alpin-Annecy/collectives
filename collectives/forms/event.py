@@ -280,7 +280,7 @@ class EventForm(ModelForm, FlaskForm):
         for leader in self.current_leaders:
             self.main_leader_id.choices.append((leader.id, "Responsable"))
 
-        if self.main_leader_id.raw_data is None:
+        if not self.is_submitted():
             if self.source_event is None or self.source_event.main_leader_id is None:
                 self.main_leader_id.default = self.current_leaders[0].id
                 self.main_leader_id.process([])
@@ -423,7 +423,9 @@ class EventForm(ModelForm, FlaskForm):
         return event.can_remove_leader(current_user, leader)
 
 
-def payment_item_choice_text(price: ItemPrice, intervals : List[PriceDateInterval]) -> str:
+def payment_item_choice_text(
+    price: ItemPrice, intervals: List[PriceDateInterval]
+) -> str:
     """Generates the text to be used for the payment item choice radio fields.
     Informs the user about the evolution of the item price across time
 

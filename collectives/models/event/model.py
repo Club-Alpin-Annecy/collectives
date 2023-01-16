@@ -248,7 +248,13 @@ class EventModelMixin:
 
         :type: :py:class:`collectives.models.event.Event`
         """
-        return db.relationship("UserGroup", single_parent=True, lazy=True, cascade="all, delete-orphan", backref="event")
+        return db.relationship(
+            "UserGroup",
+            single_parent=True,
+            lazy=True,
+            cascade="all, delete-orphan",
+            backref="event",
+        )
 
     @validates("title")
     def truncate_string(self, key, value):

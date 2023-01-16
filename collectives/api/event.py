@@ -290,7 +290,7 @@ def events():
 
 class AutocompleteEventSchema(marshmallow.Schema):
     """Schema under which autocomplete suggestions are returned"""
-    
+
     view_uri = fields.Function(
         lambda event: url_for(
             "event.view_event", event_id=event.id, name=slugify(event.title)

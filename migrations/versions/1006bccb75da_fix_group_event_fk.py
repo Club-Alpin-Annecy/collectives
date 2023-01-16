@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1006bccb75da'
-down_revision = '604ff8589a3a'
+revision = "1006bccb75da"
+down_revision = "604ff8589a3a"
 branch_labels = None
 depends_on = None
 
@@ -20,15 +20,15 @@ def upgrade():
 
     # Findbad existing FK constraints on event_id
     meta = sa.MetaData(bind=op.get_bind())
-    table = sa.Table('group_event_conditions', meta, autoload=sa.engine)
+    table = sa.Table("group_event_conditions", meta, autoload=sa.engine)
     existing_foreign_keys = table.c.event_id.foreign_keys
-    
+
     with op.batch_alter_table("group_event_conditions") as batch_op:
         for existing_fkey in existing_foreign_keys:
-            batch_op.drop_constraint(existing_fkey.name, type_='foreignkey')
-        batch_op.create_foreign_key("fk_event_id", 'events', ['event_id'], ['id'])
+            batch_op.drop_constraint(existing_fkey.name, type_="foreignkey")
+        batch_op.create_foreign_key("fk_event_id", "events", ["event_id"], ["id"])
 
 
 def downgrade():
     with op.batch_alter_table("group_event_conditions") as batch_op:
-        batch_op.drop_constraint("fk_event_id", type_='foreignkey')
+        batch_op.drop_constraint("fk_event_id", type_="foreignkey")

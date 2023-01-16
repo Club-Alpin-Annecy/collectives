@@ -1,40 +1,43 @@
+"""Module containing form widgets for editing user groups"""
+
 import json
+from typing import Callable, TypeVar, Optional, Union
 
 from wtforms_alchemy import ModelForm
-from wtforms import (
-    SelectField,
-    FieldList,
-    FormField,
-    BooleanField,
-    HiddenField,
-    IntegerField,
-    SelectMultipleField,
-)
-from wtforms.validators import Optional
-
-from collectives.models import ActivityType, RoleIds, Configuration
-from collectives.models.user_group import (
-    UserGroup,
-    GroupRoleCondition,
-    GroupEventCondition,
-    GroupLicenseCondition,
-    Event,
-)
+from wtforms import SelectField, FieldList, FormField, BooleanField
+from wtforms import HiddenField, IntegerField, SelectMultipleField
 
 from flask import Markup, url_for
 
+from collectives.models import ActivityType, RoleIds, Configuration, Event
+from collectives.models.user_group import UserGroup, GroupRoleCondition
+from collectives.models.user_group import GroupEventCondition, GroupLicenseCondition
 
-def _coerce_optional(coerce):
+T = TypeVar("T")
+""" Type variable for typing annotations """
+
+
+def _coerce_optional(coerce: Callable[..., T]) -> Callable[..., T]:
+    """Tranforms a coerce function such that it returns None for None or empty string inputs
+    :param coerce: the original coercing function
+    :return: the modified coercing function
+    """
     return lambda item: None if item is None or item == "" else coerce(item)
 
 
-def _empty_string_if_none(value):
+def _empty_string_if_none(value: Optional[T]) -> Union[T, str]:
+    """
+    :param value: input value
+    :returns: the empty string if the input value is None, the unmodified input value otherwise
+    """
     if value is None:
         return ""
     return value
 
 
 class GroupRoleConditionForm(ModelForm):
+    """Form for creating role conditions in user group forms"""
+
     class Meta:
         """Fields to expose"""
 
@@ -58,30 +61,36 @@ class GroupRoleConditionForm(ModelForm):
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
-
         self.role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
 
-    def activity(self) -> ActivityType:
+    def activity(self) -> Optional[ActivityType]:
+        """:returns: the activity corresponding to the current activity_id"""
         if self.activity_id.data:
             return ActivityType.query.get(self.activity_id.data)
         return None
 
     def activity_name(self) -> str:
+        """:returns: the name of the activity if it is not None, a default text otherwise"""
         activity = self.activity()
         return "N'importe quelle activité" if not activity else activity.name
 
     def role_name(self) -> str:
+        """:returns: the name of the role if it is not None, a default text otherwise"""
         if self.role_id.data:
             return RoleIds.display_name(RoleIds(self.role_id.data))
         return "N'importe quel rôle"
 
     def validate_activity_id(self, field):
+        """WTFForms validator function that make sure the activity_id field is not set
+        if the selected role is not related to an activity"""
         role_id = self.role_id.coerce(self.role_id.data)
         if role_id is not None and not role_id.relates_to_activity():
             field.data = None
 
 
 class GroupEventConditionForm(ModelForm):
+    """Form for creating event conditions in user group forms"""
+
     class Meta:
         """Fields to expose"""
 
@@ -106,13 +115,16 @@ class GroupEventConditionForm(ModelForm):
             (True, "Encadrant"),
         ]
 
-    def event(self) -> Event:
+    def event(self) -> Optional[Event]:
+        """:returns: the event associated with the condition"""
         if self.event_id.data:
             return Event.query.get(self.event_id.data)
         return None
 
 
 class UserGroupForm(ModelForm):
+    """Form for editing user group conditions"""
+
     class Meta:
         """Fields to expose"""
 
@@ -128,8 +140,8 @@ class UserGroupForm(ModelForm):
 
     license_conditions = SelectMultipleField("Types de licence")
 
-    new_role_id = SelectField()
-    new_role_activity_id = SelectField()
+    new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
+    new_role_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -138,8 +150,9 @@ class UserGroupForm(ModelForm):
         if "prefix" in kwargs:
             self.prefix = kwargs["prefix"]
 
-        if "obj" in kwargs and not kwargs.get("formdata", None):
-            user_group = kwargs["obj"]
+        user_group = kwargs.get("obj", None)
+        formdata = kwargs.get("formdata", None)
+        if user_group and not formdata:
             self.license_conditions.data = [
                 cond.license_category for cond in user_group.license_conditions
             ]
@@ -155,40 +168,17 @@ class UserGroupForm(ModelForm):
         ]
 
     def validate_license_conditions(self, field):
+        """WTFForms validators that converts license_category input as a list of strings
+        to a list of GroupLicenseCondition objects"""
         if field.data:
             field.data = [
                 GroupLicenseCondition(license_category=cat) for cat in field.data
             ]
 
-    def populate_conditions(self, user_group: UserGroup):
-
-        # Remove all existing entries
-        while len(self.role_conditions) > 0:
-            self.role_conditions.pop_entry()
-        while len(self.event_conditions) > 0:
-            self.event_conditions.pop_entry()
-
-        # Create new entries
-        for condition in user_group.role_conditions:
-            self.role_conditions.append_entry(condition)
-        for condition in user_group.event_conditions:
-            self.event_conditions.append_entry(condition)
-
-        # Update fields
-        for condition, condition_form in zip(
-            user_group.role_conditions, self.role_conditions
-        ):
-            condition_form.condition_id.data = condition.id
-        for condition, condition_form in zip(
-            user_group.event_conditions, self.event_conditions
-        ):
-            condition_form.condition_id.data = condition.id
-
-        self.license_conditions.data = [
-            cond.license_category for cond in user_group.license_conditions
-        ]
-
     def event_conditions_as_json(self) -> str:
+        """:returns: the current event condition form values as a JSON string
+        for creating JS entries"""
+
         event_conditions = [
             {
                 "id": id,
@@ -206,6 +196,9 @@ class UserGroupForm(ModelForm):
         return json.dumps(event_conditions)
 
     def role_conditions_as_json(self) -> str:
+        """:returns: the current riole condition form values as a JSON string
+        for creating JS entries"""
+
         event_conditions = [
             {
                 "id": id,

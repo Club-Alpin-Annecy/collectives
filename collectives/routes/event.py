@@ -3,6 +3,7 @@
 This modules contains the /event Blueprint
 """
 # pylint: disable=too-many-lines
+from typing import Tuple, List, Set
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
@@ -23,7 +24,7 @@ from collectives.forms.event import PaymentItemChoiceForm
 from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
 from collectives.models import RegistrationStatus, User, db
-from collectives.models import EventTag, UploadedFile
+from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.activity_type import activities_without_leader
 from collectives.models.activity_type import leaders_without_activities
 from collectives.models.payment import ItemPrice, Payment
@@ -308,7 +309,158 @@ def print_event(event_id):
     )
 
 
-# pylint: disable=too-many-locals,too-many-statements
+def _prevalidate_leaders_and_activities(
+    form: EventForm,
+) -> Tuple[bool, List[User], List[ActivityType]]:
+    """Validates that the leaders and activity in the form are compatible.
+    Pre-validation checks that event type, activity types and leaders are consistent, but ignores
+    further event properties such as datetime ranges.
+
+    :return: A tuple containing a bool indicating whether processing must continue,
+    and if so, the lists of tentative leaders and activities
+    """
+
+    # Get current activites from form
+    tentative_activities = form.current_activities()
+
+    requires_activity = form.current_event_type().requires_activity
+    if requires_activity and len(tentative_activities) == 0:
+        flash(
+            f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
+            "error",
+        )
+        return (False, [], [])
+
+    # Fetch existing readers leaders minus removed ones
+    previous_leaders = []
+    tentative_leaders = []
+    has_removed_leaders = False
+    for action in form.leader_actions:
+        leader_id = int(action.data["leader_id"])
+
+        leader = User.query.get(leader_id)
+        if leader is None or not leader.can_create_events():
+            flash("Encadrant invalide")
+            continue
+
+        previous_leaders.append(leader)
+        if action.data["delete"]:
+            has_removed_leaders = True
+        else:
+            tentative_leaders.append(leader)
+
+    # Set current leaders from submitted form
+    form.set_current_leaders(previous_leaders)
+    form.update_choices()
+
+    # Update activities only
+    # Do not process the remainder of the form
+    if int(form.update_activity.data):
+        # Check that the set of leaders is valid for current activities
+        validate_event_leaders(
+            tentative_activities, previous_leaders, form.multi_activities_mode.data
+        )
+        return (False, [], [])
+
+    # Add new leader
+    new_leader_id = int(form.add_leader.data)
+    if new_leader_id > 0:
+        leader = User.query.get(new_leader_id)
+        if leader is None or not leader.can_create_events():
+            flash("Encadrant invalide")
+        else:
+            tentative_leaders.append(leader)
+
+    # Check that the main leader still exists
+    try:
+        main_leader_id = int(form.main_leader_id.data)
+    except (TypeError, ValueError):
+        main_leader_id = None
+    if not any(l.id == main_leader_id for l in tentative_leaders):
+        flash("Un encadrant responsable doit être défini")
+        return (False, [], [])
+
+    # Update leaders only
+    # Do not process the remainder of the form
+    if has_removed_leaders or int(form.update_leaders.data):
+        # Check that the set of leaders is valid for current activities
+        if validate_event_leaders(
+            tentative_activities,
+            tentative_leaders,
+            form.multi_activities_mode.data,
+        ):
+            form.set_current_leaders(tentative_leaders)
+            form.update_choices()
+            form.setup_leader_actions()
+
+        return (False, [], [])
+
+    return (True, tentative_leaders, tentative_activities)
+
+
+def _postvalidate_leaders_and_activities(
+    form: EventForm,
+    event: Event,
+    existing_activities_set: Set[ActivityType],
+    existing_leaders_set: Set[Event],
+) -> bool:
+    """Validates that the leaders and activities in the form are compatible with other event fields
+
+    :return: Whether validation was successful
+    """
+
+    has_new_activity = any(
+        a not in existing_activities_set for a in event.activity_types
+    )
+    new_leaders_set = set(event.leaders)
+    has_changed_leaders = any(new_leaders_set ^ existing_leaders_set)
+
+    # We have added a new activity or added/removed leaders
+    # Check that the leaders are still valid
+    if has_new_activity or has_changed_leaders:
+        if not validate_event_leaders(
+            event.activity_types,
+            event.leaders,
+            form.multi_activities_mode.data,
+        ):
+            return False
+
+    # For collectives-like event types,
+    # check that leaders don't already lead another activity at this time
+    if form.current_event_type().requires_activity:
+        for leader in event.leaders:
+            if not leader.can_lead_on(event.start, event.end, event.id):
+                flash(f"{leader.full_name()} encadre déjà une activité à cette date")
+                return False
+
+    # Check that we have not removed leaders that we don't have the right to
+    removed_leaders = existing_leaders_set - new_leaders_set
+    for removed_leader in removed_leaders:
+        if not event.can_remove_leader(current_user, removed_leader):
+            flash(
+                f"Impossible de supprimer l'encadrant: {removed_leader.full_name()}",
+                "error",
+            )
+            return False
+
+    # Remove registration associated to leaders (#327)
+    if has_changed_leaders:
+        for leader in event.leaders:
+            leader_registrations = event.existing_registrations(leader)
+            if any(leader_registrations):
+                flash(
+                    f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été "
+                    "ajouté(e) comme encadrant(e)."
+                )
+            for registration in leader_registrations:
+                event.registrations.remove(registration)
+
+    return True
+
+
+# pylint: disable=too-many-statements
+
+
 @blueprint.route("/add", methods=["GET", "POST"])
 @blueprint.route("/<int:event_id>/edit", methods=["GET", "POST"])
 @valid_user()
@@ -330,106 +482,41 @@ def manage_event(event_id=None):
         flash("Accès restreint.", "error")
         return redirect(url_for("event.index"))
 
-    current_status = event.status
+    if event_id is None:
+        form = EventForm(CombinedMultiDict((request.files, request.form)))
+    else:
+        form = EventForm(CombinedMultiDict((request.files, request.form)), obj=event)
 
-    with db.session.no_autoflush: #Prevent saving changes while validating
-
+    if not form.is_submitted():
         if event_id is None:
-            form = EventForm(CombinedMultiDict((request.files, request.form)))
-        else:
-            form = EventForm(CombinedMultiDict((request.files, request.form)), obj=event)
-        
-        if not form.is_submitted():
-            if event_id is None:
-                form.set_default_values()
-            form.setup_leader_actions()
-            return render_template("event/editevent.html", event=event, form=form)
+            form.set_default_values()
+        form.setup_leader_actions()
+        return render_template("event/editevent.html", event=event, form=form)
 
-        # Get current activites from form
-        tentative_activities = form.current_activities()
+    # Extract and pre-validate leaders and activities
+    (
+        prevalidate_ok,
+        tentative_leaders,
+        tentative_activities,
+    ) = _prevalidate_leaders_and_activities(form)
 
-        requires_activity = form.current_event_type().requires_activity
-        if requires_activity and len(tentative_activities) == 0:
-            flash(
-                f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
-                "error",
-            )
-            db.session.rollback()
-            return render_template("event/editevent.html", event=event, form=form)
+    # If prevalidation failed or if partial update buttons have been clicked, stop here
+    if not prevalidate_ok:
+        return render_template("event/editevent.html", event=event, form=form)
 
-        # Fetch existing readers leaders minus removed ones
-        previous_leaders = []
-        tentative_leaders = []
-        has_removed_leaders = False
-        for action in form.leader_actions:
-            leader_id = int(action.data["leader_id"])
+    # Run custom validators
+    if not form.validate():
+        return render_template("event/editevent.html", event=event, form=form)
 
-            leader = User.query.get(leader_id)
-            if leader is None or not leader.can_create_events():
-                flash("Encadrant invalide")
-                continue
+    # Now we can try to populate/update the event object. Save existing data first
+    current_status = event.status
+    existing_leaders_set = set(event.leaders)
+    existing_activities_set = set(event.activity_types)
 
-            previous_leaders.append(leader)
-            if action.data["delete"]:
-                has_removed_leaders = True
-            else:
-                tentative_leaders.append(leader)
+    with db.session.no_autoflush:  # Prevent saving changes while validating
 
-        # Set current leaders from submitted form
-        form.set_current_leaders(previous_leaders)
-        form.update_choices()
-
-        # Update activities only
-        # Do not process the remainder of the form
-        if int(form.update_activity.data):
-            # Check that the set of leaders is valid for current activities
-            validate_event_leaders(
-                tentative_activities, previous_leaders, form.multi_activities_mode.data
-            )
-            db.session.rollback()
-            return render_template("event/editevent.html", event=event, form=form)
-
-        # Add new leader
-        new_leader_id = int(form.add_leader.data)
-        if new_leader_id > 0:
-            leader = User.query.get(new_leader_id)
-            if leader is None or not leader.can_create_events():
-                flash("Encadrant invalide")
-            else:
-                tentative_leaders.append(leader)
-
-        # Check that the main leader still exists
-        try:
-            main_leader_id = int(form.main_leader_id.data)
-        except (TypeError, ValueError):
-            main_leader_id = None
-        if not any(l.id == main_leader_id for l in tentative_leaders):
-            flash("Un encadrant responsable doit être défini")
-            db.session.rollback()
-            return render_template("event/editevent.html", event=event, form=form)
-
-        # Update leaders only
-        # Do not process the remainder of the form
-        if has_removed_leaders or int(form.update_leaders.data):
-            # Check that the set of leaders is valid for current activities
-            if validate_event_leaders(
-                tentative_activities,
-                tentative_leaders,
-                form.multi_activities_mode.data,
-            ):
-                form.set_current_leaders(tentative_leaders)
-                form.update_choices()
-                form.setup_leader_actions()
-
-            db.session.rollback()
-            return render_template("event/editevent.html", event=event, form=form)
-
-        # The 'Update event' button has been clicked
-        # Populate object, run custom validators
-
-        if not form.validate():
-            db.session.rollback()
-            return render_template("event/editevent.html", event=event, form=form)
+        if event.user_group is None:
+            event.user_group = UserGroup()
 
         form.populate_obj(event)
         if not validate_dates_and_slots(event):
@@ -437,71 +524,28 @@ def manage_event(event_id=None):
             db.session.rollback()
             return render_template("event/editevent.html", event=event, form=form)
 
-        has_new_activity = any(a not in event.activity_types for a in tentative_activities)
-
-        tentative_leaders_set = set(tentative_leaders)
-        existing_leaders_set = set(event.leaders)
-        has_changed_leaders = any(tentative_leaders_set ^ existing_leaders_set)
-
-        # We have added a new activity or added/removed leaders
-        # Check that the leaders are still valid
-        if has_new_activity or has_changed_leaders:
-            if not validate_event_leaders(
-                tentative_activities,
-                tentative_leaders,
-                form.multi_activities_mode.data,
-            ):
-                # Make sure modifications on event are not saved
-                db.session.rollback()
-                return render_template("event/editevent.html", event=event, form=form)
-
-        # Check if leaders don't already lead an activity during the event
-        if requires_activity:
-            for leader in tentative_leaders_set:
-                if not leader.can_lead_on(event.start, event.end, event_id):
-                    flash(f"{leader.full_name()} encadre déjà une activité à cette date")
-                    db.session.rollback()
-                    return render_template("event/editevent.html", event=event, form=form)
-
-        # If event has not been created yet use current activities to check rights
-        if event_id is None:
-            event.activity_types = tentative_activities
-
-        # Check that we have not removed leaders that we don't have the right to
-        removed_leaders = existing_leaders_set - tentative_leaders_set
-        for removed_leader in removed_leaders:
-            if not event.can_remove_leader(current_user, removed_leader):
-                flash(
-                    f"Impossible de supprimer l'encadrant: {removed_leader.full_name()}",
-                    "error",
-                )
-                db.session.rollback()
-                return render_template("event/editevent.html", event=event, form=form)
-        
         event.activity_types = tentative_activities
         event.leaders = tentative_leaders
 
-        # Remove registration associated to leaders (#327)
-        if has_changed_leaders:
-            for leader in event.leaders:
-                leader_registrations = event.existing_registrations(leader)
-                if any(leader_registrations):
-                    flash(
-                        f"{leader.full_name()} a été désinscrit(e) de l'événement car il/elle a été "
-                        "ajouté(e) comme encadrant(e)."
-                    )
-                for registration in leader_registrations:
-                    event.registrations.remove(registration)
+        if not _postvalidate_leaders_and_activities(
+            form, event, existing_activities_set, existing_leaders_set
+        ):
+            # Make sure modifications on event are not saved
+            db.session.rollback()
+            return render_template("event/editevent.html", event=event, form=form)
 
         event.set_rendered_description(event.description)
 
         # For some readon we need to explicitly add the conditions
-        for cond in event.user_group.role_conditions:
-            db.session.add(cond)
-        for cond in event.user_group.event_conditions:
-            db.session.add(cond)
-        for cond in event.user_group.license_conditions:
-            db.session.add(cond)
+        if event.user_group.has_conditions():
+            for cond in event.user_group.role_conditions:
+                db.session.add(cond)
+            for cond in event.user_group.event_conditions:
+                db.session.add(cond)
+            for cond in event.user_group.license_conditions:
+                db.session.add(cond)
+        else:
+            event.user_group = None
 
         # Update tags (brute option: purge all and create new)
         event.tag_refs.clear()
@@ -553,7 +597,7 @@ def manage_event(event_id=None):
     return redirect(url_for("event.view_event", event_id=event.id))
 
 
-# pylint: enable=too-many-locals,too-many-statements
+# pylint: enable=too-many-statements
 
 
 @blueprint.route("/<int:event_id>/duplicate", methods=["GET"])

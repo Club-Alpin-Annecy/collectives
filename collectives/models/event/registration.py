@@ -223,9 +223,8 @@ class EventRegistrationMixin:
         :rtype: boolean
         """
 
-        if self._deprecated_parent_event_id:
-            # Migrate to new version of attribute
-            self.parent_event_id = self._deprecated_parent_event_id
+        # Migrate to new version of attribute
+        self.migrate_parent_event_id()
 
         if self.user_group is None:
             return True

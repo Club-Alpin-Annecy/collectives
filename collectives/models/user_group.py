@@ -46,9 +46,7 @@ class GroupRoleCondition(db.Model):
 
     :type: int"""
 
-    activity = db.relationship(
-        "ActivityType", lazy=True
-    )
+    activity = db.relationship("ActivityType", lazy=True)
     """ Activity type associated with this condition
 
     :type: list(:py:class:`collectives.models.activity_type.ActivityType`)
@@ -99,9 +97,7 @@ class GroupEventCondition(db.Model):
 
     :type: int"""
 
-    event = db.relationship(
-        "Event", lazy=True
-    )
+    event = db.relationship("Event", lazy=True)
     """ Event associated with this condition
 
     :type: list(:py:class:`collectives.models.event.Event`)
