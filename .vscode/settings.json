@@ -3,6 +3,5 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "editor.minimap.enabled": false
+    "python.testing.pytestEnabled": true
 }
