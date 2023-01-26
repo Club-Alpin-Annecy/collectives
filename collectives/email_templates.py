@@ -2,7 +2,7 @@
 """
 from functools import wraps
 
-from flask import current_app, url_for
+from flask import current_app, url_for, flash, Markup
 
 
 from collectives.models import db, Configuration
@@ -114,13 +114,22 @@ def send_confirmation_email(email, name, token):
         db.session.add(token)
         db.session.commit()
 
-    mail.send_mail(
-        email=email,
-        subject=f"{reason.capitalize()} de compte Collectives",
-        message=message,
-        error_action=has_failed,
-        success_action=has_succeed,
-    )
+    # Check if local dev, so that emaile is not sent and token validation link is displayed in flash popup
+    config = current_app.config
+    if not config["EXTRANET_DISABLE"]:
+        mail.send_mail(
+            email=email,
+            subject=f"{reason.capitalize()} de compte Collectives",
+            message=message,
+            error_action=has_failed,
+            success_action=has_succeed,
+        )
+    else:
+        has_succeed()
+        flash(Markup("<a href=" + url_for(
+            "auth.process_confirmation", token_uuid=token.uuid, _external=True
+        ) + ">LOCAL DEV, Validate your test account clicking here</a>" ))
+
 
 
 def send_reject_subscription_notification(rejector_name, event, rejected_user_email):
