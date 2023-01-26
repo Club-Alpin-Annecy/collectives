@@ -169,6 +169,11 @@ class EventSchema(marshmallow.Schema):
     """ Tags this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
+    """ TODO: add the following fiels
+        - num_taken_slots
+        - num_waiting_list
+        - waiting_registration().length
+    """
 
     class Meta:
         """Fields to expose"""
