@@ -170,9 +170,8 @@ class EventSchema(marshmallow.Schema):
 
     :type: :py:class:`marshmallow.fields.Function`"""
     """ TODO: add the following fiels
-        - num_taken_slots
-        - num_waiting_list
-        - waiting_registration().length
+        - has_free_slots
+        - has_free_waiting_slots
     """
 
     class Meta:
