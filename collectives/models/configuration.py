@@ -148,7 +148,7 @@ class ConfigurationItem(db.Model):
 
     :type: int"""
 
-    date = db.Column(db.DateTime, server_default=func.now())
+    date = db.Column(db.DateTime, server_default=func.now())  # pylint: disable=E1102
     """ Edition date
 
     :type: datetime"""
