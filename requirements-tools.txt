@@ -10,9 +10,9 @@ pylint-flask-sqlalchemy
 black
 pytest
 pytest-cov
-beautifulsoup4 
+beautifulsoup4
 
-Sphinx
+Sphinx===6.1.3
 sphinx-book-theme
 # We are using one of the latest option of docsr-coverage, thus it is loaded from
 # github.
