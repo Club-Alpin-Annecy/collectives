@@ -114,7 +114,8 @@ def send_confirmation_email(email, name, token):
         db.session.add(token)
         db.session.commit()
 
-    # Check if local dev, so that emaile is not sent and token validation link is displayed in flash popup
+    # Check if local dev, so that email is not sent
+    # and token validation link is displayed in flash popup
     config = current_app.config
     if not config["EXTRANET_DISABLE"]:
         mail.send_mail(
