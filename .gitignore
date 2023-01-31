@@ -15,6 +15,7 @@ collectives/routes/populate_db_equipment_reservation.py
 
 .env
 .coverage
+.python-version
 
 doc/build
 
