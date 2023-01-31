@@ -150,7 +150,7 @@ class ConfigurationItem(db.Model):
 
     date = db.Column(
         db.DateTime, server_default=func.now()
-    )  # pylint: disable=E1102 (no-callable)
+    )  # pylint: disable=not-callable
     """ Edition date
 
     :type: datetime"""
