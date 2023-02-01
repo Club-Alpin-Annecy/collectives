@@ -71,5 +71,4 @@ use_issues_button = True
 
 html_theme_options = {
     "home_page_in_toc": True,
-    "logo_only": True,
 }
