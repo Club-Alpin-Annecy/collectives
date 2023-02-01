@@ -5,7 +5,7 @@ Werkzeug
 flask-assets
 flask-login
 sqlalchemy
-flask_sqlalchemy
+flask_sqlalchemy===3.0.2
 sqlalchemy-utils
 passlib
 libsass
