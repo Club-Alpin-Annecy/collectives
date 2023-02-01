@@ -77,7 +77,6 @@ def create_app(config_filename="config.py"):
     _migrate = Migrate(app, models.db)
 
     with app.app_context():
-
         init.populate_db(app)
 
         # Initialize asset compilation

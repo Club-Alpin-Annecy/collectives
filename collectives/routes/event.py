@@ -620,7 +620,6 @@ def self_register(event_id):
     # Paid event
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-
         item_price = ItemPrice.query.get(form.item_price.data)
         if (
             item_price is None
@@ -687,7 +686,6 @@ def select_payment_item(event_id):
 
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-
         item_price = ItemPrice.query.get(form.item_price.data)
         if (
             item_price is None

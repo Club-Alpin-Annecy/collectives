@@ -15,7 +15,6 @@ def load_data_from_form(text, form_id):
 
     # loop on each input
     for i in inputs:
-
         # get the value name. Either by name or id
         if "name" in i.attrs:
             identifier = i.attrs["name"]

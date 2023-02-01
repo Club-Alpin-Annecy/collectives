@@ -81,7 +81,8 @@ class ConfigurationFileForm(ConfigurationBaseForm):
 def get_form_from_configuration(item):
     """Select right type of form from the input configuration item.
 
-    :param ConfigurationItem item: configuration item that will determine the field type"""
+    :param ConfigurationItem item: configuration item that will determine the field type
+    """
     return globals()[f"Configuration{item.type.name}Form"]
 
 
