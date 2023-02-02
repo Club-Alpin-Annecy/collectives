@@ -127,15 +127,13 @@ def send_confirmation_email(email, name, token):
         )
     else:
         has_succeed()
-        flash(
-            Markup(
-                "<a href="
-                + url_for(
-                    "auth.process_confirmation", token_uuid=token.uuid, _external=True
-                )
-                + ">LOCAL DEV, Validate your test account clicking here</a>"
-            )
+        url = url_for(
+            "auth.process_confirmation", token_uuid=token.uuid, _external=True
         )
+        line = (
+            f'<a href="{url}">LOCAL DEV, Validate your test account clicking here</a>'
+        )
+        flash(Markup(line))
 
 
 def send_reject_subscription_notification(rejector_name, event, rejected_user_email):
