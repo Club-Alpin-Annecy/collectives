@@ -4,6 +4,7 @@ This modules contains the /event Blueprint
 """
 # pylint: disable=too-many-lines
 
+import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
 from flask import current_app, Blueprint, escape
 from flask_login import current_user
@@ -620,7 +621,6 @@ def self_register(event_id):
     # Paid event
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-
         item_price = ItemPrice.query.get(form.item_price.data)
         if (
             item_price is None
@@ -687,7 +687,6 @@ def select_payment_item(event_id):
 
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-
         item_price = ItemPrice.query.get(form.item_price.data)
         if (
             item_price is None
@@ -922,7 +921,7 @@ def update_attendance(event_id):
     event = Event.query.get(event_id)
 
     if event is None:
-        raise Exception("Unknown Event")
+        raise builtins.Exceptions("Unknown Event")
 
     if not event.has_edit_rights(current_user):
         flash("Accès restreint, rôle insuffisant.", "error")

@@ -28,7 +28,7 @@ def activity_types(app):
     :return: None
     """
     try:
-        for (aid, atype) in app.config["ACTIVITY_TYPES"].items():
+        for aid, atype in app.config["ACTIVITY_TYPES"].items():
             activity_type = ActivityType.query.get(aid)
             if activity_type == None:
                 activity_type = ActivityType(id=aid)
@@ -81,7 +81,7 @@ def event_types(app):
     :return: None
     """
     try:
-        for (tid, etype) in app.config["EVENT_TYPES"].items():
+        for tid, etype in app.config["EVENT_TYPES"].items():
             event_type = EventType.query.get(tid)
             if event_type == None:
                 event_type = EventType(id=tid)
@@ -166,7 +166,6 @@ def init_config(force=False, path="collectives/configuration.yaml"):
             yaml_content = yaml.safe_load(file.read())
             for folder, config_item in yaml_content.items():
                 for name, config in config_item.items():
-
                     item = Configuration.get_item(name)
 
                     if config.get("obsolete", False):

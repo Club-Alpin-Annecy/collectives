@@ -54,7 +54,6 @@ def upgrade():
 
 
 def downgrade():
-
     bind = op.get_bind()
     if bind.engine.name == "sqlite":
         op.drop_index(op.f("ix_payments_creditor_id"), "payments")

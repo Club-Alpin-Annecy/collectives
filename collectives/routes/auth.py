@@ -29,6 +29,7 @@ blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 This blueprint contains all routes for authentification actions.
 """
 
+
 # Flask-login user loader
 @login_manager.user_loader
 def load_user(user_id):
@@ -450,7 +451,8 @@ def get_bad_phone_message(user):
     """Craft a message for user with a bad phone number.
 
     :param user: User with a bad phone number
-    :returns: The html safe message to display to the user to help him change phone number."""
+    :returns: The html safe message to display to the user to help him change phone number.
+    """
 
     if user.phone is None:
         phone = "n'est pas"

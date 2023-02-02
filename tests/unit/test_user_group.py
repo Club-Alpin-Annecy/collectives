@@ -8,6 +8,7 @@ from collectives.models.user_group import (
 )
 from collectives.models import db, RoleIds
 
+
 # pylint: disable=R0915
 def test_user_group_members(
     event1_with_reg, user1, president_user, admin_user, supervisor_user

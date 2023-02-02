@@ -94,7 +94,6 @@ def equipment_types():
     """
     query = EquipmentType.query.all()
     if query is not None:
-
         data = EquipmentTypeSchema(many=True).dump(query)
         return json.dumps(data), 200, {"content-type": "application/json"}
 

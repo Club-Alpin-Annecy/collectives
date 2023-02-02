@@ -471,7 +471,7 @@ class ItemPrice(db.Model):
 
         types = types.split()
         if len(types) == len(self.user_group.license_conditions):
-            for (cat, cond) in zip(types, self.user_group.license_conditions):
+            for cat, cond in zip(types, self.user_group.license_conditions):
                 cond.license_category = cat
         else:
             self.user_group.license_conditions = [

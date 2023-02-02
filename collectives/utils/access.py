@@ -90,6 +90,7 @@ def user_is(method, api=False, **kwargs):
         :return: the protected (decorated) `function` function
         :rtype: function
         """
+
         # pylint: disable=unused-argument
         def tester(*args, **kwargs):
             """Test the user.
@@ -167,6 +168,7 @@ def payments_enabled(api=False):
 
     def inner_function(function):
         """Function that will wraps `f`."""
+
         # pylint: disable=unused-argument
         def tester(*args, **kwargs):
             """Check if user is an admin.

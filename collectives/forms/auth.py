@@ -57,7 +57,8 @@ class AccountCreationForm(ModelForm, OrderedForm):
     def __init__(self, is_recover, *args, **kwargs):
         """Constructor to specialize the form regarding if it is a creation or a recover.
 
-        :param bool is_recover: True if form is for a password recover, False for a creation"""
+        :param bool is_recover: True if form is for a password recover, False for a creation
+        """
         super().__init__(*args, **kwargs)
 
         if is_recover:

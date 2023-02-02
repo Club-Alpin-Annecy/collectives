@@ -4,6 +4,7 @@ import enum
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
+
 # pylint: disable=invalid-name
 class RegistrationLevels(enum.IntEnum):
     """Enum listing acceptable registration levels.

@@ -1,5 +1,6 @@
 """ Module to handle csv import
 """
+import builtins
 from datetime import datetime, timedelta
 import codecs
 import csv
@@ -33,7 +34,7 @@ def fill_from_csv(event, row, template):
     parent_event_id = parse(row, "parent")
     if parent_event_id != "":
         if Event.query.get(parent_event_id) is None:
-            raise Exception(f"La collective {parent_event_id} n'existe pas")
+            raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
         event.user_group.event_conditions.add(
             GroupEventCondition(event_id=parent_event_id, is_leader=False)
@@ -43,7 +44,7 @@ def fill_from_csv(event, row, template):
     if row["places_internet"].strip():
         event.num_online_slots = parse(row, "places_internet")
         if event.num_online_slots > event.num_slots:
-            raise Exception(
+            raise builtins.Exception(
                 "Le nombre de places par internet doit être inférieur au nombre de places de "
                 "la collective"
             )
@@ -80,7 +81,7 @@ def fill_from_csv(event, row, template):
     # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
-        raise Exception(
+        raise builtins.Exception(
             f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
             "pas encore créé de compte"
         )
@@ -89,7 +90,7 @@ def fill_from_csv(event, row, template):
     if Event.query.filter_by(
         main_leader_id=leader.id, title=event.title, start=event.start
     ).first():
-        raise Exception(
+        raise builtins.Exception(
             f"La collective {event.title} démarrant le {format_date(event.start)} et encadrée "
             f"par {row['nom_encadrant']} existe déjà."
         )
@@ -111,7 +112,7 @@ def parse(row, column_name):
     column_short_desc = csv_columns[column_name]["short_desc"]
 
     if row[column_name] is None:
-        raise Exception(
+        raise builtins.Exception(
             f"La colonne '{column_short_desc}' n'existe pas dans le fichier"
         )
 
@@ -119,7 +120,7 @@ def parse(row, column_name):
 
     # Check if mandatory column is well set
     if not value_str and not csv_columns[column_name].get("optional", 0):
-        raise Exception(
+        raise builtins.Exception(
             f"La colonne '{column_short_desc}' est obligatoire et n'est pas renseignée"
         )
 
@@ -128,7 +129,7 @@ def parse(row, column_name):
         try:
             return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
         except ValueError as err:
-            raise Exception(
+            raise builtins.Exception(
                 f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le "
                 "bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
             ) from err
@@ -137,7 +138,7 @@ def parse(row, column_name):
             try:
                 return int(value_str)
             except ValueError as err:
-                raise Exception(
+                raise builtins.Exception(
                     f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
                     "nombre entier"
                 ) from err
@@ -204,7 +205,7 @@ def csv_to_events(stream, description):
             fill_from_csv(event, row, description)
             events.append(event)
         # pylint: disable=broad-except
-        except Exception as ex:
+        except builtins.Exception as ex:
             failed.append(
                 f"Impossible d'importer la ligne {processed+1}: [{type(ex).__name__}] {str(ex)}"
             )

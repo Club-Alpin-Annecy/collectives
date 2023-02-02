@@ -72,7 +72,6 @@ def edit_prices(event_id):
     if "add" in request.form:
         new_price_form = NewItemPriceForm(event.payment_items)
         if new_price_form.validate():
-
             new_price = ItemPrice(
                 update_time=current_time(),
             )
@@ -114,7 +113,6 @@ def edit_prices(event_id):
     if "update" in request.form:
         form = PaymentItemsForm()
         if form.validate():
-
             has_deleted_items = False
 
             try:
@@ -425,7 +423,6 @@ def report_offline(registration_id, payment_id=None):
 
     all_valid = False
     if form.validate_on_submit():
-
         item_price = ItemPrice.query.get(form.item_price.data)
         if (
             item_price is None
@@ -437,7 +434,6 @@ def report_offline(registration_id, payment_id=None):
             all_valid = True
 
     if all_valid:
-
         if payment is None:
             payment = Payment(registration=registration, item_price=item_price)
         else:
