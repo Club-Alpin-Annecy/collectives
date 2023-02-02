@@ -514,7 +514,6 @@ def manage_event(event_id=None):
     existing_activities_set = set(event.activity_types)
 
     with db.session.no_autoflush:  # Prevent saving changes while validating
-
         if event.user_group is None:
             event.user_group = UserGroup()
 

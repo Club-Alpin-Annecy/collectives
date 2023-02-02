@@ -17,7 +17,6 @@ depends_on = None
 
 
 def upgrade():
-
     # Findbad existing FK constraints on event_id
     meta = sa.MetaData()
     table = sa.Table("group_event_conditions", meta, autoload_with=op.get_bind().engine)
