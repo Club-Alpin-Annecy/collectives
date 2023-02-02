@@ -290,7 +290,7 @@ class ExtranetApi:
             info.is_valid = True
             info.first_name = "User"
             info.last_name = license_number
-            info.email = license_number
+            info.email = license_number + "@cafannecy.fr"
             info.date_of_birth = date(1970, 1, 1)
             return info
 

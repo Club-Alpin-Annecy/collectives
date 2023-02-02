@@ -153,7 +153,7 @@ class RoleIds(ChoiceEnum):
         for role_id in cls:
             if role_id == int(required_id):
                 return role_id
-        raise builtins.Exceptions(f"Unknown role id {required_id}")
+        raise builtins.Exception(f"Unknown role id {required_id}")
 
 
 class Role(db.Model):

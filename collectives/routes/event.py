@@ -921,7 +921,7 @@ def update_attendance(event_id):
     event = Event.query.get(event_id)
 
     if event is None:
-        raise builtins.Exceptions("Unknown Event")
+        raise builtins.Exception("Unknown Event")
 
     if not event.has_edit_rights(current_user):
         flash("Accès restreint, rôle insuffisant.", "error")

@@ -115,7 +115,12 @@
 
 .tag.red{
 	color: white;
-	background-color: red;
+	background-color: $punch;
+}
+
+.tag.blue{
+	color: white;
+	background-color: $shakespeare;
 }
 
 img.icon{

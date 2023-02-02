@@ -169,6 +169,16 @@ class EventSchema(marshmallow.Schema):
     """ Tags this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
+    has_free_slots = fields.Function(lambda event: event.has_free_slots())
+    """ Tags this event.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
+    has_free_waiting_slots = fields.Function(
+        lambda event: event.has_free_waiting_slots()
+    )
+    """ Tags this event.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
 
     class Meta:
         """Fields to expose"""
@@ -192,6 +202,8 @@ class EventSchema(marshmallow.Schema):
             "is_confirmed",
             "status",
             "tags",
+            "has_free_slots",
+            "has_free_waiting_slots",
         )
 
 

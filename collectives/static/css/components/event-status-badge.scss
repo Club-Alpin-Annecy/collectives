@@ -23,4 +23,16 @@
         background-color: $color-error-dark;
         color: $color-white;
     }
+
+    // Full
+    &.event-status-full {
+        background-color: $punch;
+        color: $color-white;
+    }
+
+    // Waiting List available
+    &.event-status-waiting-list {
+        background-color: $shakespeare;
+        color: $color-white;
+    }
 }

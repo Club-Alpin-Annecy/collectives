@@ -128,9 +128,8 @@ function eventRowFormatter(row){
                     <img src="${data.photo_uri}" class="photo"/>
                  </div>`;
 
-        var status_string = ''
-        if(!data.is_confirmed) status_string = `<span class="event-status-badge event-status-${data.status} ">${EnumEventStatus[data.status]}</span>`
-
+        var status_string = getStatusString(data)
+        var availabilities_badge = getSlotsAvailableBadge(data)
 
         html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
         html_tags = html_tags.join(' - ')
@@ -139,6 +138,7 @@ function eventRowFormatter(row){
                      <h3 class="heading-3 collectives-list--item--details-heading">
                      ${escapeHTML(data.title)}
                      ${status_string}
+                     ${availabilities_badge}
                      </h3>
                      <div class="date collectives-list--item--details-date">
                          <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
@@ -163,6 +163,26 @@ function eventRowFormatter(row){
     catch(error){
       console.error(error);
     }
+}
+
+function getSlotsAvailableBadge(event) {
+    "returns 'Full' badge when no more available slots, and 'waiting list' when main list is full, but there are still availabilities in waiting list"
+    if (event.status != EnumEventStatus['Cancelled'])
+        if (!event.has_free_slots && event.has_free_waiting_slots)
+            return `<span class="event-status-badge event-status-waiting-list ">Liste d'attente</span>`
+        else if (!event.has_free_slots && !event.has_free_waiting_slots)
+            return `<span class="event-status-badge event-status-full ">Complet</span>`
+        else
+            return ``
+    else
+        return ``
+}
+
+function getStatusString(data) {
+    " Compute status string based on event status"
+    status_string = ''
+    if(!data.is_confirmed) status_string = `<span class="event-status-badge event-status-${data.status} ">${EnumEventStatus[data.status]}</span>`
+    return status_string
 }
 
 function localInterval(start, end){

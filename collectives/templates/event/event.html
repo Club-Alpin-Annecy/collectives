@@ -111,7 +111,12 @@
           {% endif %}
 
           {% if not event.has_free_slots() %}
-            <span class="tag red">COMPLET</span>
+            {% if event.has_free_waiting_slots() %}
+                <span class="tag blue">LISTE D'ATTENTE</span>
+            {% else %}
+                <span class="tag red">COMPLET</span>
+            {% endif %}
+
           {% endif %}
       </h3>
       {% if event.is_registered(current_user) %}
@@ -151,8 +156,8 @@
 
           {% if current_time < event.start %}
           <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  
-            <a  class="button button-secondary" 
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <a  class="button button-secondary"
                 onclick="if(confirm(unregister_message{% if event.is_registered_with_status(current_user, [models.RegistrationStatus.Waiting]) %}_waiting{%endif%})) this.parentNode.submit()" >
               <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
             </a>
@@ -169,7 +174,7 @@
             {% endif %}
             <br/>
         {% endif %}
-        
+
         {% if event.user_group and event.user_group.event_conditions %}
           {# TODO: handle other group conditions #}
             Les inscriptions en ligne sont restreintes aux participants à la collective
@@ -235,7 +240,7 @@
         <p>Les inscriptions sont closes.</p>
         {% endif %}
 
-        {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}  
+        {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}
           <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() |length }} / {{ event.num_waiting_list }}
               {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
