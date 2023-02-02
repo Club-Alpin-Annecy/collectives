@@ -19,8 +19,8 @@ depends_on = None
 def upgrade():
 
     # Findbad existing FK constraints on event_id
-    meta = sa.MetaData(bind=op.get_bind())
-    table = sa.Table("group_event_conditions", meta, autoload=sa.engine)
+    meta = sa.MetaData()
+    table = sa.Table("group_event_conditions", meta, autoload_with=op.get_bind().engine)
     existing_foreign_keys = table.c.event_id.foreign_keys
 
     with op.batch_alter_table("group_event_conditions") as batch_op:
