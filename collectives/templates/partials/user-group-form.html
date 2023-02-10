@@ -1,0 +1,64 @@
+
+
+<h5 class="heading-5">Participation à un événement</h4>
+<div id="{{user_group_form.event_conditions.id}}" class="user_group_condition_table">
+</div>
+
+Autoriser les participants à un autre événement :
+<input type="text" id="{{user_group_form.prefix}}event-search" placeholder="Titre ou ID…">
+
+<h5 class="heading-5">Détention d'un rôle</h4>
+<div id="{{user_group_form.role_conditions.id}}" class="user_group_condition_table">
+</div>
+
+<div class="inline_field">
+Autoriser les détenteurs du rôle :
+{{user_group_form.new_role_id(style="width:auto; margin:auto")}}
+{{user_group_form.new_role_activity_id(style="width:auto; margin:auto")}}
+<input type="button" id="{{user_group_form.prefix}}role-add" value="Ajouter" 
+    onclick='addRoleCondition("{{user_group_form.role_conditions.id}}", "{{user_group_form.new_role_id.id}}", "{{user_group_form.new_role_activity_id.id}}")'
+></div>
+
+<h5 class="heading-5">Types de licence</h4>
+{{user_group_form.license_conditions(class="choices")}}
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=> {
+    var license_multiselect = document.getElementById("{{user_group_form.license_conditions.id}}");
+    if(license_multiselect) {
+        const choices = new Choices(license_multiselect, {
+            removeItemButton:true,
+            placeholder:true,
+            placeholderValue:"Types de licence autorisés"
+        });
+    }
+
+    current_event_conditions = {{ user_group_form.event_conditions_as_json()  | safe}};
+    var eventConditionsTable = setupEventConditionsEditor("{{user_group_form.event_conditions.id}}", current_event_conditions);
+
+    const eventSearchInput = document.getElementById("{{user_group_form.prefix}}event-search");
+    setupAutoComplete(
+        eventSearchInput,
+        '{{event_search_url | safe}}',
+        function(item) {
+            return JSON.stringify(item);
+        },
+        function(id, val) {
+            addEventCondition(eventConditionsTable, "{{user_group_form.event_conditions.id}}", val);
+            eventSearchInput.value = "";
+        },
+        {
+            "itemInnerHTML" : 
+            function(item, val) {
+                return formatParentEvent(item.id, item.title, item.start) ;
+            }
+        }
+        );
+
+    current_role_conditions = {{ user_group_form.role_conditions_as_json()  | safe}};
+    var roleConditionsTable = setupRoleConditionsEditor("{{user_group_form.role_conditions.id}}", current_role_conditions);
+
+
+});
+
+</script>

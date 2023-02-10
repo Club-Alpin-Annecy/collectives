@@ -46,6 +46,12 @@ class GroupRoleCondition(db.Model):
 
     :type: int"""
 
+    activity = db.relationship("ActivityType", lazy=True)
+    """ Activity type associated with this condition
+
+    :type: list(:py:class:`collectives.models.activity_type.ActivityType`)
+    """
+
     def get_condition(self):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
         if self.role_id and self.activity_id:
@@ -80,7 +86,7 @@ class GroupEventCondition(db.Model):
 
     :type: int"""
 
-    event_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
     """ ID of the activity to which the user role should relate to.
 
     :type: int"""
@@ -90,6 +96,12 @@ class GroupEventCondition(db.Model):
     If null, both are allowed.
 
     :type: int"""
+
+    event = db.relationship("Event", lazy=True)
+    """ Event associated with this condition
+
+    :type: list(:py:class:`collectives.models.event.Event`)
+    """
 
     def get_condition(self):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
@@ -163,7 +175,7 @@ class UserGroup(db.Model):
     :type: int"""
 
     role_conditions = db.relationship(
-        "GroupRoleCondition", backref="group", cascade="all, delete"
+        "GroupRoleCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of role conditions associated with this group
 
@@ -171,7 +183,7 @@ class UserGroup(db.Model):
     """
 
     event_conditions = db.relationship(
-        "GroupEventCondition", backref="group", cascade="all, delete"
+        "GroupEventCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of event conditions associated with this group
 
@@ -179,7 +191,7 @@ class UserGroup(db.Model):
     """
 
     license_conditions = db.relationship(
-        "GroupLicenseCondition", backref="group", cascade="all, delete"
+        "GroupLicenseCondition", backref="group", cascade="all, delete-orphan"
     )
     """ List of license conditions associated with this group
 
@@ -230,3 +242,9 @@ class UserGroup(db.Model):
             condition.clone() for condition in self.license_conditions
         ]
         return clone
+
+    def has_conditions(self) -> bool:
+        """:return: whether the group defines at least one condition"""
+        return bool(
+            self.event_conditions or self.role_conditions or self.license_conditions
+        )

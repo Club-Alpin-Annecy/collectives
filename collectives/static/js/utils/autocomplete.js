@@ -54,7 +54,7 @@ function setupAutoComplete(
     const renderItem = function (item) {
         var val = itemValue(item);
         var innerHTML = settings.itemInnerHTML(item, val);
-        return `<div class="${settings.itemClass}" data-val="${val}" data-id="${item.id}">${innerHTML}</div>`
+        return `<div class="${settings.itemClass}" data-val='${val}' data-id="${item.id}">${innerHTML}</div>`
     };
 
     return new window.autoComplete({

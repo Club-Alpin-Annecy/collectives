@@ -12,6 +12,7 @@
   {# Specific for this page #}
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/user-group-form.js') }}"></script>
 
   {# Wysiwyg Editor #}
   <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
@@ -35,7 +36,7 @@
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
-
+      var easymde = undefined;
       window.onload = function () {
         const searchInput = document.getElementById('new-leader');
         setupAutoComplete(
@@ -51,34 +52,10 @@
           }
           );
 
-        const eventSearchInput = document.getElementById('parent-event-search');
-        const parentEventId = document.getElementById('{{form.parent_event_id.id}}');
-        setupAutoComplete(
-          eventSearchInput,
-          '{{url_for("api.autocomplete_event", aid=form.leader_activity_ids(), eid=[event.id]) | safe}}',
-          function(item) {
-            return formatParentEvent(item.id, item.title, item.start) ;
-          },
-          function(id, val) {
-            parentEventId.value = id;
-          }
-          );
-
-         eventSearchInput.addEventListener('change', function(event) {
-            if(!event.target.value) {
-              var field = document.getElementById('{{form.parent_event_id.id}}');
-              parentEventId.value = "";
-            }
-         });
-
-         {% if form.parent_event %}
-            eventSearchInput.value = formatParentEvent("{{form.parent_event.id}}", "{{form.parent_event.title}}", "{{form.parent_event.start}}");
-         {% endif %}
-
 
           let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data) }}";
           let imageUploadEndpoint = "{{url_for("api.upload_event_file", event_id=event.id) if event.id else url_for("api.upload_new_event_file", edit_session_id = form.edit_session_id.data)}}";
-          const easymde = makeEditor("description", {
+          easymde = makeEditor("description", {
             imageUploadEndpoint : imageUploadEndpoint,
             listUploadedFilesEndpoint : uploadedFilesEndpoint,
             imageCSRFToken : "{{csrf_token()}}"
@@ -230,9 +207,22 @@
     </div>
 
     <h4 class="heading-4">Restrictions d'inscription</h4>
-    Restreindre les inscriptions aux participants de la collective:
-    {{ form.parent_event_id }}
-    <input type="text" id="parent-event-search" placeholder="Titre ou ID…">
+
+    <details>
+      <summary>Fonctionnement des restrictions d'inscription</summary>
+      Les adhérents pourront s'inscrire en ligne s'ils remplissent 
+      chacun des types de restriction spécifiés: rôle, participation à un événement, et licence.
+      Les types de restrictions doivent donc entre eux être interpretés comme "ET", en ignorant ceux laissés vides.
+      En revanche, les différentes options à l'intérieur de chaque type de restriction doivent être interpretées comme "OU".
+      Par exemple, on pourra créer une condition: "participants à la collective numéro 1 ou numéro 2 ayant un rôle Bénévole et une licence de type J1 ou E2"
+      <br />
+      Notez que tout encadrant de l'événement pourra toujours forcer l'inscription de n'importe quel adhérent,
+      même s'il ne remplit pas les conditions.   
+    </details>
+      
+    {% with user_group_form = form.user_group.form, event_search_url = url_for("api.autocomplete_event", aid=form.leader_activity_ids(), eid=[event.id]) %}
+      {% include 'partials/user-group-form.html' %}
+    {% endwith %}
 
 
     <h4 class="heading-4">Description</h4>

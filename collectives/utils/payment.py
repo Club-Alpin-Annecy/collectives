@@ -1,12 +1,16 @@
 """Module to help payment extraction
 """
 import datetime
+import decimal
+from typing import List
 
 from flask import current_app
 
 from collectives.models import db, Payment, PaymentStatus, PaymentItem, Event
 from collectives.models import ActivityType, ItemPrice, User, PaymentType
 from collectives.models import Registration, RegistrationStatus
+from collectives.utils.time import current_time, format_date, format_date_range
+from collectives.utils.numbers import format_currency
 
 
 def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
@@ -84,3 +88,109 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
     if page is not None:
         return query.paginate(page=page, per_page=pagesize, error_out=False)
     return query.all()
+
+
+class PriceDateInterval:
+    """Class describing a date interval for which a charged amount applies.
+    Used to build the timeline of future prices for informative purpose
+    """
+
+    def __init__(
+        self, start: datetime.date, end: datetime.date, amount: decimal.Decimal = None
+    ):
+        """Constructor
+
+        :param date: start date of the interval (inclusive)
+        :param end: End date of the interval (inclusive)
+        :param amount: Charged amount for the duration of the interval
+        """
+        self.start = start
+        self.end = end
+        self.amount = amount
+
+    def __str__(self) -> str:
+        """
+        :return: Display string corresponding to the inverval
+        """
+        current_date = current_time().date()
+        if self.start == current_date:
+            if self.end:
+                return (
+                    f"jusqu'au {format_date(self.end)}: {format_currency(self.amount)}"
+                )
+            return ""
+
+        if self.end:
+            return (
+                f"{format_date_range(self.start, self.end, False)}: "
+                f"{format_currency(self.amount)}"
+            )
+        return f"à partir du {format_date(self.start)}: {format_currency(self.amount)}"
+
+
+def generate_price_intervals(item: PaymentItem, user: User) -> List[PriceDateInterval]:
+    """Generates a timeline of how the item price will evolve in the future.
+
+    That is, generate a list of cheapest prices at all points in the future,
+    along with the date intervals for which those prices stay the cheapest
+
+    :param item: Payment item to consider
+    :param user: User for whom the price should be compute
+    :return: The sorted list of date intervals with the corresponding charged amount
+    """
+
+    all_prices = item.available_prices_to_user(user)
+
+    # Conservatively generate potential boundaries at each price start/end
+    boundaries = set()
+    current_date = current_time().date()
+    boundaries.add(current_date)
+    for price in all_prices:
+        if price.end_date and price.end_date >= current_date:
+            boundaries.add(price.end_date + datetime.timedelta(days=1))
+        if price.start_date and price.start_date > current_date:
+            boundaries.add(price.start_date)
+
+    # Sort boundaries, generate intervals
+    boundaries = sorted(list(boundaries))
+
+    intervals = []
+    current_start = boundaries[0]
+    for boundary in boundaries[1:]:
+        intervals.append(
+            PriceDateInterval(current_start, boundary - datetime.timedelta(days=1))
+        )
+        current_start = boundary
+    intervals.append(PriceDateInterval(current_start, None))
+
+    # Merge intervals with same price
+    merged_intervals = []
+    current_start = None
+    current_end = None
+    current_amount = None
+    for interval in intervals:
+        price = item.cheapest_price_for_user_at_date(user, interval.start)
+        amount = price.amount if price else None
+        if amount == current_amount:
+            # Same price, extend current interval
+            current_end = interval.end
+        else:
+            # Price change, start a new interval
+            if current_amount is not None:
+                merged_intervals.append(
+                    PriceDateInterval(
+                        current_start,
+                        current_end,
+                        current_amount,
+                    )
+                )
+            current_start = interval.start
+            current_end = interval.end
+            current_amount = amount
+
+    if current_amount is not None:
+        merged_intervals.append(
+            PriceDateInterval(current_start, current_end, current_amount)
+        )
+
+    return merged_intervals

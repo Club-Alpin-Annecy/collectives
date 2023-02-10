@@ -1,0 +1,67 @@
+{% set first_condition = true %}
+
+{# Event conditions #}
+
+{% if user_group.event_conditions | length %}
+{% set first_condition = false %}
+{% for event_condition in user_group.event_conditions %}
+{% if event_condition.is_leader == none %}
+participants ou encadrants de
+{% elif event_condition.is_leader == false %}
+participants à
+{% else %}
+encadrants de
+{% endif %}
+l'événement <a
+    href="{{url_for('event.view_event', event_id=event_condition.event_id)}}">{{event_condition.event.title}}</a>
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# Role conditions #}
+{% if user_group.role_conditions | length %}
+{% set first_condition = false %}
+
+{% if not first_condition %}
+, également
+{% endif %}
+
+détenteurs
+{% for role_condition in user_group.role_conditions %}
+{% if role_condition.role_id == none %}
+d'un rôle
+{% else %}
+du rôle <em>{{role_condition.role_id.display_name()}}</em>
+{% endif %}
+
+{% if not role_condition.activity_id == none %}
+pour l'activité {{role_condition.activity.name}}
+{% endif %}
+
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{# License conditions #}
+{% if user_group.role_conditions | length %}
+{% set first_condition = false %}
+
+{% if not first_condition %}
+, et
+{% endif %}
+ayant une licence de type
+{% for license_condition in user_group.license_conditions %}
+
+{% if loop.last and not loop.first %}
+ou
+{% endif %}
+
+{{license_condition.license_category}}
+
+{% endfor %}
+{% endif %}
