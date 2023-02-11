@@ -37,23 +37,34 @@ window.onload = function(){
                                 {field:"end", type:">", value:getServerLocalTime() },
                             ]}));
     var waitingtable= new Tabulator("#waitingtable",
-    Object.assign(common_options, {   initialFilter: [
-                {field:"end", type:">", value:getServerLocalTime() },
-            ]}));
+                    Object.assign(common_options, {   initialFilter: [
+                                {field:"end", type:">", value:getServerLocalTime() },
+                            ]}));
     var pasteventstable= new Tabulator("#pasteventstable",
                     Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:"<", value:getServerLocalTime()  }
+                                {field:"end", type:"<", value:getServerLocalTime()  },
                             ]}));
+    var absenteventstable= new Tabulator("#absenteventstable", 
+                    Object.assign(common_options, {   initialFilter: [],
+                            }));
 
-    if(ajaxURL.match(/^\/api\/user/)){
+
+    if(ajaxURL.match(/^\/api\/user/)){ // If we are not on leader profile
 
         eventstable.hideColumn("registration.status")
-        eventstable.addFilter("registration.status", "=", 0);
+        eventstable.addFilter("registration.status", "=", EnumRegistrationStatusKeys['Active']);
 
         waitingtable.hideColumn("registration.status")
-        waitingtable.addFilter("registration.status", "=", 6);
+        waitingtable.addFilter("registration.status", "=", EnumRegistrationStatusKeys['Waiting']);
 
-        pasteventstable.addFilter("registration.status", "!=", 6);
+        pasteventstable.hideColumn("registration.status")
+        pasteventstable.addFilter("registration.status", "=", EnumRegistrationStatusKeys['Active']);
+
+        var absents = ['PaymentPending', 'SelfUnregistered', 'JustifiedAbsentee', 'UnJustifiedAbsentee'];
+        absents = absents.map(x => EnumRegistrationStatusKeys[x]);
+        absenteventstable.addFilter("registration.status", "in", absents);
+
+
     }
 
 }

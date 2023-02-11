@@ -64,6 +64,11 @@ class EventType(db.Model):
     :type: string
     """
 
+    attendance = db.Column(db.Boolean(), nullable=False, default=True)
+    """ True if this event acts on the users attendance reports.
+
+    :type: Boolean"""
+
     def has_valid_license(self, user):
         """Check whether an user has a valic license for this type of event
 
@@ -94,4 +99,15 @@ class EventType(db.Model):
         """
         types = cls.get_all_types()
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
+        return "{" + ",".join(items) + "}"
+
+    @classmethod
+    def js_keys(cls):
+        """Class method to cast all event type keys as js dict
+
+        :return: all activity types as js Dictionnary
+        :rtype: String
+        """
+        types = cls.get_all_types()
+        items = [f'"{type.short}" : {type.id}' for type in types]
         return "{" + ",".join(items) + "}"

@@ -1,0 +1,47 @@
+{% macro attendance(user, time) -%}
+{% set report = user.attendance_report(time) %}
+
+{% if len(report) != 0 %}
+    <div class="bar">
+        {% for status, occurences in report.items()  %}
+            <span class="item tooltip" style="background-color: {{status.color()}}; flex-grow : {{occurences}}"> 
+                <span class="tooltiptext tooltip-bottom">{{status.display_name()}} ({{occurences}})</span>
+            </span>
+        {% endfor %}
+    </div>
+    <div class="legend" style="max-width: 800px; margin: auto;">
+        
+        <div class="grade float_right tooltip" >Note : 
+            <span style="font-size: 300%;">{{ user.attendance_grade(time) }}</span>
+            <span class="tooltiptext tooltip-right">
+                <b>A</b>: Pas d'incident (désinscription ou absence injustifiée)<br/>
+                <b>B</b>: Un incident pour au moins 20 sorties OK<br/>
+                <b>C</b>: Un incident dans la période<br/>
+                <b>D</b>: Deux incidents dans la période<br/>
+                <b>E</b>: Trois incidents et plus<br/>
+            </span>
+        </div>
+        <ul style="list-style: none;">
+            {% for status, occurences in report.items()  %}
+
+                {% if status == models.RegistrationStatus.Active %}
+                    {% set link="#pasteventstable" %}
+                {% elif status == models.RegistrationStatus.Waiting %}
+                    {% set link="#waitingtable" %}
+                {% elif status in models.RegistrationStatus.absent_status() %}
+                    {% set link="#absenteventstable" %}
+                {% endif %}
+
+                <li>
+                    <span style="color: {{status.color()}}; font-size: 170%">&#9632;</span>
+                    <a style="flex-grow : {{occurences}}" href="{{link}}">{{status.display_name()}} ({{occurences}})</a>
+                </li>
+
+            {% endfor %}
+        </ul>
+    </div>
+{% else %}
+Pas d'inscription
+{% endif %}
+
+{% endmacro %}

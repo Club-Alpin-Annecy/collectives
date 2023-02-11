@@ -1,6 +1,7 @@
 .button, a.button, input[type=button].button, input[type=submit].button{
     display: inline-block;
     padding: $padding-buttons-default;
+    margin: $margin-buttons-default;
     background: $color-white;
     text-transform: uppercase;
     text-align: center;

@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% import 'macros.html' as macros with context %}
+{% from 'profile/partials/attendance.html' import attendance with context %}
+
 
 {% block additionalhead %}
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
@@ -109,6 +111,16 @@
     </form>
     {% endif %}
 
+    <h4 class="heading-4">Rapport de présence des collectives et des formations</h4>
+    <p>* Les rapports de présence tiennent aussi compte des sorties futures.</p>
+    <div id="attendance">
+        <p class="align-center"><b>30 derniers jours</b></p>
+        {{ attendance(user, datetime.timedelta(days=30) )}}
+        <br/>
+        <p class="align-center"><b>12 derniers mois</b></p>
+        {{ attendance(user, datetime.timedelta(days=365) )}}
+    </div>
+
     <h4 class="heading-4">Sorties à venir</h4>
     <div id="eventstable" class="collectives-list">
     </div>
@@ -120,6 +132,10 @@
 
     <h4 class="heading-4">Sorties effectuées</h4>
     <div id="pasteventstable" class="collectives-list">
+    </div>
+
+    <h4 class="heading-4">Absences</h4>
+    <div id="absenteventstable" class="collectives-list">
     </div>
 </div>
 
