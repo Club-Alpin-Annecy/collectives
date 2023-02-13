@@ -179,9 +179,7 @@ class EventSchema(marshmallow.Schema):
     """ Tags this event.
 
      :type: :py:class:`marshmallow.fields.Function`"""
-    has_free_online_slots = fields.Function(
-        lambda event: event.has_free_online_slots()
-    )
+    has_free_online_slots = fields.Function(lambda event: event.has_free_online_slots())
     """ Tags this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""
