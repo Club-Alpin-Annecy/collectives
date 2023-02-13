@@ -166,9 +166,9 @@ function eventRowFormatter(row){
 }
 
 function getSlotsAvailableBadge(event) {
-    "returns 'Full' badge when no more available slots, and 'waiting list' when main list is full, but there are still availabilities in waiting list"
+    "returns 'Full' badge when no more available slots, and 'waiting list' when there are availabilities in waiting list (whatever is the number of already registered participants)"
     if (event.status != EnumEventStatus['Cancelled'])
-        if (!event.has_free_slots && event.has_free_waiting_slots)
+        if (event.has_free_waiting_slots)
             return `<span class="event-status-badge event-status-waiting-list ">Liste d'attente</span>`
         else if (!event.has_free_slots && !event.has_free_waiting_slots)
             return `<span class="event-status-badge event-status-full ">Complet</span>`
