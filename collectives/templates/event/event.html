@@ -334,8 +334,8 @@
               Fiche collective
             </a>
 
-            {% if current_user.can_create_events() %}
-            <a href="{{url_for('reservation.register', event_id=event.id, role_id=10)}}" class="button button-secondary">
+            {% if Configuration.RESERVATION_ENABLED and current_user.can_create_reservation() %}
+            <a href="{{url_for('reservation.register', event_id=event.id, role_id=models.RoleIds.EventLeader)}}" class="button button-secondary">
               <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon" />
               Réserver du matériel
             </a>
