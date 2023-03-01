@@ -387,7 +387,7 @@ class ItemPrice(db.Model):
         ]
         if not parent_event_conditions:
             return None
-        return self.user_group.event_conditions[0].event_id
+        return parent_event_conditions[0].event_id
 
     @parent_event_id.setter
     def parent_event_id(self, parent_event_id):

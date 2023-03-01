@@ -77,7 +77,9 @@ def edit_prices(event_id):
             )
 
             if new_price_form.existing_item.data:
-                new_price.item_id = new_price_form.existing_item.data
+                new_price.item = PaymentItem.query.get(
+                    new_price_form.existing_item.data
+                )
             else:
                 if event.registrations and not event.requires_payment():
                     # Event was free, it is now paid.
