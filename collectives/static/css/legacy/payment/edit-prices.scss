@@ -5,31 +5,31 @@
     border-collapse : collapse;
 }
 
-#existing_prices input{
+#existing_prices tr.fields input{
     margin: auto;
     width:90%;
-    padding: 10% 0.25em;
+    padding: 0.5em;
 }
 
-#existing_prices input[type=checkbox] {
+#existing_prices tr.fields input[type=checkbox] {
     margin: 0.5em;
 }
 
-#existing_prices input[type=number]{
+#existing_prices tr.fields input[type=number]{
     width:5em;
 }
 
-#existing_prices input[type=checkbox]{
+#existing_prices tr.fields input[type=checkbox]{
     width:auto;
     display:inline;
 }
 
-#existing_prices label{
+#existing_prices tr.fields label{
     display:inline;
     font-weight: normal;
 }
 
-#existing_prices td {
+#existing_prices tr.fields td {
     vertical-align: middle;
     text-align:center;
 }
@@ -38,9 +38,10 @@
     text-align:left;
 }
 
-#existing_prices td.actions{
+#existing_prices tr.fields td.actions{
     min-width:8em;
     text-align:left;
+    vertical-align: top;
 }
 
 #existing_prices tr.item_row td {
@@ -52,7 +53,29 @@
     background-color: $color-blue-bg-light;
 }
 
+#existing_prices tr.restrictions h5 {
+    margin:1em;
+}
+
+#existing_prices tr.restrictions div.inline_field{
+    text-align: left;
+}
 
 .user_group_condition_table {
   margin-bottom: 1em;
+}
+
+#existing_prices fieldset
+{
+    padding: 0 0.5em;
+}
+
+#existing_prices .collapsed
+{
+    // When using display:none inpiuts are not submitted
+    // Put them offscreen instead
+    position: absolute;
+    left: -30000px;
+    visibility: hidden;
+    opacity: 0;
 }

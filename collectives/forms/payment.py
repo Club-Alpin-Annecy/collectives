@@ -64,9 +64,10 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     delete = BooleanField("Supprimer")
 
-    license_types = StringField("Catégories de license")
-    leader_only = BooleanField("Tarif encadrant")
-    parent_event_id = IntegerField("Événement parent", validators=[Optional()])
+    user_group = FormField(UserGroupForm, default=UserGroup)
+    #license_types = StringField("Catégories de license")
+    #leader_only = BooleanField("Tarif encadrant")
+    #parent_event_id = IntegerField("Événement parent", validators=[Optional()])
 
     price_id = HiddenField()
     total_use_count = 0
@@ -91,16 +92,16 @@ class ItemPriceForm(ModelForm, AmountForm):
             raise ValueError
         return price
 
-    def validate_license_types(self, field):
-        """Validator checking that the provided licence categories exist"""
-        valid_types = Configuration.LICENSE_CATEGORIES
-        for license_type in field.data.split():
-            if not license_type in valid_types:
-                raise ValidationError(
-                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
-                    "liste des catégories en bas de page."
-                )
-
+#    def validate_license_types(self, field):
+#        """Validator checking that the provided licence categories exist"""
+#        valid_types = Configuration.LICENSE_CATEGORIES
+#        for license_type in field.data.split():
+#            if not license_type in valid_types:
+#                raise ValidationError(
+#                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
+#                    "liste des catégories en bas de page."
+#                )
+#
     def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
         if not field.data:
