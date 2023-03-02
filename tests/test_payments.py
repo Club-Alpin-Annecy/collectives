@@ -92,7 +92,10 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
 
     data = utils.load_data_from_form(response.text, "select_payment_item")
     item = paying_event.payment_items[0]
-    data["item_price"] = item.cheapest_price_for_user_now(user1_client.user).id
+    item_price = item.cheapest_price_for_user_now(user1_client.user)
+    data["item_price"] = item_price.id
+
+    assert item_price.amount > 0.0
 
     response = user1_client.post(
         f"/collectives/{paying_event.id}/self_register", data=data
