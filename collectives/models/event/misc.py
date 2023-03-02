@@ -113,7 +113,7 @@ class EventMiscMixin:
         )
 
     # pylint: disable=import-outside-toplevel
-    def migrate_parent_event_id(self):
+    def _migrate_parent_event_id(self):
         """Helper for migrating from parent_event_id to user groups"""
 
         from collectives.models.user_group import UserGroup, GroupEventCondition
