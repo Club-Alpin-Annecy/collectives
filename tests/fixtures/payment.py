@@ -24,7 +24,9 @@ def leader_price(item):
     price.amount = 0
     price.title = "Encadrant"
     price.enabled = True
+    # pylint: disable=protected-access
     price._deprecated_leader_only = True  # Test migration as well
+    # pylint: enable=protected-access
     price.update_time = datetime.now()
     return price
 
