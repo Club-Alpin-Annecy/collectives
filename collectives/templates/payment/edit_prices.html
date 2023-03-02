@@ -70,7 +70,7 @@
   <h5 class="heading-5"> Tarifs existants </h5>
   {% if form.items %}
 
-    <form method="POST" formnovalidate>
+    <form method="POST">
     <table id="existing_prices">
     <thead>
       <th> Objet du paiement </th>
@@ -221,17 +221,6 @@
     {{ new_price_form.hidden_tag() }}
     <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
-
-    {#
-    <h4 class="heading-4">Catégories de licence</h4>
-    <p>
-      Pour rappel, les catégories de licence FFCAM sont les suivantes:
-      <ul>
-        {% for name, descr in Configuration.LICENSE_CATEGORIES.items() %}
-        <li><strong>{{name}}</strong> {{descr}}</li>
-        {% endfor %}
-      </ul>
-    </p> #}
 
     <h4 class="heading-4">Copie de tarif</h4>
     <form method="POST" class="form" action="{{url_for('payment.copy_prices', event_id=event.id)}}">

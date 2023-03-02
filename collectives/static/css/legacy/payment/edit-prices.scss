@@ -72,7 +72,7 @@
 
 #existing_prices .collapsed
 {
-    // When using display:none inpiuts are not submitted
+    // When using display:none JS-generated inputs are not submitted
     // Put them offscreen instead
     position: absolute;
     left: -30000px;
