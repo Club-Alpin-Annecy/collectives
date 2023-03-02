@@ -240,10 +240,7 @@ class ItemPrice(db.Model):
     :type: bool"""
 
     _deprecated_parent_event_id = db.Column(
-        "parent_event_id",
-        db.Integer,
-        db.ForeignKey("events.id"),
-        nullable=True
+        "parent_event_id", db.Integer, db.ForeignKey("events.id"), nullable=True
     )
     """ [Deprecated] Parent event id, where user is required to have subscribed to get the price."""
 
@@ -254,7 +251,6 @@ class ItemPrice(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
-
 
     user_group = db.relationship("UserGroup", single_parent=True, lazy=True)
     """ User has to be a member of this group to get this price.
@@ -366,7 +362,7 @@ class ItemPrice(db.Model):
         """Temporary helper for migrating from parent_event_id to user groups"""
 
         if self._deprecated_parent_event_id is None:
-            return 
+            return
         parent_event_id = self._deprecated_parent_event_id
 
         if self.user_group is None:
@@ -393,7 +389,7 @@ class ItemPrice(db.Model):
         """Temporary helper for migrating from leader_only to user groups"""
 
         if self._deprecated_leader_only is None:
-            return 
+            return
         value = self._deprecated_leader_only
 
         if self.user_group is None:
@@ -417,7 +413,7 @@ class ItemPrice(db.Model):
         """Temporary helper for migrating from license_types to user groups"""
 
         if not self._deprecated_license_types:
-            return 
+            return
         types = self._deprecated_license_types
 
         if self.user_group is None:
@@ -433,6 +429,7 @@ class ItemPrice(db.Model):
             ]
 
         self._deprecated_license_types = ""
+
 
 class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""

@@ -9,7 +9,6 @@ from wtforms import (
     DecimalField,
     FormField,
     FieldList,
-    IntegerField,
 )
 from wtforms import HiddenField, BooleanField, SelectField
 from wtforms.validators import NumberRange, ValidationError, Optional
@@ -17,11 +16,12 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.order import OrderedForm
 from collectives.models import ItemPrice, PaymentItem, Payment
-from collectives.models import PaymentType, PaymentStatus, Configuration
+from collectives.models import PaymentType, PaymentStatus
 from collectives.models import UserGroup
 from collectives.utils.numbers import format_currency
 
 from collectives.forms.user_group import UserGroupForm
+
 
 class AmountForm(FlaskForm):
     """Form component for inputting an amount in euros"""
@@ -89,16 +89,6 @@ class ItemPriceForm(ModelForm, AmountForm):
             raise ValueError
         return price
 
-#    def validate_license_types(self, field):
-#        """Validator checking that the provided licence categories exist"""
-#        valid_types = Configuration.LICENSE_CATEGORIES
-#        for license_type in field.data.split():
-#            if not license_type in valid_types:
-#                raise ValidationError(
-#                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
-#                    "liste des catégories en bas de page."
-#                )
-#
     def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
         if not field.data:
@@ -214,7 +204,7 @@ class NewItemPriceForm(ModelForm, AmountForm):
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
         if self.existing_item.data:
-            # Adding price to existing item, item title is not used 
+            # Adding price to existing item, item title is not used
             return
 
         title = field.data
