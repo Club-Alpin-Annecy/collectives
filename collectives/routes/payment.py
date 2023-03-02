@@ -105,7 +105,7 @@ def edit_prices(event_id):
             if new_price.user_group is None:
                 new_price.user_group = UserGroup()
             new_price_form.populate_obj(new_price)
-            
+
             db.session.add(new_price)
             db.session.commit()
 
@@ -191,7 +191,7 @@ def edit_prices(event_id):
     return render_template(
         "payment/edit_prices.html",
         event=event,
-        event_activity_ids = [a.id for a in event.activity_types],
+        event_activity_ids=[a.id for a in event.activity_types],
         form=form,
         new_price_form=new_price_form,
         copy_item_form=CopyItemForm(),
