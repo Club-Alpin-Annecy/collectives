@@ -184,8 +184,7 @@ class UserGroupForm(ModelForm):
         for license_type in field.data:
             if not license_type in valid_types:
                 raise ValidationError(
-                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
-                    "liste des catégories en bas de page."
+                    f"'{license_type}' n'est pas une catégorie de licence FFCAM valide."
                 )
 
         if field.data:
