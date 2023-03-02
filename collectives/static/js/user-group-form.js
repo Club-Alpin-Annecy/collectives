@@ -79,8 +79,10 @@ function setupEventConditionsEditor(fieldId, existing) {
     return table;
 }
 
-function addEventCondition(table, fieldId, val) {
+function addEventCondition(table, fieldId, val, isLeaderSelectId) {
     val = JSON.parse(val);
+
+    var isLeaderSelect = document.getElementById(isLeaderSelectId);
 
     var rowCount = table.getRows().length;
     var index = rowCount == 0 ? 0 : (table.getRows()[rowCount-1].getIndex() + 1);
@@ -93,7 +95,7 @@ function addEventCondition(table, fieldId, val) {
                 "event_id": val.id,
                 "event_name": val.title,
                 "event_url": val.view_uri,
-                "is_leader": "None"
+                "is_leader": isLeaderSelect.value === "" ? "" : parseInt(isLeaderSelect.value)
             }
         ]
     );
