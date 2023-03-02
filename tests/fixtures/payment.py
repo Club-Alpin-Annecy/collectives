@@ -24,7 +24,7 @@ def leader_price(item):
     price.amount = 0
     price.title = "Encadrant"
     price.enabled = True
-    price.leader_only = True
+    price._deprecated_leader_only = True  # Test migration as well
     price.update_time = datetime.now()
     return price
 
