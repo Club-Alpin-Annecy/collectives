@@ -54,13 +54,7 @@
     updateNewItemTitleVisibility(); 
     dateInputsFallback(tail);
 
-    
     loadEventAutoComplete('copy-item-event-search', 'copy-item-event-id');
-    {% for item_form in form.items %}
-      {% for field in item_form.item_prices %}
-        loadEventAutoComplete('{{field.parent_event_id.id}}-search', '{{field.parent_event_id.id}}');
-      {% endfor %}
-    {% endfor %}
   };
   </script>
 {% endblock %}
@@ -76,40 +70,31 @@
   <h5 class="heading-5"> Tarifs existants </h5>
   {% if form.items %}
 
-    <form method="POST">
+    <form method="POST" formnovalidate>
     <table id="existing_prices">
     <thead>
       <th> Objet du paiement </th>
       <th> Intitulé du tarif </th>
       <th> Prix en euros </th>
-      <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
-      <th> Parent </th>
       <th> Max dispo </th>
-      <th> Tarif encadrant </th>
       <th> Utilisations</th>
     </thead>
     {% for item_form in form.items %}
       {{item_form.item_id}}
     
       {% for field in item_form.item_prices %}
-        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %}" >
+        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %} fields" >
           <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
           <td> {{ field.title() }} </td>
           <td>
           {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
           </td>
-          <td> {{ field.license_types() }} </td>
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
-          <td> 
-            {{ field.parent_event_id(style="display:none") }} 
-            <input type="text" id="{{ field.parent_event_id.id }}-search" placeholder="Titre ou ID…"/>
-          </td>
           <td> {{ field.max_uses() }} </td>
-          <td> {{ field.leader_only() }} </td>
-          <td class="actions"> {{field.price_id}} 
+          <td class="actions" rowspan="2"> {{field.price_id}} 
           {{field.active_use_count}} actives ({{field.total_use_count}} tot.)
           <br/>
           <label>{{field.enabled}} Activer</label>
@@ -117,6 +102,33 @@
           <br />
             {{field.delete}}&nbsp;{{field.delete.label}}
           {% endif %} 
+          </td>
+        </tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} restrictions" >
+          <td></td>
+          <td colspan="5" style="text-align: left;">
+              {% with price = field.get_price(item_form.get_item(event)) %}
+              <fieldset>
+              <legend onclick="
+                javascript:
+                  this.parentElement.querySelectorAll('.togglable').forEach(e => {e.classList.toggle('collapsed')})
+              ">
+               <a class="togglable collapsed">[-]</a>
+               <a class="togglable">[+]</a>
+               Restrictions: 
+                <span class="togglable">
+                {% with user_group = price.user_group %}
+                  {% include 'partials/user-group-text.html' %}
+                {% endwith %}
+                </span>
+              </legend>
+              <div class="togglable collapsed">
+              {% with user_group_form = field.user_group.form, event_search_url = url_for("api.autocomplete_event", aid=event_activity_ids) %}
+                {% include 'partials/user-group-form.html' %}
+              {% endwith %}
+              </div>
+              </fieldset>
+              {% endwith%}
           </td>
         </tr>
         {% if field.errors %}

@@ -1,3 +1,5 @@
+{% if user_group.has_conditions() %}
+
 {% set first_condition = true %}
 
 {# Event conditions #}
@@ -23,11 +25,11 @@ l'événement <a
 
 {# Role conditions #}
 {% if user_group.role_conditions | length %}
-{% set first_condition = false %}
 
 {% if not first_condition %}
 , également
 {% endif %}
+{% set first_condition = false %}
 
 détenteurs
 {% for role_condition in user_group.role_conditions %}
@@ -48,12 +50,13 @@ pour l'activité {{role_condition.activity.name}}
 {% endif %}
 
 {# License conditions #}
-{% if user_group.role_conditions | length %}
-{% set first_condition = false %}
+{% if user_group.license_conditions | length %}
 
 {% if not first_condition %}
 , et
 {% endif %}
+{% set first_condition = false %}
+
 ayant une licence de type
 {% for license_condition in user_group.license_conditions %}
 
@@ -64,4 +67,8 @@ ou
 {{license_condition.license_category}}
 
 {% endfor %}
+{% endif %}
+
+{% else %}
+pas de restrictions
 {% endif %}
