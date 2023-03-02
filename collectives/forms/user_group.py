@@ -137,6 +137,8 @@ class UserGroupForm(ModelForm):
     event_conditions = FieldList(
         FormField(GroupEventConditionForm, default=GroupEventCondition)
     )
+    
+    new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
 
     license_conditions = SelectMultipleField("Types de licence")
 
@@ -165,6 +167,12 @@ class UserGroupForm(ModelForm):
         self.new_role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
         self.new_role_activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
+        ]
+
+        self.new_event_is_leader.choices = [
+            ("", "Encadrants ou Participants"),
+            (int(False), "Participants"),
+            (int(True), "Encadrants"),
         ]
 
     def validate_license_conditions(self, field):

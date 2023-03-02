@@ -17,7 +17,7 @@ from collectives.forms.payment import NewItemPriceForm, CopyItemForm
 
 from collectives.models import db, Configuration, Event, PaymentItem, ItemPrice, Payment
 from collectives.models import PaymentStatus, PaymentType, RegistrationStatus
-from collectives.models import Registration
+from collectives.models import Registration, UserGroup
 
 from collectives.utils import payline
 from collectives.utils.access import payments_enabled, valid_user, user_is
@@ -102,7 +102,10 @@ def edit_prices(event_id):
 
                 db.session.add(new_item)
 
+            if new_price.user_group is None:
+                new_price.user_group = UserGroup()
             new_price_form.populate_obj(new_price)
+            
             db.session.add(new_price)
             db.session.commit()
 
@@ -189,6 +192,7 @@ def edit_prices(event_id):
     return render_template(
         "payment/edit_prices.html",
         event=event,
+        event_activity_ids = [a.id for a in event.activity_types],
         form=form,
         new_price_form=new_price_form,
         copy_item_form=CopyItemForm(),
