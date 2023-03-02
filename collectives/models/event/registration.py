@@ -224,7 +224,7 @@ class EventRegistrationMixin:
         """
 
         # Migrate to new version of attribute
-        self.migrate_parent_event_id()
+        self._migrate_parent_event_id()
 
         if self.user_group is None:
             return True

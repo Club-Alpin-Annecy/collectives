@@ -243,6 +243,7 @@ class ItemPrice(db.Model):
         "parent_event_id",
         db.Integer,
         db.ForeignKey("events.id"),
+        nullable=True
     )
     """ [Deprecated] Parent event id, where user is required to have subscribed to get the price."""
 
@@ -253,6 +254,7 @@ class ItemPrice(db.Model):
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
+
 
     user_group = db.relationship("UserGroup", single_parent=True, lazy=True)
     """ User has to be a member of this group to get this price.
@@ -353,45 +355,19 @@ class ItemPrice(db.Model):
             return False
 
         # Migrate old version of attributes
-        if self._deprecated_leader_only:
-            self.leader_only = self._deprecated_leader_only
-        if self._deprecated_license_types:
-            self.license_types = self._deprecated_license_types
-        if self._deprecated_parent_event_id:
-            self.parent_event_id = self._deprecated_parent_event_id
+        self._migrate_leader_only()
+        self._migrate_license_types()
+        self._migrate_parent_event_id()
 
         return self.user_group is None or self.user_group.contains(user)
 
     # pylint: disable=import-outside-toplevel
-    @property
-    def parent_event(self):
-        """Temporary helper for migrating from parent_event user groups"""
-        from collectives.models.event import Event
-
-        parent_event_id = self.parent_event_id
-        if parent_event_id is None:
-            return None
-        return Event.query.get(parent_event_id)
-
-    @property
-    def parent_event_id(self):
+    def _migrate_parent_event_id(self):
         """Temporary helper for migrating from parent_event_id to user groups"""
-        if self._deprecated_parent_event_id:
-            # Migrate to new version of attribute
-            self.parent_event_id = self._deprecated_parent_event_id
 
-        if self.user_group is None:
-            return None
-        parent_event_conditions = [
-            cond for cond in self.user_group.event_conditions if not cond.is_leader
-        ]
-        if not parent_event_conditions:
-            return None
-        return parent_event_conditions[0].event_id
-
-    @parent_event_id.setter
-    def parent_event_id(self, parent_event_id):
-        """Temporary helper for migrating from parent_event_id to user groups"""
+        if self._deprecated_parent_event_id is None:
+            return 
+        parent_event_id = self._deprecated_parent_event_id
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -413,23 +389,12 @@ class ItemPrice(db.Model):
                 parent_event_conditions[0].event_id = parent_event_id
         self._deprecated_parent_event_id = None
 
-    @property
-    def leader_only(self):
+    def _migrate_leader_only(self):
         """Temporary helper for migrating from leader_only to user groups"""
-        if self._deprecated_leader_only:
-            # Migrate to new version of attribute
-            self.leader_only = self._deprecated_leader_only
 
-        if self.user_group is None:
-            return None
-        leader_only_conditions = [
-            cond for cond in self.user_group.event_conditions if cond.is_leader
-        ]
-        return bool(leader_only_conditions)
-
-    @leader_only.setter
-    def leader_only(self, value):
-        """Temporary helper for migrating from leader_only to user groups"""
+        if self._deprecated_leader_only is None:
+            return 
+        value = self._deprecated_leader_only
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -448,23 +413,12 @@ class ItemPrice(db.Model):
                 db.session.delete(leader_only_conditions[0])
         self._deprecated_leader_only = None
 
-    @property
-    def license_types(self) -> str:
+    def _migrate_license_types(self):
         """Temporary helper for migrating from license_types to user groups"""
-        if self._deprecated_license_types:
-            # Migrate to new version of attribute
-            self.license_types = self._deprecated_license_types
 
-        if self.user_group is None:
-            return ""
-
-        return " ".join(
-            cond.license_category for cond in self.user_group.license_conditions
-        )
-
-    @license_types.setter
-    def license_types(self, types: str):
-        """Temporary helper for migrating from license_types to user groups"""
+        if not self._deprecated_license_types:
+            return 
+        types = self._deprecated_license_types
 
         if self.user_group is None:
             self.user_group = UserGroup()
@@ -477,8 +431,8 @@ class ItemPrice(db.Model):
             self.user_group.license_conditions = [
                 GroupLicenseCondition(license_category=cat) for cat in types
             ]
-        self._deprecated_license_types = None
 
+        self._deprecated_license_types = ""
 
 class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""

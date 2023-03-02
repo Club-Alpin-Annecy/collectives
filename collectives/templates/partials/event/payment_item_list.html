@@ -9,7 +9,7 @@
         <div class="leader-entry">
           <div class="leader-left"><b>{{item.title}}</b> - {{ price.title }} 
             
-              {% if (price['start_date'] or price['end_date'] or price['max_uses'] or price['leader_only'] or price['license_types'] or price['parent_event_id'] ) %} 
+              {% if (price['start_date'] or price['end_date'] or price['max_uses'] or (price.user_group and price.user_group.has_conditions())) %} 
 
                 {%- set comma = "" %}
                 {%- if(price['start_date']) %}
@@ -24,19 +24,14 @@
                   -<i>  {{price['max_uses']}} maximum ({{price.active_use_count()}} déjà commandés)</i>
                 {%- endif %}
 
-
-                {%- if(price['leader_only']) %}
-                  -<i>  Réservé aux encadrants de la sortie</i>
+                {%- if(price.user_group and price.user_group.has_conditions) %}
+                  -<i>  Réservé aux 
+                  {% with user_group = price.user_group %}
+                    {% include 'partials/user-group-text.html' %}
+                  {% endwith %}
+                  </i>
                 {%- endif %}
 
-                {%- if(price['license_types']) %}
-                  -<i>  Réservé aux licences {{price['license_types']}}</i>
-                {%- endif %}
-
-                {%- if(price['parent_event_id']) %}
-                  -<i>  Réservé aux participants de <a href="{{url_for("event.view_event", event_id=price.parent_event_id)}}">{{price.parent_event.title}}</a></i>
-                {%- endif %}
-              
               {%- endif %}
 
             

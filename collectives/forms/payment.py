@@ -65,9 +65,6 @@ class ItemPriceForm(ModelForm, AmountForm):
     delete = BooleanField("Supprimer")
 
     user_group = FormField(UserGroupForm, default=UserGroup)
-    #license_types = StringField("Catégories de license")
-    #leader_only = BooleanField("Tarif encadrant")
-    #parent_event_id = IntegerField("Événement parent", validators=[Optional()])
 
     price_id = HiddenField()
     total_use_count = 0
