@@ -123,12 +123,12 @@ class EventMiscMixin:
 
         parent_event_id = self._deprecated_parent_event_id
 
-        if self.user_group is None:
-            self.user_group = UserGroup()
-        if not self.user_group.event_conditions:
+        if self._user_group is None:
+            self._user_group = UserGroup()
+        if not self._user_group.event_conditions:
             condition = GroupEventCondition(event_id=parent_event_id, is_leader=False)
-            self.user_group.event_conditions.append(condition)
+            self._user_group.event_conditions.append(condition)
         else:
-            self.user_group.event_conditions[0].event_id = parent_event_id
+            self._user_group.event_conditions[0].event_id = parent_event_id
 
         self._deprecated_parent_event_id = None

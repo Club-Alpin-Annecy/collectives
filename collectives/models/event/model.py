@@ -241,7 +241,7 @@ class EventModelMixin:
         )
 
     @declared_attr
-    def user_group(self):
+    def _user_group(self):
         """User Group
 
         Registrations to this event will we limited to users that are members of this group
@@ -250,11 +250,26 @@ class EventModelMixin:
         """
         return db.relationship(
             "UserGroup",
+            foreign_keys="Event.user_group_id",
             single_parent=True,
             lazy=True,
             cascade="all, delete-orphan",
             backref="event",
         )
+
+    @property
+    def user_group(self):
+        """Overload user_group property access to automatically perform migration
+        :return: :py:class:`sqlalchemy.orm.relationship`
+        """
+        # Migrate to new version of attribute
+        self._migrate_parent_event_id()
+        return self._user_group
+
+    @user_group.setter
+    def user_group(self, value):
+        """Overloaded setter for user_group"""
+        self._user_group = value
 
     @validates("title")
     def truncate_string(self, key, value):
