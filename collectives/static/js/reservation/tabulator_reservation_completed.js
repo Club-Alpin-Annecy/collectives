@@ -14,7 +14,7 @@
             {column:"name", dir:"asc"},
         ],
         rowClick: function (e, row) {
-          location = row._row.data.reservationLineURL
+          location = row._row.data.reservation_line_url
       },
         columns:[
           {
@@ -28,7 +28,7 @@
             field:"equipment_type_name",
             formatter:"link",
             formatterParams:{
-              urlField:"reservationLineURL"
+              urlField:"reservation_line_url"
             }
           },
           {
