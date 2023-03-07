@@ -1,17 +1,54 @@
 """Module containing forms related to equipment management
 """
 from datetime import datetime
+from decimal import Decimal
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 
 from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
-from wtforms.validators import DataRequired
+from wtforms import DecimalField
+from wtforms.validators import DataRequired, NumberRange
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.validators import UniqueValidator
 from collectives.models import Equipment, EquipmentType, EquipmentModel, photos, db
-from collectives.utils.numbers import FlexibleDecimalField
+
+
+class LocalizedDecimalField(DecimalField):
+    """
+    DecimalField with french locale
+    """
+
+    def __init__(
+        self,
+        *args,
+        min_value: float = 0,
+        max_value: float = 10000,
+        placeholder: str = "",
+        **kwargs
+    ):
+        super().__init__(
+            validators=[
+                NumberRange(
+                    min=min_value,
+                    max=max_value,
+                    message="Le prix doit être compris entre %(min)s et %(max)s euros.",
+                )
+            ],
+            number_format="#,##0.00",
+            render_kw={
+                "type": "number",
+                "min": min_value,
+                "max": max_value,
+                "placeholder": placeholder,
+                "step": "0.01",
+                "lang": "fr-FR",
+            },
+            default=Decimal(0),
+            *args,
+            **kwargs
+        )
 
 
 class EquipmentTypeForm(FlaskForm, ModelForm):
@@ -27,21 +64,8 @@ class EquipmentTypeForm(FlaskForm, ModelForm):
             ),
         ],
     )
-    price = FlexibleDecimalField(
-        label="Prix :",
-        render_kw={
-            "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
-            "placeholder": "Prix",
-            "title": "Utilisez uniquement des chiffres",
-        },
-    )
-    deposit = FlexibleDecimalField(
-        label="Caution :",
-        render_kw={
-            "pattern": "^[0-9]+([.|,][0-9]+){0,1}$",
-            "placeholder": "Caution",
-        },
-    )
+    price = LocalizedDecimalField(placeholder="Prix", label="Prix :")
+    deposit = LocalizedDecimalField(label="Caution :", placeholder="Caution")
     imageType_file = FileField(
         "Ajouter une image :", validators=[FileAllowed(photos, "Image uniquement!")]
     )
@@ -76,11 +100,7 @@ class EquipmentForm(FlaskForm):
         default=datetime.now(),
         validators=[DataRequired()],
     )
-    purchasePrice = FlexibleDecimalField(
-        label="Prix d'achat :",
-        validators=[DataRequired()],
-        render_kw={"pattern": "^[0-9]+([.|,][0-9]+){0,1}$"},
-    )
+    purchase_price = LocalizedDecimalField(label="Prix d'achat :")
     equipment_model_id = SelectField(
         label="Modèle :", coerce=int, choices=[], validators=[DataRequired()]
     )
