@@ -73,7 +73,7 @@ def detail_equipment_type(type_id):
 
     if form_edit.validate_on_submit():
         form_edit.populate_obj(equipment_type)
-        equipment_type.save_typeImg(form_edit.imageType_file.data)
+        equipment_type.save_type_img(form_edit.imageType_file.data)
         db.session.commit()
         return redirect(url_for(".detail_equipment_type", type_id=type_id))
 
