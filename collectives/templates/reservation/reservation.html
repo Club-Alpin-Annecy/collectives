@@ -119,7 +119,7 @@
     {% endif %}
 
     <script>
-      ajaxURL = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
+      var ajaxURLNewRental = "{{url_for('api.new_rental', reservation_id=reservation.id)}}";
       const token_csrf = "{{ csrf_token() }}";
       let reservation_id = "{{reservation.id}}"
     </script>
