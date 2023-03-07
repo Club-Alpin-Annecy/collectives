@@ -150,7 +150,7 @@ class ReservationLineSchema(marshmallow.Schema):
 
     reservation_line_url = fields.Function(
         lambda obj: url_for(
-            "reservation.view_reservation_line", reservationLine_id=obj.id
+            "reservation.view_reservation_line", reservation_line_id=obj.id
         )
     )
 

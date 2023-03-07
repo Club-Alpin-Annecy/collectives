@@ -170,7 +170,7 @@ def cancel_rental(reservation_id=None):
 
 
 @user_is("can_manage_reservation")
-@blueprint.route("/line/<int:reservationLine_id>", methods=["GET", "POST"])
+@blueprint.route("/line/<int:reservation_line_id>", methods=["GET", "POST"])
 def view_reservation_line(reservation_line_id):
     """
     Show a reservation line
@@ -184,7 +184,7 @@ def view_reservation_line(reservation_line_id):
             db.session.commit()
             return redirect(
                 url_for(
-                    ".view_reservation_line", reservationLine_id=reservation_line_id
+                    ".view_reservation_line", reservation_line_id=reservation_line_id
                 )
             )
         return render_template(

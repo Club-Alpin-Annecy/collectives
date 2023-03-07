@@ -1,6 +1,6 @@
       //initialize table
       let table2 = new Tabulator("#equipment-table", {
-        ajaxURL:ajaxURL,
+        ajaxURL:ajaxURLNewRental,
         layout:"fitColumns",      //fit columns to width of table
         responsiveLayout:"hide",  //hide columns that dont fit on the table
         tooltips:true,            //show tool tips on cells
