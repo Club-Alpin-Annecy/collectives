@@ -8,7 +8,7 @@ function autoCompleteDefaultSettings() {
         maxResults: 8, // Maximum number of results to load
         itemClass: "autocomplete-suggestion", // CSS class of loaded results containers 
         // Function rendering the HTML for a given result
-        itemInnerHTML: function (item, itemValue) { return `<span>${itemValue}</span>`; }
+        itemInnerHTML: function (item, itemValue) { return `<span>${escapeHTML(itemValue)}</span>`; }
     }
 }
 
@@ -54,7 +54,7 @@ function setupAutoComplete(
     const renderItem = function (item) {
         var val = itemValue(item);
         var innerHTML = settings.itemInnerHTML(item, val);
-        return `<div class="${settings.itemClass}" data-val='${val}' data-id="${item.id}">${innerHTML}</div>`
+        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}">${innerHTML}</div>`
     };
 
     return new window.autoComplete({
