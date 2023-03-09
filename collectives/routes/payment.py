@@ -102,8 +102,6 @@ def edit_prices(event_id):
 
                 db.session.add(new_item)
 
-            if new_price.user_group is None:
-                new_price.user_group = UserGroup()
             new_price_form.populate_obj(new_price)
 
             db.session.add(new_price)

@@ -263,7 +263,8 @@ class EventModelMixin:
         :return: :py:class:`sqlalchemy.orm.relationship`
         """
         # Migrate to new version of attribute
-        self._migrate_parent_event_id()
+        if self._user_group is None:
+            self._migrate_parent_event_id()
         return self._user_group
 
     @user_group.setter

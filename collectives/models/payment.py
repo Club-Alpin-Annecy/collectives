@@ -233,7 +233,7 @@ class ItemPrice(db.Model):
         "leader_only",
         db.Boolean,
         nullable=True,
-        default=False,
+        default=None,
     )
     """ [Deprecated] Whether this price is only available to the event leaders.
 
@@ -266,9 +266,10 @@ class ItemPrice(db.Model):
         :return: :py:class:`sqlalchemy.orm.relationship`
         """
         # Migrate to new version of attribute
-        self._migrate_leader_only()
-        self._migrate_license_types()
-        self._migrate_parent_event_id()
+        if self._user_group is None:
+            self._migrate_leader_only()
+            self._migrate_license_types()
+            self._migrate_parent_event_id()
         return self._user_group
 
     @user_group.setter
