@@ -10,6 +10,7 @@ from wtforms.validators import NumberRange
 
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+from collectives.models.event import Event
 from collectives.utils.time import current_time
 from collectives.models.user_group import (
     UserGroup,
@@ -394,6 +395,7 @@ class ItemPrice(db.Model):
                 condition = GroupEventCondition(
                     event_id=parent_event_id, is_leader=False
                 )
+                condition.event = Event.query.get(parent_event_id)
                 self._user_group.event_conditions.append(condition)
         else:
             if parent_event_id is None:
@@ -420,6 +422,7 @@ class ItemPrice(db.Model):
                 condition = GroupEventCondition(
                     event_id=self.item.event_id, is_leader=True
                 )
+                condition.event = Event.query.get(self.item.event_id)
                 self._user_group.event_conditions.append(condition)
         else:
             if not value:
