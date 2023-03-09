@@ -24,7 +24,7 @@
                   -<i>  {{price['max_uses']}} maximum ({{price.active_use_count()}} déjà commandés)</i>
                 {%- endif %}
 
-                {%- if(price.user_group and price.user_group.has_conditions) %}
+                {%- if(price.user_group and price.user_group.has_conditions()) %}
                   -<i>  Réservé aux 
                   {% with user_group = price.user_group %}
                     {% include 'partials/user-group-text.html' %}
