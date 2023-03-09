@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', ()=> {
         {
             "itemInnerHTML" : 
             function(item, val) {
-                return formatParentEvent(item.id, item.title, item.start) ;
+                return `<span>${escapeHTML(formatParentEvent(item.id, item.title, item.start))}</span>` ;
             }
         }
         );
