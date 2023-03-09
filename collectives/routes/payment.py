@@ -17,7 +17,7 @@ from collectives.forms.payment import NewItemPriceForm, CopyItemForm
 
 from collectives.models import db, Configuration, Event, PaymentItem, ItemPrice, Payment
 from collectives.models import PaymentStatus, PaymentType, RegistrationStatus
-from collectives.models import Registration
+from collectives.models import Registration, UserGroup
 
 from collectives.utils import payline
 from collectives.utils.access import payments_enabled, valid_user, user_is
@@ -103,6 +103,7 @@ def edit_prices(event_id):
                 db.session.add(new_item)
 
             new_price_form.populate_obj(new_price)
+
             db.session.add(new_price)
             db.session.commit()
 
@@ -146,13 +147,14 @@ def edit_prices(event_id):
                             price.enabled = price_form.enabled.data
                             price.start_date = price_form.start_date.data
                             price.end_date = price_form.end_date.data
-                            price.parent_event_id = price_form.parent_event_id.data
-                            price.license_types = price_form.license_types.data
-                            price.leader_only = price_form.leader_only.data
                             price.max_uses = price_form.max_uses.data or None
                             if price.amount != price_form.amount.data:
                                 price.amount = price_form.amount.data
                                 price.update_time = current_time()
+
+                            if price.user_group is None:
+                                price.user_group = UserGroup()
+                            price_form.user_group.populate_obj(price, "user_group")
 
                             db.session.add(price)
                             db.session.commit()
@@ -189,6 +191,7 @@ def edit_prices(event_id):
     return render_template(
         "payment/edit_prices.html",
         event=event,
+        event_activity_ids=[a.id for a in event.activity_types],
         form=form,
         new_price_form=new_price_form,
         copy_item_form=CopyItemForm(),

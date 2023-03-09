@@ -5,12 +5,22 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
   <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/payment/edit_prices.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/user-group-form.js') }}"></script>
 
   <!-- Auto complete scripts -->
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+  <!-- restrictions -->
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 
   <script> 
   
@@ -45,14 +55,7 @@
     updateNewItemTitleVisibility(); 
     dateInputsFallback(tail);
 
-    
     loadEventAutoComplete('copy-item-event-search', 'copy-item-event-id');
-    loadEventAutoComplete('parent-event-search', 'parent_event_id');
-    {% for item_form in form.items %}
-      {% for field in item_form.item_prices %}
-        loadEventAutoComplete('{{field.parent_event_id.id}}-search', '{{field.parent_event_id.id}}');
-      {% endfor %}
-    {% endfor %}
   };
   </script>
 {% endblock %}
@@ -74,34 +77,25 @@
       <th> Objet du paiement </th>
       <th> Intitulé du tarif </th>
       <th> Prix en euros </th>
-      <th> Licences </th>
       <th> Début </th>
       <th> Fin </th>
-      <th> Parent </th>
       <th> Max dispo </th>
-      <th> Tarif encadrant </th>
       <th> Utilisations</th>
     </thead>
     {% for item_form in form.items %}
       {{item_form.item_id}}
     
       {% for field in item_form.item_prices %}
-        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %}" >
+        <tr class="{{ loop.cycle('odd', 'even') }} {% if loop.first %} item_row {% endif %} fields" >
           <td> {% if loop.first %} {{item_form.title}} {% endif %}</td>
           <td> {{ field.title() }} </td>
           <td>
           {{ field.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
           </td>
-          <td> {{ field.license_types() }} </td>
           <td> {{ field.start_date() }} </td>
           <td> {{ field.end_date() }} </td>
-          <td> 
-            {{ field.parent_event_id(style="display:none") }} 
-            <input type="text" id="{{ field.parent_event_id.id }}-search" placeholder="Titre ou ID…"/>
-          </td>
           <td> {{ field.max_uses() }} </td>
-          <td> {{ field.leader_only() }} </td>
-          <td class="actions"> {{field.price_id}} 
+          <td class="actions" rowspan="2"> {{field.price_id}} 
           {{field.active_use_count}} actives ({{field.total_use_count}} tot.)
           <br/>
           <label>{{field.enabled}} Activer</label>
@@ -109,6 +103,33 @@
           <br />
             {{field.delete}}&nbsp;{{field.delete.label}}
           {% endif %} 
+          </td>
+        </tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} restrictions" >
+          <td></td>
+          <td colspan="5">
+              {% with price = field.get_price(item_form.get_item(event)) %}
+              <fieldset>
+              <legend onclick="
+                javascript:
+                  this.parentElement.querySelectorAll('.togglable').forEach(e => {e.classList.toggle('collapsed')})
+              ">
+               <a class="togglable collapsed">[-]</a>
+               <a class="togglable">[+]</a>
+               Restrictions: 
+                <span class="togglable">
+                {% with user_group = price.user_group %}
+                  {% include 'partials/user-group-text.html' %}
+                {% endwith %}
+                </span>
+              </legend>
+              <div class="togglable collapsed">
+              {% with user_group_form = field.user_group.form, event_search_url = url_for("api.autocomplete_event", aid=event_activity_ids) %}
+                {% include 'partials/user-group-form.html' %}
+              {% endwith %}
+              </div>
+              </fieldset>
+              {% endwith%}
           </td>
         </tr>
         {% if field.errors %}
@@ -185,44 +206,27 @@
       Pour chaque "Objet de paiement", l'adhérent se verra proposer uniquement le tarif le plus bas auquel il a accès.
     </span>
 
-    <div class="field">{{ new_price_form.license_types.label }}<span class="help">Séparés par des espaces. Par exemple «J1 J2 E1 E2» pour un tarif «Jeunes».</span></div>
-    {{ new_price_form.license_types}}
     <div class="field">{{ new_price_form.start_date.label }}<span class="help">Date à partir de laquelle le tarif sera proposé.</span></div>
     {{ new_price_form.start_date}}
     <div class="field">{{ new_price_form.end_date.label }}<span class="help">Date jusqu'à laquelle le tarif sera proposé</span></div>
     {{ new_price_form.end_date}}
     <div class="field">{{ new_price_form.max_uses.label }}<span class="help">Nombre max d'utilisations du tarif ('0' pour illimité)</span></div>
     {{ new_price_form.max_uses}}
-    <div class="field"> {{ new_price_form.parent_event_id.label }}  <span class="help"> </span></div>
-    <input type="text" id="parent-event-search" placeholder="Titre ou ID…"/>
-    {{ new_price_form.parent_event_id(style="display:none") }} 
-
-    <div class="field">
-    {{ new_price_form.leader_only }} 
-    </div>
-    {{new_price_form.leader_only.label}}
     
+    {% with user_group_form = new_price_form.user_group.form, event_search_url = url_for("api.autocomplete_event", aid=event_activity_ids) %}
+      {% include 'partials/user-group-form.html' %}
+    {% endwith %}
+
     </fieldset>
 
     {{ new_price_form.hidden_tag() }}
     <br />{{ new_price_form.add(class="button button-primary") }}
     </form>
 
-    <h4 class="heading-4">Catégories de licence</h4>
-    <p>
-      Pour rappel, les catégories de licence FFCAM sont les suivantes:
-      <ul>
-        {% for name, descr in Configuration.LICENSE_CATEGORIES.items() %}
-        <li><strong>{{name}}</strong> {{descr}}</li>
-        {% endfor %}
-      </ul>
-    </p>
-
     <h4 class="heading-4">Copie de tarif</h4>
     <form method="POST" class="form" action="{{url_for('payment.copy_prices', event_id=event.id)}}">
         <p>Copier les tarifs d'un autre collective.</p>
 
-          
         <div class="field">{{copy_item_form.copied_event_search.label}}  <span class="help">Titre ou ID</span></div>
         {{ copy_item_form.copied_event_search(id='copy-item-event-search') }}
         {{ copy_item_form.copied_event_id(id='copy-item-event-id') }}

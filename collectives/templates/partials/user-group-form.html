@@ -4,7 +4,9 @@
 <div id="{{user_group_form.event_conditions.id}}" class="user_group_condition_table">
 </div>
 
-Autoriser les participants à un autre événement :
+Autoriser les 
+{{user_group_form.new_event_is_leader(style="width:auto; margin:auto")}}
+à l' événement :
 <input type="text" id="{{user_group_form.prefix}}event-search" placeholder="Titre ou ID…">
 
 <h5 class="heading-5">Détention d'un rôle</h4>
@@ -44,13 +46,13 @@ document.addEventListener('DOMContentLoaded', ()=> {
             return JSON.stringify(item);
         },
         function(id, val) {
-            addEventCondition(eventConditionsTable, "{{user_group_form.event_conditions.id}}", val);
+            addEventCondition(eventConditionsTable, "{{user_group_form.event_conditions.id}}", val, "{{user_group_form.new_event_is_leader.id}}");
             eventSearchInput.value = "";
         },
         {
             "itemInnerHTML" : 
             function(item, val) {
-                return formatParentEvent(item.id, item.title, item.start) ;
+                return `<span>${escapeHTML(formatParentEvent(item.id, item.title, item.start))}</span>` ;
             }
         }
         );

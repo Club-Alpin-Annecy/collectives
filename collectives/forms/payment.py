@@ -9,7 +9,6 @@ from wtforms import (
     DecimalField,
     FormField,
     FieldList,
-    IntegerField,
 )
 from wtforms import HiddenField, BooleanField, SelectField
 from wtforms.validators import NumberRange, ValidationError, Optional
@@ -17,8 +16,11 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.order import OrderedForm
 from collectives.models import ItemPrice, PaymentItem, Payment
-from collectives.models import PaymentType, PaymentStatus, Configuration
+from collectives.models import PaymentType, PaymentStatus
+from collectives.models import UserGroup
 from collectives.utils.numbers import format_currency
+
+from collectives.forms.user_group import UserGroupForm
 
 
 class AmountForm(FlaskForm):
@@ -62,9 +64,7 @@ class ItemPriceForm(ModelForm, AmountForm):
 
     delete = BooleanField("Supprimer")
 
-    license_types = StringField("Catégories de license")
-    leader_only = BooleanField("Tarif encadrant")
-    parent_event_id = IntegerField("Événement parent", validators=[Optional()])
+    user_group = FormField(UserGroupForm, default=UserGroup)
 
     price_id = HiddenField()
     total_use_count = 0
@@ -88,16 +88,6 @@ class ItemPriceForm(ModelForm, AmountForm):
         if price.item_id != item.id:
             raise ValueError
         return price
-
-    def validate_license_types(self, field):
-        """Validator checking that the provided licence categories exist"""
-        valid_types = Configuration.LICENSE_CATEGORIES
-        for license_type in field.data.split():
-            if not license_type in valid_types:
-                raise ValidationError(
-                    f"'{license_type}' n'est pas une catégorie de license FFCAM valide. Voir la "
-                    "liste des catégories en bas de page."
-                )
 
     def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
@@ -194,14 +184,12 @@ class NewItemPriceForm(ModelForm, AmountForm):
             "max_uses",
         ]
 
-    license_types = StringField("Catégories de license")
-    leader_only = BooleanField("Tarif encadrant")
-    parent_event_id = IntegerField("Événement parent", validators=[Optional()])
-
     item_title = StringField("Intitulé du nouvel objet")
     existing_item = SelectField(
         "Objet du paiement", choices=[(0, "Nouvel objet")], default=0, coerce=int
     )
+
+    user_group = FormField(UserGroupForm, default=UserGroup)
 
     def validate_max_uses(self, field):
         """Sets max_uses to None if it was set to a falsy value, for clarity"""
@@ -215,8 +203,12 @@ class NewItemPriceForm(ModelForm, AmountForm):
         new item title field is not empty, and is unique for this event
         See https://wtforms.readthedocs.io/en/2.3.x/validators/#custom-validators
         """
+        if self.existing_item.data:
+            # Adding price to existing item, item title is not used
+            return
+
         title = field.data
-        if not self.existing_item.data and not title:
+        if not title:
             raise ValidationError("L'intitulé du nouvel objet ne doit pas être vide")
 
         existing_titles = [t.lower() for (i, t) in self.existing_item.choices]

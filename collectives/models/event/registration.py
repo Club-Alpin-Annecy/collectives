@@ -223,9 +223,6 @@ class EventRegistrationMixin:
         :rtype: boolean
         """
 
-        # Migrate to new version of attribute
-        self.migrate_parent_event_id()
-
         if self.user_group is None:
             return True
         return self.user_group.contains(user)

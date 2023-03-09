@@ -6,6 +6,7 @@ from typing import Callable, TypeVar, Optional, Union
 from wtforms_alchemy import ModelForm
 from wtforms import SelectField, FieldList, FormField, BooleanField
 from wtforms import HiddenField, IntegerField, SelectMultipleField
+from wtforms.validators import ValidationError
 
 from flask import Markup, url_for
 
@@ -138,6 +139,8 @@ class UserGroupForm(ModelForm):
         FormField(GroupEventConditionForm, default=GroupEventCondition)
     )
 
+    new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
+
     license_conditions = SelectMultipleField("Types de licence")
 
     new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
@@ -167,9 +170,23 @@ class UserGroupForm(ModelForm):
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
 
+        self.new_event_is_leader.choices = [
+            ("", "Encadrants ou Participants"),
+            (int(False), "Participants"),
+            (int(True), "Encadrants"),
+        ]
+
     def validate_license_conditions(self, field):
         """WTFForms validators that converts license_category input as a list of strings
         to a list of GroupLicenseCondition objects"""
+
+        valid_types = Configuration.LICENSE_CATEGORIES
+        for license_type in field.data:
+            if not license_type in valid_types:
+                raise ValidationError(
+                    f"'{license_type}' n'est pas une catégorie de licence FFCAM valide."
+                )
+
         if field.data:
             field.data = [
                 GroupLicenseCondition(license_category=cat) for cat in field.data
