@@ -154,6 +154,8 @@ def edit_prices(event_id):
                                 price.amount = price_form.amount.data
                                 price.update_time = current_time()
 
+                            if price.user_group is None:
+                                price.user_group = UserGroup()
                             price_form.user_group.populate_obj(price, "user_group")
 
                             db.session.add(price)
