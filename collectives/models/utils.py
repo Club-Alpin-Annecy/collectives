@@ -34,9 +34,7 @@ class ChoiceEnum(enum.IntEnum):
 
         :return: JSON representation of enum keys dict
         """
-        return json.dumps({
-            s.name : s.value for s in cls
-        })
+        return json.dumps({s.name: s.value for s in cls})
 
     @classmethod
     def coerce(cls, item):
