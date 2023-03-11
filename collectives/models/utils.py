@@ -1,6 +1,8 @@
 """Set utils classes for models
 """
 import enum
+import json
+from typing import List
 from flask import escape
 
 
@@ -25,6 +27,16 @@ class ChoiceEnum(enum.IntEnum):
         """
         items = [str(s.value) + ":'" + str(escape(s.display_name())) + "'" for s in cls]
         return "{" + ",".join(items) + "}"
+
+    @classmethod
+    def js_keys(cls) -> List[str]:
+        """Class method to cast Enum keys as js dict
+
+        :return: JSON representation of enum keys dict
+        """
+        return json.dumps({
+            s.name : s.value for s in cls
+        })
 
     @classmethod
     def coerce(cls, item):
