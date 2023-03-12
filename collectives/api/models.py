@@ -19,6 +19,7 @@ def models_to_js():
     for name, obj in inspect.getmembers(sys.modules["collectives.models"]):
         if inspect.isclass(obj) and issubclass(obj, ChoiceEnum):
             enums = enums + "const Enum" + name + "=" + obj.js_values() + ";"
+            enums = enums + "const Enum" + name + "Keys=" + obj.js_keys() + ";"
 
     enums = enums + "const EnumActivityType=" + ActivityType.js_values() + ";"
     enums = enums + "const EnumEventType=" + EventType.js_values() + ";"

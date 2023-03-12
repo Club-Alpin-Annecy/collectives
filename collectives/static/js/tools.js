@@ -19,3 +19,4 @@ function sizeFormatter(cell) {
     }
     return Math.round(value * 10) / 10 + units[0];
 }
+
