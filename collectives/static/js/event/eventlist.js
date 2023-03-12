@@ -167,7 +167,6 @@ function eventRowFormatter(row){
 
 function getSlotsAvailableBadge(event) {
     "returns 'Full' badge when no more available slots, and 'waiting list' when there are availabilities in waiting list (whatever is the number of already registered"
-    console.log(event.status, EnumEventStatusKeys);
     if (event.status != EnumEventStatusKeys.Cancelled)
         if (event.has_free_waiting_slots && (!event.has_free_online_slots))
             return `<span class="event-status-badge event-status-waiting-list ">Liste d'attente</span>`
