@@ -271,7 +271,7 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": GUIDE_TITLE,
         "terms_file": GUIDE_FILENAME,
-    }
+    },
 }
 """List of event types
 
