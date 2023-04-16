@@ -6,14 +6,20 @@ from collectives.models.user_group import (
     GroupLicenseCondition,
     GroupRoleCondition,
 )
-from collectives.models import db, RoleIds
+from collectives.models import db, RoleIds, RegistrationStatus
 
 
 # pylint: disable=R0915
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def test_user_group_members(
-    event1_with_reg, user1, president_user, admin_user, supervisor_user
+    event1_with_reg, user1, user2, president_user, admin_user, supervisor_user
 ):
     """Test listing user group members"""
+
+    user2_reg = [reg for reg in event1_with_reg.registrations if reg.user == user2][0]
+    user2_reg.status = RegistrationStatus.Waiting
+    db.session.add(user2_reg)
 
     group0 = UserGroup()
 
@@ -26,8 +32,9 @@ def test_user_group_members(
     db.session.commit()
 
     group0_members = group0.get_members()
-    assert len(group0_members) == 5
+    assert len(group0_members) == 4
     assert user1 in group0_members
+    assert user2 not in group0_members
     assert admin_user in group0_members
     assert president_user not in group0_members
 
@@ -36,7 +43,7 @@ def test_user_group_members(
     db.session.commit()
 
     group0_members = group0.get_members()
-    assert len(group0_members) == 4
+    assert len(group0_members) == 3
     assert user1 in group0_members
     assert admin_user not in group0_members
 

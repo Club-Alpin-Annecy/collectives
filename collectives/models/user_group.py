@@ -8,7 +8,7 @@ from collectives.models.globals import db
 
 from collectives.models.role import RoleIds, Role
 from collectives.models.user import User
-from collectives.models.registration import Registration
+from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.event import Event
 
 
@@ -109,12 +109,22 @@ class GroupEventCondition(db.Model):
         if self.is_leader is None:
             return or_(
                 User.led_events.any(Event.id == self.event_id),
-                User.registrations.any(Registration.event_id == self.event_id),
+                User.registrations.any(
+                    and_(
+                        Registration.event_id == self.event_id,
+                        Registration.status == RegistrationStatus.Active,
+                    )
+                ),
             )
         if self.is_leader:
             return User.led_events.any(Event.id == self.event_id)
 
-        return User.registrations.any(Registration.event_id == self.event_id)
+        return User.registrations.any(
+            and_(
+                Registration.event_id == self.event_id,
+                Registration.status == RegistrationStatus.Active,
+            )
+        )
 
     def clone(self) -> "GroupEventCondition":
         """:return: a deep copy of this object"""
