@@ -2,7 +2,8 @@
 """
 from functools import wraps
 
-from flask import current_app, url_for, flash, Markup
+from flask import current_app, url_for, flash
+from markupsafe import Markup
 
 
 from collectives.models import db, Configuration

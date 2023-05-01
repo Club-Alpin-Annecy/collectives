@@ -3,7 +3,7 @@
 import enum
 import json
 from typing import List
-from flask import escape
+from markupsafe import escape
 
 
 class ChoiceEnum(enum.IntEnum):

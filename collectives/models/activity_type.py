@@ -1,7 +1,7 @@
 """Module to describe the type of activity.
 """
 from sqlalchemy.orm import validates
-from flask import escape
+from markupsafe import escape
 
 from collectives.models.globals import db
 

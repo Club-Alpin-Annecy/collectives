@@ -6,7 +6,7 @@ from io import BytesIO
 
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-from flask import escape
+from markupsafe import escape
 
 from collectives.models import EventStatus, ActivityType, Event
 from tests import utils

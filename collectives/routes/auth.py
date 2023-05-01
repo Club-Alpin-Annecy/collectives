@@ -2,8 +2,9 @@
 
 import datetime
 
-from flask import flash, render_template, redirect, url_for, request, escape
-from flask import current_app, Blueprint, Markup
+from flask import flash, render_template, redirect, url_for, request
+from flask import current_app, Blueprint
+from markupsafe import Markup, escape
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 from flask_wtf.csrf import generate_csrf
