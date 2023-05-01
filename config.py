@@ -237,6 +237,41 @@ EVENT_TYPES = {
         "terms_title": GUIDE_TITLE,
         "terms_file": GUIDE_FILENAME,
     },
+    8: {
+        "short": "acces_libre",
+        "name": "Accès libre",
+        "requires_activity": True,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    9: {
+        "short": "entrainement",
+        "name": "Entrainement",
+        "requires_activity": True,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    10: {
+        "short": "cours",
+        "name": "Cours",
+        "requires_activity": True,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    11: {
+        "short": "benevolat",
+        "name": "Bénévolat",
+        "requires_activity": False,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
+    12: {
+        "short": "famille",
+        "name": "Famille",
+        "requires_activity": False,
+        "terms_title": GUIDE_TITLE,
+        "terms_file": GUIDE_FILENAME,
+    },
 }
 """List of event types
 
