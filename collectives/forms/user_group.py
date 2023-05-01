@@ -8,7 +8,8 @@ from wtforms import SelectField, FieldList, FormField, BooleanField
 from wtforms import HiddenField, IntegerField, SelectMultipleField
 from wtforms.validators import ValidationError
 
-from flask import Markup, url_for
+from markupsafe import Markup
+from flask import url_for
 
 from collectives.models import ActivityType, RoleIds, Configuration, Event
 from collectives.models.user_group import UserGroup, GroupRoleCondition

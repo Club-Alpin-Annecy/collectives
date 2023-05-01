@@ -1,5 +1,6 @@
 cssmin
 itsdangerous
+markupsafe
 flask
 Werkzeug
 flask-assets

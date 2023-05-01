@@ -83,14 +83,14 @@ def create_app(config_filename="config.py"):
         assets = Environment(app)
 
         filters = "libsass"
-        if app.config["ENV"] == "production":
+        if app.config.get("DEBUG", False):
+            assets.auto_build = True
+            assets.debug = True
+        else:
             filters = "libsass, cssmin"
             assets.auto_build = False
             assets.debug = False
             assets.cache = True
-        else:
-            assets.auto_build = True
-            assets.debug = True
         scss = Bundle(
             "css/all.scss",
             filters=filters,
@@ -99,7 +99,8 @@ def create_app(config_filename="config.py"):
         )
 
         assets.register("scss_all", scss)
-        if app.config["ENV"] == "production":
+        if not app.config.get("DEBUG", False):
+            # production environment
             scss.build()
 
         # Register blueprints

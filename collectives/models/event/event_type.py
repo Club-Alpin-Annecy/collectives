@@ -1,6 +1,6 @@
 """Module to describe the type of event.
 """
-from flask import escape
+from markupsafe import escape
 
 from collectives.models.globals import db
 

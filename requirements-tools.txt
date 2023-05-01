@@ -1,9 +1,6 @@
 # This file contains tools useful to develop, but not to run the software
 flask-testing
 
-# See #233
-git+https://github.com/PyCQA/astroid#2.4
-
 pylint-quotes
 pylint-flask-sqlalchemy
 

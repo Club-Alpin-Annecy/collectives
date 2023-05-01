@@ -7,7 +7,8 @@ from typing import Tuple, List, Set
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
-from flask import current_app, Blueprint, escape
+from flask import current_app, Blueprint
+from markupsafe import escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 
