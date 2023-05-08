@@ -91,6 +91,14 @@ def supervisor_client(client, supervisor_user):
 
 
 @pytest.fixture
+def hotline_client(client, hotline_user):
+    """Flask client authenticated as hotline."""
+    login(client, hotline_user)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
 def user1_client(client, user1):
     """Flask client authenticated as regular user."""
     login(client, user1)

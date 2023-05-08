@@ -60,7 +60,7 @@ def show_user(user_id):
 def show_leader(leader_id):
     """Route to show leader details of a user.
 
-    :param int user_id: Primary key of the user.
+    :param int leader_id: Primary key of the user.
     """
     user = User.query.filter_by(id=leader_id).first()
 
@@ -110,9 +110,31 @@ def update_user():
     return redirect(url_for("profile.update_user"))
 
 
-@blueprint.route("/user/force_sync", methods=["POST"])
-def force_user_sync():
+@blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})
+@blueprint.route("/user/<int:user_id>/force_sync", methods=["POST"])
+def force_user_sync(user_id):
     """Route to force user synchronisation with extranet"""
+    if user_id is None:
+        user = current_user
+    else:
+        user = User.query.get(user_id)
+
+    if user is None:
+        flash("Utilisateur inconnu", "error")
+        return redirect(url_for("root.index"))
+
+    if user.id != current_user.id:
+        if not current_user.is_hotline():
+            flash("Non autorisé", "error")
+            return redirect(url_for("profile.show_user", user_id=user.id))
+
+        if not current_user.has_signed_ca():
+            flash(
+                """Vous devez signer la charte RGPD avant de pouvoir
+                    accéder à des informations des utilisateurs""",
+                "error",
+            )
+            return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
         sync_user(current_user, True)
@@ -122,7 +144,7 @@ def force_user_sync():
             "error",
         )
 
-    return redirect(url_for("profile.show_user", user_id=current_user.id))
+    return redirect(url_for("profile.show_user", user_id=user.id))
 
 
 @blueprint.route("/user/confidentiality", methods=["GET", "POST"])
