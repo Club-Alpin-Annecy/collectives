@@ -61,6 +61,9 @@ class RegistrationStatus(ChoiceEnum):
 
     Waiting = 6
     """ User is in waiting list. """
+
+    Present = 7
+    """ User has been present to the event. """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -78,6 +81,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
             cls.Waiting: "Liste d'attente",
+            cls.Present: "Présent",
         }
 
     @classmethod
@@ -96,6 +100,7 @@ class RegistrationStatus(ChoiceEnum):
                 cls.UnJustifiedAbsentee,
                 cls.JustifiedAbsentee,
                 cls.Waiting,
+                cls.Present,
             ],
             cls.Rejected: [re_register_status, cls.ToBeDeleted, cls.Waiting],
             cls.PaymentPending: [cls.Rejected],
@@ -110,6 +115,13 @@ class RegistrationStatus(ChoiceEnum):
             cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
             cls.ToBeDeleted: [],
             cls.Waiting: [cls.Rejected, re_register_status],
+            cls.Present: [
+                cls.Rejected,
+                cls.UnJustifiedAbsentee,
+                cls.JustifiedAbsentee,
+                cls.Waiting,
+                cls.Active,
+            ],
         }
 
     def valid_transitions(self, requires_payment):
