@@ -81,3 +81,37 @@ def test_wrong_create_account(client, extranet_monkeypatch):
     response = client.post("/auth/signup", data=data)
     assert response.status_code == 200
     assert "flash-error" in response.text
+
+
+def test_resync_own_account(user1_client, extranet_monkeypatch):
+    """Test extranet resync."""
+
+    response = user1_client.post("/profile/user/force_sync", follow_redirects=True)
+    assert response.status_code == 200
+    assert "error message" not in response.text
+
+
+def test_hotline_resync_account(hotline_client, user1, extranet_monkeypatch):
+    """Test extranet resync by hotline user"""
+
+    response = hotline_client.post(
+        f"/profile/user/{user1.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" not in response.text
+
+    response = hotline_client.post(
+        "/profile/user/9999999/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
+
+
+def test_user_resync_account(user1_client, user2, extranet_monkeypatch):
+    """Test extranet resync by invalid user"""
+
+    response = user1_client.post(
+        f"/profile/user/{user2.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text

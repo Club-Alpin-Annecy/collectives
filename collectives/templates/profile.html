@@ -51,6 +51,12 @@
     {% elif current_user.is_admin() %}
         <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
     {% endif %}
+    {% if current_user.is_hotline() and not user.is_test %}
+    <form action="{{url_for('profile.force_user_sync', user_id=user.id)}}" method="post" id="refresh_extranet" style="display: inline;">
+        <input type="submit" value="Resynchronisation FFCAM" class="button button-secondary">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+    {% endif %}
 
 
     <h4 class="heading-4">Informations FFCAM </h4>

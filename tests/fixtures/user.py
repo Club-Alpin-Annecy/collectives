@@ -156,6 +156,18 @@ def supervisor_user(prototype_supervisor_user):
     return prototype_supervisor_user
 
 
+inject_fixture("prototype_hotline_user", 995, ("Bill", "Hatch"))
+
+
+@pytest.fixture
+def hotline_user(prototype_hotline_user):
+    """:returns: A user with a hotline role."""
+    promote_user(prototype_hotline_user, RoleIds.Hotline)
+    db.session.add(prototype_hotline_user)
+    db.session.commit()
+    return prototype_hotline_user
+
+
 def promote_to_leader(user, activity="Alpinisme"):
     """Add a leader role to a user.
 
