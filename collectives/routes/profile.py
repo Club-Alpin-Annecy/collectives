@@ -137,7 +137,7 @@ def force_user_sync(user_id):
             return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
-        sync_user(current_user, True)
+        sync_user(user, True)
     except ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
