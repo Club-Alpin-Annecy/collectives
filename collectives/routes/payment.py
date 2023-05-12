@@ -85,7 +85,7 @@ def edit_prices(event_id):
                     # Event was free, it is now paid.
                     # Switch all existing registrations back to 'PaymentPending'
                     for registration in event.registrations:
-                        if registration.status == RegistrationStatus.Active:
+                        if registration.status.is_valid():
                             registration.status = RegistrationStatus.PaymentPending
                     flash(
                         "L'événement est devenu payant ; les inscriptions existantes sont "

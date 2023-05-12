@@ -831,7 +831,7 @@ def register_user(event_id):
                     "inscription ne sera confirmée qu'après renouvellement"
                 )
 
-            if payment_required and registration.status != RegistrationStatus.Active:
+            if payment_required and registration.status not in RegistrationStatus.valid:
                 flash(
                     f"La collective est payante: l'inscription de {user.full_name()} ne sera "
                     "définitive qu'après qu'il/elle aie payé en ligne, ou après saisie "
@@ -877,7 +877,7 @@ def self_unregister(event_id):
     db.session.commit()
 
     # Send notification e-mail to leaders only if definitive subscription
-    if previous_status == RegistrationStatus.Active:
+    if previous_status.is_valid():
         send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))

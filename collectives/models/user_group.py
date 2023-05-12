@@ -112,7 +112,10 @@ class GroupEventCondition(db.Model):
                 User.registrations.any(
                     and_(
                         Registration.event_id == self.event_id,
-                        Registration.status == RegistrationStatus.Active,
+                        or_(
+                            Registration.status == RegistrationStatus.Active,
+                            Registration.status == RegistrationStatus.Present,
+                        ),
                     )
                 ),
             )
@@ -122,7 +125,10 @@ class GroupEventCondition(db.Model):
         return User.registrations.any(
             and_(
                 Registration.event_id == self.event_id,
-                Registration.status == RegistrationStatus.Active,
+                or_(
+                    Registration.status == RegistrationStatus.Active,
+                    Registration.status == RegistrationStatus.Present,
+                ),
             )
         )
 

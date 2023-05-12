@@ -124,6 +124,13 @@ class RegistrationStatus(ChoiceEnum):
             ],
         }
 
+    def is_valid(self):
+        """Checks if registration is valid, ie active or present
+
+        :returns: True or False
+        :rtype: bool"""
+        return self in [RegistrationStatus.Active, RegistrationStatus.Present]
+
     def valid_transitions(self, requires_payment):
         """
         :return: The list of all achievable transitions for a given status (excluding itself)
@@ -184,11 +191,16 @@ class Registration(db.Model):
     def is_active(self):
         """Check if this registation is active.
 
-        :return: True if :py:attr:`status` is `Active` and the user's license has not expired
+        :return: True if :py:attr:`status` is `Active` or `Present` and the user's
+                 license has not expired
         :rtype: boolean"""
-        return (
-            self.status == RegistrationStatus.Active and not self.is_pending_renewal()
-        )
+        if self.is_pending_renewal():
+            return False
+        if self.status == RegistrationStatus.Active:
+            return True
+        if self.status == RegistrationStatus.Present:
+            return True
+        return False
 
     def is_holding_slot(self):
         """Check if this registation is holding a slot.
