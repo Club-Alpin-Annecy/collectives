@@ -8,12 +8,15 @@
 
   <div>
     <a class="button button-primary" href="{{ url_for('activity_supervision.leader_list')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}"/>
       Encadrants
     </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.csv_import')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/download.svg') }}"/>
       Import CSV
     </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.activity_documents')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"/>
       Documents
     </a>
   </div>
