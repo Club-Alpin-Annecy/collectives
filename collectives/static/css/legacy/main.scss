@@ -246,3 +246,17 @@ form input, form select{
 #legal ul li{
 	padding: .2em
 }
+
+.buttons-bar {
+    display: flex;
+    flex-flow: center;
+    justify-content: center;
+    align-items: stretch ;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.buttons-bar > *
+{
+    flex-grow: 1;
+}
