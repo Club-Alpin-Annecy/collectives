@@ -1,0 +1,197 @@
+{# This is the template for the admin part in the event page #}
+
+{% if event.has_edit_rights(current_user) %}
+    <div class="administration collective-display--administration">
+    <h4 class="heading-4 collective-display--administration-title">Administration</h4>
+    <div class="buttons-bar">
+        <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
+            Editer
+        </a>
+
+        <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
+            Dupliquer
+        </a>
+
+        <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
+            Fiche collective
+        </a>
+
+        {% if Configuration.RESERVATION_ENABLED and current_user.can_create_reservation() %}
+        <a href="{{url_for('reservation.register', event_id=event.id, role_id=models.RoleIds.EventLeader)}}" class="button button-secondary">
+            <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon" />
+            Réserver du matériel
+        </a>
+        {% endif %}
+
+        <a class="button button-secondary" target="_blank" href="{{ url_for('event.export_list_of_registered_users', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"/>
+            Liste des inscrits
+        </a>
+
+        {% if event.has_delete_rights(current_user) and not event.has_payments() %}
+            <form class="inline " action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="button button-danger" style="width: 100%">
+                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
+                    Supprimer
+                </button>
+
+            </form>
+        {% endif %}
+
+        {% if Configuration.PAYMENTS_ENABLED %}
+            
+            <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                Gestion des tarifs
+            </a>
+
+            {% if event.requires_payment() and event.has_payments() %}
+            <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                Liste des paiements
+            </a>
+            {% if Configuration.REFUND_ENABLED %}
+                <form class="inline" action="{{url_for('payment.refund_all', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer le remboursement de tous les inscrits ayant fait un paiment en ligne ? Les inscriptions correspondantes ne seront pas supprimées.')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="button button-danger" style="width: 100%" >
+                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                        Tout rembourser
+                    </button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endif %}
+
+    <h5 class="heading-5 collective-display--administration-title">Coordonnées du groupe</h5>
+    {% if current_user.has_signed_ca() %}
+        <div class="contactinfos">
+            <p class="inputGrow">
+                <label for="phonelist">
+                    Liste téléphonique :
+                </label>
+                <input type="text"
+                        value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | select | join(', ') }}"
+                        id="phonelist"
+                        readonly
+                        class="grow"
+                        />
+                <input type="button" value="Copier" onclick="copyToClipboard('phonelist' )">
+                {%if isMobileUser() %}
+                    <input type="button" value="Message" onclick="document.location.href='sms:' + document.getElementById('phonelist').value">
+                {% endif %}
+
+            </p>
+            <p class="inputGrow">
+                <label>
+                    Liste d'email :
+                </label>
+                <input type="text"
+                        value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
+                        id="maillist"
+                        readonly
+                        class="grow"
+                        />
+                <input type="button" value="Copier" onclick="copyToClipboard('maillist')">
+                <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('maillist').value">
+                </p>
+        </div>
+    {% else %}
+        <p>
+            Vous ne pouvez pas voir les coordonnées des participants car vous n'avez pas signé la
+            <a href="{{url_for('profile.confidentiality_agreement')}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                Charte RGPD
+            </a>
+        </p>
+    {% endif %}
+
+    <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
+    <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
+    <div id="user-search-data" class="form-search search-data">
+        <p>
+            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom…" >
+        </p>
+        {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
+        {{ register_user_form.hidden_tag() }}
+    </div>
+    </form>
+
+    <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
+        <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
+        <table id="attendancelist">
+            <tbody>
+                {% set ns = namespace(license_to_renew=False) %}
+                {% for registration in event.registrations %}
+                <tr>
+                    <td>
+                        <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">
+                            {{ registration.user.full_name() }}
+                            {% if registration.is_pending_renewal() %}
+                                {% set ns.license_to_renew = True %}
+                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+                            {% endif %}{{license_to_renew}}
+                        </a>
+                    </td>
+                    <td style="text-align:center">
+                        <select name="reg_{{ registration.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
+                            {% for status in registration.valid_transitions() %}
+                                <option
+                                        value="{{status.value}}"
+                                        {% if registration.status == status %}
+                                            selected
+                                        {% endif %}
+                                >
+                                        {{status.display_name()}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td>Tous les "Inscrits"</td>
+                    <td style="text-align:center">
+                        <select name="none" onchange="attendanceSelectAll(this.value)">
+                            <option value="" selected disabled> </option>
+                            {% for status in models.RegistrationStatus.Active.valid_transitions(event.requires_payment()) %}
+                                <option value="{{status.value}}">{{status.display_name()}}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+            {% if ns.license_to_renew %}
+            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+            = Licence à renouveller <br/>
+            {% endif %}
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
+        <input type="submit" value="Sauvegarder" class="button button-primary">
+    </form>
+    </div> <!-- .administration -->
+{% endif %}
+
+{# Accountant space #}
+
+{% if Configuration.PAYMENTS_ENABLED and current_user.is_accountant()  %}
+<div class="administration collective-display--administration">
+    <h4 class="heading-4 collective-display--administration-title">Comptabilité</h4>
+    <br/>
+    <div class="buttons">
+        {% if event.requires_payment() %}
+            <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                Liste des paiements
+            </a>
+        {% else %}
+            Pas de paiement requis sur cette collective
+        {% endif %}
+
+    </div>
+</div>
+{% endif %}
