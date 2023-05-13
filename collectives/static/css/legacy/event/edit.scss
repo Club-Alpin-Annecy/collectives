@@ -19,14 +19,17 @@
 }
 #eventedit input[type=submit] {
 	margin: 8px 0;
-	width: 50%;
+  width: 50%;
 }
 @media screen and (max-width: 1023px) {
     #eventedit form{
       padding: 10px 0px;
     }
     #eventedit input, #eventedit select{
-      width : 65%;
+      width : 100%;
+    }
+    #eventedit label{
+      width: auto;
     }
 }
 
@@ -119,9 +122,23 @@
   margin-bottom: 0;
 }
 
+#eventedit .datetimepicker .tail-datetime-calendar{
+  max-width: 90vw;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 #eventedit div.choices {
-  display:inline-block;
   width:40%;
+  overflow: visible;
+}
+@media screen and (max-width: 1023px) {
+  #eventedit div.choices {
+    display:inline-block;
+    width:65%;
+    
+  }
+
 }
 
 #eventedit #tag_list{
