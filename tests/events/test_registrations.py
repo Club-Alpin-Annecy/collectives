@@ -5,7 +5,7 @@ from collectives.models import db
 # pylint: disable=unused-argument
 
 
-def test_valid_event_autoregistration(user1, user1_client, event):
+def test_valid_event_autoregistration(user1, user1_client, user2, event):
     """Test user auto registration"""
     response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
     assert response.status_code == 200
@@ -14,6 +14,17 @@ def test_valid_event_autoregistration(user1, user1_client, event):
         f"/collectives/{event.id}/self_register", follow_redirects=True
     )
     assert response.status_code == 200
+    assert len(event.registrations) == 1
+    assert len(event.active_registrations()) == 1
+    assert len(event.active_normal_registrations()) == 1
+    assert len(event.holding_slot_registrations()) == 1
+    assert event.num_taken_slots() == 1
+    assert event.num_pending_registrations() == 0
+    assert event.has_free_slots() == True
+    assert event.has_free_online_slots() == False
+    assert len(event.existing_registrations(user1_client.user)) == 1
+    assert event.is_registered(user1_client.user) == True
+    assert event.is_registered(user2) == False
     assert event.num_taken_slots() == 1
     assert event.active_registrations()[0].user == user1
 

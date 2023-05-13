@@ -61,7 +61,7 @@ def test_price_list(user1_client, paying_event, disabled_paying_event):
     assert response.status_code == 200
 
 
-def test_paying_free_registration(user1_client, user2, free_paying_event):
+def test_paying_free_registration(user1_client, free_paying_event):
     """Test a user registering to a free event."""
     response = user1_client.get(
         f"/collectives/{free_paying_event.id}", follow_redirects=True
@@ -79,17 +79,6 @@ def test_paying_free_registration(user1_client, user2, free_paying_event):
     )
     assert response.status_code == 200
     assert len(free_paying_event.registrations) == 1
-    assert len(free_paying_event.active_registrations()) == 1
-    assert len(free_paying_event.active_normal_registrations()) == 1
-    assert len(free_paying_event.holding_slot_registrations()) == 1
-    assert free_paying_event.num_taken_slots() == 1
-    assert free_paying_event.num_pending_registrations() == 0
-    assert free_paying_event.has_free_slots() == True
-    assert free_paying_event.has_free_online_slots() == True
-    assert len(free_paying_event.existing_registrations(user1_client.user)) == 1
-    assert free_paying_event.is_registered(user1_client.user) == True
-    assert free_paying_event.is_registered(user2) == False
-
     assert free_paying_event.registrations[0].user == user1_client.user
     assert free_paying_event.registrations[0].status == RegistrationStatus.Active
 
