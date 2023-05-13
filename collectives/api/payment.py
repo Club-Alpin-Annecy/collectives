@@ -78,15 +78,6 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
-    finalization_time = fields.Function(
-        lambda p: p.finalization_time.strftime("%d/%m/%y")
-        if p.finalization_time
-        else None
-    )
-    """ Time at which the payment has been finalized
-
-    :type: string"""
-
 
 class EventPaymentSchema(PaymentSchema):
     """Specialization of PaymentSchema for listing the payments associated to an event"""
@@ -113,6 +104,8 @@ class EventPaymentSchema(PaymentSchema):
             "registration_status",
             "details_uri",
             "creation_time",
+            "finalization_time",
+            "processor_order_ref",
             "item.event.title",
             "item.event.event_type.name",
             "item.event.activity_type_names",
