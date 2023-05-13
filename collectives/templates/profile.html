@@ -17,49 +17,56 @@
 <div class="page-content" id="profile">
     <h1 class="heading-1">{{user.full_name()}}</h1>
 
-    <div><img src="{%   if user.avatar
-                                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
-                        else
-                                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
-                        endif %}"
-                alt="Avatar de l'utilisateur"
-                class="avatar big float_right" />
-    </div>
 
-    {% if user == current_user %}
-        <a class="button button-secondary" href="{{url_for('profile.update_user')}}">
-             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
-            Modifier mes paramètres
-        </a>
-        <a class="button button-secondary" href="{{url_for('root.legal')}}">
-             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt=""/>
-            Mentions légales
-        </a>
-        {% if current_user.has_any_role() %}
-            <a class="button button-secondary" href="{{url_for('profile.confidentiality_agreement')}}">
-                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
-                Charte RGPD
+
+    <div class="buttons-bar">
+        {% if user == current_user %}
+            <a class="button button-secondary" href="{{url_for('profile.update_user')}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"  alt=""/>
+                Modifier mes paramètres
             </a>
-            {% if Configuration.VOLUNTEER_CERT_IMAGE %}
-                <a class="button button-secondary" href="{{url_for('profile.volunteer_certificate')}}">
-                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"  alt=""/>
-                    Attestation Bénévole
+            <a class="button button-secondary" href="{{url_for('root.legal')}}">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  alt=""/>
+                Mentions légales
+            </a>
+            {% if current_user.has_any_role() %}
+                <a class="button button-secondary" href="{{url_for('profile.confidentiality_agreement')}}">
+                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
+                    Charte RGPD
                 </a>
+                {% if Configuration.VOLUNTEER_CERT_IMAGE %}
+                    <a class="button button-secondary" href="{{url_for('profile.volunteer_certificate')}}">
+                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"  alt=""/>
+                        Attestation Bénévole
+                    </a>
+                {% endif %}
             {% endif %}
+
+        {% elif current_user.is_admin() %}
+            <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
+            <a class="button button-secondary" href="{{url_for('administration.add_user_role', user_id=user.id)}}">Gérer ses rôles</a>
         {% endif %}
 
-    {% elif current_user.is_admin() %}
-        <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
-    {% endif %}
-    {% if current_user.is_hotline() and not user.is_test %}
-    <form action="{{url_for('profile.force_user_sync', user_id=user.id)}}" method="post" id="refresh_extranet" style="display: inline;">
-        <input type="submit" value="Resynchronisation FFCAM" class="button button-secondary">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    </form>
-    {% endif %}
-
+        {% if current_user.is_hotline() and not user.is_test %}
+        <form action="{{url_for('profile.force_user_sync', user_id=user.id)}}" method="post">
+            <input type="submit" value="Resynchronisation FFCAM" class="button button-secondary" style="width: 100%;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </form>
+        {% endif %}
+    </div>
 
     <h4 class="heading-4">Informations FFCAM </h4>
+
+    <div>
+        <img src="{%   if user.avatar
+                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
+            else
+                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+            endif %}"
+        alt="Avatar de l'utilisateur"
+        class="avatar big float_right" />
+    </div>
+
 
     <table id="profile_info">
         <tr>

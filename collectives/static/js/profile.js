@@ -12,22 +12,31 @@ window.onload = function(){
         initialFilter: [
             {field:"end", type:">", value:  getServerLocalTime()},
         ],
+        responsiveLayout:true,
+        groupBy: function(data){
+            //data - the data object for the row being grouped
+        
+            return EnumRegistrationStatus[data.registration.status];
+        },
+        paginationSize: [50,100,200],
         columns:[
             {title: "Type",     field:"event_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumEventType)}, headerFilterFunc: multiEnumFilter   },
+                    headerFilterParams:{values: addEmpty(EnumEventType)}, headerFilterFunc: multiEnumFilter, responsive: 3, minWidth: 35   },
             {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter   },
+                    headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter, responsive: 1, minWidth: 35   },
             {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter   },
+                    headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter, responsive: 2, minWidth: 35   },
             {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",  formatterParams:{'enum': EnumEventStatus},
-                    headerFilterParams:{values: addEmpty(EnumEventStatus)}, formatter: enumFormatter},
-            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 2.5},
-            {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
-                    formatterParams:{   outputFormat:"D/M/YY", invalidPlaceholder:"(invalid date)"}},
-            {title: "Insc.", field:"occupied_slots", maxWidth:80,},
-            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2 },
+                    headerFilterParams:{values: addEmpty(EnumEventStatus)}, formatter: enumFormatter, minWidth: 60},
             { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
-                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus} }
+                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus}, responsive:1, minWidth: 120 },
+            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 2.5, responsive:0, minWidth: 200},
+            {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
+                    formatterParams:{   outputFormat:"D/M/YY", invalidPlaceholder:"(invalid date)"}, responsive:1, minWidth: 60},
+            {title: "Insc.", field:"occupied_slots", maxWidth:80, responsive:4, minWidth: 80},
+            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, 
+                    headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2, responsive:3, minWidth: 60 },
+            
         ],
         rowClick: function(e, row){ document.location= row.getData().view_uri},
     };
