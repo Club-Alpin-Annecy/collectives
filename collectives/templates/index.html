@@ -102,15 +102,6 @@
 
             <input
                     type="checkbox"
-                    onchange="filterFutureOnly(!this.checked)"
-                    autocomplete="off"
-                    id="pastcheckbox"
-                    class="button button-secondary"
-                    />
-            <label class="checkbox" for="pastcheckbox"> Passées </label>
-
-            <input
-                    type="checkbox"
                     onchange="filterConfirmedOnly(!this.checked)"
                     autocomplete="off"
                     checked="1"
@@ -192,6 +183,11 @@
                     {% endfor %}
 
             </div>
+            <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
+            <label class="borders"> 📅 Depuis 
+                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('start', this.value)"/>
+            </label>
+            <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" style="width: 30em"/>
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>

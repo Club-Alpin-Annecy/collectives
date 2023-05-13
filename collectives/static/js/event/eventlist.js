@@ -42,9 +42,9 @@ function buildEventsTable() {
         initialSort: [ {column:"start", dir:"asc"}],
         initialFilter: [{field:"end", type:">=", value:"now" }],
         columns:[
-            {title:"Titre", field:"title", sorter:"string", headerFilter:true},
-            {title:"Date", field:"start", sorter:"string", headerFilter:true, headerFilter:dateFilterEditor,},
-            {title:"Encadrant", field:"leaders", headerSort:false, headerFilter:true},
+            {title:"Titre", field:"title", sorter:"string"},
+            {title:"Date", field:"start", sorter:"string"},
+            {title:"Encadrant", field:"leaders", headerSort:false},
         ],
         rowFormatter: eventRowFormatter,
         groupHeader:function(value, count, data, group){
@@ -76,6 +76,11 @@ function buildEventsTable() {
         },
     });
 
+    // Don't keep stored filters about leader, start and title
+    removeFilter(eventsTable, 'leaders');
+    removeFilter(eventsTable, 'start');
+    removeFilter(eventsTable, 'title');
+
    document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
        button.addEventListener('click', gotoEvents);
    });
@@ -96,7 +101,13 @@ function buildEventsTable() {
        console.log('No page defined');
    }
 
+   document.querySelector('#datefilter').value = moment().format("MM/DD/YYYY");
+   var tailOpts = {locale: "fr", dateFormat: "dd/mm/YYYY", timeFormat: false,};
+   tail.DateTime(document.querySelector('#datefilter'), tailOpts);
+
    refreshFilterDisplay();
+
+
 }
 
 function eventRowFormatter(row){
@@ -119,9 +130,10 @@ function eventRowFormatter(row){
         //add row data on right hand side
         html += `<div class="activities section collectives-list--item--activity-type">`;
         for (const event_type of data.event_types)
-                    html += `<span class="activity ${event_type['short']} type"></span>`;
+                if (event_type['short'] != "collective")
+                    html += `<span class="activity ${event_type['short']} type s90px"></span>`;
         for (const activity of data.activity_types)
-                    html += `<span class="activity ${activity['short']} type"></span>`;
+                    html += `<span class="activity ${activity['short']} type s90px"></span>`;
         html += `</div>`;
 
         html += `<div class="section section-photo collectives-list--item--photo">
@@ -223,17 +235,6 @@ function selectFilter(type, id){
     refreshFilterDisplay();
 }
 
-function filterFutureOnly(futureOnly){
-
-    if (futureOnly){
-        eventsTable.addFilter( [{field:"end", type:">=", value:"now" }]);
-    }else{
-        endfilter=eventsTable.getFilters().filter(function(i ){ return i['field'] == "end" });
-        eventsTable.removeFilter(endfilter);
-    }
-
-}
-
 function filterConfirmedOnly(confirmedOnly){
 
     if (confirmedOnly){
@@ -267,8 +268,6 @@ function refreshFilterDisplay(){
     var showCancelled = filters.filter(function(filter){ return filter['field'] == "status" }).length == 0 ;
     document.getElementById('cancelledcheckbox').checked = showCancelled;
 
-    var showPast = filters.filter(function(filter){ return filter['field'] == "end" }).length == 0 ;
-    document.getElementById('pastcheckbox').checked = showPast;
 }
 
 // Put age number in browser URL
@@ -294,7 +293,7 @@ function gotoEvents(event){
 // Functions to set up autocomplete of leaders
 
 function getLeaderHeaderFilter() {
-    return document.querySelector('div[tabulator-field="leaders"] input[type="search"]');
+    return document.querySelector('#leader');
 }
 
 function onSelectLeaderAutocomplete(id, val) {
@@ -302,21 +301,17 @@ function onSelectLeaderAutocomplete(id, val) {
     searchInput.value = val;
 }
 
-function dateFilterEditor(cell, onRendered, success, cancel, editorParams){
+function filterTable(field, value) {
+    removeFilter(eventsTable,field);
+    if (value != "")
+        eventsTable.addFilter(field, "like", value);
+}
 
-	var container = document.createElement('span');
-    start = document.createElement('input');
-    start.type = 'datetime';
-    start.style.width="100%";
-    start.style.padding= "4px";
-    start.placeholder = 'A partir de';
-    start.setAttribute("readonly", "readonly");
 
-    start.addEventListener("change", function(){success(start.value); });
 
-    var tailOpts = {locale: "fr", dateFormat: "dd/mm/YYYY", timeFormat: false,};
-    tail.DateTime(start, tailOpts);
-
-    container.append(start);
-	return container;
+function removeFilter(table, type){
+    table.getFilters().forEach(function(filter){
+        if(filter['field'] == type)
+            table.removeFilter(filter['field'], filter['type'], filter['value'])
+    })
 }
