@@ -17,14 +17,15 @@ function createPaymentsTable(url)
           nestedFieldSeparator: false,
           columns:[
             {title:"État", field:"status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumPaymentStatus)}, headerFilterParams:{values: addEmpty(EnumPaymentStatus)}},
-            {title:"Date", field:"creation_time", widthGrow:1.2, headerFilter:dateFilterEditor, formatter:"datetime", formatterParams: { outputFormat:"DD/MM/YYYY" }},
+            {title:"Date", field:"finalization_time", widthGrow:1.2, headerFilter:dateFilterEditor, formatter:"datetime", formatterParams: { outputFormat:"DD/MM/YYYY" }},
             {title:"Objet", field:"item.title", widthGrow:2, headerFilter:true},
             {title:"Tarif", field:"price.title", widthGrow:2, headerFilter:true},
             {title:"Payé", field:"amount_paid", widthGrow:1},
             {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true, editor:"select", editorParams:{values: addEmpty(EnumPaymentType)}, headerFilterParams:{values: addEmpty(EnumPaymentType)}},
             {title:"Adhérent", field:"buyer_name", widthGrow:2, headerFilter:true},
             {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumRegistrationStatus)}, headerFilterParams:{values: addEmpty(EnumRegistrationStatus)}},
-            ],
+            {title:"Ref payline", field:"processor_order_ref", widthGrow:2, headerFilter:true},    
+        ],
 
         rowClick:function(e, row){
             document.location.href = row.getData().details_uri;

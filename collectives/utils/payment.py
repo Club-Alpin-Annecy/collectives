@@ -48,6 +48,18 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                     # To include the end day in the result
                     end = end + datetime.timedelta(days=1)
                     query = query.filter(Payment.creation_time < end)
+            if field == "finalization_time":
+                start_str = filters.get(f"filters[{i}][value][start]", None)
+                end_str = filters.get(f"filters[{i}][value][end]", None)
+                if start_str != "":
+                    start = datetime.datetime.strptime(start_str, "%Y-%m-%d")
+                    query = query.filter(Payment.finalization_time > start)
+
+                if end_str != "":
+                    end = datetime.datetime.strptime(end_str, "%Y-%m-%d")
+                    # To include the end day in the result
+                    end = end + datetime.timedelta(days=1)
+                    query = query.filter(Payment.finalization_time < end)
             elif field == "item.event.title":
                 query = query.filter(Event.title.like(f"%{value}%"))
             elif field == "item.event.activity_type_names" and value is not None:
@@ -82,6 +94,9 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                 query = query.filter(
                     Registration.status == RegistrationStatus(int(value))
                 )
+            elif field == "processor_order_ref":
+                query = query.filter(Payment.processor_order_ref.like(f"%{value}%"))
+
             i = i + 1
 
     query = query.order_by(Payment.id)
