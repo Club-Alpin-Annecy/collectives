@@ -67,7 +67,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for reg in event.active_registrations() %}
+                {% for reg in event.active_registrations()|sort(attribute='user.first_name,user.last_name') %}
                 <tr class="{{ loop.cycle('odd', 'even') }}">
                     <td>{{loop.index}}</td>
                     <td>{{reg.user.license}}</td>
