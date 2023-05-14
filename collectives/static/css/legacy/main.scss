@@ -67,12 +67,15 @@
 }
 .messages .error::before{
 	content: url("/static/img/icon/ionicon/md-close-circle.svg");
+	float: left;
 }
 .messages .warning::before{
 	content: url("/static/img/icon/ionicon/md-alert.svg");
+	float: left;
 }
 .messages .success::before{
 	content: url("/static/img/icon/ionicon/md-checkmark-circle.svg");
+	float: left;
 }
 
 
