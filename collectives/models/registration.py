@@ -6,7 +6,7 @@ from collectives.models.utils import ChoiceEnum
 
 
 # pylint: disable=invalid-name
-class RegistrationLevels(enum.IntEnum):
+class RegistrationLevels(ChoiceEnum):
     """Enum listing acceptable registration levels.
 
     A registration level is type of event participant, such as a co-leader or a regular
@@ -17,6 +17,17 @@ class RegistrationLevels(enum.IntEnum):
 
     CoLeader = 1
     """ Participant that will help the event leader."""
+
+    @classmethod
+    def display_names(cls):
+        """
+        :return: a dict defining display names for all enum values
+        :rtype: dict
+        """
+        return {
+            cls.Normal: "Participant",
+            cls.CoLeader: "Co-encadrant",
+        }
 
 
 class RegistrationStatus(ChoiceEnum):

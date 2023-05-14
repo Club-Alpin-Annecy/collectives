@@ -125,6 +125,13 @@
       {% endif %}
 
       {% if event.is_registered(current_user) %}
+        <p>Vous êtes inscrit à cet évènement en tant que 
+           {{event.existing_registrations(current_user)[0].level.display_name()}}
+           avec le statut {{event.existing_registrations(current_user)[0].status.display_name()}}.
+        </p>
+      {% endif %}
+ 
+      {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
         {% elif event.is_unregistered(current_user)%}
