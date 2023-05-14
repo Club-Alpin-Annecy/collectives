@@ -665,10 +665,21 @@ def self_register(event_id):
         db.session.commit()
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    if event.event_type.requires_activity and not current_user.can_register_on(
-        event.start, event.end, event_id
-    ):
-        flash("Vous participez déjà une activité à cette date", "error")
+    conflicts = current_user.registrations_during(event.start, event.end, event_id)
+    if event.event_type.requires_activity and len(conflicts) > 0:
+        conflict_text = [
+            f" * [{c.event.title} ({c.status.display_name()})]"
+            f"({url_for('event.view_event', event_id=c.event_id)})\n"
+            for c in conflicts
+        ]
+
+        flash(
+            "Vous allez participer une ou des activité(s) à cette date: \n"
+            f" {''.join(conflict_text)}\n  Si vous ne participez pas à cette "
+            "activité, vous pouvez demander à son encadrant de vous inscrire "
+            'en "Refusé".',
+            "error",
+        )
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.requires_payment():

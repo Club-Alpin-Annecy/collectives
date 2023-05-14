@@ -63,7 +63,7 @@
                     />
                     <h3 class="heading-3">Message</h3>
                 {% for category, message in messages %}
-                <div class="{{category}} message">{{ message }}</div>
+                <div class="{{category}} message">{{ markdown_to_html(message|e) |safe }}</div>
                 {% endfor %}
                 </div>
                 <div class="veil" onclick= "this.parentNode.style.display='none'"></div>

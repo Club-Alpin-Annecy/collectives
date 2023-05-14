@@ -6,7 +6,7 @@ from flask_uploads import UploadSet, IMAGES
 
 from collectives.models.globals import db
 from collectives.models.configuration import Configuration
-from collectives.models.registration import Registration
+from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender
 from collectives.utils.time import current_time
@@ -174,8 +174,8 @@ class UserMiscMixin:
             return False
         return True
 
-    def can_register_on(self, start, end, excluded_event_id=None) -> bool:
-        """Check if user is already registered to an event on a specified timespan.
+    def registrations_during(self, start=None, end=None, excluded_event_id=None):
+        """Returns registration from confirmed events where user is registered on a specified timespan.
         The check only considers events that require an activity (e.g 'Collectives'
         but not 'Soirées')
 
@@ -185,25 +185,26 @@ class UserMiscMixin:
         :type end: :py:class:`datetime.datetime`
         :param excluded_event_id: Event id to exclude (often the event being edited)
         :type excluded_event_id: int
-        :return: True if user can register on the specified timespan.
-        :rtype: boolean
+        :rtype: list(Registration)
         """
         # pylint: disable=(import-outside-toplevel
-        from collectives.models.event import Event, EventType
+        from collectives.models.event import Event
 
-        query = db.session.query(Event)
-        query = query.filter(Event.start < end)
-        query = query.filter(Event.end > start)
+        query = db.session.query(Registration)
+        if end is not None:
+            query = query.filter(Registration.event.has(Event.start < end))
+        if start is not None:
+            query = query.filter(Registration.event.has(Event.end > start))
         query = query.filter(Registration.user_id == self.id)
-        # pylint: disable=comparison-with-callable
-        query = query.filter(Event.id == Registration.event_id)
-        # pylint: disable=comparison-with-callable
-        query = query.filter(Event.id != excluded_event_id)
-        query = query.filter(EventType.id == Event.event_type_id)
-        query = query.filter(EventType.requires_activity == True)
-        events = query.all()
+        if excluded_event_id is not None:
+            query = query.filter(Registration.event.has(id != excluded_event_id))
+        query = query.filter(Registration.status != RegistrationStatus.Rejected)
+        query = query.filter(
+            Registration.event.has(Event.event_type.has(requires_activity=True))
+        )
+        registrations = query.all()
 
-        return not any(event.is_confirmed() for event in events)
+        return [r for r in registrations if r.event.is_confirmed()]
 
     def form_of_address(self):
         """The user form of address based on its gender."""
