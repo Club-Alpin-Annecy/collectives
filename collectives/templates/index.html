@@ -109,6 +109,9 @@
                     class="button button-secondary"
                     />
             <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
+            <label class="borders"> 📅 Depuis 
+                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('start', this.value)"/>
+            </label>
 
             <!-- filter event type -->
             <div class="select" >
@@ -184,10 +187,7 @@
 
             </div>
             <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
-            <label class="borders"> 📅 Depuis 
-                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('start', this.value)"/>
-            </label>
-            <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" style="width: 30em"/>
+            <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" />
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>
