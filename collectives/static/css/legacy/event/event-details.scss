@@ -243,15 +243,20 @@
     height: 36px;
     font-weight: 500;
     padding: 1px 5px;
+    max-width: 300px;
+    min-width: 150px;
 }
 
 #filters label.borders{
     display: flex;
     align-items: center;
+    max-width: 200px;
 }
 
 #filters label.borders input{
     border: none;
+    width: 80px;
+    min-width: 80px;
 }
 
 .select label {
