@@ -20,7 +20,7 @@ def upgrade():
     if bind.engine.name == "sqlite":
         # SQLite won't uodate the index automatically when renaming the column
         # MySQL will but won't allow us to drop the index
-        op.drop_index(op.f("ix_payments_creditor_id"), "payments")
+        op.drop_index(op.f("ix_payments_creditor_id"), table_name="payments")
 
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
@@ -56,7 +56,7 @@ def upgrade():
 def downgrade():
     bind = op.get_bind()
     if bind.engine.name == "sqlite":
-        op.drop_index(op.f("ix_payments_creditor_id"), "payments")
+        op.drop_index(op.f("ix_payments_creditor_id"), table_name="payments")
 
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
