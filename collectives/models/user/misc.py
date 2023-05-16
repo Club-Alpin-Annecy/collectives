@@ -175,9 +175,9 @@ class UserMiscMixin:
         return True
 
     def registrations_during(self, start=None, end=None, excluded_event_id=None):
-        """Returns registration from confirmed events where user is registered on a specified timespan.
-        The check only considers events that require an activity (e.g 'Collectives'
-        but not 'Soirées')
+        """Returns registration from confirmed events where user is registered on a
+        specified timespan. The check only considers events that require an activity
+        (e.g 'Collectives' but not 'Soirées')
 
         :param start: Start of the timespan
         :type start: :py:class:`datetime.datetime`
@@ -188,7 +188,7 @@ class UserMiscMixin:
         :rtype: list(Registration)
         """
         # pylint: disable=(import-outside-toplevel
-        from collectives.models.event import Event
+        from collectives.models.event import Event, EventStatus
 
         query = db.session.query(Registration)
         if end is not None:
@@ -197,14 +197,18 @@ class UserMiscMixin:
             query = query.filter(Registration.event.has(Event.end > start))
         query = query.filter(Registration.user_id == self.id)
         if excluded_event_id is not None:
+            # pylint: disable=(comparison-with-callable)
             query = query.filter(Registration.event.has(id != excluded_event_id))
         query = query.filter(Registration.status != RegistrationStatus.Rejected)
         query = query.filter(
             Registration.event.has(Event.event_type.has(requires_activity=True))
         )
+        query = query.filter(
+            Registration.event.has(Event.status == EventStatus.Confirmed)
+        )
         registrations = query.all()
 
-        return [r for r in registrations if r.event.is_confirmed()]
+        return registrations
 
     def form_of_address(self):
         """The user form of address based on its gender."""
