@@ -121,7 +121,7 @@
           {% endif %}
       </h3>
       {% if event.num_online_slots > 0 %}
-        <p>Les inscriptions en ligne sont possibles du  {{format_datetime(event.registration_open_time)}} jusqu'au {{format_datetime(event.registration_close_time)}}. </p>
+        <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
       {% endif %}
 
       {% if event.is_registered(current_user) %}
