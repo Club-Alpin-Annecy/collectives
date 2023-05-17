@@ -8,6 +8,18 @@
     flex-flow: row wrap;
 }
 
+#eventlist #filters::after { 
+    /* Do not fill last line if unnecessary */
+    content: '';
+    flex-grow: 3;
+}
+@media screen and (max-width: 680px) {
+    #eventlist #filters::after { 
+        /* Do not fill last line if unnecessary */
+        display: none;
+    }
+}
+
 #eventlist #filters > *{
     flex-grow: 1;
 }
@@ -243,14 +255,13 @@
     height: 36px;
     font-weight: 500;
     padding: 1px 5px;
-    max-width: 300px;
-    min-width: 150px;
+    max-width: 100%;
 }
 
 #filters label.borders{
     display: flex;
     align-items: center;
-    max-width: 200px;
+    max-width: 100%;
 }
 
 #filters label.borders input{
