@@ -1,7 +1,7 @@
 <div class="main-footer">
     <div class="layout-container main-footer-container">
         <div class="columns">
-            <div class="column is-3">
+            <div class="column is-3 align-center">
                 <a href="{{ url_for('root.index')}}" class="main-footer-navigation-logo">
                     <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ config['TITLE'] }}"
                         title="{{ config['TITLE'] }}" style="height: 90px">
@@ -12,9 +12,9 @@
                     href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br />
                 Version du site : {{ version_link(config['VERSION'])|safe }}<br />
                 Contribuez sur le <a href="https://github.com/Club-Alpin-Annecy/collectives" >projet Github</a><br />
-                Photo de couverture: <a href="{{Configuration.COVER_CREDIT_URL}}">{{Configuration.COVER_CREDIT}}</a>
+                Photo de couverture: <a href="{{Configuration.COVER_CREDIT_URL}}">{{Configuration.COVER_CREDIT}}</a> <br/><br/>
             </div>
-            <div class="column">
+            <div class="column align-center">
                 <a href="https://www.ffcam.fr/les-huit-d-or-ffcam-2023.html">
                     <img src="{{ url_for('static', filename='caf/huitdor.svg') }}" style="height: 90px" alt="Lauréat 8 d'or 2023" />
                 </a>
