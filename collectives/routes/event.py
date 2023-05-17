@@ -831,13 +831,14 @@ def register_user(event_id):
                     "inscription ne sera confirmée qu'après renouvellement"
                 )
 
-            if payment_required and registration.status != RegistrationStatus.Active:
-                flash(
-                    f"La collective est payante: l'inscription de {user.full_name()} ne sera "
-                    "définitive qu'après qu'il/elle aie payé en ligne, ou après saisie "
-                    "manuelle des informations de paiement en bas de page."
-                )
-                registration.status = RegistrationStatus.PaymentPending
+            if payment_required:
+                if registration.status is None or not registration.status.is_valid():
+                    flash(
+                        f"La collective est payante: l'inscription de {user.full_name()} ne sera "
+                        "définitive qu'après qu'il/elle aie payé en ligne, ou après saisie "
+                        "manuelle des informations de paiement en bas de page."
+                    )
+                    registration.status = RegistrationStatus.PaymentPending
             else:
                 registration.status = RegistrationStatus.Active
 

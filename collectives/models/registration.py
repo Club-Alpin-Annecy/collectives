@@ -61,6 +61,9 @@ class RegistrationStatus(ChoiceEnum):
 
     Waiting = 6
     """ User is in waiting list. """
+
+    Present = 7
+    """ User has been present to the event. """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -78,6 +81,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
             cls.Waiting: "Liste d'attente",
+            cls.Present: "Présent",
         }
 
     @classmethod
@@ -96,6 +100,7 @@ class RegistrationStatus(ChoiceEnum):
                 cls.UnJustifiedAbsentee,
                 cls.JustifiedAbsentee,
                 cls.Waiting,
+                cls.Present,
             ],
             cls.Rejected: [re_register_status, cls.ToBeDeleted, cls.Waiting],
             cls.PaymentPending: [cls.Rejected],
@@ -110,7 +115,21 @@ class RegistrationStatus(ChoiceEnum):
             cls.UnJustifiedAbsentee: [cls.Rejected, cls.Active, cls.JustifiedAbsentee],
             cls.ToBeDeleted: [],
             cls.Waiting: [cls.Rejected, re_register_status],
+            cls.Present: [
+                cls.Rejected,
+                cls.UnJustifiedAbsentee,
+                cls.JustifiedAbsentee,
+                cls.Waiting,
+                cls.Active,
+            ],
         }
+
+    def is_valid(self):
+        """Checks if registration is valid, ie active or present
+
+        :returns: True or False
+        :rtype: bool"""
+        return self in [RegistrationStatus.Active, RegistrationStatus.Present]
 
     def valid_transitions(self, requires_payment):
         """
@@ -172,11 +191,16 @@ class Registration(db.Model):
     def is_active(self):
         """Check if this registation is active.
 
-        :return: True if :py:attr:`status` is `Active` and the user's license has not expired
+        :return: True if :py:attr:`status` is `Active` or `Present` and the user's
+                 license has not expired
         :rtype: boolean"""
-        return (
-            self.status == RegistrationStatus.Active and not self.is_pending_renewal()
-        )
+        if self.is_pending_renewal():
+            return False
+        if self.status == RegistrationStatus.Active:
+            return True
+        if self.status == RegistrationStatus.Present:
+            return True
+        return False
 
     def is_holding_slot(self):
         """Check if this registation is holding a slot.

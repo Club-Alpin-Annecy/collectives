@@ -5,9 +5,9 @@ from collectives.models import db, RegistrationStatus
 from tests import utils
 
 
-def test_list_prices(admin_client, event1):
+def test_list_prices(leader_client, event1):
     """Test access to prices list"""
-    response = admin_client.get(f"/payment/event/{event1.id}/edit_prices")
+    response = leader_client.get(f"/payment/event/{event1.id}/edit_prices")
     assert response.status_code == 200
 
 
