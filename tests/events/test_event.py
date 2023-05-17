@@ -12,13 +12,13 @@ from collectives.models import EventStatus, ActivityType, Event
 from tests import utils
 
 
-def test_event_access(admin_client, event):
+def test_event_access(leader_client, event):
     """Test regular acces to event description"""
-    response = admin_client.get(f"/collectives/{event.id}")
+    response = leader_client.get(f"/collectives/{event.id}")
     assert response.status_code == 302
     assert response.headers["Location"] == "/collectives/1-new-collective"
 
-    response = admin_client.get(response.headers["Location"])
+    response = leader_client.get(response.headers["Location"])
     assert response.status_code == 200
 
 
@@ -65,7 +65,7 @@ def test_crawler(client, event):
 
     assert (
         description == "Collective Alpinisme - jeudi 20 octobre 2022 - 10 places - "
-        "Par Compte ADMINISTRATEUR - Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+        "Par Romeo CAPO - Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
         "Quisque mollis vitae diam at hendrerit...."
     )
 
@@ -126,14 +126,14 @@ def test_event_creation(leader_client):
     assert "<strong>Lorem ipsum</strong>" in response.text
 
 
-def test_event_modification(event, admin_client):
+def test_event_modification(event, leader_client):
     """Test various event modifications."""
-    response = admin_client.get(f"/collectives/{event.id}/edit")
+    response = leader_client.get(f"/collectives/{event.id}/edit")
     assert response.status_code == 200
 
     data = utils.load_data_from_form(response.text, "form_edit_event")
     data["status"] = int(EventStatus.Cancelled)
-    response = admin_client.post(
+    response = leader_client.post(
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
@@ -143,7 +143,7 @@ def test_event_modification(event, admin_client):
     assert "Annulée" in response.text
 
     data["status"] = int(EventStatus.Pending)
-    response = admin_client.post(
+    response = leader_client.post(
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
@@ -153,7 +153,7 @@ def test_event_modification(event, admin_client):
     assert "En attente" in response.text
 
     data["description"] = "New **description** for you"
-    response = admin_client.post(
+    response = leader_client.post(
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
@@ -163,16 +163,16 @@ def test_event_modification(event, admin_client):
     assert "New <strong>description</strong> for you" in response.text
 
 
-def test_event_duplication(admin_client, paying_event):
+def test_event_duplication(leader_client, paying_event):
     """Test the event duplication functionnality"""
-    response = admin_client.get(f"/collectives/{paying_event.id}/duplicate")
+    response = leader_client.get(f"/collectives/{paying_event.id}/duplicate")
     assert response.status_code == 200
 
     data = utils.load_data_from_form(response.text, "form_edit_event")
     now = datetime.now()
     data["start"] = (now + timedelta(days=33)).strftime("%Y-%m-%d %X")
     data["end"] = (now + timedelta(days=33, hours=3)).strftime("%Y-%m-%d %X")
-    response = admin_client.post("/collectives/add", data=data)
+    response = leader_client.post("/collectives/add", data=data)
     assert response.status_code == 302
     new_id = re.search(r"/collectives/([0-9]+)", response.location)[1]
     new_event = Event.query.get(new_id)
@@ -205,11 +205,11 @@ def test_event_duplication(admin_client, paying_event):
     )
 
 
-def test_event_export_list(admin_client, event1_with_reg, user2):
+def test_event_export_list(leader_client, event1_with_reg, user2):
     """Test result of user export function"""
 
     url = f"/collectives/{event1_with_reg.id}/export_registered_users"
-    response = admin_client.get(url)
+    response = leader_client.get(url)
     assert response.status_code == 200
     assert response.content_length > 4000
     assert (
@@ -226,10 +226,10 @@ def test_event_export_list(admin_client, event1_with_reg, user2):
     assert worksheet["D3"].value == user2.mail
 
 
-def test_event_print(admin_client, event1_with_reg, user2):
+def test_event_print(leader_client, event1_with_reg, user2):
     """Test result of user list print function"""
     url = f"/collectives/{event1_with_reg.id}/print"
-    response = admin_client.get(url)
+    response = leader_client.get(url)
     assert response.status_code == 200
     assert event1_with_reg.title in response.text
     assert user2.full_name() in response.text

@@ -13,7 +13,7 @@ from collectives.models import db, RoleIds, RegistrationStatus
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 def test_user_group_members(
-    event1_with_reg, user1, user2, president_user, admin_user, supervisor_user
+    event1_with_reg, user1, user2, president_user, leader_user, supervisor_user
 ):
     """Test listing user group members"""
 
@@ -35,7 +35,7 @@ def test_user_group_members(
     assert len(group0_members) == 4
     assert user1 in group0_members
     assert user2 not in group0_members
-    assert admin_user in group0_members
+    assert leader_user in group0_members
     assert president_user not in group0_members
 
     gec.is_leader = False
@@ -45,7 +45,7 @@ def test_user_group_members(
     group0_members = group0.get_members()
     assert len(group0_members) == 3
     assert user1 in group0_members
-    assert admin_user not in group0_members
+    assert leader_user not in group0_members
 
     gec.is_leader = None
     db.session.add(gec)
@@ -71,7 +71,7 @@ def test_user_group_members(
     assert len(group0_members) == 2
     assert supervisor_user in group0_members
     assert president_user in group0_members
-    assert admin_user not in group0_members
+    assert leader_user not in group0_members
 
     grc2.activity_id += 1
     db.session.add(grc2)

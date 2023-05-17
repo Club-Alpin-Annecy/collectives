@@ -28,7 +28,7 @@ def generate_event(identifier):
 
     @wraps(identifier)
     @pytest.fixture
-    def event(app, admin_user):
+    def event(app, leader_user):
         """:returns: A basic event."""
 
         now = date.today()
@@ -58,8 +58,8 @@ def generate_event(identifier):
         event_type = EventType.query.filter_by(name="Collective").first()
         event.event_type = event_type
 
-        event.leaders = [admin_user]
-        event.main_leader = admin_user
+        event.leaders = [leader_user]
+        event.main_leader = leader_user
 
         db.session.add(event)
         db.session.commit()
