@@ -165,8 +165,7 @@ function eventRowFormatter(row){
                         ${slots(data.free_slots, 'free_slot')}
                      </div>
                      <div class="collectives-list--item--details-tags">${html_tags}</div>
-                 </div>
-                 <div class="breaker"></div>`;
+                 </div>`;
         divRow.innerHTML = html;
 
         //append newly formatted contents to the row
