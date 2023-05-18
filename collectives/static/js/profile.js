@@ -13,11 +13,6 @@ window.onload = function(){
             {field:"end", type:">", value:  getServerLocalTime()},
         ],
         responsiveLayout:true,
-        groupBy: function(data){
-            //data - the data object for the row being grouped
-        
-            return EnumRegistrationStatus[data.registration.status];
-        },
         paginationSize: [50,100,200],
         columns:[
             {title: "Type",     field:"event_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
@@ -41,28 +36,42 @@ window.onload = function(){
         rowClick: function(e, row){ document.location= row.getData().view_uri},
     };
 
+
+    var is_user_profile = ajaxURL.match(/^\/api\/user/);
+
+    if(is_user_profile) {
+        common_options = Object.assign(common_options),
+            {
+            groupBy: function(data){
+                //data - the data object for the row being grouped
+                return EnumRegistrationStatus[data.registration.status];
+            }}
+        }
+
     var eventstable= new Tabulator("#eventstable",
                     Object.assign(common_options, {   initialFilter: [
                                 {field:"end", type:">", value:getServerLocalTime() },
                             ]}));
-    var waitingtable= new Tabulator("#waitingtable",
-    Object.assign(common_options, {   initialFilter: [
-                {field:"end", type:">", value:getServerLocalTime() },
-            ]}));
     var pasteventstable= new Tabulator("#pasteventstable",
                     Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:"<", value:getServerLocalTime()  }
-                            ]}));
+                                {field:"end", type:"<", value:getServerLocalTime()  }],
+                                initialSort: [ {column:"start", dir:"desc"}],
+                            }));
 
-    if(ajaxURL.match(/^\/api\/user/)){
+    if(is_user_profile){
+
+        var waitingtable= new Tabulator("#waitingtable",
+        Object.assign(common_options, {   initialFilter: [
+                    {field:"end", type:">", value:getServerLocalTime() },
+                ]}));
 
         eventstable.hideColumn("registration.status")
-        eventstable.addFilter("registration.status", "=", 0);
+        eventstable.addFilter("registration.status", "=", EnumRegistrationStatusKeys["Active"]);
 
         waitingtable.hideColumn("registration.status")
-        waitingtable.addFilter("registration.status", "=", 6);
+        waitingtable.addFilter("registration.status", "=", EnumRegistrationStatusKeys["Waiting"]);
 
-        pasteventstable.addFilter("registration.status", "!=", 6);
+        pasteventstable.addFilter("registration.status", "!=", EnumRegistrationStatusKeys["Waiting"]);
     }
 
 }
