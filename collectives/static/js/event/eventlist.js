@@ -40,7 +40,6 @@ function buildEventsTable() {
         pageLoaded :  updatePageURL,
 
         initialSort: [ {column:"start", dir:"asc"}],
-        initialFilter: [{field:"end", type:">=", value:"now" }],
         columns:[
             {title:"Titre", field:"title", sorter:"string"},
             {title:"Date", field:"start", sorter:"string"},
@@ -76,11 +75,25 @@ function buildEventsTable() {
         },
     });
 
-    // Don't keep stored filters about leader, start, end and title
-    removeFilter(eventsTable, 'leaders');
-    removeFilter(eventsTable, 'start');
-    removeFilter(eventsTable, 'end');
-    removeFilter(eventsTable, 'title');
+    var newSession = true;
+    try {
+        if(sessionStorage.getItem("eventlist-sessionInitialized"))
+        {
+            newSession = false;
+        }
+        sessionStorage.setItem("eventlist-sessionInitialized", true)
+    } catch(error) {}
+
+    if(newSession) {
+        // Don't keep stored filters about leader, start and title
+        // between browser sessions
+        removeFilter(eventsTable, 'leaders');
+        removeFilter(eventsTable, 'start');
+        removeFilter(eventsTable, 'end');
+        removeFilter(eventsTable, 'title');
+
+        document.querySelector('#datefilter').value = moment().format("MM/DD/YYYY");
+    }
 
    document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
        button.addEventListener('click', gotoEvents);
@@ -102,13 +115,10 @@ function buildEventsTable() {
        console.log('No page defined');
    }
 
-   document.querySelector('#datefilter').value = moment().format("MM/DD/YYYY");
    var tailOpts = {locale: "fr", dateFormat: "dd/mm/YYYY", timeFormat: false,};
    tail.DateTime(document.querySelector('#datefilter'), tailOpts);
 
    refreshFilterDisplay();
-
-
 }
 
 function eventRowFormatter(row){
@@ -262,6 +272,15 @@ function refreshFilterDisplay(){
             document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
             document.getElementById('select_tag_'+filter['value']).checked = true;
+        if (filter['field'] == 'start') {
+            document.querySelector('#datefilter').value = filter['value'];
+        }
+        if (filter['field'] == 'title') {
+            return document.querySelector('#title').value = filter['value'];
+        }
+        if (filter['field'] == 'leaders') {
+            return document.querySelector('#leader').value = filter['value'];
+        }
     }
 
 
