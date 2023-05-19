@@ -7,8 +7,9 @@ from collectives.models import ActivityType
 
 
 def today():
-    """ Returns today's date as string """
-    return date.today().strftime('%d/%m/%Y')
+    """Returns today's date as string"""
+    return date.today().strftime("%d/%m/%Y")
+
 
 def test_event_access(
     user1_client, event1, event2, past_event, draft_event, cancelled_event
