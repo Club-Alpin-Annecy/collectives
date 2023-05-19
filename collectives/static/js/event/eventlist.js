@@ -77,15 +77,21 @@ function buildEventsTable() {
 
     var newSession = true;
     try {
-        if(sessionStorage.getItem("eventlist-sessionInitialized"))
-        {
-            newSession = false;
+        var currentTime = new Date();
+        var sessionTime = sessionStorage.getItem("eventlist-sessionDate");
+        if (sessionTime) {
+            var elapsedMilliseconds = currentTime - Date.parse(sessionTime)
+            if(elapsedMilliseconds < 86400 * 1000)
+            {
+                // Last seen less that a day ago, keep session filters
+                newSession = false;
+            }
         }
-        sessionStorage.setItem("eventlist-sessionInitialized", true)
+        sessionStorage.setItem("eventlist-sessionDate", currentTime)
     } catch(error) {}
 
     if(newSession) {
-        // Don't keep stored filters about leader, start and title
+        // Don't keep stored filters about leader, date and title
         // between browser sessions
         removeFilter(eventsTable, 'leaders');
         removeFilter(eventsTable, 'start');
@@ -272,7 +278,7 @@ function refreshFilterDisplay(){
             document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
             document.getElementById('select_tag_'+filter['value']).checked = true;
-        if (filter['field'] == 'start') {
+        if (filter['field'] == 'end') {
             document.querySelector('#datefilter').value = filter['value'];
         }
         if (filter['field'] == 'title') {
