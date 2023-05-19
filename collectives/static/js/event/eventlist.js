@@ -76,9 +76,10 @@ function buildEventsTable() {
         },
     });
 
-    // Don't keep stored filters about leader, start and title
+    // Don't keep stored filters about leader, start, end and title
     removeFilter(eventsTable, 'leaders');
     removeFilter(eventsTable, 'start');
+    removeFilter(eventsTable, 'end');
     removeFilter(eventsTable, 'title');
 
    document.querySelectorAll('.tabulator-paginator button').forEach(function(button){
