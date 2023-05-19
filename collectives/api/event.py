@@ -13,7 +13,6 @@ from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import Event, EventStatus, EventType
 from collectives.models import ActivityType, User, EventTag
 from collectives.utils.url import slugify
-from collectives.utils.time import current_time
 
 
 def photo_uri(event):
@@ -256,8 +255,7 @@ def events():
         elif field == "start":
             query_filter = Event.start >= parser.parse(value, dayfirst=True)
         elif field == "end":
-            if filter_type == ">=":
-                query_filter = Event.end >= current_time().date()
+            query_filter = Event.end >= parser.parse(value, dayfirst=True)
         elif field == "status":
             value = getattr(EventStatus, value)
             if filter_type == "=":

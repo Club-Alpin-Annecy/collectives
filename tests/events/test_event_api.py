@@ -1,8 +1,14 @@
 """ Test API related to event """
+from datetime import date
+
 from collectives.models import ActivityType
 
 # pylint: disable=unused-argument,too-many-arguments
 
+
+def today():
+    """ Returns today's date as string """
+    return date.today().strftime('%d/%m/%Y')
 
 def test_event_access(
     user1_client, event1, event2, past_event, draft_event, cancelled_event
@@ -31,7 +37,7 @@ def test_event_access_not_passed(
     response = user1_client.get(
         "/api/events/?page=1&size=25&sorters[0][field]=title"
         "&sorters[0][dir]=asc&filters[0][field]=end&filters[0][type]=>%3D"
-        "&filters[0][value]=now"
+        f"&filters[0][value]={today()}"
     )
     assert response.status_code == 200
     data = response.json["data"]
@@ -77,8 +83,8 @@ def test_event_filter_tag(user1_client, event1, event2, tagged_event):
     """Test list of event with tag filter"""
 
     response = user1_client.get(
-        "/api/events/?page=1&size=25&sorters[0][field]=start"
-        "&sorters[0][dir]=asc&filters[0][field]=end&filters[0][type]=>%3D&filters[0][value]=now"
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+        f"&filters[0][field]=end&filters[0][type]=>%3D&filters[0][value]={today()}"
         "&filters[1][field]=tags&filters[1][type]=%3D&filters[1][value]=tag_handicaf"
     )
     assert response.status_code == 200
