@@ -346,23 +346,33 @@ def autocomplete_event():
 
         query = Event.query
 
+        # Search term in title or id
+        search_clause = Event.title.ilike(f"%{search_term}%")
+        if event_id:
+            search_clause = or_(search_clause, (Event.id == event_id))
+        query = query.filter(search_clause)
+
+        # Remove excluded ids
+        query = query.filter(~Event.id.in_(excluded_ids))
+
+        query_without_activity_filtering = query
+
         # Restrict to event with one of the provided activities
         if activity_ids:
             query = query.filter(
                 Event.activity_types.any(ActivityType.id.in_(activity_ids))
             )
 
-        # Search term in title or id
-        search_clause = Event.title.ilike(f"%{search_term}%")
-        if event_id:
-            search_clause = search_clause | (Event.id == event_id)
-        query = query.filter(search_clause)
-
-        # Remove excluded ids
-        query = query.filter(~Event.id.in_(excluded_ids))
-
         query = query.order_by(Event.id.desc())
-        found_events = query.limit(limit)
+        found_events = query.limit(limit).all()
 
-    content = json.dumps(AutocompleteEventSchema(many=True).dump(found_events))
+        if len(found_events) < limit:
+            # We haven't found enough events, try without activity filtering,
+            # See issue #618
+            query = query_without_activity_filtering
+            query = query.filter(~Event.id.in_([event.id for event in found_events]))
+            query = query.order_by(Event.id.desc())
+            found_events += query.limit(limit - len(found_events)).all()
+
+    content = AutocompleteEventSchema().dumps(found_events, many=True)
     return content, 200, {"content-type": "application/json"}
