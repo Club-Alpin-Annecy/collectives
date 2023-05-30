@@ -104,7 +104,7 @@ Divers:
         content:
             News : cafannecy.fr
             Nextcloud : nc.cafannecy.fr
-            Twitter : twitter.com/cafannecy"
+            Twitter : twitter.com/cafannecy
 
         description: Dictionnary of additional links to be added in main menu
         type: Dictionnary
