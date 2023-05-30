@@ -100,7 +100,14 @@ Divers:
         description: Dictionary of FFCAM licence categories with their description
         type: Dictionnary
 
+    MAIN_MENU_LINKS:
+        content:
+            News : cafannecy.fr
+            Nextcloud : nc.cafannecy.fr
+            Twitter : twitter.com/cafannecy"
 
+        description: Dictionnary of additional links to be added in main menu
+        type: Dictionnary
 
 
     DESCRIPTION_TEMPLATE:
