@@ -106,7 +106,7 @@ Divers:
             Nextcloud : https://nc.cafannecy.fr
             Twitter : https://twitter.com/cafannecy
 
-        description: Dictionnary of additional links to be added in main menu
+        description: "Dictionnary of additional links to be added in main menu (NB: link must be full URL: https://.....)"
         type: Dictionnary
 
 

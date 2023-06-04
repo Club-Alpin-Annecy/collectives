@@ -100,13 +100,15 @@
                             </li>
                             {% endif %}
 
-                            {% for menu_item in Configuration.MAIN_MENU_LINKS.items() %}
-                                    <li class="menu-dropdown-item">
-                                        <a href="{{ menu_item[1] }}" class="menu-dropdown-item-link" target="_blank"><img
-                                                src="{{ url_for('static', filename='img/icon/ionicon/md-link.svg') }}" class="legacy-icon" />
-                                            {{ menu_item[0] }}</a>
-                                    </li>
-                            {% endfor %}
+                            {% if Configuration.MAIN_MENU_LINKS is not none and Configuration.MAIN_MENU_LINKS is mapping %}
+                                {% for menu_item in Configuration.MAIN_MENU_LINKS.items() %}
+                                        <li class="menu-dropdown-item">
+                                            <a href="{{ menu_item[1] }}" class="menu-dropdown-item-link" target="_blank"><img
+                                                    src="{{ url_for('static', filename='img/icon/ionicon/md-link.svg') }}" class="legacy-icon" />
+                                                {{ menu_item[0] }}</a>
+                                        </li>
+                                {% endfor %}
+                            {% endif %}
 
 
                         </ul>
