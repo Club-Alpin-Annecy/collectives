@@ -7,17 +7,29 @@ from collectives.models.globals import db
 class BadgeIds(ChoiceEnum):
     """Enum listing the type of a badge"""
 
-    # TODO implements the different type of badges
+    # pylint: disable=invalid-name
+    Benevole = 1
+
+    @classmethod
+    def display_names(cls):
+        """Display name of the current role
+
+        :return: badge name
+        :rtype: string
+        """
+        return {
+            cls.Benevole: "Bénévole",
+        }
 
 
 class Badge(db.Model):
     """Badge for a specific user.
 
     These objects are linked to :py:class:`collectives.models.user.User` and
-    sometimes to a :py:class:`collectives.models.activity_type.ActivityType`.
+    to a :py:class:`collectives.models.activity_type.ActivityType`.
     A same user can have several badges, including on the same activity type.
 
-    Roles are stored in SQL table ``roles``.
+    Roles are stored in SQL table ``badges``.
     """
 
     __tablename__ = "badges"
