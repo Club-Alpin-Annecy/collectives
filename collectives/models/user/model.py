@@ -247,6 +247,14 @@ class UserModelMixin:
         return db.relationship("Role", backref="user", lazy=True)
 
     @declared_attr
+    def badges(self):
+        """List all badged associated to this user
+
+        :type: list(:py:class:`collectives.models.badge.Badge`)
+        """
+        return db.relationship("Badge", backref="user", lazy=True)
+
+    @declared_attr
     def registrations(self):
         """List registration of the user.
 
@@ -287,6 +295,3 @@ class UserModelMixin:
             foreign_keys="[Payment.reporter_id]",
             lazy=True,
         )
-
-    # TODO: implement a @declared_attr for badges
-    # shall return the list of badges for the user

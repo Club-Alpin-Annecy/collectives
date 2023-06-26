@@ -63,7 +63,8 @@ class Badge(db.Model):
     level = db.Column(db.Integer, info={"label": "niveau du badge"})
 
     """
-    Level of the badge. Depending of the type of badge, might be: level of expertise, nb of absences,...
+    Level of the badge. Depending of the type of badge, might be:
+    level of expertise, nb of absences,...
 
     :type: int
     """
