@@ -7,7 +7,7 @@ from collectives.models.globals import db
 class BadgeIds(ChoiceEnum):
     """Enum listing the type of a badge"""
 
-    #TODO implements the different type of badges
+    # TODO implements the different type of badges
 
 
 class Badge(db.Model):
@@ -27,7 +27,9 @@ class Badge(db.Model):
 
     :type: int"""
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
     """ ID of the user to which the role is applied.
 
     :type: int"""
@@ -42,7 +44,11 @@ class Badge(db.Model):
     badge_id = db.Column(
         db.Enum(BadgeIds),
         nullable=False,
-        info={"choices": BadgeIds.choices(), "coerce": BadgeIds.coerce, "label": "Badge"},
+        info={
+            "choices": BadgeIds.choices(),
+            "coerce": BadgeIds.coerce,
+            "label": "Badge",
+        },
     )
     """ Type of the badge.
 
@@ -61,7 +67,6 @@ class Badge(db.Model):
 
     :type: int
     """
-
 
     @property
     def name(self):
