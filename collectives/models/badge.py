@@ -1,5 +1,6 @@
-"""Module for user roles related classes
+"""Module for user badges related classes
 """
+import builtins
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -12,7 +13,7 @@ class BadgeIds(ChoiceEnum):
 
     @classmethod
     def display_names(cls):
-        """Display name of the current role
+        """Display name of the current badge
 
         :return: badge name
         :rtype: string
@@ -20,6 +21,17 @@ class BadgeIds(ChoiceEnum):
         return {
             cls.Benevole: "Bénévole",
         }
+
+    @classmethod
+    def get(cls, required_id):
+        """
+        :return: Get a :py:class:`BadgeIds` from its id
+        :rtype: :py:class:`BadgeIds`
+        """
+        for badge_id in cls:
+            if badge_id == int(required_id):
+                return badge_id
+        raise builtins.Exception(f"Unknown badge id {required_id}")
 
 
 class Badge(db.Model):
@@ -42,7 +54,7 @@ class Badge(db.Model):
     user_id = db.Column(
         db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
     )
-    """ ID of the user to which the role is applied.
+    """ ID of the user to which the badge is applied.
 
     :type: int"""
 
@@ -83,9 +95,9 @@ class Badge(db.Model):
 
     @property
     def name(self):
-        """Returns the name of the role.
+        """Returns the name of the badge.
 
-        :return: name of the role.
+        :return: name of the badge.
         :rtype: string
         """
 
