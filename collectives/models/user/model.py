@@ -287,3 +287,6 @@ class UserModelMixin:
             foreign_keys="[Payment.reporter_id]",
             lazy=True,
         )
+
+    #TODO: implement a @declared_attr for badges
+    # shall return the list of badges for the user
