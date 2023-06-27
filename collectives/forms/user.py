@@ -130,7 +130,7 @@ class RoleForm(ModelForm, FlaskForm):
             (a.id, a.name) for a in ActivityType.get_all_types()
         ]
 
-# TODO: implement a BadgeForm class idem RoleForm
+# TODO: update BadgeForm according to needs
 class BadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
 

@@ -10,7 +10,7 @@ from flask_login import current_user
 from collectives.email_templates import send_confirmation_email
 from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, RoleForm
 from collectives.forms.auth import AdminTokenCreationForm
-from collectives.models import User, ActivityType, Role, RoleIds, Badge, BadgeIds, db
+from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
@@ -233,7 +233,7 @@ def add_user_role(user_id):
         title="Roles utilisateur",
     )
 
-# TODO: implement the route /user/<user_id>/badges idem /user/<user_id>/roles
+# TODO: implement the right logic on route /user/<user_id>/badges idem /user/<user_id>/roles
 @blueprint.route("/user/<user_id>/badges", methods=["GET", "POST"])
 @user_is("is_admin")
 def add_user_badge(user_id):
