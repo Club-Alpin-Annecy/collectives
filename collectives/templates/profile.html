@@ -45,6 +45,7 @@
         {% elif current_user.is_admin() %}
             <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
             <a class="button button-secondary" href="{{url_for('administration.add_user_role', user_id=user.id)}}">Gérer ses rôles</a>
+            <a class="button button-secondary" href="{{url_for('administration.add_user_badge', user_id=user.id)}}">Gérer ses badges</a>
         {% endif %}
 
         {% if current_user.is_hotline() and not user.is_test %}
@@ -126,7 +127,7 @@
     <div id="eventstable" class="collectives-list">
     </div>
 
-    
+
     <h4 class="heading-4">Sorties en liste d'attente</h4>
     <div id="waitingtable" class="collectives-list">
     </div>

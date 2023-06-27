@@ -1,0 +1,42 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">{{user.full_name()}}</h2>
+
+  <h4 class="heading-4">Badges existants</h4>
+  <ul>
+  {% for badge in user.badges %}
+  <li>{{badge.name}}
+  {% if badge.activity_type %}
+   pour l'activité <em>{{badge.activity_type.name}}</em>
+  {% endif %}
+  {% if badge.expiration_date %}
+   qui expire le <em>{{badge.expiration_date}}</em>
+  {% endif %}
+        <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-warning" value="Renouveler" >
+        </form>
+        <form class="inline" action="{{url_for('administration.remove_user_badge', badge_id=badge.id)}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="submit" class="button button-danger" value="Supprimer" >
+          </form>
+  </li>
+  {% endfor %}
+  </ul>
+
+  <h4 class="heading-4">Nouveau badge</h4>
+  <form action="{{url_for('administration.add_user_badge', user_id=user.id)}}" method="POST" >
+    {% for field in form %}
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+          {{ field.label }}
+          {{ field }}<br/>
+        {% endif %}
+    {% endfor %}
+    {{ form.hidden_tag() }}
+     <br/>{{ form.submit(class="button button-primary") }}
+  </form>
+</div>
+{% endblock %}

@@ -8,9 +8,9 @@ from flask import Blueprint
 from flask_login import current_user
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import AdminUserForm, AdminTestUserForm, RoleForm
+from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, RoleForm
 from collectives.forms.auth import AdminTokenCreationForm
-from collectives.models import User, ActivityType, Role, RoleIds, db
+from collectives.models import User, ActivityType, Role, RoleIds, Badge, BadgeIds, db
 from collectives.models.auth import ConfirmationToken
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
@@ -153,6 +153,17 @@ class RoleValidationException(Exception):
         self.message = message
         super().__init__(self)
 
+class BadgeValidationException(Exception):
+    """Exception class of new user badge validation"""
+
+    def __init__(self, message):
+        """Exception constructor
+
+        :param message: Message to be displayed to the user
+        :type message: string
+        """
+        self.message = message
+        super().__init__(self)
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 @user_is("is_admin")
@@ -222,6 +233,62 @@ def add_user_role(user_id):
         title="Roles utilisateur",
     )
 
+# TODO: implement the route /user/<user_id>/badges idem /user/<user_id>/roles
+@blueprint.route("/user/<user_id>/badges", methods=["GET", "POST"])
+@user_is("is_admin")
+def add_user_badge(user_id):
+    """Route for user badges management page."""
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        flash("Utilisateur inexistant", "error")
+        return redirect(url_for("administration.administration"))
+
+    form = BadgeForm()
+    if not form.is_submitted():
+        return render_template(
+            "user_badges.html",
+            user=user,
+            form=form,
+            title="Badges utilisateur",
+        )
+
+    badge = Badge()
+    form.populate_obj(badge)
+
+    badge_id = badge.badge_id
+
+    try:
+        # Check that the role does not already exist
+        if badge.activity_type is None:
+            raise BadgeValidationException(
+                "Un badge doit être associé à une activité"
+            )
+
+        user.badges.append(badge)
+        db.session.commit()
+    except BadgeValidationException as err:
+        flash(err.message, "error")
+
+    form = BadgeForm()
+    return render_template(
+        "user_badges.html",
+        user=user,
+        form=form,
+        title="Badges utilisateur",
+    )
+
+# TODO: implement the route /user/<user_id>/badges idem /user/<user_id>/roles
+@blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
+@user_is("is_admin")
+def renew_user_badge(badge_id):
+    pass
+
+# TODO: implement /badges/<int:badge_id>/delete route idem /roles/<int:role_id>/delete
+@blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
+@user_is("is_admin")
+def delete_user_badge(badge_id):
+    pass
+
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
 @user_is("is_admin")
@@ -252,7 +319,6 @@ def remove_user_role(role_id):
         form=form,
         title="Roles utilisateur",
     )
-
 
 @blueprint.route("/roles/export/", methods=["GET"])
 def export_role_no_filter():
