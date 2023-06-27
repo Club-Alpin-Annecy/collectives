@@ -32,6 +32,8 @@ def test_add_user_role(admin_client, admin_user):
     response = admin_client.get(f"/administration/user/{admin_user.id}/roles")
     assert response.status_code == 200
 
+# TODO: add badges route test
+
 
 def test_export_roles(admin_client):
     """Test exports of user roles"""

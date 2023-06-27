@@ -10,7 +10,9 @@ def test_add_badge(user1):
     """Test adding a badge to a user"""
     activity1 = ActivityType.query.get(1)
 
-    benevole_badge = Badge(user_id=user1.id, activity_id=activity1.id, badge_id=int(BadgeIds.Benevole))
+    benevole_badge = Badge(
+        user_id=user1.id, activity_id=activity1.id, badge_id=int(BadgeIds.Benevole)
+    )
     user1.badges.append(benevole_badge)
 
     db.session.add(user1)

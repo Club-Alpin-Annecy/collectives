@@ -153,6 +153,7 @@ class RoleValidationException(Exception):
         self.message = message
         super().__init__(self)
 
+
 class BadgeValidationException(Exception):
     """Exception class of new user badge validation"""
 
@@ -164,6 +165,7 @@ class BadgeValidationException(Exception):
         """
         self.message = message
         super().__init__(self)
+
 
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 @user_is("is_admin")
@@ -233,6 +235,7 @@ def add_user_role(user_id):
         title="Roles utilisateur",
     )
 
+
 # TODO: implement the right logic on route /user/<user_id>/badges idem /user/<user_id>/roles
 @blueprint.route("/user/<user_id>/badges", methods=["GET", "POST"])
 @user_is("is_admin")
@@ -260,9 +263,7 @@ def add_user_badge(user_id):
     try:
         # Check that the role does not already exist
         if badge.activity_type is None:
-            raise BadgeValidationException(
-                "Un badge doit être associé à une activité"
-            )
+            raise BadgeValidationException("Un badge doit être associé à une activité")
 
         user.badges.append(badge)
         db.session.commit()
@@ -277,11 +278,13 @@ def add_user_badge(user_id):
         title="Badges utilisateur",
     )
 
+
 # TODO: implement the route /user/<user_id>/badges idem /user/<user_id>/roles
 @blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
 @user_is("is_admin")
 def renew_user_badge(badge_id):
     pass
+
 
 # TODO: implement /badges/<int:badge_id>/delete route idem /roles/<int:role_id>/delete
 @blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
@@ -319,6 +322,7 @@ def remove_user_role(role_id):
         form=form,
         title="Roles utilisateur",
     )
+
 
 @blueprint.route("/roles/export/", methods=["GET"])
 def export_role_no_filter():

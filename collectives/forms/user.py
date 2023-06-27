@@ -12,7 +12,15 @@ from wtforms_alchemy import ModelForm
 from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.models import User, photos, ActivityType, Role, RoleIds, Badge, BadgeIds
+from collectives.models import (
+    User,
+    photos,
+    ActivityType,
+    Role,
+    RoleIds,
+    Badge,
+    BadgeIds,
+)
 
 
 class AvatarForm:
@@ -130,6 +138,7 @@ class RoleForm(ModelForm, FlaskForm):
             (a.id, a.name) for a in ActivityType.get_all_types()
         ]
 
+
 # TODO: update BadgeForm according to needs
 class BadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
@@ -148,6 +157,7 @@ class BadgeForm(ModelForm, FlaskForm):
         self.activity_type_id.choices = [
             (a.id, a.name) for a in ActivityType.get_all_types()
         ]
+
 
 class AddLeaderForm(ActivityTypeSelectionForm):
     """Form for supervisors to add "Trainee" or "EventLeader" role to users"""
