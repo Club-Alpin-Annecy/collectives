@@ -35,4 +35,4 @@ class UserBadgeMixin:
         :return: True if user has a benevole badge.
         :rtype: boolean
         """
-        return self.has_badge(BadgeIds.Benevole)
+        return self.has_badge([BadgeIds.Benevole])
