@@ -258,12 +258,19 @@ def add_user_badge(user_id):
     badge = Badge()
     form.populate_obj(badge)
 
+    print(', '.join("%s: %s" % item for item in vars(badge).items()))
     badge_id = badge.badge_id
 
     try:
         # Check that the role does not already exist
+        badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
         if badge.activity_type is None:
             raise BadgeValidationException("Un badge doit être associé à une activité")
+
+        badge.activity_id = badge.activity_type.id
+        badge_exists = user.has_badge_for_activity([badge_id], badge.activity_type.id)
+        if badge_exists:
+            raise RoleValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
 
         user.badges.append(badge)
         db.session.commit()

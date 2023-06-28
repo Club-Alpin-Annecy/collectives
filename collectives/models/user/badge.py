@@ -36,3 +36,16 @@ class UserBadgeMixin:
         :rtype: boolean
         """
         return self.has_badge([BadgeIds.Benevole])
+
+    def has_badge_for_activity(self, badge_ids, activity_id):
+        """Check if user has at least one of the badge types for an activity.
+
+        :param badge_ids: Badges that will be tested.
+        :type badge_ids: list(:py:class:`collectives.models.badge:BadgeIds`).
+        :param activity_id: Activity onto which role should applied.
+        :type activity_id: int
+        :return: True if user has at least one of the listed roles type for the activity.
+        :rtype: boolean
+        """
+        badges = self.matching_badges(badge_ids)
+        return any(badge.activity_id == activity_id for badge in badges)

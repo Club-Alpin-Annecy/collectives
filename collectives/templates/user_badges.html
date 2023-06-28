@@ -13,13 +13,13 @@
    pour l'activité <em>{{badge.activity_type.name}}</em>
   {% endif %}
   {% if badge.expiration_date %}
-   qui expire le <em>{{badge.expiration_date}}</em>
+   expirant le <em>{{badge.expiration_date}}</em>
   {% endif %}
         <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-warning" value="Renouveler" >
+          <input type="submit" class="button button-primary" value="Renouveler" >
         </form>
-        <form class="inline" action="{{url_for('administration.remove_user_badge', badge_id=badge.id)}}" method="post">
+        <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="button button-danger" value="Supprimer" >
           </form>
