@@ -272,7 +272,7 @@ def add_user_badge(user_id):
         badge.activity_id = badge.activity_type.id
         badge_exists = user.has_badge_for_activity([badge_id], badge.activity_type.id)
         if badge_exists:
-            raise RoleValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
+            raise BadgeValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
 
         print(', '.join("%s: %s" % item for item in vars(badge).items()))
         user.badges.append(badge)
@@ -325,7 +325,31 @@ def delete_user_badge(badge_id):
 @blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
 @user_is("is_admin")
 def renew_user_badge(badge_id):
-    pass
+    """Route to renew a user badge.
+
+    :return: redirection to badge management page
+    :rtype: string
+    """
+     
+    badge = Badge.query.get(badge_id)
+
+    user = badge.user
+
+    if badge is None:
+        flash("Badge inexistant", "error")
+        return redirect(url_for("administration.administration"))
+    
+    db.session.delete(badge)
+    db.session.commit()
+
+    form = BadgeForm(activity_id=badge.activity_id, badge_id=badge.id)
+    return render_template(
+        "user_badges.html",
+        user=user,
+        form=form,
+        title="Badges utilisateur",
+        now=date.today(),
+    )
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
 @user_is("is_admin")
