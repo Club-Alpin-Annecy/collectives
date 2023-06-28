@@ -342,7 +342,7 @@ def renew_user_badge(badge_id):
     db.session.delete(badge)
     db.session.commit()
 
-    form = BadgeForm(activity_id=badge.activity_id, badge_id=badge.id)
+    form = BadgeForm(initial=badge)
     return render_template(
         "user_badges.html",
         user=user,

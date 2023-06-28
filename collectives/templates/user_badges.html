@@ -16,7 +16,7 @@
    expirant le <em>{{badge.expiration_date}}</em>
   {% endif %}
   {% if badge.expiration_date and badge.expiration_date < now %}
-  <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
+  <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="submit" class="button button-primary" value="Renouveler" >
   </form>
