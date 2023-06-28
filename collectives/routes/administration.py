@@ -13,6 +13,7 @@ from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, 
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
+from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -292,8 +293,39 @@ def add_user_badge(user_id):
 @blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
 @user_is("is_admin")
 def delete_user_badge(badge_id):
-    pass
+    """Route to delete a user badge.
 
+    :return: redirection to badge management page
+    :rtype: string
+    """
+
+    badge = Badge.query.get(badge_id)
+
+    user = badge.user
+
+        
+    if badge is None:
+        flash("Badge inexistant", "error")
+        return redirect(url_for("administration.administration"))
+    
+    db.session.delete(badge)
+    db.session.commit()
+
+    form = BadgeForm()
+    return render_template(
+        "user_badges.html",
+        user=user,
+        form=form,
+        title="Badges utilisateur",
+        now=date.today(),
+    )
+
+
+# TODO: implement /badges/<int:badge_id>/renew route
+@blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
+@user_is("is_admin")
+def renew_user_badge(badge_id):
+    pass
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
 @user_is("is_admin")
