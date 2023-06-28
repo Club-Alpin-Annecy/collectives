@@ -9,8 +9,8 @@
   <ul>
   {% for badge in user.badges %}
   <li>{{badge.name}}
-  {% if badge.activity_type %}
-   pour l'activité <em>{{badge.activity_type.name}}</em>
+  {% if badge.activity_id %}
+   pour l'activité <em>{{badge.activity_name}}</em>
   {% endif %}
   {% if badge.expiration_date %}
    expirant le <em>{{badge.expiration_date}}</em>

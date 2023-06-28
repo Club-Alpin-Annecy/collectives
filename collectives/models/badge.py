@@ -2,6 +2,7 @@
 """
 import builtins
 from datetime import date
+from collectives.models.activity_type import ActivityType
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -103,3 +104,14 @@ class Badge(db.Model):
         """
 
         return BadgeIds(self.badge_id).display_name()
+    
+    @property
+    def activity_name(self):
+        """Returns the name of the corresponding activity
+
+        :return: name of the corresponding activity
+        :rtype: string
+        """
+
+        return [ activity_type.name for activity_type in ActivityType.get_all_types() if activity_type.id == self.activity_id ][0]
+
