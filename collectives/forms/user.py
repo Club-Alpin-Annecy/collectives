@@ -1,5 +1,6 @@
 """Module containing forms for updating user information
 """
+from datetime import date
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
@@ -139,7 +140,6 @@ class RoleForm(ModelForm, FlaskForm):
         ]
 
 
-# TODO: update BadgeForm according to needs
 class BadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
 
@@ -153,6 +153,7 @@ class BadgeForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
+        kwargs["expiration_date"] = date(date.today().year, 9, 30)
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
             (a.id, a.name) for a in ActivityType.get_all_types()

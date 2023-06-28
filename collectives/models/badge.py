@@ -1,6 +1,7 @@
 """Module for user badges related classes
 """
 import builtins
+from datetime import date
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -79,7 +80,7 @@ class Badge(db.Model):
     :type: :py:class:`BadgeIds`
     """
 
-    expiration_date = db.Column(db.Date(), info={"label": "Date d'expiration du badge"})
+    expiration_date = db.Column(db.Date(), info={"label": "Date d'expiration du badge (par défaut: le 30/09 de l'année en cours)"})
     """ Date at which this badge will expire
 
     :type: :py:class:`datetime.date`"""

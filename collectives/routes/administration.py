@@ -3,6 +3,7 @@
 All routes are protected by :py:fun:`before_request` which protect acces to admin only.
  """
 
+from datetime import date
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
@@ -253,12 +254,12 @@ def add_user_badge(user_id):
             user=user,
             form=form,
             title="Badges utilisateur",
+            now=date.today(),
         )
 
     badge = Badge()
     form.populate_obj(badge)
 
-    print(', '.join("%s: %s" % item for item in vars(badge).items()))
     badge_id = badge.badge_id
 
     try:
@@ -272,6 +273,7 @@ def add_user_badge(user_id):
         if badge_exists:
             raise RoleValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
 
+        print(', '.join("%s: %s" % item for item in vars(badge).items()))
         user.badges.append(badge)
         db.session.commit()
     except BadgeValidationException as err:
@@ -283,15 +285,8 @@ def add_user_badge(user_id):
         user=user,
         form=form,
         title="Badges utilisateur",
+        now=date.today(),
     )
-
-
-# TODO: implement the route /user/<user_id>/badges idem /user/<user_id>/roles
-@blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
-@user_is("is_admin")
-def renew_user_badge(badge_id):
-    pass
-
 
 # TODO: implement /badges/<int:badge_id>/delete route idem /roles/<int:role_id>/delete
 @blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])

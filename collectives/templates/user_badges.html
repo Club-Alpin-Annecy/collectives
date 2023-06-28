@@ -5,7 +5,7 @@
 <div class="page-content" id="administration">
   <h2 class="heading-2">{{user.full_name()}}</h2>
 
-  <h4 class="heading-4">Badges existants</h4>
+  <h4 class="heading-4">Badges existant</h4>
   <ul>
   {% for badge in user.badges %}
   <li>{{badge.name}}
@@ -15,10 +15,13 @@
   {% if badge.expiration_date %}
    expirant le <em>{{badge.expiration_date}}</em>
   {% endif %}
-        <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-primary" value="Renouveler" >
-        </form>
+  {% if badge.expiration_date and badge.expiration_date < now %}
+  <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="submit" class="button button-primary" value="Renouveler" >
+  </form>
+  {% endif %}
+
         <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="submit" class="button button-danger" value="Supprimer" >
