@@ -1,5 +1,6 @@
 """Module to describe the type of activity.
 """
+import builtins
 from sqlalchemy.orm import validates
 from markupsafe import escape
 
@@ -117,6 +118,17 @@ class ActivityType(db.Model):
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()
+
+    @classmethod
+    def get(cls, required_id):
+        """Get the name of the specified activity id
+
+        :param required_id: the id of the Activity type
+        :type required_id: integer
+        :return: name of the activity type
+        :rtype: :py:class:`ActivityType`"""
+        return cls.query.get(required_id)
+
 
     @classmethod
     def js_values(cls):

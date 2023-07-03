@@ -273,7 +273,8 @@ def add_user_badge(user_id):
         if badge_exists:
             raise BadgeValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
 
-        print(', '.join("%s: %s" % item for item in vars(badge).items()))
+        # DEBUG
+        # print(', '.join("%s: %s" % item for item in vars(badge).items()))
         user.badges.append(badge)
         db.session.commit()
     except BadgeValidationException as err:
@@ -330,11 +331,11 @@ def renew_user_badge(badge_id):
 
     badge = Badge.query.get(badge_id)
 
-    user = badge.user
-
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
+    else:
+        user = badge.user
 
     db.session.delete(badge)
     db.session.commit()

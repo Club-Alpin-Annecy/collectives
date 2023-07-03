@@ -1,7 +1,6 @@
 """Module for user badges related classes
 """
 import builtins
-from datetime import date
 from collectives.models.activity_type import ActivityType
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
@@ -104,7 +103,7 @@ class Badge(db.Model):
         """
 
         return BadgeIds(self.badge_id).display_name()
-    
+
     @property
     def activity_name(self):
         """Returns the name of the corresponding activity
