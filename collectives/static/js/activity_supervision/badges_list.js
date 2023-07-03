@@ -27,7 +27,7 @@ function loadBadgesTable(ajaxUrl, csrfToken) {
         {
             ajaxURL: ajaxUrl,
             layout: "fitColumns",
-            groupBy:"user.full_name",
+            groupBy:"type",
             pagination:"local",
             paginationSize: 50,
 

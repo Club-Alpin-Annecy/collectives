@@ -178,7 +178,7 @@ def add_badge():
     add_badge_form.populate_obj(badge)
 
     # DEBUG
-    print(', '.join("%s: %s" % item for item in vars(badge).items()))
+    # print(', '.join("%s: %s" % item for item in vars(badge).items()))
 
     user = User.query.get(badge.user_id)
     if user is None:

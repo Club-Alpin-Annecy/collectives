@@ -203,7 +203,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         kwargs["submit_label"] = "Ajouter un encadrant"
         super().__init__(*args, **kwargs)
 
-class AddBadgeForm(ActivityTypeSelectionForm):
+class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
     """Form for supervisors to add badges to Users"""
 
     user_id = HiddenField()
