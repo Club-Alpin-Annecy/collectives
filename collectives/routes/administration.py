@@ -238,7 +238,6 @@ def add_user_role(user_id):
     )
 
 
-# TODO: implement the right logic on route /user/<user_id>/badges idem /user/<user_id>/roles
 @blueprint.route("/user/<user_id>/badges", methods=["GET", "POST"])
 @user_is("is_admin")
 def add_user_badge(user_id):
@@ -289,7 +288,6 @@ def add_user_badge(user_id):
         now=date.today(),
     )
 
-# TODO: implement /badges/<int:badge_id>/delete route idem /roles/<int:role_id>/delete
 @blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
 @user_is("is_admin")
 def delete_user_badge(badge_id):
@@ -303,11 +301,11 @@ def delete_user_badge(badge_id):
 
     user = badge.user
 
-        
+
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
-    
+
     db.session.delete(badge)
     db.session.commit()
 
@@ -321,7 +319,6 @@ def delete_user_badge(badge_id):
     )
 
 
-# TODO: implement /badges/<int:badge_id>/renew route
 @blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
 @user_is("is_admin")
 def renew_user_badge(badge_id):
@@ -330,7 +327,7 @@ def renew_user_badge(badge_id):
     :return: redirection to badge management page
     :rtype: string
     """
-     
+
     badge = Badge.query.get(badge_id)
 
     user = badge.user
@@ -338,7 +335,7 @@ def renew_user_badge(badge_id):
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
-    
+
     db.session.delete(badge)
     db.session.commit()
 
