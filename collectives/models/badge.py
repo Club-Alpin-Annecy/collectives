@@ -34,6 +34,14 @@ class BadgeIds(ChoiceEnum):
                 return badge_id
         raise builtins.Exception(f"Unknown badge id {required_id}")
 
+    @classmethod
+    def get_all(cls):
+        """
+        :return: :py:class:`BadgeIds` full list
+        :rtype: list(:py:class:`BadgeIds)`
+        """
+        return [ badge for badge in cls ]
+
 
 class Badge(db.Model):
     """Badge for a specific user.

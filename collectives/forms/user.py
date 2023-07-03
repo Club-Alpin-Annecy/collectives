@@ -201,3 +201,30 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         kwargs["activity_list"] = current_user.get_supervised_activities()
         kwargs["submit_label"] = "Ajouter un encadrant"
         super().__init__(*args, **kwargs)
+
+class AddBadgeForm(ActivityTypeSelectionForm):
+    """Form for supervisors to add badges to Users"""
+
+    user_id = HiddenField()
+    user_search = StringField(
+        "Utilisateur",
+        render_kw={
+            "autocomplete": "off",
+            "class": "search-input",
+            "placeholder": "Nom...",
+        },
+    )
+    badge_id = SelectField(
+        "Badge",
+        coerce=int,
+        validators=[DataRequired()],
+        choices=[
+            (int(r), r.display_name()) for r in BadgeIds.get_all()
+        ],
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+        kwargs["activity_list"] = current_user.get_supervised_activities()
+        kwargs["submit_label"] = "Ajouter un badge"
+        super().__init__(*args, **kwargs)

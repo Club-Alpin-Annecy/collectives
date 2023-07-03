@@ -11,6 +11,10 @@
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}"/>
       Encadrants
     </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.badge_list')}}">
+        <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/>
+        Badges
+      </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.csv_import')}}">
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/download.svg') }}"/>
       Import CSV

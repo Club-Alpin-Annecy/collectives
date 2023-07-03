@@ -8,7 +8,7 @@ from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_
 
-from collectives.models import db, User, RoleIds, Role
+from collectives.models import db, User, RoleIds, Role, Badge
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
@@ -228,6 +228,50 @@ class LeaderRoleSchema(marshmallow.Schema):
             "type",
         )
 
+class UserBadgeSchema(marshmallow.Schema):
+    """Schema for a badge
+
+    Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
+    """
+
+    delete_uri = fields.Function(
+        lambda badge: url_for("activity_supervision.remove_badge", badge_id=badge.id)
+    )
+    """ URI to delete this badge (WIP)
+
+    :type: string
+    """
+    user = fields.Function(lambda badge: UserSchema().dump(badge.user))
+    """ URI to a resized version (30px) of user avatar
+
+    :type: string
+    """
+
+    activity_type = fields.Function(
+        lambda badge: ActivityTypeSchema().dump(badge.activity_type)
+    )
+    """ List of roles of the User.
+
+    Roles are encoded as JSON.
+
+    :type: list(dict())"""
+
+    type = fields.Function(lambda badge: badge.badge_id.display_name())
+    """ Badge type
+
+    :type: string"""
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "user",
+            "activity_type",
+            "delete_uri",
+            "type",
+        )
+
+
 
 @blueprint.route("/leaders/")
 @valid_user(True)
@@ -261,3 +305,33 @@ def leaders():
     response = LeaderRoleSchema(many=True).dump(query.all())
 
     return json.dumps(response), 200, {"content-type": "application/json"}
+
+@blueprint.route("/badges/")
+@valid_user(True)
+@user_is("is_supervisor", True)
+@confidentiality_agreement(True)
+def badges():
+    """API endpoint to list current badges
+
+    Only available to administrators and activity supervisors
+
+    :return: A tuple:
+
+        - JSON containing information describe in UserSchema
+        - HTTP return code : 200
+        - additional header (content as JSON)
+    :rtype: (string, int, dict)
+    """
+
+    supervised_activities = current_user.get_supervised_activities()
+
+    query = db.session.query(Badge)
+
+    query = query.filter(Badge.activity_id.in_(a.id for a in supervised_activities))
+    query = query.join(Badge.user)
+    query = query.order_by(User.last_name, User.first_name, User.id)
+
+    response = UserBadgeSchema(many=True).dump(query.all())
+
+    return json.dumps(response), 200, {"content-type": "application/json"}
+

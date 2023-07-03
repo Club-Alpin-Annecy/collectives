@@ -71,6 +71,13 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.user.User`
     """
 
+     # Relationships
+    badges = db.relationship("Badge", backref="activity_type", lazy=True)
+    """Person with a badge with this activity
+
+    :type: :py:class:`collectives.models.user.User`
+    """
+
     def __str__(self) -> str:
         """Displays the user name."""
         return self.name + f" (ID {self.id})"
