@@ -123,6 +123,20 @@
     </form>
     {% endif %}
 
+    <h4 class="heading-4">Badges</h4>
+    <ul>
+        {% for badge in user.badges %}
+        <li>{{badge.name}}
+            {% if badge.activity_id %}
+            pour l'activité <em>{{badge.activity_name}}</em>
+           {% endif %}
+           {% if badge.expiration_date %}
+            expirant le <em>{{badge.expiration_date}}</em>
+           {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
     <h4 class="heading-4">Sorties à venir</h4>
     <div id="eventstable" class="collectives-list">
     </div>
