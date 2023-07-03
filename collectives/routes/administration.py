@@ -271,7 +271,9 @@ def add_user_badge(user_id):
         badge.activity_id = badge.activity_type.id
         badge_exists = user.has_badge_for_activity([badge_id], badge.activity_type.id)
         if badge_exists:
-            raise BadgeValidationException("Type de Badge déjà associé à l'utilisateur pour cette activité")
+            raise BadgeValidationException(
+                "Type de Badge déjà associé à l'utilisateur pour cette activité"
+            )
 
         # DEBUG
         # print(', '.join("%s: %s" % item for item in vars(badge).items()))
@@ -289,6 +291,7 @@ def add_user_badge(user_id):
         now=date.today(),
     )
 
+
 @blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
 @user_is("is_admin")
 def delete_user_badge(badge_id):
@@ -301,7 +304,6 @@ def delete_user_badge(badge_id):
     badge = Badge.query.get(badge_id)
 
     user = badge.user
-
 
     if badge is None:
         flash("Badge inexistant", "error")
@@ -348,6 +350,7 @@ def renew_user_badge(badge_id):
         title="Badges utilisateur",
         now=date.today(),
     )
+
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
 @user_is("is_admin")

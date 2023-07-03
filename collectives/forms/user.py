@@ -153,18 +153,20 @@ class BadgeForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-        initial = kwargs.pop('initial', {})
+        initial = kwargs.pop("initial", {})
         # For now, the default expiration date is hard-coded. It could be managable in the admin panel in a next version
         kwargs["expiration_date"] = date(date.today().year, 9, 30)
 
         super().__init__(*args, **kwargs)
         # In case this is a RENEWAL
-        if (initial):
-            if (initial.activity_id):
-                self.activity_type_id.choices = [ (initial.activity_id, ActivityType.get(initial.activity_id).name) ]
-            if (initial.badge_id):
-                self.badge_id = [ BadgeIds.get(initial.badge_id) ]
-            if (initial.level):
+        if initial:
+            if initial.activity_id:
+                self.activity_type_id.choices = [
+                    (initial.activity_id, ActivityType.get(initial.activity_id).name)
+                ]
+            if initial.badge_id:
+                self.badge_id = [BadgeIds.get(initial.badge_id)]
+            if initial.level:
                 self.level = initial.level
         # In case this is a CREATION
         else:

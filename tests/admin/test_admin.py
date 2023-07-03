@@ -32,6 +32,7 @@ def test_add_user_role(admin_client, admin_user):
     response = admin_client.get(f"/administration/user/{admin_user.id}/roles")
     assert response.status_code == 200
 
+
 # TODO: add badges route test
 def test_add_user_badge(admin_client, admin_user):
     """Test display of a user badge modification form."""

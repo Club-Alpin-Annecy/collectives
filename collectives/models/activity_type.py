@@ -129,7 +129,6 @@ class ActivityType(db.Model):
         :rtype: :py:class:`ActivityType`"""
         return cls.query.get(required_id)
 
-
     @classmethod
     def js_values(cls):
         """Class method to get all actitivity type as js dict
