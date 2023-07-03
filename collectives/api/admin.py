@@ -269,6 +269,7 @@ class UserBadgeSchema(marshmallow.Schema):
             "activity_type",
             "delete_uri",
             "type",
+            "expiration_date"
         )
 
 

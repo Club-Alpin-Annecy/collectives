@@ -7,6 +7,7 @@ from flask_login import current_user
 from wtforms import PasswordField, SubmitField, StringField
 from wtforms import SelectField, BooleanField, HiddenField
 from wtforms.validators import EqualTo, DataRequired
+from wtforms.fields import DateField
 from wtforms_alchemy import ModelForm
 
 
@@ -222,9 +223,13 @@ class AddBadgeForm(ActivityTypeSelectionForm):
             (int(r), r.display_name()) for r in BadgeIds.get_all()
         ],
     )
+    expiration_date = DateField('Expiration Date', format='%Y-%m-%d')
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         kwargs["activity_list"] = current_user.get_supervised_activities()
         kwargs["submit_label"] = "Ajouter un badge"
+        # For now, the default expiration date is hard-coded. It could be managable in the admin panel in a next version
+        kwargs["expiration_date"] = date(date.today().year, 9, 30)
+
         super().__init__(*args, **kwargs)
