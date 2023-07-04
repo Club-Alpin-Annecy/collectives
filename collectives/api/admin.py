@@ -228,6 +228,7 @@ class LeaderRoleSchema(marshmallow.Schema):
             "type",
         )
 
+
 class UserBadgeSchema(marshmallow.Schema):
     """Schema for a badge
 
@@ -264,14 +265,7 @@ class UserBadgeSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = (
-            "user",
-            "activity_type",
-            "delete_uri",
-            "type",
-            "expiration_date"
-        )
-
+        fields = ("user", "activity_type", "delete_uri", "type", "expiration_date")
 
 
 @blueprint.route("/leaders/")
@@ -307,6 +301,7 @@ def leaders():
 
     return json.dumps(response), 200, {"content-type": "application/json"}
 
+
 @blueprint.route("/badges/")
 @valid_user(True)
 @user_is("is_supervisor", True)
@@ -335,4 +330,3 @@ def badges():
     response = UserBadgeSchema(many=True).dump(query.all())
 
     return json.dumps(response), 200, {"content-type": "application/json"}
-

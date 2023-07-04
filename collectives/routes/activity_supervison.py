@@ -121,6 +121,7 @@ def leader_list():
         title="Encadrants",
     )
 
+
 @blueprint.route("/roles/export/", methods=["POST"])
 def export_role():
     """Create an Excel document with the contact information of activity users.
@@ -149,6 +150,7 @@ def export_role():
         as_attachment=True,
     )
 
+
 @blueprint.route("/badge", methods=["GET"])
 def badge_list():
     """Route for activity supervisors to access badges list and management form"""
@@ -164,6 +166,7 @@ def badge_list():
         export_form=export_form,
         title="Badges",
     )
+
 
 @blueprint.route("/badge/add", methods=["POST"])
 def add_badge():
@@ -201,6 +204,7 @@ def add_badge():
 
     return redirect(url_for(".badge_list"))
 
+
 @blueprint.route("/badge/delete/<badge_id>", methods=["POST"])
 def remove_badge(badge_id):
     """Route for an activity supervisor to remove a user badge
@@ -222,6 +226,7 @@ def remove_badge(badge_id):
     db.session.commit()
 
     return redirect(url_for(".badge_list"))
+
 
 @blueprint.route("/import", methods=["GET", "POST"])
 def csv_import():

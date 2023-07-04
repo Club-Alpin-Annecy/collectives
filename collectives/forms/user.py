@@ -203,6 +203,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         kwargs["submit_label"] = "Ajouter un encadrant"
         super().__init__(*args, **kwargs)
 
+
 class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
     """Form for supervisors to add badges to Users"""
 
@@ -219,11 +220,9 @@ class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
         "Badge",
         coerce=int,
         validators=[DataRequired()],
-        choices=[
-            (int(r), r.display_name()) for r in BadgeIds.get_all()
-        ],
+        choices=[(int(r), r.display_name()) for r in BadgeIds.get_all()],
     )
-    expiration_date = DateField('Expiration Date', format='%Y-%m-%d')
+    expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""

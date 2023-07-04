@@ -60,5 +60,5 @@ class UserBadgeMixin:
         :return: True if user has the corresponding badge type for the activity.
         :rtype: boolean
         """
-        badges = self.matching_badges([ badge_id ])
+        badges = self.matching_badges([badge_id])
         return any(badge.activity_id == activity_id for badge in badges)
