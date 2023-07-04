@@ -51,7 +51,7 @@
 
       <form action="{{url_for('activity_supervision.add_badge')}}" id="user-search-form" method="POST" >
         <div id="user-search-data" class="form-search search-data">
-          {% for field in [add_badge_form.activity_id, add_badge_form.badge_id, add_badge_form.user_search, add_badge_form.expiration_date] %}
+          {% for field in [add_badge_form.activity_id, add_badge_form.badge_id, add_badge_form.user_search, add_badge_form.expiration_date, add_badge_form.level] %}
             <div class="controls">
               <div class="field">{{ field.label }} </div>
               {{ field }}

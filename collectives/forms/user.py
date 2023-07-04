@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import PasswordField, SubmitField, StringField
-from wtforms import SelectField, BooleanField, HiddenField
+from wtforms import SelectField, BooleanField, HiddenField, IntegerField
 from wtforms.validators import EqualTo, DataRequired
 from wtforms.fields import DateField
 from wtforms_alchemy import ModelForm
@@ -155,7 +155,7 @@ class BadgeForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         initial = kwargs.pop("initial", {})
-        # For now, the default expiration date is hard-coded. 
+        # For now, the default expiration date is hard-coded.
         # It could be managable in the admin panel in a next version
         kwargs["expiration_date"] = date(date.today().year, 9, 30)
 
@@ -205,7 +205,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         super().__init__(*args, **kwargs)
 
 
-class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
+class AddBadgeForm(ActivityTypeSelectionForm):
     """Form for supervisors to add badges to Users"""
 
     user_id = HiddenField()
@@ -221,9 +221,12 @@ class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
         "Badge",
         coerce=int,
         validators=[DataRequired()],
-        choices=[(int(r), r.display_name()) for r in BadgeIds.get_all()],
+        choices=[
+            (int(r), r.display_name()) for r in BadgeIds.get_all()
+        ],
     )
     expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
+    level = IntegerField("Niveau du badge")
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
