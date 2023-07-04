@@ -13,7 +13,6 @@ from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, 
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
-from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -339,17 +338,17 @@ def renew_user_badge(badge_id):
     else:
         user = badge.user
 
-    db.session.delete(badge)
-    db.session.commit()
+        db.session.delete(badge)
+        db.session.commit()
 
-    form = BadgeForm(initial=badge)
-    return render_template(
-        "user_badges.html",
-        user=user,
-        form=form,
-        title="Badges utilisateur",
-        now=date.today(),
-    )
+        form = BadgeForm(initial=badge)
+        return render_template(
+            "user_badges.html",
+            user=user,
+            form=form,
+            title="Badges utilisateur",
+            now=date.today(),
+        )
 
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])

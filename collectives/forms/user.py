@@ -155,7 +155,8 @@ class BadgeForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         initial = kwargs.pop("initial", {})
-        # For now, the default expiration date is hard-coded. It could be managable in the admin panel in a next version
+        # For now, the default expiration date is hard-coded. 
+        # It could be managable in the admin panel in a next version
         kwargs["expiration_date"] = date(date.today().year, 9, 30)
 
         super().__init__(*args, **kwargs)
@@ -228,7 +229,8 @@ class AddBadgeForm(ActivityTypeSelectionForm, ModelForm):
         """Overloaded constructor populating activity list"""
         kwargs["activity_list"] = current_user.get_supervised_activities()
         kwargs["submit_label"] = "Ajouter un badge"
-        # For now, the default expiration date is hard-coded. It could be managable in the admin panel in a next version
+        # For now, the default expiration date is hard-coded.
+        # It could be managable in the admin panel in a next version
         kwargs["expiration_date"] = date(date.today().year, 9, 30)
 
         super().__init__(*args, **kwargs)

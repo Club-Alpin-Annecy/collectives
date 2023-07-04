@@ -40,7 +40,7 @@ class BadgeIds(ChoiceEnum):
         :return: :py:class:`BadgeIds` full list
         :rtype: list(:py:class:`BadgeIds)`
         """
-        return [badge for badge in cls]
+        return cls
 
 
 class Badge(db.Model):

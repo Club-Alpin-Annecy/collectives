@@ -1,6 +1,5 @@
 """Module to describe the type of activity.
 """
-import builtins
 from sqlalchemy.orm import validates
 from markupsafe import escape
 
