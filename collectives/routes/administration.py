@@ -342,8 +342,6 @@ def renew_user_badge(badge_id):
     db.session.commit()
 
     form = BadgeForm(initial=badge)
-    # DEBUG
-    print(', '.join("%s: %s" % item for item in vars(form).items()))
 
     return render_template(
         "user_badges.html",

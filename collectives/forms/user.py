@@ -158,6 +158,9 @@ class BadgeForm(ModelForm, FlaskForm):
         # For now, the default expiration date is hard-coded.
         # It could be managable in the admin panel in a next version
         kwargs["expiration_date"] = date(date.today().year, 9, 30)
+        if initial:
+            if initial.level:
+                kwargs["level"] = initial.level
 
         super().__init__(*args, **kwargs)
         # In case this is a RENEWAL
@@ -168,8 +171,7 @@ class BadgeForm(ModelForm, FlaskForm):
                 ]
             if initial.badge_id:
                 self.badge_id = [BadgeIds.get(initial.badge_id)]
-            if initial.level:
-                self.level = initial.level
+           
         # In case this is a CREATION
         else:
             self.activity_type_id.choices = [
