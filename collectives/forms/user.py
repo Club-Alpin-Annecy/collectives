@@ -6,7 +6,7 @@ from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import PasswordField, SubmitField, StringField
 from wtforms import SelectField, BooleanField, HiddenField, IntegerField
-from wtforms.validators import EqualTo, DataRequired
+from wtforms.validators import EqualTo, DataRequired, Optional
 from wtforms.fields import DateField
 from wtforms_alchemy import ModelForm
 
@@ -226,7 +226,10 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         choices=[(int(r), r.display_name()) for r in BadgeIds.get_all()],
     )
     expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
-    level = IntegerField("Niveau du badge")
+    level = IntegerField(
+        "Niveau du badge",
+        validators=[Optional()],
+    )
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
