@@ -133,6 +133,9 @@
            {% if badge.expiration_date %}
             expirant le <em>{{badge.expiration_date}}</em>
            {% endif %}
+           {% if badge.level %}
+            avec le niveau <em>{{badge.level}}</em>
+           {% endif %}
         </li>
         {% endfor %}
     </ul>

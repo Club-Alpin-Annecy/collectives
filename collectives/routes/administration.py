@@ -335,20 +335,23 @@ def renew_user_badge(badge_id):
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
-    else:
-        user = badge.user
 
-        db.session.delete(badge)
-        db.session.commit()
+    user = badge.user
 
-        form = BadgeForm(initial=badge)
-        return render_template(
-            "user_badges.html",
-            user=user,
-            form=form,
-            title="Badges utilisateur",
-            now=date.today(),
-        )
+    db.session.delete(badge)
+    db.session.commit()
+
+    form = BadgeForm(initial=badge)
+    # DEBUG
+    print(', '.join("%s: %s" % item for item in vars(form).items()))
+
+    return render_template(
+        "user_badges.html",
+        user=user,
+        form=form,
+        title="Badges utilisateur",
+        now=date.today(),
+    )
 
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
