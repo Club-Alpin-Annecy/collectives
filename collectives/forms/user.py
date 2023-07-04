@@ -171,7 +171,7 @@ class BadgeForm(ModelForm, FlaskForm):
                 ]
             if initial.badge_id:
                 self.badge_id = [BadgeIds.get(initial.badge_id)]
-           
+
         # In case this is a CREATION
         else:
             self.activity_type_id.choices = [
@@ -223,9 +223,7 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         "Badge",
         coerce=int,
         validators=[DataRequired()],
-        choices=[
-            (int(r), r.display_name()) for r in BadgeIds.get_all()
-        ],
+        choices=[(int(r), r.display_name()) for r in BadgeIds.get_all()],
     )
     expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
     level = IntegerField("Niveau du badge")
