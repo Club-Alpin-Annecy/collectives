@@ -178,6 +178,7 @@ class BadgeForm(ModelForm, FlaskForm):
                 (a.id, a.name) for a in ActivityType.get_all_types(True)
             ]
 
+
 class AddLeaderForm(ActivityTypeSelectionForm):
     """Form for supervisors to add "Trainee" or "EventLeader" role to users"""
 
