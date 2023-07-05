@@ -31,6 +31,20 @@ class RoleSchema(marshmallow.Schema):
             "activity_type.short",
         )
 
+class BadgeSchema(marshmallow.Schema):
+    """Schema for the badges of a user.
+
+    Mainly used in :py:attr:`UserSchema.badges`
+    """
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "name",
+            "badge_id",
+            "activity_type.name",
+        )
 
 class UserSchema(marshmallow.Schema):
     """Schema of a user to be used to extract API information.
@@ -92,6 +106,13 @@ class UserSchema(marshmallow.Schema):
     Roles are encoded as JSON.
 
     :type: list(dict())"""
+
+    badges = fields.Function(lambda user: BadgeSchema(many=True).dump(user.badges))
+    """ List of badges of the User.
+
+    Badges are encoded as JSON.
+
+    :type: list(dict())"""
     full_name = fields.Function(lambda user: user.full_name())
     """ User full name
 
@@ -113,6 +134,7 @@ class UserSchema(marshmallow.Schema):
             "first_name",
             "last_name",
             "roles",
+            "badges",
             "isadmin",
             "leader_profile_uri",
             "full_name",

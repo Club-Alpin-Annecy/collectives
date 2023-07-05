@@ -16,10 +16,23 @@ function roleFormatter(cell, formatterParams, onRendered){
     return cell.getValue().map(displayRole).join(' ');
 }
 
+function badgeFormatter(cell, formatterParams, onRendered){
+    cell.getElement().style.width="100px";
+    cell.getElement().style.height="auto";
+    cell.getElement().style['white-space']="normal";
+    cell.getElement().style.height="auto";
+
+    return `<ul> ${cell.getValue().map(displayBadge).join(' ')} </ul>`;
+}
+
 function displayRole(role){
     return `<span class=\"activity ${role['activity_type.short'] || 'none'} s30px\" title=\"${role['name']} ${role['activity_type.name'] || ''}\">
                 <span class=\"activity role${role['role_id']} s30px\" ></span>
             </span>`;
+}
+
+function displayBadge(badge){
+    return `<li>${badge['name']} ${badge['activity_type.name'] || 'non'}</li>` 
 }
 
 var table;
@@ -42,6 +55,7 @@ window.onload = function(){
             {title:"Prénom", field:"first_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Nom", field:"last_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
+            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters, formatter:badgeFormatter, formatterParams:{urlField:"profile_uri"}, headerSort:false,  widthGrow:3},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'POST', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
