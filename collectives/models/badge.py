@@ -68,7 +68,7 @@ class Badge(db.Model):
     :type: int"""
 
     activity_id = db.Column(
-        db.Integer, db.ForeignKey("activity_types.id"), nullable=False, index=True
+        db.Integer, db.ForeignKey("activity_types.id"), nullable=True, index=True
     )
     """ ID of the activity to which the badge is applied.
 

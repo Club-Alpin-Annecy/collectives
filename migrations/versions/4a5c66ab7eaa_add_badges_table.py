@@ -22,7 +22,7 @@ def upgrade():
         "badges",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("activity_id", sa.Integer(), nullable=False),
+        sa.Column("activity_id", sa.Integer(), nullable=True),
         sa.Column("badge_id", sa.Enum("Benevole", name="badgeids"), nullable=False),
         sa.Column("expiration_date", sa.Date(), nullable=True),
         sa.Column("level", sa.Integer(), nullable=True),
