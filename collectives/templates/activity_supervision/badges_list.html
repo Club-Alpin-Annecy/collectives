@@ -65,5 +65,29 @@
       </form>
   </div>
 
+  <h4 class="heading-4">Export de la liste des encadrants</h4>
+
+  <div class="action">
+        <div class="form-errors">
+            {% for field in export_form%}
+            {% for error in export_form.errors[field.name] %}
+
+            <div class="flash flash-error">
+                <strong>Erreur : {{field.label}}:</strong> {{error}}
+            </div>
+
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+      <form action="{{url_for('activity_supervision.export_badge')}}" method="POST" >
+        <div id="user-search-data" class="form-search search-data">
+          <div>{{ export_form.activity_id }}</div>
+          {{ export_form.hidden_tag() }}
+          <div>{{ export_form.submit(class="button button-primary") }}</div>
+        </div>
+      </form>
+  </div>
+
 </div>
 {% endblock %}

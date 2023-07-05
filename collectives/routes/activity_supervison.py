@@ -156,11 +156,17 @@ def export_badge():
 
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm()
+    form = ActivityTypeSelectionForm(
+        all_enabled=True,
+    )
+
     if not form.validate_on_submit():
         abort(400)
 
-    activity_type = ActivityType.query.get(form.activity_id.data)
+    if form.activity_id.data != -1:
+        activity_type = ActivityType.query.get(form.activity_id.data)
+    else:
+        activity_type = None
 
     query_filter = Badge.query
     # we remove role not linked anymore to a user
@@ -170,12 +176,18 @@ def export_badge():
 
     badges = query_filter.all()
 
+    if activity_type is None:
+        filename = "All"
+    else:
+        filename = activity_type.name
+    
+
     out = export.export_badges(badges)
 
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export Badges {activity_type.name}.xlsx",
+        download_name=f"CAF Annecy - Export Badges {filename}.xlsx",
         as_attachment=True,
     )
 
@@ -188,6 +200,7 @@ def badge_list():
     export_form = ActivityTypeSelectionForm(
         submit_label="Générer Excel",
         activity_list=current_user.get_supervised_activities(),
+        all_enabled=True,
     )
     return render_template(
         "activity_supervision/badges_list.html",
