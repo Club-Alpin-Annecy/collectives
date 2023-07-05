@@ -461,7 +461,7 @@ def export_badge(raw_filters=""):
     # we remove role not linked anymore to a user
     query_filter = query_filter.filter(Badge.user.has(User.id))
 
-    if raw_filters is not "":
+    if raw_filters != "":
         filters = {i[0]: i[1:] for i in raw_filters.split("-")}
         filename = ""
 
