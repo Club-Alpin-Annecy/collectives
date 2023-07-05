@@ -9,6 +9,7 @@ from marshmallow import fields
 from sqlalchemy import desc, and_
 
 from collectives.models import db, User, RoleIds, Role, Badge
+from collectives.models.badge import BadgeIds
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
@@ -167,24 +168,41 @@ def users():
         value = request.args.get(f"filters[{i}][value]")
         field = request.args.get(f"filters[{i}][field]")
 
-        if field == "roles":
-            # if field is roles,
+        if value is not None:
 
-            filters = {i[0]: i[1:] for i in value.split("-")}
-            if "r" in filters:
-                filters["r"] = Role.role_id == RoleIds.get(filters["r"])
-            if "t" in filters:
-                if filters["t"] == "none":
-                    filters["t"] = None
-                filters["t"] = Role.activity_id == filters["t"]
+            if field == "roles":
+                # if field is roles,
 
-            filters = list(filters.values())
-            query_filter = User.roles.any(and_(*filters))
+                filters = {i[0]: i[1:] for i in value.split("-")}
+                if "r" in filters:
+                    filters["r"] = Role.role_id == RoleIds.get(filters["r"])
+                if "t" in filters:
+                    if filters["t"] == "none":
+                        filters["t"] = None
+                    filters["t"] = Role.activity_id == filters["t"]
 
-        else:
-            query_filter = getattr(User, field).ilike(f"%{value}%")
+                filters = list(filters.values())
+                query_filter = User.roles.any(and_(*filters))
 
-        query = query.filter(query_filter)
+            elif field == "badges":
+                # if field is roles,
+
+                filters_badge = {i[0]: i[1:] for i in value.split("-")}
+                if "b" in filters_badge:
+                    filters_badge["b"] = Badge.badge_id == BadgeIds.get(filters_badge["b"])
+                if "t" in filters_badge:
+                    if filters_badge["t"] == "none":
+                        filters_badge["t"] = None
+                    filters_badge["t"] = Badge.activity_id == filters_badge["t"]
+
+                filters_badge = list(filters_badge.values())
+                query_filter = User.badges.any(and_(*filters_badge))
+
+            else:
+                query_filter = getattr(User, field).ilike(f"%{value}%")
+
+            query = query.filter(query_filter)
+        
         # Get next filter
         i += 1
 

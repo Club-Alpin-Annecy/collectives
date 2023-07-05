@@ -32,7 +32,7 @@ function displayRole(role){
 }
 
 function displayBadge(badge){
-    return `<li>${badge['name']} ${badge['activity_type.name'] || 'non'}</li>` 
+    return `<li>${badge['name']} ${badge['activity_type.name'] || 'none'}</li>` 
 }
 
 var table;
@@ -55,7 +55,7 @@ window.onload = function(){
             {title:"Prénom", field:"first_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Nom", field:"last_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
-            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters, formatter:badgeFormatter, formatterParams:{urlField:"profile_uri"}, headerSort:false,  widthGrow:3},
+            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters_badge, formatter:badgeFormatter, headerSort:false,  widthGrow:3},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'POST', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},

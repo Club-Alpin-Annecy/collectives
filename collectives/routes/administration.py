@@ -13,6 +13,7 @@ from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, 
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
+from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -55,6 +56,15 @@ def administration():
             filter_id = f"t{activity.id}-r{int(role)}"
             filters[filter_id] = f"- {activity.name} ({role.display_name()})"
 
+    filters_badge = {"": ""}
+    for badge in BadgeIds:
+        filters_badge[f"b{badge}"] = f"Badge {badge.display_name()}"
+    for activity in ActivityType.get_all_types():
+        filters_badge[f"t{activity.id}"] = f"{activity.name} (Tous)"
+        for badge in BadgeIds:
+            filter_id = f"t{activity.id}-b{int(badge)}"
+            filters_badge[filter_id] = f"- {activity.name} ({badge.display_name()})"
+
     count = {}
     count["total"] = User.query.count()
     count["enable"] = User.query.filter(User.enabled == True).count()
@@ -62,6 +72,7 @@ def administration():
     return render_template(
         "administration.html",
         filters=filters,
+        filters_badge=filters_badge,
         count=count,
         token_creation_form=AdminTokenCreationForm(),
     )
