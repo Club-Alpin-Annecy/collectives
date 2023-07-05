@@ -36,6 +36,7 @@ class UserBadgeMixin:
         :rtype: boolean
         """
         return self.has_badge([BadgeIds.Benevole])
+    # TODO: test if badges are not expired
 
     def has_badge_for_activity(self, badge_ids, activity_id):
         """Check if user has at least one of the badge types for an activity.
