@@ -32,7 +32,7 @@ function displayRole(role){
 }
 
 function displayBadge(badge){
-    return `<li>${badge['name']} ${badge['activity_type.name'] || 'none'}</li>` 
+    return `<li>${badge['name']} ${badge['activity_type.name'] || ''}</li>` 
 }
 
 var table;
