@@ -40,6 +40,15 @@
                         Attestation Bénévole
                     </a>
                 {% endif %}
+            {% else %}
+                    {% if user.is_benevole() %}
+                        {% if Configuration.VOLUNTEER_CERT_IMAGE %}
+                            <a class="button button-secondary" href="{{url_for('profile.volunteer_certificate')}}">
+                                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"  alt=""/>
+                                Attestation Bénévole
+                            </a>
+                        {% endif %}
+                    {% endif %}
             {% endif %}
 
         {% elif current_user.is_admin() %}
