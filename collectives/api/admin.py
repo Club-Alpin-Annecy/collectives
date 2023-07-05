@@ -32,6 +32,7 @@ class RoleSchema(marshmallow.Schema):
             "activity_type.short",
         )
 
+
 class BadgeSchema(marshmallow.Schema):
     """Schema for the badges of a user.
 
@@ -46,6 +47,7 @@ class BadgeSchema(marshmallow.Schema):
             "badge_id",
             "activity_type.name",
         )
+
 
 class UserSchema(marshmallow.Schema):
     """Schema of a user to be used to extract API information.
@@ -169,7 +171,6 @@ def users():
         field = request.args.get(f"filters[{i}][field]")
 
         if value is not None:
-
             if field == "roles":
                 # if field is roles,
 
@@ -189,7 +190,9 @@ def users():
 
                 filters_badge = {i[0]: i[1:] for i in value.split("-")}
                 if "b" in filters_badge:
-                    filters_badge["b"] = Badge.badge_id == BadgeIds.get(filters_badge["b"])
+                    filters_badge["b"] = Badge.badge_id == BadgeIds.get(
+                        filters_badge["b"]
+                    )
                 if "t" in filters_badge:
                     if filters_badge["t"] == "none":
                         filters_badge["t"] = None
@@ -202,7 +205,7 @@ def users():
                 query_filter = getattr(User, field).ilike(f"%{value}%")
 
             query = query.filter(query_filter)
-        
+
         # Get next filter
         i += 1
 
@@ -310,7 +313,14 @@ class UserBadgeSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = ("user", "activity_type", "delete_uri", "type", "expiration_date", "level")
+        fields = (
+            "user",
+            "activity_type",
+            "delete_uri",
+            "type",
+            "expiration_date",
+            "level",
+        )
 
 
 @blueprint.route("/leaders/")

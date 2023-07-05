@@ -41,6 +41,7 @@ def export_roles(roles):
 
     return out
 
+
 def export_badges(badges):
     """Create an excel with the input badge and related user.
 

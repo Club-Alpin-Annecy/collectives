@@ -150,6 +150,7 @@ def export_role():
         as_attachment=True,
     )
 
+
 @blueprint.route("/badges/export/", methods=["POST"])
 def export_badge():
     """Create an Excel document with the contact information of users with badge.
@@ -180,7 +181,6 @@ def export_badge():
         filename = "All"
     else:
         filename = activity_type.name
-    
 
     out = export.export_badges(badges)
 

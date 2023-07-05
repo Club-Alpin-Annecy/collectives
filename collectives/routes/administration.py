@@ -275,10 +275,12 @@ def add_user_badge(user_id):
     try:
         # Check that the role does not already exist
         badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
-        
+
         if badge.activity_type is not None:
             badge.activity_id = badge.activity_type.id
-            badge_exists = user.has_badge_for_activity([badge_id], badge.activity_type.id)
+            badge_exists = user.has_badge_for_activity(
+                [badge_id], badge.activity_type.id
+            )
         else:
             badge_exists = user.has_badge_for_activity([badge_id], None)
 
@@ -447,6 +449,7 @@ def export_role(raw_filters=""):
         as_attachment=True,
     )
 
+
 @blueprint.route("/badges/export/<raw_filters>", methods=["GET"])
 def export_badge(raw_filters=""):
     """Create an Excel document with the contact information of users with badges.
@@ -466,7 +469,9 @@ def export_badge(raw_filters=""):
         filename = ""
 
         if "b" in filters:
-            query_filter = query_filter.filter(Badge.role_id == BadgeIds.get(filters["b"]))
+            query_filter = query_filter.filter(
+                Badge.role_id == BadgeIds.get(filters["b"])
+            )
             filename += BadgeIds.get(filters["b"]).display_name() + " "
         if "t" in filters:
             if filters["t"] == "none":
@@ -485,6 +490,7 @@ def export_badge(raw_filters=""):
         download_name=f"CAF Annecy - Export {filename}.xlsx",
         as_attachment=True,
     )
+
 
 @blueprint.route("/generate_token", methods=["POST"])
 def generate_token():
