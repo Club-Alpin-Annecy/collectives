@@ -199,9 +199,9 @@ class LeaderRoleSchema(marshmallow.Schema):
     :type: string
     """
     user = fields.Function(lambda role: UserSchema().dump(role.user))
-    """ URI to a resized version (30px) of user avatar
+    """ URI to get the user corresponding to the Role
 
-    :type: string
+    :type: :py:class:`UserSchema`
     """
 
     activity_type = fields.Function(
@@ -243,9 +243,9 @@ class UserBadgeSchema(marshmallow.Schema):
     :type: string
     """
     user = fields.Function(lambda badge: UserSchema().dump(badge.user))
-    """ URI to a resized version (30px) of user avatar
+    """ URI to get the user corresponding to the Badge
 
-    :type: string
+    :type: :py:class:`UserSchema`
     """
 
     activity_type = fields.Function(
