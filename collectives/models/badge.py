@@ -125,8 +125,8 @@ class Badge(db.Model):
         :rtype: string
         """
 
-        type = ActivityType.query.get(self.activity_id)
-        if type is not None:
-            return type.name
-        else:
-            return ""
+        activity_type = ActivityType.query.get(self.activity_id)
+        if activity_type is not None:
+            return activity_type.name
+
+        return ""
