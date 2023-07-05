@@ -176,7 +176,7 @@ class BadgeForm(ModelForm, FlaskForm):
         else:
             self.activity_type_id.choices = [
                 (a.id, a.name) for a in ActivityType.get_all_types()
-            ]
+            ] + [(-1, '-')]
 
 
 class AddLeaderForm(ActivityTypeSelectionForm):
