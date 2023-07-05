@@ -302,10 +302,15 @@ class UserBadgeSchema(marshmallow.Schema):
 
     :type: string"""
 
+    level = fields.Function(lambda badge: badge.level)
+    """ Badge level
+
+    :type: integer"""
+
     class Meta:
         """Fields to expose"""
 
-        fields = ("user", "activity_type", "delete_uri", "type", "expiration_date")
+        fields = ("user", "activity_type", "delete_uri", "type", "expiration_date", "level")
 
 
 @blueprint.route("/leaders/")

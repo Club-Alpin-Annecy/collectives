@@ -37,6 +37,7 @@ function loadBadgesTable(ajaxUrl, csrfToken) {
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
                 { title: "Badge", field: "type", headerFilter: "input", widthGrow: 3},
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
+                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
             ],
 
