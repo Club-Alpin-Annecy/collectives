@@ -447,6 +447,44 @@ def export_role(raw_filters=""):
         as_attachment=True,
     )
 
+@blueprint.route("/badges/export/<raw_filters>", methods=["GET"])
+def export_badge(raw_filters=""):
+    """Create an Excel document with the contact information of users with badges.
+
+    Input is a string with id of role or activity. EG `b2-t1` for badge 2 and type 1.
+
+    :param raw_filters: Badges filters to use.
+    :type raw_filters: string
+    :return: The Excel file with the badges.
+    """
+    query_filter = Role.query
+    # we remove role not linked anymore to a user
+    query_filter = query_filter.filter(Badge.user.has(User.id))
+
+    if raw_filters is not "":
+        filters = {i[0]: i[1:] for i in raw_filters.split("-")}
+        filename = ""
+
+        if "b" in filters:
+            query_filter = query_filter.filter(Badge.role_id == BadgeIds.get(filters["b"]))
+            filename += BadgeIds.get(filters["b"]).display_name() + " "
+        if "t" in filters:
+            if filters["t"] == "none":
+                filters["t"] = None
+            else:
+                filename += ActivityType.query.get(filters["t"]).name
+            query_filter = query_filter.filter(Badge.activity_id == filters["t"])
+
+    badges = query_filter.all()
+
+    out = export.export_badges(badges)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name=f"CAF Annecy - Export {filename}.xlsx",
+        as_attachment=True,
+    )
 
 @blueprint.route("/generate_token", methods=["POST"])
 def generate_token():

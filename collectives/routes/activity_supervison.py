@@ -146,7 +146,36 @@ def export_role():
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {activity_type.name}.xlsx",
+        download_name=f"CAF Annecy - Export Roles {activity_type.name}.xlsx",
+        as_attachment=True,
+    )
+
+@blueprint.route("/badges/export/", methods=["POST"])
+def export_badge():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    form = ActivityTypeSelectionForm()
+    if not form.validate_on_submit():
+        abort(400)
+
+    activity_type = ActivityType.query.get(form.activity_id.data)
+
+    query_filter = Badge.query
+    # we remove role not linked anymore to a user
+    query_filter = query_filter.filter(Badge.user.has(User.id))
+    if activity_type is not None:
+        query_filter = query_filter.filter(Badge.activity_id == activity_type.id)
+
+    badges = query_filter.all()
+
+    out = export.export_badges(badges)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name=f"CAF Annecy - Export Badges {activity_type.name}.xlsx",
         as_attachment=True,
     )
 

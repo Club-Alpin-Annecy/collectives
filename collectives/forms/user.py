@@ -137,7 +137,7 @@ class RoleForm(ModelForm, FlaskForm):
         """Overloaded constructor populating activity list"""
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
-            (a.id, a.name) for a in ActivityType.get_all_types()
+            (a.id, a.name) for a in ActivityType.get_all_types(True)
         ]
 
 
@@ -175,8 +175,9 @@ class BadgeForm(ModelForm, FlaskForm):
         # In case this is a CREATION
         else:
             self.activity_type_id.choices = [
-                (a.id, a.name) for a in ActivityType.get_all_types()
+                (a.id, a.name) for a in ActivityType.get_all_types(True)
             ] + [(-1, '-')]
+        # TODO: investigate why Activity types list is different in RoleForm than in BadgeForm
 
 
 class AddLeaderForm(ActivityTypeSelectionForm):
