@@ -51,6 +51,21 @@ def test_export_roles(admin_client):
     assert response.status_code == 200
 
 
+def test_export_badges(admin_client):
+    """Test exports of user badges"""
+    response = admin_client.get("/administration/badges/export/")
+    assert response.status_code == 302
+
+    response = admin_client.get("/administration/badges/export/tnone")
+    assert response.status_code == 200
+
+    response = admin_client.get("/administration/badges/export/t5-b1")
+    assert response.status_code == 200
+
+    response = admin_client.get("/administration/badges/export/t5-r10")
+    assert response.status_code == 200
+
+
 def test_admin_create_valideuser(admin_client):
     """Test  creation a new user."""
     response = admin_client.post(

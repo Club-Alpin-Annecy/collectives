@@ -470,7 +470,7 @@ def export_badge(raw_filters=""):
 
         if "b" in filters:
             query_filter = query_filter.filter(
-                Badge.role_id == BadgeIds.get(filters["b"])
+                Badge.badge_id == BadgeIds.get(filters["b"])
             )
             filename += BadgeIds.get(filters["b"]).display_name() + " "
         if "t" in filters:
