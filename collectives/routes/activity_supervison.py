@@ -167,17 +167,22 @@ def export_badge():
     if form.activity_id.data != -1:
         activity_type = ActivityType.query.get(form.activity_id.data)
     else:
-        activity_type = None
+        activity_type = current_user.get_supervised_activities()
 
     query_filter = Badge.query
     # we remove role not linked anymore to a user
     query_filter = query_filter.filter(Badge.user.has(User.id))
     if activity_type is not None:
-        query_filter = query_filter.filter(Badge.activity_id == activity_type.id)
+        if isinstance(activity_type, list):
+            query_filter = query_filter.filter(
+                Badge.activity_id.in_([t.id for t in activity_type])
+            )
+        else:
+            query_filter = query_filter.filter(Badge.activity_id == activity_type.id)
 
     badges = query_filter.all()
 
-    if activity_type is None:
+    if isinstance(activity_type, list):
         filename = "All"
     else:
         filename = activity_type.name
