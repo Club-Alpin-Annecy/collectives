@@ -178,7 +178,7 @@ ACTIVITY_TYPES = {
     32: {"short": "revue_programme", "name": "[Service] Revue / Programme", "email":"dev-collectives@cafannecy.fr", "trigram": "SRP", "is_a_service": True },
     33: {"short": "shabrasserie", "name": "[Service] Shabrasserie", "email":"dev-collectives@cafannecy.fr", "trigram": "SSH", "is_a_service": True },
     34: {"short": "bibliotheque", "name": "[Service] Bibliothèque", "email":"dev-collectives@cafannecy.fr", "trigram": "SBI", "is_a_service": True },
-    35: {"short": "outils_numérique", "name": "[Service] Outils Numériques", "email":"dev-collectives@cafannecy.fr", "trigram": "SON", "is_a_service": True },
+    35: {"short": "outils_numerique", "name": "[Service] Outils Numériques", "email":"dev-collectives@cafannecy.fr", "trigram": "SON", "is_a_service": True },
     36: {"short": "minibus", "name": "[Service] Minibus", "email":"dev-collectives@cafannecy.fr", "trigram": "SMB", "is_a_service": True },
     37: {"short": "refuges", "name": "[Service] Refuges", "email":"dev-collectives@cafannecy.fr", "trigram": "SRE", "is_a_service": True },
     38: {"short": "tresorerie", "name": "[Service] Trésorerie", "email":"dev-collectives@cafannecy.fr", "trigram": "STR", "is_a_service": True },
