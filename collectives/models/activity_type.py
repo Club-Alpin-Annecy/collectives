@@ -63,6 +63,12 @@ class ActivityType(db.Model):
     :type: bool
     """
 
+    is_a_service = db.Column(db.Boolean, nullable=True, default=False)
+    """ Indicates if activity type corresponds to a service
+
+    :type: bool
+    """
+
     # Relationships
     persons = db.relationship("Role", backref="activity_type", lazy=True)
     """Person with a role with this activity
