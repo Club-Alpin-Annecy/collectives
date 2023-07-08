@@ -98,7 +98,7 @@ class ActivityTypeSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = ("id", "short", "name")
+        fields = ("id", "short", "name", "is_a_service")
 
 
 class EventTypeSchema(marshmallow.Schema):

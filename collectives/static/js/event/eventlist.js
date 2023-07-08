@@ -149,8 +149,12 @@ function eventRowFormatter(row){
         for (const event_type of data.event_types)
                 if (event_type['short'] != "collective")
                     html += `<span class="activity ${event_type['short']} type s90px"></span>`;
-        for (const activity of data.activity_types)
-                    html += `<span class="activity ${activity['short']} type s90px"></span>`;
+        for (const activity of data.activity_types) {
+                console.log(activity)
+                html += `<span class="activity ${activity['short']} type s90px"></span>`;
+                if (activity['is_a_service'])
+                    html += `<span>${activity['name']}</span>`;
+        }
         html += `</div>`;
 
         html += `<div class="section section-photo collectives-list--item--photo">
