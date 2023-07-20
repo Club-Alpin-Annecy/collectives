@@ -238,6 +238,7 @@ function displayLeader(user){
     return user.name;
 }
 
+// TODO Propbably
 function selectFilter(type, id){
     var currentFilter=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
 

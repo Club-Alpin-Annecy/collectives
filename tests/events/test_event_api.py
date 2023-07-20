@@ -79,6 +79,8 @@ def test_event_filter_activity(user1_client, event1, event2, event3):
     assert data[0]["activity_types"][0]["name"] == "Canyon"
     assert data[0]["event_types"][0]["name"] == "Collective"
 
+# TODO implement multi-activities filtering test
+
 
 def test_event_filter_tag(user1_client, event1, event2, tagged_event):
     """Test list of event with tag filter"""

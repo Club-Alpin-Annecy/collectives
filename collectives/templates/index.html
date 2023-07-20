@@ -23,10 +23,14 @@
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
   <script>
       window.onload = function() {
           buildEventsTable();
-      
+
           {% if filtered_activity %}
             filterConfirmedOnly(false);
             filterFutureOnly(true);
@@ -34,7 +38,7 @@
             selectFilter('event_type', false);
             selectFilter('tags', false);
           {% endif %}
-          
+
           const searchInput = getLeaderHeaderFilter();
           setupAutoComplete(
               searchInput,
@@ -109,11 +113,12 @@
                     class="button button-secondary"
                     />
             <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
-            <label class="borders"> 📅 Depuis 
+            <label class="borders"> 📅 Depuis
                 <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('end', this.value)"/>
             </label>
 
             <!-- filter event type -->
+            <!-- TODO -->
             <div class="select" >
                     <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
                     <input type="checkbox" id="select_event_type"/>

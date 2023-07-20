@@ -73,6 +73,19 @@ def filter_hidden_events(query):
         query = query.filter(query_filter)
     return query
 
+def filter_multiple_activity_types(query, list_of_activity_types):
+    """Build a query filtering activity types with OR
+
+    :param query: The original query
+    :type query: :py:class:`sqlalchemy.orm.query.Query`
+    :param list_of_activity_types: A list of activity_types to be filtered with OR
+    :type list_of_activity_types: :py:list(string):
+    :return: The filtered query
+    :rtype: :py:class:`sqlalchemy.orm.query.Query`
+    """
+    return query
+
+
 
 class UserSimpleSchema(marshmallow.Schema):
     """Schema used to describe leaders in event list"""
@@ -237,6 +250,7 @@ def events():
 
     # Process all filters.
     # All filter are added as AND
+    # TODO need to be refacto for multi-activity filtering
     i = 0
     while f"filters[{i}][field]" in request.args:
         value = request.args.get(f"filters[{i}][value]")
