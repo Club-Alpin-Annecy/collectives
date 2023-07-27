@@ -266,15 +266,15 @@ function filterConfirmedOnly(confirmedOnly){
 function refreshFilterDisplay(){
     var filters = eventsTable.getFilters();
     // Unselect all activity filter buttons
-    document.getElementById('select_all').checked = true;
+    // document.getElementById('select_all').checked = true;
     document.getElementById('select_all_tags').checked = true;
     document.getElementById('select_all_event_types').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
-        if (filter['field'] == 'activity_type')
-            document.getElementById('select_activity_type_'+filter['value']).checked = true;
+        /* if (filter['field'] == 'activity_type')
+            document.getElementById('select_activity_type_'+filter['value']).checked = true;*/
         if (filter['field'] == 'event_type')
             document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
@@ -341,3 +341,32 @@ function removeFilter(table, type){
             table.removeFilter(filter['field'], filter['type'], filter['value'])
     })
 }
+
+function setMultipleActivityTypeChoices(activity_types_list) {
+    console.log(activity_types_list);
+    var choicesSelect = new Choices('#choices-multiple-labels', {
+        allowHTML: true,
+        removeItemButton: true,
+        }).setChoices(
+            activity_types_list,
+        'label',
+        'name',
+        false
+        );
+
+        choicesSelect.passedElement.element.addEventListener(
+        'addItem',
+        function(event) {
+            document.getElementById('message').innerHTML =
+            'You just added "' + event.detail.label + '"';
+        }
+        );
+
+        choicesSelect.passedElement.element.addEventListener(
+        'removeItem',
+        function(event) {
+            document.getElementById('message').innerHTML =
+            'You just removed "' + event.detail.label + '"';
+        }
+        );
+    }

@@ -166,7 +166,7 @@ def index(activity_type_id=None, name=""):
     :param string title: Name of the activity type, only for URL cosmetic purpose.
     """
     event_types = EventType.get_all_types()
-    activity_types = ActivityType.get_all_types()
+    activity_types = ActivityType.json_values()
 
     filtered_activity = None
     if activity_type_id:
