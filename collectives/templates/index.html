@@ -143,11 +143,6 @@
                     </label>
                 {% endfor %}
             </div>
-           
-            <!-- filter activity type -->
-            <div class="select" >
-                <select id="choices-multiple-labels" multiple></select>
-            </div>
 
             <!-- filter event tag -->
             <div class="select" >
@@ -175,6 +170,9 @@
             </div>
             <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
             <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" />
+
+             <!-- filter activity type -->
+             <select id="choices-multiple-labels" multiple></select>
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>

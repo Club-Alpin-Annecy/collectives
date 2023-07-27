@@ -344,6 +344,7 @@ function removeFilter(table, type){
 
 function setMultipleActivityTypeChoices(activity_types_list) {
     console.log(activity_types_list);
+    activity_types_list.push({ 'name': '00 - Toute activités', 'label': 'select_all_activity_types' });
     var choicesSelect = new Choices('#choices-multiple-labels', {
         allowHTML: true,
         removeItemButton: true,
