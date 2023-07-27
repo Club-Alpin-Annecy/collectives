@@ -73,7 +73,7 @@ def filter_hidden_events(query):
         query = query.filter(query_filter)
     return query
 
-def filter_multiple_activity_types(query, list_of_activity_types):
+def filter_multiple_activity_types(list_of_activity_types):
     """Build a query filtering activity types with OR
 
     :param query: The original query
@@ -83,8 +83,12 @@ def filter_multiple_activity_types(query, list_of_activity_types):
     :return: The filtered query
     :rtype: :py:class:`sqlalchemy.orm.query.Query`
     """
-    return query
-
+    activity_types = []
+    for (activity_type_name) in list_of_activity_types:
+        activity_type = Event.activity_types.any(short=activity_type_name)
+        activity_types.append(activity_type)
+    
+    return or_(*activity_types)
 
 
 class UserSimpleSchema(marshmallow.Schema):
@@ -252,6 +256,7 @@ def events():
     # All filter are added as AND
     # TODO need to be refacto for multi-activity filtering
     i = 0
+    list_of_activity_types = []
     while f"filters[{i}][field]" in request.args:
         value = request.args.get(f"filters[{i}][value]")
         filter_type = request.args.get(f"filters[{i}][type]")
@@ -259,7 +264,7 @@ def events():
 
         query_filter = None
         if field == "activity_type":
-            query_filter = Event.activity_types.any(short=value)
+            list_of_activity_types.append(value)
         elif field == "leaders":
             query_filter = Event.leaders.any(
                 func.lower(User.first_name + " " + User.last_name).like(f"%{value}%")
@@ -288,6 +293,11 @@ def events():
             query = query.filter(query_filter)
         # Get next filter
         i += 1
+
+    # Apply a OR filter when there are several activity_types selected
+    if len(list_of_activity_types) > 0:
+        query_filter = filter_multiple_activity_types(list_of_activity_types)
+        query = query.filter(query_filter)
 
     # Process first sorter only
     if "sorters[0][field]" in request.args:

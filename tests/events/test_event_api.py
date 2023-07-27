@@ -80,7 +80,33 @@ def test_event_filter_activity(user1_client, event1, event2, event3):
     assert data[0]["event_types"][0]["name"] == "Collective"
 
 # TODO implement multi-activities filtering test
+def test_event_filter_activity_with_several_types(user1_client, event1, event2, event3):
+    """Test list of event with activity filter"""
+    event2.activity_types = [ActivityType.query.filter_by(name="Canyon").first()]
+    event1.activity_types = [ActivityType.query.filter_by(name="Alpinisme").first()]
+    event3.activity_types = [ActivityType.query.filter_by(name="Parapente").first()]
 
+    response = user1_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=title"
+        "&sorters[0][dir]=asc&filters[0][field]=activity_type&filters[0][type]=="
+        "&filters[0][value]=canyon&filters[1][field]=activity_type&filters[1][type]=="
+        "&filters[1][value]=alpinisme"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 2
+    assert data[1]["view_uri"] == "/collectives/2-new-collective-2"
+    assert data[1]["num_online_slots"] == 1
+    assert data[1]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[1]["title"] == "New collective 2"
+    assert data[1]["activity_types"][0]["name"] == "Canyon"
+    assert data[1]["event_types"][0]["name"] == "Collective"
+    assert data[0]["view_uri"] == "/collectives/1-new-collective-1"
+    assert data[0]["num_online_slots"] == 1
+    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["title"] == "New collective 1"
+    assert data[0]["activity_types"][0]["name"] == "Alpinisme"
+    assert data[0]["event_types"][0]["name"] == "Collective"
 
 def test_event_filter_tag(user1_client, event1, event2, tagged_event):
     """Test list of event with tag filter"""
