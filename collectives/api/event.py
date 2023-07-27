@@ -73,14 +73,14 @@ def filter_hidden_events(query):
         query = query.filter(query_filter)
     return query
 
-def filter_multiple_activity_types(list_of_activity_types):
+def filter_multiple_activity_types(query, list_of_activity_types):
     """Build a query filtering activity types with OR
 
     :param query: The original query
     :type query: :py:class:`sqlalchemy.orm.query.Query`
     :param list_of_activity_types: A list of activity_types to be filtered with OR
     :type list_of_activity_types: :py:list(string):
-    :return: The filtered query
+    :return: The query filtered with activity types
     :rtype: :py:class:`sqlalchemy.orm.query.Query`
     """
     activity_types = []
@@ -88,7 +88,7 @@ def filter_multiple_activity_types(list_of_activity_types):
         activity_type = Event.activity_types.any(short=activity_type_name)
         activity_types.append(activity_type)
     
-    return or_(*activity_types)
+    return query.filter(or_(*activity_types))
 
 
 class UserSimpleSchema(marshmallow.Schema):
@@ -294,10 +294,9 @@ def events():
         # Get next filter
         i += 1
 
-    # Apply a OR filter when there are several activity_types selected
+    # Apply a OR filter on activity_types to manage several activity_type selection
     if len(list_of_activity_types) > 0:
-        query_filter = filter_multiple_activity_types(list_of_activity_types)
-        query = query.filter(query_filter)
+        query = filter_multiple_activity_types(query, list_of_activity_types)
 
     # Process first sorter only
     if "sorters[0][field]" in request.args:
