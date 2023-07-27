@@ -240,7 +240,7 @@ function displayLeader(user){
 
 // TODO Propbably
 function selectFilter(type, id){
-    var currentFilter=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
+    var currentFilter=getCurrentFiltersOnType(type);
 
     if (currentFilter.length != 0)
         eventsTable.removeFilter(currentFilter);
@@ -250,6 +250,26 @@ function selectFilter(type, id){
             eventsTable.addFilter( [filter]);
 
     refreshFilterDisplay();
+}
+
+function selectMultipleFilter(type, listOfValues) {
+    if (listOfValues.length == 0) {
+        removeFilter(eventsTable, type);
+    } else {
+        var currentFilters = getCurrentFiltersOnType(type);
+        if (currentFilters.length != 0) {
+            removeFilter(eventsTable, type);
+        }
+    
+        for (let i = 0; i < listOfValues.length; i++) {
+            var filter={field: type, type:"=", value: listOfValues[i]};
+            if (listOfValues[i] !== false)
+                eventsTable.addFilter( [filter]);
+        }
+    
+        refreshFilterDisplay();
+    }
+
 }
 
 function filterConfirmedOnly(confirmedOnly){
@@ -351,6 +371,15 @@ function getItemId(listOfValues, key, value) {
     return undefined;
 }
 
+function getCurrentFiltersOnType(type) {
+    var currentFilters=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
+    return currentFilters;
+}
+
+function excludeChoices(listOfValues, excluded) {
+    return listOfValues.filter(function(i){ return !excluded.includes(i["label"])} );
+}
+
 function setMultipleActivityTypeChoices(activity_types_list) {
     var all_activities_item = { 'name': '00 - Toute les activités', 'label': 'select_all_activity_types' };
     activity_types_list.push(all_activities_item);
@@ -367,8 +396,15 @@ function setMultipleActivityTypeChoices(activity_types_list) {
         false
     );
 
-    choicesSelect.setChoiceByValue('select_all_activity_types');
-    choicesSelect.clearChoices();
+    var currentFilters = getCurrentFiltersOnType('activity_type').map(function(i){ return i["value"]});
+    console.log(currentFilters);
+    choicesSelect.setValue(currentFilters);
+    choicesSelect.setChoices(
+        excludeChoices(activity_types_list, currentFilters),
+        'label',
+        'name',
+        true
+    );
 
     choicesSelect.passedElement.element.addEventListener(
         'addItem',
@@ -377,6 +413,9 @@ function setMultipleActivityTypeChoices(activity_types_list) {
                 var selectAllId = getItemId(choicesSelect.getValue(), 'value', 'select_all_activity_types');
                 choicesSelect.removeActiveItems(selectAllId);
                 choicesSelect.clearChoices();
+                removeFilter(eventsTable,"activity_type");
+            } else {
+                selectMultipleFilter('activity_type', choicesSelect.getValue(true));
             }
         }
     );
@@ -385,12 +424,15 @@ function setMultipleActivityTypeChoices(activity_types_list) {
         'removeItem',
         function(event) {
             if (event.detail.value == 'select_all_activity_types') {
+                removeFilter(eventsTable,"activity_type");
                 choicesSelect.setChoices(
                     activity_types_list,
                     'label',
                     'name',
-                    false
+                    true
                 );
+            } else {
+                selectMultipleFilter('activity_type', choicesSelect.getValue(true));
             }
         }
     );
