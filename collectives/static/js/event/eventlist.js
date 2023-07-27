@@ -396,8 +396,8 @@ function setMultipleActivityTypeChoices(activity_types_list) {
         false
     );
 
+    // Set the filters based on what is saved in eventsTable
     var currentFilters = getCurrentFiltersOnType('activity_type').map(function(i){ return i["value"]});
-    console.log(currentFilters);
     choicesSelect.setValue(currentFilters);
     choicesSelect.setChoices(
         excludeChoices(activity_types_list, currentFilters),
@@ -406,6 +406,7 @@ function setMultipleActivityTypeChoices(activity_types_list) {
         true
     );
 
+    // create choicesSelected events listener
     choicesSelect.passedElement.element.addEventListener(
         'addItem',
         function(event) {
