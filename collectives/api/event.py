@@ -254,7 +254,6 @@ def events():
 
     # Process all filters.
     # All filter are added as AND
-    # TODO need to be refacto for multi-activity filtering
     i = 0
     list_of_activity_types = []
     while f"filters[{i}][field]" in request.args:
