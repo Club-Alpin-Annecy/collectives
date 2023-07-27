@@ -342,32 +342,56 @@ function removeFilter(table, type){
     })
 }
 
+function getItemId(listOfValues, key, value) {
+    for (let i = 0; i < listOfValues.length; i++) {
+        if (listOfValues[i][key] === value) {
+          return listOfValues[i]['id'];
+        }
+    }
+    return undefined;
+}
+
 function setMultipleActivityTypeChoices(activity_types_list) {
-    console.log(activity_types_list);
-    activity_types_list.push({ 'name': '00 - Toute activités', 'label': 'select_all_activity_types' });
+    var all_activities_item = { 'name': '00 - Toute les activités', 'label': 'select_all_activity_types' };
+    activity_types_list.push(all_activities_item);
+
     var choicesSelect = new Choices('#choices-multiple-labels', {
         allowHTML: true,
         removeItemButton: true,
-        }).setChoices(
-            activity_types_list,
+        });
+        
+    choicesSelect.setChoices(
+        activity_types_list,
         'label',
         'name',
         false
-        );
+    );
 
-        choicesSelect.passedElement.element.addEventListener(
+    choicesSelect.setChoiceByValue('select_all_activity_types');
+    choicesSelect.clearChoices();
+
+    choicesSelect.passedElement.element.addEventListener(
         'addItem',
         function(event) {
-            document.getElementById('message').innerHTML =
-            'You just added "' + event.detail.label + '"';
+            if (event.detail.value == 'select_all_activity_types') {
+                var selectAllId = getItemId(choicesSelect.getValue(), 'value', 'select_all_activity_types');
+                choicesSelect.removeActiveItems(selectAllId);
+                choicesSelect.clearChoices();
+            }
         }
-        );
+    );
 
-        choicesSelect.passedElement.element.addEventListener(
+    choicesSelect.passedElement.element.addEventListener(
         'removeItem',
         function(event) {
-            document.getElementById('message').innerHTML =
-            'You just removed "' + event.detail.label + '"';
+            if (event.detail.value == 'select_all_activity_types') {
+                choicesSelect.setChoices(
+                    activity_types_list,
+                    'label',
+                    'name',
+                    false
+                );
+            }
         }
-        );
-    }
+    );
+}
