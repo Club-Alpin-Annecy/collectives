@@ -1,6 +1,5 @@
 """Module to describe the type of activity.
 """
-import json
 from sqlalchemy.orm import validates
 from markupsafe import escape
 
@@ -129,7 +128,7 @@ class ActivityType(db.Model):
         types = cls.get_all_types()
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
-    
+
     @classmethod
     def json_values(cls):
         """Class method to get all actitivity type as js dict
@@ -138,7 +137,7 @@ class ActivityType(db.Model):
         :rtype: String
         """
         types = cls.get_all_types()
-        items = [{'label': type.short, 'name': type.name} for type in types]
+        items = [{"label": type.short, "name": type.name} for type in types]
         return items
 
 

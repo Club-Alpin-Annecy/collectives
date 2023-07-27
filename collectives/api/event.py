@@ -73,6 +73,7 @@ def filter_hidden_events(query):
         query = query.filter(query_filter)
     return query
 
+
 def filter_multiple_activity_types(query, list_of_activity_types):
     """Build a query filtering activity types with OR
 
@@ -84,10 +85,10 @@ def filter_multiple_activity_types(query, list_of_activity_types):
     :rtype: :py:class:`sqlalchemy.orm.query.Query`
     """
     activity_types = []
-    for (activity_type_name) in list_of_activity_types:
+    for activity_type_name in list_of_activity_types:
         activity_type = Event.activity_types.any(short=activity_type_name)
         activity_types.append(activity_type)
-    
+
     return query.filter(or_(*activity_types))
 
 
