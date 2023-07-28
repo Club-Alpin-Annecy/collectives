@@ -216,7 +216,7 @@
     display: inline-block;
 }
 
-.choices {
+#filters .choices {
     width: 100%;
     max-width: 100%;
     position: relative;
@@ -228,12 +228,12 @@
     display: inline-block;
 }
 
-.choices__inner {
+#filters .choices__inner {
     border: 0px !important;
     background-color: transparent !important;
 }
 
-.choices__input {
+#filters .choices__input {
     background-color: transparent !important;
 }
 

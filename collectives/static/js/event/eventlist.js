@@ -380,6 +380,23 @@ function excludeChoices(listOfValues, excluded) {
     return listOfValues.filter(function(i){ return !excluded.includes(i["label"])} );
 }
 
+function disableAllChoicesExceptSome(listOfChoices, disabled, excluded) {
+    return listOfChoices.map(function (choice) {
+        if (excluded.includes(choice["label"])) {
+            choice["disabled"] = !disabled;
+            return choice;
+        } else {
+            choice["disabled"] = disabled;
+            return choice;
+        }
+    })
+}
+
+function removeAChoiceFromTheList(listOfChoices, valueToRemove) {
+    var index = listOfChoices.indexOf(valueToRemove);
+    return listOfChoices.toSpliced(index, 1);
+}
+
 function setMultipleActivityTypeChoices(activity_types_list) {
     var all_activities_item = { 'name': '00 - Toute les activités', 'label': 'select_all_activity_types' };
     activity_types_list.push(all_activities_item);
@@ -413,7 +430,14 @@ function setMultipleActivityTypeChoices(activity_types_list) {
             if (event.detail.value == 'select_all_activity_types') {
                 var selectAllId = getItemId(choicesSelect.getValue(), 'value', 'select_all_activity_types');
                 choicesSelect.removeActiveItems(selectAllId);
-                choicesSelect.clearChoices();
+                var choices = disableAllChoicesExceptSome(activity_types_list, true, []);
+                choices = removeAChoiceFromTheList(choices, all_activities_item);
+                choicesSelect.setChoices(
+                    choices,
+                    'label',
+                    'name',
+                    true
+                );
                 removeFilter(eventsTable,"activity_type");
             } else {
                 selectMultipleFilter('activity_type', choicesSelect.getValue(true));
@@ -426,8 +450,9 @@ function setMultipleActivityTypeChoices(activity_types_list) {
         function(event) {
             if (event.detail.value == 'select_all_activity_types') {
                 removeFilter(eventsTable,"activity_type");
+                var choices = disableAllChoicesExceptSome(activity_types_list, false, []);
                 choicesSelect.setChoices(
-                    activity_types_list,
+                    choices,
                     'label',
                     'name',
                     true
