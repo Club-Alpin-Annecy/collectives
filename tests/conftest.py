@@ -6,6 +6,7 @@ pytest_plugins = [
     "tests.fixtures.client",
     "tests.fixtures.user",
     "tests.fixtures.payment",
+    "tests.fixtures.stats",
     "tests.mock.extranet",
     "tests.mock.payline",
 ]

@@ -1,0 +1,27 @@
+<canvas id="leader-chart"></canvas>
+              
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_events_by_leaders']['description'] }}</span>
+</div>
+    
+<script>
+    new Chart(document.getElementById('leader-chart'), {
+      type: 'bar',
+      data: {
+        labels: {{ engine.nb_events_by_leaders().keys()| list | tojson | safe }},
+        datasets: [{
+          data: {{ engine.nb_events_by_leaders().values() | list | tojson|safe }},
+        }]
+      },
+      options: {
+        aspectRatio: 3,
+        plugins: {
+          title: {
+            text: "{{ engine.INDEX['nb_events_by_leaders']['name'] | safe }}",
+          }
+        }
+      }
+    });
+</script>
+  

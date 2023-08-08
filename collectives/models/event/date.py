@@ -1,6 +1,10 @@
 """ Module for all Event methods related to date manipulation and check."""
 
 
+from datetime import timedelta
+from math import ceil
+
+
 class EventDateMixin:
     """Part of Event class for date manipulation and check.
 
@@ -72,3 +76,24 @@ class EventDateMixin:
             and (start <= self.end)
             and (start <= end)
         )
+
+    def volunteer_duration(self) -> int:
+        """Estimate event duration for volunterring purposes.
+
+        If start and end are the same, it means the event has no hours. Thus, it is considered as a
+        day long. If not, 2h is a quarter of a day, and math is round up.
+
+        :param event: the event to get the duration of.
+        :returns: number of day of the event
+        """
+        if self.start == self.end:
+            return 1
+        duration = self.end - self.start
+
+        if duration > timedelta(hours=4):
+            return ceil(duration / timedelta(days=1))
+
+        if duration > timedelta(hours=2):
+            return 0.5
+
+        return 0.25

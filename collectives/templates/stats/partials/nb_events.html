@@ -1,0 +1,6 @@
+<div class="heading-3">Nombre d'évènements</div>
+<div class="value">{{engine.nb_events()}}</div>
+<div class="tooltip">
+  <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+  <span class="text">{{ engine.INDEX['nb_events']['description'] }}</span>
+</div>

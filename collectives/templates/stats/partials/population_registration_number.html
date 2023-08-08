@@ -1,0 +1,31 @@
+<canvas id="use-chart"></canvas>
+              
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['population_registration_number']['description'] }}</span>
+</div>
+
+<script>
+    new Chart(document.getElementById('use-chart'), {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: {{ engine.population_registration_number() | tojson|safe }},
+        }]
+      },
+      options: {
+        aspectRatio: 2,
+        plugins: {
+          title: {
+            text: "{{ engine.INDEX['population_registration_number']['name'] | safe }}",
+          },
+          datalabels: {display: false},
+        },
+        
+        scales: {
+          x: { beginAtZero: true},
+          y: { beginAtZero: true, grace: "10%"}
+        }
+      }
+    });
+</script>

@@ -113,6 +113,10 @@ class UserMiscMixin:
         """
         return f"{self.first_name} {self.last_name.upper()}"
 
+    def __str__(self) -> str:
+        """Displays the user name."""
+        return self.full_name() + f" (ID {self.id})"
+
     def abbrev_name(self):
         """Get user first name and first letter of last name.
 

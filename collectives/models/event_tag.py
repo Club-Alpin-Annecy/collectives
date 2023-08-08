@@ -29,7 +29,8 @@ class EventTag(db.Model):
     :type: :py:class:`collectives.models.event_tag.EventTagTypes`"""
 
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
-    """ Primary key of the registered user (see  :py:class:`collectives.models.user.User`)
+    """ Primary key of the event which holds this tag (see  
+    :py:class:`collectives.models.event.Event`)
 
     :type: int"""
 
@@ -58,7 +59,9 @@ class EventTag(db.Model):
         """Short name of the tag type, used as css class
 
         :type: string"""
-        return self.full["csv_code"] or self.full["name"]
+        if "csv_code" in self.full:
+            return self.full["csv_code"]
+        return self.full["name"]
 
     @property
     def full(self):
