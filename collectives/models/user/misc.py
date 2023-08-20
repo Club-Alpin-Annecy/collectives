@@ -158,6 +158,7 @@ class UserMiscMixin:
         :return: True if user is active.
         :rtype: boolean
         """
+
         return self.enabled and self.check_license_valid_at_time(current_time())
 
     def has_valid_phone_number(self, emergency=False):

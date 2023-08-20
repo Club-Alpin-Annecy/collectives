@@ -20,7 +20,13 @@ from flask_wtf.csrf import CSRFProtect
 
 from collectives import models, api, forms
 from collectives.routes import root, profile, auth, administration, event, reservation
-from collectives.routes import payment, technician, activity_supervison, equipment
+from collectives.routes import (
+    payment,
+    technician,
+    activity_supervison,
+    equipment,
+    question,
+)
 from collectives.utils import extranet, init, jinja, error, payline
 
 csrf = CSRFProtect()
@@ -119,6 +125,7 @@ def create_app(config_filename="config.py", extra_config=None):
         app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)
+        app.register_blueprint(question.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

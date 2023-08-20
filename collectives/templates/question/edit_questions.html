@@ -1,0 +1,116 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" id="administration">
+  <h1 class="heading-1">{{event.title}}</h1>
+  <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à la collective</a></p>
+
+  <h4 class="heading-4">Édition du questionnaire</h4>
+  Vous pouvez ajouter des questions auxquelles les utilisateurs devront répondre pour s'inscrire.
+
+  <h5 class="heading-5"> Questions existantes </h5>
+  {% if form.questions %}
+
+    <form method="POST">
+    <table id="existing_questions">
+    <thead>
+      <th> Intitulé / Description</th>
+      <th> Type / Réponses possibles</th>
+      <th> Options</th>
+    </thead>
+    {% for question_form in form.questions %}
+      {{question_form.question_id}}
+        
+        {% if question_form.errors %}
+        <tr> <td colspan="5" class="error-cell">
+          <div class="form-errors">
+              {% for field_name, errors in question_form.errors.items() %}
+              {% for error in errors %}
+              <div class="flash flash-error">
+                  <strong>Erreur: {{question_form[field_name].label}}:</strong> {{error}}
+              </div>
+              {% endfor %}
+              {% endfor %}
+          </div>
+        </td> </tr>
+        {%endif%}
+    
+        <tr class="{{ loop.cycle('odd', 'even') }} fields top " >
+          <td> {{ question_form.title() }} </td>
+          <td>
+            {{ question_form.question_type() }}
+          </td>
+          <td class="actions" rowspan="2"> 
+          {{question_form.enabled}} {{question_form.enabled.label}} <br/>
+          {{question_form.required}} {{question_form.required.label}} <br/>
+          {{question_form.order.label}}: {{question_form.order}} <br/>
+          {% if not question_form.question.answers %}
+            {{question_form.delete}}&nbsp;{{question_form.delete.label}}
+          {% endif %} 
+          </td>
+        </tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} fields bottom " >
+          <td>
+            {{question_form.description}}
+          </td>
+          <td>
+            {{question_form.choices}}
+          </td>
+        </tr>
+    {% endfor %}
+    </table>
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <br />{{ form.update(class="button button-primary") }}
+    </form>
+  {%else%}
+      Aucune question n'a été créée pour le moment.
+  {%endif%}
+
+    <h5 class="heading-5"> Nouvelle question</h5>
+    <form method="POST" id="new_question">
+
+    <div class="form-errors">
+        {% for field_name, errors in new_question_form.errors.items() %}
+        {% for error in errors %}
+        <div class="flash flash-error">
+            <strong>Erreur: {{new_question_form[field_name].label}}:</strong> {{error}}
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div class="field">{{ new_question_form.title.label }}</div>
+    {{ new_question_form.title}}
+    
+    <div class="field">{{ new_question_form.description.label }}<span class="help">{{ new_question_form.description.description }}</span></div>
+    {{ new_question_form.description}}
+
+    <div class="field">{{ new_question_form.question_type.label }}<span class="help">{{ new_question_form.question_type.description }}</span></div>
+    {{ new_question_form.question_type}}
+    
+    <div class="field">{{ new_question_form.choices.label }}<span class="help">{{ new_question_form.choices.description }}</span></div>
+    {{ new_question_form.choices}}
+    
+    <div class="field">{{ new_question_form.order.label }}<span class="help">{{ new_question_form.order.description }}</span></div>
+    {{ new_question_form.order}}
+    
+    <div class="field">
+    {{ new_question_form.required }} 
+    </div>
+    {{new_question_form.required.label}}
+
+    <div class="field">
+    {{ new_question_form.enabled }} 
+    </div>
+    {{new_question_form.enabled.label}}
+ 
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <br />{{ new_question_form.add(class="button button-primary") }}
+    </form>
+
+</div>
+
+{% endblock %}
+
