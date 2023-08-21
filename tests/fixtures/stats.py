@@ -6,6 +6,7 @@ from collectives.models import Registration, RegistrationStatus, RegistrationLev
 
 # pylint: disable=unused-argument,too-many-arguments
 
+
 @pytest.fixture
 def stats_env(
     event1_with_reg,
