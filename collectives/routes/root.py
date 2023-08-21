@@ -48,7 +48,7 @@ def statistics():
     """Displays site event statistics."""
     form = StatisticsParametersForm(formdata=request.args)
     if form.validate():
-        if form.activity_id.data == 9999:
+        if form.activity_id.data == form.ALL_ACTIVITIES:
             engine = StatisticsEngine(year=form.year.data)
         else:
             engine = StatisticsEngine(
