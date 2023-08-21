@@ -78,7 +78,7 @@ class EventDateMixin:
         )
 
     def volunteer_duration(self) -> int:
-        """Estimate event duration for volunterring purposes.
+        """Estimate event duration for volunteering purposes.
 
         If start and end are the same, it means the event has no hours. Thus, it is considered as a
         day long. If not, 2h is a quarter of a day, and math is round up.

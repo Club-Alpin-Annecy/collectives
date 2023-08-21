@@ -1,11 +1,9 @@
 """ Varous helping function for openpyxl """
 
-from typing import NoReturn
-
 from openpyxl.worksheet.worksheet import Worksheet
 
 
-def columns_best_fit(worksheet: Worksheet, row_blacklist: list) -> NoReturn:
+def columns_best_fit(worksheet: Worksheet, row_blacklist: list) -> None:
     """Make all columns best fit regarding their content.
 
     :param worksheet: The worksheet to work on

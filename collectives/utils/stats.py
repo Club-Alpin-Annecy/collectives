@@ -2,7 +2,6 @@
 Module to calculate statistics of the event database. 
 
 """
-import inspect
 from functools import lru_cache
 from io import BytesIO
 from math import floor
@@ -24,6 +23,14 @@ from collectives.utils.openpyxl import columns_best_fit
 
 class StatisticsEngine:
     """Configurable class which will output statistics"""
+
+    CACHE_TTL = 600
+    """ Number of second to cache the answers """
+
+    creation_time = None
+    """ Time when the engine is created.
+    
+    It is used to compare StatisticsEngine object and limit cache time"""
 
     activity_id = None
     """ All statistics of the engine will be limited to the activity with this id
@@ -47,18 +54,18 @@ class StatisticsEngine:
             "name": "Inscriptions",
             "description": "Nombre total d'inscriptions unitaires. Une personne peut générer "
             "plusieurs inscriptions. Les coencadrants sont inclus. Les "
-            "encadrants sont exclus. Les inscritions annullées, les absents, "
-            "etc, sont inclus. Les évènements annulés sont exclus.",
+            "encadrants sont exclus. Les inscritions annulées, les absents, "
+            "etc, sont inclus. Les événements annulés sont exclus.",
         },
         "nb_active_registrations": {
             "name": "Inscriptions réalisées",
-            "description": "Nombre total d'inscriptions unitaires valides, sur des évènements "
+            "description": "Nombre total d'inscriptions unitaires valides, sur des événements "
             "valides. "
             "Une personne peut générer plusieurs inscriptions. "
             "Les coencadrants sont inclus. "
             "Les encadrants sont exclus. "
             "Les inscritions anullées, les absents, etc, sont exclus. "
-            "Les évènements annulés sont exclus.",
+            "Les événements annulés sont exclus.",
         },
         "nb_registrations_by_gender": {
             "name": "Inscriptions par genre",
@@ -66,116 +73,116 @@ class StatisticsEngine:
             "peut générer plusieurs inscriptions. "
             "Les coencadrants sont inclus. "
             "Les encadrants sont exclus. "
-            "Les inscritions annullées, les absents, etc, sont exclus. "
-            "Les évènements annulés sont exclus.",
+            "Les inscritions annulées, les absents, etc, sont exclus. "
+            "Les événements annulés sont exclus.",
         },
         "mean_registrations_per_event": {
-            "name": "Moyenne d'inscriptions par évènement",
-            "description": "Nombre moyen d'inscriptions unitaires par évènement. "
+            "name": "Moyenne d'inscriptions par événement",
+            "description": "Nombre moyen d'inscriptions unitaires par événement. "
             "Les coencadrants sont inclus. "
             "Les encadrants sont exclus. "
             "Les inscritions annulées, les absents, etc, sont exlues. "
-            "Les évènements annulés sont exclus.",
+            "Les événements annulés sont exclus.",
         },
         "mean_registrations_per_day": {
             "name": "Moyenne d'inscriptions par jour",
             "description": "Nombre moyen d'inscriptions unitaires par jour sur la période. "
             "Les coencadrants sont inclus. "
             "Les encadrants sont exclus. "
-            "Les inscritions annulées, les absents, etc, sont exlues. "
-            "Les évènements annulés sont exclus.",
+            "Les inscriptions annulées, les absents, etc, sont exclues. "
+            "Les événements annulés sont exclus.",
         },
         "nb_events": {
-            "name": "Nombre d'évènements",
-            "description": "Nombre total d'évènements confirmés. "
-            "Les évènements annulés sont exclus.",
+            "name": "Nombre d'événements",
+            "description": "Nombre total d'événements confirmés. "
+            "Les événements annulés sont exclus.",
         },
         "nb_collectives": {
             "name": "Nombre de collectives",
-            "description": 'Nombre total d\'évènements de type "Collective".'
-            "Les évènements annulés sont exclus.",
+            "description": 'Nombre total d\'événements de type "Collective".'
+            "Les événements annulés sont exclus.",
         },
         "mean_events_per_day": {
-            "name": "Moyenne d'évènement par jour",
-            "description": "Nombre moyen d'évènement par jour sur la période. "
-            "Les évènements annulés sont exclus. ",
+            "name": "Moyenne d'événement par jour",
+            "description": "Nombre moyen d'événement par jour sur la période. "
+            "Les événements annulés sont exclus. ",
         },
         "mean_collectives_per_day": {
             "name": "Moyenne de collective par jour",
-            "description": 'Nombre moyen d\'évènement de type "Collective" '
+            "description": 'Nombre moyen d\'événement de type "Collective" '
             "par jour sur la période. "
-            "Les évènements annulés sont exclus. ",
+            "Les événements annulés sont exclus. ",
         },
         "nb_events_by_activity_type": {
             "name": "Evènements par activité",
-            "description": "Nombre d'évènements confirmés, groupés par type d'activité. "
-            "Les évènements annulés sont exclus."
-            "La somme peut être supérieure au nombre total d'évènements "
-            "car un évènement avec deux activités compte pour chaque "
+            "description": "Nombre d'événements confirmés, groupés par type d'activité. "
+            "Les événements annulés sont exclus."
+            "La somme peut être supérieure au nombre total d'événements "
+            "car un événement avec deux activités compte pour chaque "
             "type d'activité.",
         },
         "nb_collectives_by_activity_type": {
             "name": "Collectives par activité",
-            "description": 'Nombre d\'évènements confirmés, de type "Collective" '
+            "description": 'Nombre d\'événements confirmés, de type "Collective" '
             "groupés par type d'activité. "
-            "Les évènements annulés sont exclus."
-            "La somme peut être supérieure au nombre total d'évènements "
-            "car un évènement avec deux activités compte pour chaque "
+            "Les événements annulés sont exclus."
+            "La somme peut être supérieure au nombre total d'événements "
+            "car un événement avec deux activités compte pour chaque "
             "type d'activité.",
         },
         "nb_user_per_activity_type": {
             "name": "Participants par activité",
-            "description": "Nombre d'utilisateur ayant fait au moins un évènement de l'activité. "
-            "Les évènements annulés sont exclus."
+            "description": "Nombre d'utilisateur ayant fait au moins un événement de l'activité. "
+            "Les événements annulés sont exclus."
             "La somme peut être supérieure au nombre total d'utilisateur "
             "car un utilisateur peut compter pour plusieurs types d'activité.",
         },
         "nb_events_by_event_tag": {
-            "name": "Nombre d'évènements par label",
-            "description": "Nombre d'évènements confirmés, groupés par label. "
-            "Les évènements annulés sont exclus."
-            "La somme peut être supérieure au nombre total d'évènements "
-            "car un évènement avec deux labels compte pour chaque "
+            "name": "Nombre d'événements par label",
+            "description": "Nombre d'événements confirmés, groupés par label. "
+            "Les événements annulés sont exclus."
+            "La somme peut être supérieure au nombre total d'événements "
+            "car un événement avec deux labels compte pour chaque "
             "label.",
         },
         "nb_events_by_event_type": {
-            "name": "Nombre d'évènements par type d'évènement",
-            "description": "Nombre d'évènements confirmés, groupés par type d'évènement. "
-            "Les évènements annulés sont exclus.",
+            "name": "Nombre d'événements par type d'événement",
+            "description": "Nombre d'événements confirmés, groupés par type d'événement. "
+            "Les événements annulés sont exclus.",
         },
         "nb_events_by_leaders": {
-            "name": "Nombre d'évènements par encadrants",
-            "description": "Nombre d'évènements confirmés, groupés par encadrant. "
-            "Les évènements annulés sont exclus. "
-            "La somme peut être supérieure au nombre total d'évènements "
-            "car un évènement encadré par deux personnes compte pour chaque "
+            "name": "Nombre d'événements par encadrants",
+            "description": "Nombre d'événements confirmés, groupés par encadrant. "
+            "Les événements annulés sont exclus. "
+            "La somme peut être supérieure au nombre total d'événements "
+            "car un événement encadré par deux personnes compte pour chaque "
             "encadrant.",
         },
         "volunteer_time": {
             "name": "Durée d'encadrements totale",
             "description": "Nombre de journée d'encadrement."
-            "Les évènements annulés sont exclus. "
+            "Les événements annulés sont exclus. "
             "Un evènement de deux heures ou moins compte pour 1/4. "
             "Un evènement de quatre heures ou moins compte pour 1/2. "
             "Un evènement de plus de quatre heures compte pour 1. "
-            "Un evènement de plus de d'une journée se voit arrondi au nombre de "
+            "Un evènement de plus d'une journée se voit arrondi au nombre de "
             "jour supérieur. "
-            "Un évènement avec plusieurs encadrants compte autant qu'il y a "
+            "Un événement avec plusieurs encadrants compte autant qu'il y a "
             "d'encadrants. ",
         },
         "volunteer_time_by_activity_type": {
             "name": "Journées d'encadrements par activité",
             "description": "Nombre de journée d'encadrement, groupé par activité. "
-            "Les évènements annulés sont exclus. "
-            "La somme peut être supérieure au nombre total d'évènements "
-            "car un évènement encadré par deux personnes compte pour chaque "
+            "Les événements annulés sont exclus. "
+            "La somme peut être supérieure au nombre total d'événements "
+            "car un événement encadré par deux personnes compte pour chaque "
             "encadrant. "
             "Un evènement de deux heures ou moins compte pour 1/4. "
             "Un evènement de quatre heures ou moins compte pour 1/2. "
             "Un evènement de plus de quatre heures compte pour 1. "
-            "Un evènement de plus de d'une journée se voit arrondi au nombre de "
+            "Un evènement de plus d'une journée se voit arrondi au nombre de "
             "jour supérieur. "
-            "Un évènement avec plusieurs encadrants compte autant qu'il y a "
+            "Un événement avec plusieurs encadrants compte autant qu'il y a "
             "d'encadrants. ",
         },
         "population_registration_number": {
@@ -206,6 +213,8 @@ class StatisticsEngine:
         if "year" in kwargs:
             self.start = datetime(int(kwargs["year"]), 9, 1, 0, 0, 0)
             self.end = datetime(int(kwargs["year"]) + 1, 8, 30, 23, 59)
+
+        self.creation_time = datetime.now()
 
     def nb_days(self) -> int:
         """Returns number of days during the Engine interval.
@@ -459,7 +468,7 @@ class StatisticsEngine:
         functions = [getattr(self, fnc) for fnc in functions]
 
         for fnc in functions:
-            if inspect.get_annotations(fnc)["return"] == dict:
+            if fnc.__annotations__["return"] == dict:
                 worksheet = workbook.create_sheet()
                 worksheet.title = self.INDEX[fnc.__name__]["name"]
                 worksheet.append([worksheet.title])
@@ -471,7 +480,7 @@ class StatisticsEngine:
                 for key, value in data.items():
                     worksheet.append([str(key), str(value)])
                 columns_best_fit(worksheet, [1, 2])
-            if inspect.get_annotations(fnc)["return"] in [int, float]:
+            if fnc.__annotations__["return"] in [int, float]:
                 main_ws.append([self.INDEX[fnc.__name__]["name"], fnc()])
 
         columns_best_fit(main_ws, [1, 2])
@@ -481,3 +490,24 @@ class StatisticsEngine:
         out.seek(0)
 
         return out
+
+    def time_segment(self) -> int:
+        """Returns an id of the creation time regarding ttl."""
+        return floor(self.creation_time.timestamp() / self.CACHE_TTL)
+
+    def __str__(self) -> str:
+        """Returns string representation of Engine"""
+        return f"{self.activity_id}/{self.start}->{self.end}/{self.time_segment()}"
+
+    def __hash__(self) -> int:
+        """Return unique hash based on StatisticsEngine parameters"""
+        return hash(str(self))
+
+    def __eq__(self, other) -> bool:
+        """Check if two StatisticsEngine are equivalent."""
+        return (
+            self.activity_id == other.activity_id
+            and self.start == other.start
+            and self.end == other.end
+            and self.time_segment() == other.time_segment()
+        )
