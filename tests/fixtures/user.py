@@ -55,6 +55,7 @@ def generate_user(identifier, names):
         user.emergency_contact_phone = f"0699999{identifier:03}"
         user.legal_text_signature_date = datetime.now()
         user.legal_text_signed_version = 1
+        user.gender = Gender(identifier % 2 + 1)
 
         db.session.add(user)
         db.session.commit()

@@ -29,6 +29,14 @@
                                 </a>
                             </li>
 
+                            {#  Deactivated : awaiting test 
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('root.statistics') }}"  class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"  class="legacy-icon" />
+                                    Statistiques
+                                </a>
+                            </li> #}
+
                             {% if current_user.can_create_events() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img

@@ -1,0 +1,26 @@
+<canvas id="activity-chart"></canvas>
+                
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_events_by_activity_type']['description'] }}</span>
+</div>
+
+<script>
+    new Chart(document.getElementById('activity-chart'), {
+      type: 'bar',
+      data: {
+        labels: {{ engine.nb_events_by_activity_type().keys() | list | tojson | safe }},
+        datasets: [{
+          data: {{ engine.nb_events_by_activity_type().values() | list | tojson|safe }},
+        }]
+      },
+      options: {
+        aspectRatio: 3,
+        plugins: {
+          title: {
+            text: "{{ engine.INDEX['nb_events_by_activity_type']['name'] | safe }}",
+          }
+        }, scales: {y:{grace:"15%"}}
+      }
+    });
+</script>

@@ -1,0 +1,6 @@
+<div class="heading-3">{{ engine.INDEX['mean_registrations_per_day']['name'] }}</div>
+<div class="value">{% if engine.mean_registrations_per_day() %}{{engine.mean_registrations_per_day() | round(2)}}{%else%}-{% endif %}</div>
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['mean_registrations_per_day']['description'] }}</span>
+</div>

@@ -1,0 +1,7 @@
+
+<div class="heading-3">{{ engine.INDEX['nb_active_registrations']['name'] }}</div>
+<div class="value">{{engine.nb_active_registrations()}}</div>
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_active_registrations']['description'] }}</span>
+</div>

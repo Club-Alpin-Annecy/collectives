@@ -124,3 +124,29 @@ def test_add_registration(event1, user1, user2):
     assert db_event.has_free_online_slots()
     assert not db_event.can_self_register(user1, now)
     assert db_event.can_self_register(user2, now)
+
+
+def test_event_volunteer_duration(event):
+    """Test volunteer duration calculation"""
+    assert event.volunteer_duration() == 1
+
+    event.end = event.start + datetime.timedelta(hours=1)
+    assert event.volunteer_duration() == 0.25
+
+    event.end = event.start + datetime.timedelta(hours=2)
+    assert event.volunteer_duration() == 0.25
+
+    event.end = event.start + datetime.timedelta(hours=3)
+    assert event.volunteer_duration() == 0.5
+
+    event.end = event.start + datetime.timedelta(hours=4)
+    assert event.volunteer_duration() == 0.5
+
+    event.end = event.start + datetime.timedelta(hours=6)
+    assert event.volunteer_duration() == 1
+
+    event.end = event.start + datetime.timedelta(days=1)
+    assert event.volunteer_duration() == 1
+
+    event.end = event.start + datetime.timedelta(days=1, hours=6)
+    assert event.volunteer_duration() == 2

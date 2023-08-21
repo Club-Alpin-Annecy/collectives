@@ -1,0 +1,33 @@
+<canvas id="type-chart"></canvas>
+
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_events_by_event_type']['description'] }}</span>
+</div>
+
+<script>
+    new Chart(document.getElementById('type-chart'), {
+        type: 'pie',
+        data: {
+            labels: {{ engine.nb_events_by_event_type().keys() | list | tojson | safe }},
+            datasets: [{
+                data: {{ engine.nb_events_by_event_type().values() | list | tojson|safe }},
+                datalabels: {
+                    font: {size: '60px'}
+                },
+            }]
+        },
+        options: {
+            plugins: {
+                datalabels:{anchor: 'center'},
+                title: {
+                    text: "{{ engine.INDEX['nb_events_by_event_type']['name'] | safe }}",
+                },
+                legend: {
+                    position: 'bottom',
+                    display: true,
+                },
+            }
+      }
+    });
+</script>

@@ -1,0 +1,42 @@
+<canvas id="gender-chart" ></canvas>
+
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_registrations_by_gender']['description'] }}</span>
+</div>
+
+<script>
+    colors = {{ engine.nb_registrations_by_gender().keys() | list | tojson | safe }}.map(function(name){
+                        if(name == "Femme")
+                        return '#BE92A2';
+                        if(name == "Homme")
+                        return '#98C1D9';
+                        return '#DCC48E';
+                    });
+
+    new Chart(document.getElementById('gender-chart'), {
+        type: 'pie',
+        data: {
+        labels: {{ engine.nb_registrations_by_gender().keys() | list | tojson | safe }},
+        datasets: [{
+                data: {{ engine.nb_registrations_by_gender().values() | list | tojson|safe }},
+                datalabels: {
+                    font: {size: '60px'}
+                },
+                backgroundColor: colors,
+            }]
+        },
+        options: {
+            plugins: {
+                datalabels:{anchor: 'center'},
+                title: {
+                    text: "{{ engine.INDEX['nb_registrations_by_gender']['name'] | safe }}",
+                },
+                legend: {
+                    position: 'bottom',
+                    display: true,
+                },
+            }
+        }
+    });
+</script>

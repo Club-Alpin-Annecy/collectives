@@ -1,0 +1,203 @@
+
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    Chart.register(ChartDataLabels);
+    Chart.defaults.set('plugins', {
+      datalabels: {font: {size: '30px'}, anchor: 'end', align : 'top'},
+      legend: { display: false },
+      title: {
+        display: true,
+        font: {size: '30px', weight: 'bold'},
+        align: "left",
+
+      }
+    });
+    Chart.defaults.aspectRatio = 1;
+    Chart.defaults.responsive = true;
+    Chart.defaults.scale.grace = "10%";
+    Chart.defaults.layout.padding = 10;
+    Chart.defaults.color = "#4a4a4a";
+    Chart.defaults.scales.category.grid = {display: false};
+    Chart.defaults.scales.y = { grid : {display: false}};
+
+  </script>
+
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+
+    <div class="heading-1">Statistiques</div>
+
+
+    <form action="{{url_for('root.statistics')}}" id="statistics-form" method="GET" >
+     
+      <div class="form-search search-data">
+          {{ form.activity_id }}
+
+          {{ form.year }}
+
+          {{ form.submit(class="button button-primary") }}
+          {{ form.excel(class="button button-primary") }}
+      </div>
+    </form>
+
+    <br/>
+
+    <div class="tile is-ancestor">
+      <div class="tile is-vertical">
+
+        <div class="tile">
+          <div class="heading-2"><br/>évènements (tous types confondus)</div>
+        </div>
+        <div class="tile"> <!-- Start line -->
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/nb_events.html' %}
+            </div>
+          </div>
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/mean_events_per_day.html' %}
+            </div>
+          </div>   
+        </div> <!-- End .tile line -->
+
+        {% if engine.activity_id == None %}
+          <div class="tile"> <!-- Start line -->
+            <div class="tile is-parent">
+              <div class="tile card is-child">
+                {% include 'stats/partials/nb_events_by_activity_type.html' %}
+              </div>
+            </div>
+          </div> <!-- End .tile line -->
+        {% endif %}
+
+        <div class="tile">
+          <div class="heading-2"><br/>Collectives</div>
+        </div>
+        <div class="tile"> <!-- Start line -->
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/nb_collectives.html' %}
+            </div>
+          </div>
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/mean_collectives_per_day.html' %}
+            </div>
+          </div>   
+        </div> <!-- End .tile line -->
+
+        {% if engine.activity_id == None %}
+          <div class="tile"> <!-- Start line -->
+            <div class="tile is-parent">
+              <div class="tile card is-child">
+                {% include 'stats/partials/nb_collectives_by_activity_type.html' %}
+              </div>
+            </div>
+          </div> <!-- End .tile line -->
+        {% endif %}
+
+        <div class="tile">
+          <div class="heading-2"><br/>Inscriptions aux évènements</div>
+        </div>
+        <div class="tile"> <!-- Start line -->
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/nb_active_registrations.html' %}
+            </div>
+          </div>
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/mean_registrations_per_event.html' %}
+            </div>
+          </div>
+          <div class="tile is-parent">
+            <div class="tile card is-child single-stat">
+              {% include 'stats/partials/mean_registrations_per_day.html' %}
+            </div>
+          </div>  
+        </div> <!-- End .tile line -->
+
+        {% if engine.activity_id == None %}
+          <div class="tile">
+            <div class="tile is-parent">
+              <div class="tile card is-child">
+                {% include 'stats/partials/nb_user_per_activity_type.html' %}
+              </div>
+            </div>
+          </div> <!-- End .tile line -->
+        {% endif %}
+
+
+
+        <div class="tile "> <!-- Start line -->
+          <div class="tile is-parent is-4">
+            <div class="tile card is-child">
+              {% include 'stats/partials/nb_registrations_by_gender.html' %}              
+            </div>
+          </div>
+          
+
+          <div class="tile is-parent">
+            <div class="tile card is-child">
+              {% include 'stats/partials/population_registration_number.html' %}   
+            </div>
+          </div>
+        </div> <!-- End .tile line -->
+
+        <div class="tile">
+          <div class="heading-2"><br/>Classification des évènements</div>
+        </div>
+        <div class="tile "> <!-- Start line -->
+          <div class="tile is-parent is-6">
+            <div class="tile card is-child">
+              {% include 'stats/partials/nb_events_by_event_type.html' %}
+            </div>
+          </div>
+
+          <div class="tile is-parent">
+            <div class="tile card is-child">
+              {% include 'stats/partials/nb_events_by_event_tag.html' %}
+            </div>
+          </div>
+        </div> <!-- End .tile line -->
+
+        <!-- Leader section -->
+        <div class="tile">
+          <div class="heading-2"><br/>Encadrement</div>
+        </div>
+        <div class="tile">
+          <div class="tile is-parent">
+            <div class="tile card is-child">
+              {% include 'stats/partials/nb_events_by_leaders.html' %}
+            </div>
+          </div>
+        </div> <!-- End .tile line -->
+        {% if engine.activity_id == None %}
+          <div class="tile">
+            <div class="tile is-parent">
+              <div class="tile card is-child">
+                {% include 'stats/partials/volunteer_time_by_activity_type.html' %}
+              </div>
+            </div>
+          </div> <!-- End .tile line -->
+        {% endif %}
+        <!-- End Leader section -->
+
+      </div> <!-- End .tile .is-vertical -->
+    </div> <!-- End .tile .is-ancestor -->
+
+    <br/>
+
+</div>
+
+{% endblock %}

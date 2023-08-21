@@ -2,13 +2,16 @@
 
 This modules contains the root Blueprint
 """
-from flask import redirect, url_for, Blueprint
-from flask import render_template
+from flask import redirect, url_for, Blueprint, send_file
+from flask import render_template, request
 from flask_login import current_user, login_required
 
 from collectives.forms.auth import LegalAcceptation
+from collectives.forms.stats import StatisticsParametersForm
+from collectives.forms import csrf
 from collectives.models import db, Configuration
 from collectives.utils.time import current_time
+from collectives.utils.stats import StatisticsEngine
 
 
 blueprint = Blueprint("root", __name__)
@@ -36,3 +39,30 @@ def legal_accept():
     db.session.add(current_user)
     db.session.commit()
     return redirect(url_for("root.legal"))
+
+
+@blueprint.route("/stats")
+@csrf.exempt
+@login_required
+def statistics():
+    """Displays site event statistics."""
+    form = StatisticsParametersForm(formdata=request.args)
+    if form.validate():
+        if form.activity_id.data == form.ALL_ACTIVITIES:
+            engine = StatisticsEngine(year=form.year.data)
+        else:
+            engine = StatisticsEngine(
+                activity_id=form.activity_id.data, year=form.year.data
+            )
+    else:
+        engine = StatisticsEngine(year=StatisticsParametersForm().year.data)
+
+    if "excel" in request.args:
+        return send_file(
+            engine.export_excel(),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            download_name="Statistiques Collectives.xlsx",
+            as_attachment=True,
+        )
+
+    return render_template("stats/stats.html", engine=engine, form=form)

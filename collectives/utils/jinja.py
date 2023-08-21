@@ -27,6 +27,7 @@ def helpers_processor():
     helper_functions["get_bad_phone_message"] = get_bad_phone_message
     helper_functions["Configuration"] = models.Configuration
     helper_functions["markdown_to_html"] = markdown_to_html
+    helper_functions["map_method"] = map_method
 
     return helper_functions
 
@@ -54,3 +55,15 @@ def version_link(version):
     )
 
     return "-".join(parts)
+
+
+def map_method(function, iterable) -> list:
+    """Map an iterable to one of its method
+
+    :param string function: The function name
+    :param string function: The interable
+
+    :return: the result of the iterable method
+    """
+
+    return [getattr(i, function)() for i in iterable]

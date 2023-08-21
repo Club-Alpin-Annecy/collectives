@@ -55,6 +55,10 @@ class ChoiceEnum(enum.IntEnum):
         cls = self.__class__
         return cls.display_names()[self.value]
 
+    def __str__(self) -> str:
+        """Displays the instance name."""
+        return self.display_name()
+
     def __len__(self):
         """Bogus length function
 

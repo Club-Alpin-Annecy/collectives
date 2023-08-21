@@ -129,7 +129,14 @@ class RegistrationStatus(ChoiceEnum):
 
         :returns: True or False
         :rtype: bool"""
-        return self in [RegistrationStatus.Active, RegistrationStatus.Present]
+        return self in RegistrationStatus.valid_status()
+
+    @classmethod
+    def valid_status(cls) -> list:
+        """Returns the list of registration status considered as valid.
+
+        See :py:meth:`collectives.models.registration.RegistrationStatus.is_valid()`"""
+        return [RegistrationStatus.Active, RegistrationStatus.Present]
 
     def valid_transitions(self, requires_payment):
         """

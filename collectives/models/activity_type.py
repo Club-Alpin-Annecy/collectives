@@ -70,6 +70,10 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.user.User`
     """
 
+    def __str__(self) -> str:
+        """Displays the user name."""
+        return self.name + f" (ID {self.id})"
+
     @validates("trigram")
     def truncate_string(self, key, value):
         """Truncates a string to the max SQL field length
