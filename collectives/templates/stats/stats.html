@@ -17,7 +17,7 @@
 
       }
     });
-    Chart.defaults.aspectRatio = 1;
+    Chart.defaults.maintainAspectRatio = false,
     Chart.defaults.responsive = true;
     Chart.defaults.scale.grace = "10%";
     Chart.defaults.layout.padding = 10;
@@ -37,22 +37,19 @@
     <div class="heading-1">Statistiques</div>
 
 
-    <form action="{{url_for('root.statistics')}}" id="statistics-form" method="GET" >
-     
-      <div class="form-search search-data">
+    <form action="{{url_for('root.statistics')}}" id="statistics-form" method="GET" class="filters">
           {{ form.activity_id }}
 
           {{ form.year }}
 
           {{ form.submit(class="button button-primary") }}
           {{ form.excel(class="button button-primary") }}
-      </div>
     </form>
 
     <br/>
 
     <div class="tile is-ancestor">
-      <div class="tile is-vertical">
+      <div class="tile is-vertical max-100pc">
 
         <div class="tile">
           <div class="heading-2"><br/>évènements (tous types confondus)</div>
@@ -73,7 +70,7 @@
         {% if engine.activity_id == None %}
           <div class="tile"> <!-- Start line -->
             <div class="tile is-parent">
-              <div class="tile card is-child">
+              <div class="tile card is-child tall">
                 {% include 'stats/partials/nb_events_by_activity_type.html' %}
               </div>
             </div>
@@ -99,7 +96,7 @@
         {% if engine.activity_id == None %}
           <div class="tile"> <!-- Start line -->
             <div class="tile is-parent">
-              <div class="tile card is-child">
+              <div class="tile card is-child tall">
                 {% include 'stats/partials/nb_collectives_by_activity_type.html' %}
               </div>
             </div>
@@ -130,7 +127,7 @@
         {% if engine.activity_id == None %}
           <div class="tile">
             <div class="tile is-parent">
-              <div class="tile card is-child">
+              <div class="tile card is-child tall">
                 {% include 'stats/partials/nb_user_per_activity_type.html' %}
               </div>
             </div>
@@ -141,14 +138,14 @@
 
         <div class="tile "> <!-- Start line -->
           <div class="tile is-parent is-4">
-            <div class="tile card is-child">
+            <div class="tile card is-child tall">
               {% include 'stats/partials/nb_registrations_by_gender.html' %}              
             </div>
           </div>
           
 
           <div class="tile is-parent">
-            <div class="tile card is-child">
+            <div class="tile card is-child tall">
               {% include 'stats/partials/population_registration_number.html' %}   
             </div>
           </div>
@@ -159,13 +156,13 @@
         </div>
         <div class="tile "> <!-- Start line -->
           <div class="tile is-parent is-6">
-            <div class="tile card is-child">
+            <div class="tile card is-child tall">
               {% include 'stats/partials/nb_events_by_event_type.html' %}
             </div>
           </div>
 
           <div class="tile is-parent">
-            <div class="tile card is-child">
+            <div class="tile card is-child tall">
               {% include 'stats/partials/nb_events_by_event_tag.html' %}
             </div>
           </div>
@@ -177,7 +174,7 @@
         </div>
         <div class="tile">
           <div class="tile is-parent">
-            <div class="tile card is-child">
+            <div class="tile card is-child tall">
               {% include 'stats/partials/nb_events_by_leaders.html' %}
             </div>
           </div>
@@ -185,7 +182,7 @@
         {% if engine.activity_id == None %}
           <div class="tile">
             <div class="tile is-parent">
-              <div class="tile card is-child">
+              <div class="tile card is-child tall">
                 {% include 'stats/partials/volunteer_time_by_activity_type.html' %}
               </div>
             </div>
