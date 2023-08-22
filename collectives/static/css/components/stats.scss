@@ -1,3 +1,7 @@
+.max-100pc{
+    max-width: 100%;
+}
+
 .card {
     position: relative; 
     border-radius: 6px;
@@ -6,6 +10,10 @@
     display: block;
     padding: 1.25rem;
     border: 0.5px solid #e6e6e6;
+
+    &.tall{
+        height: 400px;
+    }
 
     .tooltip{
         position: absolute;
@@ -46,5 +54,20 @@
 
     .header-3{
         font-weight: normal;
+    }
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    > * {
+        flex-grow: 1;
+    }
+    @media screen and (max-width: 680px) {
+        > * {
+            width: 100%;
+        }
     }
 }
