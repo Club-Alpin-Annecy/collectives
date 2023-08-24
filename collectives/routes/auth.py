@@ -128,7 +128,8 @@ def login():
         sync_user(user, False)
     except extranet.ExtranetError:
         flash(
-            "Synchronization avec l'extranet FFCAM impossible, vos informations utilisateur pourront ne pas être à jour",
+            """Synchronization avec l'extranet FFCAM impossible,
+              vos informations utilisateur pourront ne pas être à jour""",
             "warning",
         )
 
