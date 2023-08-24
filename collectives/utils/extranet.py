@@ -211,12 +211,12 @@ class ExtranetApi:
 
         try:
             soap_client = Client(wsdl=config["EXTRANET_WSDL"])
+            self.auth_info = soap_client.service.auth()
         except (IOError, ZeepError) as err:
             current_app.logger.error(f"Error loading extranet WSDL: {err}")
             current_app.logger.error(traceback.format_stack())
             raise ExtranetError() from err
 
-        self.auth_info = soap_client.service.auth()
         self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
         self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
         self.soap_client = soap_client.service
