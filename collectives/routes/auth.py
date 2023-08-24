@@ -128,10 +128,10 @@ def login():
         sync_user(user, False)
     except extranet.ExtranetError:
         flash(
-            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
-            "error",
+            """Synchronization avec l'extranet FFCAM impossible,
+              vos informations utilisateur pourront ne pas être à jour""",
+            "warning",
         )
-        return redirect(url_for("auth.login"))
 
     if not user.is_active:
         flash(
