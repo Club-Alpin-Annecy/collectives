@@ -214,10 +214,7 @@ class Registration(db.Model):
 
         :return: Is :py:attr:`status` active or pending?
         :rtype: boolean"""
-        return self.status in (
-            RegistrationStatus.Active,
-            RegistrationStatus.PaymentPending,
-        )
+        return self.is_active() or self.status == RegistrationStatus.PaymentPending
 
     def is_rejected(self):
         """Check if this registation is rejected.
