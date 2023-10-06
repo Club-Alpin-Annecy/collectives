@@ -157,6 +157,21 @@ def disabled_paying_event(prototype_disabled_paying_event):
     return prototype_disabled_paying_event
 
 
+inject_fixture("prototype_youth_event", "youth")
+
+
+@pytest.fixture
+def youth_event(prototype_youth_event: Event):
+    """:returns: An event in with registration restricted to youths"""
+
+    event_type = EventType.query.filter_by(name="Jeunes").first()
+    prototype_youth_event.event_type = event_type
+
+    db.session.add(prototype_youth_event)
+    db.session.commit()
+    return prototype_youth_event
+
+
 inject_fixture("prototype_free_paying_event", "disabled paying")
 
 

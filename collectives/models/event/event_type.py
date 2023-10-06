@@ -74,7 +74,7 @@ class EventType(db.Model):
         :rtype: bool"""
         if not self.license_types:
             return True
-        license_types = self.license_types.split()
+        license_types = self.license_types.split(",")
         return len(license_types) == 0 or user.license_category in license_types
 
     @classmethod

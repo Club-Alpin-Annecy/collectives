@@ -1,8 +1,8 @@
 cssmin
 itsdangerous
 markupsafe
-flask
-Werkzeug
+flask<2.4.0
+Werkzeug<3.0.0
 flask-assets
 flask-login
 sqlalchemy

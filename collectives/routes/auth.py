@@ -1,6 +1,7 @@
 """ Module for user authentification routes. """
 
 import datetime
+from urllib.parse import urlparse
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
@@ -9,7 +10,6 @@ from flask_login import current_user, login_user, logout_user, login_required
 from flask_login import LoginManager
 from flask_wtf.csrf import generate_csrf
 from sqlalchemy import or_
-from werkzeug.urls import url_parse
 
 from collectives import email_templates
 from collectives.forms.auth import LoginForm, AccountCreationForm
@@ -169,7 +169,7 @@ def login():
 
     # Redirection to the page required by user before login
     next_page = request.args.get("next")
-    if not next_page or url_parse(next_page).netloc != "":
+    if not next_page or urlparse(next_page).netloc != "":
         next_page = "/"
     return redirect(next_page)
 
