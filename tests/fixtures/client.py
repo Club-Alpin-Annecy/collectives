@@ -112,3 +112,11 @@ def leader_client(client, leader_user):
     login(client, leader_user)
     yield client
     logout(client)
+
+
+@pytest.fixture
+def youth_client(client, youth_user):
+    """Flask client authenticated as regular user."""
+    login(client, youth_user)
+    yield client
+    logout(client)

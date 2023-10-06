@@ -104,3 +104,30 @@ def test_leader_register_paying_user(leader_client, user1, paying_event):
     assert paying_event.num_taken_slots() == 1
     assert paying_event.is_registered(user1) == True
     assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+
+def test_youth_event_autoregistration(youth_user, youth_client, youth_event):
+    """Test user auto registration"""
+    response = youth_client.get(f"/collectives/{youth_event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    response = youth_client.post(
+        f"/collectives/{youth_event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(youth_event.registrations) == 1
+    assert youth_event.num_taken_slots() == 1
+    assert youth_event.is_registered(youth_user) == True
+    assert youth_event.registrations[0].status == RegistrationStatus.Active
+
+
+def test_youth_event_failed_autoregistration(user1, user1_client, youth_event):
+    """Test user auto registration"""
+    response = user1_client.get(f"/collectives/{youth_event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    response = user1_client.post(
+        f"/collectives/{youth_event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert youth_event.num_taken_slots() == 0

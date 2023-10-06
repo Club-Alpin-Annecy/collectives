@@ -169,6 +169,18 @@ def hotline_user(prototype_hotline_user):
     return prototype_hotline_user
 
 
+inject_fixture("prototype_youth_user", 994, ("Young", "Climber"))
+
+
+@pytest.fixture
+def youth_user(prototype_youth_user: User):
+    """:returns: A user with a hotline role."""
+    prototype_youth_user.license_category = "J1"
+    db.session.add(prototype_youth_user)
+    db.session.commit()
+    return prototype_youth_user
+
+
 def promote_to_leader(user, activity="Alpinisme"):
     """Add a leader role to a user.
 
