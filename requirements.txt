@@ -1,7 +1,7 @@
 cssmin
 itsdangerous
 markupsafe
-flask
+flask<2.4.0
 Werkzeug
 flask-assets
 flask-login
