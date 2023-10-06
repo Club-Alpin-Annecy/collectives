@@ -1,7 +1,7 @@
 """ Module for user authentification routes. """
 
 import datetime
-from urllib import parse as url_parse
+from urllib.parse import urlparse
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
@@ -169,7 +169,7 @@ def login():
 
     # Redirection to the page required by user before login
     next_page = request.args.get("next")
-    if not next_page or url_parse(next_page).netloc != "":
+    if not next_page or urlparse(next_page).netloc != "":
         next_page = "/"
     return redirect(next_page)
 
