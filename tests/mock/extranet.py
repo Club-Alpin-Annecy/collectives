@@ -3,6 +3,8 @@
 import pytest
 from collectives.utils import extranet
 
+from datetime import date, timedelta
+
 # pylint: disable=unused-argument,redefined-builtin
 
 VALID_LICENSE = "740020780001"
@@ -111,12 +113,14 @@ class FakeSoapClient:
         :rtype: dict"""
         license = kwargs["id"]
         if license == VALID_LICENSE:
+            # Registered 15 days ago
+            reg_date = date.today() - timedelta(days=15)
             return {
                 "existe": 1,
                 "id": license,
                 "nom": "VALID",
                 "prenom": "JOHN",
-                "inscription": "2022-09-09",
+                "inscription": reg_date.isoformat(),
                 "assurance_personne": 1,
             }
         if license == EXPIRED_LICENSE:
