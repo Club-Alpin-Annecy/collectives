@@ -1,9 +1,8 @@
 """ Mock functions for extranet. """
 
+from datetime import date, timedelta
 import pytest
 from collectives.utils import extranet
-
-from datetime import date, timedelta
 
 # pylint: disable=unused-argument,redefined-builtin
 
