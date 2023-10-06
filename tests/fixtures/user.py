@@ -174,7 +174,7 @@ inject_fixture("prototype_youth_user", 994, ("Young", "Climber"))
 
 @pytest.fixture
 def youth_user(prototype_youth_user: User):
-    """:returns: A user with a hotline role."""
+    """:returns: A user with a youth license."""
     prototype_youth_user.license_category = "J1"
     db.session.add(prototype_youth_user)
     db.session.commit()
