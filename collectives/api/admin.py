@@ -106,14 +106,10 @@ class UserSchema(marshmallow.Schema):
     roles = fields.Function(lambda user: RoleSchema(many=True).dump(user.roles))
     """ List of roles of the User.
 
-    Roles are encoded as JSON.
-
     :type: list(dict())"""
 
     badges = fields.Function(lambda user: BadgeSchema(many=True).dump(user.badges))
     """ List of badges of the User.
-
-    Badges are encoded as JSON.
 
     :type: list(dict())"""
     full_name = fields.Function(lambda user: user.full_name())
@@ -170,41 +166,41 @@ def users():
         value = request.args.get(f"filters[{i}][value]")
         field = request.args.get(f"filters[{i}][field]")
 
-        if value is not None:
-            if field == "roles":
-                # if field is roles,
+        if value is None:
+            raise Exception("No filter value")
 
-                filters = {i[0]: i[1:] for i in value.split("-")}
-                if "r" in filters:
-                    filters["r"] = Role.role_id == RoleIds.get(filters["r"])
-                if "t" in filters:
-                    if filters["t"] == "none":
-                        filters["t"] = None
-                    filters["t"] = Role.activity_id == filters["t"]
+        if field == "roles":
+            # if field is roles,
 
-                filters = list(filters.values())
-                query_filter = User.roles.any(and_(*filters))
+            filters = {i[0]: i[1:] for i in value.split("-")}
+            if "r" in filters:
+                filters["r"] = Role.role_id == RoleIds.get(filters["r"])
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Role.activity_id == filters["t"]
 
-            elif field == "badges":
-                # if field is roles,
+            filters = list(filters.values())
+            query_filter = User.roles.any(and_(*filters))
 
-                filters_badge = {i[0]: i[1:] for i in value.split("-")}
-                if "b" in filters_badge:
-                    filters_badge["b"] = Badge.badge_id == BadgeIds.get(
-                        filters_badge["b"]
-                    )
-                if "t" in filters_badge:
-                    if filters_badge["t"] == "none":
-                        filters_badge["t"] = None
-                    filters_badge["t"] = Badge.activity_id == filters_badge["t"]
+        elif field == "badges":
+            # if field is roles,
 
-                filters_badge = list(filters_badge.values())
-                query_filter = User.badges.any(and_(*filters_badge))
+            filters = {i[0]: i[1:] for i in value.split("-")}
+            if "b" in filters:
+                filters["b"] = Badge.badge_id == BadgeIds.get(filters["b"])
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Badge.activity_id == filters["t"]
 
-            else:
-                query_filter = getattr(User, field).ilike(f"%{value}%")
+            filters = list(filters.values())
+            query_filter = User.badges.any(and_(*filters))
 
-            query = query.filter(query_filter)
+        else:
+            query_filter = getattr(User, field).ilike(f"%{value}%")
+
+        query = query.filter(query_filter)
 
         # Get next filter
         i += 1

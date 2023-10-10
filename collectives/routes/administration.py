@@ -58,7 +58,7 @@ def administration():
 
     filters_badge = {"": ""}
     for badge in BadgeIds:
-        filters_badge[f"b{badge}"] = f"Badge {badge.display_name()}"
+        filters_badge[f"b{int(badge)}"] = f"Badge {badge.display_name()}"
     for activity in ActivityType.get_all_types():
         filters_badge[f"t{activity.id}"] = f"{activity.name} (Tous)"
         for badge in BadgeIds:
@@ -239,11 +239,10 @@ def add_user_role(user_id):
     except RoleValidationException as err:
         flash(err.message, "error")
 
-    form = RoleForm()
     return render_template(
         "user_roles.html",
         user=user,
-        form=form,
+        form=RoleForm(),
         title="Roles utilisateur",
     )
 
@@ -273,7 +272,7 @@ def add_user_badge(user_id):
     badge_id = badge.badge_id
 
     try:
-        # Check that the role does not already exist
+        # Check that the badge does not already exist
         badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
 
         if badge.activity_type is not None:
@@ -289,18 +288,15 @@ def add_user_badge(user_id):
                 "Type de Badge déjà associé à l'utilisateur pour cette activité"
             )
 
-        # DEBUG
-        # print(', '.join("%s: %s" % item for item in vars(badge).items()))
         user.badges.append(badge)
         db.session.commit()
     except BadgeValidationException as err:
         flash(err.message, "error")
 
-    form = BadgeForm()
     return render_template(
         "user_badges.html",
         user=user,
-        form=form,
+        form=BadgeForm(),
         title="Badges utilisateur",
         now=date.today(),
     )
@@ -317,8 +313,6 @@ def delete_user_badge(badge_id):
 
     badge = Badge.query.get(badge_id)
 
-    user = badge.user
-
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
@@ -326,11 +320,10 @@ def delete_user_badge(badge_id):
     db.session.delete(badge)
     db.session.commit()
 
-    form = BadgeForm()
     return render_template(
         "user_badges.html",
-        user=user,
-        form=form,
+        user=badge.user,
+        form=BadgeForm(),
         title="Badges utilisateur",
         now=date.today(),
     )
@@ -351,17 +344,13 @@ def renew_user_badge(badge_id):
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
 
-    user = badge.user
-
     db.session.delete(badge)
     db.session.commit()
 
-    form = BadgeForm(initial=badge)
-
     return render_template(
         "user_badges.html",
-        user=user,
-        form=form,
+        user=badge.user,
+        form=BadgeForm(initial=badge),
         title="Badges utilisateur",
         now=date.today(),
     )
@@ -389,11 +378,10 @@ def remove_user_role(role_id):
         db.session.delete(role)
         db.session.commit()
 
-    form = RoleForm()
     return render_template(
         "user_roles.html",
         user=user,
-        form=form,
+        form=RoleForm(),
         title="Roles utilisateur",
     )
 

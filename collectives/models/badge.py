@@ -23,25 +23,6 @@ class BadgeIds(ChoiceEnum):
             cls.Benevole: "Bénévole",
         }
 
-    @classmethod
-    def get(cls, required_id):
-        """
-        :return: Get a :py:class:`BadgeIds` from its id
-        :rtype: :py:class:`BadgeIds`
-        """
-        for badge_id in cls:
-            if badge_id == int(required_id):
-                return badge_id
-        raise builtins.Exception(f"Unknown badge id {required_id}")
-
-    @classmethod
-    def get_all(cls):
-        """
-        :return: :py:class:`BadgeIds` full list
-        :rtype: list(:py:class:`BadgeIds)`
-        """
-        return cls
-
 
 class Badge(db.Model):
     """Badge for a specific user.
@@ -115,7 +96,7 @@ class Badge(db.Model):
         :rtype: string
         """
 
-        return BadgeIds(self.badge_id).display_name()
+        return self.badge_id.display_name()
 
     @property
     def activity_name(self):
@@ -125,8 +106,7 @@ class Badge(db.Model):
         :rtype: string
         """
 
-        activity_type = ActivityType.query.get(self.activity_id)
-        if activity_type is not None:
-            return activity_type.name
+        if self.ctivity_type is not None:
+            return self.activity_type.name
 
         return ""

@@ -1,4 +1,4 @@
-"""empty message
+"""Add badges
 
 Revision ID: 4a5c66ab7eaa
 Revises: 92a84e14f157

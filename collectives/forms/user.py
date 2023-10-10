@@ -14,15 +14,8 @@ from wtforms_alchemy import ModelForm
 from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.models import (
-    User,
-    photos,
-    ActivityType,
-    Role,
-    RoleIds,
-    Badge,
-    BadgeIds,
-)
+from collectives.models import User, photos, ActivityType, Role, RoleIds
+from collectives.models import Badge, BadgeIds
 
 
 class AvatarForm:
@@ -141,6 +134,18 @@ class RoleForm(ModelForm, FlaskForm):
         ]
 
 
+def compute_default_expiration_date():
+    """Compute the default expiration date for a badge"""
+    # For now, the default expiration date is hard-coded.
+    # It could be managable in the admin panel in a next version
+    # NB: when we are after the default hard-coded date, but still in the same year, then increment the year
+    default_date = date(date.today().year, 9, 30)
+    default_year = default_date.year
+    if (date.today() >= default_date) and (date.today().year == default_year):
+        default_date = date(date.today().year + 1, 9, 30)
+    return default_date
+
+
 class BadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
 
@@ -155,9 +160,7 @@ class BadgeForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         initial = kwargs.pop("initial", {})
-        # For now, the default expiration date is hard-coded.
-        # It could be managable in the admin panel in a next version
-        kwargs["expiration_date"] = date(date.today().year, 9, 30)
+        kwargs["expiration_date"] = compute_default_expiration_date()
         if initial:
             if initial.level:
                 kwargs["level"] = initial.level
@@ -223,7 +226,7 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         "Badge",
         coerce=int,
         validators=[DataRequired()],
-        choices=[(int(r), r.display_name()) for r in BadgeIds.get_all()],
+        choices=BadgeIds.choices(),
     )
     expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
     level = IntegerField(
@@ -235,8 +238,6 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         """Overloaded constructor populating activity list"""
         kwargs["activity_list"] = current_user.get_supervised_activities()
         kwargs["submit_label"] = "Ajouter un badge"
-        # For now, the default expiration date is hard-coded.
-        # It could be managable in the admin panel in a next version
-        kwargs["expiration_date"] = date(date.today().year, 9, 30)
+        kwargs["expiration_date"] = compute_default_expiration_date()
 
         super().__init__(*args, **kwargs)

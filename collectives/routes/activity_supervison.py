@@ -134,12 +134,12 @@ def export_role():
 
     activity_type = ActivityType.query.get(form.activity_id.data)
 
-    query_filter = Role.query
+    query = Role.query
     # we remove role not linked anymore to a user
-    query_filter = query_filter.filter(Role.user.has(User.id))
-    query_filter = query_filter.filter(Role.activity_id == activity_type.id)
+    query = query.filter(Role.user.has(User.id))
+    query = query.filter(Role.activity_id == activity_type.id)
 
-    roles = query_filter.all()
+    roles = query.all()
 
     out = export.export_roles(roles)
 
@@ -164,28 +164,26 @@ def export_badge():
     if not form.validate_on_submit():
         abort(400)
 
-    if form.activity_id.data != -1:
+    if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
         activity_type = ActivityType.query.get(form.activity_id.data)
     else:
         activity_type = current_user.get_supervised_activities()
 
-    query_filter = Badge.query
+    query = Badge.query
     # we remove role not linked anymore to a user
-    query_filter = query_filter.filter(Badge.user.has(User.id))
+    query = query.filter(Badge.user.has(User.id))
     if activity_type is not None:
         if isinstance(activity_type, list):
-            query_filter = query_filter.filter(
-                Badge.activity_id.in_([t.id for t in activity_type])
-            )
+            query = query.filter(Badge.activity_id.in_([t.id for t in activity_type]))
         else:
-            query_filter = query_filter.filter(Badge.activity_id == activity_type.id)
+            query = query.filter(Badge.activity_id == activity_type.id)
 
-    badges = query_filter.all()
+    badges = query.all()
 
-    if isinstance(activity_type, list):
-        filename = "All"
-    else:
+    if not isinstance(activity_type, list):
         filename = activity_type.name
+    else:
+        filename = ""
 
     out = export.export_badges(badges)
 
@@ -216,6 +214,7 @@ def badge_list():
 
 
 @blueprint.route("/badge/add", methods=["POST"])
+@user_is("is_supervisor")
 def add_badge():
     """Route for an activity supervisor to add a Badge to a user" """
 
@@ -226,9 +225,6 @@ def add_badge():
 
     badge = Badge()
     add_badge_form.populate_obj(badge)
-
-    # DEBUG
-    # print(', '.join("%s: %s" % item for item in vars(badge).items()))
 
     user = User.query.get(badge.user_id)
     if user is None:

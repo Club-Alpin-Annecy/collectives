@@ -10,6 +10,9 @@ from collectives.models import ActivityType
 class ActivityTypeSelectionForm(FlaskForm):
     """Form to select an activity type"""
 
+    ALL_ACTIVITIES = 999999
+    """ Id for all activity choice in `activity_id`"""
+
     activity_id = SelectField("Activité", coerce=int, validators=[DataRequired()])
     """ Activity selection field"""
     submit = SubmitField("Selectionner")
@@ -29,10 +32,8 @@ class ActivityTypeSelectionForm(FlaskForm):
 
         self.activity_id.choices = [(a.id, a.name) for a in activity_list]
 
-        all_enabled = kwargs.get("all_enabled", False)
-
-        if all_enabled:
-            self.activity_id.choices.append((-1, "All"))
+        if kwargs.get("all_enabled", False):
+            self.activity_id.choices.append((self.ALL_ACTIVITIES, "All"))
 
         if "submit_label" in kwargs:
             self.submit.label = Label(self.submit.id, kwargs["submit_label"])
