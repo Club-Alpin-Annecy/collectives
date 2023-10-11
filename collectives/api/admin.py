@@ -167,14 +167,14 @@ def users():
         field = request.args.get(f"filters[{i}][field]")
 
         if value is None:
-            raise Exception("No filter value")
+            raise ValueError("No filter value")
 
         if field == "roles":
             # if field is roles,
 
             filters = {i[0]: i[1:] for i in value.split("-")}
             if "r" in filters:
-                filters["r"] = Role.role_id == RoleIds.get(filters["r"])
+                filters["r"] = Role.role_id == RoleIds(int(filters["r"]))
             if "t" in filters:
                 if filters["t"] == "none":
                     filters["t"] = None
@@ -188,7 +188,7 @@ def users():
 
             filters = {i[0]: i[1:] for i in value.split("-")}
             if "b" in filters:
-                filters["b"] = Badge.badge_id == BadgeIds.get(filters["b"])
+                filters["b"] = Badge.badge_id == BadgeIds(int(filters["b"]))
             if "t" in filters:
                 if filters["t"] == "none":
                     filters["t"] = None

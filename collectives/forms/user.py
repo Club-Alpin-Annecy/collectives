@@ -138,7 +138,8 @@ def compute_default_expiration_date():
     """Compute the default expiration date for a badge"""
     # For now, the default expiration date is hard-coded.
     # It could be managable in the admin panel in a next version
-    # NB: when we are after the default hard-coded date, but still in the same year, then increment the year
+    # NB: when we are after the default hard-coded date, but still in the same year,
+    # then increment the year
     default_date = date(date.today().year, 9, 30)
     default_year = default_date.year
     if (date.today() >= default_date) and (date.today().year == default_year):
@@ -173,7 +174,7 @@ class BadgeForm(ModelForm, FlaskForm):
                     (initial.activity_id, ActivityType.get(initial.activity_id).name)
                 ]
             if initial.badge_id:
-                self.badge_id = [BadgeIds.get(initial.badge_id)]
+                self.badge_id = [BadgeIds(int(initial.badge_id))]
 
         # In case this is a CREATION
         else:

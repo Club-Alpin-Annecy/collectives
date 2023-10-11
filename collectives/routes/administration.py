@@ -417,8 +417,8 @@ def export_role(raw_filters=""):
     filename = ""
 
     if "r" in filters:
-        query_filter = query_filter.filter(Role.role_id == RoleIds.get(filters["r"]))
-        filename += RoleIds.get(filters["r"]).display_name() + " "
+        query_filter = query_filter.filter(Role.role_id == RoleIds(int(filters["r"])))
+        filename += RoleIds(int(filters["r"])).display_name() + " "
     if "t" in filters:
         if filters["t"] == "none":
             filters["t"] = None
@@ -458,9 +458,9 @@ def export_badge(raw_filters=""):
 
         if "b" in filters:
             query_filter = query_filter.filter(
-                Badge.badge_id == BadgeIds.get(filters["b"])
+                Badge.badge_id == BadgeIds(int(filters["b"]))
             )
-            filename += BadgeIds.get(filters["b"]).display_name() + " "
+            filename += BadgeIds(int(filters["b"])).display_name() + " "
         if "t" in filters:
             if filters["t"] == "none":
                 filters["t"] = None

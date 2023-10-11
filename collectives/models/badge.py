@@ -1,7 +1,5 @@
 """Module for user badges related classes
 """
-import builtins
-from collectives.models.activity_type import ActivityType
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -106,7 +104,7 @@ class Badge(db.Model):
         :rtype: string
         """
 
-        if self.ctivity_type is not None:
+        if self.activity_type is not None:
             return self.activity_type.name
 
         return ""

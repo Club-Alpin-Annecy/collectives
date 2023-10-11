@@ -1,11 +1,12 @@
 """ Module to create fixture users. """
 
 from functools import wraps
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 import pytest
 
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
+from collectives.models import Badge, BadgeIds
 
 # pylint: disable=unused-argument,redefined-outer-name
 
@@ -181,6 +182,34 @@ def youth_user(prototype_youth_user: User):
     return prototype_youth_user
 
 
+inject_fixture("prototype_user_with_valid_benevole_badge", 993, ("Good", "Girl"))
+
+
+@pytest.fixture
+def user_with_valid_benevole_badge(prototype_user_with_valid_benevole_badge: User):
+    """:returns: A user with a valid benevole Badge."""
+    add_benevole_badge_to_user(prototype_user_with_valid_benevole_badge)
+    db.session.add(prototype_user_with_valid_benevole_badge)
+    db.session.commit()
+    return prototype_user_with_valid_benevole_badge
+
+
+inject_fixture(
+    "prototype_user_with_expired_benevole_badge", 992, ("Boy", "WhoShoulContribute")
+)
+
+
+@pytest.fixture
+def user_with_expired_benevole_badge(prototype_user_with_expired_benevole_badge: User):
+    """:returns: A user with an expired benevole Badge."""
+    add_benevole_badge_to_user(
+        prototype_user_with_expired_benevole_badge, date.today() - timedelta(days=65)
+    )
+    db.session.add(prototype_user_with_expired_benevole_badge)
+    db.session.commit()
+    return prototype_user_with_expired_benevole_badge
+
+
 def promote_to_leader(user, activity="Alpinisme"):
     """Add a leader role to a user.
 
@@ -210,3 +239,26 @@ def promote_user(
     if confidentiality_agreement_signature:
         user.confidentiality_agreement_signature_date = datetime.now()
     db.session.add(role)
+
+
+def add_benevole_badge_to_user(
+    user,
+    expiration_date=(date.today() + timedelta(days=365)),
+    badge_id=int(BadgeIds.Benevole),
+    activity_name="Parapente",
+):
+    """Manage to add a badge to a user
+
+    :param User user: the user to add a badge to
+    :expiration_date: the expiration date of the badge (Default is today + 1 year, so a valid one)
+    :param badgeIds badge_id: the type of badge to add
+    :param string activity_name: The activity name for the role. Default Alpinisme
+    """
+    badge = Badge()
+    badge.user_id = user.id
+    badge.badge_id = badge_id
+    badge.expiration_date = expiration_date
+    if activity_name:
+        activity_type = ActivityType.query.filter_by(name=activity_name).first()
+        badge.activity_id = activity_type.id
+    db.session.add(badge)
