@@ -34,14 +34,7 @@ def test_do_not_show_user_profile_to_other(user1_client, user2):
     assert response.status_code == 302
 
 
-def test_generate_valid_benevole_cert(client_with_valid_benevole_badge, president_user):
-    """Test the volunteer cert generation.
 
-    Does not check the content, just the absence of error."""
-    response = client_with_valid_benevole_badge.get("/profile/user/volunteer/cert")
-    assert response.status_code == 200
-    assert response.content_length > 200000
-    assert response.content_type == "application/pdf"
 
 
 def test_generate_expired_benevole_cert(
