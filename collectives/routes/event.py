@@ -23,6 +23,7 @@ from collectives.email_templates import send_update_waiting_list_notification
 from collectives.forms import EventForm, photos
 from collectives.forms import RegistrationForm
 from collectives.forms.event import PaymentItemChoiceForm
+from collectives.forms.question import QuestionAnswersForm
 
 from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
@@ -31,6 +32,7 @@ from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.activity_type import activities_without_leader
 from collectives.models.activity_type import leaders_without_activities
 from collectives.models.payment import ItemPrice, Payment
+from collectives.models.question import QuestionAnswer
 
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
@@ -245,6 +247,8 @@ def view_event(event_id, name=""):
         ):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
+    question_form = QuestionAnswersForm(event, current_user)
+
     return render_template(
         "event/event.html",
         event=event,
@@ -253,6 +257,7 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
+        question_form=question_form
     )
 
 
@@ -894,6 +899,51 @@ def self_unregister(event_id):
     # Send notification e-mail to leaders only if definitive subscription
     if previous_status == RegistrationStatus.Active:
         send_unregister_notification(event, current_user)
+
+    return redirect(url_for("event.view_event", event_id=event_id))
+
+@blueprint.route("/<int:event_id>/answer_questions", methods=["POST"])
+@valid_user()
+def answer_questions(event_id: int):
+    """Route for answering the event questions
+
+    :param int event_id: Primary key of the event .
+    """
+    event = Event.query.get(event_id)
+
+    query = Registration.query.filter_by(user=current_user).filter_by(event=event)
+    registration : Registration = query.first()
+
+    if registration is None or not registration.is_active():
+        flash(
+            "Vous n'êtes pas inscrit à cet événement"
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+    
+    question_form = QuestionAnswersForm(event, current_user)
+
+    if not question_form.validate_on_submit():    
+        # Validation is done client side, if we get here the request has been altered;
+        # no need to try and restore used data or display relevant errors
+        flash(
+            "Données invalides"
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+    
+    for question, question_field in zip(question_form.questions, question_form.question_fields):
+        answer = QuestionAnswer(
+            user = current_user,
+            value = question_form.get_value(question, question_field.data)
+        )
+
+        db.session.add(answer)
+        question.answers.add(answer)
+
+    if question_form.questions:
+        db.session.commit()
+        flash("Merci d'avoir répondu aux questions, vos réponses ont été prises en compte")
 
     return redirect(url_for("event.view_event", event_id=event_id))
 

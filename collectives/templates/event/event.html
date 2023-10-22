@@ -170,8 +170,9 @@
             {% endif %}
           {% endfor %}
           </ul></p>
-        {% else %}
+        {% else %}  {# Active registration #}
           {% if not current_user.check_license_valid_at_time(event.end) %}
+          {# Pending licence renewal #}
           <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
             <p>
               Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
@@ -184,7 +185,25 @@
           </form>
           {% endif %}
 
-          {% if current_time < event.start %}
+          {% if question_form.question_fields %} {# Questionnaire #}
+          Pour aider à l'organisation de cet événement, veuillez répondre aux question suivantes :
+            
+          <form action="{{url_for('event.answer_questions', event_id=event.id)}}" method="post" >
+          
+            {% for field in question_form.question_fields%}
+            {{field.label}}
+            {{field.description}}
+            {{field()}}
+            {%endfor%}
+            
+            {{question_form.hidden_tag()}}
+            {{question_form.submit()}}
+          
+          </form>
+
+          {% endif %}
+
+          {% if current_time < event.start %} {# Unregister #}
           <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <a  class="button button-secondary"
@@ -304,7 +323,7 @@
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, tu peux participer aux frais.</p>
+      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, vous pouvez participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}
