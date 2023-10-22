@@ -61,7 +61,8 @@ def create_app(config_filename="config.py", extra_config=None):
     # Config options - Make sure you created a 'config.py' file.
     app.config.from_object("config")
     app.config.from_pyfile(config_filename, silent=True)
-    app.config.update(**extra_config)
+    if extra_config is not None:
+        app.config.update(**extra_config)
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
