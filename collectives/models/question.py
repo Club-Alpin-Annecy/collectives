@@ -1,6 +1,8 @@
 """Module defining question-related models
 """
 
+from typing import List
+
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
@@ -127,42 +129,6 @@ class Question(db.Model):
     )
 
 
-# class QuestionChoice(db.Model):
-#    """Database model describing a set of questions"""
-#
-#    __tablename__ = "question_choices"
-#
-#    id = db.Column(db.Integer, primary_key=True)
-#    """Database primary key
-#
-#    :type: int"""
-#
-#    question_id = db.Column(
-#        db.Integer, db.ForeignKey("questions.id"), index=True, nullable=False
-#    )
-#    """ Primary key of the question to which this choice belongs
-#
-#    :type: int"""
-#
-#    title = db.Column(
-#        db.String(256), nullable=False, info={"label": "Intitulé du choix"}
-#    )
-#    """ Title for this question choice
-#
-#    :type: string"""
-#
-
-# answer_choices = db.Table(
-#    "question_answer_choices",
-#    db.Column(
-#        "answer_id", db.Integer, db.ForeignKey("question_answers.id"), index=True
-#    ),
-#    db.Column(
-#        "choice_id", db.Integer, db.ForeignKey("question_choices.id"), index=True
-#    ),
-# )
-
-
 class QuestionAnswer(db.Model):
     """Database model describing a set of questions"""
 
@@ -185,10 +151,15 @@ class QuestionAnswer(db.Model):
 
     :type: int"""
 
-    # choices = db.relationship(
-    #    "QuestionChoices", secondary=answer_choices, lazy="subquery"
-    # )
-    # """List of choices selected for this answer"""
-
     value = db.Column(db.Text(), nullable=True)
     """Answer value for non choice-based answers"""
+
+    @staticmethod
+    def user_answers(event_id: int, user_id: int) -> List["QuestionAnswer"]:
+        """:returns: the list of answers to an event's questions by a given user"""
+        return (
+            QuestionAnswer.query.filter(QuestionAnswer.question_id == Question.id)
+            .filter(event_id == Question.event_id)
+            .filter(QuestionAnswer.user_id == user_id)
+            .all()
+        )

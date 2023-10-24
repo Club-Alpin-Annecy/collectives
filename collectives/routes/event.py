@@ -257,7 +257,7 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
-        question_form=question_form
+        question_form=question_form,
     )
 
 
@@ -902,6 +902,7 @@ def self_unregister(event_id):
 
     return redirect(url_for("event.view_event", event_id=event_id))
 
+
 @blueprint.route("/<int:event_id>/answer_questions", methods=["POST"])
 @valid_user()
 def answer_questions(event_id: int):
@@ -912,38 +913,37 @@ def answer_questions(event_id: int):
     event = Event.query.get(event_id)
 
     query = Registration.query.filter_by(user=current_user).filter_by(event=event)
-    registration : Registration = query.first()
+    registration: Registration = query.first()
 
-    if registration is None or not registration.is_active():
+    if registration is None or (not registration.is_active() and registration.status != RegistrationStatus.Waiting):
         flash(
-            "Vous n'êtes pas inscrit à cet événement"
-            "error",
+            "Vous n'êtes pas inscrit ou en liste d'attente pour cet événement" "error",
         )
         return redirect(url_for("event.view_event", event_id=event_id))
-    
+
     question_form = QuestionAnswersForm(event, current_user)
 
-    if not question_form.validate_on_submit():    
+    if not question_form.validate_on_submit():
         # Validation is done client side, if we get here the request has been altered;
         # no need to try and restore used data or display relevant errors
-        flash(
-            "Données invalides"
-            "error",
-        )
+        flash("error", "Données invalides")
         return redirect(url_for("event.view_event", event_id=event_id))
-    
-    for question, question_field in zip(question_form.questions, question_form.question_fields):
-        answer = QuestionAnswer(
-            user = current_user,
-            value = question_form.get_value(question, question_field.data)
-        )
 
+    for question, question_field in zip(
+        question_form.questions, question_form.question_fields
+    ):
+        answer = QuestionAnswer(
+            user_id=current_user.id,
+            question_id=question.id,
+            value=question_form.get_value(question, question_field.data),
+        )
         db.session.add(answer)
-        question.answers.add(answer)
 
     if question_form.questions:
         db.session.commit()
-        flash("Merci d'avoir répondu aux questions, vos réponses ont été prises en compte")
+        flash(
+            "Merci d'avoir répondu aux questions, vos réponses ont été prises en compte"
+        )
 
     return redirect(url_for("event.view_event", event_id=event_id))
 

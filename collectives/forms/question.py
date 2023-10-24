@@ -1,5 +1,6 @@
 from typing import List, Any
 
+from flask import request
 from flask_wtf import FlaskForm
 from wtforms_alchemy import ModelForm
 from wtforms import (
@@ -105,7 +106,6 @@ class QuestionnaireForm(FlaskForm):
 
 
 class QuestionAnswersForm(FlaskForm):
-
     submit = SubmitField("Répondre")
 
     def __init__(self, event: Event, user: User, *args, **kwargs):
@@ -114,15 +114,13 @@ class QuestionAnswersForm(FlaskForm):
         :param event: The event to get the questions from
         :param user: The user that will answer the questions
         """
-        
+
         super().__init__(*args, **kwargs)
 
         query = Question.query.filter(Question.event_id == event.id)
 
         # Exclude questions which were already answered by the user
-        query = query.filter(
-            ~Question.answers.any(QuestionAnswer.user_id == user.id)
-        )
+        query = query.filter(~Question.answers.any(QuestionAnswer.user_id == user.id))
 
         self._questions = query.all()
         self._question_fields = []
@@ -131,7 +129,7 @@ class QuestionAnswersForm(FlaskForm):
             self._add_question_field(question)
 
         # Process form data
-        self.process(*args, **kwargs)
+        self.process(formdata=request.form, *args, **kwargs)
 
     @property
     def questions(self) -> List[Question]:
@@ -153,7 +151,7 @@ class QuestionAnswersForm(FlaskForm):
             field = IntegerField(
                 label=question.title,
                 description=question.description,
-                validators=validators
+                validators=validators,
             )
         elif question.question_type == QuestionType.YesNo:
             field = BooleanField(
@@ -168,7 +166,7 @@ class QuestionAnswersForm(FlaskForm):
                 choices=[
                     (k, text) for k, text in enumerate(question.choices.split("\n"))
                 ],
-                validators=validators
+                validators=validators,
             )
         elif question.question_type == QuestionType.MultipleChoices:
             field = SelectMultipleField(
@@ -178,17 +176,17 @@ class QuestionAnswersForm(FlaskForm):
                 choices=[
                     (k, text) for k, text in enumerate(question.choices.split("\n"))
                 ],
-                validators=validators
+                validators=validators,
             )
         else:
             field = TextAreaField(
                 label=question.title,
                 description=question.description,
-                validators=validators
+                validators=validators,
             )
 
         field_name = f"question_{question.id}"
-        field = field.bind(form = self, name=field_name)
+        field = field.bind(form=self, name=field_name)
 
         self._fields[field_name] = field
         self._question_fields.append(field)
@@ -197,17 +195,20 @@ class QuestionAnswersForm(FlaskForm):
     def get_value(question: Question, data: Any) -> str:
         """
         Converts a question field data to a string value
-        
+
         :param question: The question the field is associated to
         :param data: Raw field data
-        
-        :return: the string value 
+
+        :return: the string value
         """
 
         if question.question_type == QuestionType.YesNo:
-            return "Oui" if question.data else "Non"
+            return "Oui" if data else "Non"
 
-        if question.question_type in  (QuestionType.MultipleChoices, QuestionType.SingleChoice):
+        if question.question_type == QuestionType.SingleChoice:
             return question.choices[data]
+
+        if question.question_type == QuestionType.MultipleChoices:
+            return "\n".join([question.choices[idx] for idx in data])
 
         return str(data)

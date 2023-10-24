@@ -375,8 +375,25 @@
     </div>
     {% endif %}
 
+    {% if event.user_answers(current_user.id) %}
+    <h3 class="heading-3">Vos réponses au questionnaire</h3>
+    Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
+
+
+    {% for qa in event.user_answers(current_user.id) %}
+    <p>
+    <span class="h-s">{{qa.question.title}}</span>
+    {{qa.value}}
+    </p>
+
+    {% endfor %}
+
+    {% endif %}
+
     {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
     <br/>
+
+
 
     {# Administration #}
     {% include 'event/partials/admin.html' %}
