@@ -10,13 +10,12 @@ from wtforms import (
     FormField,
     BooleanField,
     TextAreaField,
-    IntegerField,
-    RadioField,
+    SelectField,
     SelectMultipleField,
 )
+from wtforms.fields.html5 import IntegerField
 from wtforms.validators import Optional, ValidationError
-from wtforms.validators import DataRequired
-from wtforms_alchemy import ClassMap
+from wtforms.validators import InputRequired
 
 from collectives.models import Question, QuestionType, QuestionAnswer
 from collectives.models import Event, User
@@ -132,7 +131,6 @@ class QuestionAnswersForm(FlaskForm):
             self._add_question_field(question)
 
         # Process form data
-        print(self._fields)
         self.process(*args, **kwargs)
 
     @property
@@ -149,12 +147,13 @@ class QuestionAnswersForm(FlaskForm):
         """Creates a form field for a given question"""
         validators = []
         if question.required:
-            validators.append(DataRequired())
+            validators.append(InputRequired())
 
         if question.question_type == QuestionType.Numeric:
             field = IntegerField(
                 label=question.title,
                 description=question.description,
+                validators=validators
             )
         elif question.question_type == QuestionType.YesNo:
             field = BooleanField(
@@ -162,13 +161,14 @@ class QuestionAnswersForm(FlaskForm):
                 description=question.description,
             )
         elif question.question_type == QuestionType.SingleChoice:
-            field = RadioField(
+            field = SelectField(
                 label=question.title,
                 description=question.description,
                 coerce=int,
                 choices=[
                     (k, text) for k, text in enumerate(question.choices.split("\n"))
                 ],
+                validators=validators
             )
         elif question.question_type == QuestionType.MultipleChoices:
             field = SelectMultipleField(
@@ -178,11 +178,13 @@ class QuestionAnswersForm(FlaskForm):
                 choices=[
                     (k, text) for k, text in enumerate(question.choices.split("\n"))
                 ],
+                validators=validators
             )
         else:
             field = TextAreaField(
                 label=question.title,
                 description=question.description,
+                validators=validators
             )
 
         field_name = f"question_{question.id}"
@@ -192,7 +194,7 @@ class QuestionAnswersForm(FlaskForm):
         self._question_fields.append(field)
 
     @staticmethod
-    def get_value(self, question: Question, data: Any) -> str:
+    def get_value(question: Question, data: Any) -> str:
         """
         Converts a question field data to a string value
         
