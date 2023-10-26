@@ -54,7 +54,7 @@ class QuestionForm(ModelForm):
 
     def validate_choices(self, field):
         choice_text = field.data or ""
-        choices = [line.strip() for line in choice_text.split("\n") if line.strip()]
+        choices = Question.make_choices_array(choice_text)
         if (
             self.question_type.data == QuestionType.MultipleChoices
             or self.question_type.data == QuestionType.SingleChoice
@@ -206,9 +206,11 @@ class QuestionAnswersForm(FlaskForm):
             return "Oui" if data else "Non"
 
         if question.question_type == QuestionType.SingleChoice:
-            return question.choices[data]
+            choices = question.choices_array()
+            return choices[data]
 
         if question.question_type == QuestionType.MultipleChoices:
-            return "\n".join([question.choices[idx] for idx in data])
+            choices = question.choices_array()
+            return "\n".join([choices[idx] for idx in data])
 
         return str(data)

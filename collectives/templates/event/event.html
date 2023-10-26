@@ -33,6 +33,7 @@
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
 
+        {% if question_form.question_fields %} 
         const choices = new Choices('.choices', {
             removeItemButton:true,
             noChoicesText:"Pas d'autres choix disponibles",
@@ -42,6 +43,7 @@
             placeholder:true,
             placeholderValue:"Choix…"
           });
+        {% endif %}
       };
   </script>
 {% endblock %}
@@ -379,7 +381,6 @@
     <h3 class="heading-3">Vos réponses au questionnaire</h3>
     Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
 
-
     {% for qa in event.user_answers(current_user.id) %}
     <p>
     <span class="h-s">{{qa.question.title}}</span>
@@ -387,7 +388,6 @@
     </p>
 
     {% endfor %}
-
     {% endif %}
 
     {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}

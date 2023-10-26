@@ -299,3 +299,16 @@ class UserModelMixin:
             foreign_keys="[Payment.reporter_id]",
             lazy=True,
         )
+
+
+    @declared_attr
+    def question_answers(self):
+        """List of question answers authored by this user
+
+        :type: list(:py:class:`collectives.models.question.QuestionAnswer`)
+        """
+        return db.relationship(
+            "QuestionAnswer",
+            backref="user",
+            lazy=True,
+        )

@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, redirect, url_for, request, render_template
 from flask_login import current_user
 
-from collectives.models import Event, Question, db
+from collectives.models import Event, Question, QuestionAnswer, db
 
 from collectives.utils.access import valid_user
 from collectives.forms.question import NewQuestionForm, QuestionnaireForm
@@ -85,3 +85,54 @@ def edit_questions(event_id: int):
         form=form,
         new_question_form=new_question_form,
     )
+
+
+@blueprint.route("/event/<event_id>/answers", methods=["GET"])
+@valid_user()
+def show_answers(event_id: int):
+    """Route for displaying answers to an event questions
+
+    :param event_id: The primary key of the event
+    """
+    event = Event.query.get(event_id)
+    if event is None:
+        flash("Événement inexistant", "error")
+        return redirect(url_for("event.index"))
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès refusé", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    return render_template(
+        "question/show_answers.html",
+        event=event,
+    )
+
+
+@blueprint.route("/answer/<int:answer_id>/delete", methods=["POST"])
+@valid_user()
+def delete_answer(answer_id: int):
+    """Route for deleting a single answer
+
+    :param answer_id: The answer primary key
+    """
+    answer = QuestionAnswer.query.get(answer_id)
+    if answer is None:
+        flash("Réponse inexistante", "error")
+        return redirect(url_for("event.index"))
+
+    event_id = answer.question.event_id
+    is_author = answer.user_id == current_user.id
+
+    if not is_author:
+        if not answer.question.event.has_edit_rights(current_user):
+            flash("Accès refusé", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
+
+    db.session.delete(answer)
+    db.session.commit()
+
+    if is_author:
+        return redirect(url_for("event.view_event", event_id=event_id))
+    else:
+        return redirect(url_for("question.show_answers", event_id=event_id))

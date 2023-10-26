@@ -120,13 +120,21 @@ class Question(db.Model):
     type: string
     """
 
-    # db.relationship(
-    #    "QuestionChoice", backref="question", lazy=True, cascade="all, delete-orphan"
-    # )
-
     answers = db.relationship(
         "QuestionAnswer", backref="question", lazy=True, cascade="all, delete-orphan"
     )
+
+    @staticmethod
+    def make_choices_array(choices_text: str) -> List[str]:
+        """Converts choices stored as a single string to an array of individual choices
+        :param choices_text: the string containing one choice per non-empty line
+        :returns: the list of possible choices"""
+
+        return [choice.strip() for choice in choices_text.split("\n") if choice.strip()]
+
+    def choices_array(self) -> List[str]:
+        """:returns: the list of possible choices for the question"""
+        return self.make_choices_array(self.choices)
 
 
 class QuestionAnswer(db.Model):

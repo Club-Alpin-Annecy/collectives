@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+
+  {# Tabulator: for tables #}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+
+  <script src="{{ url_for('static', filename='js/question/show_answers.js') }}"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+  <script>
+  var table;
+  window.onload = function() {
+    var ajaxUrl = "{{url_for('api.event_question_answers', event_id=event.id)}}" ;
+    table = createShowAnswersTable(ajaxUrl, '{{csrf_token()}}');
+  }
+
+  </script>
+
+{% endblock %}
+
+{% block content %}
+<div class="page-content" style="max-width: 100%">
+  <h1 class="heading-1">Réponses au questionnaire</h1>
+
+  <p><a class="button button-secondary" href="{{url_for('event.view_event', event_id=event.id)}}">Retour à l'événement</a></p>
+  <div id="answers-table"></div>
+
+</div>
+{% endblock %}
