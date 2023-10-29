@@ -1,3 +1,5 @@
+"""Module containing routes related to event questions"""
+
 from flask import Blueprint, flash, redirect, url_for, request, render_template
 from flask_login import current_user
 
@@ -55,7 +57,7 @@ def edit_questions(event_id: int):
             for question_form in form.questions:
                 question = question_form.question
                 if question is None:
-                    flash("error", "Données invalides")
+                    flash("Données invalides", "error")
                     break
 
                 if question_form.delete.data:
@@ -134,5 +136,5 @@ def delete_answer(answer_id: int):
 
     if is_author:
         return redirect(url_for("event.view_event", event_id=event_id))
-    else:
-        return redirect(url_for("question.show_answers", event_id=event_id))
+
+    return redirect(url_for("question.show_answers", event_id=event_id))

@@ -300,7 +300,6 @@ class UserModelMixin:
             lazy=True,
         )
 
-
     @declared_attr
     def question_answers(self):
         """List of question answers authored by this user

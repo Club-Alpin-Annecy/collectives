@@ -915,9 +915,13 @@ def answer_questions(event_id: int):
     query = Registration.query.filter_by(user=current_user).filter_by(event=event)
     registration: Registration = query.first()
 
-    if registration is None or (not registration.is_active() and registration.status != RegistrationStatus.Waiting):
+    if registration is None or (
+        not registration.is_active()
+        and registration.status != RegistrationStatus.Waiting
+    ):
         flash(
-            "Vous n'êtes pas inscrit ou en liste d'attente pour cet événement" "error",
+            "Vous n'êtes pas inscrit ou en liste d'attente pour cet événement",
+            "error",
         )
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -926,7 +930,7 @@ def answer_questions(event_id: int):
     if not question_form.validate_on_submit():
         # Validation is done client side, if we get here the request has been altered;
         # no need to try and restore used data or display relevant errors
-        flash("error", "Données invalides")
+        flash("Données invalides", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     for question, question_field in zip(

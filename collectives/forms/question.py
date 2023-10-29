@@ -1,3 +1,5 @@
+"""Module containing forms related to questions"""
+
 from typing import List, Any
 
 from flask import request
@@ -13,25 +15,28 @@ from wtforms import (
     TextAreaField,
     SelectField,
     SelectMultipleField,
+    IntegerField,
 )
-from wtforms.fields.html5 import IntegerField
-from wtforms.validators import Optional, ValidationError
-from wtforms.validators import InputRequired
+
+from wtforms.validators import Optional, ValidationError, InputRequired
 
 from collectives.models import Question, QuestionType, QuestionAnswer
 from collectives.models import Event, User
 
 
 class QuestionForm(ModelForm):
+    """Form for editing question objects"""
+
     question_id = HiddenField()
     delete = BooleanField("Supprimer")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Description attributes overwritted when creating a FieldList(FieldForm)
-        # Save it and reinstate it later
-        self._description = self.description
+        # "description" field is overwritten when creating a FieldList(FieldForm)
+        # Save it and restore it later
+        self._description: Field = self.description
+        self.description: Field = None
 
     class Meta:
         """Fields to expose"""
@@ -52,16 +57,27 @@ class QuestionForm(ModelForm):
             "choices",
         ]
 
-    def validate_choices(self, field):
+    def restore_description(self):
+        """Restore previously saved description field (see constructor)"""
+        self.description = self._description
+
+    def validate_choices(self, field: Field):
+        """Validator for question choices.
+
+        Raises an error if no choices are provided for single/multiple choice questions
+        :param field: Field being validated
+        """
+
         choice_text = field.data or ""
         choices = Question.make_choices_array(choice_text)
-        if (
-            self.question_type.data == QuestionType.MultipleChoices
-            or self.question_type.data == QuestionType.SingleChoice
+        if self.question_type.data in (
+            QuestionType.MultipleChoices,
+            QuestionType.SingleChoice,
         ):
             if len(choices) < 1:
                 raise ValidationError(
-                    f"Au moins un choix est requis pour une question de type {QuestionType.display_name(self.question_type.data)}"
+                    "Au moins un choix est requis pour une question de type "
+                    + QuestionType.display_name(self.question_type.data)
                 )
         else:
             choices = []
@@ -77,10 +93,14 @@ class QuestionForm(ModelForm):
 
 
 class NewQuestionForm(QuestionForm, FlaskForm):
+    """Form for adding a new question to an event"""
+
     add = SubmitField("Ajouter la question")
 
 
 class QuestionnaireForm(FlaskForm):
+    """Form for editing event questions"""
+
     questions = FieldList(FormField(QuestionForm, default=Question()))
 
     update = SubmitField("Enregistrer")
@@ -102,10 +122,12 @@ class QuestionnaireForm(FlaskForm):
         # Update fields
         for question, field_form in zip(questions, self.questions):
             field_form.question_id.data = question.id
-            field_form.description = field_form._description
+            field_form.restore_description()
 
 
 class QuestionAnswersForm(FlaskForm):
+    """Form for answering event questions"""
+
     submit = SubmitField("Répondre")
 
     def __init__(self, event: Event, user: User, *args, **kwargs):
@@ -163,9 +185,7 @@ class QuestionAnswersForm(FlaskForm):
                 label=question.title,
                 description=question.description,
                 coerce=int,
-                choices=[
-                    (k, text) for k, text in enumerate(question.choices.split("\n"))
-                ],
+                choices=list(enumerate(question.choices_array())),
                 validators=validators,
             )
         elif question.question_type == QuestionType.MultipleChoices:
@@ -173,9 +193,7 @@ class QuestionAnswersForm(FlaskForm):
                 label=question.title,
                 description=question.description,
                 coerce=int,
-                choices=[
-                    (k, text) for k, text in enumerate(question.choices.split("\n"))
-                ],
+                choices=list(enumerate(question.choices_array())),
                 validators=validators,
             )
         else:

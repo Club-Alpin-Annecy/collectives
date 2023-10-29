@@ -1,5 +1,5 @@
 """ Module for misc Event methods which does not fit in another submodule"""
-from typing import List 
+from typing import List
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models.event.enum import EventStatus
@@ -134,7 +134,6 @@ class EventMiscMixin:
             self._user_group.event_conditions[0].event_id = parent_event_id
 
         self._deprecated_parent_event_id = None
-
 
     def user_answers(self, user_id: int) -> List["QuestionAnswer"]:
         """:returns: the list of answers to this event's question by a given user"""

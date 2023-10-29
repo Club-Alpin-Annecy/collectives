@@ -7,12 +7,20 @@ from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
 
+# pylint: disable=invalid-name
 class QuestionType(ChoiceEnum):
+    """Enumeration listing possible question types"""
+
     SingleChoice = 0
+    """Question with a single possible answer among a predefined list"""
     MultipleChoices = 1
+    """Question with a multiple possible answers among a predefined list"""
     Numeric = 2
+    """Question with an integer answer"""
     Text = 3
+    """Question with arbitrary textual answer"""
     YesNo = 5
+    """Boolean question"""
 
     @classmethod
     def display_names(cls):
@@ -112,7 +120,8 @@ class Question(db.Model):
         nullable=True,
         info={
             "label": "Réponses possibles",
-            "description": "Pour les questions de type 'Choix multiple' ou 'Choix unique'. Une réponse par ligne",
+            "description": "Pour les questions de type 'Choix multiple' ou 'Choix unique'."
+            + "Une réponse par ligne",
         },
     )
     """Possible answers for this question, one per line

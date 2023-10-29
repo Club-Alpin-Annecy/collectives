@@ -381,7 +381,8 @@ def autocomplete_event():
 
 
 def _get_answer_registration_status(answer: QuestionAnswer) -> str:
-    """:returns: the string corresponding to the registration status of the user that authored an answer"""
+    """:returns: the string corresponding to the registration status of the user
+    that authored an answer"""
 
     reg = next(iter(answer.question.event.existing_registrations(answer.user)), None)
     return reg.status.display_name() if reg else "Supprimée"
@@ -406,7 +407,14 @@ class QuestionAnswerSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
-        fields = ("id", "value", "author_name", "question_title", "delete_uri", "registration_status")
+        fields = (
+            "id",
+            "value",
+            "author_name",
+            "question_title",
+            "delete_uri",
+            "registration_status",
+        )
 
 
 @blueprint.route("/event/<int:event_id>/answers/")

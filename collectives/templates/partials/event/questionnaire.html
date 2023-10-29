@@ -14,7 +14,9 @@
         {% else%}
         <div class="field label-top">
             {{ field.label }}   
-            {% if field.type == "TextAreaField" %}
+            {% if field.type == "IntegerField" %}
+            {{ field(class="input input-25", type="number") }}
+            {% elif field.type == "TextAreaField" %}
             {{ field(class="input input-100") }}
             {% elif field.type == "SelectMultipleField" %}
             {{ field(class="input choices input-33") }}
