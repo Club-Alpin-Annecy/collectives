@@ -465,7 +465,7 @@ def get_bad_phone_message(user):
         importantes comme un changement de lieu de rendez-vous, un changement du lieu de la sortie 
         ou l'annulation de la sortie<br/>
         Veuillez saisir un numéro de téléphone valide dans <a 
-        href="https://extranet-clubalpin.com/mesinfos/">
+        href="https://extranet-clubalpin.com/monespace/">
         votre espace personnel FFCAM </a>, menu "Mes informations", puis resynchronisez vos 
         informations en cliquant 
         <form action="{url_for('profile.force_user_sync')}" method="post" style="display: inline">
