@@ -1,0 +1,20 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">{{user.full_name()}}</h2>
+
+  <h4 class="heading-4">Renouvellement badge</h4>
+  <form action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="POST" >
+    {% for field in form %}
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+          {{ field.label }}
+          {{ field }}<br/>
+        {% endif %}
+    {% endfor %}
+    {{ form.hidden_tag() }}
+     <br/>{{ form.submit(class="button button-primary") }}
+  </form>
+</div>
+{% endblock %}

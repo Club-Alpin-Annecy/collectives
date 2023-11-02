@@ -9,7 +9,7 @@ from flask import Blueprint
 from flask_login import current_user
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, RoleForm
+from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, RenewBadgeForm, RoleForm
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
@@ -339,21 +339,28 @@ def renew_user_badge(badge_id):
     """
 
     badge = Badge.query.get(badge_id)
-
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
 
-    db.session.delete(badge)
+    form = RenewBadgeForm(badge=badge)
+
+    if not form.validate_on_submit():
+        return render_template(
+            "user_badge_renew.html",
+            user=badge.user,
+            badge=badge,
+            form=form,
+            title="Badges utilisateur",
+            now=date.today(),
+        )
+
+    form.populate_obj(badge)
+
+    db.session.add(badge)
     db.session.commit()
 
-    return render_template(
-        "user_badges.html",
-        user=badge.user,
-        form=BadgeForm(initial=badge),
-        title="Badges utilisateur",
-        now=date.today(),
-    )
+    return redirect(url_for("administration.add_user_badge", user_id=badge.user.id))
 
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])

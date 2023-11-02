@@ -160,21 +160,43 @@ class BadgeForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-        initial = kwargs.pop("initial", {})
         kwargs["expiration_date"] = compute_default_expiration_date()
-        if initial:
-            if initial.level:
-                kwargs["level"] = initial.level
+            
+        super().__init__(*args, **kwargs)
 
+        # In case this is a CREATION
+        self.activity_type_id.choices = [
+            (a.id, a.name) for a in ActivityType.get_all_types(True)
+        ]
+
+class RenewBadgeForm(ModelForm, FlaskForm):
+    """Form for administrators to add badges to users"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Badge
+
+    activity_type_id = SelectField("Activité", choices=[], coerce=int)
+    submit = SubmitField("Renouveller")
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+        badge = kwargs.pop("badge", {})
+        kwargs["expiration_date"] = compute_default_expiration_date()
+        if badge:
+            if badge.level:
+                kwargs["level"] = badge.level
+            
         super().__init__(*args, **kwargs)
         # In case this is a RENEWAL
-        if initial:
-            if initial.activity_id:
+        if badge:
+            if badge.activity_id:
                 self.activity_type_id.choices = [
-                    (initial.activity_id, ActivityType.get(initial.activity_id).name)
+                    (badge.activity_id, ActivityType.get(badge.activity_id).name)
                 ]
-            if initial.badge_id:
-                self.badge_id = [BadgeIds(int(initial.badge_id))]
+            if badge.badge_id:
+                self.badge_id = [BadgeIds(int(badge.badge_id))]
 
         # In case this is a CREATION
         else:
