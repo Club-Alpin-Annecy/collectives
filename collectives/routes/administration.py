@@ -9,7 +9,13 @@ from flask import Blueprint
 from flask_login import current_user
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm, RenewBadgeForm, RoleForm
+from collectives.forms.user import (
+    AdminUserForm,
+    AdminTestUserForm,
+    BadgeForm,
+    RenewBadgeForm,
+    RoleForm,
+)
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken

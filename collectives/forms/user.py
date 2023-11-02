@@ -161,13 +161,14 @@ class BadgeForm(ModelForm, FlaskForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         kwargs["expiration_date"] = compute_default_expiration_date()
-            
+
         super().__init__(*args, **kwargs)
 
         # In case this is a CREATION
         self.activity_type_id.choices = [
             (a.id, a.name) for a in ActivityType.get_all_types(True)
         ]
+
 
 class RenewBadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
@@ -187,7 +188,7 @@ class RenewBadgeForm(ModelForm, FlaskForm):
         if badge:
             if badge.level:
                 kwargs["level"] = badge.level
-            
+
         super().__init__(*args, **kwargs)
         # In case this is a RENEWAL
         if badge:
