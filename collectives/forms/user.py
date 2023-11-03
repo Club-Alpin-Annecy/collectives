@@ -1,11 +1,13 @@
 """Module containing forms for updating user information
 """
+from datetime import date
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import PasswordField, SubmitField, StringField
-from wtforms import SelectField, BooleanField, HiddenField
-from wtforms.validators import EqualTo, DataRequired
+from wtforms import SelectField, BooleanField, HiddenField, IntegerField
+from wtforms.validators import EqualTo, DataRequired, Optional
+from wtforms.fields import DateField
 from wtforms_alchemy import ModelForm
 
 
@@ -13,6 +15,7 @@ from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, photos, ActivityType, Role, RoleIds
+from collectives.models import Badge, BadgeIds
 
 
 class AvatarForm:
@@ -127,8 +130,80 @@ class RoleForm(ModelForm, FlaskForm):
         """Overloaded constructor populating activity list"""
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
-            (a.id, a.name) for a in ActivityType.get_all_types()
+            (a.id, a.name) for a in ActivityType.get_all_types(True)
         ]
+
+
+def compute_default_expiration_date():
+    """Compute the default expiration date for a badge"""
+    # For now, the default expiration date is hard-coded.
+    # It could be managable in the admin panel in a next version
+    # NB: when we are after the default hard-coded date, but still in the same year,
+    # then increment the year
+    default_date = date(date.today().year, 9, 30)
+    default_year = default_date.year
+    if (date.today() >= default_date) and (date.today().year == default_year):
+        default_date = date(date.today().year + 1, 9, 30)
+    return default_date
+
+
+class BadgeForm(ModelForm, FlaskForm):
+    """Form for administrators to add badges to users"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Badge
+
+    activity_type_id = SelectField("Activité", choices=[], coerce=int)
+    submit = SubmitField("Ajouter")
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+        kwargs["expiration_date"] = compute_default_expiration_date()
+
+        super().__init__(*args, **kwargs)
+
+        # In case this is a CREATION
+        self.activity_type_id.choices = [
+            (a.id, a.name) for a in ActivityType.get_all_types(True)
+        ]
+
+
+class RenewBadgeForm(ModelForm, FlaskForm):
+    """Form for administrators to add badges to users"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Badge
+
+    activity_type_id = SelectField("Activité", choices=[], coerce=int)
+    submit = SubmitField("Renouveller")
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+        badge = kwargs.pop("badge", {})
+        kwargs["expiration_date"] = compute_default_expiration_date()
+        if badge:
+            if badge.level:
+                kwargs["level"] = badge.level
+
+        super().__init__(*args, **kwargs)
+        # In case this is a RENEWAL
+        if badge:
+            if badge.activity_id:
+                self.activity_type_id.choices = [
+                    (badge.activity_id, ActivityType.get(badge.activity_id).name)
+                ]
+            if badge.badge_id:
+                self.badge_id = [BadgeIds(int(badge.badge_id))]
+
+        # In case this is a CREATION
+        else:
+            self.activity_type_id.choices = [
+                (a.id, a.name) for a in ActivityType.get_all_types(True)
+            ]
 
 
 class AddLeaderForm(ActivityTypeSelectionForm):
@@ -156,4 +231,37 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         """Overloaded constructor populating activity list"""
         kwargs["activity_list"] = current_user.get_supervised_activities()
         kwargs["submit_label"] = "Ajouter un encadrant"
+        super().__init__(*args, **kwargs)
+
+
+class AddBadgeForm(ActivityTypeSelectionForm):
+    """Form for supervisors to add badges to Users"""
+
+    user_id = HiddenField()
+    user_search = StringField(
+        "Utilisateur",
+        render_kw={
+            "autocomplete": "off",
+            "class": "search-input",
+            "placeholder": "Nom...",
+        },
+    )
+    badge_id = SelectField(
+        "Badge",
+        coerce=int,
+        validators=[DataRequired()],
+        choices=BadgeIds.choices(),
+    )
+    expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
+    level = IntegerField(
+        "Niveau du badge",
+        validators=[Optional()],
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+        kwargs["activity_list"] = current_user.get_supervised_activities()
+        kwargs["submit_label"] = "Ajouter un badge"
+        kwargs["expiration_date"] = compute_default_expiration_date()
+
         super().__init__(*args, **kwargs)

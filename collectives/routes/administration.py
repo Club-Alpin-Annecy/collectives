@@ -3,15 +3,23 @@
 All routes are protected by :py:fun:`before_request` which protect acces to admin only.
  """
 
+from datetime import date
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import AdminUserForm, AdminTestUserForm, RoleForm
+from collectives.forms.user import (
+    AdminUserForm,
+    AdminTestUserForm,
+    BadgeForm,
+    RenewBadgeForm,
+    RoleForm,
+)
 from collectives.forms.auth import AdminTokenCreationForm
-from collectives.models import User, ActivityType, Role, RoleIds, db
+from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
+from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
@@ -54,6 +62,15 @@ def administration():
             filter_id = f"t{activity.id}-r{int(role)}"
             filters[filter_id] = f"- {activity.name} ({role.display_name()})"
 
+    filters_badge = {"": ""}
+    for badge in BadgeIds:
+        filters_badge[f"b{int(badge)}"] = f"Badge {badge.display_name()}"
+    for activity in ActivityType.get_all_types():
+        filters_badge[f"t{activity.id}"] = f"{activity.name} (Tous)"
+        for badge in BadgeIds:
+            filter_id = f"t{activity.id}-b{int(badge)}"
+            filters_badge[filter_id] = f"- {activity.name} ({badge.display_name()})"
+
     count = {}
     count["total"] = User.query.count()
     count["enable"] = User.query.filter(User.enabled == True).count()
@@ -61,6 +78,7 @@ def administration():
     return render_template(
         "administration.html",
         filters=filters,
+        filters_badge=filters_badge,
         count=count,
         token_creation_form=AdminTokenCreationForm(),
     )
@@ -154,6 +172,19 @@ class RoleValidationException(Exception):
         super().__init__(self)
 
 
+class BadgeValidationException(Exception):
+    """Exception class of new user badge validation"""
+
+    def __init__(self, message):
+        """Exception constructor
+
+        :param message: Message to be displayed to the user
+        :type message: string
+        """
+        self.message = message
+        super().__init__(self)
+
+
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 @user_is("is_admin")
 def add_user_role(user_id):
@@ -214,13 +245,128 @@ def add_user_role(user_id):
     except RoleValidationException as err:
         flash(err.message, "error")
 
-    form = RoleForm()
     return render_template(
         "user_roles.html",
         user=user,
-        form=form,
+        form=RoleForm(),
         title="Roles utilisateur",
     )
+
+
+@blueprint.route("/user/<user_id>/badges", methods=["GET", "POST"])
+@user_is("is_admin")
+def add_user_badge(user_id):
+    """Route for user badges management page."""
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        flash("Utilisateur inexistant", "error")
+        return redirect(url_for("administration.administration"))
+
+    form = BadgeForm()
+    if not form.is_submitted():
+        return render_template(
+            "user_badges.html",
+            user=user,
+            form=form,
+            title="Badges utilisateur",
+            now=date.today(),
+        )
+
+    badge = Badge()
+    form.populate_obj(badge)
+
+    badge_id = badge.badge_id
+
+    try:
+        # Check that the badge does not already exist
+        badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
+
+        if badge.activity_type is not None:
+            badge.activity_id = badge.activity_type.id
+            badge_exists = user.has_badge_for_activity(
+                [badge_id], badge.activity_type.id
+            )
+        else:
+            badge_exists = user.has_badge_for_activity([badge_id], None)
+
+        if badge_exists:
+            raise BadgeValidationException(
+                "Type de Badge déjà associé à l'utilisateur pour cette activité"
+            )
+
+        user.badges.append(badge)
+        db.session.commit()
+    except BadgeValidationException as err:
+        flash(err.message, "error")
+
+    return render_template(
+        "user_badges.html",
+        user=user,
+        form=BadgeForm(),
+        title="Badges utilisateur",
+        now=date.today(),
+    )
+
+
+@blueprint.route("/badges/<int:badge_id>/delete", methods=["POST"])
+@user_is("is_admin")
+def delete_user_badge(badge_id):
+    """Route to delete a user badge.
+
+    :return: redirection to badge management page
+    :rtype: string
+    """
+
+    badge = Badge.query.get(badge_id)
+
+    if badge is None:
+        flash("Badge inexistant", "error")
+        return redirect(url_for("administration.administration"))
+
+    db.session.delete(badge)
+    db.session.commit()
+
+    return render_template(
+        "user_badges.html",
+        user=badge.user,
+        form=BadgeForm(),
+        title="Badges utilisateur",
+        now=date.today(),
+    )
+
+
+@blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
+@user_is("is_admin")
+def renew_user_badge(badge_id):
+    """Route to renew a user badge.
+
+    :return: redirection to badge management page
+    :rtype: string
+    """
+
+    badge = Badge.query.get(badge_id)
+    if badge is None:
+        flash("Badge inexistant", "error")
+        return redirect(url_for("administration.administration"))
+
+    form = RenewBadgeForm(badge=badge)
+
+    if not form.validate_on_submit():
+        return render_template(
+            "user_badge_renew.html",
+            user=badge.user,
+            badge=badge,
+            form=form,
+            title="Badges utilisateur",
+            now=date.today(),
+        )
+
+    form.populate_obj(badge)
+
+    db.session.add(badge)
+    db.session.commit()
+
+    return redirect(url_for("administration.add_user_badge", user_id=badge.user.id))
 
 
 @blueprint.route("/roles/<int:role_id>/delete", methods=["POST"])
@@ -245,11 +391,10 @@ def remove_user_role(role_id):
         db.session.delete(role)
         db.session.commit()
 
-    form = RoleForm()
     return render_template(
         "user_roles.html",
         user=user,
-        form=form,
+        form=RoleForm(),
         title="Roles utilisateur",
     )
 
@@ -285,8 +430,8 @@ def export_role(raw_filters=""):
     filename = ""
 
     if "r" in filters:
-        query_filter = query_filter.filter(Role.role_id == RoleIds.get(filters["r"]))
-        filename += RoleIds.get(filters["r"]).display_name() + " "
+        query_filter = query_filter.filter(Role.role_id == RoleIds(int(filters["r"])))
+        filename += RoleIds(int(filters["r"])).display_name() + " "
     if "t" in filters:
         if filters["t"] == "none":
             filters["t"] = None
@@ -297,6 +442,48 @@ def export_role(raw_filters=""):
     roles = query_filter.all()
 
     out = export.export_roles(roles)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name=f"CAF Annecy - Export {filename}.xlsx",
+        as_attachment=True,
+    )
+
+
+@blueprint.route("/badges/export/<raw_filters>", methods=["GET"])
+def export_badge(raw_filters=""):
+    """Create an Excel document with the contact information of users with badges.
+
+    Input is a string with id of role or activity. EG `b2-t1` for badge 2 and type 1.
+
+    :param raw_filters: Badges filters to use.
+    :type raw_filters: string
+    :return: The Excel file with the badges.
+    """
+    query_filter = Role.query
+    # we remove role not linked anymore to a user
+    query_filter = query_filter.filter(Badge.user.has(User.id))
+
+    if raw_filters != "":
+        filters = {i[0]: i[1:] for i in raw_filters.split("-")}
+        filename = ""
+
+        if "b" in filters:
+            query_filter = query_filter.filter(
+                Badge.badge_id == BadgeIds(int(filters["b"]))
+            )
+            filename += BadgeIds(int(filters["b"])).display_name() + " "
+        if "t" in filters:
+            if filters["t"] == "none":
+                filters["t"] = None
+            else:
+                filename += ActivityType.query.get(filters["t"]).name
+            query_filter = query_filter.filter(Badge.activity_id == filters["t"])
+
+    badges = query_filter.all()
+
+    out = export.export_badges(badges)
 
     return send_file(
         out,

@@ -33,6 +33,12 @@ def test_add_user_role(admin_client, admin_user):
     assert response.status_code == 200
 
 
+def test_add_user_badge(admin_client, admin_user):
+    """Test display of a user badge modification form."""
+    response = admin_client.get(f"/administration/user/{admin_user.id}/badges")
+    assert response.status_code == 200
+
+
 def test_export_roles(admin_client):
     """Test exports of user roles"""
     response = admin_client.get("/administration/roles/export/")
@@ -42,6 +48,21 @@ def test_export_roles(admin_client):
     assert response.status_code == 200
 
     response = admin_client.get("/administration/roles/export/t5-r10")
+    assert response.status_code == 200
+
+
+def test_export_badges(admin_client):
+    """Test exports of user badges"""
+    response = admin_client.get("/administration/badges/export/")
+    assert response.status_code == 302
+
+    response = admin_client.get("/administration/badges/export/tnone")
+    assert response.status_code == 200
+
+    response = admin_client.get("/administration/badges/export/t5-b1")
+    assert response.status_code == 200
+
+    response = admin_client.get("/administration/badges/export/t5-r10")
     assert response.status_code == 200
 
 

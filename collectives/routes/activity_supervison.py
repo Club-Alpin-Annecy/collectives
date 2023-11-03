@@ -11,11 +11,12 @@ from werkzeug.datastructures import CombinedMultiDict
 
 
 from collectives.forms.csv import CSVForm
-from collectives.forms.user import AddLeaderForm
+from collectives.forms.user import AddBadgeForm, AddLeaderForm
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, Role, RoleIds, ActivityType, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
+from collectives.models.badge import Badge
 from collectives.utils import export
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
@@ -133,21 +134,141 @@ def export_role():
 
     activity_type = ActivityType.query.get(form.activity_id.data)
 
-    query_filter = Role.query
+    query = Role.query
     # we remove role not linked anymore to a user
-    query_filter = query_filter.filter(Role.user.has(User.id))
-    query_filter = query_filter.filter(Role.activity_id == activity_type.id)
+    query = query.filter(Role.user.has(User.id))
+    query = query.filter(Role.activity_id == activity_type.id)
 
-    roles = query_filter.all()
+    roles = query.all()
 
     out = export.export_roles(roles)
 
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {activity_type.name}.xlsx",
+        download_name=f"CAF Annecy - Export Roles {activity_type.name}.xlsx",
         as_attachment=True,
     )
+
+
+@blueprint.route("/badges/export/", methods=["POST"])
+def export_badge():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    form = ActivityTypeSelectionForm(
+        all_enabled=True,
+    )
+
+    if not form.validate_on_submit():
+        abort(400)
+
+    if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
+        activity_type = ActivityType.query.get(form.activity_id.data)
+    else:
+        activity_type = current_user.get_supervised_activities()
+
+    query = Badge.query
+    # we remove role not linked anymore to a user
+    query = query.filter(Badge.user.has(User.id))
+    if activity_type is not None:
+        if isinstance(activity_type, list):
+            query = query.filter(Badge.activity_id.in_([t.id for t in activity_type]))
+        else:
+            query = query.filter(Badge.activity_id == activity_type.id)
+
+    badges = query.all()
+
+    if not isinstance(activity_type, list):
+        filename = activity_type.name
+    else:
+        filename = ""
+
+    out = export.export_badges(badges)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name=f"CAF Annecy - Export Badges {filename}.xlsx",
+        as_attachment=True,
+    )
+
+
+@blueprint.route("/badge", methods=["GET"])
+def badge_list():
+    """Route for activity supervisors to access badges list and management form"""
+
+    add_badge_form = AddBadgeForm()
+    export_form = ActivityTypeSelectionForm(
+        submit_label="Générer Excel",
+        activity_list=current_user.get_supervised_activities(),
+        all_enabled=True,
+    )
+    return render_template(
+        "activity_supervision/badges_list.html",
+        add_badge_form=add_badge_form,
+        export_form=export_form,
+        title="Badges",
+    )
+
+
+@blueprint.route("/badge/add", methods=["POST"])
+@user_is("is_supervisor")
+def add_badge():
+    """Route for an activity supervisor to add a Badge to a user" """
+
+    add_badge_form = AddBadgeForm()
+    if not add_badge_form.validate_on_submit():
+        flash("Erreur lors de l'ajout du badge", "error")
+        return redirect(url_for(".badge_list"))
+
+    badge = Badge()
+    add_badge_form.populate_obj(badge)
+
+    user = User.query.get(badge.user_id)
+    if user is None:
+        flash("Utilisateur invalide", "error")
+        return redirect(url_for(".badge_list"))
+
+    if user.has_this_badge_for_activity(
+        badge.badge_id,
+        badge.activity_id,
+    ):
+        flash(
+            "L'utilisateur a déjà ce badge pour cette activité. Vous devez le supprimer "
+            "ou le renouveller.",
+            "error",
+        )
+        return redirect(url_for(".badge_list"))
+
+    db.session.add(badge)
+    db.session.commit()
+
+    return redirect(url_for(".badge_list"))
+
+
+@blueprint.route("/badge/delete/<badge_id>", methods=["POST"])
+def remove_badge(badge_id):
+    """Route for an activity supervisor to remove a user badge
+
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+
+    badge = Badge.query.get(badge_id)
+    if badge is None:
+        flash("Badge invalide", "error")
+        return redirect(url_for(".badge_list"))
+
+    if badge.activity_type not in current_user.get_supervised_activities():
+        flash("Non autorisé", "error")
+        return redirect(url_for(".badge_list"))
+
+    db.session.delete(badge)
+    db.session.commit()
+
+    return redirect(url_for(".badge_list"))
 
 
 @blueprint.route("/import", methods=["GET", "POST"])

@@ -13,6 +13,7 @@ from collectives.models.user.enum import Gender
 from collectives.models.user.model import UserModelMixin
 from collectives.models.user.misc import UserMiscMixin, avatars
 from collectives.models.user.role import UserRoleMixin
+from collectives.models.user.badge import UserBadgeMixin
 
 
 class User(
@@ -20,6 +21,7 @@ class User(
     db.Model,
     UserModelMixin,
     UserRoleMixin,
+    UserBadgeMixin,
     UserMiscMixin,
     flask_login.UserMixin,
 ):

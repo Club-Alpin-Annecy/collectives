@@ -1,6 +1,5 @@
 """Module for user roles related classes
 """
-import builtins
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -79,14 +78,14 @@ class RoleIds(ChoiceEnum):
     @classmethod
     def all_relates_to_activity(cls):
         """:return: List of all roles that are related to an activity.
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee]
 
     @classmethod
     def all_supervisor_manageable(cls):
         """:return: List of all roles that can be managed by an activity supervisor.
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.EventLeader, cls.Trainee]
 
@@ -94,7 +93,7 @@ class RoleIds(ChoiceEnum):
     def all_moderator_roles(cls):
         """
         :return: List of all roles that grant moderator capabilities
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.Administrator, cls.Moderator, cls.President]
 
@@ -102,7 +101,7 @@ class RoleIds(ChoiceEnum):
     def all_activity_leader_roles(cls):
         """
         :return: List of all roles that allow users to lead event activities
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.EventLeader, cls.ActivitySupervisor]
 
@@ -110,7 +109,7 @@ class RoleIds(ChoiceEnum):
     def all_equipment_management_roles(cls):
         """
         :return: List of all roles that allow users manage equipment
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [
             cls.EquipmentVolunteer,
@@ -121,7 +120,7 @@ class RoleIds(ChoiceEnum):
     def all_reservation_management_roles(cls):
         """
         :return: List of all roles that allow users manage reservation
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [
             cls.EquipmentVolunteer,
@@ -132,7 +131,7 @@ class RoleIds(ChoiceEnum):
     def all_event_creator_roles(cls):
         """
         :return: List of all roles that allow users to create events
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.Staff] + cls.all_activity_leader_roles() + cls.all_moderator_roles()
 
@@ -140,20 +139,9 @@ class RoleIds(ChoiceEnum):
     def all_reservation_creator_roles(cls):
         """
         :return: List of all roles that allow users to create reservation
-        :rtype: list[:py:class:`RodeIds`]
+        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.EventLeader] + cls.all_reservation_management_roles()
-
-    @classmethod
-    def get(cls, required_id):
-        """
-        :return: Get a :py:class:`RodeIds` from its id
-        :rtype: :py:class:`RodeIds`
-        """
-        for role_id in cls:
-            if role_id == int(required_id):
-                return role_id
-        raise builtins.Exception(f"Unknown role id {required_id}")
 
 
 class Role(db.Model):

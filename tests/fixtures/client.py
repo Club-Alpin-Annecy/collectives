@@ -120,3 +120,19 @@ def youth_client(client, youth_user):
     login(client, youth_user)
     yield client
     logout(client)
+
+
+@pytest.fixture
+def client_with_valid_benevole_badge(client, user_with_valid_benevole_badge):
+    """Flask client authenticated as user with a valid badge."""
+    login(client, user_with_valid_benevole_badge)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
+def client_with_expired_benevole_badge(client, user_with_expired_benevole_badge):
+    """Flask client authenticated as user with an expired badge."""
+    login(client, user_with_expired_benevole_badge)
+    yield client
+    logout(client)

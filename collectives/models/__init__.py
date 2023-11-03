@@ -24,3 +24,4 @@ from collectives.models.upload import UploadedFile, documents
 from collectives.models.user import User, Gender, avatars
 from collectives.models.user_group import UserGroup, GroupEventCondition
 from collectives.models.user_group import GroupLicenseCondition, GroupRoleCondition
+from collectives.models.badge import Badge, BadgeIds
