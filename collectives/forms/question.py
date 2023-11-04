@@ -30,14 +30,6 @@ class QuestionForm(ModelForm):
     question_id = HiddenField()
     delete = BooleanField("Supprimer")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # "description" field is overwritten when creating a FieldList(FieldForm)
-        # Save it and restore it later
-        self._description: Field = self.description
-        self.description: Field = None
-
     class Meta:
         """Fields to expose"""
 
@@ -56,10 +48,6 @@ class QuestionForm(ModelForm):
             "order",
             "choices",
         ]
-
-    def restore_description(self):
-        """Restore previously saved description field (see constructor)"""
-        self.description = self._description
 
     def validate_choices(self, field: Field):
         """Validator for question choices.
@@ -122,7 +110,7 @@ class QuestionnaireForm(FlaskForm):
         # Update fields
         for question, field_form in zip(questions, self.questions):
             field_form.question_id.data = question.id
-            field_form.restore_description()
+            field_form.description = field_form.form.description
 
 
 class QuestionAnswersForm(FlaskForm):
