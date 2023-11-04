@@ -57,6 +57,7 @@ window.onload = function(){
             {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
             {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters_badge, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
+            {field:"badges_uri",   formatter:actionFormatter, formatterParams:{'icon': 'pricetags-outline', 'method': 'GET', 'alt': 'Badges'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'POST', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
             ],

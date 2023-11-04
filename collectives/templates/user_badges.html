@@ -13,22 +13,19 @@
    pour l'activité <em>{{badge.activity_name}}</em>
   {% endif %}
   {% if badge.expiration_date %}
-   expirant le <em>{{badge.expiration_date}}</em>
+   expirant le <em>{{format_date(badge.expiration_date)}}</em>
   {% endif %}
   {% if badge.level %}
    avec le niveau <em>{{badge.level}}</em>
   {% endif %}
-  {% if badge.expiration_date and badge.expiration_date < now %}
-  <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <input type="submit" class="button button-primary" value="Renouveler" >
-  </form>
-  {% endif %}
-
-        <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="submit" class="button button-danger" value="Supprimer" >
-          </form>
+    <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <input type="submit" class="button button-primary button-small" value="Renouveler" >
+    </form>
+      <form class="inline" action="{{url_for('administration.delete_user_badge', badge_id=badge.id)}}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="submit" class="button button-danger button-small" value="Supprimer" >
+        </form>
   </li>
   {% endfor %}
   </ul>
