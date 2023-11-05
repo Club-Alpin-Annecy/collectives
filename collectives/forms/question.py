@@ -127,7 +127,9 @@ class QuestionAnswersForm(FlaskForm):
 
         super().__init__(*args, **kwargs)
 
-        query = Question.query.filter(Question.event_id == event.id)
+        query = Question.query.filter(Question.event_id == event.id).order_by(
+            Question.order
+        )
 
         # Exclude questions which were already answered by the user
         query = query.filter(~Question.answers.any(QuestionAnswer.user_id == user.id))

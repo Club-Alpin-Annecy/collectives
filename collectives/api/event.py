@@ -434,6 +434,7 @@ def event_question_answers(event_id: int):
     answers = (
         QuestionAnswer.query.filter(QuestionAnswer.question_id == Question.id)
         .filter(Question.event_id == event_id)
+        .order_by(Question.order)
         .all()
     )
 

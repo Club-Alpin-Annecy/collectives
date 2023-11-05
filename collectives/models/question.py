@@ -178,5 +178,6 @@ class QuestionAnswer(db.Model):
             QuestionAnswer.query.filter(QuestionAnswer.question_id == Question.id)
             .filter(event_id == Question.event_id)
             .filter(QuestionAnswer.user_id == user_id)
+            .order_by(Question.order)
             .all()
         )

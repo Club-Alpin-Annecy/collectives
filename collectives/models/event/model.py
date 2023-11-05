@@ -242,12 +242,16 @@ class EventModelMixin:
 
     @declared_attr
     def questions(self):
-        """List of questions associated top this event
+        """List of questions associated to this event
 
         :type: list(:py:class:`collectives.models.question.Question`)
         """
         return db.relationship(
-            "Question", backref="event", lazy=True, cascade="all, delete-orphan"
+            "Question",
+            backref="event",
+            lazy=True,
+            cascade="all, delete-orphan",
+            order_by="Question.order",
         )
 
     @declared_attr
