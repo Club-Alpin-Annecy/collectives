@@ -747,11 +747,16 @@ def copy_prices(event_id):
 
     if form.purge.data:
         for payment in event.payment_items:
+            remaining_count = len(payment.prices)
             for price in payment.prices:
                 if price.total_use_count() == 0:
                     db.session.delete(price)
+                    remaining_count -= 1
                 else:
                     price.enabled = False
+            # No prices remaining, delete payment item
+            if remaining_count == 0:
+                db.session.delete(payment)
 
     time_shift = event.start - copied_event.start
     event.copy_payment_items(copied_event, time_shift)
