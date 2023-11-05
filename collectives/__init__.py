@@ -20,13 +20,9 @@ from flask_wtf.csrf import CSRFProtect
 
 from collectives import models, api, forms
 from collectives.routes import root, profile, auth, administration, event, reservation
-from collectives.routes import (
-    payment,
-    technician,
-    activity_supervison,
-    equipment,
-    question,
-)
+from collectives.routes import payment, technician, activity_supervison, equipment
+from collectives.routes import question
+
 from collectives.utils import extranet, init, jinja, error, payline
 
 csrf = CSRFProtect()

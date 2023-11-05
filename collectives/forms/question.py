@@ -5,18 +5,8 @@ from typing import List, Any
 from flask import request
 from flask_wtf import FlaskForm
 from wtforms_alchemy import ModelForm
-from wtforms import (
-    Field,
-    SubmitField,
-    HiddenField,
-    FieldList,
-    FormField,
-    BooleanField,
-    TextAreaField,
-    SelectField,
-    SelectMultipleField,
-    IntegerField,
-)
+from wtforms import Field, SubmitField, HiddenField, FieldList, FormField, BooleanField
+from wtforms import TextAreaField, SelectField, SelectMultipleField, IntegerField
 
 from wtforms.validators import Optional, ValidationError, InputRequired
 
