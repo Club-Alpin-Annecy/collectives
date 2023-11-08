@@ -9,10 +9,6 @@ class BadgeIds(ChoiceEnum):
 
     # pylint: disable=invalid-name
     Benevole = 1
-    Initie = 2
-    Confirme = 3
-    InitiateurRecycle = 4
-    PSC1Recycle = 5
 
     @classmethod
     def display_names(cls):
@@ -23,10 +19,6 @@ class BadgeIds(ChoiceEnum):
         """
         return {
             cls.Benevole: "Bénévole",
-            cls.Initie: "Initié",
-            cls.Confirme: "Confirmé",
-            cls.InitiateurRecycle: "Initiateur recyclé",
-            cls.PSC1Recycle: "PSC1 recyclé",
         }
 
     def relates_to_activity(self) -> bool:
@@ -35,7 +27,7 @@ class BadgeIds(ChoiceEnum):
         :return: True if the badge requires an activity.
         :rtype: boolean
         """
-        return self not in (BadgeIds.PSC1Recycle,)
+        return True
 
 
 class Badge(db.Model):
