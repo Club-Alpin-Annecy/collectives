@@ -12,7 +12,7 @@ class BadgeIds(ChoiceEnum):
 
     @classmethod
     def display_names(cls):
-        """Display name of the current badge
+        """Display name for all badges
 
         :return: badge name
         :rtype: string
@@ -20,6 +20,14 @@ class BadgeIds(ChoiceEnum):
         return {
             cls.Benevole: "Bénévole",
         }
+
+    def relates_to_activity(self) -> bool:
+        """Check if this badge needs an activity.
+
+        :return: True if the badge requires an activity.
+        :rtype: boolean
+        """
+        return True
 
 
 class Badge(db.Model):

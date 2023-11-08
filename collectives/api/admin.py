@@ -6,7 +6,7 @@ import json
 from flask import url_for, request
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, and_
+from sqlalchemy import desc, and_, or_
 
 from collectives.models import db, User, RoleIds, Role, Badge
 from collectives.models.badge import BadgeIds
@@ -68,6 +68,13 @@ class UserSchema(marshmallow.Schema):
 
     :type: string
     """
+    badges_uri = fields.Function(
+        lambda user: url_for("administration.add_user_badge", user_id=user.id)
+    )
+    """ URI to badge management page for this user
+
+    :type: string
+    """
     delete_uri = fields.Function(
         lambda user: url_for("administration.delete_user", user_id=user.id)
     )
@@ -126,6 +133,7 @@ class UserSchema(marshmallow.Schema):
             "isadmin",
             "enabled",
             "roles_uri",
+            "badges_uri",
             "avatar_uri",
             "manage_uri",
             "profile_uri",
@@ -167,7 +175,8 @@ def users():
         field = request.args.get(f"filters[{i}][field]")
 
         if value is None:
-            raise ValueError("No filter value")
+            i += 1
+            continue
 
         if field == "roles":
             # if field is roles,
@@ -374,7 +383,12 @@ def badges():
 
     query = db.session.query(Badge)
 
-    query = query.filter(Badge.activity_id.in_(a.id for a in supervised_activities))
+    query = query.filter(
+        or_(
+            Badge.activity_id == None,
+            Badge.activity_id.in_(a.id for a in supervised_activities),
+        )
+    )
     query = query.join(Badge.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
 

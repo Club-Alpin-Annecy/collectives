@@ -16,7 +16,7 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, Role, RoleIds, ActivityType, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.models.badge import Badge
+from collectives.models.badge import Badge, BadgeIds
 from collectives.utils import export
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
@@ -214,9 +214,8 @@ def badge_list():
 
 
 @blueprint.route("/badge/add", methods=["POST"])
-@user_is("is_supervisor")
 def add_badge():
-    """Route for an activity supervisor to add a Badge to a user" """
+    """Route for an activity supervisor to add or renew a Badge to a user" """
 
     add_badge_form = AddBadgeForm()
     if not add_badge_form.validate_on_submit():
@@ -226,21 +225,52 @@ def add_badge():
     badge = Badge()
     add_badge_form.populate_obj(badge)
 
-    user = User.query.get(badge.user_id)
+    badge_id = BadgeIds(badge.badge_id)
+    if not badge_id.relates_to_activity():
+        badge.activity_type = None
+        badge.activity_id = None
+
+    user: User = User.query.get(badge.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".badge_list"))
 
-    if user.has_this_badge_for_activity(
-        badge.badge_id,
-        badge.activity_id,
-    ):
+    matching_badges = [
+        bdg
+        for bdg in user.matching_badges(badge_ids=(badge.badge_id,))
+        if bdg.activity_id == badge.activity_id
+    ]
+
+    if matching_badges:
+        existing = matching_badges[0]
+        if badge.expiration_date and (
+            existing.expiration_date is None
+            or existing.expiration_date > badge.expiration_date
+        ):
+            flash(
+                "L'utilisateur a déjà ce badge pour cette activité"
+                " avec une date d'expiration postérieure",
+                "error",
+            )
+            return redirect(url_for(".badge_list"))
+
+        if existing.level and (badge.level is None or existing.level > badge.level):
+            flash(
+                "L'utilisateur a déjà ce badge pour cette activité"
+                " avec un niveau supérieur",
+                "error",
+            )
+            return redirect(url_for(".badge_list"))
+
+        # Renew existing badge
+        existing.expiration_date = badge.expiration_date
+        existing.level = badge.level
+        badge = existing
         flash(
-            "L'utilisateur a déjà ce badge pour cette activité. Vous devez le supprimer "
-            "ou le renouveller.",
-            "error",
+            "L'utilisateur a déjà ce badge pour cette activité,"
+            " la date d'expiration a été mise à jour.",
+            "info",
         )
-        return redirect(url_for(".badge_list"))
 
     db.session.add(badge)
     db.session.commit()
@@ -261,7 +291,10 @@ def remove_badge(badge_id):
         flash("Badge invalide", "error")
         return redirect(url_for(".badge_list"))
 
-    if badge.activity_type not in current_user.get_supervised_activities():
+    if (
+        badge.activity_type is not None
+        and badge.activity_type not in current_user.get_supervised_activities()
+    ):
         flash("Non autorisé", "error")
         return redirect(url_for(".badge_list"))
 

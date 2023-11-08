@@ -252,7 +252,7 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         validators=[DataRequired()],
         choices=BadgeIds.choices(),
     )
-    expiration_date = DateField("Expiration Date", format="%Y-%m-%d")
+    expiration_date = DateField("Date d'expiration", format="%Y-%m-%d")
     level = IntegerField(
         "Niveau du badge",
         validators=[Optional()],

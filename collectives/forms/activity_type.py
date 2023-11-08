@@ -33,7 +33,7 @@ class ActivityTypeSelectionForm(FlaskForm):
         self.activity_id.choices = [(a.id, a.name) for a in activity_list]
 
         if kwargs.get("all_enabled", False):
-            self.activity_id.choices.append((self.ALL_ACTIVITIES, "All"))
+            self.activity_id.choices.append((self.ALL_ACTIVITIES, "Toutes activités"))
 
         if "submit_label" in kwargs:
             self.submit.label = Label(self.submit.id, kwargs["submit_label"])

@@ -45,7 +45,8 @@
                 {% endif %}
             {% endif %}
 
-        {% elif current_user.is_admin() %}
+        {% endif %}
+        {% if current_user.is_admin() %}
             <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
             <a class="button button-secondary" href="{{url_for('administration.add_user_role', user_id=user.id)}}">Gérer ses rôles</a>
             <a class="button button-secondary" href="{{url_for('administration.add_user_badge', user_id=user.id)}}">Gérer ses badges</a>
@@ -134,7 +135,7 @@
             pour l'activité <em>{{badge.activity_name}}</em>
            {% endif %}
            {% if badge.expiration_date %}
-            expirant le <em>{{badge.expiration_date}}</em>
+            expirant le <em>{{format_date(badge.expiration_date)}}</em>
            {% endif %}
            {% if badge.level %}
             avec le niveau <em>{{badge.level}}</em>

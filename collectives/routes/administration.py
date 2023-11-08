@@ -55,7 +55,7 @@ def administration():
     filters = {"": ""}
     filters["tnone"] = "Role General"
     for role in RoleIds:
-        filters[f"r{role}"] = f"Role {role.display_name()}"
+        filters[f"r{int(role)}"] = f"Role {role.display_name()}"
     for activity in ActivityType.get_all_types():
         filters[f"t{activity.id}"] = f"{activity.name} (Tous)"
         for role in RoleIds.all_activity_leader_roles():
@@ -281,12 +281,18 @@ def add_user_badge(user_id):
         # Check that the badge does not already exist
         badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
 
-        if badge.activity_type is not None:
+        if badge_id.relates_to_activity():
+            if badge.activity_type is None:
+                raise BadgeValidationException(
+                    "Ce badge doit être associé à une activité"
+                )
+
             badge.activity_id = badge.activity_type.id
             badge_exists = user.has_badge_for_activity(
                 [badge_id], badge.activity_type.id
             )
         else:
+            badge.activity_type = None
             badge_exists = user.has_badge_for_activity([badge_id], None)
 
         if badge_exists:
