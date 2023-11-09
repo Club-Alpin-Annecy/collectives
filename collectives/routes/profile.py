@@ -11,10 +11,11 @@ import textwrap
 from PIL import Image, ImageDraw, ImageFont
 from flask import flash, render_template, redirect, url_for, request, send_file
 from flask import Blueprint
-from flask_login import current_user
+from flask_login import current_user, logout_user
 from flask_images import Images
 
 from collectives.forms import UserForm
+from collectives.forms.user import DeleteUserForm
 from collectives.models import User, Role, RoleIds, Configuration, Gender, db
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
@@ -293,4 +294,64 @@ def volunteer_certificate():
         mimetype="application/pdf",
         download_name=str("Attestation Benevole CAF Annecy.pdf"),
         as_attachment=True,
+    )
+
+
+@blueprint.route("/delete", methods=["GET", "POST"], defaults={"user_id": None})
+@blueprint.route("/<int:user_id>/delete", methods=["GET", "POST"])
+def delete_user(user_id: int):
+    """Route to delete an user."""
+
+    if user_id is None:
+        user_id = current_user.id
+
+    if user_id == current_user.id:
+        if current_user.is_admin():
+            flash(
+                "En tant qu'administateur, vous ne pouvez pas supprimer votre propre compte",
+                "error",
+            )
+            return redirect(url_for(".show_user", user_id=user_id))
+    elif not current_user.is_admin():
+        flash("Opération interdite", "error")
+        return redirect(url_for(".show_user", user_id=user_id))
+
+    user: User = User.query.get(user_id)
+    if user is None:
+        flash("Opération interdite", "error")
+        return redirect(url_for(".show_user", user_id=user_id))
+
+    form = DeleteUserForm(user)
+
+    if form.validate_on_submit():
+        # Anonymize account
+        # Keep only gender and license category for statistics
+        user.enabled = False
+        user.first_name = "Compte"
+        user.last_name = "Supprimé"
+        user.license = str(user_id)
+        user.mail = f"{user.license}@localhost"
+        user.date_of_birth = date.today()
+        user.password = ""
+        user.phone = ""
+        user.emergency_contact_name = ""
+        user.emergency_contact_phone = ""
+        user.roles.clear()
+        user.badges.clear()
+        user.delete_avatar()
+
+        db.session.add(user)
+        db.session.commit()
+
+        if user_id == current_user.id:
+            logout_user()
+            return redirect(url_for("auth.login"))
+
+        return redirect(url_for("administration.administration"))
+
+    return render_template(
+        "profile/delete_user.html",
+        title="Suppression d'un compte",
+        user=user,
+        form=form,
     )

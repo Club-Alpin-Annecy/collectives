@@ -76,7 +76,7 @@ class UserSchema(marshmallow.Schema):
     :type: string
     """
     delete_uri = fields.Function(
-        lambda user: url_for("administration.delete_user", user_id=user.id)
+        lambda user: url_for("profile.delete_user", user_id=user.id)
     )
     """ URI to delete this user (WIP)
 

@@ -106,3 +106,36 @@ def test_change_password_unacceptable(user1_client, user1):
     assert response.status_code == 200
     assert client.login(user1_client, user1, "test123") == False
     assert client.login(user1_client, user1) == True
+
+
+def test_delete_user(user1_client, user2):
+    """Test self-deleting user profile."""
+
+    # Other user, forbidden
+    response = user1_client.get(f"/profile/{user2.id}/delete")
+    assert response.status_code == 302
+    assert response.location == f"/profile/user/{user2.id}"
+
+    # Delete self
+    response = user1_client.get("/profile/delete")
+    assert response.status_code == 200
+    data = utils.load_data_from_form(response.text, "basic_form")
+
+    # Incorrect confirmation
+    data["license"] = "incorrect"
+    response = user1_client.post("/profile/delete", data=data)
+    assert response.status_code == 200
+
+    # Correct confirmation
+    data = utils.load_data_from_form(response.text, "basic_form")
+    data["license"] = user1_client.user.license
+
+    response = user1_client.post("/profile/delete", data=data)
+    assert response.status_code == 302
+    assert response.location == "/auth/login"
+
+    # check user has been anonymised
+    assert user1_client.user.enabled == False
+    assert user1_client.user.first_name == "Compte"
+    assert user1_client.user.license == str(user1_client.user.id)
+    assert "localhost" in user1_client.user.mail
