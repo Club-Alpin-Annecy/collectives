@@ -12,11 +12,9 @@ from wtforms_alchemy import ModelForm
 
 
 from collectives.forms.order import OrderedModelForm
-from collectives.forms.validators import (
-    UniqueValidator,
-    PasswordValidator,
-    LicenseValidator,
-)
+from collectives.forms.validators import UniqueValidator, PasswordValidator
+from collectives.forms.validators import LicenseValidator
+
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, photos, ActivityType, Role, RoleIds
 from collectives.models import Badge, BadgeIds

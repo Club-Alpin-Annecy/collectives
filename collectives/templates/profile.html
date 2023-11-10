@@ -158,12 +158,12 @@
     </div>
 
     <p class="align-right">
-        {%if current_user.is_admin()%}
-            {%if current_user != user %}
-                <a class="button button-small button-danger" href="{{url_for('profile.delete_user', user_id=user.id)}}">Supprimer le compte utilisateur</a>
+        {%if current_user == user%}
+            {%if not current_user.is_admin() %}
+                <a class="button button-small button-danger" href="{{url_for('profile.delete_user')}}">Supprimer mon compte utilisateur</a>
             {% endif %}
-        {%elif current_user == user%}
-         <a class="button button-small button-danger" href="{{url_for('profile.delete_user')}}">Supprimer mon compte utilisateur</a>
+        {%elif current_user.is_hotline()%}
+            <a class="button button-small button-danger" href="{{url_for('profile.delete_user', user_id=user.id)}}">Supprimer le compte utilisateur</a>
         {%endif%}
     </p>
 </div>

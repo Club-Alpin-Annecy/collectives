@@ -312,18 +312,20 @@ def delete_user(user_id: int):
                 "error",
             )
             return redirect(url_for(".show_user", user_id=user_id))
-    elif not current_user.is_admin():
+    elif not current_user.is_hotline():
         flash("Opération interdite", "error")
         return redirect(url_for(".show_user", user_id=user_id))
 
     user: User = User.query.get(user_id)
     if user is None:
-        flash("Opération interdite", "error")
+        flash("Utilisateur invalide", "error")
         return redirect(url_for(".show_user", user_id=user_id))
 
     form = DeleteUserForm(user)
 
     if form.validate_on_submit():
+        old_name = user.full_name()
+
         # Anonymize account
         # Keep only gender and license category for statistics
         user.enabled = False
@@ -331,7 +333,7 @@ def delete_user(user_id: int):
         user.last_name = "Supprimé"
         user.license = str(user_id)
         user.mail = f"{user.license}@localhost"
-        user.date_of_birth = date.today()
+        user.date_of_birth = date(user.date_of_birth.year, 1, 1)
         user.password = ""
         user.phone = ""
         user.emergency_contact_name = ""
@@ -342,6 +344,8 @@ def delete_user(user_id: int):
 
         db.session.add(user)
         db.session.commit()
+
+        flash(f"Le compte de {old_name} a bien été supprimé")
 
         if user_id == current_user.id:
             logout_user()
