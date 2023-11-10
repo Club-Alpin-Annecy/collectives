@@ -148,17 +148,6 @@ def manage_user_post(user_id=None):
     return manage_user(user_id)
 
 
-@blueprint.route("/users/<user_id>/delete", methods=["POST"])
-@user_is("is_admin")
-def delete_user(user_id):
-    """Route to delete an user.
-
-    TODO
-    """
-    flash("Suppression d'utilisateur non implémentée. ID " + user_id, "error")
-    return redirect(url_for("administration.administration"))
-
-
 class RoleValidationException(Exception):
     """Exception class of new user role validation"""
 

@@ -244,7 +244,9 @@ class UserModelMixin:
         """List of granted roles within this site for this user. (eg administrator)
 
         :type: list(:py:class:`collectives.models.role.Role`)"""
-        return db.relationship("Role", backref="user", lazy=True)
+        return db.relationship(
+            "Role", backref="user", lazy=True, cascade="all, delete-orphan"
+        )
 
     @declared_attr
     def badges(self):
@@ -252,7 +254,9 @@ class UserModelMixin:
 
         :type: list(:py:class:`collectives.models.badge.Badge`)
         """
-        return db.relationship("Badge", backref="user", lazy=True)
+        return db.relationship(
+            "Badge", backref="user", lazy=True, cascade="all, delete-orphan"
+        )
 
     @declared_attr
     def registrations(self):

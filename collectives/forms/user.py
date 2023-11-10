@@ -6,13 +6,15 @@ from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import PasswordField, SubmitField, StringField
 from wtforms import SelectField, BooleanField, HiddenField, IntegerField
-from wtforms.validators import EqualTo, DataRequired, Optional
+from wtforms.validators import EqualTo, DataRequired, Optional, ValidationError
 from wtforms.fields import DateField
 from wtforms_alchemy import ModelForm
 
 
 from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
+from collectives.forms.validators import LicenseValidator
+
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, photos, ActivityType, Role, RoleIds
 from collectives.models import Badge, BadgeIds
@@ -265,3 +267,31 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         kwargs["expiration_date"] = compute_default_expiration_date()
 
         super().__init__(*args, **kwargs)
+
+
+class DeleteUserForm(FlaskForm):
+    """Form for confirming user suppression"""
+
+    license = StringField(
+        "Numéro de licence :",
+        description=(
+            "Pour confirmer la suppression, "
+            "veuillez re-saisir le numéro de licence du compte."
+        ),
+        render_kw={
+            "placeholder": LicenseValidator().sample_value(),
+        },
+    )
+
+    submit = SubmitField("Supprimer le compte utilisateur")
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._user = user
+
+    def validate_license(self, field: StringField):
+        """Validates that the user confirmed the license number of the account to delete"""
+
+        if field.data.strip() != self._user.license:
+            raise ValidationError("Le numéro de license ne correspond pas")
