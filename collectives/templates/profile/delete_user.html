@@ -1,0 +1,41 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Logging Windows -->
+<div id="cover"></div>
+<div class="login-form">
+    <div class="box">
+
+        <form id="delete_user" method="POST" class="form form-vertical">
+            <div class="controls">
+                <h1 class="heading-1">Suppression du compte {{user.full_name()}}</h1>
+            </div>
+
+            <strong>La suppression du compte Collectives est irréversible.</strong> 
+            Toutes les données associées seront anonymisées.
+            Il sera ultérieurement possible de créer un nouveau compte Collectives pour le même numéro de licence, avec un historique vierge.
+            {{ form.hidden_tag() }}
+        
+            <div class="controls">
+                {{form.license.description}}
+            </div>
+            <div class="form-errors">
+                {% for error in form.errors["license"] %}
+                <div class="flash flash-error">
+                    <strong>Erreur :</strong> {{error}}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="controls">
+                {{form.license.label(class="label-top")}}
+                {{form.license(class="input-100")}}
+            </div>
+            <div class="controls">
+                {{ form.submit(class="button button-primary input-100") }}
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
