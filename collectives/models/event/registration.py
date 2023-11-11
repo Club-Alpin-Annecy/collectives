@@ -231,6 +231,8 @@ class EventRegistrationMixin:
         """Check if a user can self-register.
 
         An user can self-register if:
+          - their phone number is valid
+          - their emergency phone number is valid
           - they have no current registration with this event.
           - they are not a leader of this event.
           - given time parameter (usually current_time) is in registration
@@ -248,6 +250,10 @@ class EventRegistrationMixin:
         :return: True if user can self-register.
         :rtype: boolean
         """
+        if not user.has_valid_phone_number():
+            return False
+        if not user.has_valid_phone_number(emergency=True):
+            return False
         if not self.is_confirmed():
             return False
         if self.is_leader(user) or self.is_registered(user):

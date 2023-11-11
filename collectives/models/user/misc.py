@@ -160,15 +160,18 @@ class UserMiscMixin:
         """
         return self.enabled and self.check_license_valid_at_time(current_time())
 
-    def has_valid_phone_number(self):
+    def has_valid_phone_number(self, emergency=False):
         """Check if the user has a valid phone number.
 
         Phone numbers are checked using pip phonenumbers.
 
+        :param emergency: True to test the emergency phone number. False for user phone number
         :returns: True if user has a valid number
         """
+
         try:
-            number = phonenumbers.parse(self.phone, "FR")
+            number = self.emergency_contact_phone if emergency else self.phone
+            number = phonenumbers.parse(number, "FR")
             if not phonenumbers.is_possible_number(number):
                 return False
             if not phonenumbers.is_valid_number(number):

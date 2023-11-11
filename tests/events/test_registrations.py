@@ -29,6 +29,34 @@ def test_valid_event_autoregistration(user1, user1_client, user2, event):
     assert event.active_registrations()[0].user == user1
 
 
+def test_wrong_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    user1.phone = "Not a number"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 0
+
+
+def test_wrong_emergency_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    user1.emergency_contact_phone = "Not a number"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 0
+
+
 def test_late_event_autoregistration(user1, user1_client, event):
     """Test a too late user auto registration"""
 
