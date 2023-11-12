@@ -43,6 +43,17 @@ def test_wrong_phone_autoregistration(user1, user1_client, event):
     assert len(event.registrations) == 0
 
 
+def test_swiss_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    user1.phone = "+41 22 767 6111"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 1
+
+
 def test_wrong_emergency_phone_autoregistration(user1, user1_client, event):
     """Test user auto registration with a user with a wrong phone number"""
     response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)

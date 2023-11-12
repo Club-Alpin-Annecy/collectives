@@ -469,8 +469,8 @@ def get_bad_phone_message(user, emergency=False):
         des informations importantes comme un changement de lieu de rendez-vous, un changement 
         du lieu de la sortie ou l'annulation de la sortie"""
     else:
-        description = """un encadrant et le club ne pourrait donc pas contacter un de vos proches
-        en cas de besoin (ex: accident)"""
+        description = """le club ne pourrait donc pas contacter vos proches en cas de
+        besoin."""
 
     return f"""Votre numéro de téléphone {"d'urgence " if emergency else ''} {phone} renseigné:
         {description}<br/>
