@@ -20,11 +20,11 @@ def test_csv_import_form(supervisor_client):
 def test_csv_import(supervisor_client, user1):
     """Test upload of a valid csv file."""
     csv = (
-        ",,,,,,,,,,,,,,,\n"
+        ",,,,,,,,,,,,,,,,,\n"
         "Jan Johnston,990000000001,26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,"
-        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,\n"
+        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,\n"
         "Jan Johnston,990000000001,26/11/2021 7:00,26/11/2021 7:00,Mont Sulens,Aravis,"
-        "d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,"
+        "d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,cycle decouverte,,"
     )
     file = BytesIO(csv.encode("utf8"))
     activity = supervisor_client.user.get_supervised_activities()[0]
@@ -52,13 +52,16 @@ def test_csv_import(supervisor_client, user1):
     assert event.leaders[0].license == "990000000001"
     assert event.leaders[0] == user1
 
+    assert len(events[1].tag_refs) == 1
+    assert events[1].tag_refs[0].short == "tag_decouverte"
+
 
 def test_csv_import_unknown_leader(supervisor_client, user1):
     """Test upload of an invalid csv with an unkown leader."""
     csv = (
-        ",,,,,,,,,,,,,,,\n"
+        ",,,,,,,,,,,,,,,,\n"
         "Evan Walsh,990000000002,26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,"
-        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,\n"
+        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,\n"
     )
     file = BytesIO(csv.encode("utf8"))
     activity = supervisor_client.user.get_supervised_activities()[0]

@@ -7,7 +7,7 @@ import csv
 
 from flask import current_app
 
-from collectives.models import User, Event, db
+from collectives.models import User, Event, EventTag, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
@@ -77,6 +77,12 @@ def fill_from_csv(event, row, template):
     parse(row, "distance")
     event.description = template.format(**row)
     event.set_rendered_description(event.description)
+
+    # Event tag
+    tag_id = EventTag.get_type_from_csv_code(parse(row, "tag"))
+    if tag_id is not None:
+        tag = EventTag(tag_id=tag_id)
+        event.tag_refs.append(tag)
 
     # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
@@ -195,6 +201,7 @@ def csv_to_events(stream, description):
     processed = 0
     failed = []
     fields = list(current_app.config["CSV_COLUMNS"].keys())
+
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     next(reader, None)  # skip the headers
     for row in reader:
