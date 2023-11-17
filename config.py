@@ -439,19 +439,19 @@ CSV_COLUMNS = {
     "denivele": {
         "short_desc": "Dénivelé (en m)",
         "description": "Dénivelé total de la collective (en m)",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "cotation": {
         "short_desc": "Cotation",
         "description": "Cotation / difficulté de la collective",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "distance": {
         "short_desc": "Distance (en km)",
         "description": "Distance totale de la collective (en km)",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "observations": {
@@ -464,6 +464,8 @@ CSV_COLUMNS = {
         "short_desc": "Nombre de places",
         "description": "Nombre de places",
         "type": "int",
+        "optional": 1,
+        "default": 0,
     },
     "places_internet": {
         "short_desc": "Nombre de places par internet",

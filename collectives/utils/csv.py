@@ -203,7 +203,14 @@ def csv_to_events(stream, description):
     fields = list(current_app.config["CSV_COLUMNS"].keys())
 
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
-    next(reader, None)  # skip the headers
+    row = next(reader, None)  # skip the headers
+
+    if all(row[f] is None for f in fields[1:]):
+        # Single non-None column, delimiter is likely wrong
+        # Retry with semi-column
+        reader = csv.DictReader(stream, delimiter=";", fieldnames=fields)
+        next(reader, None)  # skip the headers
+
     for row in reader:
         processed += 1
 
