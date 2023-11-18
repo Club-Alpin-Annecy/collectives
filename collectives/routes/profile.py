@@ -182,7 +182,10 @@ def volunteer_certificate():
             "error",
         )
         return redirect(url_for("profile.show_user", user_id=current_user.id))
-    if not current_user.has_a_valid_benevole_badge():
+    if (
+        not current_user.has_a_valid_benevole_badge()
+        and not current_user.has_any_role()
+    ):
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 

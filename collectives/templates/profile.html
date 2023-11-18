@@ -36,7 +36,7 @@
                 </a>
             {%endif%}
 
-            {% if user.has_a_valid_benevole_badge() %}
+            {% if user.has_a_valid_benevole_badge() or user.has_any_role() %}
                 {% if Configuration.VOLUNTEER_CERT_IMAGE %}
                     <a class="button button-secondary" href="{{url_for('profile.volunteer_certificate')}}">
                         <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"  alt=""/>
