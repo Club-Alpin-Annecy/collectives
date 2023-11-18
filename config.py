@@ -287,7 +287,7 @@ EVENT_TAGS = {
         "short": "tag_mountain_protection",
         "name": "Connaissance et protection de la montagne",
     },
-    3: {"short": "tag_trip", "name": "Séjour", "csv_code": "Séjour/WE"},
+    3: {"short": "tag_trip", "name": "Séjour"},
     4: {"short": "tag_training", "name": "Formation", "deprecated": True},
     5: {"short": "tag_rando_montagne", "name": "Randonnée alpine"},
     6: {"short": "tag_handicaf", "name": "Handicaf"},
@@ -296,7 +296,6 @@ EVENT_TAGS = {
     9: {
         "short": "tag_decouverte",
         "name": "Cycle découverte",
-        "csv_code": "Débutant/Cycle Découverte",
     },
     10: {"short": "tag_rando_cool", "name": "Rando Cool"},
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
@@ -440,19 +439,19 @@ CSV_COLUMNS = {
     "denivele": {
         "short_desc": "Dénivelé (en m)",
         "description": "Dénivelé total de la collective (en m)",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "cotation": {
         "short_desc": "Cotation",
         "description": "Cotation / difficulté de la collective",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "distance": {
         "short_desc": "Distance (en km)",
         "description": "Distance totale de la collective (en km)",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "observations": {
@@ -465,6 +464,8 @@ CSV_COLUMNS = {
         "short_desc": "Nombre de places",
         "description": "Nombre de places",
         "type": "int",
+        "optional": 1,
+        "default": 0,
     },
     "places_internet": {
         "short_desc": "Nombre de places par internet",
@@ -495,6 +496,13 @@ CSV_COLUMNS = {
         "short_desc": "Collective parente",
         "description": "ID (nombre) de la collective parente",
         "type": "int",
+        "optional": 1,
+        "default": None,
+    },
+    "tag": {
+        "short_desc": "Tag de la collective",
+        "description": "Nom du tag à ajouter",
+        "type": "string",
         "optional": 1,
         "default": None,
     },
