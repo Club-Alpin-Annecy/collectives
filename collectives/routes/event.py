@@ -8,9 +8,11 @@ from typing import Tuple, List, Set
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
 from flask import current_app, Blueprint
-from markupsafe import escape
+from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
+
+from collectives.routes.auth import get_bad_phone_message
 
 from collectives.email_templates import send_new_event_notification
 from collectives.email_templates import send_unregister_notification
@@ -650,6 +652,13 @@ def self_register(event_id):
         level=RegistrationLevels.Normal,
         is_self=True,
     )
+
+    if not current_user.has_valid_phone_number():
+        flash(Markup(get_bad_phone_message(current_user)), "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+    if not current_user.has_valid_phone_number(emergency=True):
+        flash(Markup(get_bad_phone_message(current_user, emergency=True)), "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     now = current_time()
     # Check if user cannot directly subscribe

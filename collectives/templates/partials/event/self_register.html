@@ -1,11 +1,5 @@
 {% macro button(waiting_list = False) -%}
 
-{% if not current_user.has_valid_phone_number() %}
-    <div class="flash-warning flash">
-        {{get_bad_phone_message(current_user) | safe }}
-    </div>
-
-{% endif %}
 
 {% if event.requires_payment() %}
 <p>

@@ -51,7 +51,7 @@ def generate_user(identifier, names):
         user.license_category = "XX"
         user.date_of_birth = date(2000, 1, identifier % 30)
         user.password = PASSWORD
-        user.phone = "060102030{id:03}"
+        user.phone = f"0601020{identifier:03d}"
         user.emergency_contact_name = f"Emergency {identifier}"
         user.emergency_contact_phone = f"0699999{identifier:03}"
         user.legal_text_signature_date = datetime.now()

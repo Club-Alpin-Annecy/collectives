@@ -114,6 +114,11 @@
         <div class="flash-warning flash">{{get_bad_phone_message(user) | safe }}</div>
     {%endif%}
 
+    {% if user == current_user and not user.has_valid_phone_number(emergency=True) %}
+        <div class="flash-warning flash">{{get_bad_phone_message(user, emergency=True) | safe }}</div>
+    {%endif%}
+
+
     {% if user == current_user and not user.is_test %}
     <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
