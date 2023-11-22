@@ -1,4 +1,4 @@
-{% extends 'activity_supervision/activity_supervision.html' %}
+{% extends extends %}
 
 {% block additionalhead %}
 
@@ -25,37 +25,42 @@
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
       };
+
+      const badge = {{ 'false' if type else 'true' }};
+      const level = {{level | lower}};
   </script>
 {% endblock %}
 
-{% block activity_supervision_content %}
+{% block page_content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">Badges</h2>
+  <h2 class="heading-2">{{title}}</h2>
   <div id="badges-table"></div>
 
-  <h4 class="heading-4">Ajout/renouvellement d'un badge</h4>
+  <h4 class="heading-4">Ajout/renouvellement d'un {{title}}</h4>
 
   <div class="action">
 
         <div class="form-errors">
             {% for field in add_badge_form%}
-            {% for error in add_badge_form.errors[field.name] %}
+              {% for error in add_badge_form.errors[field.name] %}
 
-            <div class="flash flash-error">
-                <strong>Erreur : {{field.label}}:</strong> {{error}}
-            </div>
+                <div class="flash flash-error">
+                    <strong>Erreur : {{field.label}}:</strong> {{error}}
+                </div>
 
-            {% endfor %}
+              {% endfor %}
             {% endfor %}
         </div>
 
-      <form action="{{url_for('activity_supervision.add_badge')}}" id="user-search-form" method="POST" >
+      <form action="./add" id="user-search-form" method="POST" >
         <div id="user-search-data" class="form-search search-data">
           {% for field in [add_badge_form.activity_id, add_badge_form.badge_id, add_badge_form.user_search, add_badge_form.expiration_date, add_badge_form.level] %}
-            <div class="controls">
-              <div class="field">{{ field.label }} </div>
-              {{ field }}
-            </div>
+            {% if field %}
+              <div class="controls">
+                <div class="field">{{ field.label }} </div>
+                {{ field }}
+              </div>
+            {% endif %}
           {% endfor %}
 
           {{ add_badge_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
@@ -65,7 +70,7 @@
       </form>
   </div>
 
-  <h4 class="heading-4">Export de la liste des badges</h4>
+  <h4 class="heading-4">Export de la liste</h4>
 
   <div class="action">
         <div class="form-errors">
@@ -80,7 +85,7 @@
             {% endfor %}
         </div>
 
-      <form action="{{url_for('activity_supervision.export_badge')}}" method="POST" >
+      <form id="badges-export-form" action="./export" method="POST" >
         <div id="user-search-data" class="form-search search-data">
           <div>{{ export_form.activity_id }}</div>
           {{ export_form.hidden_tag() }}

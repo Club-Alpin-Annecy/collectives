@@ -10,7 +10,7 @@ function actionFormatter(csrfToken) {
         return `<form style="display:inline; padding:0" action="${cell.getValue()}" method="${formatterParams['method']}" >` +
             `<input style="display:none" name="csrf_token" type+"hidden" value="${csrfToken}">` +
             '</form>' +
-            `<input type="image" src="/static/img/icon/ionicon/md-${formatterParams['icon']}.svg" style="margin: 0;height: 1.2em; width: 1.2em"  alt="${formatterParams['alt']}" title="${formatterParams['alt']}"/>`;
+            `<input type="image" src="/static/img/icon/ionicon/${formatterParams['icon']}.svg" style="margin: 0;height: 1.2em; width: 1.2em"  alt="${formatterParams['alt']}" title="${formatterParams['alt']}"/>`;
     };
 }
 
@@ -23,11 +23,10 @@ function profileUrl(cell) {
 }
 
 function loadBadgesTable(ajaxUrl, csrfToken) {
-    new Tabulator("#badges-table",
+    var table = new Tabulator("#badges-table",
         {
             ajaxURL: ajaxUrl,
             layout: "fitColumns",
-            groupBy:"type",
             pagination:"local",
             paginationSize: 50,
 
@@ -35,10 +34,11 @@ function loadBadgesTable(ajaxUrl, csrfToken) {
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
-                { title: "Badge", field: "type", headerFilter: "input", widthGrow: 3},
+                { title: "Badge", field: "type", headerFilter: "input", widthGrow: 3, visible: false },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
-                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2},
-                { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
+                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: false},
+                { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
+                { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveller' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
             ],
 
             langs: {
@@ -49,5 +49,10 @@ function loadBadgesTable(ajaxUrl, csrfToken) {
                     },
                 }
             },
-        });
+        }); 
+        
+        if(level)
+            table.showColumn('level');
+        if(badge)
+            table.showColumn('type');
 }

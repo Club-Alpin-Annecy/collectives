@@ -8,7 +8,7 @@ from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_, or_
 
-from collectives.models import db, User, RoleIds, Role, Badge
+from collectives.models import db, User, RoleIds, Role, Badge, ActivityType
 from collectives.models.badge import BadgeIds
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
@@ -283,10 +283,19 @@ class UserBadgeSchema(marshmallow.Schema):
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
-    delete_uri = fields.Function(
-        lambda badge: url_for("activity_supervision.remove_badge", badge_id=badge.id)
-    )
-    """ URI to delete this badge (WIP)
+    delete_uri = fields.Function(lambda badge: f"./delete/{badge.id}")
+    """ URI to delete this badge. 
+
+    As delete route are relative to list route, delete route MUST be a derivative 
+    of the list route. Eg, if list is 'admin/badges' must be 'admin/badges/delete/<id>'
+
+    :type: string
+    """
+    renew_uri = fields.Function(lambda badge: f"./renew/{badge.id}")
+    """ URI to renew this badge to the current default date.
+
+    As renew route are relative to list route, renew route MUST be a derivative 
+    of the list route. Eg, if list is 'admin/badges' must be 'admin/badges/renew/<id>'
 
     :type: string
     """
@@ -322,6 +331,7 @@ class UserBadgeSchema(marshmallow.Schema):
             "user",
             "activity_type",
             "delete_uri",
+            "renew_uri",
             "type",
             "expiration_date",
             "level",
@@ -364,7 +374,7 @@ def leaders():
 
 @blueprint.route("/badges/")
 @valid_user(True)
-@user_is("is_supervisor", True)
+@user_is(["is_supervisor", "is_hotline"], api=True)
 @confidentiality_agreement(True)
 def badges():
     """API endpoint to list current badges
@@ -378,11 +388,12 @@ def badges():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
-
-    supervised_activities = current_user.get_supervised_activities()
+    if current_user.is_hotline():
+        supervised_activities = ActivityType.query.all()
+    else:
+        supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Badge)
-
     query = query.filter(
         or_(
             Badge.activity_id == None,

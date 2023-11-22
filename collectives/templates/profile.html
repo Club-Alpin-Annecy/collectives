@@ -132,7 +132,7 @@
     </form>
     {% endif %}
 
-    <h4 class="heading-4">Badges</h4>
+    <h4 class="heading-4">Notes</h4>
     <ul>
         {% for badge in user.badges %}
         <li>{{badge.name}}
@@ -140,7 +140,7 @@
             pour l'activité <em>{{badge.activity_name}}</em>
            {% endif %}
            {% if badge.expiration_date %}
-            expirant le <em>{{format_date(badge.expiration_date)}}</em>
+            jusqu'au <em>{{format_date(badge.expiration_date)}}</em>
            {% endif %}
            {% if badge.level %}
             avec le niveau <em>{{badge.level}}</em>

@@ -11,13 +11,13 @@ from werkzeug.datastructures import CombinedMultiDict
 
 
 from collectives.forms.csv import CSVForm
-from collectives.forms.user import AddBadgeForm, AddLeaderForm
+from collectives.forms.user import AddLeaderForm
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, Role, RoleIds, ActivityType, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.models.badge import Badge, BadgeIds
-from collectives.utils import export
+from collectives.models.badge import BadgeIds
+from collectives.utils import export, badges
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
@@ -151,157 +151,56 @@ def export_role():
     )
 
 
-@blueprint.route("/badges/export/", methods=["POST"])
-def export_badge():
+@blueprint.route("/volunteers/export", methods=["POST"])
+def export_volunteer():
     """Create an Excel document with the contact information of users with badge.
 
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm(
-        all_enabled=True,
-    )
-
-    if not form.validate_on_submit():
-        abort(400)
-
-    if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
-        activity_type = ActivityType.query.get(form.activity_id.data)
-    else:
-        activity_type = current_user.get_supervised_activities()
-
-    query = Badge.query
-    # we remove role not linked anymore to a user
-    query = query.filter(Badge.user.has(User.id))
-    if activity_type is not None:
-        if isinstance(activity_type, list):
-            query = query.filter(Badge.activity_id.in_([t.id for t in activity_type]))
-        else:
-            query = query.filter(Badge.activity_id == activity_type.id)
-
-    badges = query.all()
-
-    if not isinstance(activity_type, list):
-        filename = activity_type.name
-    else:
-        filename = ""
-
-    out = export.export_badges(badges)
-
-    return send_file(
-        out,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export Badges {filename}.xlsx",
-        as_attachment=True,
-    )
+    response = badges.export_badge(BadgeIds.Benevole)
+    if response:
+        return response
+    flash("Impossible de générer le fichier: droit insuffisants", "error")
+    return redirect(url_for(".volunteers_list"))
 
 
-@blueprint.route("/badge", methods=["GET"])
-def badge_list():
-    """Route for activity supervisors to access badges list and management form"""
-
-    add_badge_form = AddBadgeForm()
-    export_form = ActivityTypeSelectionForm(
-        submit_label="Générer Excel",
-        activity_list=current_user.get_supervised_activities(),
-        all_enabled=True,
-    )
-    return render_template(
-        "activity_supervision/badges_list.html",
-        add_badge_form=add_badge_form,
-        export_form=export_form,
-        title="Badges",
-    )
+@blueprint.route("/volunteers/", methods=["GET"])
+def volunteers_list():
+    """Route for activity supervisors to list user with volunteer badge and manage them"""
+    return badges.list_page(BadgeIds.Benevole, auto_date=True)
 
 
-@blueprint.route("/badge/add", methods=["POST"])
-def add_badge():
+@blueprint.route("/volunteers/add", methods=["POST"])
+def add_volunteer():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    add_badge_form = AddBadgeForm()
-    if not add_badge_form.validate_on_submit():
-        flash("Erreur lors de l'ajout du badge", "error")
-        return redirect(url_for(".badge_list"))
+    badges.add_badge(BadgeIds.Benevole)
 
-    badge = Badge()
-    add_badge_form.populate_obj(badge)
-
-    badge_id = BadgeIds(badge.badge_id)
-    if not badge_id.relates_to_activity():
-        badge.activity_type = None
-        badge.activity_id = None
-
-    user: User = User.query.get(badge.user_id)
-    if user is None:
-        flash("Utilisateur invalide", "error")
-        return redirect(url_for(".badge_list"))
-
-    matching_badges = [
-        bdg
-        for bdg in user.matching_badges(badge_ids=(badge.badge_id,))
-        if bdg.activity_id == badge.activity_id
-    ]
-
-    if matching_badges:
-        existing = matching_badges[0]
-        if badge.expiration_date and (
-            existing.expiration_date is None
-            or existing.expiration_date > badge.expiration_date
-        ):
-            flash(
-                "L'utilisateur a déjà ce badge pour cette activité"
-                " avec une date d'expiration postérieure",
-                "error",
-            )
-            return redirect(url_for(".badge_list"))
-
-        if existing.level and (badge.level is None or existing.level > badge.level):
-            flash(
-                "L'utilisateur a déjà ce badge pour cette activité"
-                " avec un niveau supérieur",
-                "error",
-            )
-            return redirect(url_for(".badge_list"))
-
-        # Renew existing badge
-        existing.expiration_date = badge.expiration_date
-        existing.level = badge.level
-        badge = existing
-        flash(
-            "L'utilisateur a déjà ce badge pour cette activité,"
-            " la date d'expiration a été mise à jour.",
-            "info",
-        )
-
-    db.session.add(badge)
-    db.session.commit()
-
-    return redirect(url_for(".badge_list"))
+    return redirect(url_for(".volunteers_list"))
 
 
-@blueprint.route("/badge/delete/<badge_id>", methods=["POST"])
-def remove_badge(badge_id):
-    """Route for an activity supervisor to remove a user badge
+@blueprint.route("/volunteers/delete/<badge_id>", methods=["POST"])
+def remove_volunteer(badge_id):
+    """Route for an activity supervisor to remove a user volunteer badge
 
     :param badge_id: Id of badge to delete
     :type badge_id: int
     """
 
-    badge = Badge.query.get(badge_id)
-    if badge is None:
-        flash("Badge invalide", "error")
-        return redirect(url_for(".badge_list"))
+    badges.remove_badge(badge_id)
+    return redirect(url_for(".volunteers_list"))
 
-    if (
-        badge.activity_type is not None
-        and badge.activity_type not in current_user.get_supervised_activities()
-    ):
-        flash("Non autorisé", "error")
-        return redirect(url_for(".badge_list"))
 
-    db.session.delete(badge)
-    db.session.commit()
+@blueprint.route("/volunteers/renew/<badge_id>", methods=["POST"])
+def renew_volunteer(badge_id):
+    """Route for an activity supervisor to remove a user volunteer badge
 
-    return redirect(url_for(".badge_list"))
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+
+    badges.renew_badge(badge_id, badge_type=BadgeIds.Benevole)
+    return redirect(url_for(".volunteers_list"))
 
 
 @blueprint.route("/import", methods=["GET", "POST"])

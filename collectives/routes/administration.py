@@ -9,18 +9,13 @@ from flask import Blueprint
 from flask_login import current_user
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import (
-    AdminUserForm,
-    AdminTestUserForm,
-    BadgeForm,
-    RenewBadgeForm,
-    RoleForm,
-)
+from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm
+from collectives.forms.user import RoleForm, RenewBadgeForm
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
-from collectives.utils import extranet, export
+from collectives.utils import extranet, export, badges
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
@@ -76,11 +71,10 @@ def administration():
     count["enable"] = User.query.filter(User.enabled == True).count()
 
     return render_template(
-        "administration.html",
+        "administration/user_list.html",
         filters=filters,
         filters_badge=filters_badge,
         count=count,
-        token_creation_form=AdminTokenCreationForm(),
     )
 
 
@@ -446,45 +440,12 @@ def export_role(raw_filters=""):
     )
 
 
-@blueprint.route("/badges/export/<raw_filters>", methods=["GET"])
-def export_badge(raw_filters=""):
-    """Create an Excel document with the contact information of users with badges.
-
-    Input is a string with id of role or activity. EG `b2-t1` for badge 2 and type 1.
-
-    :param raw_filters: Badges filters to use.
-    :type raw_filters: string
-    :return: The Excel file with the badges.
-    """
-    query_filter = Role.query
-    # we remove role not linked anymore to a user
-    query_filter = query_filter.filter(Badge.user.has(User.id))
-
-    if raw_filters != "":
-        filters = {i[0]: i[1:] for i in raw_filters.split("-")}
-        filename = ""
-
-        if "b" in filters:
-            query_filter = query_filter.filter(
-                Badge.badge_id == BadgeIds(int(filters["b"]))
-            )
-            filename += BadgeIds(int(filters["b"])).display_name() + " "
-        if "t" in filters:
-            if filters["t"] == "none":
-                filters["t"] = None
-            else:
-                filename += ActivityType.query.get(filters["t"]).name
-            query_filter = query_filter.filter(Badge.activity_id == filters["t"])
-
-    badges = query_filter.all()
-
-    out = export.export_badges(badges)
-
-    return send_file(
-        out,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {filename}.xlsx",
-        as_attachment=True,
+@blueprint.route("/token", methods=["GET"])
+def token():
+    """Route for ask user registration token"""
+    return render_template(
+        "administration/token.html",
+        token_creation_form=AdminTokenCreationForm(),
     )
 
 
@@ -534,15 +495,19 @@ def generate_token():
     token_link = None
     if form.confirm.data:
         duration = 48  # Make the token valid for 48 hours
-        token = ConfirmationToken(license_number, user, duration)
-        db.session.add(token)
+        confirmation_token = ConfirmationToken(license_number, user, duration)
+        db.session.add(confirmation_token)
         db.session.commit()
         # Send the confirmation email, even if the user may not receive it
         # (in case of malicious hotline, user should be notified that his account is being reset)
-        send_confirmation_email(user_info.email, user_info.first_name, token)
+        send_confirmation_email(
+            user_info.email, user_info.first_name, confirmation_token
+        )
         # Create the token link
         token_link = url_for(
-            "auth.process_confirmation", token_uuid=token.uuid, _external=True
+            "auth.process_confirmation",
+            token_uuid=confirmation_token.uuid,
+            _external=True,
         )
 
     return render_template(
@@ -552,3 +517,53 @@ def generate_token():
         user_info=user_info,
         token_link=token_link,
     )
+
+
+@blueprint.route("/badges/", methods=["GET"])
+def badges_list():
+    """Route for activity supervisors to list user with volunteer badge and manage them"""
+    return badges.list_page(extends="administration/index.html")
+
+
+@blueprint.route("/badges/export/", methods=["POST"])
+def export_badge():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    response = badges.export_badge()
+    if response:
+        return response
+    flash("Impossible de générer le fichier: droit insuffisants", "error")
+    return redirect(url_for(".badges_list"))
+
+
+@blueprint.route("/badges/add", methods=["POST"])
+def add_badge():
+    """Route for an admin to add or renew a Badge to a user" """
+
+    badges.add_badge()
+    return redirect(url_for(".badges_list"))
+
+
+@blueprint.route("/badges/delete/<badge_id>", methods=["POST"])
+def remove_badge(badge_id):
+    """Route for an admin to remove a user badge
+
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+
+    badges.remove_badge(badge_id)
+    return redirect(url_for(".badges_list"))
+
+
+@blueprint.route("/badges/renew/<badge_id>", methods=["POST"])
+def renew_badge(badge_id):
+    """Route for an admin to remove a user badge
+
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+    badges.renew_badge(badge_id)
+    return redirect(url_for(".badges_list"))
