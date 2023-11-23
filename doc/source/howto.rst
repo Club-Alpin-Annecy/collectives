@@ -39,6 +39,23 @@ For Windows, Linux and probably Mac:
 #. Start debugging (F5)
 #. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
 
+Method using Homebrew, Poetry & VSCode
+......................................
+Tested with Mac:
+
+#. Please install `homebrew`, `git`, `VSCode`, then `pyenv` and `poetry` using homebrew.
+#. Enable the `code` command in `VSCode`.
+#. Using `pyenv`, make sure you have Python version 3.10.4 available to use with Poetry.
+#. Go to your dev folder.
+#. Clone the git repository "Club-Alpin-Annecy/collectives" or your personnal fork using your prefered method.
+#. Go to the local root of the cloned repo.
+#. Run ``poetry install`` to install the packages & dependencies.
+#. Run ``poetry shell`` to enable the Python 3.10.4 virtualenv.
+#. Run ``FLASK_APP="collectives:create_app" flask db upgrade`` to populate the local database.
+#. Run ``code .`` to open `VSCode`.
+#. Start debugging (F5)
+#. On MacOS, the port 5000 is already used by Apple Airplay Receiver. Deactivate it in your parameters (Airport & Handoff tab).
+#. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
 
 I want to generate the documentation
 --------------------------------------

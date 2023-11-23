@@ -2,6 +2,7 @@
 __pycache__
 app.db
 uploads
+.DS_Store
 
 /collectives/static/.webassets-cache
 /collectives/static/dist/*
