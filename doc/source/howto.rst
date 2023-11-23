@@ -36,7 +36,9 @@ For Windows, Linux and probably Mac:
 #. If VSCode notice the new environment (bottom right popup), select Yes
 #. Activate it: `. .env/Scripts/activate` for Windows, `. .env/bin/activate` for Linux.
 #. Install required pip: `pip install -r requirements.txt; pip install -r requirements-tools.txt`.
+#. Run ``FLASK_APP="collectives:create_app" flask db upgrade`` to populate the local database.
 #. Start debugging (F5)
+#. On MacOS, the port 5000 is already used by Apple Airplay Receiver. Deactivate it in your parameters (Airport & Handoff tab).
 #. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
 
 Method using Homebrew, Poetry & VSCode
