@@ -249,6 +249,16 @@
         {% endfor %}
       {% endif %}
 
+      {% if not current_user.has_valid_phone_number() %}
+        <div class="flash-warning flash">
+            {{get_bad_phone_message(current_user) | safe }}
+        </div>
+      {% endif %}
+      {% if not current_user.has_valid_phone_number(emergency=True) %}
+        <div class="flash-warning flash">
+            {{get_bad_phone_message(current_user, emergency=True) | safe }}
+        </div>
+      {% endif %}
 
         {% if event.can_self_register(current_user, current_time) %}
           {{ self_register.button() }}
