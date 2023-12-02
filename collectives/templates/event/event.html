@@ -55,8 +55,6 @@
         {% endif %}
 
         <span class="collective-display--date">
-          <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
-          {{ format_datetime_range(event.start, event.end) | capitalize}}
           <add-to-calendar-button 
             name="{{event.title}}"
             description="{{event.description}}"
@@ -74,6 +72,7 @@
             inline
             pastDateHandling="hide"
           ></add-to-calendar-button>
+          {{ format_datetime_range(event.start, event.end) | capitalize}}
         </span>
       </div>
       <div>
@@ -249,16 +248,16 @@
         {% endfor %}
       {% endif %}
 
-      {% if not current_user.has_valid_phone_number() %}
-        <div class="flash-warning flash">
-            {{get_bad_phone_message(current_user) | safe }}
-        </div>
-      {% endif %}
-      {% if not current_user.has_valid_phone_number(emergency=True) %}
-        <div class="flash-warning flash">
-            {{get_bad_phone_message(current_user, emergency=True) | safe }}
-        </div>
-      {% endif %}
+        {% if not current_user.has_valid_phone_number() %}
+          <div class="flash-warning flash">
+              {{get_bad_phone_message(current_user) | safe }}
+          </div>
+        {% endif %}
+        {% if not current_user.has_valid_phone_number(emergency=True) %}
+          <div class="flash-warning flash">
+              {{get_bad_phone_message(current_user, emergency=True) | safe }}
+          </div>
+        {% endif %}
 
         {% if event.can_self_register(current_user, current_time) %}
           {{ self_register.button() }}
