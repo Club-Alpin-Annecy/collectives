@@ -208,6 +208,7 @@ def index(activity_type_id=None, name=""):
 
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
+@blueprint.route("/<int:event_id>-")
 @crawlers_catcher("event.preview")
 @valid_user()
 def view_event(event_id, name=""):
@@ -226,7 +227,7 @@ def view_event(event_id, name=""):
         return redirect(url_for("event.index"))
 
     # If name is empty, redirect to a more meaningful URL
-    if name == "":
+    if name == "" and slugify(event.title) != "":
         return redirect(
             url_for("event.view_event", event_id=event.id, name=slugify(event.title))
         )
