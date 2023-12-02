@@ -11,6 +11,8 @@
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
 
+  <script src="https://cdn.jsdelivr.net/npm/add-to-calendar-button@2" async defer></script>
+
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
@@ -53,7 +55,23 @@
         {% endif %}
 
         <span class="collective-display--date">
-          <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+          <add-to-calendar-button 
+            name="{{event.title}}"
+            description="{{event.description}}"
+            startDate="{{event.start.strftime('%Y-%m-%d')}}"
+            endDate="{{event.end.strftime('%Y-%m-%d')}}"
+            startTime="{{event.start.strftime('%H:%M')}}"
+            endTime="{{event.end.strftime('%H:%M')}}"
+            timeZone="Europe/Paris"
+            location="Annecy"
+            options="'Google','Apple','iCal'"
+            listStyle="dropdown-static"
+            hideTextLabelButton
+            hideCheckmark
+            language="fr"
+            inline
+            pastDateHandling="hide"
+          ></add-to-calendar-button>
           {{ format_datetime_range(event.start, event.end) | capitalize}}
         </span>
       </div>
