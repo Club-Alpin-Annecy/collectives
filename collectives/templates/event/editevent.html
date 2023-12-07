@@ -189,7 +189,10 @@
         <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
       </div>
       <div class="controls">
-        <label for="num_waiting_list">Nombre de places en liste d'attente : </label> {{ form.num_waiting_list(size=4) }}
+        <label for="num_waiting_list">Nombre de places en liste d'attente : 
+          <span class="label-help">&#9432; Inscription automatique avant la date de fin d'inscription, manuellement ensuite.</span> 
+        </label> 
+        {{ form.num_waiting_list(size=4) }}
       </div>
       <div class="controls">
         <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>

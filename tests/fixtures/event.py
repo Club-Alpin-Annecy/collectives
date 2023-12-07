@@ -187,13 +187,31 @@ def free_paying_event(prototype_free_paying_event):
 
 @pytest.fixture
 def event1_with_reg(event1, user1, user2, user3, user4):
-    """:returns: The fixture `event1`, with user registered.
+    """:returns: The fixture `event1`, with 4 users registered.
     :rtype: :py:class:`collectives.models.event.Event`"""
     for user in [user1, user2, user3, user4]:
         event1.registrations.append(
             Registration(
                 user_id=user.id,
                 status=RegistrationStatus.Active,
+                level=RegistrationLevels.Normal,
+                is_self=True,
+            )
+        )
+    return event1
+
+
+@pytest.fixture
+def event1_with_reg_waiting_list(event1, user1, user2, user3, user4):
+    """:returns: The fixture `event1`, with 4 users registered, and 2 in waiting_list.
+    :rtype: :py:class:`collectives.models.event.Event`"""
+    event1.num_online_slots = 2
+    for user in [(user1, True), (user2, True), (user3, False), (user4, False)]:
+        status = RegistrationStatus.Active if user[1] else RegistrationStatus.Waiting
+        event1.registrations.append(
+            Registration(
+                user_id=user[0].id,
+                status=status,
                 level=RegistrationLevels.Normal,
                 is_self=True,
             )

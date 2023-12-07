@@ -882,8 +882,12 @@ def self_unregister(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     previous_status = registration.status
-    registration.status = RegistrationStatus.SelfUnregistered
-    db.session.add(registration)
+    if registration.status == RegistrationStatus.Waiting:
+        db.session.delete(registration)
+    else:
+        registration.status = RegistrationStatus.SelfUnregistered
+        db.session.add(registration)
+
     update_waiting_list(event)
     db.session.commit()
 

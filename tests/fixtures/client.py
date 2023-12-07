@@ -107,6 +107,14 @@ def user1_client(client, user1):
 
 
 @pytest.fixture
+def user3_client(client, user3):
+    """Flask client authenticated as regular user."""
+    login(client, user3)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
 def leader_client(client, leader_user):
     """Flask client authenticated as regular user."""
     login(client, leader_user)
