@@ -91,6 +91,7 @@ def export_users_registered(event):
     worksheet = workbook.active
     fields = [
         "Licence",
+        "Prénom",
         "Nom",
         "Téléphone",
         "Email",
@@ -101,7 +102,8 @@ def export_users_registered(event):
     for reg in event.active_registrations():
         temp = [
             reg.user.license,
-            reg.user.full_name(),
+            reg.user.first_name,
+            reg.user.last_name.upper(),
             reg.user.phone,
             reg.user.mail,
             f"{ reg.user.emergency_contact_name } ({ reg.user.emergency_contact_phone })",
