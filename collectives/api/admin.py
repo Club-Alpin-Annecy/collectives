@@ -283,22 +283,6 @@ class UserBadgeSchema(marshmallow.Schema):
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
-    delete_uri = fields.Function(lambda badge: f"./delete/{badge.id}")
-    """ URI to delete this badge. 
-
-    As delete route are relative to list route, delete route MUST be a derivative 
-    of the list route. Eg, if list is 'admin/badges' must be 'admin/badges/delete/<id>'
-
-    :type: string
-    """
-    renew_uri = fields.Function(lambda badge: f"./renew/{badge.id}")
-    """ URI to renew this badge to the current default date.
-
-    As renew route are relative to list route, renew route MUST be a derivative 
-    of the list route. Eg, if list is 'admin/badges' must be 'admin/badges/renew/<id>'
-
-    :type: string
-    """
     user = fields.Function(lambda badge: UserSchema().dump(badge.user))
     """ URI to get the user corresponding to the Badge
 
@@ -335,6 +319,8 @@ class UserBadgeSchema(marshmallow.Schema):
             "type",
             "expiration_date",
             "level",
+            "delete_uri",
+            "renew_uri",
         )
 
 
@@ -403,6 +389,18 @@ def badges():
     query = query.join(Badge.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
 
-    response = UserBadgeSchema(many=True).dump(query.all())
+    badges_list = query.all()
+
+    for badge in badges_list:
+        badge.delete_uri = url_for(
+            request.args.get("delete", "activity_supervision.delete_volunteer"),
+            badge_id=badge.id,
+        )
+        badge.renew_uri = url_for(
+            request.args.get("renew", "activity_supervision.renew_volunteer"),
+            badge_id=badge.id,
+        )
+
+    response = UserBadgeSchema(many=True).dump(badges_list)
 
     return json.dumps(response), 200, {"content-type": "application/json"}

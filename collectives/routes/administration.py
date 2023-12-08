@@ -522,7 +522,13 @@ def generate_token():
 @blueprint.route("/badges/", methods=["GET"])
 def badges_list():
     """Route for activity supervisors to list user with volunteer badge and manage them"""
-    return badges.list_page(extends="administration/index.html")
+    routes = {
+        "add": "administration.add_badge",
+        "export": "administration.export_badge",
+        "delete": "administration.delete_badge",
+        "renew": "administration.renew_badge",
+    }
+    return badges.list_page(routes=routes, extends="administration/index.html")
 
 
 @blueprint.route("/badges/export/", methods=["POST"])
@@ -547,14 +553,14 @@ def add_badge():
 
 
 @blueprint.route("/badges/delete/<badge_id>", methods=["POST"])
-def remove_badge(badge_id):
+def delete_badge(badge_id):
     """Route for an admin to remove a user badge
 
     :param badge_id: Id of badge to delete
     :type badge_id: int
     """
 
-    badges.remove_badge(badge_id)
+    badges.delete_badge(badge_id)
     return redirect(url_for(".badges_list"))
 
 

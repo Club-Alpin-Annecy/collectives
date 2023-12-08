@@ -22,10 +22,11 @@ function profileUrl(cell) {
     return cell.getData().user.profile_uri;
 }
 
-function loadBadgesTable(ajaxUrl, csrfToken) {
+function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken) {
     var table = new Tabulator("#badges-table",
         {
             ajaxURL: ajaxUrl,
+            ajaxParams: ajaxParams,
             layout: "fitColumns",
             pagination:"local",
             paginationSize: 50,

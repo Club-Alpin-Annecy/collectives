@@ -1,5 +1,7 @@
 """Module for user badges related classes
 """
+
+from datetime import date
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -116,3 +118,7 @@ class Badge(db.Model):
             return self.activity_type.name
 
         return ""
+
+    def is_expired(self) -> bool:
+        """Returns True if badge is no longer valid now."""
+        return date.today() > self.expiration_date

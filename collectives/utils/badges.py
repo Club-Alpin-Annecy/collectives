@@ -66,6 +66,7 @@ def export_badge(badge_type: BadgeIds = None):
 
 
 def list_page(
+    routes: dict,
     badge_type: BadgeIds = None,
     auto_date: bool = False,
     level: bool = False,
@@ -77,9 +78,11 @@ def list_page(
     :param auto_date: if True, Badges are added to the end of the federal year. Else
         activity supervisor can choose.
     :param level: if True, display level setting
-    :param extends: path to the template which extends the page"""
+    :param extends: path to the template which extends the page
+    :param routes: Lists of urls of others endpoint. This dict should have these keys:
+                ``add``, ``export``, ``delete``, ``renew``,."""
 
-    add_badge_form = AddBadgeForm(type=type_title(badge_type))
+    add_badge_form = AddBadgeForm(badge_type=type_title(badge_type))
 
     if badge_type:
         del add_badge_form.badge_id
@@ -103,6 +106,7 @@ def list_page(
         type=badge_type,
         level=level,
         extends=extends,
+        routes=routes,
     )
 
 
@@ -204,8 +208,8 @@ def renew_badge(
     return None
 
 
-def remove_badge(badge_id: int, badge_type: BadgeIds = None) -> None:
-    """Remove a user badge, while performing basic checks.
+def delete_badge(badge_id: int, badge_type: BadgeIds = None) -> None:
+    """Delete an user badge, while performing basic checks.
 
     :param badge_id: Id of badge to delete
     :param type: Refuse to delete if not the right type. None for no check
@@ -233,7 +237,7 @@ def type_title(badge_type: BadgeIds) -> str:
 
 
 def has_rights_to_modify_badge(badge: Badge, badge_type: BadgeIds) -> bool:
-    """Checks is current user has sufficient right to modify this badge."""
+    """Checks if current user has sufficient right to modify this badge."""
     if badge is None:
         return False
 

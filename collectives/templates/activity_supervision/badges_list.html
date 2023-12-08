@@ -15,7 +15,7 @@
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
       window.onload = function () {
-        loadBadgesTable('{{url_for("api.badges")}}', '{{csrf_token()}}');
+        loadBadgesTable('{{url_for("api.badges")}}', {{ routes | tojson}}, '{{csrf_token()}}');
 
         const searchInput = document.getElementById('user_search');
         setupAutoComplete(
@@ -52,7 +52,7 @@
             {% endfor %}
         </div>
 
-      <form action="./add" id="user-search-form" method="POST" >
+      <form action="{{ url_for(routes['add']) }}" id="user-search-form" method="POST" >
         <div id="user-search-data" class="form-search search-data">
           {% for field in [add_badge_form.activity_id, add_badge_form.badge_id, add_badge_form.user_search, add_badge_form.expiration_date, add_badge_form.level] %}
             {% if field %}
@@ -85,7 +85,7 @@
             {% endfor %}
         </div>
 
-      <form id="badges-export-form" action="./export" method="POST" >
+      <form id="badges-export-form" action="{{ url_for(routes['export']) }}" method="POST" >
         <div id="user-search-data" class="form-search search-data">
           <div>{{ export_form.activity_id }}</div>
           {{ export_form.hidden_tag() }}

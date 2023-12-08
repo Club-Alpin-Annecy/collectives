@@ -260,15 +260,16 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         validators=[Optional()],
     )
 
-    def __init__(self, *args, **kwargs):
-        """Overloaded constructor populating activity list"""
+    def __init__(self, *args, badge_type: str = "badge", **kwargs):
+        """Overloaded constructor populating activity list.
+
+        :param badge_type: The type of badge to be displayed in submit label"""
 
         if current_user.is_hotline():
             kwargs["activity_list"] = ActivityType.query.all()
         else:
             kwargs["activity_list"] = current_user.get_supervised_activities()
 
-        badge_type = kwargs.get("type", "badge")
         kwargs["submit_label"] = f"Ajouter un {badge_type}"
         kwargs["expiration_date"] = compute_default_expiration_date()
 

@@ -157,7 +157,7 @@ def export_volunteer():
 
     :return: The Excel file with the roles.
     """
-    response = badges.export_badge(BadgeIds.Benevole)
+    response = badges.export_badge(badge_type=BadgeIds.Benevole)
     if response:
         return response
     flash("Impossible de générer le fichier: droit insuffisants", "error")
@@ -167,27 +167,34 @@ def export_volunteer():
 @blueprint.route("/volunteers/", methods=["GET"])
 def volunteers_list():
     """Route for activity supervisors to list user with volunteer badge and manage them"""
-    return badges.list_page(BadgeIds.Benevole, auto_date=True)
+    routes = {
+        "add": "activity_supervision.add_volunteer",
+        "export": "activity_supervision.export_volunteer",
+        "delete": "activity_supervision.delete_volunteer",
+        "renew": "activity_supervision.renew_volunteer",
+    }
+
+    return badges.list_page(badge_type=BadgeIds.Benevole, auto_date=True, routes=routes)
 
 
 @blueprint.route("/volunteers/add", methods=["POST"])
 def add_volunteer():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(BadgeIds.Benevole)
+    badges.add_badge(badge_type=BadgeIds.Benevole)
 
     return redirect(url_for(".volunteers_list"))
 
 
 @blueprint.route("/volunteers/delete/<badge_id>", methods=["POST"])
-def remove_volunteer(badge_id):
+def delete_volunteer(badge_id):
     """Route for an activity supervisor to remove a user volunteer badge
 
     :param badge_id: Id of badge to delete
     :type badge_id: int
     """
 
-    badges.remove_badge(badge_id)
+    badges.delete_badge(badge_id)
     return redirect(url_for(".volunteers_list"))
 
 
