@@ -59,35 +59,6 @@ For Linux and Mac:
     cd doc
     make html
 
-I want to deploy the website into production on my server
------------------------------------------------------------
-Installation
-..............
-For development, you can run `FLASK_APP=collectives:create_app flask run`. 
-However, it is not the recommended method for production environment.
-
-You can choose any production method you like, however, you can use waitress
-behind an nginx for SSL offloading. Waitress can be install with a pip
-`pip install waitress`, and a systemd service be created easily by adding
-`deployment/systemd/collectives.service` into `/etc/systemd/system`. In this
-case, please edit the file to update user and directory.
-
-Configuration
-..............
-Flask and DB related configuration should be in `instance/config.py`. This file 
-should be readable only by flask user (chmod 600). 
-
-However, more basic configuration that can be put into DB should be put
-`collectives/configuration.yaml`. File architecture is loaded at every reboot
-into db. Then, it can be modified by a site technician into the HMI. 
-
-Database
-.........
-For production, a more robust database than the default sqlite is recommended.
-pymysql is recommended for its full python compatibility.
-
-``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
-
 I want to file a bug
 ---------------------
 Bugs can be opened on the github issue system: 

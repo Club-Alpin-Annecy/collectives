@@ -30,6 +30,8 @@ Code, participation, and issue reporting can be done on github: `https://github.
    github_validation
    html
    tests
+   deployment
+   docker
 
 .. toctree::
    :maxdepth: 1
