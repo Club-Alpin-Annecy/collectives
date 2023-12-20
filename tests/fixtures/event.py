@@ -7,10 +7,11 @@ import pytest
 
 from collectives.models import db, ActivityType, EventType, Event, EventTag, EventStatus
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
+from collectives.models import Question, QuestionType, QuestionAnswer
 
 from tests.fixtures import payment
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument, redefined-outer-name
 
 
 def inject_fixture(name, identifier):
@@ -217,3 +218,45 @@ def event1_with_reg_waiting_list(event1, user1, user2, user3, user4):
             )
         )
     return event1
+
+
+@pytest.fixture
+def event1_with_questions(event1_with_reg):
+    """:returns: An event with user registrations and associated questions"""
+
+    event1_with_reg.questions.append(
+        Question(
+            title="Question",
+            description="",
+            choices="A\nB\nC\n",
+            question_type=QuestionType.MultipleChoices,
+            enabled=True,
+            required=True,
+        )
+    )
+    event1_with_reg.questions.append(
+        Question(
+            title="Autre question",
+            description="",
+            choices="",
+            question_type=QuestionType.Text,
+            enabled=True,
+            required=True,
+        )
+    )
+    db.session.add(event1_with_reg)
+    db.session.commit()
+    return event1_with_reg
+
+
+@pytest.fixture
+def event1_with_answers(event1_with_questions):
+    """:returns: An event with answered questions"""
+
+    q1 = event1_with_questions.questions[0]
+    u1 = event1_with_questions.registrations[0].user
+    q1.answers.append(QuestionAnswer(user=u1, value="B"))
+
+    db.session.add(q1)
+    db.session.commit()
+    return event1_with_questions

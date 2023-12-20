@@ -19,6 +19,10 @@
 
   <script src="{{ url_for('api.models_to_js') }}"></script>
 
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
   <script>
       window.onload = function () {
         const searchInput = document.getElementById('user-search');
@@ -28,6 +32,18 @@
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
+
+        {% if question_form.question_fields %} 
+        const choices = new Choices('.choices', {
+            removeItemButton:true,
+            noChoicesText:"Pas d'autres choix disponibles",
+            noResultsText:"Aucun choix trouvé",
+            itemSelectText:"Ajouter",
+            searchEnabled:false,
+            placeholder:true,
+            placeholderValue:"Choix…"
+          });
+        {% endif %}
       };
   </script>
 {% endblock %}
@@ -121,7 +137,7 @@
       </div>
     </div>
 
-    {# Active registrations and self-register #}
+    {# Active registrations  #}
 
     <div class="subscriptions">
       <h3 class="heading-3"> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
@@ -137,85 +153,10 @@
             {% endif %}
 
           {% endif %}
-      </h3>
+      </h3> 
+ 
       {% if event.num_online_slots > 0 %}
         <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
-      {% endif %}
-
-      {% if event.is_registered(current_user) %}
-        <p>Vous êtes inscrit à cet évènement en tant que 
-           {{event.existing_registrations(current_user)[0].level.display_name()}}
-           avec le statut {{event.existing_registrations(current_user)[0].status.display_name()}}.
-        </p>
-      {% endif %}
- 
-      {% if event.is_registered(current_user) %}
-        {% if event.is_rejected(current_user)%}
-          <p>Votre inscription a été refusée.</p>
-        {% elif event.is_unregistered(current_user)%}
-          <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
-        {% elif event.is_pending_payment(current_user) %}
-          <p>Votre inscription est en attente de paiement.
-          <ul>
-          {% for r in event.existing_registrations(current_user) %}
-            {% if r.is_pending_payment() %}
-              {% for payment in r.unsettled_payments() %}
-                <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
-              {% else %}
-                {# No pending payments, propose to choose item and price #}
-                {% with registration=r, is_leader=False %}
-                  {% include 'partials/event/payment_item_choice.html' %}
-                {% endwith %}
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-          </ul></p>
-        {% else %}
-          {% if not current_user.check_license_valid_at_time(event.end) %}
-          <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
-            <p>
-              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
-              Si vous venez de renouveller votre licence, merci de resynchroniser vos informations FFCAM via le bouton ci-dessous. <br />
-              <button type="submit" class="button button-secondary">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/> Resynchroniser mes informations FFCAM
-              </button>
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            </p>
-          </form>
-          {% endif %}
-
-          {% if current_time < event.start %}
-          <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <a  class="button button-secondary"
-                onclick="if(confirm(unregister_message{% if event.is_registered_with_status(current_user, [models.RegistrationStatus.Waiting]) %}_waiting{%endif%})) this.parentNode.submit()" >
-              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
-            </a>
-          </form><br/><br/>
-          {% endif %}
-        {% endif %}
-      {% else %}  {#  Not registered, display registration conditions #}
-        {% if event.event_type.license_types %}
-            Les inscriptions en ligne sont restreintes aux licenses de type {{event.event_type.license_types}},
-            {% if event.event_type.has_valid_license(current_user) %}
-              ce qui est votre cas.
-            {% else %}
-              ce qui n'est pas votre cas.
-            {% endif %}
-            <br/>
-        {% endif %}
-        {% if event.user_group and event.user_group.has_conditions() %}
-            Les inscriptions en ligne sont restreintes aux 
-            {% with user_group = event.user_group %}
-              {% include 'partials/user-group-text.html' %}
-            {% endwith %},
-            {% if event.user_group.contains(current_user) %}
-              dont vous faites partie.
-            {% else %}
-              dont vous ne faites pas partie.
-            {% endif %}
-            <br/>
-        {% endif %}
       {% endif %}
 
       {% for registration in event.active_normal_registrations() %}
@@ -258,6 +199,90 @@
               {{get_bad_phone_message(current_user, emergency=True) | safe }}
           </div>
         {% endif %}
+
+      {# Current user status and self-register#}
+
+      {% if event.is_registered(current_user) %}
+        <p>Vous êtes inscrit à cet évènement en tant que 
+           {{event.existing_registrations(current_user)[0].level.display_name()}}
+           avec le statut {{event.existing_registrations(current_user)[0].status.display_name()}}.
+        </p>
+      {% endif %}
+ 
+      {% if event.is_registered(current_user) %}
+        {% if event.is_rejected(current_user)%}
+          <p>Votre inscription a été refusée.</p>
+        {% elif event.is_unregistered(current_user)%}
+          <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
+        {% elif event.is_pending_payment(current_user) %}
+          <p>Votre inscription est en attente de paiement.
+          <ul>
+          {% for r in event.existing_registrations(current_user) %}
+            {% if r.is_pending_payment() %}
+              {% for payment in r.unsettled_payments() %}
+                <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+              {% else %}
+                {# No pending payments, propose to choose item and price #}
+                {% with registration=r, is_leader=False %}
+                  {% include 'partials/event/payment_item_choice.html' %}
+                {% endwith %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          </ul></p>
+        {% else %}  {# Active registration or waiting list #}
+          {% if not current_user.check_license_valid_at_time(event.end) %}
+          {# Pending licence renewal #}
+          <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
+            <p>
+              Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
+              Si vous venez de renouveller votre licence, merci de resynchroniser vos informations FFCAM via le bouton ci-dessous. <br />
+              <button type="submit" class="button button-secondary">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/> Resynchroniser mes informations FFCAM
+              </button>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </p>
+          </form>
+          {% endif %}
+
+          {% if current_time < event.start %} {# Unregister #}
+          <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <a  class="button button-secondary"
+                onclick="if(confirm(unregister_message{% if event.is_registered_with_status(current_user, [models.RegistrationStatus.Waiting]) %}_waiting{%endif%})) this.parentNode.submit()" >
+              <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
+            </a>
+          </form><br/><br/>
+          {% endif %}
+
+          {# Questionnaire #}
+          {% include 'partials/event/questionnaire.html' %}
+
+        {% endif %}
+      {% else %}  {#  Not registered, display registration conditions #}
+        {% if event.event_type.license_types %}
+            Les inscriptions en ligne sont restreintes aux licenses de type {{event.event_type.license_types}},
+            {% if event.event_type.has_valid_license(current_user) %}
+              ce qui est votre cas.
+            {% else %}
+              ce qui n'est pas votre cas.
+            {% endif %}
+            <br/>
+        {% endif %}
+        {% if event.user_group and event.user_group.has_conditions() %}
+            Les inscriptions en ligne sont restreintes aux 
+            {% with user_group = event.user_group %}
+              {% include 'partials/user-group-text.html' %}
+            {% endwith %},
+            {% if event.user_group.contains(current_user) %}
+              dont vous faites partie.
+            {% else %}
+              dont vous ne faites pas partie.
+            {% endif %}
+            <br/>
+        {% endif %}
+      {% endif %}
+
 
         {% if event.can_self_register(current_user, current_time) %}
           {{ self_register.button() }}
@@ -304,7 +329,7 @@
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, tu peux participer aux frais.</p>
+      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, vous pouvez participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}
@@ -352,8 +377,23 @@
     </div>
     {% endif %}
 
+    {% if event.user_answers(current_user.id) %}
+    <h3 class="heading-3">Vos réponses au questionnaire</h3>
+    Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
+
+    {% for qa in event.user_answers(current_user.id) %}
+    <p>
+    <span class="h-s">{{qa.question.title}}</span>
+    {{qa.value}}
+    </p>
+
+    {% endfor %}
+    {% endif %}
+
     {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
     <br/>
+
+
 
     {# Administration #}
     {% include 'event/partials/admin.html' %}

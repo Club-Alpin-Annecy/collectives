@@ -12,7 +12,9 @@ from sqlalchemy import desc, or_, func
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import Event, EventStatus, EventType
 from collectives.models import ActivityType, User, EventTag
+from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
+from collectives.utils.access import valid_user
 
 
 def photo_uri(event):
@@ -375,4 +377,66 @@ def autocomplete_event():
             found_events += query.limit(limit - len(found_events)).all()
 
     content = AutocompleteEventSchema().dumps(found_events, many=True)
+    return content, 200, {"content-type": "application/json"}
+
+
+def _get_answer_registration_status(answer: QuestionAnswer) -> str:
+    """:returns: the string corresponding to the registration status of the user
+    that authored an answer"""
+
+    reg = next(iter(answer.question.event.existing_registrations(answer.user)), None)
+    return reg.status.display_name() if reg else "Supprimée"
+
+
+class QuestionAnswerSchema(marshmallow.Schema):
+    """Schema according to which question answers are returned"""
+
+    delete_uri = fields.Function(
+        lambda answer: url_for("question.delete_answer", answer_id=answer.id)
+    )
+    """ URI for deleting the answer.
+
+    :type: :py:class:`marshmallow.fields.Function`"""
+
+    author_name = fields.Function(lambda answer: answer.user.full_name())
+
+    question_title = fields.Function(lambda answer: answer.question.title)
+
+    registration_status = fields.Function(_get_answer_registration_status)
+
+    class Meta:
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "value",
+            "author_name",
+            "question_title",
+            "delete_uri",
+            "registration_status",
+        )
+
+
+@blueprint.route("/event/<int:event_id>/answers/")
+@valid_user()
+def event_question_answers(event_id: int):
+    """API endpoint for listing answers to an event's questions
+
+    :param event_id: Id of the event
+    """
+    event = Event.query.get(event_id)
+    if event is None:
+        return abort(404)
+
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    answers = (
+        QuestionAnswer.query.filter(QuestionAnswer.question_id == Question.id)
+        .filter(Question.event_id == event_id)
+        .order_by(Question.order)
+        .all()
+    )
+
+    content = QuestionAnswerSchema().dumps(answers, many=True)
     return content, 200, {"content-type": "application/json"}

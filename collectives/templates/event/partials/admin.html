@@ -64,6 +64,18 @@
                 </form>
             {% endif %}
         {% endif %}
+            
+        <a class="button button-secondary" href="{{ url_for('question.edit_questions', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/>
+            Questionnaire
+        </a>
+        
+        {% if event.questions %}
+        <a class="button button-secondary" href="{{ url_for('question.show_answers', event_id=event.id)}}">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"/>
+            Réponses aux questions
+        </a>
+        {% endif %}
     </div>
 {% endif %}
 
