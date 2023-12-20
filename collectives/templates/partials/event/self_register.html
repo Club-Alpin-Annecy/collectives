@@ -35,7 +35,13 @@
                             />
                 <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
                 {% if event.event_type.terms_file %}
-                <p>L'inscription à un événement vous engage à y participer.</p>
+                {% if waiting_list %}
+                    <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionnés.</p>
+                    <p>Vous pourrez être sélectionnés automatiquement jusqu'à la fin de la période d'inscription si un participant 
+                        est désinscrit, puis manuellement par l'encadrant ensuite.</p>
+                {% else %}
+                    <p>L'inscription à un événement vous engage à y participer.</p>
+                {% endif %}
                 <p>
                     <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a></label><br/>
                 </p>
