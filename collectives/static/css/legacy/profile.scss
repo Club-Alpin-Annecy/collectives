@@ -1,7 +1,11 @@
-#profile table{
-    margin: auto;
+#profile .center_table{
+    width: 100%;
 }
-#profile table td.head{
+#profile .center_table td{
+    vertical-align: top;
+    width: 50%;
+}
+#profile .center_table td.head{
     text-align:right;
     font-weight: bold;
 }

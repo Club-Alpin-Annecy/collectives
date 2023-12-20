@@ -8,7 +8,7 @@ from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_, or_
 
-from collectives.models import db, User, RoleIds, Role, Badge
+from collectives.models import db, User, RoleIds, Role, Badge, ActivityType
 from collectives.models.badge import BadgeIds
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
@@ -283,13 +283,6 @@ class UserBadgeSchema(marshmallow.Schema):
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
-    delete_uri = fields.Function(
-        lambda badge: url_for("activity_supervision.remove_badge", badge_id=badge.id)
-    )
-    """ URI to delete this badge (WIP)
-
-    :type: string
-    """
     user = fields.Function(lambda badge: UserSchema().dump(badge.user))
     """ URI to get the user corresponding to the Badge
 
@@ -322,9 +315,12 @@ class UserBadgeSchema(marshmallow.Schema):
             "user",
             "activity_type",
             "delete_uri",
+            "renew_uri",
             "type",
             "expiration_date",
             "level",
+            "delete_uri",
+            "renew_uri",
         )
 
 
@@ -364,7 +360,7 @@ def leaders():
 
 @blueprint.route("/badges/")
 @valid_user(True)
-@user_is("is_supervisor", True)
+@user_is(["is_supervisor", "is_hotline"], api=True)
 @confidentiality_agreement(True)
 def badges():
     """API endpoint to list current badges
@@ -378,11 +374,12 @@ def badges():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
-
-    supervised_activities = current_user.get_supervised_activities()
+    if current_user.is_hotline():
+        supervised_activities = ActivityType.query.all()
+    else:
+        supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Badge)
-
     query = query.filter(
         or_(
             Badge.activity_id == None,
@@ -392,6 +389,18 @@ def badges():
     query = query.join(Badge.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
 
-    response = UserBadgeSchema(many=True).dump(query.all())
+    badges_list = query.all()
+
+    for badge in badges_list:
+        badge.delete_uri = url_for(
+            request.args.get("delete", "activity_supervision.delete_volunteer"),
+            badge_id=badge.id,
+        )
+        badge.renew_uri = url_for(
+            request.args.get("renew", "activity_supervision.renew_volunteer"),
+            badge_id=badge.id,
+        )
+
+    response = UserBadgeSchema(many=True).dump(badges_list)
 
     return json.dumps(response), 200, {"content-type": "application/json"}

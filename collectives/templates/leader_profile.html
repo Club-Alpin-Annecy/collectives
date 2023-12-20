@@ -17,13 +17,14 @@
 <div class="page-content">
     <h1 class="heading-1">{{user.full_name()}}</h1>
 
-    <div><img src="{%   if user.avatar
-                                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
-                        else
-                                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
-                        endif %}"
-                alt="Avatar de l'utilisateur"
-                class="avatar big float_right" />
+    <div class="centeralign">
+        <img src="{%   if user.avatar
+                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
+            else
+                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+            endif %}"
+        alt="Avatar de l'utilisateur"
+        class="avatar big" />
     </div>
 
     <h4 class="heading-4">Rôles</h4>

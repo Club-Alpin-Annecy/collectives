@@ -245,7 +245,7 @@ def add_benevole_badge_to_user(
     user,
     expiration_date=(date.today() + timedelta(days=365)),
     badge_id=int(BadgeIds.Benevole),
-    activity_name="Parapente",
+    activity_name="Alpinisme",
 ):
     """Manage to add a badge to a user
 

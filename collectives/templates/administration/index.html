@@ -1,0 +1,26 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" >
+  <!-- Logging Windows -->
+  <h1 class="heading-1">Administration</h1>
+
+  <div>
+    <a class="button button-primary" href="{{ url_for('administration.administration')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}"/>
+      Liste des utilisateurs
+    </a>
+    <a class="button button-primary" href="{{ url_for('administration.badges_list')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/md-pricetags-outline.svg') }}"/>
+      Badges
+    </a>
+    <a class="button button-primary" href="{{ url_for('administration.token')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/receipt.svg') }}"/>
+      Génération de token
+    </a>
+  </div>
+
+  {% block page_content %}{% endblock %}
+</div>
+{% endblock %}

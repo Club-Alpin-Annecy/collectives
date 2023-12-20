@@ -1,5 +1,5 @@
 
-{% extends 'base.html' %}
+{% extends 'administration/index.html' %}
 
 {% block additionalhead %}
 
@@ -12,9 +12,8 @@
   <script src="{{ url_for('static', filename='js/administration.js') }}"></script>
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <div class="page-content" id="administration">
-  <h1 class="heading-1">Administration</h1>
   <h4 class="heading-4">Utilisateurs</h4>
   <h5 class="heading-5">{{count['total']}} utilisateurs dont {{count['enable']}} activés</h5>
   <div class="action">
@@ -28,16 +27,5 @@
       </a>
   </div>
   <div id="users-table"></div>
-
-  <h4 class="heading-4">Jetons de confirmation</h4>
-  Si un utilisateur ne reçoit pas les emails contenant le jeton de confirmation nécessaire à
-  la création ou récupération de son compte, vous pouvez en générer un manuellement avec le formulaire ci-dessous.
-  <form action="{{url_for('.generate_token')}}" method="post">
-    {{token_creation_form.license.label() }}
-    {{token_creation_form.license() }}
-    {{token_creation_form.hidden_tag() }}
-    <br/>
-    {{token_creation_form.submit(class="button button-primary")}}
-  </form>
 </div>
 {% endblock %}

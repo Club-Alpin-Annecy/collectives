@@ -62,18 +62,18 @@
 
     <h4 class="heading-4">Informations FFCAM </h4>
 
-    <div>
+    <div class="centeralign">
         <img src="{%   if user.avatar
                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
             else
                     %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
             endif %}"
         alt="Avatar de l'utilisateur"
-        class="avatar big float_right" />
+        class="avatar big" />
     </div>
 
 
-    <table id="profile_info">
+    <table id="profile_info"  class="center_table">
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
             <td>{{user.license}}</td>
@@ -132,22 +132,38 @@
     </form>
     {% endif %}
 
-    <h4 class="heading-4">Badges</h4>
-    <ul>
-        {% for badge in user.badges %}
-        <li>{{badge.name}}
-            {% if badge.activity_id %}
-            pour l'activité <em>{{badge.activity_name}}</em>
-           {% endif %}
-           {% if badge.expiration_date %}
-            expirant le <em>{{format_date(badge.expiration_date)}}</em>
-           {% endif %}
-           {% if badge.level %}
-            avec le niveau <em>{{badge.level}}</em>
-           {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+    <h4 class="heading-4">Autres informations</h4>
+        <table id="site_info" class="center_table">
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat :</td>
+                <td>
+                    {% if user.has_a_valid_benevole_badge() %}
+                        {% for badge in user.badges if badge.badge_id == models.BadgeIds.Benevole and not badge.is_expired() %}
+                            {% if loop.index != 1 %} & {% endif %}
+                            {{badge.activity_name}} 
+                        {% endfor %}
+                    {% else %}
+                        Non
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Role sur le site :</td>
+                <td>
+                    {% if user.has_a_valid_benevole_badge() %}
+                        {% for role in user.roles %}
+                            {% if loop.index != 1 %} & {% endif %}
+                            {{role.name}}
+                            {% if role.activity_type %}
+                                pour l'activité <em>{{role.activity_type.name}}</em>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Aucun
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
 
     <h4 class="heading-4">Sorties à venir</h4>
     <div id="eventstable" class="collectives-list">
