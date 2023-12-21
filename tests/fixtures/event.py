@@ -253,10 +253,10 @@ def event1_with_questions(event1_with_reg):
 def event1_with_answers(event1_with_questions):
     """:returns: An event with answered questions"""
 
-    q1 = event1_with_questions.questions[0]
-    u1 = event1_with_questions.registrations[0].user
-    q1.answers.append(QuestionAnswer(user=u1, value="B"))
+    question1 = event1_with_questions.questions[0]
+    user1 = event1_with_questions.registrations[0].user
+    question1.answers.append(QuestionAnswer(user=user1, value="B"))
 
-    db.session.add(q1)
+    db.session.add(question1)
     db.session.commit()
     return event1_with_questions

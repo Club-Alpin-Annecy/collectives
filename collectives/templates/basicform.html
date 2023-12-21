@@ -1,10 +1,14 @@
-{% extends 'base.html' %}
+{% if extends %}
+  {% extends extends %}
+{% else %}
+  {% extends 'partials/basic-extends.html' %}
+{% endif %}
 
 {% block additionalhead %}
   {% include 'partials/form-additionalhead.html' %}
 {% endblock %}
 
-{% block content %}
+{% block page_content %}
 <div class="panel" id="administration">
   <!-- Logging Windows -->
   <h1 class="heading-1">{{ title }}</h1>

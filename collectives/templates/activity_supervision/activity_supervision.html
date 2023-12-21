@@ -7,13 +7,17 @@
   <h1 class="heading-1">Gestion des activités</h1>
 
   <div>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.configuration')}}">
+      <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}"/>
+      Configuration
+    </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.leader_list')}}">
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}"/>
       Encadrants
     </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.volunteers_list')}}">
         <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}"/>
-        Bénévoles
+      Bénévoles
       </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.csv_import')}}">
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/download.svg') }}"/>

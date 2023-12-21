@@ -1,4 +1,5 @@
 """ Script to test extranet connection. """
+
 from zeep import Client
 
 if __name__ == "__main__":

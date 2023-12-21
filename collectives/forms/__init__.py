@@ -37,3 +37,4 @@ def configure_forms(app):
     configure_uploads(app, documents)
     configure_uploads(app, image_equipment_type)
     configure_uploads(app, technician.upload)
+    configure_uploads(app, technician.private_upload)

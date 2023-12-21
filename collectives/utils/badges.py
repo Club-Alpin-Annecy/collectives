@@ -6,9 +6,10 @@ from flask_login import current_user
 
 from collectives.forms.user import AddBadgeForm, compute_default_expiration_date
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.models import db, ActivityType
+from collectives.models import db, ActivityType, Configuration
 from collectives.models import BadgeIds, Badge, User
 from collectives.utils import export
+from collectives.utils.misc import sanitize_file_name
 
 
 def export_badge(badge_type: BadgeIds = None):
@@ -56,10 +57,12 @@ def export_badge(badge_type: BadgeIds = None):
 
     out = export.export_badges(badges)
 
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
+
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {type_title(badge_type)} {filename}.xlsx",
+        download_name=f"{club_name} - Export {type_title(badge_type)} {filename}.xlsx",
         as_attachment=True,
     )
 

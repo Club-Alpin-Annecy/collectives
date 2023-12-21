@@ -20,13 +20,25 @@ class ActivityType(db.Model):
     __tablename__ = "activity_types"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256), nullable=False)
+    name = db.Column(
+        db.String(256),
+        nullable=False,
+        info={
+            "label": "Nom",
+        },
+    )
     """ Activity name.
 
     :type: string
     """
 
-    short = db.Column(db.String(256), nullable=False)
+    short = db.Column(
+        db.String(256),
+        nullable=False,
+        info={
+            "label": "Nom technique",
+        },
+    )
     """ Activity short name.
 
     It is especially used for icon CSS classes.
@@ -34,7 +46,13 @@ class ActivityType(db.Model):
     :type: string
     """
 
-    email = db.Column(db.String(256), nullable=True)
+    email = db.Column(
+        db.String(256),
+        nullable=True,
+        info={
+            "label": "Email de contact",
+        },
+    )
     """ Activity dedicated email.
 
     Mail to be used to send notifications to activity leader.
@@ -42,7 +60,13 @@ class ActivityType(db.Model):
     :type: string
     """
 
-    trigram = db.Column(db.String(8), nullable=False)
+    trigram = db.Column(
+        db.String(8),
+        nullable=False,
+        info={
+            "label": "Trigramme",
+        },
+    )
     """ Three-letter code.
 
     Mainly used to identify activity type in payment order references
@@ -50,13 +74,26 @@ class ActivityType(db.Model):
     :type: string
     """
 
-    order = db.Column(db.Integer, nullable=False)
+    order = db.Column(
+        db.Integer,
+        nullable=False,
+        info={
+            "label": "Ordre d'apparence",
+        },
+    )
     """ Order to display this activity
 
     :type: int
     """
 
-    deprecated = db.Column(db.Boolean, nullable=False, default=False)
+    deprecated = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        info={
+            "label": "Obsolète",
+        },
+    )
     """ Indicates a deprecated activity type, now replaced by an event type
 
     Kept in the table for backward compatibility, but excluded from activity lists

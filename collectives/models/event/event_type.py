@@ -4,6 +4,7 @@
 from markupsafe import escape
 
 from collectives.models.globals import db
+from collectives.models import Configuration
 
 
 class EventType(db.Model):
@@ -13,6 +14,19 @@ class EventType(db.Model):
     See the EVENT_TYPES config  variable.
     Persistence is done with SQLAlchemy and in the table ``event_types``
     """
+
+    TERMS_CONFIGURATIONS = [
+        "GUIDE_FILE",
+        "GUIDE_TITLE",
+        "GUIDE_TRAVEL_FILE",
+        "GUIDE_TRAVEL_TITLE",
+    ]
+    """ List of configuration keys that can be used to format the terms_file
+    or terms_title.
+
+    It should never be a secret configuration.  
+
+    :type: list"""
 
     __tablename__ = "event_types"
 
@@ -53,14 +67,22 @@ class EventType(db.Model):
 
     terms_title = db.Column(db.String(256), nullable=True)
     """ Title of the terms that must be accepted for registering to
-    and événement of this type.
+    an avent of this type.
+
+    It is recommended to use
+    :py:meth:`collectives.models.event.event_type.EventType.get_terms_title()`
+    to access it in order to have formatted with hot configuration.
 
     :type: string
     """
 
     terms_file = db.Column(db.String(256), nullable=True)
     """ Name of the file containings the terms that must be accepted for registering to
-    and événement of this type
+    an event of this type.
+
+    It is recommended to use
+    :py:meth:`collectives.models.event.event_type.EventType.get_terms_file()`
+    to access it in order to have formatted with hot configuration.
 
     :type: string
     """
@@ -96,3 +118,27 @@ class EventType(db.Model):
         types = cls.get_all_types()
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
+
+    def get_terms_file(self) -> str:
+        """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_file`
+
+        It will format the output using hot configuration as defined in
+        :py:attr:`collectives.models.event.event_type.EventType.TERMS_CONFIGURATIONS`
+        """
+        if self.terms_file is None:
+            return None
+
+        confs = {key: Configuration[key] for key in self.TERMS_CONFIGURATIONS}
+        return self.terms_file.format(**confs)
+
+    def get_terms_title(self) -> str:
+        """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_title`.
+
+        It will format the output using hot configuration as defined in
+        :py:attr:`collectives.models.event.event_type.EventType.TERMS_CONFIGURATIONS`
+        """
+        if self.terms_title is None:
+            return None
+
+        confs = {key: Configuration[key] for key in self.TERMS_CONFIGURATIONS}
+        return self.terms_title.format(**confs)

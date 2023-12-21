@@ -88,12 +88,6 @@ PAYMENTS_MAX_PRICE = 10000
 :type: int
 """
 
-PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-02-02 - CGV Collectives.pdf"
-"""Path to the file containing the current payment terms and conditions
-
-:type: string
-"""
-
 # Database
 SQLALCHEMY_DATABASE_URI = environ.get(
     "SQLALCHEMY_DATABASE_URI"
@@ -179,48 +173,36 @@ Contains the list of activity type as a dictionnary. id is an int, value is a ha
 
 :type: dict"""
 
-GUIDE_TITLE = (
-    "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"
-)
-""" Name of the guide to accept to register to an event of most types.
-
-:type: string """
-
-GUIDE_FILENAME = "CAF Annecy Organisation des sorties.pdf"
-""" Guide file name to accept to register to an event of most types.
-
-:type: string """
-
 # Event type:
 EVENT_TYPES = {
     1: {
         "short": "collective",
         "name": "Collective",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     2: {
         "short": "jeune",
         "name": "Jeunes",
         "requires_activity": True,
         "license_types": ["J1", "J2", "E1", "E2"],
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     3: {
         "short": "formation",
         "name": "Formation",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     4: {
         "short": "soiree",
         "name": "Soirée",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     5: {
         "short": "randonnees_lointaines",
@@ -235,43 +217,43 @@ EVENT_TYPES = {
         "short": "inscription",
         "name": "Inscription en ligne",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     8: {
         "short": "acces_libre",
         "name": "Accès libre",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     9: {
         "short": "entrainement",
         "name": "Entrainement",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     10: {
         "short": "cours",
         "name": "Cours",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     11: {
         "short": "benevolat",
         "name": "Bénévolat",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     12: {
         "short": "famille",
         "name": "Famille",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
 }
 """List of event types
@@ -341,12 +323,19 @@ UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(
 UPLOADED_DOCUMENTS_DEST = os.path.join(basedir, "collectives/static/uploads/documents")
 """Folder path for uploaded event documents.
 
-
+:type: string
 """
+
 UPLOADED_TECH_DEST = os.path.join(basedir, "collectives/static/uploads/tech")
 """Folder path for technician data.
 
+:type: string
+"""
 
+UPLOADED_PRIVATE_DEST = os.path.join(basedir, "collectives/private_assets")
+"""Folder path for private technician data.
+
+:type: string
 """
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}

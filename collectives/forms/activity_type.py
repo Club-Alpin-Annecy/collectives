@@ -3,6 +3,8 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, SelectField, Label
 from wtforms.validators import DataRequired
+from wtforms_alchemy import ModelForm
+
 
 from collectives.models import ActivityType
 
@@ -39,3 +41,15 @@ class ActivityTypeSelectionForm(FlaskForm):
 
         if "submit_label" in kwargs:
             self.submit.label = Label(self.submit.id, kwargs["submit_label"])
+
+
+class ActivityTypeForm(ModelForm, FlaskForm):
+    """Form to modify an activity type."""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = ActivityType
+        exclude = ["short"]
+
+    submit = SubmitField("Modifier")

@@ -15,14 +15,52 @@ class ConfigurationTypeEnum(enum.Enum):
 
     # pylint: disable=invalid-name
     Integer = 1
+    """ An integer will be stored in the attribute ``content`` """
+
     Float = 2
+    """ A float will be stored in the attribute ``content`` """
+
     Date = 3
+    """ A date will be stored in the attribute ``content`` """
+
     ShortString = 4
+    """ A one line string will be stored in the attribute ``content``.
+     
+    In HMI, it will be modified with a one line input """
+
     LongString = 5
+    """ A multiline string will be stored in the attribute ``content``.
+     
+    In HMI, it will be modified with a multiline line textarea """
+
     Array = 6
+    """ An array will be stored in the attribute ``content`` as JSON."""
+
     Dictionnary = 7
+    """ A dictionnary will be stored in the attribute ``content`` as JSON."""
+
     Boolean = 8
+    """ A boolean will be stored in the attribute ``content``."""
+
     File = 9
+    """ A file will be stored.
+    
+    Actual file is stored in local file system, in 
+    ``collectives/static/uploads/tech``. The ``content`` attribute 
+    of a ``File`` configuration instance only contains the path, 
+    relative to the ``uploads`` folder.
+    
+    Often, default content are not in ``uploads``."""
+
+    SecretFile = 10
+    """ A file will be stored, but that should not be exposed in static.
+    
+    Actual file is stored in local file system, in 
+    ``collectives/private_assets``. The ``content`` attribute 
+    of a ``SecretFile`` configuration instance only contains the path,
+    relative to the current working directory of the application.
+    
+    Often, default content are not in ``private_assets``."""
 
 
 # pylint: disable=invalid-name
@@ -82,7 +120,6 @@ class Meta(type):
 
         :param string name: Name of the configuration item
         :returns: the configuration item"""
-
         item = ConfigurationItem.query.filter_by(name=name).first()
         if item is not None:
             with cls._lock:
@@ -156,6 +193,7 @@ class ConfigurationItem(db.Model):
     :type: datetime"""
 
     type = db.Column(db.Enum(ConfigurationTypeEnum))
+    """ Configuration type. See :py:class:`ConfigurationTypeEnum` """
 
     def __init__(self, name):
         """Constructor of Configuration.

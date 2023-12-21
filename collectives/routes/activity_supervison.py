@@ -12,7 +12,7 @@ from werkzeug.datastructures import CombinedMultiDict
 
 from collectives.forms.csv import CSVForm
 from collectives.forms.user import AddLeaderForm
-from collectives.forms.activity_type import ActivityTypeSelectionForm
+from collectives.forms.activity_type import ActivityTypeSelectionForm, ActivityTypeForm
 from collectives.models import User, Role, RoleIds, ActivityType, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
@@ -146,7 +146,7 @@ def export_role():
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export Roles {activity_type.name}.xlsx",
+        download_name=f"{Configuration.CLUB_NAME} - Export Roles {activity_type.name}.xlsx",
         as_attachment=True,
     )
 
@@ -284,4 +284,51 @@ def activity_documents():
         "activity_supervision/activity_documents.html",
         add_document_form=add_document_form,
         title="Gestion des activités",
+    )
+
+
+@blueprint.route("/configuration", methods=["GET"])
+def configuration():
+    """Route for managing activity configuration."""
+
+    activities = current_user.get_supervised_activities()
+
+    if len(activities) == 1:
+        return redirect(
+            url_for(".configuration_form", activity_type_id=activities[0].id)
+        )
+
+    return render_template(
+        "activity_supervision/configuration.html",
+        activities=activities,
+        title="Configuration",
+    )
+
+
+@blueprint.route("/configuration/<int:activity_type_id>", methods=["GET", "POST"])
+def configuration_form(activity_type_id):
+    """Route for managing activity configuration."""
+
+    activity = ActivityType.query.get(activity_type_id)
+    if activity is None:
+        flash(f"L'activité #{activity_type_id} n'existe pas", "error")
+        return redirect(url_for(".activity_supervision"))
+
+    if activity not in current_user.get_supervised_activities():
+        flash("L'activité {activity.name} n'est pas gérable par vous.")
+        return redirect(url_for(".activity_supervision"))
+
+    form = ActivityTypeForm(obj=activity)
+
+    if form.validate_on_submit():
+        form.populate_obj(activity)
+        db.session.add(activity)
+        db.session.commit()
+        flash(f"Activité {activity.name} modifiée avec succès.", "success")
+
+    return render_template(
+        "basicform.html",
+        title=f"Configuration {activity.name}",
+        form=form,
+        extends="activity_supervision/activity_supervision.html",
     )

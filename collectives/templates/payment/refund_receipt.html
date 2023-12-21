@@ -14,10 +14,10 @@
             </ul>
         </div>
         
-        <div id="logo"><img src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
+        <div id="logo"><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}"></div>
 
         <p>
-            Annecy, le {{format_date(payment.refund_time)}}
+            Le {{format_date(payment.refund_time)}}
         </p>
 
         <h1 class="title"> Justificatif de remboursement nº&nbsp;{{payment.processor_order_ref}} </h1>
@@ -54,11 +54,7 @@
         </div>
 
         <div id="footer">
-            <ul class="address">
-                <li>Club Alpin Français d'Annecy,</li>
-                <li>17 rue du Mont Blanc,</li>
-                <li>74000 Annecy</li>
-            </ul>
+            {{markdown_to_html(Configuration.CLUB_IDENTITY) | safe}}
         </div>
 
     </body>

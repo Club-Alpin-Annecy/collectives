@@ -21,6 +21,7 @@ from collectives.models import User, Role, RoleIds, Configuration, Gender, Event
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
+from collectives.utils.misc import sanitize_file_name
 
 
 images = Images()
@@ -248,7 +249,7 @@ def volunteer_certificate():
     # Add Header text
     ImageDraw.Draw(image).multiline_text(
         (width / 2, 500),
-        "Attestation de fonction Bénévole\nau CAF d'Annecy",
+        f"Attestation de fonction Bénévole\nau {Configuration.CLUB_NAME}",
         black,
         font=ImageFont.truetype(font_file, 100),
         anchor="ms",
@@ -257,7 +258,7 @@ def volunteer_certificate():
 
     # Add Main text
     conjugate = "e" if current_user.gender == Gender.Woman else ""
-    club_name = "Club Alpin Français d'Annecy (74)"
+    club_name = Configuration.CLUB_NAME
     if current_user.license_expiry_date:
         expiry = current_user.license_expiry_date.year
     elif current_user.is_test:
@@ -278,12 +279,10 @@ def volunteer_certificate():
         f"pour l'année en cours, du 1er septembre {expiry-1} au 30 septembre "
         f"{expiry}, et est Bénévole reconnu{conjugate} au sein de notre "
         "association.\n\n"
-        f"Nom et adresse de la structure:\n        {club_name}\n"
-        "        17 rue du Mont Blanc\n"
-        "        74000 Annecy\n"
-        "        www.cafannecy.fr\n\n"
+        f"Nom et adresse de la structure:\n{Configuration.CLUB_IDENTITY}\n"
+        "\n\n"
         "Pour toute question ou réclamation concernant l'attestation: "
-        "partenaires@cafannecy.fr\n\n"
+        f"{Configuration.CONTACT_EMAIL}\n\n"
         "Ces informations sont certifiées conformes."
     )
 
@@ -298,7 +297,7 @@ def volunteer_certificate():
 
     ImageDraw.Draw(image).multiline_text(
         (1580, 2550),
-        f"Fait à Annecy le {date.today().strftime('%d/%m/%Y')}\n"
+        f"Fait le {date.today().strftime('%d/%m/%Y')}\n"
         "Cachet et signature du président",
         black,
         font=font,
@@ -311,11 +310,13 @@ def volunteer_certificate():
     no_alpha.save(out, "PDF")
     out.seek(0)
 
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
+
     # Show file to user
     return send_file(
         out,
         mimetype="application/pdf",
-        download_name=str("Attestation Benevole CAF Annecy.pdf"),
+        download_name=f"Attestation Benevole {club_name}.pdf",
         as_attachment=True,
     )
 
