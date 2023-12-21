@@ -7,6 +7,29 @@ String.prototype.capitalize = function() {
 }
 
 function buildEventsTable() {
+
+    var newSession = true;
+    var itemsPerPage = 25;
+    try {
+        var currentTime = new Date();
+        var sessionTime = sessionStorage.getItem("eventlist-sessionDate");
+        if (sessionTime) {
+            var elapsedMilliseconds = currentTime - Date.parse(sessionTime)
+            if(elapsedMilliseconds < 86400 * 1000)
+            {
+                // Last seen less that a day ago, keep session filters
+                newSession = false;
+
+                // Retrieve persisted items per page
+                sessionPageSize = sessionStorage.getItem("eventlist-sessionPageSize");
+                if(sessionPageSize) {
+                    itemsPerPage = parseInt(sessionPageSize)
+                }
+            }
+        }
+        sessionStorage.setItem("eventlist-sessionDate", currentTime)
+    } catch(error) {}
+
     eventsTable = new Tabulator("#eventstable", {
         layout:"fitColumns",
         //ajaxURL: '/api/events/',
@@ -35,7 +58,7 @@ function buildEventsTable() {
                 eventsTable.setGroupBy(sorters[0]['field']);
         },
         pagination : 'remote',
-        paginationSize : 25,
+        paginationSize : itemsPerPage,
         paginationSizeSelector:[25, 50, 100],
         pageLoaded :  updatePageURL,
 
@@ -74,21 +97,6 @@ function buildEventsTable() {
             }
         },
     });
-
-    var newSession = true;
-    try {
-        var currentTime = new Date();
-        var sessionTime = sessionStorage.getItem("eventlist-sessionDate");
-        if (sessionTime) {
-            var elapsedMilliseconds = currentTime - Date.parse(sessionTime)
-            if(elapsedMilliseconds < 86400 * 1000)
-            {
-                // Last seen less that a day ago, keep session filters
-                newSession = false;
-            }
-        }
-        sessionStorage.setItem("eventlist-sessionDate", currentTime)
-    } catch(error) {}
 
     if(newSession) {
         // Don't keep stored filters about leader, date and title
@@ -300,6 +308,10 @@ function updatePageURL(){
     var page = eventsTable.getPage();
     var location = document.location.toString().split('#');
     document.location = `${location[0]}#p${page}` ;
+
+    // Persist page size in session
+    var pageSize = eventsTable.getPageSize();
+    sessionStorage.setItem("eventlist-sessionPageSize", pageSize);
 }
 
 function gotoEvents(event){
