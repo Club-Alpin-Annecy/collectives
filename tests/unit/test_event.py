@@ -3,8 +3,10 @@
 import datetime
 
 # pylint: disable=C0301
-from collectives.models import db, ActivityType, Event
+from collectives.models import db, ActivityType, Event, User
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
+
+from collectives.routes.event import update_waiting_list
 
 from tests.fixtures.user import promote_to_leader
 
@@ -150,3 +152,73 @@ def test_event_volunteer_duration(event):
 
     event.end = event.start + datetime.timedelta(days=1, hours=6)
     assert event.volunteer_duration() == 2
+
+
+def test_waiting_list_update(event1: Event, event2: Event, user1: User, user2: User):
+    """Test waiting list update when users are registered to multiple simultaneaous events"""
+
+    event1.num_online_slots = 1
+    event1.num_waiting_list = 2
+    event1.registration_open_time = datetime.datetime.now()
+    event1.registration_close_time = datetime.datetime.now() + datetime.timedelta(
+        days=1
+    )
+
+    event2.num_online_slots = 1
+    event2.num_waiting_list = 2
+    event2.registration_open_time = datetime.datetime.now()
+    event2.registration_close_time = datetime.datetime.now() + datetime.timedelta(
+        days=1
+    )
+
+    def make_registration(event, user, status):
+        """Utility func to create a registration for the given user"""
+        reg = Registration(
+            event=event, user=user, status=status, level=RegistrationLevels.Normal
+        )
+        db.session.add(reg)
+        return reg
+
+    reg_u1_e1 = make_registration(event1, user1, RegistrationStatus.Active)
+    db.session.commit()
+
+    # Check that user1 cannot register to event2 if Confirmed on event1, but can if waiting
+    assert len(user1.registrations_during(event2.start, event2.end, event2.id)) == 1
+    reg_u1_e1.status = RegistrationStatus.Waiting
+    assert len(user1.registrations_during(event2.start, event2.end, event2.id)) == 0
+
+    # Make user 1 waiting on both events, user 2 waiting on event 1
+    reg_u1_e2 = make_registration(event2, user1, RegistrationStatus.Waiting)
+    reg_u2_e1 = make_registration(event1, user2, RegistrationStatus.Waiting)
+    db.session.commit()
+
+    assert event1.has_free_online_slots()
+    # Update waiting list for event 1
+    # User 1 should get confirmed and removed from event 2 waiting list
+    # User 1 should get confirmed
+    update_waiting_list(event1)
+    db.session.commit()
+    assert len(event1.active_registrations()) == 1
+    assert len(event1.registrations) == 2
+    assert len(event2.registrations) == 0
+    assert reg_u1_e2.status == RegistrationStatus.Waiting
+    assert reg_u2_e1.status == RegistrationStatus.Waiting
+    assert reg_u1_e1.status == RegistrationStatus.Active
+
+    # Make both users wait on event 2
+    reg_u1_e2 = make_registration(event2, user1, RegistrationStatus.Waiting)
+    reg_u2_e2 = make_registration(event2, user2, RegistrationStatus.Waiting)
+    db.session.commit()
+
+    assert event2.has_free_online_slots()
+    # Update waiting list for event 2
+    # User 1 should get skipped because already registered to an event
+    # User 2 should become confirmed
+    update_waiting_list(event2)
+    db.session.commit()
+
+    assert len(event2.active_registrations()) == 1
+    assert len(event2.registrations) == 2
+
+    assert reg_u1_e2.status == RegistrationStatus.Waiting
+    assert reg_u2_e2.status == RegistrationStatus.Active

@@ -1120,12 +1120,14 @@ def preview(event_id):
     return render_template("event/preview.html", event=event, url=url)
 
 
-def update_waiting_list(event):
+def update_waiting_list(event: Event) -> List[Registration]:
     """Update the attendance list of an event of waiting registrations
 
     If a waiting registration has a free slot to become active, and online
     registration is still authorized, its status will be changed. Function
     will returns the modified registrations.
+    If the user is in the waiting list of other events at the same time,
+    those registrations will be deleted.
 
     This function will do the db.session.add() but not the commit.
     Ensure you have a db.session.commit() after the function call.
@@ -1133,9 +1135,7 @@ def update_waiting_list(event):
     This function will also send update email to the users.
 
     :param event: Event to update
-    :returns: The registration that will be active if a slot is free.
-    None otherwise.
-    :rtype: :py:class:`collectives.models.registration.Registration`
+    :returns: The list of registrations that will become active if one or more slots are free.
     """
     registrations = []
 
@@ -1143,17 +1143,48 @@ def update_waiting_list(event):
     if not event.is_registration_open_at_time(current_time()):
         return registrations
 
-    while event.has_free_online_slots() != 0 and event.waiting_registrations():
-        new_registration = event.waiting_registrations()[0]
-        registrations.append(new_registration)
+    for waiting_registration in event.waiting_registrations():
+        if not event.has_free_online_slots():
+            break
+
+        if (
+            event.event_type.requires_activity
+            and waiting_registration.user.registrations_during(
+                event.start, event.end, event.id
+            )
+        ):
+            # Conflicts, skip registration
+            continue
 
         if event.requires_payment():
-            new_registration.status = RegistrationStatus.PaymentPending
+            if not event.exist_available_prices_to_user(waiting_registration.user):
+                # Cannot pay, skip registration
+                continue
+            waiting_registration.status = RegistrationStatus.PaymentPending
         else:
-            new_registration.status = RegistrationStatus.Active
+            waiting_registration.status = RegistrationStatus.Active
 
-        send_update_waiting_list_notification(new_registration)
+        if event.event_type.requires_activity:
+            other_registrations = waiting_registration.user.registrations_during(
+                event.start, event.end, event.id, include_waiting=True
+            )
+            removed_waiting_registrations = [
+                reg
+                for reg in other_registrations
+                if reg.status == RegistrationStatus.Waiting
+            ]
+        else:
+            removed_waiting_registrations = []
 
-        db.session.add(new_registration)
+        send_update_waiting_list_notification(
+            waiting_registration, removed_waiting_registrations
+        )
+
+        db.session.add(waiting_registration)
+        registrations.append(waiting_registration)
+
+        # Remove the user from other waiting lists
+        for other_reg in removed_waiting_registrations:
+            db.session.delete(other_reg)
 
     return registrations
