@@ -3,6 +3,7 @@
 """
 
 import functools
+import re
 import unicodedata
 
 from flask import request
@@ -69,3 +70,11 @@ def to_ascii(value):
         .encode("ascii", "ignore")
         .decode("ascii")
     )
+
+
+def sanitize_file_name(name: str) -> str:
+    """Returns  sanitized filename without characters that cannot be in a filename.
+
+    Basically removes all characters not alphanumerical, space, accentuated character,
+    simple quote, dot, dash, commas, and underscore."""
+    return re.sub(r"[^A-Za-z0-9_ .,àâäçéèêëîïôöùûüÿÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒæœ-]", "_", name)

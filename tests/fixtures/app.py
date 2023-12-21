@@ -41,7 +41,8 @@ def app(db_file):
         db.create_all()
 
         init.populate_db(fixture_app)
-        init.init_config(True, "tests/assets/configuration.test.yaml")
+        path = "tests/assets/configuration.test.yaml"
+        init.init_config(app=fixture_app, force=True, path=path, clean=False)
 
         yield fixture_app
 

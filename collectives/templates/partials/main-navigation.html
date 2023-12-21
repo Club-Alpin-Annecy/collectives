@@ -2,7 +2,7 @@
     <div class="layout-container main-navigation-container">
         <div class="main-navigation-container-primary">
             <a href="{{ url_for('root.index')}}" class="main-navigation-logo">
-                <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ config['TITLE'] }}"
+                <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="{{ config['TITLE'] }}"
                     title="{{ config['TITLE'] }}">
             </a>
 
@@ -23,9 +23,9 @@
                                 </a>
                             </li>
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+config['GUIDE_FILENAME']) }}"  class="menu-dropdown-item-link">
+                                <a href="{{ url_for('static', filename=Configuration.GUIDE_FILE) }}"  class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  class="legacy-icon" />
-                                    Organisation des sorties
+                                    {{Configuration.GUIDE_TITLE.capitalize()}}
                                 </a>
                             </li>
 

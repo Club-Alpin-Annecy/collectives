@@ -8,7 +8,7 @@ from typing import Tuple, List, Set
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
-from flask import current_app, Blueprint, abort
+from flask import Blueprint, abort
 from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
@@ -28,7 +28,7 @@ from collectives.forms.question import QuestionAnswersForm
 
 from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
-from collectives.models import RegistrationStatus, User, db
+from collectives.models import RegistrationStatus, User, db, Configuration
 from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.activity_type import activities_without_leader
 from collectives.models.activity_type import leaders_without_activities
@@ -39,6 +39,7 @@ from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 from collectives.utils.access import confidentiality_agreement, valid_user
 from collectives.utils.crawlers import crawlers_catcher
+from collectives.utils.misc import sanitize_file_name
 
 from collectives.utils import export
 
@@ -282,12 +283,13 @@ def export_list_of_registered_users(event_id):
 
     out = export.export_users_registered(event)
 
-    filename = slugify(event.title)
+    filename = sanitize_file_name(event.title)
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
 
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Collective {filename}.xlsx",
+        download_name=f"{club_name} - Collective {filename}.xlsx",
         as_attachment=True,
     )
 
@@ -724,7 +726,7 @@ def self_register(event_id):
         db.session.commit()
 
         payment = Payment(registration=registration, item_price=item_price)
-        payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
+        payment.terms_version = Configuration.PAYMENTS_TERMS_FILE
 
         db.session.add(payment)
         db.session.commit()
@@ -788,7 +790,7 @@ def select_payment_item(event_id):
         payment = Payment(
             registration=registration, item_price=item_price, buyer=current_user
         )
-        payment.terms_version = current_app.config["PAYMENTS_TERMS_FILE"]
+        payment.terms_version = Configuration.PAYMENTS_TERMS_FILE
 
         db.session.add(payment)
         db.session.commit()

@@ -26,7 +26,7 @@ def get_input_value(soup, name):
 
 def test_config_list(admin_client):
     """Test display of configuration page"""
-    response = admin_client.get("/technician/configuration")
+    response = admin_client.get("/technician/configuration/TEST")
     assert response.status_code == 200
 
     soup = BeautifulSoup(response.text, features="lxml")
@@ -50,42 +50,42 @@ def test_config_update(admin_client):
     """Test update of a configuration item"""
 
     data = {"name": "test_bool"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_int", "content": "5689"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_date", "content": "2020-01-01 00:00:00"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_float", "content": "1.69"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_string", "content": "test é^"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     data = {"name": "test_hidden", "content": "*****"}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     long_test = """long test é^
     1236555"""
     data = {"name": "test_longstring", "content": long_test}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
     dict_test = """test1: zzzzz
 test2: oooooé$£¤"""
     data = {"name": "test_dict", "content": dict_test}
-    response = admin_client.post("/technician/configuration", data=data)
+    response = admin_client.post("/technician/configuration/TEST", data=data)
     assert response.status_code == 302
 
-    response = admin_client.get("/technician/configuration")
+    response = admin_client.get("/technician/configuration/TEST")
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, features="lxml")
 

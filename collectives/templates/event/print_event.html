@@ -10,11 +10,11 @@
             <ul>
             <li><span class="what">Nivo météo :</span> <span class="phone">08 92 68 10 20</span></li>
             <li><span class="what">Secours :   </span> <span class="phone">112</span></li>
-            <li><span class="what">CAF Annecy :</span> <span class="phone">04 50 09 82 09</span></li>
+            <li><span class="what">{{Configuration.CLUB_NAME}}:</span> <span class="phone">{{Configuration.CLUB_PHONE}}</span></li>
             </ul>
         </div>
         
-        <div id="logo"><img src="{{ url_for('static', filename='caf/logo_couleur.png') }}"></div>
+        <div id="logo"><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}"></div>
 
         <div id="title">
             <h2 class="heading-2">

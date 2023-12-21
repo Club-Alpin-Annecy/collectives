@@ -1,0 +1,28 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% block additionalhead %}
+
+ 
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">{{title}}</h2>
+
+  <p>Merci de sélectionner l'activité que vous souhaitez modifier:</p>
+
+  <p>
+    <ul>
+      {% for activity in activities %}
+        <li>
+          <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=activity.id) }}" >
+            {{ activity.name }} ({{activity.short}})
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </p>
+  
+
+</div>
+{% endblock %}

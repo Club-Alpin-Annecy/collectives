@@ -58,7 +58,7 @@ def test_crawler(client, event):
     )
     assert (
         soup.select_one('meta[property="og:image"]')["content"]
-        == "http://localhost/static/caf/logo-caf-annecy.svg"
+        == "http://localhost/static/caf/logo.svg"
     )
 
     description = soup.select_one('meta[property="og:description"]')["content"]

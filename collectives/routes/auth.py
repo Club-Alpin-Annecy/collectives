@@ -378,8 +378,8 @@ def signup():
         return render_signup_form(form, is_recover)
 
     if user_info.email == None:
-        form.generic_error = """Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
-            club. Envoyez un mail à secretariat@cafannecy.fr afin de demander que votre
+        form.generic_error = f"""Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
+            club. Envoyez un mail à {Configuration.SECRETARIAT_EMAIL} afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
             fait, vous pourrez alors activer votre compte"""
         return render_signup_form(form, is_recover)
@@ -422,7 +422,7 @@ def check_token(license_number):
     error_message = (
         "L'envoi de votre email de confirmation de boite mail a échoué."
         + " Merci de  réessayer dans quelques heures ou de contacter le support"
-        + " à digital@cafannecy.fr si le problème persiste."
+        + f" à {Configuration.SUPPORT_EMAIL} si le problème persiste."
     )
 
     if token == None:
@@ -484,5 +484,5 @@ def get_bad_phone_message(user, emergency=False):
         </form>. <br/>
         <b>Sans cette information, vous ne pourrez pas participer aux collectives.</b> <br/>
         Si besoin, vous pouvez contacter le support à 
-        <a href="mailto:support-collectives@cafannecy.fr">support-collectives@cafannecy.fr</a>.
+        <a href="mailto:{Configuration.SUPPORT_EMAIL}">{Configuration.SUPPORT_EMAIL}</a>.
         """

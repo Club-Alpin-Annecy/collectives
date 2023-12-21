@@ -8,12 +8,14 @@ import os.path
 import os
 import json
 import datetime
+import re
 import yaml
 
 from flask import Blueprint, render_template, send_from_directory
 from flask import url_for, redirect, request, flash
 from flask_login import current_user
 from flask_uploads import UploadSet, IMAGES, DOCUMENTS
+from werkzeug.utils import secure_filename
 
 from collectives.forms.configuration import get_form_from_configuration, CoverUploadForm
 from collectives.models import ConfigurationItem, db
@@ -30,6 +32,8 @@ This blueprint contains all routes for technicians. It is reserved to technician
 upload = UploadSet("tech", IMAGES + DOCUMENTS)
 # Override existing files
 upload.resolve_conflict = lambda folder, name: name
+
+private_upload = UploadSet("private", IMAGES + DOCUMENTS)
 
 
 @blueprint.before_request
@@ -104,17 +108,17 @@ def log_dir():
 
 
 @blueprint.route("/configuration", methods=["GET"])
-def configuration():
+@blueprint.route("/configuration/<selected_folder>", methods=["GET"])
+def configuration(selected_folder=None):
     """Route to display and update configuration."""
 
     folders = db.session.query(ConfigurationItem.folder).distinct().all()
     folders = [f[0] for f in folders]
 
-    configuration_items = {}
-    for folder in folders:
-        configuration_items[folder] = []
+    configuration_items = []
 
-        for item in ConfigurationItem.query.filter_by(folder=folder).all():
+    if selected_folder in folders:
+        for item in ConfigurationItem.query.filter_by(folder=selected_folder).all():
             form = get_form_from_configuration(item)(obj=item)
             form.name.value = item.name
             if item.type in [
@@ -127,18 +131,20 @@ def configuration():
 
             if item.hidden:
                 form.content.data = "*****"
-            configuration_items[folder].append({"form": form, "conf": item})
+            configuration_items.append({"form": form, "conf": item})
 
     return render_template(
         "technician/configuration.html",
         title="Configuration",
         configuration_items=configuration_items,
         folders=folders,
+        selected_folder=selected_folder,
     )
 
 
 @blueprint.route("/configuration", methods=["POST"])
-def update_configuration():
+@blueprint.route("/configuration/<selected_folder>", methods=["POST"])
+def update_configuration(selected_folder):
     """Endpoint to modify a configuration item
 
     :return: redirection to configuration
@@ -147,7 +153,10 @@ def update_configuration():
     if item is None:
         return "", 403, ""
 
-    form = get_form_from_configuration(item)(request.form)
+    form = get_form_from_configuration(item)()
+
+    if not form.validate_on_submit():
+        flash("Abandon de la configuration : erreur technique", "error")
 
     if item.type in [ConfigurationTypeEnum.Array, ConfigurationTypeEnum.Dictionnary]:
         try:
@@ -161,6 +170,24 @@ def update_configuration():
             "error",
         )
         redirect(url_for("technician.configuration"))
+    elif item.type in [ConfigurationTypeEnum.File, ConfigurationTypeEnum.SecretFile]:
+        file_name = secure_filename(form.content.data.filename)
+
+        search = re.search(f"/{item.name}/v([0-9]+)/", item.content)
+        if search is None:
+            version = 1
+        else:
+            version = int(search.group(1)) + 1
+
+        folder = f"{item.name}/v{version}/"
+
+        if item.type == ConfigurationTypeEnum.File:
+            item.content = f"uploads/tech/{folder}{file_name}"
+            upload.save(form.content.data, name=file_name, folder=folder)
+        else:
+            item.content = f"{private_upload.config.destination}/{folder}{file_name}"
+            private_upload.save(form.content.data, name=file_name, folder=folder)
+
     else:
         item.content = form.content.data
 
@@ -171,7 +198,9 @@ def update_configuration():
 
     Configuration.uncache(item.name)
 
-    return redirect(url_for("technician.configuration"))
+    return redirect(
+        url_for("technician.configuration", selected_folder=selected_folder)
+    )
 
 
 @blueprint.route("/cover", methods=["GET", "POST"])

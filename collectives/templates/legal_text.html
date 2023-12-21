@@ -19,14 +19,7 @@
 
 <h4 class="heading-4">Identité</h4>
     <p>
-        <b>Club Alpin Français d'Annecy</b><br/>
-        17 Rue du Mont Blanc<br/>
-        74000 ANNECY<br/>
-        Tél. 04 50 09 82 09<br/>
-        <a href="mailto:secretariat@cafannecy.fr">secretariat@cafannecy.fr</a><br/>
-        <br/>
-        Informations générales sur le site internet du club
-        <a href="https://www.cafannecy.fr/leclub/contacts">www.cafannecy.fr</a>
+        {{markdown_to_html(Configuration.CLUB_IDENTITY) | safe}}
     </p>
 
 
@@ -44,9 +37,9 @@
     <p>Conformément
     au Règlement général sur la protection des données (RGPD) du 25 mai 2018, les données
     personnelles des adhérents ayant un compte activé sur
-    le site des collectives https://collectives.cafannecy.fr seront
+    ce site seront
     utilisées à plusieurs fins, strictement réservés à
-    l'usage interne du Club Alpin Français d'Annecy.
+    l'usage interne du {{Configuration.CLUB_NAME}}.
     </p>
 
      <!-- FIXME should be 1.1em -->
@@ -54,7 +47,7 @@
 
     <p>
     Les données personnelles présentes sur le site des collectives sont une copie de celles
-    fournies lors de l'adhésion au Club Alpin Français d'Annecy. Elles sont sauvegardés au niveau
+    fournies lors de l'adhésion au {{Configuration.CLUB_NAME}}. Elles sont sauvegardés au niveau
     de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est
     affilié. <br/>
     Elles sont modifiables dans l'espace personnel FFCAM de chaque adhérent sur

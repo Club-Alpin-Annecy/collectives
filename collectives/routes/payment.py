@@ -22,11 +22,10 @@ from collectives.models import Registration, UserGroup
 from collectives.utils import payline
 from collectives.utils.access import payments_enabled, valid_user, user_is
 from collectives.utils.access import confidentiality_agreement
-from collectives.utils.misc import deepgetattr
+from collectives.utils.misc import deepgetattr, sanitize_file_name
 from collectives.utils.payment import extract_payments
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
-
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
@@ -305,11 +304,13 @@ def export_payments(event_id=None):
 
     time_str = current_time().strftime("%d_%m_%Y %H_%M")
 
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
+
     if event_id is not None:
         title = slugify(event.title)
-        filename = f"CAF Annecy - Export paiements {title} au {time_str}.xlsx"
+        filename = f"{club_name} - Export paiements {title} au {time_str}.xlsx"
     else:
-        filename = f"CAF Annecy - Export paiements au {time_str}.xlsx"
+        filename = f"{club_name} - Export paiements au {time_str}.xlsx"
 
     return send_file(
         out,

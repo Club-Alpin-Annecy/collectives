@@ -16,7 +16,8 @@ from collectives.utils.time import current_time
 documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
 """Upload instance for documents
 
-:type: flask_uploads.UploadSet"""
+:type: flask_uploads.UploadSet
+"""
 
 
 THUMBNAIL_WIDTH = 640
@@ -43,42 +44,50 @@ class UploadedFile(db.Model):
     name = db.Column(db.String(255), nullable=False)
     """Original file name
 
-    :type: string"""
+    :type: string
+    """
 
     path = db.Column(db.Text(), nullable=False)
     """On-disk path
 
-    :type: string"""
+    :type: string
+    """
 
     date = db.Column(db.DateTime, nullable=False)
     """Upload date
 
-    :type: :py:class:`datetime.datetime`"""
+    :type: :py:class:`datetime.datetime`
+    """
 
     size = db.Column(db.Integer, nullable=False)
     """Size, in bytes
 
-    :type: Integer"""
+    :type: Integer
+    """
 
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), index=True)
     """ Primary key of the event to which this file belong
 
-    :type: int"""
+    :type: int
+    """
 
     activity_id = db.Column(db.Integer, db.ForeignKey("activity_types.id"), index=True)
     """ Primary key of the activity to which this file belong
 
-    :type: int"""
+    :type: int
+    """
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
     """ Primary key of the user who uploaded this file
 
-    :type: int"""
+    :type: int
+    """
 
     session_id = db.Column(db.String(36), nullable=True)
     """If the upload is not associated to an event yet, id of the edit session
 
-    :type: string"""
+    :type: string
+    """
 
     # Relationships
     event = db.relationship(
@@ -199,7 +208,7 @@ class UploadedFile(db.Model):
         """Removes uploaded files from temporary sessions that where never attached to an event
 
         :param current_session_id: Id of current editing session, or None. Files from the current
-        editing session will not be purged.
+            editing session will not be purged.
         :type current_session_id: int
         :param days: Number of days since upload to consider purging the file
         :type days: int

@@ -5,7 +5,13 @@
 
   <div>
     {% for folder in folders %}
-    <a class="button button-secondary" href="#{{folder}}">
+    <a class="button 
+          {% if folder == selected_folder %}
+            button-primary
+          {% else %}
+            button-secondary
+          {% endif %}
+        " href="{{ url_for('technician.configuration', selected_folder=folder)}}">
       {{folder}}
     </a>
     {% endfor %}
@@ -13,11 +19,9 @@
 <br/>
 
 <div class="configuration-form">
-  {% for folder, forms in configuration_items.items() %}
-  <br/>
-  <div class="heading-3" id="{{folder}}">{{ folder }}</div>
+
   <p>Le rechargement d'un paramètre peut prendre jusqu'à une minute.</p>
-    {% for form in forms %}
+    {% for form in configuration_items %}
       <form action="" method="POST" enctype="multipart/form-data" class="form" id="form_{{form['conf'].name}}" >
         <div class="name">
           <b>{{ form['conf'].name }}</b><br/>
@@ -28,6 +32,6 @@
         {{ form['form'].hidden_tag() }}
       </form>
     {% endfor %}
-  {% endfor %}
+
 </div>
 {% endblock %}
