@@ -1,5 +1,7 @@
 """ Module for misc User methods which does not fit in another submodule"""
 import os
+import datetime
+from typing import List
 
 import phonenumbers
 from flask_uploads import UploadSet, IMAGES
@@ -182,17 +184,20 @@ class UserMiscMixin:
             return False
         return True
 
-    def registrations_during(self, start=None, end=None, excluded_event_id=None):
+    def registrations_during(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        excluded_event_id: int = None,
+        include_waiting: bool = False,
+    ) -> List[Registration]:
         """Returns registration from confirmed events where user is registered on a
         specified timespan. The check only considers events that require an activity
         (e.g 'Collectives' but not 'Soirées')
 
         :param start: Start of the timespan
-        :type start: :py:class:`datetime.datetime`
         :param end: End of the timespan
-        :type end: :py:class:`datetime.datetime`
         :param excluded_event_id: Event id to exclude (often the event being edited)
-        :type excluded_event_id: int
         :rtype: list(Registration)
         """
         # pylint: disable=(import-outside-toplevel
@@ -200,6 +205,11 @@ class UserMiscMixin:
 
         query = db.session.query(Registration)
         if end is not None:
+            if end == start and end.time() == datetime.time(0):
+                # If both start and end are set to midnight the same day,
+                # this is a full-day event. Extend end time accordingly
+                start = start - datetime.timedelta(seconds=1)
+                end = start + datetime.timedelta(hours=18)
             query = query.filter(Registration.event.has(Event.start < end))
         if start is not None:
             query = query.filter(Registration.event.has(Event.end > start))
@@ -207,7 +217,12 @@ class UserMiscMixin:
         if excluded_event_id is not None:
             # pylint: disable=(comparison-with-callable)
             query = query.filter(Registration.event.has(id != excluded_event_id))
-        query = query.filter(Registration.status != RegistrationStatus.Rejected)
+
+        ignored_status = [RegistrationStatus.Rejected]
+        if not include_waiting:
+            ignored_status.append(RegistrationStatus.Waiting)
+        query = query.filter(~Registration.status.in_(ignored_status))
+
         query = query.filter(
             Registration.event.has(Event.event_type.has(requires_activity=True))
         )

@@ -2,7 +2,6 @@
 
 from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType
-from collectives.models.event import Event, EventType
 from collectives.models.role import RoleIds
 
 
@@ -243,6 +242,8 @@ class UserRoleMixin:
         :return: True if user can lead on the specified timespan.
         :rtype: boolean
         """
+        # pylint: disable=(import-outside-toplevel
+        from collectives.models.event import Event, EventType
 
         query = db.session.query(Event)
         query = query.filter(Event.start < end)

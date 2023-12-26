@@ -29,7 +29,10 @@ def db_file():
 @pytest.fixture
 def app(db_file):
     """Session-wide test `Flask` application."""
-    extra_config = {"SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_file}"}
+    extra_config = {
+        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_file}",
+        "SERVER_NAME": "localhost",
+    }
     fixture_app = collectives.create_app(
         "../tests/assets/config.test.py", extra_config=extra_config
     )

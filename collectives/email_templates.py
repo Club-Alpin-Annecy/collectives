@@ -1,12 +1,13 @@
 """Templates for mails
 """
 from functools import wraps
+from typing import List
 
 from flask import current_app, url_for, flash
 from markupsafe import Markup
 
 
-from collectives.models import db, Configuration
+from collectives.models import db, Configuration, Registration
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
 from collectives.utils.time import format_date
@@ -203,13 +204,15 @@ def send_cancelled_event_notification(name, event):
         current_app.logger.error(f"Mailer error: {err}")
 
 
-def send_update_waiting_list_notification(registration):
+def send_update_waiting_list_notification(
+    registration: Registration, deleted_registrations: List[Registration]
+):
     """Send a notification to user whom registration has been activated from waiting list
 
     :param registration: Activated registration
     """
     try:
-        current_app.logger.warn(f"Send mail to: {registration.user.mail}")
+        current_app.logger.warning(f"Send mail to: {registration.user.mail}")
         message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
             event_title=registration.event.title,
             event_date=format_date(registration.event.start),
@@ -220,6 +223,17 @@ def send_update_waiting_list_notification(registration):
                 _external=True,
             ),
         )
+
+        if deleted_registrations:
+            event_titles = "\n".join(
+                f" - {reg.event.title}" for reg in deleted_registrations
+            )
+            message += (
+                "\n\n"
+                + Configuration.DELETED_REGISTRATIONS_POST_SCRIPTUM.format(
+                    titles=event_titles
+                )
+            )
 
         subject = Configuration.ACTIVATED_REGISTRATION_SUBJECT.format(
             event_title=registration.event.title
