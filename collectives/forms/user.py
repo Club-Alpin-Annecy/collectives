@@ -132,7 +132,7 @@ class RoleForm(ModelForm, FlaskForm):
         """Overloaded constructor populating activity list"""
         super().__init__(*args, **kwargs)
         self.activity_type_id.choices = [
-            (a.id, a.name) for a in ActivityType.get_all_types(True)
+            (a.id, a.name) for a in ActivityType.get_all_types(True) if not a.deprecated
         ]
 
 
