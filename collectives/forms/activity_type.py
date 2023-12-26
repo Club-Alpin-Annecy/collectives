@@ -30,7 +30,9 @@ class ActivityTypeSelectionForm(FlaskForm):
 
         activity_list = kwargs.get("activity_list", ActivityType.query.all())
 
-        self.activity_id.choices = [(a.id, a.name) for a in activity_list]
+        self.activity_id.choices = [
+            (a.id, a.name) for a in activity_list if not a.deprecated
+        ]
 
         if kwargs.get("all_enabled", False):
             self.activity_id.choices.append((self.ALL_ACTIVITIES, "Toutes activités"))
