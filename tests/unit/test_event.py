@@ -3,8 +3,10 @@
 import datetime
 
 # pylint: disable=C0301
-from collectives.models import db, ActivityType, Event, User
+from collectives.models import db, ActivityType, Event, User, RoleIds
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
+
+from collectives.models.user_group import UserGroup, GroupRoleCondition
 
 from collectives.routes.event import update_waiting_list
 
@@ -222,3 +224,44 @@ def test_waiting_list_update(event1: Event, event2: Event, user1: User, user2: U
 
     assert reg_u1_e2.status == RegistrationStatus.Waiting
     assert reg_u2_e2.status == RegistrationStatus.Active
+
+
+def test_paying_event_waiting_list_update(
+    paying_event: Event, user1: User, president_user: User
+):
+    """Test waiting list update when users do not have prices available"""
+
+    paying_event.num_online_slots = 1
+    paying_event.num_waiting_list = 2
+    paying_event.registration_open_time = datetime.datetime.now()
+    paying_event.registration_close_time = datetime.datetime.now() + datetime.timedelta(
+        days=1
+    )
+
+    def make_waiting_registration(event, user):
+        """Utility func to create a registration for the given user"""
+        reg = Registration(
+            event=event,
+            user=user,
+            status=RegistrationStatus.Waiting,
+            level=RegistrationLevels.Normal,
+        )
+        db.session.add(reg)
+        return reg
+
+    reg_u1 = make_waiting_registration(paying_event, user1)
+    reg_president = make_waiting_registration(paying_event, president_user)
+    db.session.commit()
+
+    # User1 was registered first, so should get out of waiting list first
+    # However, if the price is only available to the president, user 1 should get skipped
+    user_group = UserGroup()
+    role_condition = GroupRoleCondition(role_id=RoleIds.President)
+    user_group.role_conditions.append(role_condition)
+    paying_event.payment_items[0].prices[0].user_group = user_group
+    db.session.commit()
+
+    update_waiting_list(paying_event)
+
+    assert reg_u1.status == RegistrationStatus.Waiting
+    assert reg_president.status == RegistrationStatus.PaymentPending
