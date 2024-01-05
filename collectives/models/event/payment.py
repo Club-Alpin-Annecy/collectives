@@ -74,7 +74,7 @@ class EventPaymentMixin:
                 )
             )
 
-    def exist_available_prices_for_user(self, user: User) -> bool:
+    def exist_available_prices_to_user(self, user: User) -> bool:
         """:returns: whether there exist currently available prices for an user
 
         :param user: The user for whom to check price availability
