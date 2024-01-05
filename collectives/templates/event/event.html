@@ -110,19 +110,14 @@
       <h3 class="heading-3">Encadrement</h3>
       <div class="userlist">
       {% for user in event.ranked_leaders() %}
-        {% with leader_info=True %}
-          {{ macros.usericon(user, leader_info, user_info) }}
-        {% endwith %}
+        {{ macros.leader_icon(user) }}
       {% endfor %}
 
       {% if event.coleaders() | length %}
         <h4 class="heading-4">Co-encadrants en formation</h4>
         {% for registration in event.coleaders() %}
           <div class="useractionmenu">
-            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
-
+            {{ macros.registration_icon(registration) }}
             {% if event.has_edit_rights(current_user) %}
             <div class="popover">
               <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" method="post" onclick="this.submit();">
@@ -161,9 +156,7 @@
 
       {% for registration in event.active_normal_registrations() %}
           <div class="useractionmenu">
-            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
+            {{ macros.registration_icon(registration) }}
 
             {% if event.has_edit_rights(current_user) %}
             <div class="popover">
@@ -182,9 +175,7 @@
       {% if event.has_edit_rights(current_user) %}
         {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status.is_valid() %}
             <div class="useractionmenu">
-              {% with user = registration.user, user_info = True, is_pending_renewal = True %}
-                {{ macros.usericon(user, leader_info, user_info, is_pending_renewal) }}
-              {% endwith %}
+            {{ macros.registration_icon(registration) }}
             </div>
         {% endfor %}
       {% endif %}
@@ -317,9 +308,7 @@
           <br/>
           {% for registration in event.waiting_registrations() %}
               <div class="useractionmenu">
-                {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-                  {{ macros.usericon(user, leader_info, user_info) }}
-                {% endwith %}
+                {{ macros.registration_icon(registration) }}
               </div>
           {% endfor %}
         {% endif %}

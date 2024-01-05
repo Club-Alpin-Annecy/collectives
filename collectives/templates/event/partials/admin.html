@@ -141,7 +141,7 @@
                 {% for registration in event.registrations %}
                 <tr>
                     <td>
-                        <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">
+                        <a href="{{url_for('profile.show_user', user_id=registration.user.id, event_id=registration.event.id)}}">
                             {{ registration.user.full_name() }}
                             {% if registration.is_pending_renewal() %}
                                 {% set ns.license_to_renew = True %}

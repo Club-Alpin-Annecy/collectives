@@ -9,14 +9,14 @@ import textwrap
 
 
 from PIL import Image, ImageDraw, ImageFont
-from flask import flash, render_template, redirect, url_for, request, send_file
+from flask import flash, render_template, redirect, url_for, request, send_file, abort
 from flask import Blueprint
 from flask_login import current_user, logout_user
 from flask_images import Images
 
 from collectives.forms import UserForm
 from collectives.forms.user import DeleteUserForm
-from collectives.models import User, Role, RoleIds, Configuration, Gender, db
+from collectives.models import User, Role, RoleIds, Configuration, Gender, Event, db
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
@@ -34,16 +34,37 @@ def before_request():
     pass
 
 
-@blueprint.route("/user/<user_id>", methods=["GET"])
+@blueprint.route("/user/<int:user_id>", methods=["GET"])
 def show_user(user_id):
     """Route to show detail of a regular user.
 
     :param int user_id: Primary key of the user.
     """
-    if int(user_id) != current_user.id:
+
+    user = User.query.get(user_id)
+    if user is None:
+        abort(404)
+
+    if user.id != current_user.id:
         if not current_user.has_any_role():
             flash("Non autorisé", "error")
             return redirect(url_for("event.index"))
+
+        if not current_user.is_hotline() and not current_user.is_supervisor():
+            # Hotline and supervisors can see info about all users
+            # Other leaders need a link from an event to which the user is registered
+
+            event_id = request.args.get("event_id", 0)
+            event: Event = Event.query.get(event_id)
+
+            if (
+                event is None
+                or not event.has_edit_rights(current_user)
+                or not event.is_registered(user)
+            ):
+                flash("Non autorisé", "error")
+                return redirect(url_for("event.index"))
+
         if not current_user.has_signed_ca():
             flash(
                 """Vous devez signer la charte RGPD avant de pouvoir
@@ -51,8 +72,6 @@ def show_user(user_id):
                 "error",
             )
             return redirect(url_for("profile.confidentiality_agreement"))
-
-    user = User.query.filter_by(id=user_id).first()
 
     return render_template("profile.html", title="Profil adhérent", user=user)
 
