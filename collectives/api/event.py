@@ -228,8 +228,8 @@ def events():
 
     :rtype: (string, int, dict)
     """
-    page = int(request.args.get("page"))
-    size = int(request.args.get("size"))
+    page = int(request.args.get("page", 0))
+    size = int(request.args.get("size", 25))
 
     # Initialize query
     query = Event.query
@@ -255,9 +255,15 @@ def events():
         elif field == "title":
             query_filter = Event.title.like(f"%{value}%")
         elif field == "start":
-            query_filter = Event.start >= parser.parse(value, dayfirst=True)
+            try:
+                query_filter = Event.start >= parser.parse(value, dayfirst=True)
+            except parser.ParserError:
+                pass
         elif field == "end":
-            query_filter = Event.end >= parser.parse(value, dayfirst=True)
+            try:
+                query_filter = Event.end >= parser.parse(value, dayfirst=True)
+            except parser.ParserError:
+                pass
         elif field == "status":
             value = getattr(EventStatus, value)
             if filter_type == "=":
