@@ -7,7 +7,7 @@ from typing import Tuple, List, Set
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
-from flask import current_app, Blueprint
+from flask import current_app, Blueprint, abort
 from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
@@ -1116,6 +1116,9 @@ def preview(event_id):
     :param int event_id: Primary key of the event to update.
     """
     event = Event.query.get(event_id)
+    if event is None:
+        abort(404)
+
     url = url_for("event.view_event", event_id=event.id, name=slugify(event.title))
     return render_template("event/preview.html", event=event, url=url)
 
