@@ -35,7 +35,8 @@ def before_request():
 
 
 @blueprint.route("/user/<int:user_id>", methods=["GET"])
-def show_user(user_id):
+@blueprint.route("/user/<int:user_id>/from_event/<int:event_id>", methods=["GET"])
+def show_user(user_id: int, event_id: int = 0):
     """Route to show detail of a regular user.
 
     :param int user_id: Primary key of the user.
@@ -54,7 +55,6 @@ def show_user(user_id):
             # Hotline and supervisors can see info about all users
             # Other leaders need a link from an event to which the user is registered
 
-            event_id = request.args.get("event_id", 0)
             event: Event = Event.query.get(event_id)
 
             if (
