@@ -1,6 +1,6 @@
-{% macro usericon(user, leader_info=None, user_info=None, is_pending_renewal=False) -%}
+{% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, is_pending_renewal=False) -%}
 <div class="usericon">
-      <a class="usericon-wrapper" href="{% if leader_info %}{{url_for('profile.show_leader', leader_id=user.id)}}{% elif user_info %}{{url_for('profile.show_user', user_id=user.id)}}{%else%}#{% endif %}"
+      <a class="usericon-wrapper" href="{%if show_info%}{{info_url}}{%else%}#{%endif%}"
                   alt="Avatar de {{user.abbrev_name()}}">
             <img class="usericon-avatar" src="{% if user.avatar
                         %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
@@ -8,19 +8,19 @@
                         %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
                   endif %}" />
             <span class="usericon-name">
-                  {% if leader_info %}
-                        {{user.full_name().title()}}
-                  {% elif user_info %}
-                        {% if user.is_minor() %}
-                              <span class="license-tag minor">-18</span>
-                        {% elif user.is_youth() %}
-                              <span class="license-tag youth">-25</span>
-                        {% endif %}
-                        {% if is_pending_renewal %}
-                              <span class="license-tag pending-renewal">
-                                    <img src="{{url_for('static', filename='img/icon/ionicon/md-time-white.svg')}}">
-                                    Licence à renouveler
-                              </span>
+                  {% if show_info %}
+                        {% if with_license_tags %}
+                              {% if user.is_minor() %}
+                                    <span class="license-tag minor">-18</span>
+                              {% elif user.is_youth() %}
+                                    <span class="license-tag youth">-25</span>
+                              {% endif %}
+                              {% if is_pending_renewal %}
+                                    <span class="license-tag pending-renewal">
+                                          <img src="{{url_for('static', filename='img/icon/ionicon/md-time-white.svg')}}">
+                                          Licence à renouveler
+                                    </span>
+                              {% endif %}
                         {% endif %}
                         {{user.full_name().title()}}
                   {% else %}
@@ -31,9 +31,23 @@
 </div>
 {%- endmacro %}
 
+{% macro leader_icon(leader) -%}
+      {{usericon(leader, show_info=True, info_url=url_for("profile.show_leader", leader_id=leader.id))}}
+{%- endmacro%}
+
+{% macro registration_icon(registration) -%}
+      {{ usericon(
+            registration.user,
+            show_info=registration.event.has_edit_rights(current_user),
+            info_url=url_for("profile.show_user", user_id=registration.user.id, event_id=registration.event.id),
+            with_license_tags=True,
+            is_pending_renewal=registration.is_pending_renewal()
+      )}}
+{%- endmacro%}
+
 {% macro registration_admin_list_item(registration) -%}
 <li>
-      <a href="{{url_for('profile.show_user', user_id=registration.user.id)}}">{{registration.user.full_name()}}</a>
+      <a href="{{url_for('profile.show_user', user_id=registration.user.id, event_id=registration.event.id)}}">{{registration.user.full_name()}}</a>
 
       {% if registration.unsettled_payments() | length %}
         Paiements en cours:
