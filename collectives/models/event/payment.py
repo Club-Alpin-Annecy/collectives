@@ -79,8 +79,8 @@ class EventPaymentMixin:
 
         :param user: The user for whom to check price availability
         """
-        time = current_time()
+        today = current_time().date()
         return any(
-            item.available_prices_to_user_at_date(user, time)
+            item.available_prices_to_user_at_date(user, today)
             for item in self.payment_items
         )

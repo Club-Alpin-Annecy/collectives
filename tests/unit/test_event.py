@@ -3,7 +3,7 @@
 import datetime
 
 # pylint: disable=C0301
-from collectives.models import db, ActivityType, Event, User, RoleIds
+from collectives.models import db, ActivityType, Event, User, RoleIds, ItemPrice
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 
 from collectives.models.user_group import UserGroup, GroupRoleCondition
@@ -258,7 +258,10 @@ def test_paying_event_waiting_list_update(
     user_group = UserGroup()
     role_condition = GroupRoleCondition(role_id=RoleIds.President)
     user_group.role_conditions.append(role_condition)
-    paying_event.payment_items[0].prices[0].user_group = user_group
+    price: ItemPrice = paying_event.payment_items[0].prices[0]
+    price.user_group = user_group
+    price.start_date = datetime.date.today()
+    price.end_date = datetime.date.today() + datetime.timedelta(days=1)
     db.session.commit()
 
     update_waiting_list(paying_event)
