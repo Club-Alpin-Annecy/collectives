@@ -21,6 +21,8 @@ from flask_wtf.csrf import CSRFProtect
 from collectives import models, api, forms
 from collectives.routes import root, profile, auth, administration, event, reservation
 from collectives.routes import payment, technician, activity_supervison, equipment
+from collectives.routes import question
+
 from collectives.utils import extranet, init, jinja, error, payline
 
 csrf = CSRFProtect()
@@ -40,7 +42,7 @@ class ReverseProxied:
         return self.app(environ, start_response)
 
 
-def create_app(config_filename="config.py"):
+def create_app(config_filename="config.py", extra_config=None):
     """Flask application factory.
 
     This is the flask application factory for this project. It loads the
@@ -49,6 +51,8 @@ def create_app(config_filename="config.py"):
 
     :param config_filename: name of the application config file relative to instance/.
     :type config_filename: string
+    :param extra_config: Additionnal configuration not in the config file
+    :type extra_config: dict
 
     :return: A flask application for collectives
     :rtype: :py:class:`flask.Flask`
@@ -59,6 +63,8 @@ def create_app(config_filename="config.py"):
     # Config options - Make sure you created a 'config.py' file.
     app.config.from_object("config")
     app.config.from_pyfile(config_filename, silent=True)
+    if extra_config is not None:
+        app.config.update(**extra_config)
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
@@ -115,6 +121,7 @@ def create_app(config_filename="config.py"):
         app.register_blueprint(activity_supervison.blueprint)
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)
+        app.register_blueprint(question.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

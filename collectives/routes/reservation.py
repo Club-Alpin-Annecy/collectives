@@ -218,7 +218,7 @@ def register(event_id=None, role_id=None):
     :param int role_id: Role that the user wishes to register has.
     :param int event_id: Primary key of the related event.
     """
-    role = RoleIds.get(role_id)
+    role = RoleIds(int(role_id))
     if role is None:
         flash("Role inexistant", "error")
         return redirect(url_for("event.view_event", event_id=event_id))

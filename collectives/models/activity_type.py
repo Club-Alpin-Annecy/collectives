@@ -70,6 +70,13 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.user.User`
     """
 
+    # Relationships
+    badges = db.relationship("Badge", backref="activity_type", lazy=True)
+    """Person with a badge with this activity
+
+    :type: :py:class:`collectives.models.user.User`
+    """
+
     def __str__(self) -> str:
         """Displays the user name."""
         return self.name + f" (ID {self.id})"
@@ -117,6 +124,16 @@ class ActivityType(db.Model):
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()
+
+    @classmethod
+    def get(cls, required_id):
+        """Get the name of the specified activity id
+
+        :param required_id: the id of the Activity type
+        :type required_id: integer
+        :return: name of the activity type
+        :rtype: :py:class:`ActivityType`"""
+        return cls.query.get(required_id)
 
     @classmethod
     def js_values(cls):

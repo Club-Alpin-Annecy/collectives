@@ -3,12 +3,20 @@
 from bs4 import BeautifulSoup
 
 
-def load_data_from_form(text, form_id):
+def load_data_from_form(text: str, form_id: str) -> dict:
     """From an html form, return a dictionnary with its data.
+
+    Ex: ``data = utils.load_data_from_form(response.text, "new_price")``
+
+    Then ``data`` can be modified and used as data for a POST request: ::
+
+        data["status"] = int(EventStatus.Cancelled)
+        response = client.post(f"/collectives/{event.id}/edit", data=data)
 
     :param string text: Raw page HTML to extract form from
     :param string form_id: the html id of the form to extract
-    :returns: the content of the form as a dict"""
+    :returns: the content of the form as a dict
+    """
     soup = BeautifulSoup(text, features="lxml")
     inputs = soup.select(f"#{form_id} input")
     data = {}

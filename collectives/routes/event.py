@@ -7,10 +7,12 @@ from typing import Tuple, List, Set
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
-from flask import current_app, Blueprint
-from markupsafe import escape
+from flask import current_app, Blueprint, abort
+from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
+
+from collectives.routes.auth import get_bad_phone_message
 
 from collectives.email_templates import send_new_event_notification
 from collectives.email_templates import send_unregister_notification
@@ -21,6 +23,7 @@ from collectives.email_templates import send_update_waiting_list_notification
 from collectives.forms import EventForm, photos
 from collectives.forms import RegistrationForm
 from collectives.forms.event import PaymentItemChoiceForm
+from collectives.forms.question import QuestionAnswersForm
 
 from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
@@ -29,6 +32,7 @@ from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.activity_type import activities_without_leader
 from collectives.models.activity_type import leaders_without_activities
 from collectives.models.payment import ItemPrice, Payment
+from collectives.models.question import QuestionAnswer
 
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
@@ -206,6 +210,7 @@ def index(activity_type_id=None, name=""):
 
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
+@blueprint.route("/<int:event_id>-")
 @crawlers_catcher("event.preview")
 @valid_user()
 def view_event(event_id, name=""):
@@ -224,7 +229,7 @@ def view_event(event_id, name=""):
         return redirect(url_for("event.index"))
 
     # If name is empty, redirect to a more meaningful URL
-    if name == "":
+    if name == "" and slugify(event.title) != "":
         return redirect(
             url_for("event.view_event", event_id=event.id, name=slugify(event.title))
         )
@@ -242,6 +247,8 @@ def view_event(event_id, name=""):
         ):
             payment_item_choice_form = PaymentItemChoiceForm(event)
 
+    question_form = QuestionAnswersForm(event, current_user)
+
     return render_template(
         "event/event.html",
         event=event,
@@ -250,6 +257,7 @@ def view_event(event_id, name=""):
         current_user=current_user,
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
+        question_form=question_form,
     )
 
 
@@ -651,6 +659,13 @@ def self_register(event_id):
         is_self=True,
     )
 
+    if not current_user.has_valid_phone_number():
+        flash(Markup(get_bad_phone_message(current_user)), "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+    if not current_user.has_valid_phone_number(emergency=True):
+        flash(Markup(get_bad_phone_message(current_user, emergency=True)), "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
     now = current_time()
     # Check if user cannot directly subscribe
     if not event or not event.can_self_register(current_user, now):
@@ -872,14 +887,67 @@ def self_unregister(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     previous_status = registration.status
-    registration.status = RegistrationStatus.SelfUnregistered
-    db.session.add(registration)
+    if registration.status == RegistrationStatus.Waiting:
+        db.session.delete(registration)
+    else:
+        registration.status = RegistrationStatus.SelfUnregistered
+        db.session.add(registration)
+
     update_waiting_list(event)
     db.session.commit()
 
     # Send notification e-mail to leaders only if definitive subscription
     if previous_status == RegistrationStatus.Active:
         send_unregister_notification(event, current_user)
+
+    return redirect(url_for("event.view_event", event_id=event_id))
+
+
+@blueprint.route("/<int:event_id>/answer_questions", methods=["POST"])
+@valid_user()
+def answer_questions(event_id: int):
+    """Route for answering the event questions
+
+    :param int event_id: Primary key of the event .
+    """
+    event = Event.query.get(event_id)
+
+    query = Registration.query.filter_by(user=current_user).filter_by(event=event)
+    registration: Registration = query.first()
+
+    if registration is None or (
+        not registration.is_active()
+        and registration.status != RegistrationStatus.Waiting
+    ):
+        flash(
+            "Vous n'êtes pas inscrit ou en liste d'attente pour cet événement",
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    question_form = QuestionAnswersForm(event, current_user)
+
+    if not question_form.validate_on_submit():
+        # Validation is done client side, if we get here the request has been altered;
+        # no need to try and restore used data or display relevant errors
+        flash("Données invalides", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    for question, question_field in zip(
+        question_form.questions, question_form.question_fields
+    ):
+        answer = QuestionAnswer(
+            user_id=current_user.id,
+            question_id=question.id,
+            value=question_form.get_value(question, question_field.data),
+        )
+        db.session.add(answer)
+
+    if question_form.questions:
+        db.session.commit()
+        flash(
+            "Merci d'avoir répondu aux questions, vos réponses ont été prises en compte"
+        )
 
     return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -1048,16 +1116,21 @@ def preview(event_id):
     :param int event_id: Primary key of the event to update.
     """
     event = Event.query.get(event_id)
+    if event is None:
+        abort(404)
+
     url = url_for("event.view_event", event_id=event.id, name=slugify(event.title))
     return render_template("event/preview.html", event=event, url=url)
 
 
-def update_waiting_list(event):
+def update_waiting_list(event: Event) -> List[Registration]:
     """Update the attendance list of an event of waiting registrations
 
     If a waiting registration has a free slot to become active, and online
     registration is still authorized, its status will be changed. Function
     will returns the modified registrations.
+    If the user is in the waiting list of other events at the same time,
+    those registrations will be deleted.
 
     This function will do the db.session.add() but not the commit.
     Ensure you have a db.session.commit() after the function call.
@@ -1065,9 +1138,7 @@ def update_waiting_list(event):
     This function will also send update email to the users.
 
     :param event: Event to update
-    :returns: The registration that will be active if a slot is free.
-    None otherwise.
-    :rtype: :py:class:`collectives.models.registration.Registration`
+    :returns: The list of registrations that will become active if one or more slots are free.
     """
     registrations = []
 
@@ -1075,17 +1146,48 @@ def update_waiting_list(event):
     if not event.is_registration_open_at_time(current_time()):
         return registrations
 
-    while event.has_free_online_slots() != 0 and event.waiting_registrations():
-        new_registration = event.waiting_registrations()[0]
-        registrations.append(new_registration)
+    for waiting_registration in event.waiting_registrations():
+        if not event.has_free_online_slots():
+            break
+
+        if (
+            event.event_type.requires_activity
+            and waiting_registration.user.registrations_during(
+                event.start, event.end, event.id
+            )
+        ):
+            # Conflicts, skip registration
+            continue
 
         if event.requires_payment():
-            new_registration.status = RegistrationStatus.PaymentPending
+            if not event.exist_available_prices_to_user(waiting_registration.user):
+                # Cannot pay, skip registration
+                continue
+            waiting_registration.status = RegistrationStatus.PaymentPending
         else:
-            new_registration.status = RegistrationStatus.Active
+            waiting_registration.status = RegistrationStatus.Active
 
-        send_update_waiting_list_notification(new_registration)
+        if event.event_type.requires_activity:
+            other_registrations = waiting_registration.user.registrations_during(
+                event.start, event.end, event.id, include_waiting=True
+            )
+            removed_waiting_registrations = [
+                reg
+                for reg in other_registrations
+                if reg.status == RegistrationStatus.Waiting
+            ]
+        else:
+            removed_waiting_registrations = []
 
-        db.session.add(new_registration)
+        send_update_waiting_list_notification(
+            waiting_registration, removed_waiting_registrations
+        )
+
+        db.session.add(waiting_registration)
+        registrations.append(waiting_registration)
+
+        # Remove the user from other waiting lists
+        for other_reg in removed_waiting_registrations:
+            db.session.delete(other_reg)
 
     return registrations

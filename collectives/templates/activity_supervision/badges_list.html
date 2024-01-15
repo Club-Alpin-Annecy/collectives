@@ -1,0 +1,98 @@
+{% extends extends %}
+
+{% block additionalhead %}
+
+  {# Tabulator: for tables#}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+
+  {# Autocomplete #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+
+  {# Specific for this page #}
+  <script src="{{ url_for('static', filename='js/activity_supervision/badges_list.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script>
+      window.onload = function () {
+        loadBadgesTable('{{url_for("api.badges")}}', {{ routes | tojson}}, '{{csrf_token()}}');
+
+        const searchInput = document.getElementById('user_search');
+        setupAutoComplete(
+          searchInput,
+          '{{url_for("api.autocomplete_users")}}',
+          function(item) { return item.full_name; },
+          function(id, val) { return onSelectAutocomplete(id, val);}
+          )
+      };
+
+      const badge = {{ 'false' if type else 'true' }};
+      const level = {{level | lower}};
+  </script>
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">{{title}}</h2>
+  <div id="badges-table"></div>
+
+  <h4 class="heading-4">Ajout/renouvellement d'un {{title}}</h4>
+
+  <div class="action">
+
+        <div class="form-errors">
+            {% for field in add_badge_form%}
+              {% for error in add_badge_form.errors[field.name] %}
+
+                <div class="flash flash-error">
+                    <strong>Erreur : {{field.label}}:</strong> {{error}}
+                </div>
+
+              {% endfor %}
+            {% endfor %}
+        </div>
+
+      <form action="{{ url_for(routes['add']) }}" id="user-search-form" method="POST" >
+        <div id="user-search-data" class="form-search search-data">
+          {% for field in [add_badge_form.activity_id, add_badge_form.badge_id, add_badge_form.user_search, add_badge_form.expiration_date, add_badge_form.level] %}
+            {% if field %}
+              <div class="controls">
+                <div class="field">{{ field.label }} </div>
+                {{ field }}
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          {{ add_badge_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
+          {{ add_badge_form.hidden_tag() }}
+          {{ add_badge_form.submit(class="button button-primary") }}
+        </div>
+      </form>
+  </div>
+
+  <h4 class="heading-4">Export de la liste</h4>
+
+  <div class="action">
+        <div class="form-errors">
+            {% for field in export_form%}
+            {% for error in export_form.errors[field.name] %}
+
+            <div class="flash flash-error">
+                <strong>Erreur : {{field.label}}:</strong> {{error}}
+            </div>
+
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+      <form id="badges-export-form" action="{{ url_for(routes['export']) }}" method="POST" >
+        <div id="user-search-data" class="form-search search-data">
+          <div>{{ export_form.activity_id }}</div>
+          {{ export_form.hidden_tag() }}
+          <div>{{ export_form.submit(class="button button-primary") }}</div>
+        </div>
+      </form>
+  </div>
+
+</div>
+{% endblock %}

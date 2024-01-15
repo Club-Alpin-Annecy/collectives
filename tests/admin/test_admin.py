@@ -1,5 +1,8 @@
 """" Testing administration """
 
+from io import BytesIO
+import openpyxl
+
 from collectives.models import User
 
 
@@ -33,6 +36,12 @@ def test_add_user_role(admin_client, admin_user):
     assert response.status_code == 200
 
 
+def test_add_user_badge(admin_client, admin_user):
+    """Test display of a user badge modification form."""
+    response = admin_client.get(f"/administration/user/{admin_user.id}/badges")
+    assert response.status_code == 200
+
+
 def test_export_roles(admin_client):
     """Test exports of user roles"""
     response = admin_client.get("/administration/roles/export/")
@@ -40,9 +49,17 @@ def test_export_roles(admin_client):
 
     response = admin_client.get("/administration/roles/export/tnone")
     assert response.status_code == 200
+    workbook = openpyxl.load_workbook(filename=BytesIO(response.data))
+    worksheet = workbook.active
+    assert worksheet.max_row == 2
+    assert worksheet.max_column == 7
 
     response = admin_client.get("/administration/roles/export/t5-r10")
     assert response.status_code == 200
+    workbook = openpyxl.load_workbook(filename=BytesIO(response.data))
+    worksheet = workbook.active
+    assert worksheet.max_row == 1
+    assert worksheet.max_column == 7
 
 
 def test_admin_create_valideuser(admin_client):

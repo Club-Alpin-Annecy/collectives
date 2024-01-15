@@ -16,7 +16,8 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, Role, RoleIds, ActivityType, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.utils import export
+from collectives.models.badge import BadgeIds
+from collectives.utils import export, badges
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
@@ -133,21 +134,80 @@ def export_role():
 
     activity_type = ActivityType.query.get(form.activity_id.data)
 
-    query_filter = Role.query
+    query = Role.query
     # we remove role not linked anymore to a user
-    query_filter = query_filter.filter(Role.user.has(User.id))
-    query_filter = query_filter.filter(Role.activity_id == activity_type.id)
+    query = query.filter(Role.user.has(User.id))
+    query = query.filter(Role.activity_id == activity_type.id)
 
-    roles = query_filter.all()
+    roles = query.all()
 
     out = export.export_roles(roles)
 
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {activity_type.name}.xlsx",
+        download_name=f"CAF Annecy - Export Roles {activity_type.name}.xlsx",
         as_attachment=True,
     )
+
+
+@blueprint.route("/volunteers/export", methods=["POST"])
+def export_volunteer():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    response = badges.export_badge(badge_type=BadgeIds.Benevole)
+    if response:
+        return response
+    flash("Impossible de générer le fichier: droit insuffisants", "error")
+    return redirect(url_for(".volunteers_list"))
+
+
+@blueprint.route("/volunteers/", methods=["GET"])
+def volunteers_list():
+    """Route for activity supervisors to list user with volunteer badge and manage them"""
+    routes = {
+        "add": "activity_supervision.add_volunteer",
+        "export": "activity_supervision.export_volunteer",
+        "delete": "activity_supervision.delete_volunteer",
+        "renew": "activity_supervision.renew_volunteer",
+    }
+
+    return badges.list_page(badge_type=BadgeIds.Benevole, auto_date=True, routes=routes)
+
+
+@blueprint.route("/volunteers/add", methods=["POST"])
+def add_volunteer():
+    """Route for an activity supervisor to add or renew a Badge to a user" """
+
+    badges.add_badge(badge_type=BadgeIds.Benevole)
+
+    return redirect(url_for(".volunteers_list"))
+
+
+@blueprint.route("/volunteers/delete/<badge_id>", methods=["POST"])
+def delete_volunteer(badge_id):
+    """Route for an activity supervisor to remove a user volunteer badge
+
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+
+    badges.delete_badge(badge_id)
+    return redirect(url_for(".volunteers_list"))
+
+
+@blueprint.route("/volunteers/renew/<badge_id>", methods=["POST"])
+def renew_volunteer(badge_id):
+    """Route for an activity supervisor to remove a user volunteer badge
+
+    :param badge_id: Id of badge to delete
+    :type badge_id: int
+    """
+
+    badges.renew_badge(badge_id, badge_type=BadgeIds.Benevole)
+    return redirect(url_for(".volunteers_list"))
 
 
 @blueprint.route("/import", methods=["GET", "POST"])

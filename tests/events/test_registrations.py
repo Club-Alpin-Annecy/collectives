@@ -29,6 +29,45 @@ def test_valid_event_autoregistration(user1, user1_client, user2, event):
     assert event.active_registrations()[0].user == user1
 
 
+def test_wrong_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    user1.phone = "Not a number"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 0
+
+
+def test_swiss_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    user1.phone = "+41 22 767 6111"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 1
+
+
+def test_wrong_emergency_phone_autoregistration(user1, user1_client, event):
+    """Test user auto registration with a user with a wrong phone number"""
+    response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
+    assert response.status_code == 200
+
+    user1.emergency_contact_phone = "Not a number"
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert len(event.registrations) == 0
+
+
 def test_late_event_autoregistration(user1, user1_client, event):
     """Test a too late user auto registration"""
 
@@ -55,6 +94,60 @@ def test_full_event_autoregistration(user1, user1_client, event):
     )
     assert response.status_code == 200
     assert event.num_taken_slots() == 0
+
+
+def test_full_event_autoregistration_with_waiting_list(user1, user1_client, event):
+    """Test an auto registration to a full event with waiting list"""
+
+    event.num_online_slots = 0
+    event.num_waiting_list = 1
+    db.session.add(event)
+    db.session.commit()
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 0
+    assert len(event.waiting_registrations()) == 1
+
+
+def test_unregister(user1_client, event1_with_reg):
+    """Tests self unregistering of a user"""
+    event = event1_with_reg
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_unregister", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 3
+    assert len(event.registrations) == 4
+
+
+def test_unregister_with_waiting_list(user1_client, event1_with_reg_waiting_list):
+    """Tests self unregistering of a client, with waiting list update"""
+    event = event1_with_reg_waiting_list
+
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_unregister", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 2
+    assert len(event.waiting_registrations()) == 1
+    assert len(event.registrations) == 4
+
+
+def test_unregister_from_waiting_list(user3_client, event1_with_reg_waiting_list):
+    """Tests self unregistering of a client from the waiting list."""
+    event = event1_with_reg_waiting_list
+
+    response = user3_client.post(
+        f"/collectives/{event.id}/self_unregister", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 2
+    assert len(event.waiting_registrations()) == 1
+    assert len(event.registrations) == 3
 
 
 def test_leader_register_user(leader_client, user1, event):

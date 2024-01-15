@@ -244,7 +244,19 @@ class UserModelMixin:
         """List of granted roles within this site for this user. (eg administrator)
 
         :type: list(:py:class:`collectives.models.role.Role`)"""
-        return db.relationship("Role", backref="user", lazy=True)
+        return db.relationship(
+            "Role", backref="user", lazy=True, cascade="all, delete-orphan"
+        )
+
+    @declared_attr
+    def badges(self):
+        """List all badged associated to this user
+
+        :type: list(:py:class:`collectives.models.badge.Badge`)
+        """
+        return db.relationship(
+            "Badge", backref="user", lazy=True, cascade="all, delete-orphan"
+        )
 
     @declared_attr
     def registrations(self):
@@ -285,5 +297,17 @@ class UserModelMixin:
             "Payment",
             backref="reporter",
             foreign_keys="[Payment.reporter_id]",
+            lazy=True,
+        )
+
+    @declared_attr
+    def question_answers(self):
+        """List of question answers authored by this user
+
+        :type: list(:py:class:`collectives.models.question.QuestionAnswer`)
+        """
+        return db.relationship(
+            "QuestionAnswer",
+            backref="user",
             lazy=True,
         )

@@ -132,9 +132,7 @@
         {% for action in form.leader_actions %}
           {% with user = form.current_leaders[loop.index0]%}
           <div class="useractionmenu">
-            {% with leader_info=True %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
+            {{ macros.leader_icon(user) }}
 
             <div class="inline_field">
               {{action.leader_id}}
@@ -189,7 +187,10 @@
         <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
       </div>
       <div class="controls">
-        <label for="num_waiting_list">Nombre de places en liste d'attente : </label> {{ form.num_waiting_list(size=4) }}
+        <label for="num_waiting_list">Nombre de places en liste d'attente : 
+          <span class="label-help">&#9432; Inscription automatique avant la date de fin d'inscription, manuellement ensuite.</span> 
+        </label> 
+        {{ form.num_waiting_list(size=4) }}
       </div>
       <div class="controls">
         <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
@@ -293,9 +294,13 @@ if(activities_multiselect) {
     noChoicesText: 'Veuillez d\'abord ajouter un encadrant de l\'activité désirée.',
   });
 }
-const labelsChoices = new Choices(document.getElementById("tag_list"), {
+const labelChoices = new Choices(document.getElementById("tag_list"), {
     maxItemCount: 3,
-    removeItemButton:true
+    removeItemButton:true,
+    maxItemText: (maxItemCount) => {
+      return `Maximum ${maxItemCount} labels`;
+    },
+
 });
 
 </script>

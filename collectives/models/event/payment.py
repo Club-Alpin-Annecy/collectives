@@ -3,6 +3,8 @@
 from datetime import timedelta
 
 from collectives.models.registration import RegistrationStatus
+from collectives.models.user import User
+from collectives.utils.time import current_time
 
 
 class EventPaymentMixin:
@@ -71,3 +73,14 @@ class EventPaymentMixin:
                     time_shift, old_event_id=source_event.id, new_event_id=self.id
                 )
             )
+
+    def exist_available_prices_to_user(self, user: User) -> bool:
+        """:returns: whether there exist currently available prices for an user
+
+        :param user: The user for whom to check price availability
+        """
+        today = current_time().date()
+        return any(
+            item.available_prices_to_user_at_date(user, today)
+            for item in self.payment_items
+        )

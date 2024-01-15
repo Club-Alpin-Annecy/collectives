@@ -1,11 +1,5 @@
 {% macro button(waiting_list = False) -%}
 
-{% if not current_user.has_valid_phone_number() %}
-    <div class="flash-warning flash">
-        {{get_bad_phone_message(current_user) | safe }}
-    </div>
-
-{% endif %}
 
 {% if event.requires_payment() %}
 <p>
@@ -41,7 +35,15 @@
                             />
                 <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
                 {% if event.event_type.terms_file %}
-                <p>L'inscription à un événement vous engage à y participer.</p>
+                {% if waiting_list %}
+                    <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionné(e).</p>
+                    <p>Vous pourrez être sélectionné(e) automatiquement jusqu'à la fin de la période d'inscription si un participant
+                        est désinscrit, puis manuellement par l'encadrant ensuite. Il est possible de s'inscrire à plusieurs listes d'attentes simultanées ;
+                       si vous êtes sélectionné(e) pour l'une d'entre elles, les autres inscriptions seront automatiquement annulées.
+                    </p>
+                {% else %}
+                    <p>L'inscription à un événement vous engage à y participer.</p>
+                {% endif %}
                 <p>
                     <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a></label><br/>
                 </p>

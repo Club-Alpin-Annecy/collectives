@@ -241,6 +241,20 @@ class EventModelMixin:
         )
 
     @declared_attr
+    def questions(self):
+        """List of questions associated to this event
+
+        :type: list(:py:class:`collectives.models.question.Question`)
+        """
+        return db.relationship(
+            "Question",
+            backref="event",
+            lazy=True,
+            cascade="all, delete-orphan",
+            order_by="Question.order",
+        )
+
+    @declared_attr
     def _user_group(self):
         """User Group
 

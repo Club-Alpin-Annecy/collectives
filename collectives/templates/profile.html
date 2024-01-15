@@ -34,6 +34,9 @@
                     <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"  alt=""/>
                     Charte RGPD
                 </a>
+            {%endif%}
+
+            {% if user.has_a_valid_benevole_badge() or user.has_any_role() %}
                 {% if Configuration.VOLUNTEER_CERT_IMAGE %}
                     <a class="button button-secondary" href="{{url_for('profile.volunteer_certificate')}}">
                         <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"  alt=""/>
@@ -42,9 +45,11 @@
                 {% endif %}
             {% endif %}
 
-        {% elif current_user.is_admin() %}
+        {% endif %}
+        {% if current_user.is_admin() %}
             <a class="button button-secondary" href="{{url_for('administration.manage_user', user_id=user.id)}}">Modifier l'utilisateur</a>
             <a class="button button-secondary" href="{{url_for('administration.add_user_role', user_id=user.id)}}">Gérer ses rôles</a>
+            <a class="button button-secondary" href="{{url_for('administration.add_user_badge', user_id=user.id)}}">Gérer ses badges</a>
         {% endif %}
 
         {% if current_user.is_hotline() and not user.is_test %}
@@ -57,18 +62,18 @@
 
     <h4 class="heading-4">Informations FFCAM </h4>
 
-    <div>
+    <div class="centeralign">
         <img src="{%   if user.avatar
                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
             else
                     %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
             endif %}"
         alt="Avatar de l'utilisateur"
-        class="avatar big float_right" />
+        class="avatar big" />
     </div>
 
 
-    <table id="profile_info">
+    <table id="profile_info"  class="center_table">
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
             <td>{{user.license}}</td>
@@ -109,12 +114,17 @@
         <div class="flash-warning flash">{{get_bad_phone_message(user) | safe }}</div>
     {%endif%}
 
+    {% if user == current_user and not user.has_valid_phone_number(emergency=True) %}
+        <div class="flash-warning flash">{{get_bad_phone_message(user, emergency=True) | safe }}</div>
+    {%endif%}
+
+
     {% if user == current_user and not user.is_test %}
     <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
             Ces données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au Club Alpin Français d'Annecy. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
-            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/mesinfos/">https://extranet-clubalpin.com/mesinfos/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
+            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/monespace/">https://extranet-clubalpin.com/monespace/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
             Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
         </p>
         <input type="submit" value="Resynchroniser mes informations FFCAM" class="button button-secondary">
@@ -122,11 +132,44 @@
     </form>
     {% endif %}
 
+    <h4 class="heading-4">Autres informations</h4>
+        <table id="site_info" class="center_table">
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat :</td>
+                <td>
+                    {% if user.has_a_valid_benevole_badge() %}
+                        {% for badge in user.badges if badge.badge_id == models.BadgeIds.Benevole and not badge.is_expired() %}
+                            {% if loop.index != 1 %} & {% endif %}
+                            {{badge.activity_name}} 
+                        {% endfor %}
+                    {% else %}
+                        Non
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Role sur le site :</td>
+                <td>
+                    {% if user.has_a_valid_benevole_badge() %}
+                        {% for role in user.roles %}
+                            {% if loop.index != 1 %} & {% endif %}
+                            {{role.name}}
+                            {% if role.activity_type %}
+                                pour l'activité <em>{{role.activity_type.name}}</em>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Aucun
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
     <h4 class="heading-4">Sorties à venir</h4>
     <div id="eventstable" class="collectives-list">
     </div>
 
-    
+
     <h4 class="heading-4">Sorties en liste d'attente</h4>
     <div id="waitingtable" class="collectives-list">
     </div>
@@ -134,6 +177,16 @@
     <h4 class="heading-4">Sorties effectuées</h4>
     <div id="pasteventstable" class="collectives-list">
     </div>
+
+    <p class="align-right">
+        {%if current_user == user%}
+            {%if not current_user.is_admin() %}
+                <a class="button button-small button-danger" href="{{url_for('profile.delete_user')}}">Supprimer mon compte utilisateur</a>
+            {% endif %}
+        {%elif current_user.is_hotline()%}
+            <a class="button button-small button-danger" href="{{url_for('profile.delete_user', user_id=user.id)}}">Supprimer le compte utilisateur</a>
+        {%endif%}
+    </p>
 </div>
 
 {% endblock %}
