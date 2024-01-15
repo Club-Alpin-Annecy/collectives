@@ -11,11 +11,17 @@
   <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
   <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
 
+  <script src="https://cdn.jsdelivr.net/npm/add-to-calendar-button@2" async defer></script>
+
   <script src="{{ url_for('static', filename='js/event/event.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
   <script src="{{ url_for('api.models_to_js') }}"></script>
+
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
   <script>
       window.onload = function () {
@@ -26,6 +32,18 @@
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
+
+        {% if question_form.question_fields %} 
+        const choices = new Choices('.choices', {
+            removeItemButton:true,
+            noChoicesText:"Pas d'autres choix disponibles",
+            noResultsText:"Aucun choix trouvé",
+            itemSelectText:"Ajouter",
+            searchEnabled:false,
+            placeholder:true,
+            placeholderValue:"Choix…"
+          });
+        {% endif %}
       };
   </script>
 {% endblock %}
@@ -53,7 +71,23 @@
         {% endif %}
 
         <span class="collective-display--date">
-          <img src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" class="icon"/>
+          <add-to-calendar-button 
+            name="{{event.title}}"
+            description="{{event.description}}"
+            startDate="{{event.start.strftime('%Y-%m-%d')}}"
+            endDate="{{event.end.strftime('%Y-%m-%d')}}"
+            startTime="{{event.start.strftime('%H:%M')}}"
+            endTime="{{event.end.strftime('%H:%M')}}"
+            timeZone="Europe/Paris"
+            location="Annecy"
+            options="'Google','Apple','iCal'"
+            listStyle="dropdown-static"
+            hideTextLabelButton
+            hideCheckmark
+            language="fr"
+            inline
+            pastDateHandling="hide"
+          ></add-to-calendar-button>
           {{ format_datetime_range(event.start, event.end) | capitalize}}
         </span>
       </div>
@@ -76,19 +110,14 @@
       <h3 class="heading-3">Encadrement</h3>
       <div class="userlist">
       {% for user in event.ranked_leaders() %}
-        {% with leader_info=True %}
-          {{ macros.usericon(user, leader_info, user_info) }}
-        {% endwith %}
+        {{ macros.leader_icon(user) }}
       {% endfor %}
 
       {% if event.coleaders() | length %}
         <h4 class="heading-4">Co-encadrants en formation</h4>
         {% for registration in event.coleaders() %}
           <div class="useractionmenu">
-            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
-
+            {{ macros.registration_icon(registration) }}
             {% if event.has_edit_rights(current_user) %}
             <div class="popover">
               <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" method="post" onclick="this.submit();">
@@ -103,7 +132,7 @@
       </div>
     </div>
 
-    {# Active registrations and self-register #}
+    {# Active registrations  #}
 
     <div class="subscriptions">
       <h3 class="heading-3"> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
@@ -119,10 +148,50 @@
             {% endif %}
 
           {% endif %}
-      </h3>
+      </h3> 
+ 
       {% if event.num_online_slots > 0 %}
         <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
       {% endif %}
+
+      {% for registration in event.active_normal_registrations() %}
+          <div class="useractionmenu">
+            {{ macros.registration_icon(registration) }}
+
+            {% if event.has_edit_rights(current_user) %}
+            <div class="popover">
+              {% if event.can_be_coleader(registration.user) %}
+                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  Co-encadrant en formation
+                </form>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+      {% endfor %}
+
+     {# Registrations pending licence renewal #}
+      {% if event.has_edit_rights(current_user) %}
+        {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status.is_valid() %}
+            <div class="useractionmenu">
+            {{ macros.registration_icon(registration) }}
+            </div>
+        {% endfor %}
+      {% endif %}
+
+        {% if not current_user.has_valid_phone_number() %}
+          <div class="flash-warning flash">
+              {{get_bad_phone_message(current_user) | safe }}
+          </div>
+        {% endif %}
+        {% if not current_user.has_valid_phone_number(emergency=True) %}
+          <div class="flash-warning flash">
+              {{get_bad_phone_message(current_user, emergency=True) | safe }}
+          </div>
+        {% endif %}
+
+      {# Current user status and self-register#}
 
       {% if event.is_registered(current_user) %}
         <p>Vous êtes inscrit à cet évènement en tant que 
@@ -152,8 +221,9 @@
             {% endif %}
           {% endfor %}
           </ul></p>
-        {% else %}
+        {% else %}  {# Active registration or waiting list #}
           {% if not current_user.check_license_valid_at_time(event.end) %}
+          {# Pending licence renewal #}
           <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
             <p>
               Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
@@ -166,7 +236,7 @@
           </form>
           {% endif %}
 
-          {% if current_time < event.start %}
+          {% if current_time < event.start %} {# Unregister #}
           <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <a  class="button button-secondary"
@@ -175,6 +245,10 @@
             </a>
           </form><br/><br/>
           {% endif %}
+
+          {# Questionnaire #}
+          {% include 'partials/event/questionnaire.html' %}
+
         {% endif %}
       {% else %}  {#  Not registered, display registration conditions #}
         {% if event.event_type.license_types %}
@@ -198,36 +272,6 @@
             {% endif %}
             <br/>
         {% endif %}
-      {% endif %}
-
-      {% for registration in event.active_normal_registrations() %}
-          <div class="useractionmenu">
-            {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-              {{ macros.usericon(user, leader_info, user_info) }}
-            {% endwith %}
-
-            {% if event.has_edit_rights(current_user) %}
-            <div class="popover">
-              {% if event.can_be_coleader(registration.user) %}
-                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  Co-encadrant en formation
-                </form>
-              {% endif %}
-            </div>
-            {% endif %}
-          </div>
-      {% endfor %}
-
-     {# Registrations pending licence renewal #}
-      {% if event.has_edit_rights(current_user) %}
-        {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status.is_valid() %}
-            <div class="useractionmenu">
-              {% with user = registration.user, user_info = True, is_pending_renewal = True %}
-                {{ macros.usericon(user, leader_info, user_info, is_pending_renewal) }}
-              {% endwith %}
-            </div>
-        {% endfor %}
       {% endif %}
 
 
@@ -264,9 +308,7 @@
           <br/>
           {% for registration in event.waiting_registrations() %}
               <div class="useractionmenu">
-                {% with user = registration.user, user_info = event.has_edit_rights(current_user) %}
-                  {{ macros.usericon(user, leader_info, user_info) }}
-                {% endwith %}
+                {{ macros.registration_icon(registration) }}
               </div>
           {% endfor %}
         {% endif %}
@@ -276,7 +318,7 @@
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
-      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, tu peux participer aux frais.</p>
+      <p>Cet événement est payant; en tant qu'encadrant ou bénévole, vous pouvez participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
         <ul>
         {% for payment in event.user_payments(current_user) %}
@@ -324,8 +366,23 @@
     </div>
     {% endif %}
 
+    {% if event.user_answers(current_user.id) %}
+    <h3 class="heading-3">Vos réponses au questionnaire</h3>
+    Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
+
+    {% for qa in event.user_answers(current_user.id) %}
+    <p>
+    <span class="h-s">{{qa.question.title}}</span>
+    {{qa.value}}
+    </p>
+
+    {% endfor %}
+    {% endif %}
+
     {% if event.requires_payment() %} {% include 'partials/event/payment_item_list.html' %} {% endif %}
     <br/>
+
+
 
     {# Administration #}
     {% include 'event/partials/admin.html' %}

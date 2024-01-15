@@ -11,6 +11,10 @@
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}"/>
       Encadrants
     </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.volunteers_list')}}">
+        <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}"/>
+        Bénévoles
+      </a>
     <a class="button button-primary" href="{{ url_for('activity_supervision.csv_import')}}">
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/download.svg') }}"/>
       Import CSV
@@ -21,6 +25,6 @@
     </a>
   </div>
 
-  {% block activity_supervision_content %}{% endblock %}
+  {% block page_content %}{% endblock %}
 </div>
 {% endblock %}

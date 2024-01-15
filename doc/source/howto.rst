@@ -36,9 +36,10 @@ For Windows, Linux and probably Mac:
 #. If VSCode notice the new environment (bottom right popup), select Yes
 #. Activate it: `. .env/Scripts/activate` for Windows, `. .env/bin/activate` for Linux.
 #. Install required pip: `pip install -r requirements.txt; pip install -r requirements-tools.txt`.
+#. Run ``FLASK_APP="collectives:create_app" flask db upgrade`` to populate the local database.
 #. Start debugging (F5)
+#. On MacOS, the port 5000 is already used by Apple Airplay Receiver. Deactivate it in your parameters (Airport & Handoff tab).
 #. Open your browser to `http://localhost:5000 <http://localhost:5000>`_
-
 
 I want to generate the documentation
 --------------------------------------
@@ -57,35 +58,6 @@ For Linux and Mac:
 
     cd doc
     make html
-
-I want to deploy the website into production on my server
------------------------------------------------------------
-Installation
-..............
-For development, you can run `FLASK_APP=collectives:create_app flask run`. 
-However, it is not the recommended method for production environment.
-
-You can choose any production method you like, however, you can use waitress
-behind an nginx for SSL offloading. Waitress can be install with a pip
-`pip install waitress`, and a systemd service be created easily by adding
-`deployment/systemd/collectives.service` into `/etc/systemd/system`. In this
-case, please edit the file to update user and directory.
-
-Configuration
-..............
-Flask and DB related configuration should be in `instance/config.py`. This file 
-should be readable only by flask user (chmod 600). 
-
-However, more basic configuration that can be put into DB should be put
-`collectives/configuration.yaml`. File architecture is loaded at every reboot
-into db. Then, it can be modified by a site technician into the HMI. 
-
-Database
-.........
-For production, a more robust database than the default sqlite is recommended.
-pymysql is recommended for its full python compatibility.
-
-``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
 
 I want to file a bug
 ---------------------

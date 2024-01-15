@@ -70,5 +70,7 @@ repository_url = "https://github.com/Club-Alpin-Annecy/collectives"
 use_issues_button = True
 
 html_theme_options = {
-    "home_page_in_toc": True
+    "home_page_in_toc": True,
+    # See https://github.com/pydata/pydata-sphinx-theme/issues/1492
+    "navigation_with_keys": False,
 }

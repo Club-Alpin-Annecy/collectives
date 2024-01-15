@@ -59,7 +59,7 @@ def access_requires(function, test, api=False):
     return decorated_function
 
 
-def user_is(method, api=False, **kwargs):
+def user_is(methods, api=False, **kwargs):
     """Decorator which check if an user method to authorize access.
 
     Example:
@@ -73,9 +73,10 @@ def user_is(method, api=False, **kwargs):
 
     :param api: If True and access is denied, trigger a 403. Otherwise return an error message
     :type api: bool
-    :param method: the user method to call. WARNING: this parameter should always be a constant
-                   (no user generated data)
-    :type method: string
+    :param methods: the user methods to call. WARNING: this parameter should always be a constant
+                   (no user generated data). Can be a list, in which case, user is authorized if
+                   method returns True (ie if user has at least one of the listed roles)
+    :type methods: list or string
     :return: the protected (decorated) `f` function
     :rtype: function
     """
@@ -106,7 +107,13 @@ def user_is(method, api=False, **kwargs):
             :rtype: boolean, String, String
             """
 
-            test = getattr(flask_login.current_user, method)()
+            if isinstance(methods, str):
+                test = getattr(flask_login.current_user, methods)()
+            else:
+                test = False
+                for method in methods:
+                    test = test or getattr(flask_login.current_user, method)()
+
             return (test, message, url_for(url))
 
         # pylint: disable=unused-argument

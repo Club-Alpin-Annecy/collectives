@@ -14,7 +14,7 @@ function actionFormatter(csrfToken) {
     };
 }
 
-function onclickTriggerInsideForm(e, cell) {
+function submitDeleteForm(e, cell) {
     cell._cell.element.querySelector('form').submit();
 }
 
@@ -36,7 +36,7 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
                 { title: "Rôle", field: "type", headerFilter: "input", widthGrow: 3},
-                { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
+                { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: submitDeleteForm, headerSort: false },
             ],
 
             langs: {

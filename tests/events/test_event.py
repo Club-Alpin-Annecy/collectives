@@ -219,11 +219,12 @@ def test_event_export_list(leader_client, event1_with_reg, user2):
     workbook = load_workbook(filename=BytesIO(response.data))
     worksheet = workbook.active
     assert worksheet.max_row == 5
-    assert worksheet.max_column == 5
+    assert worksheet.max_column == 6
     assert worksheet["A3"].value == user2.license
-    assert worksheet["B3"].value == user2.full_name()
-    assert worksheet["C3"].value == user2.phone
-    assert worksheet["D3"].value == user2.mail
+    assert worksheet["B3"].value == user2.first_name
+    assert worksheet["C3"].value == user2.last_name.upper()
+    assert worksheet["D3"].value == user2.phone
+    assert worksheet["E3"].value == user2.mail
 
 
 def test_event_print(leader_client, event1_with_reg, user2):

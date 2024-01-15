@@ -1,0 +1,215 @@
+# To configure this file, pleasse see doc: doc/ 
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: collectives-secret
+type: Opaque
+stringData:
+  db_password: --to-be-replaced-- # Put any long random password. Won't be used by a human
+  flask_secret: --to-be-replaced-- # Put another long random password. Won't be used by a human
+  admin_password: --to-be-replaced-- # Put again another long random password. Will be used to connect on the site and act as a backup account.
+
+---
+########################################################################################
+#
+#   Ingress
+#
+########################################################################################
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+ name: collectives-ingress
+ annotations:
+    ingressClassName: nginx
+    cert-manager.io/cluster-issuer: "lets-encrypt"
+spec:
+ ingressClassName: nginx
+ tls:
+ - hosts:
+   - --to-be-replaced-- # The hostname of the website
+   secretName: collectives-ingress-tls 
+ rules:
+ - host: --to-be-replaced-- # The hostname of the website
+   http:
+     paths:
+     - backend:
+         service:
+           name: collectives
+           port:
+             number: 5000
+       path: /
+       pathType: Prefix
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+ name: lets-encrypt
+spec:
+ acme:
+   email: microk8s@yopmail.com
+   server: https://acme-v02.api.letsencrypt.org/directory
+   #server: https://acme-staging-v02.api.letsencrypt.org/directory
+   privateKeySecretRef:
+     name: lets-encrypt-private-key
+   # Add a single challenge solver, HTTP01 using nginx
+   solvers:
+   - http01:
+       ingress:
+         class: nginx
+---
+########################################################################################
+#
+#   Collectives services
+#
+########################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: collectives
+  labels:
+    app: collectives
+spec:
+  ports:
+    - port: 5000
+  selector:
+    app: collectives
+    tier: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collectives
+  labels:
+    app: collectives
+spec:
+  selector:
+    matchLabels:
+      app: collectives
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: collectives
+        tier: frontend
+    spec:
+      containers:
+        - image: cafannecy/collectives:latest
+          name: collectives
+          env:
+            - name: ADMINPWD
+              valueFrom: 
+                secretKeyRef:
+                  name: collectives-secret
+                  key: admin_password
+            - name: SECRET_KEY
+              valueFrom: 
+                secretKeyRef:
+                  name: collectives-secret
+                  key: flask_secret
+            - name: DBPWD
+              valueFrom: 
+                secretKeyRef:
+                  name: collectives-secret
+                  key: db_password
+            - name: SQLALCHEMY_DATABASE_URI
+              value: mysql+pymysql://collectives:$(DBPWD)@mariadb-service.default.svc.cluster.local/database?charset=utf8mb4     
+          ports:
+            - containerPort: 5000
+              name: collectives
+          volumeMounts:
+            - name: collectives-persistent-storage
+              mountPath: /app/collectives/static/uploads
+      volumes:
+        - name: collectives-persistent-storage
+          persistentVolumeClaim:
+            claimName: collective-pv-claim
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: collective-pv-claim
+  labels:
+    app: collectives
+spec:
+  storageClassName: csi-cinder-classic
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+
+########################################################################################
+#
+#   MARIADB
+#
+########################################################################################
+
+
+
+
+#https://mariadb.org/create-statefulset-mariadb-application-in-k8s/
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-service
+  labels:
+    app: mariadb
+spec:
+  ports:
+  - port: 3306
+    name: mariadb-port
+  selector:
+    app: mariadb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mariadb-sts
+spec:
+  serviceName: "mariadb-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb
+        ports:
+        - containerPort: 3306
+          name: mariadb-port
+        env:
+        # Using Secrets
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: collectives-secret
+              key: db_password
+        - name: MARIADB_RANDOM_ROOT_PASSWORD
+          value: "1"
+        - name: MARIADB_USER
+          value: collectives
+        - name: MARIADB_DATABASE
+          value: database
+        - name: MARIADB_AUTO_UPGRADE 
+          value: "1"
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/mysql/
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "csi-cinder-classic"
+      resources:
+        requests:
+          storage: 300M

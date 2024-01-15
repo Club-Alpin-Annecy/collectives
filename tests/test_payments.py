@@ -116,6 +116,6 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
         "/payment/process?paylinetoken=1jom6TVNaLuHygEB62681665928911817", data=data
     )
     assert response.status_code == 302
-    assert response.location == f"/collectives/{paying_event.id}"
+    assert response.location == f"/collectives/{paying_event.id}-"
     assert paying_event.registrations[0].user == user1_client.user
     assert paying_event.registrations[0].status == RegistrationStatus.Active

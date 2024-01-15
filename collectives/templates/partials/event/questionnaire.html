@@ -1,0 +1,38 @@
+
+{% if question_form.question_fields %} 
+<form id="questionnaire" class="form" action="{{url_for('event.answer_questions', event_id=event.id)}}" method="post" >
+
+    <fieldset> <legend>Questionnaire</legend>
+    Pour aider à l'organisation de cet événement, veuillez répondre aux questions suivantes.
+    {% for field in question_form.question_fields%}
+    <div class="controls">
+        {% if field.type == "BooleanField" %}
+        <div class="field">
+            {{ field() }}{{ field.label }} <br/> 
+            <span class="label-help">{{ field.description }}</span>
+        </div>
+        {% else%}
+        <div class="field label-top">
+            {{ field.label }}   
+            {% if field.type == "IntegerField" %}
+            {{ field(class="input input-25", type="number") }}
+            {% elif field.type == "TextAreaField" %}
+            {{ field(class="input input-100") }}
+            {% elif field.type == "SelectMultipleField" %}
+            {{ field(class="input choices input-33") }}
+            {%else%}
+            {{ field(class="input input-33") }}
+            {%endif%}
+        <span class="label-help">{{ field.description }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {%endfor%}
+    
+    {{question_form.hidden_tag()}}
+    <div class="controls">
+    {{question_form.submit(class="button button-secondary")}}
+    </div>
+    </fieldset>
+</form>
+{% endif %}

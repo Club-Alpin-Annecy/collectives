@@ -9,13 +9,14 @@ import textwrap
 
 
 from PIL import Image, ImageDraw, ImageFont
-from flask import flash, render_template, redirect, url_for, request, send_file
+from flask import flash, render_template, redirect, url_for, request, send_file, abort
 from flask import Blueprint
-from flask_login import current_user
+from flask_login import current_user, logout_user
 from flask_images import Images
 
 from collectives.forms import UserForm
-from collectives.models import User, Role, RoleIds, Configuration, Gender, db
+from collectives.forms.user import DeleteUserForm
+from collectives.models import User, Role, RoleIds, Configuration, Gender, Event, db
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
@@ -33,16 +34,37 @@ def before_request():
     pass
 
 
-@blueprint.route("/user/<user_id>", methods=["GET"])
-def show_user(user_id):
+@blueprint.route("/user/<int:user_id>", methods=["GET"])
+@blueprint.route("/user/<int:user_id>/from_event/<int:event_id>", methods=["GET"])
+def show_user(user_id: int, event_id: int = 0):
     """Route to show detail of a regular user.
 
     :param int user_id: Primary key of the user.
     """
-    if int(user_id) != current_user.id:
+
+    user = User.query.get(user_id)
+    if user is None:
+        abort(404)
+
+    if user.id != current_user.id:
         if not current_user.has_any_role():
             flash("Non autorisé", "error")
             return redirect(url_for("event.index"))
+
+        if not current_user.is_hotline() and not current_user.is_supervisor():
+            # Hotline and supervisors can see info about all users
+            # Other leaders need a link from an event to which the user is registered
+
+            event: Event = Event.query.get(event_id)
+
+            if (
+                event is None
+                or not event.has_edit_rights(current_user)
+                or not event.is_registered(user)
+            ):
+                flash("Non autorisé", "error")
+                return redirect(url_for("event.index"))
+
         if not current_user.has_signed_ca():
             flash(
                 """Vous devez signer la charte RGPD avant de pouvoir
@@ -50,8 +72,6 @@ def show_user(user_id):
                 "error",
             )
             return redirect(url_for("profile.confidentiality_agreement"))
-
-    user = User.query.filter_by(id=user_id).first()
 
     return render_template("profile.html", title="Profil adhérent", user=user)
 
@@ -181,7 +201,10 @@ def volunteer_certificate():
             "error",
         )
         return redirect(url_for("profile.show_user", user_id=current_user.id))
-    if not current_user.has_any_role():
+    if (
+        not current_user.has_a_valid_benevole_badge()
+        and not current_user.has_any_role()
+    ):
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
@@ -293,4 +316,68 @@ def volunteer_certificate():
         mimetype="application/pdf",
         download_name=str("Attestation Benevole CAF Annecy.pdf"),
         as_attachment=True,
+    )
+
+
+@blueprint.route("/delete", methods=["GET", "POST"], defaults={"user_id": None})
+@blueprint.route("/<int:user_id>/delete", methods=["GET", "POST"])
+def delete_user(user_id: int):
+    """Route to delete an user."""
+
+    if user_id is None:
+        user_id = current_user.id
+
+    if user_id == current_user.id:
+        if current_user.is_admin():
+            flash(
+                "En tant qu'administateur, vous ne pouvez pas supprimer votre propre compte",
+                "error",
+            )
+            return redirect(url_for(".show_user", user_id=user_id))
+    elif not current_user.is_hotline():
+        flash("Opération interdite", "error")
+        return redirect(url_for(".show_user", user_id=user_id))
+
+    user: User = User.query.get(user_id)
+    if user is None:
+        flash("Utilisateur invalide", "error")
+        return redirect(url_for(".show_user", user_id=user_id))
+
+    form = DeleteUserForm(user)
+
+    if form.validate_on_submit():
+        old_name = user.full_name()
+
+        # Anonymize account
+        # Keep only gender and license category for statistics
+        user.enabled = False
+        user.first_name = "Compte"
+        user.last_name = "Supprimé"
+        user.license = str(user_id)
+        user.mail = f"{user.license}@localhost"
+        user.date_of_birth = date(user.date_of_birth.year, 1, 1)
+        user.password = ""
+        user.phone = ""
+        user.emergency_contact_name = ""
+        user.emergency_contact_phone = ""
+        user.roles.clear()
+        user.badges.clear()
+        user.delete_avatar()
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash(f"Le compte de {old_name} a bien été supprimé")
+
+        if user_id == current_user.id:
+            logout_user()
+            return redirect(url_for("auth.login"))
+
+        return redirect(url_for("administration.administration"))
+
+    return render_template(
+        "profile/delete_user.html",
+        title="Suppression d'un compte",
+        user=user,
+        form=form,
     )

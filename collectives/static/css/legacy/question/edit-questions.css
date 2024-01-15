@@ -1,0 +1,68 @@
+
+#existing_questions {
+    width: 100%;
+    margin:auto;
+    border-collapse: collapse;
+}
+
+#existing_questions tr.fields input{
+    margin: auto;
+    width:90%;
+    padding: 0.5em;
+}
+
+#existing_questions tr.top td {
+    padding-top: 1em;
+}
+
+#existing_questions tr.bottom td {
+    border-bottom: 1px solid black;
+}
+
+#existing_questions tr.fields input[type=checkbox] {
+    margin: 0.5em;
+}
+
+#existing_questions tr.fields input[type=number]{
+    width:5em;
+}
+
+#existing_questions tr.fields input[type=checkbox]{
+    width:auto;
+    display:inline;
+}
+
+#existing_questions tr.fields label{
+    display:inline;
+    font-weight: normal;
+}
+
+#existing_questions tr.fields td {
+    vertical-align: middle;
+    text-align:center;
+}
+
+#existing_questions tr.fields select {
+    margin: auto;
+    padding: 0.5em;
+    width:90%;
+}
+
+#existing_questions tr.fields textarea {
+    margin: auto;
+    padding: 0.5em;
+    width:90%;
+}
+
+#existing_questions td.error-cell {
+    text-align:left;
+}
+
+#existing_questions tr.fields td.actions{
+    width:25%;
+    text-align:left;
+    vertical-align: top;
+   
+    border-bottom: 1px solid black;
+}
+

@@ -107,6 +107,14 @@ def user1_client(client, user1):
 
 
 @pytest.fixture
+def user3_client(client, user3):
+    """Flask client authenticated as regular user."""
+    login(client, user3)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
 def leader_client(client, leader_user):
     """Flask client authenticated as regular user."""
     login(client, leader_user)
@@ -118,5 +126,21 @@ def leader_client(client, leader_user):
 def youth_client(client, youth_user):
     """Flask client authenticated as youth user."""
     login(client, youth_user)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
+def client_with_valid_benevole_badge(client, user_with_valid_benevole_badge):
+    """Flask client authenticated as user with a valid badge."""
+    login(client, user_with_valid_benevole_badge)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
+def client_with_expired_benevole_badge(client, user_with_expired_benevole_badge):
+    """Flask client authenticated as user with an expired badge."""
+    login(client, user_with_expired_benevole_badge)
     yield client
     logout(client)

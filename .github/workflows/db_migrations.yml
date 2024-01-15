@@ -52,7 +52,7 @@ jobs:
       uses: ankane/setup-mariadb@v1
       with:
         database: ${{ env.DB_DATABASE }}
-        mariadb-version: "10.8"
+        mariadb-version: "10.11"
     - name: Load migrations on MariaDB
       env:
         FLASK_APP: collectives:create_app

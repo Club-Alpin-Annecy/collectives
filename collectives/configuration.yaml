@@ -309,6 +309,14 @@ Mail:
         description: Email template content for a waiting user when his subscription is activated
         type: LongString
 
+    DELETED_REGISTRATIONS_POST_SCRIPTUM:
+        content: |
+            PS: Vous avez été automatiquement désinscrit(e) des collectives suivantes, 
+            se déroulant simultanément et pour lesquelles vous étiez également en liste d'attente :
+            {titles}
+        description: Email template post-scriptum for a waiting user when their registrations to other waiting lists are removed
+        type: LongString
+
 
 APPEARANCE:
     COVER_CREDIT:
