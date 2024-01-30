@@ -3,7 +3,7 @@
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates
 
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
 
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
@@ -113,6 +113,16 @@ class EventModelMixin:
     """Status of the event (Confirmed, Cancelled...)
 
     :type: :py:class:`collectives.models.event.EventStatus`"""
+
+    visibility = db.Column(
+        db.Enum(EventVisibility),
+        nullable=False,
+        default=EventVisibility.Public,
+        info={"choices": EventVisibility.choices(), "coerce": EventVisibility.coerce},
+    )
+    """Visibility of the event (Public, Private...)
+
+    :type: :py:class:`collectives.models.event.EventVisibility`"""
 
     # Non DB attributes
     @property

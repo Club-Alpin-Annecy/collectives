@@ -13,7 +13,13 @@ def today():
 
 
 def test_event_access(
-    user1_client, event1, event2, past_event, draft_event, cancelled_event
+    user1_client,
+    event1,
+    event2,
+    past_event,
+    draft_event,
+    cancelled_event,
+    private_event,
 ):
     """Test list of event"""
 
@@ -23,6 +29,31 @@ def test_event_access(
     assert response.status_code == 200
     data = response.json["data"]
     assert len(data) == 4
+    assert f"/collectives/{past_event.id}" in data[0]["view_uri"]
+    assert data[0]["num_online_slots"] == 1
+    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["title"] == past_event.title
+    assert data[0]["activity_types"][0]["name"] == "Alpinisme"
+    assert data[0]["event_types"][0]["name"] == "Collective"
+
+
+def test_event_access_leader(
+    leader_client,
+    event1,
+    event2,
+    past_event,
+    draft_event,
+    cancelled_event,
+    private_event,
+):
+    """Test list of event for a leader"""
+
+    response = leader_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 6
     assert f"/collectives/{past_event.id}" in data[0]["view_uri"]
     assert data[0]["num_online_slots"] == 1
     assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
