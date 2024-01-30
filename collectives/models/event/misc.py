@@ -4,8 +4,9 @@ from typing import List
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models import db
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
+from collectives.models.user import User
 from collectives.utils import render_markdown
 
 
@@ -38,7 +39,7 @@ class EventMiscMixin:
         :rtype: string"""
         return EventStatus(self.status).display_name()
 
-    def is_visible_to(self, user):
+    def is_visible_to(self, user: User) -> bool:
         """Checks whether this event is visible to an user
 
         - Moderators can see all events
@@ -46,15 +47,20 @@ class EventMiscMixin:
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
         - Leaders can see the events that they lead
+        - Users with role for an activity can see 'Private' events
 
         :param user: The user for whom the test is made
-        :type user: :py:class:`collectives.models.user.User`
         :return: Whether the event is visible
-        :rtype: bool
         """
-        if self.status in (EventStatus.Confirmed, EventStatus.Cancelled):
+        if self.has_edit_rights(user):
             return True
-        return self.has_edit_rights(user)
+        if self.status == EventStatus.Pending:
+            return False
+        if self.visibility == EventVisibility.Public:
+            return True
+
+        user_activities = user.activities_with_role()
+        return any(activity in user_activities for activity in self.activity_types)
 
     def save_photo(self, file):
         """Save event photo from a raw file

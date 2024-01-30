@@ -35,4 +35,10 @@
         background-color: $shakespeare;
         color: $color-white;
     }
+
+    // Private
+    &.event-status-private {
+        background-color: $solitude;
+        color: $color-gray-dark;
+    }
 }

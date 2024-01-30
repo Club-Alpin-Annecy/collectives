@@ -57,6 +57,9 @@
       <div>
         <h1 class="heading-1">
           {{event.title}}
+          {% if event.visibility == models.EventVisibility.Private %}
+            <span class="event-status-badge event-status-private">{{event.visibility.display_name()}}</span>&nbsp;
+          {% endif %}
           {% if not event.is_confirmed() %}
             <span class="event-status-badge event-status-{{event.status.value}}">{{event.status_string()}}</span>&nbsp;
           {% endif %}

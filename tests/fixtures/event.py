@@ -5,7 +5,8 @@ from functools import wraps
 
 import pytest
 
-from collectives.models import db, ActivityType, EventType, Event, EventTag, EventStatus
+from collectives.models import db, ActivityType
+from collectives.models import EventType, Event, EventTag, EventStatus, EventVisibility
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 from collectives.models import Question, QuestionType, QuestionAnswer
 
@@ -126,6 +127,18 @@ def draft_event(prototype_draft_event):
     db.session.add(prototype_draft_event)
     db.session.commit()
     return prototype_draft_event
+
+
+inject_fixture("prototype_private_event", "privé")
+
+
+@pytest.fixture
+def private_event(prototype_private_event):
+    """:returns: An event in draft status"""
+    prototype_private_event.visibility = EventVisibility.Private
+    db.session.add(prototype_private_event)
+    db.session.commit()
+    return prototype_private_event
 
 
 inject_fixture("prototype_paying_event", "paying")

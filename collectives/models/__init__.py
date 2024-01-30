@@ -11,6 +11,7 @@ from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
 from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
 from collectives.models.configuration import Configuration
 from collectives.models.event import Event, EventStatus, photos, EventType
+from collectives.models.event import EventVisibility
 from collectives.models.event_tag import EventTag
 from collectives.models.equipment import EquipmentModel, Equipment, EquipmentType
 from collectives.models.equipment import image_equipment_type, EquipmentStatus
