@@ -1,5 +1,6 @@
 """Module for registration related classes
 """
+
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 

@@ -1,6 +1,7 @@
 """ API for user list in administration page.
 
 """
+
 import json
 
 from flask import url_for, request
@@ -97,9 +98,11 @@ class UserSchema(marshmallow.Schema):
     :type: string
     """
     leader_profile_uri = fields.Function(
-        lambda user: url_for("profile.show_leader", leader_id=user.id)
-        if user.can_create_events()
-        else None
+        lambda user: (
+            url_for("profile.show_leader", leader_id=user.id)
+            if user.can_create_events()
+            else None
+        )
     )
     """ URI to see user profile
 
@@ -238,9 +241,11 @@ class LeaderRoleSchema(marshmallow.Schema):
     """
 
     delete_uri = fields.Function(
-        lambda role: url_for("activity_supervision.remove_leader", role_id=role.id)
-        if role.role_id in RoleIds.all_supervisor_manageable()
-        else ""
+        lambda role: (
+            url_for("activity_supervision.remove_leader", role_id=role.id)
+            if role.role_id in RoleIds.all_supervisor_manageable()
+            else ""
+        )
     )
     """ URI to delete this user (WIP)
 

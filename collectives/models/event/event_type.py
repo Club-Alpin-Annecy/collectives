@@ -1,5 +1,6 @@
 """Module to describe the type of event.
 """
+
 from markupsafe import escape
 
 from collectives.models.globals import db

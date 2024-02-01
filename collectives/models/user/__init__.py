@@ -1,6 +1,7 @@
 """Module for user related classes
 
 """
+
 import os
 
 from flask_uploads import UploadSet, IMAGES

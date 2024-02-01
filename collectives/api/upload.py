@@ -1,6 +1,7 @@
 """ API endpoint for managing uploaded files.
 
 """
+
 import json
 
 from flask import request, abort, url_for
@@ -81,9 +82,11 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
     response = {
         "data": {
-            "filePath": uploaded_file.thumbnail_url()
-            if uploaded_file.is_image()
-            else uploaded_file.url()
+            "filePath": (
+                uploaded_file.thumbnail_url()
+                if uploaded_file.is_image()
+                else uploaded_file.url()
+            )
         }
     }
     return json.dumps(response), 200, {"content-type": "application/json"}
@@ -97,9 +100,11 @@ class UploadedFileSchema(marshmallow.Schema):
 
     :type: string"""
     delete_url = fields.Function(
-        lambda file: url_for("api.delete_uploaded_file", file_id=file.id)
-        if file.has_edit_rights(current_user)
-        else None
+        lambda file: (
+            url_for("api.delete_uploaded_file", file_id=file.id)
+            if file.has_edit_rights(current_user)
+            else None
+        )
     )
     """ Url of the endpoint to delete the file
 

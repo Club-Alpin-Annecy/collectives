@@ -1,5 +1,6 @@
 """Templates for mails
 """
+
 from functools import wraps
 from typing import List
 

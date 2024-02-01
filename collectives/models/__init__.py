@@ -4,6 +4,7 @@ This module contains other submodules for ``collectives`` model.
 Persistence is made by SQLAlchemy. This module exposes most important
 submodules classes by importing them. It also create the ``db`` object
 """
+
 from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType, leaders_without_activities
 from collectives.models.auth import ConfirmationToken, ConfirmationTokenType

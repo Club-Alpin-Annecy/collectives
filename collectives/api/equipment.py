@@ -1,6 +1,7 @@
 """ API for equipment.
 
 """
+
 import json
 
 from flask import url_for, abort
@@ -57,9 +58,9 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
     """:type: string"""
     deposit = fields.Function(
-        lambda equipment_type: format_currency(equipment_type.deposit)
-        if equipment_type.deposit
-        else "-"
+        lambda equipment_type: (
+            format_currency(equipment_type.deposit) if equipment_type.deposit else "-"
+        )
     )
 
     class Meta:

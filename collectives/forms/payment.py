@@ -1,4 +1,5 @@
 """ Module for payment forms"""
+
 from decimal import Decimal
 
 from flask import current_app

@@ -1,6 +1,7 @@
 """ API endpoint for listing payments.
 
 """
+
 import json
 
 from flask import abort, url_for, request
@@ -124,18 +125,22 @@ class MyPaymentSchema(PaymentSchema):
     :type: string"""
 
     receipt_uri = fields.Function(
-        lambda p: url_for("payment.payment_receipt", payment_id=p.id)
-        if p.has_receipt()
-        else None
+        lambda p: (
+            url_for("payment.payment_receipt", payment_id=p.id)
+            if p.has_receipt()
+            else None
+        )
     )
     """ Uri of the receipt associated to the approved online payment
 
     :type: string"""
 
     refund_receipt_uri = fields.Function(
-        lambda p: url_for("payment.refund_receipt", payment_id=p.id)
-        if p.has_refund_receipt()
-        else None
+        lambda p: (
+            url_for("payment.refund_receipt", payment_id=p.id)
+            if p.has_refund_receipt()
+            else None
+        )
     )
     """ Uri of the receipt associated to the refunded online payment
 

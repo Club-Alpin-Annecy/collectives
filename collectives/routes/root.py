@@ -2,6 +2,7 @@
 
 This modules contains the root Blueprint
 """
+
 from flask import redirect, url_for, Blueprint, send_file
 from flask import render_template, request
 from flask_login import current_user, login_required

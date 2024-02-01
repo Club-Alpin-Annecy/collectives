@@ -1,4 +1,5 @@
 """ Module to test payment module. """
+
 # pylint: disable=unused-argument
 
 from collectives.models import db, RegistrationStatus

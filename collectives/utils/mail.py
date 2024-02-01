@@ -11,6 +11,7 @@ DKIM. Conf are taken from app :py:mod:`config`:
 - :py:data:`config.DKIM_SELECTOR`: DKIM selector, usually default
 - :py:data:`config.DKIM_KEY`: DKIM private key as PEM format
 """
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email

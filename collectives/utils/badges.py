@@ -1,6 +1,5 @@
 """ Module for base functions of badge management"""
 
-
 from flask import send_file
 from flask import flash, render_template
 from flask_login import current_user

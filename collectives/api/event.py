@@ -1,6 +1,7 @@
 """ API to get the event list in index page.
 
 """
+
 import json
 from dateutil import parser
 

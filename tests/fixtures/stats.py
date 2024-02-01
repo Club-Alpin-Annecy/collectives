@@ -1,4 +1,5 @@
 """ Module to creaate a fixture db barely rich enough to test statistics engine"""
+
 import pytest
 
 from collectives.models import db, ActivityType, EventType, EventTag

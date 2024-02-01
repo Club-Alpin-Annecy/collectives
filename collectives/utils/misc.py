@@ -1,6 +1,7 @@
 """  Miscellaneous utils functions
 
 """
+
 import functools
 import unicodedata
 

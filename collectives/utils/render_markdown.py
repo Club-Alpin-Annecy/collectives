@@ -2,6 +2,7 @@
 
 Markdown is mainly used in event description.
 """
+
 import cmarkgfm
 from cmarkgfm.cmark import Options as cmarkgfmOptions
 from markupsafe import Markup

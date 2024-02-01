@@ -1,6 +1,5 @@
 """ Module for all Event methods related to date manipulation and check."""
 
-
 from datetime import timedelta
 from math import ceil
 

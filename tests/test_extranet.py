@@ -1,4 +1,5 @@
 """ Module to test extranet calls"""
+
 # pylint: disable=unused-argument
 
 from collectives.models import User, db

@@ -2,6 +2,7 @@
 
 Event schema is the one from :py:class:`collectives.api.event.EventSchema`
 """
+
 import json
 
 from flask_login import current_user

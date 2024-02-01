@@ -1,5 +1,6 @@
 """Set utils classes for models
 """
+
 import enum
 import json
 from typing import List

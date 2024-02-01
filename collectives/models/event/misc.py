@@ -1,4 +1,5 @@
 """ Module for misc Event methods which does not fit in another submodule"""
+
 from typing import List
 from flask_uploads import UploadSet, IMAGES
 

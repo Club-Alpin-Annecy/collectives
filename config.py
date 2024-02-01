@@ -5,6 +5,7 @@ only by developper. To deploy an application with specific parameters, use
 instance/config.py.
 WARNING: for production, some parameter MUST be modified (ADMINPWD, SECRET_KEY)
 """
+
 # All configuration parameters defined in
 # this file can be overriden in instance/config.py
 

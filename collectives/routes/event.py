@@ -2,6 +2,7 @@
 
 This modules contains the /event Blueprint
 """
+
 # pylint: disable=too-many-lines
 from typing import Tuple, List, Set
 

@@ -2,6 +2,7 @@
 
 This modules contains the /profile Blueprint
 """
+
 from datetime import date, datetime
 from os.path import exists
 from io import BytesIO

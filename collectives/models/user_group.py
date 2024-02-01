@@ -1,4 +1,5 @@
 """ Handle dynamic user groups, for restricting or payment options """
+
 from typing import List
 
 from sqlalchemy import and_, or_, true

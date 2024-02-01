@@ -6,6 +6,7 @@ on Internet.
 
 See `functools <https://docs.python.org/3.8/library/functools.html>`_
 """
+
 from functools import wraps
 
 from flask import redirect, url_for, flash, abort

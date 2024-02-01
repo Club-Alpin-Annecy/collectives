@@ -1,4 +1,5 @@
 """ Test API related to event """
+
 from datetime import date
 
 from collectives.models import ActivityType

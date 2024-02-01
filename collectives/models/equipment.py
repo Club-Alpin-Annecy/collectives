@@ -1,5 +1,6 @@
 """Module for equipment related classes
 """
+
 import os
 from genericpath import isfile
 from flask_uploads import UploadSet, IMAGES, extension

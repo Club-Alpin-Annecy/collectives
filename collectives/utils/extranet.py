@@ -1,5 +1,6 @@
 """Module to handle connexions to FFCAM extranet.
 """
+
 import traceback
 from datetime import datetime, date
 from flask import current_app
