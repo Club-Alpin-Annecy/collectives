@@ -59,7 +59,7 @@ def add_leader():
     role = Role()
     add_leader_form.populate_obj(role)
 
-    user = User.query.get(role.user_id)
+    user = db.session.get(User, role.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".leader_list"))
@@ -89,7 +89,7 @@ def remove_leader(role_id):
     :type role_id: int
     """
 
-    role = Role.query.get(role_id)
+    role = db.session.get(Role, role_id)
     if role is None or role.role_id not in RoleIds.all_supervisor_manageable():
         flash("Role invalide", "error")
         return redirect(url_for(".leader_list"))
@@ -132,7 +132,7 @@ def export_role():
     if not form.validate_on_submit():
         abort(400)
 
-    activity_type = ActivityType.query.get(form.activity_id.data)
+    activity_type = db.session.get(ActivityType, form.activity_id.data)
 
     query = Role.query
     # we remove role not linked anymore to a user
@@ -226,7 +226,7 @@ def csv_import():
 
     failed = []
     if form.validate_on_submit():
-        activity_type = ActivityType.query.get(form.type.data)
+        activity_type = db.session.get(ActivityType, form.type.data)
 
         file = form.csv_file.data
         processed, failed = process_stream(

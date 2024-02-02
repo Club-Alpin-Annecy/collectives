@@ -87,7 +87,7 @@ for i, user_name in enumerate(USER_NAMES):
 @pytest.fixture
 def admin_user(app):
     """:returns: The admin user."""
-    return User.query.get(1)
+    return db.session.get(User, 1)
 
 
 inject_fixture("prototype_leader_user", 999, ("Romeo", "Capo"))

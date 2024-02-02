@@ -135,7 +135,7 @@ def equipment_histo_reservations(equipment_id):
     :rtype: (string, int, dict)
     """
 
-    query = Equipment.query.get(equipment_id).get_reservations()
+    query = db.session.get(Equipment, equipment_id).get_reservations()
 
     if query is not None:
         data = ReservationSchema(many=True).dump(query)
@@ -184,7 +184,7 @@ def reservation_lines(reservation_id):
     :rtype: (string, int, dict)
     """
 
-    query = Reservation.query.get(reservation_id).lines
+    query = db.session.get(Reservation, reservation_id).lines
 
     if query is not None:
         data = ReservationLineSchema(many=True).dump(query)
@@ -206,7 +206,7 @@ def new_rental(reservation_id):
     :rtype: (string, int, dict)
     """
 
-    query = Reservation.query.get(reservation_id).get_equipments()
+    query = db.session.get(Reservation, reservation_id).get_equipments()
 
     if query is not None:
         data = EquipmentSchema(many=True).dump(query)
@@ -228,7 +228,7 @@ def reservation_line(line_id):
 
     :rtype: (string, int, dict)
     """
-    query = ReservationLine.query.get(line_id).equipments
+    query = db.session.get(ReservationLine, line_id).equipments
 
     if query is not None:
         data = EquipmentSchema(many=True).dump(query)
@@ -250,7 +250,7 @@ def reservation_line_equipments_rented(line_id):
 
     :rtype: (string, int, dict)
     """
-    query = ReservationLine.query.get(line_id).get_equipments_rented()
+    query = db.session.get(ReservationLine, line_id).get_equipments_rented()
 
     if query is not None:
         data = EquipmentSchema(many=True).dump(query)
@@ -272,7 +272,7 @@ def reservation_line_equipments_returned(line_id):
 
     :rtype: (string, int, dict)
     """
-    query = ReservationLine.query.get(line_id).get_equipments_returned()
+    query = db.session.get(ReservationLine, line_id).get_equipments_returned()
 
     if query is not None:
         data = EquipmentSchema(many=True).dump(query)
@@ -299,7 +299,7 @@ def set_available_equipment(equipment_id):
     :rtype: (string, int, dict)
     """
 
-    equipment = Equipment.query.get(equipment_id)
+    equipment = db.session.get(Equipment, equipment_id)
     if equipment is not None:
         equipment.status = EquipmentStatus.Available
         db.session.commit()
@@ -332,10 +332,10 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
 
     :rtype: (string, int, dict)
     """
-    equipment = Equipment.query.get(equipment_id)
+    equipment = db.session.get(Equipment, equipment_id)
     if equipment is not None:
         if reservation_id:
-            reservation = Reservation.query.get(reservation_id)
+            reservation = db.session.get(Reservation, reservation_id)
             if not reservation.remove_equipment(equipment):
                 return (
                     "{'response': 'Pas OK'}",
@@ -343,7 +343,7 @@ def remove_reservation_equipment(equipment_id, reservation_id=None, line_id=None
                     {"content-type": "application/json"},
                 )
         else:
-            line = ReservationLine.query.get(line_id)
+            line = db.session.get(ReservationLine, line_id)
             line.remove_equipment(equipment)
         db.session.commit()
 
@@ -371,8 +371,8 @@ def remove_reservation_equipment_decreasing_quantity(equipment_id, reservation_i
 
     :rtype: (string, int, dict)
     """
-    equipment = Equipment.query.get(equipment_id)
-    reservation = Reservation.query.get(reservation_id)
+    equipment = db.session.get(Equipment, equipment_id)
+    reservation = db.session.get(Reservation, reservation_id)
     if equipment is not None and reservation is not None:
         reservation.remove_equipment_decreasing_quantity(equipment)
         db.session.commit()
@@ -398,7 +398,7 @@ def my_reservations():
     :rtype: (string, int, dict)
     """
 
-    query = User.query.get(current_user.id).get_reservations_planned_and_ongoing()
+    query = db.session.get(User, current_user.id).get_reservations_planned_and_ongoing()
     if query is not None:
         data = ReservationSchema(many=True).dump(query)
 
@@ -420,7 +420,7 @@ def my_reservations_completed():
     :rtype: (string, int, dict)
     """
 
-    query = User.query.get(current_user.id).get_reservations_completed()
+    query = db.session.get(User, current_user.id).get_reservations_completed()
     if query is not None:
         data = ReservationSchema(many=True).dump(query)
 
@@ -441,7 +441,7 @@ def my_reservation(reservation_id):
     :rtype: (string, int, dict)
     """
 
-    query = Reservation.query.get(reservation_id).lines
+    query = db.session.get(Reservation, reservation_id).lines
 
     if query is not None:
         data = ReservationLineSchema(many=True).dump(query)
@@ -507,7 +507,7 @@ def autocomplete_availables_equipments(line_id=None):
     equipments_of_autocomplete = find_equipments_by_reference(pattern)
 
     if line_id:
-        equipment_type = ReservationLine.query.get(line_id).equipment_type
+        equipment_type = db.session.get(ReservationLine, line_id).equipment_type
         equipments_of_type = equipment_type.get_all_equipments_availables()
         query = list(set(equipments_of_type).intersection(equipments_of_autocomplete))
     else:

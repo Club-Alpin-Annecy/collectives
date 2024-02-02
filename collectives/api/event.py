@@ -11,7 +11,7 @@ from marshmallow import fields
 from sqlalchemy import desc, or_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
-from collectives.models import Event, EventStatus, EventType
+from collectives.models import db, Event, EventStatus, EventType
 from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
@@ -431,7 +431,7 @@ def event_question_answers(event_id: int):
 
     :param event_id: Id of the event
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(404)
 

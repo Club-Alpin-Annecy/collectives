@@ -43,7 +43,7 @@ def show_user(user_id: int, event_id: int = 0):
     :param int user_id: Primary key of the user.
     """
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if user is None:
         abort(404)
 
@@ -56,7 +56,7 @@ def show_user(user_id: int, event_id: int = 0):
             # Hotline and supervisors can see info about all users
             # Other leaders need a link from an event to which the user is registered
 
-            event: Event = Event.query.get(event_id)
+            event: Event = db.session.get(Event, event_id)
 
             if (
                 event is None
@@ -138,7 +138,7 @@ def force_user_sync(user_id):
     if user_id is None:
         user = current_user
     else:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
 
     if user is None:
         flash("Utilisateur inconnu", "error")
@@ -339,7 +339,7 @@ def delete_user(user_id: int):
         flash("Opération interdite", "error")
         return redirect(url_for(".show_user", user_id=user_id))
 
-    user: User = User.query.get(user_id)
+    user: User = db.session.get(User, user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".show_user", user_id=user_id))

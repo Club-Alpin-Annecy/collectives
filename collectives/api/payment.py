@@ -9,7 +9,7 @@ from flask_login import current_user
 from marshmallow import fields
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.models import Event, ItemPrice, Payment, PaymentStatus
+from collectives.models import db, Event, ItemPrice, Payment, PaymentStatus
 from collectives.utils.access import payments_enabled, valid_user
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import extract_payments
@@ -178,7 +178,7 @@ def list_payments(event_id=None):
     :type event_id: int
     """
     if event_id is not None:
-        event = Event.query.get(event_id)
+        event = db.session.get(Event, event_id)
         if event is None:
             return abort(404)
         if not event.has_edit_rights(current_user) and not current_user.is_accountant():
@@ -208,7 +208,7 @@ def list_prices(event_id):
     :param event_id: The primary key of the event we're listing the payments of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(404)
     if not event.requires_payment():

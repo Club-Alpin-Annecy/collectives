@@ -302,8 +302,8 @@ class EventForm(ModelForm, FlaskForm):
                  elected yet
         """
         if self.event_type_id.data:
-            return EventType.query.get(self.event_type_id.data)
-        return EventType.query.get(self.event_type_id.choices[0][0])
+            return db.session.get(EventType, self.event_type_id.data)
+        return db.session.get(EventType, self.event_type_id.choices[0][0])
 
     def can_switch_multi_activity_mode(self) -> bool:
         """
@@ -362,9 +362,11 @@ class EventForm(ModelForm, FlaskForm):
             ).all()
 
         if self.single_activity_type.data:
-            activity = ActivityType.query.get(self.single_activity_type.data)
+            activity = db.session.get(ActivityType, self.single_activity_type.data)
         else:
-            activity = ActivityType.query.get(self.single_activity_type.choices[0][0])
+            activity = db.session.get(
+                ActivityType, self.single_activity_type.choices[0][0]
+            )
         return [activity] if activity else []
 
     def current_activity_ids(self) -> List[int]:

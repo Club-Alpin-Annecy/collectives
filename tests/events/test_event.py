@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from markupsafe import escape
 
-from collectives.models import EventStatus, ActivityType, Event
+from collectives.models import db, EventStatus, ActivityType, Event
 from tests import utils
 
 
@@ -175,7 +175,7 @@ def test_event_duplication(leader_client, paying_event):
     response = leader_client.post("/collectives/add", data=data)
     assert response.status_code == 302
     new_id = re.search(r"/collectives/([0-9]+)", response.location)[1]
-    new_event = Event.query.get(new_id)
+    new_event = db.session.get(Event, new_id)
 
     attributes = [
         "title",

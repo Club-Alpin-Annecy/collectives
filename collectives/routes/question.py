@@ -23,7 +23,7 @@ def edit_questions(event_id: int):
     :param event_id: The primary key of the event we're editing the questionnaire of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
@@ -96,7 +96,7 @@ def show_answers(event_id: int):
 
     :param event_id: The primary key of the event
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
@@ -118,7 +118,7 @@ def delete_answer(answer_id: int):
 
     :param answer_id: The answer primary key
     """
-    answer = QuestionAnswer.query.get(answer_id)
+    answer = db.session.get(QuestionAnswer, answer_id)
     if answer is None:
         flash("Réponse inexistante", "error")
         return redirect(url_for("event.index"))
