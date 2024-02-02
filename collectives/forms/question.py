@@ -10,7 +10,7 @@ from wtforms import TextAreaField, SelectField, SelectMultipleField, IntegerFiel
 
 from wtforms.validators import Optional, ValidationError, InputRequired
 
-from collectives.models import Question, QuestionType, QuestionAnswer
+from collectives.models import db, Question, QuestionType, QuestionAnswer
 from collectives.models import Event, User
 
 
@@ -67,7 +67,7 @@ class QuestionForm(ModelForm):
         """:return: the Question object associated with this form entry"""
         if self.question_id.data is None:
             return None
-        return Question.query.get(self.question_id.data)
+        return db.session.get(Question, self.question_id.data)
 
 
 class NewQuestionForm(QuestionForm, FlaskForm):

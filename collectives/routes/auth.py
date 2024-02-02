@@ -43,7 +43,7 @@ def load_user(user_id):
     :return: current user or None
     :rtype: :py:class:`collectives.models.user.User`
     """
-    user = User.query.get(int(user_id))
+    user = db.session.get(User, int(user_id))
     if user is None or not user.is_active:
         # License has expired, log-out user
         return None
@@ -259,7 +259,7 @@ def process_confirmation(token_uuid):
 
     # Synchronize user info from API
     if is_recover:
-        user = User.query.get(token.existing_user_id)
+        user = db.session.get(User, token.existing_user_id)
     else:
         user = User()
         user.legal_text_signature_date = current_time()

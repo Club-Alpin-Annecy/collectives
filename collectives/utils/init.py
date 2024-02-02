@@ -29,7 +29,7 @@ def activity_types(app):
     """
     try:
         for aid, atype in app.config["ACTIVITY_TYPES"].items():
-            activity_type = ActivityType.query.get(aid)
+            activity_type = db.session.get(ActivityType, aid)
             if activity_type == None:
                 activity_type = ActivityType(id=aid)
 
@@ -82,7 +82,7 @@ def event_types(app):
     """
     try:
         for tid, etype in app.config["EVENT_TYPES"].items():
-            event_type = EventType.query.get(tid)
+            event_type = db.session.get(EventType, tid)
             if event_type == None:
                 event_type = EventType(id=tid)
 

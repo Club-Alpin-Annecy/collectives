@@ -79,14 +79,14 @@ def view_reservation(reservation_id=None):
     Shows a reservation
     """
 
-    reservation = Reservation.query.get(reservation_id)
+    reservation = db.session.get(Reservation, reservation_id)
 
     form = None
     form_add = None
     if reservation.is_planned():
         form_add = AddEquipmentInReservationForm()
         if form_add.validate_on_submit():
-            equipment = Equipment.query.get(form_add.add_equipment.data)
+            equipment = db.session.get(Equipment, form_add.add_equipment.data)
             if equipment:
                 reservation_line = reservation.get_line_of_type(
                     equipment.model.equipment_type
@@ -127,18 +127,18 @@ def new_rental(reservation_id=None):
     reservation = (
         Reservation()
         if reservation_id is None
-        else Reservation.query.get(reservation_id)
+        else db.session.get(Reservation, reservation_id)
     )
     form_equipment = NewRentalEquipmentForm()
     if form_equipment.validate_on_submit():
-        equipment = Equipment.query.get(form_equipment.add_equipment.data)
+        equipment = db.session.get(Equipment, form_equipment.add_equipment.data)
         if equipment:
             reservation.add_equipment(equipment)
             db.session.commit()
 
     form_user = NewRentalUserForm()
     if form_user.validate_on_submit():
-        user = User.query.get(form_user.user.data)
+        user = db.session.get(User, form_user.user.data)
         reservation.set_user(user)
         if not reservation_id:
             db.session.add(reservation)
@@ -163,7 +163,7 @@ def cancel_rental(reservation_id=None):
     Cancel a rental
     """
     if reservation_id:
-        reservation = Reservation.query.get(reservation_id)
+        reservation = db.session.get(Reservation, reservation_id)
         db.session.delete(reservation)
         db.session.commit()
     return redirect(url_for(".view_reservations"))
@@ -175,11 +175,11 @@ def view_reservation_line(reservation_line_id):
     """
     Show a reservation line
     """
-    reservation_line = ReservationLine.query.get(reservation_line_id)
+    reservation_line = db.session.get(ReservationLine, reservation_line_id)
     if reservation_line.reservation.status == ReservationStatus.Planned:
         form = AddEquipmentInReservationForm()
         if form.validate_on_submit():
-            equipment = Equipment.query.get(form.add_equipment.data)
+            equipment = db.session.get(Equipment, form.add_equipment.data)
             reservation_line.add_equipment(equipment)
             db.session.commit()
             return redirect(
@@ -231,7 +231,7 @@ def register(event_id=None, role_id=None):
         flash("Role non implémenté")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     for equipment in EquipmentType.query.all():
         field = IntegerField(f"{equipment.name}", default=0)
@@ -313,7 +313,7 @@ def my_reservation(reservation_id):
     """
     Show the reservations detail of user
     """
-    reservation = Reservation.query.get(reservation_id)
+    reservation = db.session.get(Reservation, reservation_id)
 
     return render_template(
         "reservation/user/my_reservation.html", reservation=reservation

@@ -15,8 +15,8 @@ from tests.fixtures.user import promote_to_leader
 
 def test_event_validity(event1, user1, user2):
     """Test event validity checks"""
-    activity1 = ActivityType.query.get(1)
-    activity2 = ActivityType.query.get(2)
+    activity1 = db.session.get(ActivityType, 1)
+    activity2 = db.session.get(ActivityType, 2)
 
     promote_to_leader(user1, activity=activity1.name)
     promote_to_leader(user2, activity=activity2.name)

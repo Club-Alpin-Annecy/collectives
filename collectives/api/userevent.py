@@ -63,7 +63,7 @@ def user_events(user_id):
 
     events = query.all()
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     for event in events:
         event.registration = event.existing_registrations(user)[0]
 

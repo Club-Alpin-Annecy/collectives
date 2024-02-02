@@ -90,7 +90,7 @@ def manage_user(user_id=None):
     :param user_id: ID managed user
     :type user_id: string
     """
-    user = User() if user_id is None else User.query.get(user_id)
+    user = User() if user_id is None else db.session.get(User, user_id)
 
     # If we are operating on a 'normal' user, restrict fields
     # Else allow editing everything
@@ -194,7 +194,9 @@ def add_user_role(user_id):
     try:
         # Check that the role does not already exist
         if role_id.relates_to_activity():
-            role.activity_type = ActivityType.query.get(form.activity_type_id.data)
+            role.activity_type = db.session.get(
+                ActivityType, form.activity_type_id.data
+            )
             if role.activity_type is None:
                 raise RoleValidationException(
                     "Ce rôle doit être associé à une activité"
@@ -262,7 +264,7 @@ def add_user_badge(user_id):
 
     try:
         # Check that the badge does not already exist
-        badge.activity_type = ActivityType.query.get(form.activity_type_id.data)
+        badge.activity_type = db.session.get(ActivityType, form.activity_type_id.data)
 
         if badge_id.relates_to_activity():
             if badge.activity_type is None:
@@ -306,7 +308,7 @@ def delete_user_badge(badge_id):
     :rtype: string
     """
 
-    badge = Badge.query.get(badge_id)
+    badge = db.session.get(Badge, badge_id)
 
     if badge is None:
         flash("Badge inexistant", "error")
@@ -333,7 +335,7 @@ def renew_user_badge(badge_id):
     :rtype: string
     """
 
-    badge = Badge.query.get(badge_id)
+    badge = db.session.get(Badge, badge_id)
     if badge is None:
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
@@ -367,7 +369,7 @@ def remove_user_role(role_id):
     :rtype: string
     """
 
-    role = Role.query.get(role_id)
+    role = db.session.get(Role, role_id)
     if role is None:
         flash("Role inexistant", "error")
         return redirect(url_for("administration.administration"))
@@ -425,7 +427,7 @@ def export_role(raw_filters=""):
         if filters["t"] == "none":
             filters["t"] = None
         else:
-            filename += ActivityType.query.get(filters["t"]).name
+            filename += db.session.get(ActivityType, filters["t"]).name
         query_filter = query_filter.filter(Role.activity_id == filters["t"])
 
     roles = query_filter.all()

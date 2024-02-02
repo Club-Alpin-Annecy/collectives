@@ -9,7 +9,7 @@ from collectives.models.user import User
 
 def test_add_a_valid_badge(user1):
     """Test adding a badge to a user"""
-    activity1 = ActivityType.query.get(1)
+    activity1 = db.session.get(ActivityType, 1)
 
     # Get today's date
     today = date.today()
@@ -35,7 +35,7 @@ def test_add_a_valid_badge(user1):
 
 def test_add_an_invalid_badge(user2):
     """Test adding a badge to a user"""
-    activity1 = ActivityType.query.get(1)
+    activity1 = db.session.get(ActivityType, 1)
 
     # Get today's date
     today = date.today()

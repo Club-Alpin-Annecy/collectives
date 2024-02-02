@@ -42,7 +42,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
     # Check access rights
     if event_id:
-        event = Event.query.get(event_id)
+        event = db.session.get(Event, event_id)
         if event is None:
             abort(404)
         if not event.has_edit_rights(current_user):
@@ -152,7 +152,7 @@ def list_event_files(event_id=None, edit_session_id=None):
     """
 
     if event_id:
-        event = Event.query.get(event_id)
+        event = db.session.get(Event, event_id)
         if event is None:
             abort(404)
         if not event.has_edit_rights(current_user):
@@ -205,7 +205,7 @@ def delete_uploaded_file(file_id):
     :param file_id: The primary key of the file
     :type file_id: int
     """
-    file = UploadedFile.query.get(file_id)
+    file = db.session.get(UploadedFile, file_id)
     if not file:
         abort(404)
 

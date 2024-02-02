@@ -3,6 +3,7 @@
 from typing import List
 from flask_uploads import UploadSet, IMAGES
 
+from collectives.models import db
 from collectives.models.event.enum import EventStatus
 from collectives.models.question import QuestionAnswer
 from collectives.utils import render_markdown
@@ -129,7 +130,7 @@ class EventMiscMixin:
             self._user_group = UserGroup()
         if not self._user_group.event_conditions:
             condition = GroupEventCondition(event_id=parent_event_id, is_leader=False)
-            condition.event = self.query.get(parent_event_id)
+            condition.event = db.session.get(self, parent_event_id)
             self._user_group.event_conditions.append(condition)
         else:
             self._user_group.event_conditions[0].event_id = parent_event_id

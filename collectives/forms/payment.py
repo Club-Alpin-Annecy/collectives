@@ -16,7 +16,7 @@ from wtforms.validators import NumberRange, ValidationError, Optional
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.order import OrderedForm
-from collectives.models import ItemPrice, PaymentItem, Payment
+from collectives.models import db, ItemPrice, PaymentItem, Payment
 from collectives.models import PaymentType, PaymentStatus
 from collectives.models import UserGroup
 from collectives.utils.numbers import format_currency
@@ -83,7 +83,7 @@ class ItemPriceForm(ModelForm, AmountForm):
         """
 
         price_id = int(self.price_id.data)
-        price = ItemPrice.query.get(price_id)
+        price = db.session.get(ItemPrice, price_id)
         if price is None:
             raise ValueError
         if price.item_id != item.id:
@@ -129,7 +129,7 @@ class PaymentItemForm(ModelForm):
         """
 
         item_id = int(self.item_id.data)
-        item = PaymentItem.query.get(item_id)
+        item = db.session.get(PaymentItem, item_id)
         if item is None:
             raise ValueError
         if item.event_id != event.id:
