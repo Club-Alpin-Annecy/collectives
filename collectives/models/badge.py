@@ -12,6 +12,15 @@ class BadgeIds(ChoiceEnum):
     # pylint: disable=invalid-name
     Benevole = 1
 
+    FirstWarning = 2
+    """ User has been issued a first warning regarding late unregistrations and unjustified absences. """
+
+    SecondWarning = 3
+    """ User has been issued a second warning regarding late unregistrations and unjustified absences. """
+
+    Banned = 4
+    """ User has been banned. """
+
     @classmethod
     def display_names(cls):
         """Display name for all badges
@@ -21,6 +30,9 @@ class BadgeIds(ChoiceEnum):
         """
         return {
             cls.Benevole: "Bénévole",
+            cls.FirstWarning: "Premier avertissement sur les absences injustifiées et les désinscriptions tardives",
+            cls.SecondWarning: "Deuxième avertissement sur les absences injustifiées et les désinscriptions tardives",
+            cls.Banned: "Bannis pour trop d'absences injustifiées et de désinscriptions tardives",
         }
 
     def relates_to_activity(self) -> bool:
