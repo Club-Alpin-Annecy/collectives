@@ -247,6 +247,110 @@ Mail:
         type: LongString
 
 
+    LATE_UNREGISTER_SUBJECT:
+        content: "Notification de désinscription tardive"
+        description: Email subject for user late self unregister
+        type: ShortString
+
+    LATE_UNREGISTER_MESSAGE:
+        content: |
+            Bonjour,
+
+            Vous venez de vous désinscrire tardivement à l'événement '{event_title}' auquel vous étiez tenu de participer.
+
+            Selon le code du CAF, sauf raison valable, vous êtes tenus de participer à l'évènement auquel vous êtes inscrit.
+            
+            Si vous avez une raison valable, merci de prévenir votre encadrant '{event_main_leader}'.
+
+            3 désinscriptions tardives résulteront en un ban et une impossibilité de s'inscrire à des futures collectives.
+
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à une activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for late self unregistration to an event
+        type: LongString
+
+    LATE_UNREGISTER_FIRST_WARNING_SUBJECT:
+        content: "Notification de désinscription tardive, premier avertissement"
+        description: Email subject for user late self unregister first warning
+        type: ShortString
+
+    LATE_UNREGISTER_FIRST_WARNING_MESSAGE:
+        content: |
+            Bonjour,
+
+            Vous venez de vous désinscrire tardivement à l'événement '{event_title}'.
+
+            Attention nous vous rappelons qu’une inscription vous engage.
+
+            N’oubliez pas de prévenir votre encadrant bénévole '{event_main_leader}' car vous risquez de bouleverser le bon déroulement de la collective. 
+
+            Comme indiqué dans le Guides Collectives une nouvelle désinscription non anticipée ou une nouvelle absence non justifiée pourra entrainer une suspension temporaire de votre compte.
+
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à une activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for late self unregistration to an event
+        type: LongString
+
+    LATE_UNREGISTER_SECOND_WARNING_SUBJECT:
+        content: "Notification de désinscription tardive, deuxième avertissement"
+        description: Email subject for user late self unregister second warning
+        type: ShortString
+
+    LATE_UNREGISTER_SECOND_WARNING_MESSAGE:
+        content: |
+            Bonjour,
+
+            Vous venez de vous désinscrire tardivement à l'événement '{event_title}'.
+
+            Attention nous vous rappelons qu’une inscription vous engage.
+
+            C’est la deuxième fois cette année que vous vous désinscrivez de manière tardive ou que vous oubliez de venir, ce qui peut pénaliser l’encadrant bénévole ainsi que le reste du groupe.
+            
+            Merci de prévenir votre encadrant bénévole '{event_main_leader}' car vous risquez de bouleverser le bon déroulement de la collective. 
+
+            Comme indiqué dans le Guides Collectives une nouvelle désinscription non anticipée ou une absence non justifiée entrainera une suspension temporaire de votre compte.
+
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à une activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for late self unregistration to an event
+        type: LongString
+
+    LATE_UNREGISTER_ACCOUNT_SUSPENSION_SUBJECT:
+        content: "Notification de désinscription tardive, suspension de compte"
+        description: Email subject for user late self unregister account suspension
+        type: ShortString
+
+    LATE_UNREGISTER_ACCOUNT_SUSPENSION_MESSAGE:
+        content: |
+            Bonjour,
+
+            Vous venez de vous désinscrire tardivement à l'événement '{event_title}'.
+
+            Attention nous vous rappelons qu’une inscription vous engage.
+
+            Malgré nos rappels, c’est la troisième fois cette année que vous vous désinscrivez de manière tardive ou que vous n’êtes pas présent.
+            
+            Cela pénalise profondément le bon fonctionnement du Club et cela prive d’autres personnes de participer à nos activités.
+
+            Comme indiqué dans le Guides Collectives, votre accès au site des collectives va être suspendu pour les 4 prochaines semaines.
+
+            Lien vers l'événement :
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à une activité.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for late self unregistration to an event
+        type: LongString
+
     REJECTED_REGISTRATION_SUBJECT:
         content: "Refus d'insription à la collective {event_title}"
         description: Email subject for rejected registration to an event

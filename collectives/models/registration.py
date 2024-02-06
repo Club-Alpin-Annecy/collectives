@@ -47,7 +47,7 @@ class RegistrationStatus(ChoiceEnum):
     """
     SelfUnregistered = 3
     """ User has self unregister to the event.
-
+    
     User should not be able to register again without leader help."""
 
     JustifiedAbsentee = 4
@@ -65,6 +65,9 @@ class RegistrationStatus(ChoiceEnum):
 
     Present = 7
     """ User has been present to the event. """
+
+    LateSelfUnregistered = 8
+    """ User has self unregister to the event, but late. """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -78,6 +81,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
             cls.SelfUnregistered: "Auto désinscrit",
+            cls.LateSelfUnregistered: "Auto désinscrit tardif",
             cls.JustifiedAbsentee: "Absent justifié",
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
@@ -122,6 +126,8 @@ class RegistrationStatus(ChoiceEnum):
                 cls.JustifiedAbsentee,
                 cls.Waiting,
                 cls.Active,
+            ],
+            cls.LateSelfUnregistered: [
             ],
         }
 
@@ -232,6 +238,13 @@ class Registration(db.Model):
         :return: Is :py:attr:`status` unregistered ?
         :rtype: boolean"""
         return self.status == RegistrationStatus.SelfUnregistered
+
+    def is_late_unregistered(self):
+        """Check if this registation is unregistered lately, ie less than 48h before the event.
+
+        :return: Is :py:attr:`status` late unregistered ?
+        :rtype: boolean"""
+        return self.status == RegistrationStatus.LateSelfUnregistered
 
     def is_pending_payment(self):
         """Check if this registation is pending payment.

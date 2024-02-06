@@ -1,5 +1,6 @@
 """ Module for all Event methods related to registration manipulation and check."""
 
+from datetime import datetime, timedelta
 from operator import attrgetter
 
 from collectives.models.registration import RegistrationLevels, RegistrationStatus
@@ -214,6 +215,26 @@ class EventRegistrationMixin:
         return self.is_registered_with_status(
             user, [RegistrationStatus.SelfUnregistered]
         )
+
+    def is_late_unregistered(self, user):
+        """Check if a user has unregistered lately this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``late unregistered`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(
+            user, [RegistrationStatus.LateSelfUnregistered]
+        )
+
+    def starts_within_48_hours(self):
+        """Check if an event starts within 48h of current time.
+
+        :return: True if event starts within 48h of current time
+        :rtype: boolean
+        """
+        return self.starts < datetime.now() + timedelta(hours=48)
 
     def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is part of the event user group

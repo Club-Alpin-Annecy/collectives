@@ -8,7 +8,7 @@ from flask import current_app, url_for, flash
 from markupsafe import Markup
 
 
-from collectives.models import db, Configuration, Registration
+from collectives.models import db, Configuration, Registration, BadgeIds
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
 from collectives.utils.time import format_date
@@ -245,5 +245,58 @@ def send_update_waiting_list_notification(
             message=message,
         )
     # pylint: disable=broad-except
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")
+def send_late_unregistration_notification(event, user):
+    """
+    Send a notification to the user who recently unregistered lately from an event.
+
+    :param event: The event from which the user recently unregistered.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param user: The user who recently unregistered.
+    :type user: :py:class:`collectives.models.user.User`
+    """
+
+    # Check if the user has a valid first warning badge
+    has_valid_first_warning_badge = user.has_a_valid_badge([BadgeIds.FirstWarning])
+
+    # Check if the user has a valid second warning badge
+    has_valid_second_warning_badge = user.has_a_valid_badge([BadgeIds.SecondWarning])
+
+    # Check if the user has a valid banned badge
+    has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
+
+    # Determine the content and subject of the notification based on the user's badges
+    if has_valid_banned_badge:
+        content = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_MESSAGE
+        subject = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_SUBJECT
+    elif has_valid_second_warning_badge:
+        content = Configuration.LATE_UNREGISTER_SECOND_WARNING_MESSAGE
+        subject = Configuration.LATE_UNREGISTER_SECOND_WARNING_SUBJECT
+    elif has_valid_first_warning_badge:
+        content = Configuration.LATE_UNREGISTER_FIRST_WARNING_MESSAGE
+        subject = Configuration.LATE_UNREGISTER_FIRST_WARNING_SUBJECT
+    else:
+        content = Configuration.LATE_UNREGISTER_MESSAGE
+        subject = Configuration.LATE_UNREGISTER_SUBJECT
+
+    try:
+        message = content.format(
+            user_name=user.full_name(),
+            event_main_leader=event.main_leader.full_name(),
+            event_title=event.title,
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
+        )
+        mail.send_mail(
+            subject=subject,
+            email=[user.mail],
+            message=message,
+        )
+
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
