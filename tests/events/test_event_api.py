@@ -4,6 +4,8 @@ from datetime import date
 
 from collectives.models import ActivityType
 
+from tests.fixtures.user import add_benevole_badge_to_user
+
 # pylint: disable=unused-argument,too-many-arguments
 
 
@@ -35,6 +37,15 @@ def test_event_access(
     assert data[0]["title"] == past_event.title
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
     assert data[0]["event_types"][0]["name"] == "Collective"
+
+    # With benevole badge, should see private event
+    add_benevole_badge_to_user(user1_client.user)
+    response = user1_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 4
 
 
 def test_event_access_leader(

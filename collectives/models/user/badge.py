@@ -1,9 +1,11 @@
 """ Module for all User methods related to badge manipulation and check."""
 
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from datetime import date
 from collectives.models.badge import Badge, BadgeIds
+
+from collectives.models.activity_type import ActivityType
 
 
 class UserBadgeMixin:
@@ -11,13 +13,22 @@ class UserBadgeMixin:
 
     Not meant to be used alone."""
 
-    def matching_badges(self, badge_ids: List[BadgeIds]) -> List[Badge]:
+    def matching_badges(
+        self, badge_ids: List[BadgeIds], valid_only=False
+    ) -> List[Badge]:
         """Returns filtered user badges against a badge types list.
 
         :param badge_ids: Role types that will be extracted.
+        :param valid_only: If True, return valid badges only
         :return: Filtered User badges.
         """
-        return [badge for badge in self.badges if badge.badge_id in badge_ids]
+        badges = (badge for badge in self.badges if badge.badge_id in badge_ids)
+
+        if not valid_only:
+            return list(badges)
+
+        today = date.today()
+        return [badge for badge in badges if badge.expiration_date > today]
 
     def has_badge(self, badge_ids: List[BadgeIds]) -> bool:
         """Check if user has at least one of the badges types.
@@ -35,11 +46,8 @@ class UserBadgeMixin:
         :return: True if user has at least one of the listed badges type
         with a valid expiration date.
         """
-        badges = self.matching_badges(badge_ids)
-        expirations = [
-            badge for badge in badges if badge.expiration_date > date.today()
-        ]
-        return len(expirations) > 0
+        badges = self.matching_badges(badge_ids, valid_only=True)
+        return len(badges) > 0
 
     def has_a_valid_benevole_badge(self) -> bool:
         """Check if user has a benevole badge.
@@ -71,3 +79,17 @@ class UserBadgeMixin:
         """
         badges = self.matching_badges([badge_id])
         return any(badge.activity_id == activity_id for badge in badges)
+
+    def activities_with_valid_badge(
+        self, badge_ids: List[BadgeIds]
+    ) -> Set[ActivityType]:
+        """
+        Returns the set of activities for which the user has one of the given badges
+
+        :param badge_id: List of badge ids to look for
+        :return: The set of activities for which the user has a badge
+        """
+        badges = self.matching_badges(badge_ids, valid_only=True)
+        return set(
+            badge.activity_type for badge in badges if badge.activity_type is not None
+        )

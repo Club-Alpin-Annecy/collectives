@@ -7,6 +7,7 @@ from collectives.models import db
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
+from collectives.models.user.badge import BadgeIds
 from collectives.utils import render_markdown
 
 
@@ -47,7 +48,7 @@ class EventMiscMixin:
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
         - Leaders can see the events that they lead
-        - Users with role for an activity can see 'Private' events
+        - Users with role or Benevole badge for an activity can see 'Private' events
 
         :param user: The user for whom the test is made
         :return: Whether the event is visible
@@ -59,7 +60,10 @@ class EventMiscMixin:
         if self.visibility == EventVisibility.Public:
             return True
 
-        user_activities = user.activities_with_role()
+        user_activities = (
+            user.activities_with_role()
+            | user.activities_with_valid_badge([BadgeIds.Benevole])
+        )
         return any(activity in user_activities for activity in self.activity_types)
 
     def save_photo(self, file):

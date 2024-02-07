@@ -12,7 +12,7 @@ from sqlalchemy import desc, or_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
-from collectives.models import ActivityType, User, EventTag
+from collectives.models import ActivityType, User, EventTag, BadgeIds
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
@@ -81,7 +81,10 @@ def filter_hidden_events(query):
 
         # Users can only see Private events for their activities
         query_filter = Event.visibility != EventVisibility.Private
-        activities = current_user.activities_with_role()
+        activities = (
+            current_user.activities_with_role()
+            | current_user.activities_with_valid_badge([BadgeIds.Benevole])
+        )
         if activities:
             activities_ids = [a.id for a in activities]
             activity_filter = Event.activity_types.any(
