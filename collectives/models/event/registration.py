@@ -236,6 +236,16 @@ class EventRegistrationMixin:
         """
         return self.starts < datetime.now() + timedelta(hours=48)
 
+    def is_banned(self, user):
+        """Check if a user is banned on this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is banned
+        :rtype: boolean
+        """
+        return user.has_a_valid_banned_badge()
+
     def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is part of the event user group
 
@@ -261,6 +271,7 @@ class EventRegistrationMixin:
           - there are available online slots
           - user is registered to the parent event if any
           - user license is compatible with event type
+          - user does not have a valid Banned badge
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -288,5 +299,7 @@ class EventRegistrationMixin:
         if not waiting:
             return self.has_free_online_slots()
         if self.has_free_online_slots():
+            return False
+        if user.has_a_valid_banned_badge():
             return False
         return len(self.waiting_registrations()) < self.num_waiting_list

@@ -4,6 +4,8 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
  """
 
 from datetime import date
+from sqlalchemy.orm import joinedload
+
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
@@ -308,10 +310,10 @@ def delete_user_badge(badge_id):
     :rtype: string
     """
 
-    badge = db.session.get(Badge, badge_id)
+    badge = db.session.query(Badge).options(joinedload(Badge.user)).get(badge_id)
 
     if badge is None:
-        flash("Badge inexistant", "error")
+        flash("Badge does not exist", "error")
         return redirect(url_for("administration.administration"))
 
     db.session.delete(badge)
@@ -321,7 +323,7 @@ def delete_user_badge(badge_id):
         "user_badges.html",
         user=badge.user,
         form=BadgeForm(),
-        title="Badges utilisateur",
+        title="User Badges",
         now=date.today(),
     )
 

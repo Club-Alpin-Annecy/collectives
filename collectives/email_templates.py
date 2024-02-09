@@ -247,6 +247,8 @@ def send_update_waiting_list_notification(
     # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
+
+
 def send_late_unregistration_notification(event, user):
     """
     Send a notification to the user who recently unregistered lately from an event.
@@ -297,6 +299,6 @@ def send_late_unregistration_notification(event, user):
             email=[user.mail],
             message=message,
         )
-
+    # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")

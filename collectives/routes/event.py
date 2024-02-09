@@ -36,7 +36,6 @@ from collectives.models.activity_type import activities_without_leader
 from collectives.models.activity_type import leaders_without_activities
 from collectives.models.payment import ItemPrice, Payment
 from collectives.models.question import QuestionAnswer
-from collectives.models.user.badge import update_warning_badges
 
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
@@ -893,11 +892,13 @@ def self_unregister(event_id):
     previous_status = registration.status
     if registration.status == RegistrationStatus.Waiting:
         db.session.delete(registration)
-    elif event.start < current_time() - timedelta(hours=48) and event.event_type.requires_activity:
+    elif (event.start - current_time()) < timedelta(
+        hours=48
+    ) and event.event_type.requires_activity:
         registration.status = RegistrationStatus.LateSelfUnregistered
         db.session.add(registration)
         if previous_status == RegistrationStatus.Active:
-            update_warning_badges(current_user)
+            current_user.update_warning_badges()
             send_late_unregistration_notification(event, current_user)
     else:
         registration.status = RegistrationStatus.SelfUnregistered

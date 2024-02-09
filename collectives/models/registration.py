@@ -128,6 +128,11 @@ class RegistrationStatus(ChoiceEnum):
                 cls.Active,
             ],
             cls.LateSelfUnregistered: [
+                re_register_status,
+                cls.Waiting,
+                cls.ToBeDeleted,
+                cls.JustifiedAbsentee,
+                cls.UnJustifiedAbsentee,
             ],
         }
 
