@@ -234,7 +234,7 @@ class EventRegistrationMixin:
         :return: True if event starts within 48h of current time
         :rtype: boolean
         """
-        return self.starts < datetime.now() + timedelta(hours=48)
+        return self.start < datetime.now() + timedelta(hours=48)
 
     def is_banned(self, user):
         """Check if a user is banned on this event.
@@ -296,10 +296,10 @@ class EventRegistrationMixin:
             return False
         if not self.event_type.has_valid_license(user):
             return False
+        if user.has_a_valid_banned_badge():
+            return False
         if not waiting:
             return self.has_free_online_slots()
         if self.has_free_online_slots():
-            return False
-        if user.has_a_valid_banned_badge():
             return False
         return len(self.waiting_registrations()) < self.num_waiting_list

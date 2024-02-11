@@ -141,7 +141,7 @@ class UserBadgeMixin:
 
     def update_warning_badges(self):
         """
-        Update warning badges based on user's conditions and level, 
+        Update warning badges based on user's conditions and level,
         and assign or update the badge with appropriate expiration date and level.
         """
         # Check if user has a valid first warning badge
@@ -172,11 +172,19 @@ class UserBadgeMixin:
             )
 
         # Check if user already has the badge, if so, update it; if not, assign it
-        if self.has_badge([badge_id]):
-            # TODO: Update badge properly and leverage badges management utils ?
-            badge = self.matching_badges([badge_id])[0]
-            self.update_badge(
-                badge_id, expiration_date=expiration_date, level=badge.level + 1
-            )
-        else:
-            self.assign_badge(badge_id, expiration_date=expiration_date, level=1)
+        try:
+            if self.has_badge([badge_id]):
+                existing_badges = self.matching_badges([badge_id])
+                if len(existing_badges) > 1:
+                    raise ValueError(f"More than one badge of type {badge_id} exists")
+
+                badge = existing_badges[0]
+                new_level = (1 if badge.level is None else badge.level) + 1
+                self.update_badge(
+                    badge_id, expiration_date=expiration_date, level=new_level
+                )
+            else:
+                self.assign_badge(badge_id, expiration_date=expiration_date, level=1)
+        except ValueError:
+            # Badges update should not break unregistration logic
+            pass
