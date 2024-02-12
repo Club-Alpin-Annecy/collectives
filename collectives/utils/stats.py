@@ -6,7 +6,7 @@ Module to calculate statistics of the event database.
 from functools import lru_cache
 from io import BytesIO
 from math import floor
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, distinct
 from openpyxl import Workbook
@@ -190,6 +190,13 @@ class StatisticsEngine:
             "name": "Population par nombre d'inscription",
             "description": "Nombre d'inscription par nombre d'utilisateur. "
             "Indique combien de personnes ont fait 0, 1 ou 15 sorties. ",
+        },
+        "nb_unregistrations_inc_late_and_unjustified_absentees_per_week": {
+            "name": "Nombre de désinscriptions et absences injustifiées par semaine",
+            "description": "Nombre de désinscriptions incluant les tardives et "
+            "absences injustifiées par semaine. Une désinscription est jugée tardive "
+            "si elle est réalisée moins de 48h avant le début de l'évènement "
+            "et si l'évènement requiert un type d'activité (collective, formation...).",
         },
     }
     """ List of all statistics functions with their description to be displayed.
@@ -446,6 +453,47 @@ class StatisticsEngine:
         query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
         counts = query.group_by(ActivityType.id).all()
         return {c[3].name: c[4] for c in counts}
+
+
+    @lru_cache()
+    def nb_unregistrations_inc_late_and_unjustified_absentees_per_week(self) -> dict:
+        """
+        Returns the number of unregistrations and unjustifited absentees per week,
+        split by registration status.
+        """
+        query = (
+            db.session.query(
+                func.strftime("%Y-%W", Event.start).label("event_week"),
+                Registration.status,
+                func.count(Registration.id).label("num_unregistrations"),
+            )
+            .join(Event, Registration.event_id == Event.id)
+            .filter(
+                Registration.status.in_(
+                    [
+                        RegistrationStatus.SelfUnregistered,
+                        RegistrationStatus.LateSelfUnregistered,
+                        RegistrationStatus.UnJustifiedAbsentee,
+                    ]
+                ),
+                Event.start < func.now(),
+                Event.start >= datetime.now() - timedelta(weeks=52),
+            )
+            .group_by("event_week", Registration.status)
+        )
+
+        results = query.all()
+
+        unregistrations_by_week_and_status = {}
+
+        for event_week, status, count in results:
+            if event_week not in unregistrations_by_week_and_status:
+                unregistrations_by_week_and_status[event_week] = {}
+            status_str = status.name if hasattr(status, "name") else str(status)
+            unregistrations_by_week_and_status[event_week][status_str] = count
+
+        return unregistrations_by_week_and_status
+
 
     def export_excel(self) -> BytesIO:
         """Generate an Excel with all statistics inside.

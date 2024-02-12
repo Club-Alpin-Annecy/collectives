@@ -145,7 +145,7 @@ def client_with_expired_benevole_badge(client, user_with_expired_benevole_badge)
     yield client
     logout(client)
 
-# User Clients related to late unsubscriptions
+# User Clients related to late unregistrations
 @pytest.fixture
 def client_with_valid_first_warning_badge(client, user_with_valid_first_warning_badge):
     """Flask client authenticated as user with a valid first warning badge."""
@@ -190,7 +190,7 @@ def client_with_expired_banned_badge(client, user_with_expired_banned_badge):
 
 @pytest.fixture
 def client_with_no_warning_badge(client, user_with_no_warning_badge):
-    """Flask client authenticated as user with no late unsubscription-related warning badge."""
+    """Flask client authenticated as user with no late unregistration-related warning badge."""
     login(client, user_with_no_warning_badge)
     yield client
     logout(client)

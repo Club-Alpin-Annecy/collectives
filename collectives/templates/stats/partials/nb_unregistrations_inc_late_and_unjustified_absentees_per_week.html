@@ -1,0 +1,54 @@
+<canvas id="unregistration-inc-late-and-unjustified-absentees-chart"></canvas>
+                
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_unregistrations_inc_late_and_unjustified_absentees_per_week']['description'] }}</span>
+</div>
+
+<script>
+  const unregistrationsData = {{ engine.nb_unregistrations_inc_late_and_unjustified_absentees_per_week() | tojson | safe }};
+  const labels = Object.keys(unregistrationsData);
+  const datasets = [];
+
+  const allStatuses = new Set();
+  Object.values(unregistrationsData).forEach(week => {
+    Object.keys(week).forEach(status => {
+      allStatuses.add(status);
+    });
+  });
+
+  allStatuses.forEach(status => {
+    const dataForStatus = labels.map(label => unregistrationsData[label][status] || 0);
+    datasets.push({
+      label: status,
+      data: dataForStatus,
+      fill: false,
+      tension: 0.1
+    });
+  });
+
+  new Chart(document.getElementById('unregistration-inc-late-and-unjustified-absentees-chart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: "{{ engine.INDEX['nb_unregistrations_inc_late_and_unjustified_absentees_per_week']['name'] | safe }}",
+        }
+      },
+      scales: {
+        y: {
+          grace: "15%"
+        }
+      }
+    }
+  });
+</script>

@@ -263,7 +263,7 @@ def add_benevole_badge_to_user(
         badge.activity_id = activity_type.id
     db.session.add(badge)
 
-# Users with badges related to late unsubscription
+# Users with badges related to late unregistration
 def add_badge_to_user(
     user,
     badge_id,

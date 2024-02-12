@@ -226,14 +226,14 @@ def test_youth_event_failed_autoregistration(user1, user1_client, youth_event):
     assert youth_event.num_taken_slots() == 0
 
 
-# Late unsubscription-related tests
+# Late unregistration-related tests
 def test_unregister_lately_no_warning(
         client_with_no_warning_badge,
         user_with_no_warning_badge,
         event_in_less_than_48h_with_reg
         ):
     """
-    Tests the late self-unregistration of a user without any unsubscription-related warning badge.
+    Tests the late self-unregistration of a user without any unregistration-related warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
     """
     event = event_in_less_than_48h_with_reg
@@ -359,7 +359,7 @@ def test_unregister_lately_from_event_with_no_activity_type(
         ):
     """
     Tests the late self-unregistration of a user to an event not requiring an 
-    activity type without any unsubscription-related warning badge. Verifies that the user
+    activity type without any unregistration-related warning badge. Verifies that the user
     is correctly unregistered and that badges are assigned as expected.
     """
     event = event_with_no_activity_type_in_less_than_48h_with_reg
