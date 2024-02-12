@@ -263,6 +263,7 @@ def add_benevole_badge_to_user(
         badge.activity_id = activity_type.id
     db.session.add(badge)
 
+
 # Users with badges related to late unregistration
 def add_badge_to_user(
     user,
@@ -286,70 +287,117 @@ def add_badge_to_user(
         badge.activity_id = activity_type.id
     db.session.add(badge)
 
-inject_fixture("prototype_user_with_valid_first_warning_badge", 991, ("Anakin", "Skywalker"))
+
+inject_fixture(
+    "prototype_user_with_valid_first_warning_badge", 991, ("Anakin", "Skywalker")
+)
+
 
 @pytest.fixture
-def user_with_valid_first_warning_badge(prototype_user_with_valid_first_warning_badge: User):
+def user_with_valid_first_warning_badge(
+    prototype_user_with_valid_first_warning_badge: User,
+):
     """:returns: A user with a valid first warning Badge."""
-    add_badge_to_user(prototype_user_with_valid_first_warning_badge,
-                      BadgeIds.FirstWarning, date.today() + timedelta(days=60))
+    add_badge_to_user(
+        prototype_user_with_valid_first_warning_badge,
+        BadgeIds.FirstWarning,
+        date.today() + timedelta(days=60),
+    )
     db.session.add(prototype_user_with_valid_first_warning_badge)
     db.session.commit()
     return prototype_user_with_valid_first_warning_badge
 
-inject_fixture("prototype_user_with_expired_first_warning_badge", 990, ("Obi-Wan", "Kenobi"))
+
+inject_fixture(
+    "prototype_user_with_expired_first_warning_badge", 990, ("Obi-Wan", "Kenobi")
+)
+
 
 @pytest.fixture
-def user_with_expired_first_warning_badge(prototype_user_with_expired_first_warning_badge: User):
+def user_with_expired_first_warning_badge(
+    prototype_user_with_expired_first_warning_badge: User,
+):
     """:returns: A user with an expired first warning Badge."""
-    add_badge_to_user(prototype_user_with_expired_first_warning_badge,
-                      BadgeIds.FirstWarning, date.today() - timedelta(days=3))
+    add_badge_to_user(
+        prototype_user_with_expired_first_warning_badge,
+        BadgeIds.FirstWarning,
+        date.today() - timedelta(days=3),
+    )
     db.session.add(prototype_user_with_expired_first_warning_badge)
     db.session.commit()
     return prototype_user_with_expired_first_warning_badge
 
+
 inject_fixture("prototype_user_with_valid_second_warning_badge", 989, ("Han", "Solo"))
 
+
 @pytest.fixture
-def user_with_valid_second_warning_badge(prototype_user_with_valid_second_warning_badge: User):
+def user_with_valid_second_warning_badge(
+    prototype_user_with_valid_second_warning_badge: User,
+):
     """:returns: A user with a valid second warning Badge."""
-    add_badge_to_user(prototype_user_with_valid_second_warning_badge,
-                      BadgeIds.SecondWarning, date.today() + timedelta(days=60))
+    add_badge_to_user(
+        prototype_user_with_valid_second_warning_badge,
+        BadgeIds.SecondWarning,
+        date.today() + timedelta(days=60),
+    )
     db.session.add(prototype_user_with_valid_second_warning_badge)
     db.session.commit()
     return prototype_user_with_valid_second_warning_badge
 
-inject_fixture("prototype_user_with_expired_second_warning_badge", 988, ("Leia", "Organa"))
+
+inject_fixture(
+    "prototype_user_with_expired_second_warning_badge", 988, ("Leia", "Organa")
+)
+
 
 @pytest.fixture
-def user_with_expired_second_warning_badge(prototype_user_with_expired_second_warning_badge: User):
+def user_with_expired_second_warning_badge(
+    prototype_user_with_expired_second_warning_badge: User,
+):
     """:returns: A user with an expired second warning Badge."""
-    add_badge_to_user(prototype_user_with_expired_second_warning_badge,
-                      BadgeIds.SecondWarning, date.today() - timedelta(days=3))
+    add_badge_to_user(
+        prototype_user_with_expired_second_warning_badge,
+        BadgeIds.SecondWarning,
+        date.today() - timedelta(days=3),
+    )
     db.session.add(prototype_user_with_expired_second_warning_badge)
     db.session.commit()
     return prototype_user_with_expired_second_warning_badge
 
-inject_fixture("prototype_user_with_valid_banned_badge", 987, ("Chewbacca", "The Wookiee"))
+
+inject_fixture(
+    "prototype_user_with_valid_banned_badge", 987, ("Chewbacca", "The Wookiee")
+)
+
 
 @pytest.fixture
 def user_with_valid_banned_badge(prototype_user_with_valid_banned_badge: User):
     """:returns: A user with a valid banned Badge."""
-    add_badge_to_user(prototype_user_with_valid_banned_badge,
-                      BadgeIds.Banned, date.today() + timedelta(days=60))
+    add_badge_to_user(
+        prototype_user_with_valid_banned_badge,
+        BadgeIds.Banned,
+        date.today() + timedelta(days=60),
+    )
     db.session.add(prototype_user_with_valid_banned_badge)
     db.session.commit()
     return prototype_user_with_valid_banned_badge
 
+
 inject_fixture("prototype_user_with_expired_banned_badge", 986, ("Darth", "Vader"))
+
 
 @pytest.fixture
 def user_with_expired_banned_badge(prototype_user_with_expired_banned_badge: User):
     """:returns: A user with an expired banned Badge."""
-    add_badge_to_user(prototype_user_with_expired_banned_badge,
-                      BadgeIds.Banned, date.today() - timedelta(days=3))
+    add_badge_to_user(
+        prototype_user_with_expired_banned_badge,
+        BadgeIds.Banned,
+        date.today() - timedelta(days=3),
+    )
     db.session.add(prototype_user_with_expired_banned_badge)
     db.session.commit()
     return prototype_user_with_expired_banned_badge
+
 
 inject_fixture("user_with_no_warning_badge", 985, ("Jabba", "The Hutt"))

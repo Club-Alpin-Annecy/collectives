@@ -454,7 +454,6 @@ class StatisticsEngine:
         counts = query.group_by(ActivityType.id).all()
         return {c[3].name: c[4] for c in counts}
 
-
     @lru_cache()
     def nb_unregistrations_inc_late_and_unjustified_absentees_per_week(self) -> dict:
         """
@@ -493,7 +492,6 @@ class StatisticsEngine:
             unregistrations_by_week_and_status[event_week][status_str] = count
 
         return unregistrations_by_week_and_status
-
 
     def export_excel(self) -> BytesIO:
         """Generate an Excel with all statistics inside.

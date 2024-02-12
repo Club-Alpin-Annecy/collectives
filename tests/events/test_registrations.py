@@ -2,6 +2,7 @@
 
 from datetime import date, timedelta, datetime
 from collectives.models import db, RegistrationStatus, BadgeIds
+
 # pylint: disable=unused-argument
 
 
@@ -228,10 +229,10 @@ def test_youth_event_failed_autoregistration(user1, user1_client, youth_event):
 
 # Late unregistration-related tests
 def test_unregister_lately_no_warning(
-        client_with_no_warning_badge,
-        user_with_no_warning_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_no_warning_badge,
+    user_with_no_warning_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user without any unregistration-related warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -249,11 +250,12 @@ def test_unregister_lately_no_warning(
     assert event.is_late_unregistered(user)
     assert user.has_a_valid_badge([BadgeIds.FirstWarning])
 
+
 def test_unregister_lately_valid_first_warning(
-        client_with_valid_first_warning_badge,
-        user_with_valid_first_warning_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_valid_first_warning_badge,
+    user_with_valid_first_warning_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user with a valid first warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -272,11 +274,12 @@ def test_unregister_lately_valid_first_warning(
     assert user.has_a_valid_badge([BadgeIds.FirstWarning])
     assert user.has_a_valid_badge([BadgeIds.SecondWarning])
 
+
 def test_unregister_lately_expired_first_warning(
-        client_with_expired_first_warning_badge,
-        user_with_expired_first_warning_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_expired_first_warning_badge,
+    user_with_expired_first_warning_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user with an expired first warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -302,11 +305,12 @@ def test_unregister_lately_expired_first_warning(
     assert user.has_a_valid_badge([BadgeIds.FirstWarning])
     assert user.matching_badges([BadgeIds.FirstWarning])[0].level == 2
 
+
 def test_unregister_lately_valid_second_warning(
-        client_with_valid_second_warning_badge,
-        user_with_valid_second_warning_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_valid_second_warning_badge,
+    user_with_valid_second_warning_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user with a valid second warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -325,10 +329,12 @@ def test_unregister_lately_valid_second_warning(
     assert user.has_a_valid_badge([BadgeIds.SecondWarning])
     assert user.has_a_valid_badge([BadgeIds.Banned])
 
+
 def test_unregister_lately_expired_second_warning(
-        client_with_expired_second_warning_badge,
-        user_with_expired_second_warning_badge,
-        event_in_less_than_48h_with_reg):
+    client_with_expired_second_warning_badge,
+    user_with_expired_second_warning_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user with an expired second warning badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -352,13 +358,14 @@ def test_unregister_lately_expired_second_warning(
     assert not user.has_a_valid_badge([BadgeIds.SecondWarning])
     assert not user.has_a_valid_badge([BadgeIds.Banned])
 
+
 def test_unregister_lately_from_event_with_no_activity_type(
-        client_with_no_warning_badge,
-        user_with_no_warning_badge,
-        event_with_no_activity_type_in_less_than_48h_with_reg
-        ):
+    client_with_no_warning_badge,
+    user_with_no_warning_badge,
+    event_with_no_activity_type_in_less_than_48h_with_reg,
+):
     """
-    Tests the late self-unregistration of a user to an event not requiring an 
+    Tests the late self-unregistration of a user to an event not requiring an
     activity type without any unregistration-related warning badge. Verifies that the user
     is correctly unregistered and that badges are assigned as expected.
     """
@@ -376,11 +383,12 @@ def test_unregister_lately_from_event_with_no_activity_type(
     assert event.is_unregistered(user)
     assert not user.has_a_valid_badge([BadgeIds.FirstWarning])
 
+
 def test_unregister_lately_expired_banned(
-        client_with_expired_banned_badge,
-        user_with_expired_banned_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_expired_banned_badge,
+    user_with_expired_banned_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the late self-unregistration of a user with an expired banned badge.
     Verifies that the user is correctly unregistered and that badges are assigned as expected.
@@ -404,11 +412,12 @@ def test_unregister_lately_expired_banned(
     assert not user.has_a_valid_badge([BadgeIds.SecondWarning])
     assert not user.has_a_valid_badge([BadgeIds.Banned])
 
+
 def test_register_for_valid_banned_user(
-        client_with_valid_banned_badge,
-        user_with_valid_banned_badge,
-        event_in_less_than_48h_with_reg
-        ):
+    client_with_valid_banned_badge,
+    user_with_valid_banned_badge,
+    event_in_less_than_48h_with_reg,
+):
     """
     Tests the self-registration of a user with a valid banned badge.
     Verifies that the user cannot register to the event and that badges are assigned properly.
@@ -429,11 +438,12 @@ def test_register_for_valid_banned_user(
     assert response.status_code == 200
     assert len(event.registrations) == 6
 
+
 def test_register_for_valid_second_warning_user(
-        client_with_valid_second_warning_badge,
-        user_with_valid_second_warning_badge,
-        event_in_less_than_48h
-        ):
+    client_with_valid_second_warning_badge,
+    user_with_valid_second_warning_badge,
+    event_in_less_than_48h,
+):
     """
     Tests the self-registration of a user with a valid second warning badge.
     Verifies that the user is correctly registered to the event.
@@ -450,11 +460,12 @@ def test_register_for_valid_second_warning_user(
     assert response.status_code == 200
     assert len(event.registrations) == 1
 
+
 def test_register_for_valid_first_warning_user(
-        client_with_valid_first_warning_badge,
-        user_with_valid_first_warning_badge,
-        event_in_less_than_48h
-        ):
+    client_with_valid_first_warning_badge,
+    user_with_valid_first_warning_badge,
+    event_in_less_than_48h,
+):
     """
     Tests the self-registration of a user with a valid first warning badge.
     Verifies that the user is correctly registered to the event.
@@ -471,11 +482,12 @@ def test_register_for_valid_first_warning_user(
     assert response.status_code == 200
     assert len(event.registrations) == 1
 
+
 def test_register_for_expired_banned_user(
-        client_with_expired_banned_badge,
-        user_with_expired_banned_badge,
-        event_in_less_than_48h
-        ):
+    client_with_expired_banned_badge,
+    user_with_expired_banned_badge,
+    event_in_less_than_48h,
+):
     """
     Tests the self-registration of a user with an expired banned badge.
     Verifies that the user is correctly registered to the event.
@@ -489,7 +501,6 @@ def test_register_for_expired_banned_user(
 
     assert len(event.registrations) == 0
     assert not event.is_registered(user)
-
 
     response = user_client.post(
         f"/collectives/{event.id}/self_register", follow_redirects=True

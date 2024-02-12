@@ -2,6 +2,7 @@
 
 import pytest
 
+
 @pytest.fixture
 def session_monkeypatch(monkeypatch):
     """
@@ -25,8 +26,8 @@ def session_monkeypatch(monkeypatch):
         calls["rollback"] += 1
 
     # Use monkeypatch to replace the session methods with mocks
-    monkeypatch.setattr('collectives.models.db.session.add', add_mock)
-    monkeypatch.setattr('collectives.models.db.session.commit', commit_mock)
-    monkeypatch.setattr('collectives.models.db.session.rollback', rollback_mock)
+    monkeypatch.setattr("collectives.models.db.session.add", add_mock)
+    monkeypatch.setattr("collectives.models.db.session.commit", commit_mock)
+    monkeypatch.setattr("collectives.models.db.session.rollback", rollback_mock)
 
     return calls

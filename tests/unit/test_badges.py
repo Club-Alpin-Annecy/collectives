@@ -6,6 +6,7 @@ from collectives.models.badge import Badge, BadgeIds
 from collectives.models import db
 from collectives.models.user import User
 
+
 def test_add_a_valid_badge(user1):
     """Test adding a badge to a user"""
     activity1 = db.session.get(ActivityType, 1)
@@ -60,7 +61,7 @@ def test_add_an_invalid_badge(user2):
 
 def test_assign_badge(user1, session_monkeypatch):
     """
-    Assigns a badge to a user and verifies the session changes. 
+    Assigns a badge to a user and verifies the session changes.
 
     Args:
         user1: The user to assign the badge to.
@@ -69,14 +70,15 @@ def test_assign_badge(user1, session_monkeypatch):
     Returns:
         None
     """
-    badge_id=int(BadgeIds.FirstWarning)
-    expiration_date= date.today() + timedelta(days=1)
+    badge_id = int(BadgeIds.FirstWarning)
+    expiration_date = date.today() + timedelta(days=1)
 
     user1.assign_badge(badge_id, expiration_date=expiration_date, level=1)
 
     assert len(session_monkeypatch["add"]) == 1  # Badge instance should be added
     assert session_monkeypatch["commit"] == 1  # Commit should be called once
     assert session_monkeypatch["rollback"] == 0  # Rollback should not be called
+
 
 def test_update_badge(user1, session_monkeypatch):
     """
@@ -101,6 +103,7 @@ def test_update_badge(user1, session_monkeypatch):
     assert session_monkeypatch["commit"] == 1  # Verify that commit was called once
     assert session_monkeypatch["rollback"] == 0  # Verify that rollback was not called
 
+
 def test_remove_badge(user1, session_monkeypatch):
     """
     Removes a badge from a user and verifies the session changes.
@@ -122,6 +125,7 @@ def test_remove_badge(user1, session_monkeypatch):
     assert session_monkeypatch["commit"] == 1  # Verify that commit was called once
     assert session_monkeypatch["rollback"] == 0  # Verify that rollback was not called
 
+
 def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatch):
     """
     Tests the update_warning_badges method without any
@@ -136,8 +140,8 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
         None
     """
     # Mock the badge condition checks to simulate no updates
-    monkeypatch.setattr(user1, 'has_a_valid_badge', lambda x: False)
-    monkeypatch.setattr(user1, 'has_badge', lambda x: False)
+    monkeypatch.setattr(user1, "has_a_valid_badge", lambda x: False)
+    monkeypatch.setattr(user1, "has_badge", lambda x: False)
 
     user1.update_warning_badges()
 
@@ -146,10 +150,12 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
     assert session_monkeypatch["commit"] == 1  # New commit should occur
     assert session_monkeypatch["rollback"] == 0  # No rollback should occur
 
-    monkeypatch.setattr(user1, 'has_a_valid_badge',
-                    lambda badge_ids: BadgeIds.FirstWarning in badge_ids)
-    monkeypatch.setattr(user1, 'has_badge',
-                    lambda badge_ids: BadgeIds.FirstWarning in badge_ids)
+    monkeypatch.setattr(
+        user1, "has_a_valid_badge", lambda badge_ids: BadgeIds.FirstWarning in badge_ids
+    )
+    monkeypatch.setattr(
+        user1, "has_badge", lambda badge_ids: BadgeIds.FirstWarning in badge_ids
+    )
 
     user1.update_warning_badges()
 
@@ -158,10 +164,14 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
     assert session_monkeypatch["commit"] == 2  # New commit should occur
     assert session_monkeypatch["rollback"] == 0  # No rollback should occur
 
-    monkeypatch.setattr(user1, 'has_a_valid_badge',
-                    lambda badge_ids: BadgeIds.SecondWarning in badge_ids)
-    monkeypatch.setattr(user1, 'has_badge',
-                    lambda badge_ids: BadgeIds.SecondWarning in badge_ids)
+    monkeypatch.setattr(
+        user1,
+        "has_a_valid_badge",
+        lambda badge_ids: BadgeIds.SecondWarning in badge_ids,
+    )
+    monkeypatch.setattr(
+        user1, "has_badge", lambda badge_ids: BadgeIds.SecondWarning in badge_ids
+    )
 
     user1.update_warning_badges()
 
@@ -171,9 +181,12 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
     assert session_monkeypatch["rollback"] == 0  # No rollback should occur
 
     # Mock `matching_badges` to simulate finding more than one badge of a specified type
-    monkeypatch.setattr(user1, 'has_badge', lambda x: True)
-    monkeypatch.setattr(user1, 'matching_badges',
-                        lambda badge_ids=None: [BadgeIds.SecondWarning, BadgeIds.SecondWarning])
+    monkeypatch.setattr(user1, "has_badge", lambda x: True)
+    monkeypatch.setattr(
+        user1,
+        "matching_badges",
+        lambda badge_ids=None: [BadgeIds.SecondWarning, BadgeIds.SecondWarning],
+    )
 
     assert len(user1.matching_badges()) == 2
 

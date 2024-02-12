@@ -261,7 +261,9 @@ def event1_with_answers(event1_with_questions):
     db.session.commit()
     return event1_with_questions
 
+
 inject_fixture("prototype_event_in_less_than_48h", "happens in less than 48 hours")
+
 
 @pytest.fixture
 def event_in_less_than_48h_with_reg(
@@ -271,26 +273,31 @@ def event_in_less_than_48h_with_reg(
     user_with_expired_first_warning_badge,
     user_with_valid_second_warning_badge,
     user_with_expired_second_warning_badge,
-    user_with_expired_banned_badge
-    ): # pylint: disable=too-many-arguments
+    user_with_expired_banned_badge,
+):  # pylint: disable=too-many-arguments
     """
     Returns an event in less than 48 hours
     with registrations for specified users.
     """
 
-    prototype_event_in_less_than_48h.registration_open_time = datetime.now() - timedelta(hours=10)
-    prototype_event_in_less_than_48h.registration_close_time = datetime.now() + timedelta(hours=2)
+    prototype_event_in_less_than_48h.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_48h.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
     prototype_event_in_less_than_48h.start = datetime.now() + timedelta(hours=3)
     prototype_event_in_less_than_48h.end = datetime.now() + timedelta(hours=4)
     prototype_event_in_less_than_48h.num_online_slots = 9
 
-    for user in [user_with_no_warning_badge,
-                 user_with_valid_first_warning_badge,
-                 user_with_expired_first_warning_badge,
-                 user_with_valid_second_warning_badge,
-                 user_with_expired_second_warning_badge,
-                 user_with_expired_banned_badge
-                 ]:
+    for user in [
+        user_with_no_warning_badge,
+        user_with_valid_first_warning_badge,
+        user_with_expired_first_warning_badge,
+        user_with_valid_second_warning_badge,
+        user_with_expired_second_warning_badge,
+        user_with_expired_banned_badge,
+    ]:
         prototype_event_in_less_than_48h.registrations.append(
             Registration(
                 user_id=user.id,
@@ -305,12 +312,17 @@ def event_in_less_than_48h_with_reg(
 
     return prototype_event_in_less_than_48h
 
+
 @pytest.fixture
 def event_in_less_than_48h(prototype_event_in_less_than_48h):
     """Fixture for an event starting in less than 48 hours."""
 
-    prototype_event_in_less_than_48h.registration_open_time = datetime.now() - timedelta(hours=10)
-    prototype_event_in_less_than_48h.registration_close_time = datetime.now() + timedelta(hours=2)
+    prototype_event_in_less_than_48h.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_48h.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
     prototype_event_in_less_than_48h.start = datetime.now() + timedelta(hours=3)
     prototype_event_in_less_than_48h.end = datetime.now() + timedelta(hours=4)
 
@@ -321,19 +333,24 @@ def event_in_less_than_48h(prototype_event_in_less_than_48h):
 
     return prototype_event_in_less_than_48h
 
+
 @pytest.fixture
 def event_with_no_activity_type_in_less_than_48h_with_reg(
     prototype_event_in_less_than_48h,
     user_with_no_warning_badge,
     user_with_valid_first_warning_badge,
-    ):
+):
     """
     Returns an event in less than 48 hours
     with registrations for specified users.
     """
 
-    prototype_event_in_less_than_48h.registration_open_time = datetime.now() - timedelta(hours=10)
-    prototype_event_in_less_than_48h.registration_close_time = datetime.now() + timedelta(hours=2)
+    prototype_event_in_less_than_48h.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_48h.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
     prototype_event_in_less_than_48h.start = datetime.now() + timedelta(hours=3)
     prototype_event_in_less_than_48h.end = datetime.now() + timedelta(hours=4)
     prototype_event_in_less_than_48h.num_online_slots = 9
@@ -346,11 +363,10 @@ def event_with_no_activity_type_in_less_than_48h_with_reg(
     event_type = EventType.query.filter_by(name="Soirée").first()
     prototype_event_in_less_than_48h.event_type = event_type
 
-
-    for user in [user_with_no_warning_badge,
-                 user_with_valid_first_warning_badge,
-
-                 ]:
+    for user in [
+        user_with_no_warning_badge,
+        user_with_valid_first_warning_badge,
+    ]:
         prototype_event_in_less_than_48h.registrations.append(
             Registration(
                 user_id=user.id,

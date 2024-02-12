@@ -145,6 +145,7 @@ def client_with_expired_benevole_badge(client, user_with_expired_benevole_badge)
     yield client
     logout(client)
 
+
 # User Clients related to late unregistrations
 @pytest.fixture
 def client_with_valid_first_warning_badge(client, user_with_valid_first_warning_badge):
@@ -153,26 +154,36 @@ def client_with_valid_first_warning_badge(client, user_with_valid_first_warning_
     yield client
     logout(client)
 
+
 @pytest.fixture
-def client_with_expired_first_warning_badge(client, user_with_expired_first_warning_badge):
+def client_with_expired_first_warning_badge(
+    client, user_with_expired_first_warning_badge
+):
     """Flask client authenticated as user with an expired first warning badge."""
     login(client, user_with_expired_first_warning_badge)
     yield client
     logout(client)
 
+
 @pytest.fixture
-def client_with_valid_second_warning_badge(client, user_with_valid_second_warning_badge):
+def client_with_valid_second_warning_badge(
+    client, user_with_valid_second_warning_badge
+):
     """Flask client authenticated as user with a valid second warning badge."""
     login(client, user_with_valid_second_warning_badge)
     yield client
     logout(client)
 
+
 @pytest.fixture
-def client_with_expired_second_warning_badge(client, user_with_expired_second_warning_badge):
+def client_with_expired_second_warning_badge(
+    client, user_with_expired_second_warning_badge
+):
     """Flask client authenticated as user with an expired second warning badge."""
     login(client, user_with_expired_second_warning_badge)
     yield client
     logout(client)
+
 
 @pytest.fixture
 def client_with_valid_banned_badge(client, user_with_valid_banned_badge):
@@ -181,12 +192,14 @@ def client_with_valid_banned_badge(client, user_with_valid_banned_badge):
     yield client
     logout(client)
 
+
 @pytest.fixture
 def client_with_expired_banned_badge(client, user_with_expired_banned_badge):
     """Flask client authenticated as user with an expired banned badge."""
     login(client, user_with_expired_banned_badge)
     yield client
     logout(client)
+
 
 @pytest.fixture
 def client_with_no_warning_badge(client, user_with_no_warning_badge):
