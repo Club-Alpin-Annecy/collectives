@@ -297,7 +297,11 @@ def events():
     data = EventSchema(many=True).dump(paginated_events.items)
     response = {"data": data, "last_page": paginated_events.pages}
 
-    return json.dumps(response), 200, {"content-type": "application/json"}
+    return (
+        json.dumps(response),
+        200,
+        {"content-type": "application/json", "Access-Control-Allow-Origin": "*"},
+    )
 
 
 class AutocompleteEventSchema(marshmallow.Schema):
