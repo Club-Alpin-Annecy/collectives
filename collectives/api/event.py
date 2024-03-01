@@ -81,10 +81,7 @@ def filter_hidden_events(query):
 
         # Users can only see Private events for their activities
         query_filter = Event.visibility != EventVisibility.Private
-        activities = (
-            current_user.activities_with_role()
-            | current_user.activities_with_valid_badge([BadgeIds.Benevole])
-        )
+        activities = current_user.activities_with_role()
         if activities:
             activities_ids = [a.id for a in activities]
             activity_filter = Event.activity_types.any(
