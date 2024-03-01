@@ -60,10 +60,7 @@ class EventMiscMixin:
         if self.visibility == EventVisibility.Public:
             return True
 
-        user_activities = (
-            user.activities_with_role()
-            | user.activities_with_valid_badge([BadgeIds.Benevole])
-        )
+        user_activities = user.activities_with_role()
         return any(activity in user_activities for activity in self.activity_types)
 
     def save_photo(self, file):
