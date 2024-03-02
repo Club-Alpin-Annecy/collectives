@@ -12,7 +12,7 @@ from sqlalchemy import desc, or_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
-from collectives.models import ActivityType, User, EventTag, BadgeIds
+from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
@@ -42,7 +42,7 @@ def filter_hidden_events(query):
      - Activity supervisors can see 'Pending' events for the activities that
        they supervise
      - Leaders can see the events that they lead
-     - Users with role for an activity can see 'Private' events
+     - Users with role for an activity can see 'Activity' events
 
     :param query: The original query
     :type query: :py:class:`sqlalchemy.orm.query.Query`
@@ -53,7 +53,7 @@ def filter_hidden_events(query):
     if not current_user.is_authenticated:
         # Not logged users see no pending/private event
         query = query.filter(Event.status != EventStatus.Pending)
-        query = query.filter(Event.visibility != EventStatus.Private)
+        query = query.filter(Event.visibility != EventVisibility.Activity)
     elif current_user.is_moderator():
         # Admin see all pending/private events (no filter)
         pass
@@ -79,8 +79,8 @@ def filter_hidden_events(query):
         # After filter construction, it is applied to the query
         query = query.filter(query_filter)
 
-        # Users can only see Private events for their activities
-        query_filter = Event.visibility != EventVisibility.Private
+        # Users can only see Activity events for their activities
+        query_filter = Event.visibility != EventVisibility.Activity
         activities = current_user.activities_with_role()
         if activities:
             activities_ids = [a.id for a in activities]

@@ -7,7 +7,6 @@ from collectives.models import db
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
-from collectives.models.user.badge import BadgeIds
 from collectives.utils import render_markdown
 
 
@@ -44,6 +43,7 @@ class EventMiscMixin:
         """Checks whether this event is visible to an user
 
         - Moderators can see all events
+        - Not logged-in users can see 'External' events only
         - Normal users cannot see 'Pending' events
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
@@ -57,7 +57,11 @@ class EventMiscMixin:
             return True
         if self.status == EventStatus.Pending:
             return False
-        if self.visibility == EventVisibility.Public:
+        if self.visibility == EventVisibility.External:
+            return True
+        if not user.is_active:
+            return False
+        if self.visibility != EventVisibility.Activity:
             return True
 
         user_activities = user.activities_with_role()
@@ -144,6 +148,8 @@ class EventMiscMixin:
 
         self._deprecated_parent_event_id = None
 
-    def user_answers(self, user_id: int) -> List["QuestionAnswer"]:
+    def user_answers(self, user: User) -> List["QuestionAnswer"]:
         """:returns: the list of answers to this event's question by a given user"""
-        return QuestionAnswer.user_answers(self.id, user_id)
+        if not user.is_active:
+            return []
+        return QuestionAnswer.user_answers(self.id, user.id)

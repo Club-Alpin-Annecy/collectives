@@ -117,7 +117,7 @@ class EventModelMixin:
     visibility = db.Column(
         db.Enum(EventVisibility),
         nullable=False,
-        default=EventVisibility.Public,
+        default=EventVisibility.Licensed,
         info={"choices": EventVisibility.choices(), "coerce": EventVisibility.coerce},
     )
     """Visibility of the event (Public, Private...)

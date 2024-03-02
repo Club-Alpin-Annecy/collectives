@@ -23,9 +23,9 @@ def upgrade():
         batch_op.add_column(
             sa.Column(
                 "visibility",
-                sa.Enum("Public", "Private", name="eventvisibility"),
+                sa.Enum("Licensed", "Activity", "External", name="eventvisibility"),
                 nullable=False,
-                server_default="Public",
+                server_default="Licensed",
             )
         )
 

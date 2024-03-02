@@ -214,7 +214,6 @@ def index(activity_type_id=None, name=""):
 @blueprint.route("/<int:event_id>-<name>")
 @blueprint.route("/<int:event_id>-")
 @crawlers_catcher("event.preview")
-@valid_user()
 def view_event(event_id, name=""):
     """Display a specific event.
 
@@ -227,6 +226,9 @@ def view_event(event_id, name=""):
     event = Event.query.filter_by(id=event_id).first()
 
     if event is None or not event.is_visible_to(current_user):
+        if not current_user.is_authenticated:
+            return current_app.login_manager.unauthorized()
+
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
 
