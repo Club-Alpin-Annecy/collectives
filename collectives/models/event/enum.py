@@ -37,10 +37,12 @@ class EventVisibility(ChoiceEnum):
     """Enum listing visibility types of an event"""
 
     # pylint: disable=invalid-name
-    Public = 0
-    """Public event -- visible by everybody"""
-    Private = 1
+    Licensed = 0
+    """Normal event -- visible by all users with active licence"""
+    Activity = 1
     """Private event -- visible by people with role for activity"""
+    External = 2
+    """Fully public event -- visible by everybody, including logged-out users"""
     # pylint: enable=invalid-name
 
     @classmethod
@@ -50,6 +52,7 @@ class EventVisibility(ChoiceEnum):
         :return: status of the event
         """
         return {
-            cls.Public: "Public",
-            cls.Private: "Privé",
+            cls.Licensed: "Tous licenciés",
+            cls.Activity: "Interne à l'activité",
+            cls.External: "Grand public",
         }

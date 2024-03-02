@@ -41,4 +41,10 @@
         background-color: $solitude;
         color: $color-gray-dark;
     }
+
+    // External
+    &.event-status-external {
+        background-color: $forest-green;
+        color: $color-white;
+    }
 }

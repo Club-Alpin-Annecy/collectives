@@ -225,9 +225,9 @@ function getStatusString(data) {
 
 function getVisibilityString(data) {
     " Compute visibility string based on event visibility"
-    visibility_string = ''
-    if(data.visibility == EnumEventVisibilityKeys.Private) visibility_string = `<span class="event-status-badge event-status-private">${EnumEventVisibility[data.visibility]}</span>`
-    return visibility_string
+    if(data.visibility == EnumEventVisibilityKeys.Activity) return `<span class="event-status-badge event-status-private">Interne</span>`
+    if(data.visibility == EnumEventVisibilityKeys.External) return `<span class="event-status-badge event-status-external">Grand public</span>`
+    return ''
 }
 
 function localInterval(start, end){
