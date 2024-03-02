@@ -71,6 +71,8 @@ class EventRoleMixin:
         if self.id is None:
             return True
 
+        if not user.is_active:
+            return False
         if user.is_moderator():
             return True
         return self.is_leader(user) or self.is_supervisor(user)

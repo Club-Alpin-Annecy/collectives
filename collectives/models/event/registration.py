@@ -250,6 +250,8 @@ class EventRegistrationMixin:
         :return: True if user can self-register.
         :rtype: boolean
         """
+        if not user.is_active:
+            return False
         if not user.has_valid_phone_number():
             return False
         if not user.has_valid_phone_number(emergency=True):

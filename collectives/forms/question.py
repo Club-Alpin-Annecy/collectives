@@ -117,6 +117,9 @@ class QuestionAnswersForm(FlaskForm):
 
         super().__init__(*args, **kwargs)
 
+        if not event.is_registered(user):
+            return
+
         query = Question.query.filter(Question.event_id == event.id).order_by(
             Question.order
         )
