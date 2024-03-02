@@ -13,7 +13,7 @@ from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 
-from collectives.routes.auth import get_bad_phone_message
+from collectives.routes.auth import get_bad_phone_message, login_manager
 
 from collectives.email_templates import send_new_event_notification
 from collectives.email_templates import send_unregister_notification
@@ -227,7 +227,7 @@ def view_event(event_id, name=""):
 
     if event is None or not event.is_visible_to(current_user):
         if not current_user.is_authenticated:
-            return current_app.login_manager.unauthorized()
+            return login_manager.unauthorized()
 
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
