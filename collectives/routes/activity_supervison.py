@@ -118,7 +118,7 @@ def leader_list():
         "activity_supervision/leaders_list.html",
         add_leader_form=add_leader_form,
         export_form=export_form,
-        title="Encadrants",
+        title="Encadrants et Organisateurs",
     )
 
 

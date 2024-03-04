@@ -88,7 +88,7 @@ class EventType(db.Model):
     """
 
     def has_valid_license(self, user):
-        """Check whether an user has a valic license for this type of event
+        """Check whether an user has a valid license for this type of event
 
         :param user: The user whose license should be checked
         :param user: :py:class:`collectives.models.user.User`

@@ -135,20 +135,6 @@ class ActivityType(db.Model):
         max_len = getattr(self.__class__, key).prop.columns[0].type.length
         return truncate(value, max_len)
 
-    def can_be_led_by(self, users):
-        """Check if at least anyone in a list can lead an event
-        of this activity
-
-        :param users: list of user to test for leading capabilities
-        :type users: list[:py:class:`collectives.models.user.User`]
-        :return: if someone in the list can lead this activity
-        :rtype: boolean
-        """
-        for user in users:
-            if user.can_lead_activity(self.id):
-                return True
-        return False
-
     @classmethod
     def get_all_types(cls, include_deprecated=False):
         """List all activity_types in database
@@ -182,35 +168,3 @@ class ActivityType(db.Model):
         types = cls.get_all_types()
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
-
-
-def activities_without_leader(activities, leaders):
-    """Check if leaders has right to lead it.
-
-    Test each activity to see if at least one leader can lead it (see
-    :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
-    ).
-    Return the list of activitiers with no valid leader
-
-    :param leaders: List of User which will be tested.
-    :type leaders: list
-    :return: True if leaders can lead all activities.
-    :rtype: boolean
-    """
-    return [a for a in activities if not a.can_be_led_by(leaders)]
-
-
-def leaders_without_activities(activities, leaders):
-    """Check if leaders has right to lead it.
-
-    Test each leader to see if they can lead each activity
-    :py:meth:`collectives.models.actitivitytype.ActivityType.can_be_led_by`
-    ).
-    Return the list of leaders not able to lead all activities
-
-    :param leaders: List of User which will be tested.
-    :type leaders: list
-    :return: True if leaders can lead all activities.
-    :rtype: boolean
-    """
-    return [l for l in leaders if not l.can_lead_activities(activities)]

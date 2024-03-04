@@ -136,7 +136,7 @@ class UserRoleMixin:
         """
         return self.has_role(RoleIds.all_reservation_creator_roles())
 
-    def can_lead_at_least_one_activity(self) -> bool:
+    def is_leader(self) -> bool:
         """Check if user has a role which allow him to lead at least one activity.
 
         See :py:meth:`collectives.models.role.RoleIds.all_activity_leader_roles`
@@ -145,27 +145,17 @@ class UserRoleMixin:
         """
         return self.has_role(RoleIds.all_activity_leader_roles())
 
-    def can_lead_activity(self, activity_id: int) -> bool:
-        """Check if user has a role which allow him to lead a specific activity.
+    def can_lead_activity(self, activity: ActivityType) -> bool:
+        """Check if user has a role which allow him to lead a given activity.
 
         See :py:meth:`collectives.models.role.RoleIds.all_activity_leader_roles`
 
-        :param activity_id: Activity which will be tested.
-        :return: True if user can lead the activity.
+        :param activity: Activity which will be tested.
+        :return: True if user can leadthe activity.
         """
         return self.has_role_for_activity(
-            RoleIds.all_activity_leader_roles(), activity_id
+            RoleIds.all_activity_leader_roles(), activity.id
         )
-
-    def can_lead_activities(self, activities: List[ActivityType]) -> bool:
-        """Check if user has a role which allow him to lead all specified activities.
-
-        See :py:meth:`can_lead_activity`
-
-        :param activities: Activities which will be tested.
-        :return: True if user can lead all the activities.
-        """
-        return all(self.can_lead_activity(a.id) for a in activities)
 
     def can_colead_any_activity(self, activities: List[ActivityType]) -> bool:
         """Check if user has a role which allow him to co-lead any of the specified activities.
@@ -233,13 +223,22 @@ class UserRoleMixin:
 
         return not any(event.is_confirmed() for event in events)
 
-    def led_activities(self) -> Set[ActivityType]:
-        """Get activities the user can lead.
+    def get_organizable_activities(
+        self, need_leader: bool = False
+    ) -> Set[ActivityType]:
+        """Get activities the user can lead or organize.
 
+        :param need_leader: If True, requires a "leader" role,
+          otherwise an "organizer" role suffices.
         :return: The list of activities the user can lead.
         """
-        roles = self.matching_roles(RoleIds.all_activity_leader_roles())
-        return set(role.activity_type for role in roles)
+        ok_roles = (
+            RoleIds.all_activity_leader_roles()
+            if need_leader
+            else RoleIds.all_activity_organizer_roles()
+        )
+        user_roles = self.matching_roles(ok_roles)
+        return set(role.activity_type for role in user_roles)
 
     def get_supervised_activities(self) -> Set[ActivityType]:
         """Get set of activities the user supervises.

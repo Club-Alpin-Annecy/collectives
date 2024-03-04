@@ -135,12 +135,12 @@
     <h4 class="heading-4">Autres informations</h4>
         <table id="site_info" class="center_table">
             <tr>
-                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat :</td>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat régulier :</td>
                 <td>
                     {% if user.has_a_valid_benevole_badge() %}
-                        {% for badge in user.badges if badge.badge_id == models.BadgeIds.Benevole and not badge.is_expired() %}
+                        {% for activity in user.activities_with_valid_badge([models.BadgeIds.Benevole])  %}
                             {% if loop.index != 1 %} & {% endif %}
-                            {{badge.activity_name}} 
+                            {{activity.name}} 
                         {% endfor %}
                     {% else %}
                         Non
@@ -148,9 +148,9 @@
                 </td>
             </tr>
             <tr>
-                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Role sur le site :</td>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Rôle(s) sur le site :</td>
                 <td>
-                    {% if user.has_a_valid_benevole_badge() %}
+                    {% if user.roles %}
                         {% for role in user.roles %}
                             {% if loop.index != 1 %} & {% endif %}
                             {{role.name}}

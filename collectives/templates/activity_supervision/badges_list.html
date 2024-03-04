@@ -40,6 +40,13 @@
 
   <h4 class="heading-4">Ajout/renouvellement d'un {{title}}</h4>
 
+  {%if type == models.BadgeIds.Benevole %}
+  <p>Le badge <em>{{title}}</em> permet d'identifier les personnes ayant suffisamment contribué à l'activité pour bénéficier des avantages bénévole.
+  Attention, détenir un rôle (encadrant ou autre) pour l'activité ne donnera bientôt plus automatiquement accès à ces avantages ; il faut
+  renouveler le badge chaque année.
+  </p>
+  {% endif %}
+  
   {{ generator.form_generator(add_badge_form, url_for(routes['add'])) }}
 
   <h4 class="heading-4">Export de la liste</h4>

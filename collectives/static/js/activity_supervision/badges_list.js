@@ -39,7 +39,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken) {
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
                 { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: false},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
-                { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveller' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
+                { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
             ],
 
             langs: {

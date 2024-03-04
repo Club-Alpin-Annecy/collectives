@@ -182,7 +182,7 @@ class RenewBadgeForm(ModelForm, FlaskForm):
         model = Badge
 
     activity_type_id = SelectField("Activité", choices=[], coerce=int)
-    submit = SubmitField("Renouveller")
+    submit = SubmitField("Renouveler")
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
@@ -233,7 +233,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
         kwargs["activity_list"] = current_user.get_supervised_activities()
-        kwargs["submit_label"] = "Ajouter un encadrant"
+        kwargs["submit_label"] = "Ajouter un rôle"
         super().__init__(*args, **kwargs)
 
 

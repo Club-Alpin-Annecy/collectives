@@ -41,7 +41,7 @@
         const searchInput = document.getElementById('new-leader');
         setupAutoComplete(
           searchInput,
-          '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids()) | safe}}',
+          '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids(), etype=form.current_event_type().id) | safe}}',
           function(item) {
             return item.full_name;
           },

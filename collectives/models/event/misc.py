@@ -113,6 +113,9 @@ class EventMiscMixin:
         # date is meant to be used only by an online user while registering.
         # The leader or administrater is always able to register someone even if
         # registration date are closed.
+        if self.event_type.requires_activity and not self.activity_types:
+            return False
+
         if self.num_online_slots == 0:
             return (
                 self.starts_before_ends()

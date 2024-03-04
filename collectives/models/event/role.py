@@ -1,6 +1,10 @@
 """ Module for all Event methods related to role manipulation and check."""
 
-from collectives.models.activity_type import activities_without_leader
+from typing import List
+
+from collectives.models.activity_type import ActivityType
+from collectives.models.event.event_type import EventType
+from collectives.models.user import User
 from collectives.models.registration import RegistrationLevels
 
 
@@ -15,9 +19,9 @@ class EventRoleMixin:
                  returns False.
         :seealso: :py:meth:`activities_without_leader`
         """
-        if not any(self.activity_types):
-            return False
-        return not any(activities_without_leader(self.activity_types, self.leaders))
+        return not event_activities_without_leaders(
+            self.activity_types, self.leaders, self.event_type
+        )
 
     def ranked_leaders(self):
         """
@@ -121,3 +125,27 @@ class EventRoleMixin:
         :rtype: boolean
         """
         return user.can_colead_any_activity(self.activity_types)
+
+
+def event_activities_without_leaders(
+    activities: List[ActivityType],
+    leaders: List[User],
+    event_type: EventType,
+) -> List[ActivityType]:
+    """Check whether all activities of an event have a valid leader.
+
+    :param bool multi_activity_mode: If `False`, check that all `leaders` can lead the
+    (single) activitie in `activities`. If `True`, check that each activity in
+    `activities` can be lead by one of the `leaders`.
+    :param activities: List of activities to check.
+    :param leaders: List of leaders.
+    :return: whether all tests succeeded
+    """
+
+    leader_activities = set.union(
+        *(
+            leader.get_organizable_activities(need_leader=event_type.requires_activity)
+            for leader in leaders
+        )
+    )
+    return list(set(activities) - leader_activities)

@@ -145,7 +145,7 @@
                             {{ registration.user.full_name() }}
                             {% if registration.is_pending_renewal() %}
                                 {% set ns.license_to_renew = True %}
-                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
+                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
                             {% endif %}{{license_to_renew}}
                         </a>
                     </td>
@@ -178,8 +178,8 @@
             </tbody>
         </table>
             {% if ns.license_to_renew %}
-            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveller"/>
-            = Licence à renouveller <br/>
+            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
+            = Licence à renouveler <br/>
             {% endif %}
 
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
