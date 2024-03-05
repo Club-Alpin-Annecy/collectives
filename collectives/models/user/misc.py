@@ -1,4 +1,5 @@
 """ Module for misc User methods which does not fit in another submodule"""
+
 import os
 import datetime
 from typing import List

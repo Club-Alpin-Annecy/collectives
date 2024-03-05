@@ -1,6 +1,7 @@
 """ API for equipment.
 
 """
+
 import json
 
 from flask import url_for, abort
@@ -57,9 +58,9 @@ class EquipmentTypeSchema(marshmallow.Schema):
 
     """:type: string"""
     deposit = fields.Function(
-        lambda equipment_type: format_currency(equipment_type.deposit)
-        if equipment_type.deposit
-        else "-"
+        lambda equipment_type: (
+            format_currency(equipment_type.deposit) if equipment_type.deposit else "-"
+        )
     )
 
     class Meta:
@@ -124,7 +125,7 @@ def equipment_model(type_id):
     :rtype: (string, int, dict)
     """
 
-    equipment_type = EquipmentType.query.get(type_id)
+    equipment_type = db.session.get(EquipmentType, type_id)
     if equipment_type is not None:
         models = equipment_type.models
         data = EquipmentModelSchema(many=True).dump(models)
@@ -148,7 +149,7 @@ def equipment_model_edit(model_id, name, manufacturer):
 
     :rtype: (string, int, dict)
     """
-    model = EquipmentModel.query.get(model_id)
+    model = db.session.get(EquipmentModel, model_id)
     if model is not None:
         model.name = name
         model.manufacturer = manufacturer
@@ -171,7 +172,7 @@ def equipment_model_delete(model_id):
 
     :rtype: (string, int, dict)
     """
-    model = EquipmentModel.query.get(model_id)
+    model = db.session.get(EquipmentModel, model_id)
     if model is not None:
         db.session.delete(model)
         db.session.commit()

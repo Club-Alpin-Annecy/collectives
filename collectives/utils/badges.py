@@ -1,6 +1,5 @@
 """ Module for base functions of badge management"""
 
-
 from flask import send_file
 from flask import flash, render_template
 from flask_login import current_user
@@ -26,7 +25,7 @@ def export_badge(badge_type: BadgeIds = None):
         return False
 
     if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
-        activity_type = ActivityType.query.get(form.activity_id.data)
+        activity_type = db.session.get(ActivityType, form.activity_id.data)
         if not current_user.is_hotline():
             if activity_type not in current_user.get_supervised_activities():
                 return False
@@ -141,7 +140,7 @@ def add_badge(
         badge.activity_type = None
         badge.activity_id = None
 
-    user: User = User.query.get(badge.user_id)
+    user: User = db.session.get(User, badge.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
         return None
@@ -196,7 +195,7 @@ def renew_badge(
     """Route for an activity supervisor to add or renew a Badge to a user.
 
     :param type: The type of badge to renew"""
-    badge = Badge.query.get(badge_id)
+    badge = db.session.get(Badge, badge_id)
 
     if not has_rights_to_modify_badge(badge, badge_type):
         flash("Badge invalide", "error")
@@ -215,7 +214,7 @@ def delete_badge(badge_id: int, badge_type: BadgeIds = None) -> None:
     :param type: Refuse to delete if not the right type. None for no check
     """
 
-    badge = Badge.query.get(badge_id)
+    badge = db.session.get(Badge, badge_id)
 
     if not has_rights_to_modify_badge(badge, badge_type):
         flash("Badge invalide", "error")

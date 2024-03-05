@@ -2,6 +2,7 @@
 
 This modules contains the /event Blueprint
 """
+
 # pylint: disable=too-many-lines
 from typing import Tuple, List, Set
 
@@ -174,7 +175,7 @@ def index(activity_type_id=None, name=""):
 
     filtered_activity = None
     if activity_type_id:
-        filtered_activity = ActivityType.query.get(activity_type_id)
+        filtered_activity = db.session.get(ActivityType, activity_type_id)
         # If name is empty, redirect to a more meaningful URL
         if filtered_activity and not name:
             return redirect(
@@ -273,7 +274,7 @@ def export_list_of_registered_users(event_id):
     :param int event_id: Primary key of the event.
     :return: The Excel file with the users informations.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if event is None or not event.has_edit_rights(current_user):
         flash("Accès restreint, rôle insuffisant.", "error")
@@ -302,7 +303,7 @@ def print_event(event_id):
 
     :param int event_id: Primary key of the event to print.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if event is None or not event.has_edit_rights(current_user):
         flash("Accès restreint, rôle insuffisant.", "error")
@@ -347,7 +348,7 @@ def _prevalidate_leaders_and_activities(
     for action in form.leader_actions:
         leader_id = int(action.data["leader_id"])
 
-        leader = User.query.get(leader_id)
+        leader = db.session.get(User, leader_id)
         if leader is None or not leader.can_create_events():
             flash("Encadrant invalide")
             continue
@@ -374,7 +375,7 @@ def _prevalidate_leaders_and_activities(
     # Add new leader
     new_leader_id = int(form.add_leader.data)
     if new_leader_id > 0:
-        leader = User.query.get(new_leader_id)
+        leader = db.session.get(User, new_leader_id)
         if leader is None or not leader.can_create_events():
             flash("Encadrant invalide")
         else:
@@ -485,7 +486,7 @@ def manage_event(event_id=None):
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
-    event = Event.query.get(event_id) if event_id is not None else Event()
+    event = db.session.get(Event, event_id) if event_id is not None else Event()
 
     if event is not None and not event.has_edit_rights(current_user):
         flash("Accès restreint.", "error")
@@ -572,7 +573,7 @@ def manage_event(event_id=None):
         db.session.add(event)
         db.session.commit()
     elif form.duplicate_event.data != "":
-        duplicated_event = Event.query.get(form.duplicate_event.data)
+        duplicated_event = db.session.get(Event, form.duplicate_event.data)
         if duplicated_event != None:
             event.photo = duplicated_event.photo
             event.copy_payment_items(duplicated_event)
@@ -624,7 +625,7 @@ def duplicate(event_id=None):
         flash("Accès restreint, rôle insuffisant.", "error")
         return redirect(url_for("event.index"))
 
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if event == None:
         flash("Pas d'événement à dupliquer", "error")
@@ -708,7 +709,7 @@ def self_register(event_id):
     # Paid event
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-        item_price = ItemPrice.query.get(form.item_price.data)
+        item_price = db.session.get(ItemPrice, form.item_price.data)
         if (
             item_price is None
             or item_price.item.event_id != event_id
@@ -774,7 +775,7 @@ def select_payment_item(event_id):
 
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
-        item_price = ItemPrice.query.get(form.item_price.data)
+        item_price = db.session.get(ItemPrice, form.item_price.data)
         if (
             item_price is None
             or item_price.item.event_id != event_id
@@ -870,7 +871,7 @@ def self_unregister(event_id):
 
     :param int event_id: Primary key of the event to manage.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if event.start < current_time():
         flash("Désinscription impossible: la collective a déjà commencé.", "error")
@@ -910,7 +911,7 @@ def answer_questions(event_id: int):
 
     :param int event_id: Primary key of the event .
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     query = Registration.query.filter_by(user=current_user).filter_by(event=event)
     registration: Registration = query.first()
@@ -1022,7 +1023,7 @@ def delete_event(event_id):
 
     :param int event_id: Primary key of the event to delete.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if not (event and event.has_delete_rights(current_user)):
         flash("Non autorisé", "error")
@@ -1059,7 +1060,7 @@ def update_attendance(event_id):
 
     :param int event_id: Primary key of the event to update.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
 
     if event is None:
         raise builtins.Exception("Unknown Event")
@@ -1115,7 +1116,7 @@ def preview(event_id):
 
     :param int event_id: Primary key of the event to update.
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         abort(404)
 

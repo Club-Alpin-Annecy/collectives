@@ -1,5 +1,6 @@
 """Module to help payment extraction
 """
+
 import datetime
 import decimal
 from typing import List

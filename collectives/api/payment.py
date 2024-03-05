@@ -1,6 +1,7 @@
 """ API endpoint for listing payments.
 
 """
+
 import json
 
 from flask import abort, url_for, request
@@ -8,7 +9,7 @@ from flask_login import current_user
 from marshmallow import fields
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.models import Event, ItemPrice, Payment, PaymentStatus
+from collectives.models import db, Event, ItemPrice, Payment, PaymentStatus
 from collectives.utils.access import payments_enabled, valid_user
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import extract_payments
@@ -124,18 +125,22 @@ class MyPaymentSchema(PaymentSchema):
     :type: string"""
 
     receipt_uri = fields.Function(
-        lambda p: url_for("payment.payment_receipt", payment_id=p.id)
-        if p.has_receipt()
-        else None
+        lambda p: (
+            url_for("payment.payment_receipt", payment_id=p.id)
+            if p.has_receipt()
+            else None
+        )
     )
     """ Uri of the receipt associated to the approved online payment
 
     :type: string"""
 
     refund_receipt_uri = fields.Function(
-        lambda p: url_for("payment.refund_receipt", payment_id=p.id)
-        if p.has_refund_receipt()
-        else None
+        lambda p: (
+            url_for("payment.refund_receipt", payment_id=p.id)
+            if p.has_refund_receipt()
+            else None
+        )
     )
     """ Uri of the receipt associated to the refunded online payment
 
@@ -173,7 +178,7 @@ def list_payments(event_id=None):
     :type event_id: int
     """
     if event_id is not None:
-        event = Event.query.get(event_id)
+        event = db.session.get(Event, event_id)
         if event is None:
             return abort(404)
         if not event.has_edit_rights(current_user) and not current_user.is_accountant():
@@ -203,7 +208,7 @@ def list_prices(event_id):
     :param event_id: The primary key of the event we're listing the payments of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(404)
     if not event.requires_payment():

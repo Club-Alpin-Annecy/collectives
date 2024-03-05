@@ -288,7 +288,7 @@ class ItemPrice(db.Model):
         # Access *before* making transient below
         user_group = self.user_group
 
-        copy = ItemPrice.query.get(self.id)
+        copy = db.session.get(ItemPrice, self.id)
         make_transient(copy)
         copy.id = None
         copy.item_id = None
@@ -395,7 +395,7 @@ class ItemPrice(db.Model):
                 condition = GroupEventCondition(
                     event_id=parent_event_id, is_leader=False
                 )
-                condition.event = Event.query.get(parent_event_id)
+                condition.event = db.session.get(Event, parent_event_id)
                 self._user_group.event_conditions.append(condition)
         else:
             if parent_event_id is None:
@@ -422,7 +422,7 @@ class ItemPrice(db.Model):
                 condition = GroupEventCondition(
                     event_id=self.item.event_id, is_leader=True
                 )
-                condition.event = Event.query.get(self.item.event_id)
+                condition.event = db.session.get(Event, self.item.event_id)
                 self._user_group.event_conditions.append(condition)
         else:
             if not value:

@@ -1,6 +1,7 @@
 """
 Module which contains various helping functions for url management.
 """
+
 import re
 
 from collectives.utils.misc import to_ascii

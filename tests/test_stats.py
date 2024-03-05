@@ -1,4 +1,5 @@
 """ Module to test statistcs engine"""
+
 # pylint: disable=unused-argument
 
 from datetime import datetime, timedelta

@@ -1,6 +1,7 @@
 """ API to get the event list in index page.
 
 """
+
 import json
 from dateutil import parser
 
@@ -10,7 +11,7 @@ from marshmallow import fields
 from sqlalchemy import desc, or_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
-from collectives.models import Event, EventStatus, EventType
+from collectives.models import db, Event, EventStatus, EventType
 from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
@@ -319,7 +320,11 @@ def events():
     data = EventSchema(many=True).dump(paginated_events.items)
     response = {"data": data, "last_page": paginated_events.pages}
 
-    return json.dumps(response), 200, {"content-type": "application/json"}
+    return (
+        json.dumps(response),
+        200,
+        {"content-type": "application/json", "Access-Control-Allow-Origin": "*"},
+    )
 
 
 class AutocompleteEventSchema(marshmallow.Schema):
@@ -453,7 +458,7 @@ def event_question_answers(event_id: int):
 
     :param event_id: Id of the event
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(404)
 

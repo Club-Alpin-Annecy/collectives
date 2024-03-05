@@ -1,7 +1,6 @@
 """Module for event related classes
 """
 
-
 from collectives.models.globals import db
 from collectives.models.event.model import EventModelMixin
 from collectives.models.event.enum import EventStatus

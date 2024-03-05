@@ -1,5 +1,6 @@
 """Module for user roles related classes
 """
+
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 

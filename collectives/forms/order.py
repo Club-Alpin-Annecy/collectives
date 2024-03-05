@@ -1,5 +1,6 @@
 """Helper module for explicitly ordering fields in WTForms
 """
+
 from collections import OrderedDict
 from flask_wtf import FlaskForm
 from wtforms_alchemy import ModelForm

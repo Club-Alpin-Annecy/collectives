@@ -11,7 +11,7 @@ from wtforms.validators import ValidationError
 from markupsafe import Markup
 from flask import url_for
 
-from collectives.models import ActivityType, RoleIds, Configuration, Event
+from collectives.models import db, ActivityType, RoleIds, Configuration, Event
 from collectives.models.user_group import UserGroup, GroupRoleCondition
 from collectives.models.user_group import GroupEventCondition, GroupLicenseCondition
 
@@ -68,7 +68,7 @@ class GroupRoleConditionForm(ModelForm):
     def activity(self) -> Optional[ActivityType]:
         """:returns: the activity corresponding to the current activity_id"""
         if self.activity_id.data:
-            return ActivityType.query.get(self.activity_id.data)
+            return db.session.get(ActivityType, self.activity_id.data)
         return None
 
     def activity_name(self) -> str:
@@ -120,7 +120,7 @@ class GroupEventConditionForm(ModelForm):
     def event(self) -> Optional[Event]:
         """:returns: the event associated with the condition"""
         if self.event_id.data:
-            return Event.query.get(self.event_id.data)
+            return db.session.get(Event, self.event_id.data)
         return None
 
 

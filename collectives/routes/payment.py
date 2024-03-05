@@ -56,7 +56,7 @@ def edit_prices(event_id):
     :param event_id: The primary key of the event we're editing the prices of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
@@ -77,8 +77,8 @@ def edit_prices(event_id):
             )
 
             if new_price_form.existing_item.data:
-                new_price.item = PaymentItem.query.get(
-                    new_price_form.existing_item.data
+                new_price.item = db.session.get(
+                    PaymentItem, new_price_form.existing_item.data
                 )
             else:
                 if event.registrations and not event.requires_payment():
@@ -221,7 +221,7 @@ def list_payments(event_id):
     :param event_id: The primary key of the event we're listing the prices of
     :type event_id: int
     """
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
@@ -247,7 +247,7 @@ def export_payments(event_id=None):
 
     # Check that the user is allowed to retrieve the payments
     if event_id is not None:
-        event = Event.query.get(event_id)
+        event = db.session.get(Event, event_id)
         if event is None:
             return abort(404)
         if not current_user.is_accountant() and not event.has_edit_rights(current_user):
@@ -328,7 +328,7 @@ def payment_details(payment_id):
     :param payment_id: Payment primary key
     :type payment_id: int
     """
-    payment = Payment.query.get(payment_id)
+    payment = db.session.get(Payment, payment_id)
     if payment is None:
         flash("Accès refusé", "error")
         return redirect(url_for("event.index"))
@@ -360,7 +360,7 @@ def payment_receipt(payment_id):
 
     is_refund = "refund" in request.endpoint
 
-    payment = Payment.query.get(payment_id)
+    payment = db.session.get(Payment, payment_id)
     if payment is None or payment.item.event is None or payment.buyer != current_user:
         flash("Accès refusé", "error")
         return redirect(url_for("event.index"))
@@ -402,7 +402,7 @@ def report_offline(registration_id, payment_id=None):
     :param payment_id: If editing an existing payment, its primary key. Defaults to None
     :type payment_id: int, optional
     """
-    registration = Registration.query.get(registration_id)
+    registration = db.session.get(Registration, registration_id)
     if registration is None:
         flash("Inscription invalide", "error")
         return redirect(url_for("event.index"))
@@ -415,7 +415,7 @@ def report_offline(registration_id, payment_id=None):
 
     payment = None
     if payment_id is not None:
-        payment = Payment.query.get(payment_id)
+        payment = db.session.get(Payment, payment_id)
         if (
             payment is None
             or payment.registration_id != int(registration_id)
@@ -428,7 +428,7 @@ def report_offline(registration_id, payment_id=None):
 
     all_valid = False
     if form.validate_on_submit():
-        item_price = ItemPrice.query.get(form.item_price.data)
+        item_price = db.session.get(ItemPrice, form.item_price.data)
         if (
             item_price is None
             or item_price.item.event_id != event.id
@@ -480,7 +480,7 @@ def request_payment(payment_id):
     :param payment_id: The primary key of the payment being made
     :type payment_id: int
     """
-    payment = Payment.query.get(payment_id)
+    payment = db.session.get(Payment, payment_id)
     if payment is None or payment.status != PaymentStatus.Initiated:
         abort(403)
 
@@ -662,7 +662,7 @@ def refund_all(event_id):
     """
 
     # Check that the user is allowed to modify this event
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(403)
     if not event.has_edit_rights(current_user):
@@ -726,7 +726,7 @@ def copy_prices(event_id):
     :return: Redirection to price edit page
     """
     # Check that the user is allowed to modify this event
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if event is None:
         return abort(403)
     if not event.has_edit_rights(current_user):
@@ -737,7 +737,7 @@ def copy_prices(event_id):
         flash("Erreur en recopiant les tarifs. Contactez le support.")
         return redirect(url_for("payment.edit_prices"))
 
-    copied_event = Event.query.get(form.copied_event_id.data)
+    copied_event = db.session.get(Event, form.copied_event_id.data)
     if copied_event is None:
         abort(400)
 

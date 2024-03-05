@@ -1,5 +1,6 @@
 """Module to describe the type of activity.
 """
+
 from sqlalchemy.orm import validates
 from markupsafe import escape
 
@@ -133,7 +134,7 @@ class ActivityType(db.Model):
         :type required_id: integer
         :return: name of the activity type
         :rtype: :py:class:`ActivityType`"""
-        return cls.query.get(required_id)
+        return db.session.get(cls, required_id)
 
     @classmethod
     def js_values(cls):

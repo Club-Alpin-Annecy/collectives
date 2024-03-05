@@ -2,6 +2,7 @@
 Module to calculate statistics of the event database. 
 
 """
+
 from functools import lru_cache
 from io import BytesIO
 from math import floor

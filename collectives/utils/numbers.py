@@ -1,5 +1,6 @@
 """ Module for formatting number and currencies
 """
+
 import math
 import babel
 

@@ -1,5 +1,6 @@
 """ Module to handle csv import
 """
+
 import builtins
 from datetime import datetime, timedelta
 import codecs
@@ -33,7 +34,7 @@ def fill_from_csv(event, row, template):
 
     parent_event_id = parse(row, "parent")
     if parent_event_id != "":
-        if Event.query.get(parent_event_id) is None:
+        if db.session.get(Event, parent_event_id) is None:
             raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
         event.user_group.event_conditions.add(

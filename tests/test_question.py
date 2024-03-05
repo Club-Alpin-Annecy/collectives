@@ -1,4 +1,5 @@
 """ Module to test question module. """
+
 # pylint: disable=unused-argument
 
 import json

@@ -3,6 +3,7 @@
 See `WTForms documentation
 <https://wtforms.readthedocs.io/en/latest/validators/#custom-validators>`_
 """
+
 import re
 
 from wtforms.validators import ValidationError

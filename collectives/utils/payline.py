@@ -1,5 +1,6 @@
 """Module to handle connexions to Payline.
 """
+
 import base64
 import json
 import decimal

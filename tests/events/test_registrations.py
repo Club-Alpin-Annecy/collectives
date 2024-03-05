@@ -1,4 +1,5 @@
 """ Event actions tests related to registrations"""
+
 from datetime import date, timedelta
 from collectives.models import db, RegistrationStatus
 

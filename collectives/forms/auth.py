@@ -3,6 +3,7 @@
 This module contains form related to authentification such as login
 and account creation.
 """
+
 from markupsafe import Markup
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField

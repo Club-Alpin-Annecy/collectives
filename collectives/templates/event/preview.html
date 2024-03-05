@@ -2,7 +2,7 @@
 {{event.event_type.name}}
 {% for atype in event.activity_types %}
     {{atype.name}}
-{% endfor %} - {{format_datetime_range(event.start, event.end)}} - {{event.num_slots}} places - <br/>
+{% endfor %} - {{format_datetime_range(event.start, event.end)}} - {{event.num_slots}} places -<br/>
 Par  
 {% for user in event.ranked_leaders() %}
         {{user.full_name() }}

@@ -1,5 +1,6 @@
 """Module containing forms for updating user information
 """
+
 from datetime import date
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed

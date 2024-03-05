@@ -2,6 +2,7 @@
 
 This modules contains the /equipment Blueprint
 """
+
 from flask_login import current_user
 from flask import render_template, redirect, url_for
 from flask import Blueprint, flash
@@ -68,7 +69,7 @@ def detail_equipment_type(type_id):
     Show one equipment type and its models
     """
     adding_from_model = EquipmentModelForm()
-    equipment_type = EquipmentType.query.get(type_id)
+    equipment_type = db.session.get(EquipmentType, type_id)
     form_edit = EquipmentTypeForm(obj=equipment_type)
 
     if form_edit.validate_on_submit():
@@ -128,7 +129,7 @@ def add_equipment_type():
 @blueprint.route("/delete_equipment_type/<int:equipment_type_id>", methods=["POST"])
 def delete_equipment_type(equipment_type_id):
     """Route to delete a specific type"""
-    equipment_type = EquipmentType.query.get(equipment_type_id)
+    equipment_type = db.session.get(EquipmentType, equipment_type_id)
     db.session.delete(equipment_type)
     db.session.commit()
     return redirect(url_for(".stock_situation"))
@@ -171,11 +172,11 @@ def add_equipment():
 
     title = "Ajouter un équipement"
     add_equipment_form = EquipmentForm()
-    e_model = EquipmentModel.query.get(add_equipment_form.equipment_model_id.data)
+    e_model = db.session.get(EquipmentModel, add_equipment_form.equipment_model_id.data)
 
     # Recalculating the new reference
     if e_model is not None:
-        e_type = EquipmentType.query.get(e_model.equipment_type_id)
+        e_type = db.session.get(EquipmentType, e_model.equipment_type_id)
         add_equipment_form.reference.data = e_type.get_new_reference()
     else:
         add_equipment_form.reference.data = None
@@ -203,7 +204,7 @@ def detail_equipment(equipment_id):
     """
     Show the detail af an equipment and a form to edit it
     """
-    selected_equipment = Equipment.query.get(equipment_id)
+    selected_equipment = db.session.get(Equipment, equipment_id)
 
     edit_equipment_form = EquipmentForm(obj=selected_equipment)
 
@@ -227,7 +228,7 @@ def delete_equipment(equipment_id):
     """
     Route to delete a specific equipment
     """
-    del_equipment = Equipment.query.get(equipment_id)
+    del_equipment = db.session.get(Equipment, equipment_id)
     db.session.delete(del_equipment)
     db.session.commit()
     return redirect(url_for(".stock_situation_stock"))
