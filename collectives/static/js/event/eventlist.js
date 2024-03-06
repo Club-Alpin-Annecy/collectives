@@ -246,8 +246,9 @@ function displayLeader(user){
     return user.name;
 }
 
+// TODO Propbably
 function selectFilter(type, id){
-    var currentFilter=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
+    var currentFilter=getCurrentFiltersOnType(type);
 
     if (currentFilter.length != 0)
         eventsTable.removeFilter(currentFilter);
@@ -257,6 +258,26 @@ function selectFilter(type, id){
             eventsTable.addFilter( [filter]);
 
     refreshFilterDisplay();
+}
+
+function selectMultipleFilter(type, listOfValues) {
+    if (listOfValues.length == 0) {
+        removeFilter(eventsTable, type);
+    } else {
+        var currentFilters = getCurrentFiltersOnType(type);
+        if (currentFilters.length != 0) {
+            removeFilter(eventsTable, type);
+        }
+    
+        for (let i = 0; i < listOfValues.length; i++) {
+            var filter={field: type, type:"=", value: listOfValues[i]};
+            if (listOfValues[i] !== false)
+                eventsTable.addFilter( [filter]);
+        }
+    
+        refreshFilterDisplay();
+    }
+
 }
 
 function filterConfirmedOnly(confirmedOnly){
@@ -273,15 +294,15 @@ function filterConfirmedOnly(confirmedOnly){
 function refreshFilterDisplay(){
     var filters = eventsTable.getFilters();
     // Unselect all activity filter buttons
-    document.getElementById('select_all').checked = true;
+    // document.getElementById('select_all').checked = true;
     document.getElementById('select_all_tags').checked = true;
     document.getElementById('select_all_event_types').checked = true;
 
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
-        if (filter['field'] == 'activity_type')
-            document.getElementById('select_activity_type_'+filter['value']).checked = true;
+        /* if (filter['field'] == 'activity_type')
+            document.getElementById('select_activity_type_'+filter['value']).checked = true;*/
         if (filter['field'] == 'event_type')
             document.getElementById('select_event_type_'+filter['value']).checked = true;
         if (filter['field'] == 'tags')
@@ -351,4 +372,106 @@ function removeFilter(table, type){
         if(filter['field'] == type)
             table.removeFilter(filter['field'], filter['type'], filter['value'])
     })
+}
+
+function getItemId(listOfValues, key, value) {
+    for (let i = 0; i < listOfValues.length; i++) {
+        if (listOfValues[i][key] === value) {
+          return listOfValues[i]['id'];
+        }
+    }
+    return undefined;
+}
+
+function getCurrentFiltersOnType(type) {
+    var currentFilters=eventsTable.getFilters().filter(function(i){ return i['field'] == type });
+    return currentFilters;
+}
+
+function excludeChoices(listOfValues, excluded) {
+    return listOfValues.filter(function(i){ return !excluded.includes(i["label"])} );
+}
+
+function disableAllChoicesExceptSome(listOfChoices, disabled, excluded) {
+    return listOfChoices.map(function (choice) {
+        if (excluded.includes(choice["label"])) {
+            choice["disabled"] = !disabled;
+            return choice;
+        } else {
+            choice["disabled"] = disabled;
+            return choice;
+        }
+    })
+}
+
+function removeAChoiceFromTheList(listOfChoices, valueToRemove) {
+    var index = listOfChoices.indexOf(valueToRemove);
+    return listOfChoices.toSpliced(index, 1);
+}
+
+function setMultipleActivityTypeChoices(activity_types_list) {
+    var all_activities_item = { 'name': '00 - Toute les activités', 'label': 'select_all_activity_types' };
+    activity_types_list.push(all_activities_item);
+
+    var choicesSelect = new Choices('#choices-multiple-labels', {
+        allowHTML: true,
+        removeItemButton: true,
+        });
+        
+    choicesSelect.setChoices(
+        activity_types_list,
+        'label',
+        'name',
+        false
+    );
+
+    // Set the filters based on what is saved in eventsTable
+    var currentFilters = getCurrentFiltersOnType('activity_type').map(function(i){ return i["value"]});
+    choicesSelect.setValue(currentFilters);
+    choicesSelect.setChoices(
+        excludeChoices(activity_types_list, currentFilters),
+        'label',
+        'name',
+        true
+    );
+
+    // create choicesSelected events listener
+    choicesSelect.passedElement.element.addEventListener(
+        'addItem',
+        function(event) {
+            if (event.detail.value == 'select_all_activity_types') {
+                var selectAllId = getItemId(choicesSelect.getValue(), 'value', 'select_all_activity_types');
+                choicesSelect.removeActiveItems(selectAllId);
+                var choices = disableAllChoicesExceptSome(activity_types_list, true, []);
+                choices = removeAChoiceFromTheList(choices, all_activities_item);
+                choicesSelect.setChoices(
+                    choices,
+                    'label',
+                    'name',
+                    true
+                );
+                removeFilter(eventsTable,"activity_type");
+            } else {
+                selectMultipleFilter('activity_type', choicesSelect.getValue(true));
+            }
+        }
+    );
+
+    choicesSelect.passedElement.element.addEventListener(
+        'removeItem',
+        function(event) {
+            if (event.detail.value == 'select_all_activity_types') {
+                removeFilter(eventsTable,"activity_type");
+                var choices = disableAllChoicesExceptSome(activity_types_list, false, []);
+                choicesSelect.setChoices(
+                    choices,
+                    'label',
+                    'name',
+                    true
+                );
+            } else {
+                selectMultipleFilter('activity_type', choicesSelect.getValue(true));
+            }
+        }
+    );
 }

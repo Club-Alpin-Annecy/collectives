@@ -216,6 +216,27 @@
     display: inline-block;
 }
 
+#filters .choices {
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    border: 2px solid rgb(29, 105, 137);
+    text-align: left;
+    font-size: 20px;
+    vertical-align: middle;
+    line-height: 40px;
+    display: inline-block;
+}
+
+#filters .choices__inner {
+    border: 0px !important;
+    background-color: transparent !important;
+}
+
+#filters .choices__input {
+    background-color: transparent !important;
+}
+
 .select .chevrons {
     float: right;
     height: 30px;
