@@ -34,7 +34,7 @@
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
                 <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
-                {% if event.event_type.get_terms_file() %}
+                {% if event.event_type.terms_file %}
                 {% if waiting_list %}
                     <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionné(e).</p>
                     <p>Vous pourrez être sélectionné(e) automatiquement jusqu'à la fin de la période d'inscription si un participant
@@ -48,7 +48,7 @@
                     <label>
                         <input type="checkbox" required="required"/> 
                         J'ai lu et j'accepte le 
-                        <a href="{{ url_for('static', filename=event.event_type.get_terms_file()) }}">{{event.event_type.get_terms_title()}}</a>
+                        <a href="{{ url_for('static', filename=event.event_type.terms_file) }}">{{event.event_type.get_terms_title()}}</a>
                     </label>
                     <br/>
                 </p>

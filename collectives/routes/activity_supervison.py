@@ -315,7 +315,7 @@ def configuration_form(activity_type_id):
         return redirect(url_for(".activity_supervision"))
 
     if activity not in current_user.get_supervised_activities():
-        flash("L'activité {activity.name} n'est pas gérable par vous.")
+        flash("Vous ne pouvez pas gérer l'activité {activity.name}.")
         return redirect(url_for(".activity_supervision"))
 
     form = ActivityTypeForm(obj=activity)

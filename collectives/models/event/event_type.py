@@ -76,12 +76,12 @@ class EventType(db.Model):
     :type: string
     """
 
-    terms_file = db.Column(db.String(256), nullable=True)
+    _terms_file = db.Column("terms_file", db.String(256), nullable=True)
     """ Name of the file containings the terms that must be accepted for registering to
     an event of this type.
 
     It is recommended to use
-    :py:meth:`collectives.models.event.event_type.EventType.get_terms_file()`
+    :py:meth:`collectives.models.event.event_type.EventType.terms_file`
     to access it in order to have formatted with hot configuration.
 
     :type: string
@@ -119,17 +119,25 @@ class EventType(db.Model):
         items = [f"{type.id}:'{escape(type.name)}'" for type in types]
         return "{" + ",".join(items) + "}"
 
-    def get_terms_file(self) -> str:
+    @property
+    def terms_file(self) -> str:
         """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_file`
 
         It will format the output using hot configuration as defined in
         :py:attr:`collectives.models.event.event_type.EventType.TERMS_CONFIGURATIONS`
         """
-        if self.terms_file is None:
+        if self._terms_file is None:
             return None
 
         confs = {key: Configuration[key] for key in self.TERMS_CONFIGURATIONS}
-        return self.terms_file.format(**confs)
+        return self._terms_file.format(**confs)
+
+    @terms_file.setter
+    def terms_file(self, value: str):
+        """Set the _terms_file attribute.
+
+        :param value: New value of _terms_file."""
+        self._terms_file = value
 
     def get_terms_title(self) -> str:
         """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_title`.

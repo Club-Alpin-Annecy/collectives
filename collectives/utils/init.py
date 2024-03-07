@@ -35,9 +35,9 @@ def activity_types(app):
                 activity_type.name = atype["name"]
                 activity_type.email = atype.get("email", None)
                 activity_type.trigram = atype["trigram"]
+                activity_type.deprecated = atype.get("deprecated", False)
 
             activity_type.short = atype["short"]
-            activity_type.deprecated = atype.get("deprecated", False)
 
             # if order is not specified, default to '50'
             activity_type.order = atype.get("order", 50)

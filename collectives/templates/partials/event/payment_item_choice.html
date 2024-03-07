@@ -32,11 +32,11 @@
                 J'ai lu et j'accepte les <a href="{{url_for('static', filename=Configuration.PAYMENTS_TERMS_FILE)}}">conditions générales de vente</a>.
             </label>
         </div>
-        {% if event.event_type.get_terms_file() and not is_leader %}
+        {% if event.event_type.terms_file and not is_leader %}
         <div>
             <label>
                 {{payment_item_choice_form.accept_guide}} J'ai lu et j'accepte le
-                <a href="{{ url_for('static', filename=event.event_type.get_terms_file() ) }}">{{event.event_type.get_terms_title()}}</a>.
+                <a href="{{ url_for('static', filename=event.event_type.terms_file ) }}">{{event.event_type.get_terms_title()}}</a>.
             </label>
         </div>
         {% endif %}

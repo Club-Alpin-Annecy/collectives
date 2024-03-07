@@ -331,7 +331,7 @@ Template mail:
         type: LongString
 
 
-APPARENCE:
+Apparence:
     BANNER_MESSAGE:
         content: ""
         description: Communication affichée sur la première page. MarkDown.
