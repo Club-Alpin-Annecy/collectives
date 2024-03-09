@@ -5,13 +5,37 @@
 import sqlite3
 import datetime
 import uuid
-import yaml
+import sys
 
+import yaml
 import sqlalchemy
+import pymysql
 from click import pass_context
 
 from collectives.models import ActivityType, EventType, User, Role, db, RoleIds
 from collectives.models import Configuration, ConfigurationTypeEnum, ConfigurationItem
+
+
+def catch_db_errors(fct, app, *args, **kwargs):
+    """Catches DB error in ``fct``.
+
+    Usually, it is because the db is not already set up during DB setup. Thus, it is
+    not very important.
+
+    :param fct: the function that will be called."""
+    msg = f"Cannot use {fct.__name__}: db is not available"
+    try:
+        fct(app, *args, **kwargs)
+    except sqlite3.OperationalError:
+        app.logger.warning(msg)
+    except sqlalchemy.exc.InternalError:
+        app.logger.warning(msg)
+    except sqlalchemy.exc.OperationalError:
+        app.logger.warning(msg)
+    except sqlalchemy.exc.ProgrammingError:
+        app.logger.warning(msg)
+    except pymysql.err.DataError:
+        app.logger.warning(msg)
 
 
 def activity_types(app):
@@ -26,39 +50,31 @@ def activity_types(app):
     :type: flask.Application
     :return: None
     """
-    try:
-        for aid, atype in app.config["ACTIVITY_TYPES"].items():
-            activity_type = db.session.get(ActivityType, aid)
-            if activity_type == None:
-                activity_type = ActivityType(id=aid)
+    for aid, atype in app.config["ACTIVITY_TYPES"].items():
+        activity_type = db.session.get(ActivityType, aid)
+        if activity_type == None:
+            activity_type = ActivityType(id=aid)
 
-                activity_type.name = atype["name"]
-                activity_type.email = atype.get("email", None)
-                activity_type.trigram = atype["trigram"]
+            activity_type.name = atype["name"]
+            activity_type.email = atype.get("email", None)
+            activity_type.trigram = atype["trigram"]
 
-            activity_type.short = atype["short"]
-            activity_type.deprecated = atype.get("deprecated", False)
+        activity_type.short = atype["short"]
+        activity_type.deprecated = atype.get("deprecated", False)
 
-            # if order is not specified, default to '50'
-            activity_type.order = atype.get("order", 50)
-            db.session.add(activity_type)
+        # if order is not specified, default to '50'
+        activity_type.order = atype.get("order", 50)
+        db.session.add(activity_type)
 
-        # Remove activity not in config
-        absent_filter = sqlalchemy.not_(
-            ActivityType.id.in_(app.config["ACTIVITY_TYPES"].keys())
-        )
-        ActivityType.query.filter(absent_filter).delete(synchronize_session=False)
-        # due to synchronize_session=False, do not use this session after without
-        # commit it
+    # Remove activity not in config
+    absent_filter = sqlalchemy.not_(
+        ActivityType.id.in_(app.config["ACTIVITY_TYPES"].keys())
+    )
+    ActivityType.query.filter(absent_filter).delete(synchronize_session=False)
+    # due to synchronize_session=False, do not use this session after without
+    # commit it
 
-        db.session.commit()
-
-    except sqlalchemy.exc.OperationalError:
-        app.logger.warning("Cannot configure activity types: db is not available")
-    except sqlalchemy.exc.InternalError:
-        app.logger.warning("Cannot configure activity types: db is not available")
-    except sqlalchemy.exc.ProgrammingError:
-        app.logger.warning("Cannot configure activity types: db is not available")
+    db.session.commit()
 
 
 def event_types(app):
@@ -73,45 +89,37 @@ def event_types(app):
     :type: flask.Application
     :return: None
     """
-    try:
-        for tid, etype in app.config["EVENT_TYPES"].items():
-            event_type = db.session.get(EventType, tid)
-            if event_type == None:
-                event_type = EventType(id=tid)
+    for tid, etype in app.config["EVENT_TYPES"].items():
+        event_type = db.session.get(EventType, tid)
+        if event_type == None:
+            event_type = EventType(id=tid)
 
-            event_type.name = etype["name"]
-            event_type.short = etype["short"]
-            event_type.requires_activity = etype["requires_activity"]
+        event_type.name = etype["name"]
+        event_type.short = etype["short"]
+        event_type.requires_activity = etype["requires_activity"]
 
-            if "license_types" in etype:
-                event_type.license_types = ",".join(etype["license_types"])
-            else:
-                event_type.license_types = None
+        if "license_types" in etype:
+            event_type.license_types = ",".join(etype["license_types"])
+        else:
+            event_type.license_types = None
 
-            event_type.terms_title = etype.get("terms_title", None)
-            event_type.terms_file = etype.get("terms_file", None)
+        event_type.terms_title = etype.get("terms_title", None)
+        event_type.terms_file = etype.get("terms_file", None)
 
-            db.session.add(event_type)
+        db.session.add(event_type)
 
-        # Remove event trypes not in config
-        all_keys = app.config["EVENT_TYPES"].keys()
-        absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
+    # Remove event trypes not in config
+    all_keys = app.config["EVENT_TYPES"].keys()
+    absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
 
-        for item in EventType.query.filter(absent_filter).all():
-            app.logger.warn(f"Obsolete event type {item.name}: deleting")
+    for item in EventType.query.filter(absent_filter).all():
+        app.logger.warn(f"Obsolete event type {item.name}: deleting")
 
-        EventType.query.filter(absent_filter).delete(synchronize_session=False)
-        # due to synchronize_session=False, do not use this session after without
-        # commit it
+    EventType.query.filter(absent_filter).delete(synchronize_session=False)
+    # due to synchronize_session=False, do not use this session after without
+    # commit it
 
-        db.session.commit()
-
-    except sqlalchemy.exc.OperationalError:
-        app.logger.warning("Cannot configure event types: db is not available")
-    except sqlalchemy.exc.InternalError:
-        app.logger.warning("Cannot configure event types: db is not available")
-    except sqlalchemy.exc.ProgrammingError:
-        app.logger.warning("Cannot configure event types: db is not available")
+    db.session.commit()
 
 
 # Init: Setup admin (if db is ready)
@@ -119,37 +127,28 @@ def init_admin(app):
     """Create an ``admin`` account if it does not exists. Enforce its password.
 
     Password is :py:data:`config:ADMINPWD`"""
-    try:
-        user = User.query.filter_by(mail="admin").first()
-        if user is None:
-            user = User()
-            user.mail = "admin"
-            # Generate unique license number
-            user.license = str(uuid.uuid4())[:12]
-            user.first_name = "Compte"
-            user.last_name = "Administrateur"
-            user.confidentiality_agreement_signature_date = datetime.datetime.now()
-            version = Configuration.CURRENT_LEGAL_TEXT_VERSION
-            user.legal_text_signed_version = version
-            user.legal_text_signature_date = datetime.datetime.now()
-            user.password = app.config["ADMINPWD"]
-            admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
-            user.roles.append(admin_role)
-            db.session.add(user)
-            db.session.commit()
-            app.logger.warning("create admin user")
-        if not user.password == app.config["ADMINPWD"]:
-            user.password = app.config["ADMINPWD"]
-            db.session.commit()
-            app.logger.warning("Reset admin password")
-    except sqlite3.OperationalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.InternalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.OperationalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.ProgrammingError:
-        app.logger.warning("Cannot configure admin: db is not available")
+    user = User.query.filter_by(mail="admin").first()
+    if user is None:
+        user = User()
+        user.mail = "admin"
+        # Generate unique license number
+        user.license = str(uuid.uuid4())[:12]
+        user.first_name = "Compte"
+        user.last_name = "Administrateur"
+        user.confidentiality_agreement_signature_date = datetime.datetime.now()
+        version = Configuration.CURRENT_LEGAL_TEXT_VERSION
+        user.legal_text_signed_version = version
+        user.legal_text_signature_date = datetime.datetime.now()
+        user.password = app.config["ADMINPWD"]
+        admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
+        user.roles.append(admin_role)
+        db.session.add(user)
+        db.session.commit()
+        app.logger.warning("create admin user")
+    if not user.password == app.config["ADMINPWD"]:
+        user.password = app.config["ADMINPWD"]
+        db.session.commit()
+        app.logger.warning("Reset admin password")
 
 
 def init_config(app, force=False, path="collectives/configuration.yaml", clean=True):
@@ -163,57 +162,47 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
     if force:
         app.logger.warn("Force hot configuration reset.")
 
-    try:
-        with open(path, "r", encoding="utf-8") as file:
-            yaml_content = yaml.safe_load(file.read())
-            for folder, config_item in yaml_content.items():
-                for name, config in config_item.items():
-                    item = Configuration.get_item(name)
+    with open(path, "r", encoding="utf-8") as file:
+        yaml_content = yaml.safe_load(file.read())
+        for folder, config_item in yaml_content.items():
+            for name, config in config_item.items():
+                item = Configuration.get_item(name)
 
-                    if config.get("obsolete", False):
-                        if item is not None:
-                            db.session.delete(item)
-                            app.logger.warn(
-                                f"Obsolete configuration item {item.name}: deleting"
-                            )
-                        continue
+                if config.get("obsolete", False):
+                    if item is not None:
+                        db.session.delete(item)
+                        app.logger.warn(
+                            f"Obsolete configuration item {item.name}: deleting"
+                        )
+                    continue
 
-                    if item is None:
-                        app.logger.info(f"Absent configuration item {name}: creating")
-                        item = ConfigurationItem(name)
-                        item.content = config["content"]
-                    elif force:
-                        Configuration.uncache(item.name)
-                        item.content = config["content"]
+                if item is None:
+                    app.logger.info(f"Absent configuration item {name}: creating")
+                    item = ConfigurationItem(name)
+                    item.content = config["content"]
+                elif force:
+                    Configuration.uncache(item.name)
+                    item.content = config["content"]
 
-                    item.description = config["description"]
-                    item.hidden = config.get("hidden", False)
-                    item.folder = folder
-                    item.type = getattr(ConfigurationTypeEnum, config["type"])
-                    db.session.add(item)
+                item.description = config["description"]
+                item.hidden = config.get("hidden", False)
+                item.folder = folder
+                item.type = getattr(ConfigurationTypeEnum, config["type"])
+                db.session.add(item)
 
-            if clean:
-                folders = [list(folder.keys()) for folder in yaml_content.values()]
-                all_keys = sum(folders, [])
-                absent_conf = sqlalchemy.not_(ConfigurationItem.name.in_(all_keys))
+        if clean:
+            folders = [list(folder.keys()) for folder in yaml_content.values()]
+            all_keys = sum(folders, [])
+            absent_conf = sqlalchemy.not_(ConfigurationItem.name.in_(all_keys))
 
-                for item in ConfigurationItem.query.filter(absent_conf).all():
-                    app.logger.warn(f"Unknown configuration item {item.name}: deleting")
+            for item in ConfigurationItem.query.filter(absent_conf).all():
+                app.logger.warn(f"Unknown configuration item {item.name}: deleting")
 
-                ConfigurationItem.query.filter(absent_conf).delete(
-                    synchronize_session=False
-                )
+            ConfigurationItem.query.filter(absent_conf).delete(
+                synchronize_session=False
+            )
 
-            db.session.commit()
-
-    except sqlite3.OperationalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.InternalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.OperationalError:
-        app.logger.warning("Cannot configure admin: db is not available")
-    except sqlalchemy.exc.ProgrammingError:
-        app.logger.warning("Cannot configure admin: db is not available")
+        db.session.commit()
 
 
 def populate_db(app):
@@ -223,24 +212,25 @@ def populate_db(app):
     :param app: The Flask application
     :type app: :py:class:`flask.Application`
     """
-
     if is_running_migration():
         app.logger.info("Migration detected, skipping populating database")
         return
 
     app.logger.info("Populating database with initial values")
-    init_config(app)
-    init_admin(app)
-    activity_types(app)
-    event_types(app)
+    catch_db_errors(init_config, app)
+    catch_db_errors(init_admin, app)
+    catch_db_errors(activity_types, app)
+    catch_db_errors(event_types, app)
 
 
-def is_running_migration():
+def is_running_migration() -> bool:
     """Detects whether we are running a migration command.
 
     :return: True if running  a migration
-    :rtype: False
     """
+    if "db" in sys.argv and "upgrade" in sys.argv:
+        return True
+
     try:
         # pylint: disable=E1120
         return is_running_migration_context()
@@ -250,7 +240,7 @@ def is_running_migration():
 
 
 @pass_context
-def is_running_migration_context(ctx):
+def is_running_migration_context(ctx) -> bool:
     """Detects whether we are running a migration command.
 
     It has not error protection if there is no context.
@@ -258,7 +248,6 @@ def is_running_migration_context(ctx):
     :param ctx: The current click context
     :type ctx: :py:class:`cli.Context`
     :return: True if running  a migration
-    :rtype: False
     """
     while ctx is not None:
         if ctx.command and ctx.command.name == "db":
