@@ -875,18 +875,11 @@ def self_unregister(event_id):
     """
     event = db.session.get(Event, event_id)
 
-    if event.start < current_time():
-        flash("Désinscription impossible: la collective a déjà commencé.", "error")
-        return redirect(url_for("event.view_event", event_id=event_id))
-
     query = Registration.query.filter_by(user=current_user)
     registration = query.filter_by(event=event).first()
 
-    if registration.status == RegistrationStatus.Rejected:
-        flash(
-            "Désinscription impossible: vous avez déjà été refusé de la collective.",
-            "error",
-        )
+    if not event.can_self_unregister(current_user, current_time()):
+        flash("Désinscription impossible.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     previous_status = registration.status
