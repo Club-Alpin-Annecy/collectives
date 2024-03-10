@@ -220,7 +220,7 @@
             {% endif %}
           {% endfor %}
           </ul></p>
-        {% else %}  {# Active registration or waiting list #}
+        {% elif event.can_self_unregister(current_user, current_time) %}  {# Active registration or waiting list #}
           {% if not current_user.check_license_valid_at_time(event.end) %}
           {# Pending licence renewal #}
           <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
