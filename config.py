@@ -21,12 +21,16 @@ FLASK_ENV = environ.get("FLASK_ENV")
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#ENV
 
+Can be set using environment variable.
+
 :type: string
 """
 FLASK_DEBUG = environ.get("FLASK_DEBUG")
 """Whether debug mode is enabled.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#DEBUG
+
+Can be set using environment variable.
 
 :type: boolean
 """
@@ -39,6 +43,8 @@ To generate a new secret key:
 >>> import random, string
 >>> "".join([random.choice(string.printable) for _ in range(24)])
 Secret key can also be set in instance/config.py
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -56,6 +62,8 @@ ADMINPWD = environ.get("ADMINPWD") or "foobar2"
 
 Will be set or reset at every application. Makes sure this is a secure password
 in production.
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -79,6 +87,8 @@ as github CI tests.
 EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or DEFAULT_WSDL
 """URL of WSDL to connect to FFCAM server
 
+Can be set using environment variable.
+
 :type: string
 """
 
@@ -100,6 +110,8 @@ or mysql: ``mysql+pymysql://username:password@localhost/db_name?charset=utf8mb4`
 
 NB: When using mysql, charset must be specified to allow UTF8 character in test field.
 
+Can be set using environment variable.
+
 :type: string
 """
 SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -107,6 +119,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Payline
 PAYLINE_WSDL = environ.get("PAYLINE_WSDL") or "./collectives/utils/payline.wsdl"
 """Path to WDSL file describing Payline WebPayment SOAP API
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -116,6 +130,8 @@ PAYLINE_DIRECTPAYMENT_WSDL = (
     or "./collectives/utils/payline_directpayment.wsdl"
 )
 """Path to WDSL file describing Payline DirectPayment SOAP API
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -358,25 +374,35 @@ IMAGES_PATH = [
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_OPENING_DELTA_DAYS = environ.get("REGISTRATION_OPENING_DELTA_DAYS") or 7
 """ Default number of days the online registration should start before the beginning of the event
+
+Can be set using environment variable.
 
 :type: int """
 
 REGISTRATION_OPENING_HOUR = environ.get("REGISTRATION_OPENING_HOUR") or 7
 """ Default hour of the day the online registration should start before the beginning of the event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_CLOSING_DELTA_DAYS = environ.get("REGISTRATION_CLOSING_DELTA_DAYS") or 1
 """ Default number of days the online registration should end before the beginning of the event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 """ Default hour of the day the online registration should end before the beginning of the event
+
+Can be set using environment variable.
 
 :type: int """
 
