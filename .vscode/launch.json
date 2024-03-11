@@ -15,7 +15,8 @@
             },
             "args": [
                 "run",
-                "--no-debugger"
+                //"--no-debugger"
+                "--debug"
             ],
             "jinja": true,
             "justMyCode": true

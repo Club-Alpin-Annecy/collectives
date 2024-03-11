@@ -298,6 +298,7 @@ EVENT_TAGS = {
     },
     10: {"short": "tag_rando_cool", "name": "Rando Cool"},
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
+    12: {"short": "tag_environmental_consciousness", "name": "Éco-Sensibilisation"},
 }
 
 # Technical stuff
