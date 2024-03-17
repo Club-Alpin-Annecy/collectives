@@ -4,17 +4,21 @@
   {% extends 'partials/basic-extends.html' %}
 {% endif %}
 
+{% import 'partials/form-fields.html' as generator  %}
+
+
 {% block additionalhead %}
   {% include 'partials/form-additionalhead.html' %}
 {% endblock %}
 
 {% block page_content %}
-<div class="panel" id="administration">
+<div class="page-content">
   <!-- Logging Windows -->
   <h1 class="heading-1">{{ title }}</h1>
   {% if subtitle %}<h4 class="heading-4">{{subtitle}}</h4>{% endif  %}
+  {% if description %}<p>{{description}}</p>{% endif  %}
 
-  {% include 'partials/form-fields.html' %}
+  {{ generator.form_generator(form) }}
 
 </div>
 

@@ -1,4 +1,4 @@
-
+{% macro form_generator(form, action='', form_id='basic_form') -%}
 
   <div class="form-errors">
     {% for field in form%}
@@ -19,24 +19,34 @@
 
   </div>
 
-  <form action="" method="POST" enctype="multipart/form-data" class="form" id="basic_form">
+  <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
+        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "HiddenField" ]) %}
             <div class="controls">
-                <div class="field">{{ field.label }}<span class="help">{{ field.description }}</span></div>
+                {{ field.label(class="label-top") }}
+                <div class="label-help">{{ field.description }}</div>
 
                 {% if field.type == "PasswordField" %}
-                    {{ field(autocomplete="new-password", title=field.description) }}
+                    {{ field(autocomplete="new-password", title=field.description, class="input-100") }}
                 {% elif field.type == "FileField" %}
-                    {{ field(onchange="checkFileFieldSize(this)", title=field.description) }}
+                    {{ field(onchange="checkFileFieldSize(this)", title=field.description, class="input-100") }}
                 {% else %}
-                    {{ field(title=field.description) }}
+                    {{ field(title=field.description, class="input-100") }}
                 {% endif %}
             </div>
+        {% elif field.type == "HiddenField"%}
+            {{ field }}
         {% endif %}
     {% endfor %}
-    {{ form.hidden_tag() }}
+    {% if form.hidden_tag %}
+        {{ form.hidden_tag() }}
+    {% endif %}
     <div class="controls">
-    <br />{{ form.submit(class="button button-primary") }}
+    <br />
+    {% if form.submit %}
+        {{ form.submit(class="button button-primary input-100") }}
+    {% endif %}
     </div>
   </form>
+
+{%- endmacro %}

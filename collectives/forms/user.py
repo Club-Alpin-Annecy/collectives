@@ -212,7 +212,7 @@ class RenewBadgeForm(ModelForm, FlaskForm):
 class AddLeaderForm(ActivityTypeSelectionForm):
     """Form for supervisors to add "Trainee" or "EventLeader" role to users"""
 
-    user_id = HiddenField()
+    user_id = HiddenField(id="user-search-resultid")
     user_search = StringField(
         "Utilisateur",
         render_kw={
@@ -240,7 +240,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
 class AddBadgeForm(ActivityTypeSelectionForm):
     """Form for supervisors to add badges to Users"""
 
-    user_id = HiddenField()
+    user_id = HiddenField(id="user-search-resultid")
     user_search = StringField(
         "Utilisateur",
         render_kw={

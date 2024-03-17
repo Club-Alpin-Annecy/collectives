@@ -28,16 +28,7 @@ form {
         display: flex;
         margin: 0.8rem 0;
         & > * {
-            margin: 0 0.8rem;
-        }
-        & :first-child {
-            margin-left: 0;
-        }
-        & :last-child {
-            margin-right: 0;
-        }
-        input {
-            margin-right: $padding-horizontal-default;
+            margin: 0 0;
         }
 
         .label-top {
@@ -55,9 +46,14 @@ form {
     &.form-vertical {
         display: flex;
         flex-direction: column;
+        margin: auto;
+
+        max-width: 48em;
+
         .controls {
             margin: $padding-default;
-            line-height: 2*$padding-input-vertical-default + 1rem;
+            line-height: 2*$padding-input-vertical-default ;
+            flex-direction: column;
         }
         label {
             width: 100%;
@@ -72,7 +68,6 @@ form {
 
         input {
             align-self: center;
-
         }
 
 
