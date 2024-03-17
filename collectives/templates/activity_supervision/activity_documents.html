@@ -1,6 +1,8 @@
 
 {% extends 'activity_supervision/activity_supervision.html' %}
 
+{% import 'partials/form-fields.html' as generator  %}
+
 {% block additionalhead %}
 
   {# Tabulator: for tables#}
@@ -28,31 +30,7 @@
 
   <h4 class="heading-4">Ajout d'un document</h4>
 
-  <div class="action">
-
-        <div class="form-errors">
-            {% for field in add_leader_form%}
-            {% for error in add_leader_form.errors[field.name] %}
-            <div class="flash flash-error">
-            <strong>Erreur : {{field.label}}:</strong> {{error}}
-            </div>
-            {% endfor %}
-            {% endfor %}
-        </div>
-
-      <form action="{{url_for('.activity_documents')}}" method="POST" enctype="multipart/form-data">
-        <div class="controls">
-            <div class="field">{{ add_document_form.activity_id.label }} </div> 
-            {{ add_document_form.activity_id }}
-        </div>
-        <div class="controls">
-          <div class="field">{{ add_document_form.document_file.label }} </div> 
-          {{ add_document_form.document_file(onchange="checkFileFieldSize(this)") }}
-        </div>
-          {{ add_document_form.hidden_tag() }}
-          {{ add_document_form.submit(class="button button-primary") }}
-      </form>
-  </div>
+  {{ generator.form_generator(add_document_form, url_for('.activity_documents')) }}
   
 </div>
 {% endblock %}

@@ -449,9 +449,18 @@ def export_role(raw_filters=""):
 @blueprint.route("/token", methods=["GET"])
 def token():
     """Route for ask user registration token"""
+
+    description = """Si un utilisateur ne reçoit pas les emails contenant
+    le jeton de confirmation nécessaire à la création ou récupération de
+    son compte, vous pouvez en générer un manuellement avec le formulaire
+    ci-dessous."""
+
     return render_template(
-        "administration/token.html",
-        token_creation_form=AdminTokenCreationForm(),
+        "basicform.html",
+        title="Jetons de confirmation",
+        form=AdminTokenCreationForm(),
+        extends="administration/index.html",
+        description=description,
     )
 
 

@@ -123,7 +123,7 @@
     {% endif %}
 
     <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
-    <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
+    <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
         <p>
             <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom…" >
