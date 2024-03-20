@@ -8,7 +8,7 @@
   <script>
     Chart.register(ChartDataLabels);
     Chart.defaults.set('plugins', {
-      datalabels: {font: {size: '30px'}, anchor: 'end', align : 'top'},
+      datalabels: {font: {size: '20px'}, anchor: 'end', align : 'top'},
       legend: { display: false },
       title: {
         display: true,
@@ -189,6 +189,19 @@
           </div> <!-- End .tile line -->
         {% endif %}
         <!-- End Leader section -->
+
+        <!-- Unregistration section -->
+        <div class="tile">
+          <div class="heading-2"><br/>Désinscriptions et Absences injustifiées</div>
+        </div>
+        <div class="tile">
+          <div class="tile is-parent">
+            <div class="tile card is-child tall">
+              {% include 'stats/partials/nb_unregistrations_inc_late_and_unjustified_absentees_per_week.html' %}
+            </div>
+          </div>
+        </div> <!-- End .tile line -->
+        <!-- End Unregistration section -->
 
       </div> <!-- End .tile .is-vertical -->
     </div> <!-- End .tile .is-ancestor -->

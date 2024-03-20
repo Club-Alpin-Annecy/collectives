@@ -9,4 +9,5 @@ pytest_plugins = [
     "tests.fixtures.stats",
     "tests.mock.extranet",
     "tests.mock.payline",
+    "tests.mock.session",
 ]
