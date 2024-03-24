@@ -1,50 +1,34 @@
 
 {% extends 'base.html' %}
 
+{% import 'partials/form-fields.html' as generator  %}
+
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
 <div class="login-form">
     <div class="box">
+        <h1 class="heading-1 padding-default">Connexion</h1>
 
-        <form method="POST" action="#" class="form form-vertical">
-            <div class="controls">
-                <h1 class="heading-1">Connexion</h1>
-            </div>
-            {{ form.hidden_tag() }}
-            <div class="controls">
-            <label for="{{ form.mail.id_for_label }}" class="label-top">Email
-                {{ form.mail(class="input-100") }}
-            </label>
-            </div>
-            <div class="controls">
-            <label for="{{ form.password.id_for_label }}" class="label-top">Mot de Passe
-                {{ form.password(class="input-100") }}
-            </label>
-            </div>
-            <div class="controls">
-                {{ form.remember_me() }} {{ form.remember_me.label }}
-            </div>
-            <div class="controls">
-                {{ form.submit(class="button button-primary input-100") }}
-            </div>
-            <div class="controls">
-                <p class="contact-link">
-                    <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
-                </p>
-            </div>
+        {{ generator.form_generator(form) }}
+
+        <div class="padding-default">
+            <p class="contact-link">
+                <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+            </p>
+
             <hr class="separator">
-            <div class="controls">
+
+            <div>
                 <h5>Pas encore de compte Collectives ?</h5>
-            </div>
-            <div class="controls">
                 <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
             </div>
+
             <hr class="separator">
-            <div class="controls">
-                {% include 'partials/contact_link.html' %}
-            </div>
-        </form>
+
+            {% include 'partials/contact_link.html' %}
+
+        </div>
     </div>
 </div>
 {% endblock %}

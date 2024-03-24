@@ -12,11 +12,8 @@ from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 from collectives.models.event import Event
 from collectives.utils.time import current_time
-from collectives.models.user_group import (
-    UserGroup,
-    GroupEventCondition,
-    GroupLicenseCondition,
-)
+from collectives.models.user_group import UserGroup, GroupEventCondition
+from collectives.models.user_group import GroupLicenseCondition
 
 
 class PaymentItem(db.Model):
@@ -203,7 +200,7 @@ class ItemPrice(db.Model):
     :type: string"""
 
     enabled = db.Column(
-        db.Boolean, nullable=False, default=False, info={"label": "Activer le tarif"}
+        db.Boolean, nullable=False, default=True, info={"label": "Activer le tarif"}
     )
     """ Whether this price is enabled.
     Ideally, prices should be disabled rather than fully deleted

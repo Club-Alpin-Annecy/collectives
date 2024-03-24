@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% import 'partials/form-fields.html' as generator  %}
+
 {% block additionalhead %}
   {% include 'partials/form-additionalhead.html' %}
 {% endblock %}
@@ -20,7 +22,7 @@
   </div>
   {% endif %}
 
-  {% include 'partials/form-fields.html' %}
+  {{ generator.form_generator(form, "#" ) }}
   
   {% if propose_activate %}
   <div class="form-info">

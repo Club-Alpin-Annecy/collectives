@@ -11,17 +11,22 @@ $padding-vertical-m: 0.8rem;
 $padding-horizontal-m: 1.9rem;
 
 $padding-vertical-l: 1.6rem;
-$padding-vertical-xl: 3rem;
+$padding-horizontal-l: 2.2rem;
 
+$padding-vertical-xl: 3rem;
+$padding-horizontal-xl: 4.2rem;
 
 
 $padding-default: $padding-vertical-default $padding-horizontal-default;
 
 $padding-sections: (2*$padding-vertical-default) $padding-horizontal-default;
 
-
+$padding-xs: $padding-vertical-xs $padding-horizontal-xs;
 $padding-s: $padding-vertical-s $padding-horizontal-s;
 $padding-m: $padding-vertical-m $padding-horizontal-m;
+$padding-l: $padding-vertical-l $padding-horizontal-l;
+$padding-xl: $padding-vertical-xl $padding-horizontal-xl;
+
 $padding-buttons-default: $padding-vertical-m $padding-horizontal-m;
 
 
