@@ -103,11 +103,13 @@ def fill_from_csv(event, row, template):
         )
     event.set_rendered_description(event.description)
 
-    # Event tag
-    tag_id = EventTag.get_type_from_csv_code(parse(row, "tag"))
-    if tag_id is not None:
-        tag = EventTag(tag_id=tag_id)
-        event.tag_refs.append(tag)
+    # Event tags - takes all column that starts with tag
+    tags = [[k, v] for k, v in row.items() if k.startswith("tag")]
+    for [k, v] in tags:
+        tag_id = EventTag.get_type_from_csv_code(parse(row, k))
+        if tag_id is not None:
+            tag = EventTag(tag_id=tag_id)
+            event.tag_refs.append(tag)
 
     # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
@@ -140,6 +142,11 @@ def parse(row, column_name):
     :return: The parsed value
     """
     csv_columns = current_app.config["CSV_COLUMNS"]
+    # in case column name is not in standard csv column from app this could be a special column, return directly the value
+    if not column_name in csv_columns:
+        value_str = row[column_name].strip()
+        return value_str
+
     column_short_desc = csv_columns[column_name]["short_desc"]
 
     # verify if mandatory columns are present or not
@@ -205,7 +212,7 @@ def process_stream(base_stream, activity_type, description):
     try:
         text_stream = TextIOWrapper(base_stream, encoding="utf8")
         sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(5000)).delimiter
+        delimiter = sniffer.sniff(text_stream.read(100)).delimiter
         base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "utf8")
         events, processed, failed = csv_to_events(stream, description, delimiter)
@@ -213,7 +220,7 @@ def process_stream(base_stream, activity_type, description):
         base_stream.seek(0)
         text_stream = TextIOWrapper(base_stream, encoding="iso-8859-1")
         sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(5000)).delimiter
+        delimiter = sniffer.sniff(text_stream.read(100)).delimiter
         base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "iso-8859-1")
         events, processed, failed = csv_to_events(stream, description, delimiter)
