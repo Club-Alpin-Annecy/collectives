@@ -7,8 +7,8 @@ import codecs
 import csv
 
 from flask import current_app
-from io import TextIOWrapper
-from collectives.models import User, Event, EventTag, EventType, db
+
+from collectives.models import User, Event, EventTag, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
@@ -25,16 +25,15 @@ def fill_from_csv(event, row, template):
     :return: Nothing
     """
 
-    type_id = EventType.get_type_from_csv_code(parse(row, "event_type"))
-    event.event_type_id = type_id
     event.title = parse(row, "titre")
+
     # Subscription dates and slots
     event.start = parse(row, "debut")
     event.end = parse(row, "fin")
     event.num_slots = parse(row, "places")
 
     parent_event_id = parse(row, "parent")
-    if not (parent_event_id == "" or parent_event_id == None):
+    if parent_event_id != "":
         if db.session.get(Event, parent_event_id) is None:
             raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
@@ -74,22 +73,10 @@ def fill_from_csv(event, row, template):
             )
 
     # Description
-    altitude = parse(row, "altitude")
-    denivele = parse(row, "denivele")
-    distance = parse(row, "distance")
-    observations = parse(row, "observations")
-    try:
-        event.description = template.format(
-            **row,
-            altitude=altitude,
-            denivele=denivele,
-            distance=distance,
-            observations=observations,
-        )
-    except builtins.Exception as e:
-        raise builtins.Exception(
-            f"La colonne '{e}' demandée pour la Description de l'événement n'existe pas dans le fichier"
-        )
+    parse(row, "altitude")
+    parse(row, "denivele")
+    parse(row, "distance")
+    event.description = template.format(**row)
     event.set_rendered_description(event.description)
 
     # Event tag
@@ -131,14 +118,10 @@ def parse(row, column_name):
     csv_columns = current_app.config["CSV_COLUMNS"]
     column_short_desc = csv_columns[column_name]["short_desc"]
 
-    # verify if mandatory columns are present or not
-    if not column_name in row and not csv_columns[column_name].get("optional", 0):
+    if row[column_name] is None:
         raise builtins.Exception(
-            f"La colonne '{column_short_desc}' est obligatoire et n'existe pas dans le fichier"
+            f"La colonne '{column_short_desc}' n'existe pas dans le fichier"
         )
-    # if column is not present but a default value can be given, return default
-    if not column_name in row and "default" in csv_columns[column_name]:
-        return csv_columns[column_name]["default"]
 
     value_str = row[column_name].strip()
 
@@ -166,9 +149,6 @@ def parse(row, column_name):
                     f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
                     "nombre entier"
                 ) from err
-    # if value is not present but a default value can be given, return default
-    if not value_str and "default" in csv_columns[column_name]:
-        return csv_columns[column_name]["default"]
 
     return value_str
 
@@ -178,7 +158,6 @@ def process_stream(base_stream, activity_type, description):
 
     Processing will first try to process it as an UTF8 encoded file. If it fails
     on a decoding error, it will try as Windows encoding (iso-8859-1).
-    CSV file delimiter will be inferred with csv.Sniffer method.
 
     :param base_stream: the csv file as a stream.
     :type base_stream: :py:class:`io.StringIO`
@@ -190,22 +169,13 @@ def process_stream(base_stream, activity_type, description):
     :return: The number of processed events, and the number of failed attempts
     :rtype: (int, int)
     """
-
     try:
-        text_stream = TextIOWrapper(base_stream, encoding="utf8")
-        sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(5000)).delimiter
-        base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "utf8")
-        events, processed, failed = csv_to_events(stream, description, delimiter)
+        events, processed, failed = csv_to_events(stream, description)
     except UnicodeDecodeError:
         base_stream.seek(0)
-        text_stream = TextIOWrapper(base_stream, encoding="iso-8859-1")
-        sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(5000)).delimiter
-        base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "iso-8859-1")
-        events, processed, failed = csv_to_events(stream, description, delimiter)
+        events, processed, failed = csv_to_events(stream, description)
 
     # Complete event before adding it to db
     for event in events:
@@ -216,7 +186,7 @@ def process_stream(base_stream, activity_type, description):
     return processed, failed
 
 
-def csv_to_events(stream, description, delimiter):
+def csv_to_events(stream, description):
     """Decode the csv stream to populate events.
 
     :param stream: the csv file as a stream.
@@ -224,8 +194,6 @@ def csv_to_events(stream, description, delimiter):
     :param description: Description template that will be used to generate new events
                         description.
     :type description: String
-    :param delimeter: Delimiter for csv file import.
-    :type delimiter: String
     :return: The new events, the number of processed events, and the number of
             failed attempts
     :rtype: list(:py:class:`collectives.models.event.Event`), int, int
@@ -233,7 +201,16 @@ def csv_to_events(stream, description, delimiter):
     events = []
     processed = 0
     failed = []
-    reader = csv.DictReader(stream, delimiter=delimiter, fieldnames=None)
+    fields = list(current_app.config["CSV_COLUMNS"].keys())
+
+    reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
+    row = next(reader, None)  # skip the headers
+
+    if all(row[f] is None for f in fields[1:]):
+        # Single non-None column, delimiter is likely wrong
+        # Retry with semi-column
+        reader = csv.DictReader(stream, delimiter=";", fieldnames=fields)
+        next(reader, None)  # skip the headers
 
     for row in reader:
         processed += 1
