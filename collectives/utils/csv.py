@@ -5,6 +5,7 @@ import builtins
 from datetime import datetime, timedelta
 import codecs
 import csv
+import re
 
 from flask import current_app
 from io import TextIOWrapper
@@ -118,7 +119,13 @@ def fill_from_csv(event, row, template):
             f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
             "pas encore créé de compte"
         )
-
+    # check license with name correspondance
+    if not row["nom_encadrant"] in [
+        leader.first_name + " " + leader.last_name
+    ] and not row["nom_encadrant"] in [leader.last_name + " " + leader.first_name]:
+        raise builtins.Exception(
+            f"L'encadrant {row['nom_encadrant']} ne corresponde pas au numéro de licence {row['id_encadrant']}. "
+        )
     # Check if event already exists in same activity
     if Event.query.filter_by(
         main_leader_id=leader.id, title=event.title, start=event.start
@@ -130,6 +137,29 @@ def fill_from_csv(event, row, template):
 
     event.leaders = [leader]
     event.main_leader_id = leader.id
+
+    # Other leaders - takes all column that starts with id_encadrant an try adding them
+    leaders_table = [
+        [k, value] for k, value in row.items() if k.startswith("id_encadrant")
+    ]
+    for [k, value] in leaders_table:
+        leader = User.query.filter_by(
+            license=value
+        ).first()  # tries to find leader using value as license
+        if leader is None:
+            match = re.match(
+                r"(.+)\((.+)\)", value
+            )  # tries to match expression: "identifier (license)" or "license (identifier)"
+            first_part, second_part = match.groups()
+            leader = User.query.filter_by(license=second_part).first()
+            if leader is None:
+                leader = User.query.filter_by(license=first_part).first()
+                if leader is None:
+                    raise builtins.Exception(
+                        f"L'encadrant {value} n'a pas pu etre trouvé. Vérifier que le format et les informations soient correctement reinsegnés."
+                    )
+
+        event.leaders.append(leader)
 
 
 def parse(row, column_name):
