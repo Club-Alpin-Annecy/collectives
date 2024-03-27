@@ -6,9 +6,8 @@ from datetime import datetime, timedelta
 import codecs
 import csv
 import re
-
-from flask import current_app
 from io import TextIOWrapper
+from flask import current_app
 from collectives.models import User, Event, EventTag, EventType, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
@@ -58,8 +57,7 @@ def fill_from_csv(event, row, template):
         else:
             # Set default value
             event.registration_open_time = (
-                event.start
-                - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
+                event.start - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
             ).replace(
                 hour=current_app.config["REGISTRATION_OPENING_HOUR"],
                 minute=0,
@@ -69,8 +67,7 @@ def fill_from_csv(event, row, template):
         else:
             # Set default value
             event.registration_close_time = (
-                event.start
-                - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
+                event.start - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
             ).replace(
                 hour=current_app.config["REGISTRATION_CLOSING_HOUR"],
                 minute=0,
@@ -86,21 +83,18 @@ def fill_from_csv(event, row, template):
             )
 
     # Description
-    altitude = parse(row, "altitude")
+    '''altitude = parse(row, "altitude")
     denivele = parse(row, "denivele")
     distance = parse(row, "distance")
-    observations = parse(row, "observations")
+    observations = parse(row, "observations")'''
     try:
         event.description = template.format(
             **row,
-            altitude=altitude,
-            denivele=denivele,
-            distance=distance,
-            observations=observations,
         )
     except builtins.Exception as e:
         raise builtins.Exception(
-            f"La colonne '{e}' demandée pour la Description de l'événement n'existe pas dans le fichier"
+            f"La colonne '{e}' demandée pour la Description de"
+            "l'événement n'existe pas dans le fichier"
         )
     event.set_rendered_description(event.description)
 
@@ -119,13 +113,6 @@ def fill_from_csv(event, row, template):
             f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
             "pas encore créé de compte"
         )
-    # check license with name correspondance
-    if not row["nom_encadrant"] in [
-        leader.first_name + " " + leader.last_name
-    ] and not row["nom_encadrant"] in [leader.last_name + " " + leader.first_name]:
-        raise builtins.Exception(
-            f"L'encadrant {row['nom_encadrant']} ne corresponde pas au numéro de licence {row['id_encadrant']}. "
-        )
     # Check if event already exists in same activity
     if Event.query.filter_by(
         main_leader_id=leader.id, title=event.title, start=event.start
@@ -139,9 +126,7 @@ def fill_from_csv(event, row, template):
     event.main_leader_id = leader.id
 
     # Other leaders - takes all column that starts with id_encadrant an try adding them
-    leaders_table = [
-        [k, value] for k, value in row.items() if k.startswith("id_encadrant")
-    ]
+    leaders_table = [[k, value] for k, value in row.items() if k.startswith("id_encadrant")]
     for [k, value] in leaders_table:
         leader = User.query.filter_by(
             license=value
@@ -156,7 +141,8 @@ def fill_from_csv(event, row, template):
                 leader = User.query.filter_by(license=first_part).first()
                 if leader is None:
                     raise builtins.Exception(
-                        f"L'encadrant {value} n'a pas pu etre trouvé. Vérifier que le format et les informations soient correctement reinsegnés."
+                        f"L'encadrant {value} n'a pas pu etre trouvé. "
+                        "Vérifier que le format et les informations soient correctement reinsegnés."
                     )
 
         event.leaders.append(leader)
@@ -172,7 +158,8 @@ def parse(row, column_name):
     :return: The parsed value
     """
     csv_columns = current_app.config["CSV_COLUMNS"]
-    # in case column name is not in standard csv column from app this could be a special column, return directly the value
+    # in case column name is not in standard csv column from app, 
+    # return directly the value
     if not column_name in csv_columns:
         value_str = row[column_name].strip()
         return value_str
