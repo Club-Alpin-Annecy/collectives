@@ -24,6 +24,8 @@ def fill_from_csv(event, row, template):
     :type template: string
     :return: Nothing
     """
+    # remove all blank spaces in keys
+    row = {key.replace(" ", ""): value for key, value in row.items()}
 
     type_id = EventType.get_type_from_csv_code(parse(row, "event_type"))
     event.event_type_id = type_id
@@ -71,6 +73,15 @@ def fill_from_csv(event, row, template):
             ).replace(
                 hour=current_app.config["REGISTRATION_CLOSING_HOUR"],
                 minute=0,
+            )
+
+    # Waiting list
+    if "places_liste_attente" in row and row["places_liste_attente"].strip():
+        event.num_waiting_list = parse(row, "places_liste_attente")
+        if event.num_waiting_list > event.num_slots:
+            raise builtins.Exception(
+                "Le nombre de places en liste d'attente doit être inférieur au nombre de places de "
+                "la collective"
             )
 
     # Description

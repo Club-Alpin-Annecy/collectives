@@ -523,6 +523,13 @@ CSV_COLUMNS = {
         "default": f"{REGISTRATION_CLOSING_DELTA_DAYS}j avant la date de début de "
         f"la collective à {REGISTRATION_CLOSING_HOUR}h",
     },
+    "places_liste_attente": {
+        "short_desc": "Nombre de places en liste d'attente",
+        "description": "Nombre de places en liste d'attente",
+        "type": "int",
+        "optional": 1,
+        "default": 0,
+    },
     "parent": {
         "short_desc": "Collective parente",
         "description": "ID (nombre) de la collective parente",
