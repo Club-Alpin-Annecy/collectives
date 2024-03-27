@@ -408,13 +408,6 @@ Can be set using environment variable.
 :type: int """
 
 CSV_COLUMNS = {
-    "event_type": {
-        "short_desc": "Type de l'événement",
-        "description": "Type de l'événement à ajouter",
-        "type": "string",
-        "optional": 1,
-        "default": "collective",
-    },
     "nom_encadrant": {
         "short_desc": "Encadrant",
         "description": "Prénom et nom de l'encadrant",
@@ -447,49 +440,42 @@ CSV_COLUMNS = {
         "description": "Secteur / massif de la collective (ex: Bornes / Aravis)",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "carte_IGN": {
         "short_desc": "Carte IGN",
         "description": "Référence de la carte IGN",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "altitude": {
         "short_desc": "Altitude (en m)",
         "description": "Altitude du sommet (en m)",
         "type": "int",
         "optional": 1,
-        "default": "",
     },
     "denivele": {
         "short_desc": "Dénivelé (en m)",
         "description": "Dénivelé total de la collective (en m)",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "cotation": {
         "short_desc": "Cotation",
         "description": "Cotation / difficulté de la collective",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "distance": {
         "short_desc": "Distance (en km)",
         "description": "Distance totale de la collective (en km)",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "observations": {
         "short_desc": "Observations",
         "description": "Observations et description de la collective",
         "type": "string",
         "optional": 1,
-        "default": "",
     },
     "places": {
         "short_desc": "Nombre de places",

@@ -10,7 +10,7 @@ def test_csv_import(user1):
     """Test importing an event CSV file"""
 
     # pylint: disable=C0301
-    csv = f""",,,,,,,,,,,,,,,,\naccess libre,Mr TEST,{user1.license},26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,rando cool"""
+    csv = f""",,,,,,,,,,,,,,,\nMr TEST,{user1.license},26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,rando cool"""
 
     output = StringIO(csv)
     events, processed, failed = csv_to_events(
