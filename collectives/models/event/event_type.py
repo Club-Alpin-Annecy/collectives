@@ -2,9 +2,11 @@
 """
 
 from markupsafe import escape
-
+from typing import Dict, Any
+from flask import current_app
 from collectives.models.globals import db
 from collectives.models import Configuration
+from collectives.utils.misc import to_ascii
 
 
 class EventType(db.Model):
@@ -142,3 +144,40 @@ class EventType(db.Model):
 
         confs = {key: Configuration[key] for key in self.TERMS_CONFIGURATIONS}
         return self.terms_title.format(**confs)
+
+    @classmethod
+    def all(cls, include_deprecated=False) -> Dict[int, Dict[str, Any]]:
+        """Returns type dictionnary as defined by EVENT_TYPES in config.
+
+        :param include_deprecated: Whether to include deprecated activity types
+        :type include_deprecated: bool
+
+        :type: dict"""
+
+        types = current_app.config["EVENT_TYPES"]
+        if include_deprecated:
+            return types
+
+        return {
+            id: event_type
+            for id, event_type in types.items()
+            if not event_type.get("deprecated", False)
+        }
+
+    @classmethod
+    def get_type_from_csv_code(cls, csv_code: str) -> int:
+        """
+        :param string short: CSV code of the searched type
+        :returns: Type id
+        """
+
+        # Match without accents, lowercase
+        csv_code = to_ascii(csv_code.strip().lower())
+        for i, event_type in cls.all(include_deprecated=True).items():
+            event_type_csv_code = to_ascii(
+                event_type.get("csv_code", event_type["name"])
+            ).lower()
+            if csv_code == event_type_csv_code:
+                return i
+
+        return None
