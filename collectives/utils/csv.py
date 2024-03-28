@@ -26,9 +26,7 @@ def fill_from_csv(event, row, template):
     """
     # remove all blank spaces in keys
     row = {key.replace(" ", ""): value for key, value in row.items()}
-
-    type_id = EventType.get_type_from_csv_code(parse(row, "event_type"))
-    event.event_type_id = type_id
+    event.event_type_id = EventType.get_type_from_csv_code(parse(row, "event_type"))
     event.title = parse(row, "titre")
     # Subscription dates and slots
     event.start = parse(row, "debut")
@@ -36,7 +34,7 @@ def fill_from_csv(event, row, template):
     event.num_slots = parse(row, "places")
 
     parent_event_id = parse(row, "parent")
-    if not (parent_event_id == "" or parent_event_id == None):
+    if not parent_event_id in ("", None):
         if db.session.get(Event, parent_event_id) is None:
             raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
@@ -83,25 +81,19 @@ def fill_from_csv(event, row, template):
             )
 
     # Description
-    '''altitude = parse(row, "altitude")
-    denivele = parse(row, "denivele")
-    distance = parse(row, "distance")
-    observations = parse(row, "observations")'''
     try:
-        event.description = template.format(
-            **row,
-        )
-    except builtins.Exception as e:
+        event.description = template.format(**row)
+    except builtins.Exception as ex:
         raise builtins.Exception(
-            f"La colonne '{e}' demandée pour la Description de"
+            f"La colonne '{ex}' demandée pour la Description de"
             "l'événement n'existe pas dans le fichier"
         )
     event.set_rendered_description(event.description)
 
     # Event tags - takes all column that starts with tag
-    tags = [[k, v] for k, v in row.items() if k.startswith("tag")]
-    for [k, v] in tags:
-        tag_id = EventTag.get_type_from_csv_code(parse(row, k))
+    tags = [[key, value] for key, value in row.items() if key.startswith("tag")]
+    for [key, value] in tags:
+        tag_id = EventTag.get_type_from_csv_code(parse(row, key))
         if tag_id is not None:
             tag = EventTag(tag_id=tag_id)
             event.tag_refs.append(tag)
@@ -126,15 +118,14 @@ def fill_from_csv(event, row, template):
     event.main_leader_id = leader.id
 
     # Other leaders - takes all column that starts with id_encadrant an try adding them
-    leaders_table = [[k, value] for k, value in row.items() if k.startswith("id_encadrant")]
-    for [k, value] in leaders_table:
+    leaders_table = [[key, value] for key, value in row.items() if key.startswith("id_encadrant")]
+    for [key, value] in leaders_table:
         leader = User.query.filter_by(
             license=value
         ).first()  # tries to find leader using value as license
         if leader is None:
-            match = re.match(
-                r"(.+)\((.+)\)", value
-            )  # tries to match expression: "identifier (license)" or "license (identifier)"
+            # tries to match: "identifier (license)" or "license (identifier)"
+            match = re.match(r"(.+)\((.+)\)", value)
             first_part, second_part = match.groups()
             leader = User.query.filter_by(license=second_part).first()
             if leader is None:
@@ -158,7 +149,7 @@ def parse(row, column_name):
     :return: The parsed value
     """
     csv_columns = current_app.config["CSV_COLUMNS"]
-    # in case column name is not in standard csv column from app, 
+    # in case column name is not in standard csv column from app,
     # return directly the value
     if not column_name in csv_columns:
         value_str = row[column_name].strip()

@@ -1,8 +1,8 @@
 """Module to describe the type of event.
 """
 
-from markupsafe import escape
 from typing import Dict, Any
+from markupsafe import escape
 from flask import current_app
 from collectives.models.globals import db
 from collectives.models import Configuration
