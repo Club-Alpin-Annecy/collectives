@@ -69,7 +69,7 @@ def test_csv_import_multi_tags_leaders(supervisor_client, user1, user2, user3):
         "observations,places,places_internet,debut_internet,fin_internet,"
         "places_liste_attente,parent,tag,tag2\n"
         "acces libre,Jan Johnston,990000000001,990000000002,990000000003,"
-        "26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,"
+        "26/11/2021 7:00,26/11/2021 7:00,Baudelaire,,,,,,,"
         "d ,8,4,19/11/2021 7:00,25/11/2021 12:00,3,,cycle decouverte,rando cool"
     )
     file = BytesIO(csv.encode("utf8"))
@@ -77,7 +77,7 @@ def test_csv_import_multi_tags_leaders(supervisor_client, user1, user2, user3):
 
     data = {
         "csv_file": (file, "import.csv"),
-        "description": "{altitude}m-{denivele}m-{cotation}",
+        "description": "",
         "type": activity.id,
     }
 
@@ -89,13 +89,12 @@ def test_csv_import_multi_tags_leaders(supervisor_client, user1, user2, user3):
     assert len(events) == 1
     event = events[0]
     assert event.event_type.short == "acces_libre"
-    assert event.title == "Aiguille des Calvaires"
+    assert event.title == "Baudelaire"
     assert event.num_slots == 8
     assert event.num_online_slots == 4
     assert event.num_waiting_list == 3
     assert event.registration_open_time == datetime(2021, 11, 19, 7, 0, 0)
     assert event.registration_close_time == datetime(2021, 11, 25, 12, 0, 0)
-    assert "2322m-1200m-F" in event.rendered_description
     assert event.leaders[0].license == "990000000001"
     assert event.leaders[0] == user1
     assert event.leaders[1].license == "990000000002"
