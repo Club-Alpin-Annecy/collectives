@@ -5,10 +5,9 @@ import builtins
 from datetime import datetime, timedelta
 import codecs
 import csv
-
+import re
 from flask import current_app
-
-from collectives.models import User, Event, EventTag, db
+from collectives.models import User, Event, EventTag, EventType, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
@@ -24,16 +23,17 @@ def fill_from_csv(event, row, template):
     :type template: string
     :return: Nothing
     """
-
+    # remove all blank spaces in keys
+    row = {key.replace(" ", ""): value for key, value in row.items()}
+    event.event_type_id = EventType.get_type_from_csv_code(parse(row, "event_type"))
     event.title = parse(row, "titre")
-
     # Subscription dates and slots
     event.start = parse(row, "debut")
     event.end = parse(row, "fin")
     event.num_slots = parse(row, "places")
 
     parent_event_id = parse(row, "parent")
-    if parent_event_id != "":
+    if not parent_event_id in ("", None):
         if db.session.get(Event, parent_event_id) is None:
             raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
@@ -72,18 +72,32 @@ def fill_from_csv(event, row, template):
                 minute=0,
             )
 
+    # Waiting list
+    if "places_liste_attente" in row and row["places_liste_attente"].strip():
+        event.num_waiting_list = parse(row, "places_liste_attente")
+        if event.num_waiting_list > event.num_slots:
+            raise builtins.Exception(
+                "Le nombre de places en liste d'attente doit être inférieur au nombre de places de "
+                "la collective"
+            )
+
     # Description
-    parse(row, "altitude")
-    parse(row, "denivele")
-    parse(row, "distance")
-    event.description = template.format(**row)
+    try:
+        event.description = template.format(**row)
+    except builtins.Exception as ex:
+        raise builtins.Exception(
+            f"La colonne '{ex}' demandée pour la Description de"
+            "l'événement n'existe pas dans le fichier"
+        )
     event.set_rendered_description(event.description)
 
-    # Event tag
-    tag_id = EventTag.get_type_from_csv_code(parse(row, "tag"))
-    if tag_id is not None:
-        tag = EventTag(tag_id=tag_id)
-        event.tag_refs.append(tag)
+    # Event tags - takes all column that starts with tag
+    tags = [[key, value] for key, value in row.items() if key.startswith("tag")]
+    for [key, value] in tags:
+        tag_id = EventTag.get_type_from_csv_code(parse(row, key))
+        if tag_id is not None:
+            tag = EventTag(tag_id=tag_id)
+            event.tag_refs.append(tag)
 
     # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
@@ -92,7 +106,6 @@ def fill_from_csv(event, row, template):
             f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
             "pas encore créé de compte"
         )
-
     # Check if event already exists in same activity
     if Event.query.filter_by(
         main_leader_id=leader.id, title=event.title, start=event.start
@@ -105,6 +118,29 @@ def fill_from_csv(event, row, template):
     event.leaders = [leader]
     event.main_leader_id = leader.id
 
+    # Other leaders - takes all column that starts with id_encadrant an try adding them
+    leaders_table = [
+        [key, value] for key, value in row.items() if key.startswith("id_encadrant")
+    ]
+    for [key, value] in leaders_table:
+        leader = User.query.filter_by(
+            license=value
+        ).first()  # tries to find leader using value as license
+        if leader is None:
+            # tries to match: "identifier (license)" or "license (identifier)"
+            match = re.match(r"(.+)\((.+)\)", value)
+            first_part, second_part = match.groups()
+            leader = User.query.filter_by(license=second_part).first()
+            if leader is None:
+                leader = User.query.filter_by(license=first_part).first()
+                if leader is None:
+                    raise builtins.Exception(
+                        f"L'encadrant {value} n'a pas pu etre trouvé. "
+                        "Vérifier que le format et les informations soient correctement reinsegnés."
+                    )
+
+        event.leaders.append(leader)
+
 
 def parse(row, column_name):
     """Parse a column value in csv format to an object depending on column type.
@@ -116,12 +152,22 @@ def parse(row, column_name):
     :return: The parsed value
     """
     csv_columns = current_app.config["CSV_COLUMNS"]
+    # in case column name is not in standard csv column from app,
+    # return directly the value
+    if not column_name in csv_columns:
+        value_str = row[column_name].strip()
+        return value_str
+
     column_short_desc = csv_columns[column_name]["short_desc"]
 
-    if row[column_name] is None:
+    # verify if mandatory columns are present or not
+    if not column_name in row and not csv_columns[column_name].get("optional", 0):
         raise builtins.Exception(
-            f"La colonne '{column_short_desc}' n'existe pas dans le fichier"
+            f"La colonne '{column_short_desc}' est obligatoire et n'existe pas dans le fichier"
         )
+    # if column is not present but a default value can be given, return default
+    if not column_name in row and "default" in csv_columns[column_name]:
+        return csv_columns[column_name]["default"]
 
     value_str = row[column_name].strip()
 
@@ -149,6 +195,9 @@ def parse(row, column_name):
                     f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
                     "nombre entier"
                 ) from err
+    # if value is not present but a default value can be given, return default
+    if not value_str and "default" in csv_columns[column_name]:
+        return csv_columns[column_name]["default"]
 
     return value_str
 
@@ -158,6 +207,7 @@ def process_stream(base_stream, activity_type, description):
 
     Processing will first try to process it as an UTF8 encoded file. If it fails
     on a decoding error, it will try as Windows encoding (iso-8859-1).
+    CSV file delimiter will be inferred with csv.Sniffer method.
 
     :param base_stream: the csv file as a stream.
     :type base_stream: :py:class:`io.StringIO`
@@ -169,13 +219,24 @@ def process_stream(base_stream, activity_type, description):
     :return: The number of processed events, and the number of failed attempts
     :rtype: (int, int)
     """
+
     try:
+        delimiter = (
+            csv.Sniffer().sniff(next(codecs.iterdecode(base_stream, "utf8"))).delimiter
+        )
+        base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "utf8")
-        events, processed, failed = csv_to_events(stream, description)
+        events, processed, failed = csv_to_events(stream, description, delimiter)
     except UnicodeDecodeError:
         base_stream.seek(0)
+        delimiter = (
+            csv.Sniffer()
+            .sniff(next(codecs.iterdecode(base_stream, "iso-8859-1")))
+            .delimiter
+        )
+        base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "iso-8859-1")
-        events, processed, failed = csv_to_events(stream, description)
+        events, processed, failed = csv_to_events(stream, description, delimiter)
 
     # Complete event before adding it to db
     for event in events:
@@ -186,7 +247,7 @@ def process_stream(base_stream, activity_type, description):
     return processed, failed
 
 
-def csv_to_events(stream, description):
+def csv_to_events(stream, description, delimiter):
     """Decode the csv stream to populate events.
 
     :param stream: the csv file as a stream.
@@ -194,6 +255,8 @@ def csv_to_events(stream, description):
     :param description: Description template that will be used to generate new events
                         description.
     :type description: String
+    :param delimeter: Delimiter for csv file import.
+    :type delimiter: String
     :return: The new events, the number of processed events, and the number of
             failed attempts
     :rtype: list(:py:class:`collectives.models.event.Event`), int, int
@@ -201,16 +264,7 @@ def csv_to_events(stream, description):
     events = []
     processed = 0
     failed = []
-    fields = list(current_app.config["CSV_COLUMNS"].keys())
-
-    reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
-    row = next(reader, None)  # skip the headers
-
-    if all(row[f] is None for f in fields[1:]):
-        # Single non-None column, delimiter is likely wrong
-        # Retry with semi-column
-        reader = csv.DictReader(stream, delimiter=";", fieldnames=fields)
-        next(reader, None)  # skip the headers
+    reader = csv.DictReader(stream, delimiter=delimiter, fieldnames=None)
 
     for row in reader:
         processed += 1
