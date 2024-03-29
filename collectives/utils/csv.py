@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import codecs
 import csv
 import re
-from io import TextIOWrapper
 from flask import current_app
 from collectives.models import User, Event, EventTag, EventType, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
@@ -55,7 +54,8 @@ def fill_from_csv(event, row, template):
         else:
             # Set default value
             event.registration_open_time = (
-                event.start - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
+                event.start
+                - timedelta(days=current_app.config["REGISTRATION_OPENING_DELTA_DAYS"])
             ).replace(
                 hour=current_app.config["REGISTRATION_OPENING_HOUR"],
                 minute=0,
@@ -65,7 +65,8 @@ def fill_from_csv(event, row, template):
         else:
             # Set default value
             event.registration_close_time = (
-                event.start - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
+                event.start
+                - timedelta(days=current_app.config["REGISTRATION_CLOSING_DELTA_DAYS"])
             ).replace(
                 hour=current_app.config["REGISTRATION_CLOSING_HOUR"],
                 minute=0,
@@ -118,7 +119,9 @@ def fill_from_csv(event, row, template):
     event.main_leader_id = leader.id
 
     # Other leaders - takes all column that starts with id_encadrant an try adding them
-    leaders_table = [[key, value] for key, value in row.items() if key.startswith("id_encadrant")]
+    leaders_table = [
+        [key, value] for key, value in row.items() if key.startswith("id_encadrant")
+    ]
     for [key, value] in leaders_table:
         leader = User.query.filter_by(
             license=value
@@ -218,17 +221,19 @@ def process_stream(base_stream, activity_type, description):
     """
 
     try:
-        text_stream = TextIOWrapper(base_stream, encoding="utf8")
-        sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(100)).delimiter
+        delimiter = (
+            csv.Sniffer().sniff(next(codecs.iterdecode(base_stream, "utf8"))).delimiter
+        )
         base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "utf8")
         events, processed, failed = csv_to_events(stream, description, delimiter)
     except UnicodeDecodeError:
         base_stream.seek(0)
-        text_stream = TextIOWrapper(base_stream, encoding="iso-8859-1")
-        sniffer = csv.Sniffer()
-        delimiter = sniffer.sniff(text_stream.read(100)).delimiter
+        delimiter = (
+            csv.Sniffer()
+            .sniff(next(codecs.iterdecode(base_stream, "iso-8859-1")))
+            .delimiter
+        )
         base_stream.seek(0)
         stream = codecs.iterdecode(base_stream, "iso-8859-1")
         events, processed, failed = csv_to_events(stream, description, delimiter)

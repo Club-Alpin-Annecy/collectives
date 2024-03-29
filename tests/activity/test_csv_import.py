@@ -60,16 +60,17 @@ def test_csv_import(supervisor_client, user1):
     assert len(events[1].tag_refs) == 1
     assert events[1].tag_refs[0].short == "tag_decouverte"
 
-def test_csv_import_multi_tags_leaders(supervisor_client, user1,user2,user3):
+
+def test_csv_import_multi_tags_leaders(supervisor_client, user1, user2, user3):
     """Test upload of a valid csv file with event_type multiple leaders and multiple tags."""
     csv = (
-    "event_type,nom_encadrant,id_encadrant,id_encadrant2,id_encadrant3,"
-    "debut,fin,titre,secteur,carte_IGN,altitude,denivele,cotation,distance,"
-    "observations,places,places_internet,debut_internet,fin_internet,"
-    "places_liste_attente,parent,tag,tag2\n"
-    "acces libre,Jan Johnston,990000000001,990000000002,990000000003,"
-    "26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,"
-    "d ,8,4,19/11/2021 7:00,25/11/2021 12:00,3,,cycle decouverte,rando cool"
+        "event_type,nom_encadrant,id_encadrant,id_encadrant2,id_encadrant3,"
+        "debut,fin,titre,secteur,carte_IGN,altitude,denivele,cotation,distance,"
+        "observations,places,places_internet,debut_internet,fin_internet,"
+        "places_liste_attente,parent,tag,tag2\n"
+        "acces libre,Jan Johnston,990000000001,990000000002,990000000003,"
+        "26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,"
+        "d ,8,4,19/11/2021 7:00,25/11/2021 12:00,3,,cycle decouverte,rando cool"
     )
     file = BytesIO(csv.encode("utf8"))
     activity = supervisor_client.user.get_supervised_activities()[0]
@@ -87,7 +88,7 @@ def test_csv_import_multi_tags_leaders(supervisor_client, user1,user2,user3):
 
     assert len(events) == 1
     event = events[0]
-    assert event.event_type.short=="acces_libre"
+    assert event.event_type.short == "acces_libre"
     assert event.title == "Aiguille des Calvaires"
     assert event.num_slots == 8
     assert event.num_online_slots == 4
