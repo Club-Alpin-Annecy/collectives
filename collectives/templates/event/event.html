@@ -285,8 +285,6 @@
           {{ self_register.button() }}
         {% elif not event.is_confirmed() %}
         <p>Inscriptions indisponibles actuellement.</p>
-        {% elif not event.has_free_online_slots() %}
-        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
         {% elif current_time < event.registration_open_time %}
         <p>Inscriptions possibles à partir du {{format_date(event.registration_open_time)}} à {{format_time(event.registration_open_time)}}.</p>
           {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
@@ -297,7 +295,13 @@
             {% endfor %}
           </ul></p>
           {% endif %}
-
+          
+        {% elif not event.has_free_online_slots() and event.num_online_slots != 0 %}
+        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
+        {% elif not event.has_free_online_slots() and event.num_waiting_list != 0%}
+        <p>Les inscriptions se font par la liste d'attente.</p>
+        {% elif not event.has_free_online_slots() %}
+        <p>Il n'y a pas d'inscription par Internet pour cette évènement</p>
         {% elif current_time > event.registration_close_time %}
         <p>Les inscriptions sont closes.</p>
         {% endif %}
