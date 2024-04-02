@@ -190,7 +190,7 @@
 
 {# Accountant space #}
 
-{% if Configuration.PAYMENTS_ENABLED and current_user.is_accountant()  %}
+{% if Configuration.PAYMENTS_ENABLED and current_user.is_active and current_user.is_accountant()  %}
 <div class="administration collective-display--administration">
     <h4 class="heading-4 collective-display--administration-title">Comptabilité</h4>
     <br/>

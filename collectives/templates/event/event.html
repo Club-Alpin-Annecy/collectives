@@ -57,6 +57,11 @@
       <div>
         <h1 class="heading-1">
           {{event.title}}
+          {% if event.visibility == models.EventVisibility.Activity %}
+            <span class="event-status-badge event-status-private">Interne</span>&nbsp;
+          {% elif event.visibility == models.EventVisibility.External %}
+            <span class="event-status-badge event-status-external">Grand public</span>&nbsp;
+          {% endif %}
           {% if not event.is_confirmed() %}
             <span class="event-status-badge event-status-{{event.status.value}}">{{event.status_string()}}</span>&nbsp;
           {% endif %}
@@ -179,6 +184,7 @@
         {% endfor %}
       {% endif %}
 
+      {% if current_user.is_active %}
         {% if not current_user.has_valid_phone_number() %}
           <div class="flash-warning flash">
               {{get_bad_phone_message(current_user) | safe }}
@@ -189,6 +195,7 @@
               {{get_bad_phone_message(current_user, emergency=True) | safe }}
           </div>
         {% endif %}
+      {% endif %}
 
       {# Current user status and self-register#}
 
@@ -365,11 +372,11 @@
     </div>
     {% endif %}
 
-    {% if event.user_answers(current_user.id) %}
+    {% if event.user_answers(current_user) %}
     <h3 class="heading-3">Vos réponses au questionnaire</h3>
     Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
 
-    {% for qa in event.user_answers(current_user.id) %}
+    {% for qa in event.user_answers(current_user) %}
     <p>
     <span class="h-s">{{qa.question.title}}</span>
     {{qa.value}}

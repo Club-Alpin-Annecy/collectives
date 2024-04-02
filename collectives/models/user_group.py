@@ -221,6 +221,8 @@ class UserGroup(db.Model):
 
     def contains(self, user: User) -> bool:
         """:return: Whether a given user is a member of the group"""
+        if not user.is_active:
+            return False
         return self._build_query().filter(User.id == user.id).one_or_none() is not None
 
     def _build_query(self) -> Query:

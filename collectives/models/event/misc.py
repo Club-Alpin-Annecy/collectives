@@ -4,8 +4,9 @@ from typing import List
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models import db
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
+from collectives.models.user import User
 from collectives.utils import render_markdown
 
 
@@ -38,23 +39,33 @@ class EventMiscMixin:
         :rtype: string"""
         return EventStatus(self.status).display_name()
 
-    def is_visible_to(self, user):
+    def is_visible_to(self, user: User) -> bool:
         """Checks whether this event is visible to an user
 
         - Moderators can see all events
+        - Not logged-in users can see 'External' events only
         - Normal users cannot see 'Pending' events
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
         - Leaders can see the events that they lead
+        - Users with role or Benevole badge for an activity can see 'Private' events
 
         :param user: The user for whom the test is made
-        :type user: :py:class:`collectives.models.user.User`
         :return: Whether the event is visible
-        :rtype: bool
         """
-        if self.status in (EventStatus.Confirmed, EventStatus.Cancelled):
+        if self.has_edit_rights(user):
             return True
-        return self.has_edit_rights(user)
+        if self.status == EventStatus.Pending:
+            return False
+        if self.visibility == EventVisibility.External:
+            return True
+        if not user.is_active:
+            return False
+        if self.visibility != EventVisibility.Activity:
+            return True
+
+        user_activities = user.activities_with_role()
+        return any(activity in user_activities for activity in self.activity_types)
 
     def save_photo(self, file):
         """Save event photo from a raw file
@@ -137,6 +148,8 @@ class EventMiscMixin:
 
         self._deprecated_parent_event_id = None
 
-    def user_answers(self, user_id: int) -> List["QuestionAnswer"]:
+    def user_answers(self, user: User) -> List["QuestionAnswer"]:
         """:returns: the list of answers to this event's question by a given user"""
-        return QuestionAnswer.user_answers(self.id, user_id)
+        if not user.is_active:
+            return []
+        return QuestionAnswer.user_answers(self.id, user.id)

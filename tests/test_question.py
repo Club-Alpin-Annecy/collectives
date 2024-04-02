@@ -80,7 +80,7 @@ def test_answering_questions(user1_client, event1_with_questions):
     assert "Texte" in response.text
     assert "C\nA" in response.text
 
-    answers = event1_with_questions.user_answers(user1_client.user.id)
+    answers = event1_with_questions.user_answers(user1_client.user)
     assert len(answers) == 2
 
     assert answers[0].value == "C\nA"

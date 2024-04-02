@@ -3,7 +3,7 @@
 
 from collectives.models.globals import db
 from collectives.models.event.model import EventModelMixin
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 
 from collectives.models.event.date import EventDateMixin
 from collectives.models.event.event_type import EventType

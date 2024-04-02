@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from markupsafe import escape
 
-from collectives.models import db, EventStatus, ActivityType, Event
+from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
 from tests import utils
 
 
@@ -26,10 +26,18 @@ def test_unauthenticated(client, event):
     """Test acces to event description by an unauthenticated client"""
     response = client.get(f"/collectives/{event.id}")
     assert response.status_code == 302
-    print(response.headers["Location"])
     assert (
         response.headers["Location"] == f"/auth/login?next=%2Fcollectives%2F{event.id}"
     )
+
+    # External event should be visible to unauthenticated users
+    event.visibility = EventVisibility.External
+    db.session.add(event)
+    db.session.commit()
+
+    response = client.get(f"/collectives/{event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/collectives/1-new-collective"
 
 
 def test_crawler(client, event):
