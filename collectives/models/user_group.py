@@ -2,7 +2,7 @@
 
 from typing import List
 
-from sqlalchemy import and_, or_, true
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query
 
 from collectives.models.globals import db
@@ -63,7 +63,7 @@ class GroupRoleCondition(db.Model):
             return User.roles.any(Role.role_id == self.role_id)
         if self.activity_id:
             return User.roles.any(Role.activity_id == self.activity_id)
-        return true
+        return User.roles.any()
 
     def clone(self) -> "GroupRoleCondition":
         """:return: a deep copy of this object"""
