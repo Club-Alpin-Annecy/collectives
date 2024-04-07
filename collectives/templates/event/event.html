@@ -149,7 +149,7 @@
           {% endif %}
       </h3> 
  
-      {% if event.num_online_slots > 0 %}
+      {% if event.num_online_slots > 0 or event.num_waiting_list > 0 %}
         <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
       {% endif %}
 
@@ -277,26 +277,27 @@
         {% if event.can_self_register(current_user, current_time) %}
           {{ self_register.button() }}
         {% elif not event.is_confirmed() %}
-        <p>Inscriptions indisponibles actuellement.</p>
+          <p>Inscriptions indisponibles actuellement.</p>
         {% elif current_time < event.registration_open_time %}
-        <p>Inscriptions possibles à partir du {{format_date(event.registration_open_time)}} à {{format_time(event.registration_open_time)}}.</p>
-          {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
-          <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
-          <ul>
-            {% for id, choice in payment_item_choice_form.item_price.choices%}
-              <li>{{choice}}</li>
-            {% endfor %}
-          </ul></p>
-          {% endif %}
-          
-        {% elif not event.has_free_online_slots() and event.num_online_slots != 0 %}
-        <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
-        {% elif not event.has_free_online_slots() and event.num_waiting_list != 0%}
-        <p>Les inscriptions se font par la liste d'attente.</p>
-        {% elif not event.has_free_online_slots() %}
-        <p>Il n'y a pas d'inscription par Internet pour cette évènement</p>
+            {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
+              <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
+                <ul>
+                  {% for id, choice in payment_item_choice_form.item_price.choices%}
+                    <li>{{choice}}</li>
+                  {% endfor %}
+                </ul>
+              </p>
+            {% endif %}
         {% elif current_time > event.registration_close_time %}
-        <p>Les inscriptions sont closes.</p>
+          <p>Les inscriptions sont closes.</p>
+        {% elif not event.has_free_online_slots()%}
+            {% if event.num_online_slots != 0 %}
+              <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
+            {% elif event.num_waiting_list != 0%}
+              <p>Les inscriptions se font par la liste d'attente.</p>
+            {% else %}
+              <p>Il n'y a pas d'inscription par Internet pour cette évènement</p>
+            {% endif %}
         {% endif %}
 
         {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}
