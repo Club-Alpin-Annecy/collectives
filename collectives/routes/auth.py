@@ -7,7 +7,7 @@ from flask import flash, render_template, redirect, url_for, request
 from flask import current_app, Blueprint
 from markupsafe import Markup, escape
 from flask_login import current_user, login_user, logout_user, login_required
-from flask_login import LoginManager
+from flask_login import LoginManager, AnonymousUserMixin
 from flask_wtf.csrf import generate_csrf
 from sqlalchemy import or_
 
@@ -20,7 +20,18 @@ from collectives.models.auth import TokenEmailStatus
 from collectives.utils import extranet
 from collectives.utils.time import current_time
 
+
+class UnauthenticatedUserMixin(AnonymousUserMixin):
+    """Mixin that defines properties for unauthenticated users"""
+
+    @property
+    def id(self) -> int:
+        """Id for unauthenticated users (always `-1`)"""
+        return -1
+
+
 login_manager = LoginManager()
+login_manager.anonymous_user = UnauthenticatedUserMixin
 login_manager.login_view = "auth.login"
 login_manager.login_message = "Merci de vous connecter pour accéder à cette page"
 

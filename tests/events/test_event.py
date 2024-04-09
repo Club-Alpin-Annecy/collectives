@@ -22,22 +22,22 @@ def test_event_access(leader_client, event):
     assert response.status_code == 200
 
 
-def test_unauthenticated(client, event):
+def test_unauthenticated(client, event1_with_reg):
     """Test acces to event description by an unauthenticated client"""
-    response = client.get(f"/collectives/{event.id}")
+    response = client.get(f"/collectives/{event1_with_reg.id}")
     assert response.status_code == 302
     assert (
-        response.headers["Location"] == f"/auth/login?next=%2Fcollectives%2F{event.id}"
+        response.headers["Location"]
+        == f"/auth/login?next=%2Fcollectives%2F{event1_with_reg.id}"
     )
 
     # External event should be visible to unauthenticated users
-    event.visibility = EventVisibility.External
-    db.session.add(event)
+    event1_with_reg.visibility = EventVisibility.External
+    db.session.add(event1_with_reg)
     db.session.commit()
 
-    response = client.get(f"/collectives/{event.id}")
-    assert response.status_code == 302
-    assert response.headers["Location"] == "/collectives/1-new-collective"
+    response = client.get(f"/collectives/{event1_with_reg.id}-some-valid-slug")
+    assert response.status_code == 200
 
 
 def test_crawler(client, event):
