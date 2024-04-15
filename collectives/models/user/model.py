@@ -10,6 +10,7 @@ from sqlalchemy.ext.declarative import declared_attr
 
 from collectives.models.globals import db
 from collectives.models.user.enum import Gender
+from collectives.utils.misc import truncate
 
 
 class UserModelMixin:
@@ -222,7 +223,7 @@ class UserModelMixin:
     def truncate_string(self, key, value):
         """Truncates too long string.
 
-        Sometimes, espacially with extranet, a value might be too long. This function
+        Sometimes, especially with extranet, a value might be too long. This function
         truncates it to not throw an error. The function automatically extract key max
         length. It adds … in the end.
 
@@ -232,9 +233,7 @@ class UserModelMixin:
         :rtype: string
         """
         max_len = getattr(self.__class__, key).prop.columns[0].type.length
-        if value and len(value) > max_len:
-            return value[: max_len - 1] + "…"
-        return value
+        return truncate(value, max_len)
 
     # For relationship Mixin, we have to use a function and declared_attr, but it is the same as
     # declaring an attribute. Cf
