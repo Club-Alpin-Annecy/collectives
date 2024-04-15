@@ -5,6 +5,7 @@ from sqlalchemy.orm import validates
 from markupsafe import escape
 
 from collectives.models.globals import db
+from collectives.utils.misc import truncate
 
 
 class ActivityType(db.Model):
@@ -132,9 +133,7 @@ class ActivityType(db.Model):
         :rtype: string
         """
         max_len = getattr(self.__class__, key).prop.columns[0].type.length
-        if value and len(value) > max_len:
-            return value[:max_len]
-        return value
+        return truncate(value, max_len)
 
     def can_be_led_by(self, users):
         """Check if at least anyone in a list can lead an event
