@@ -289,6 +289,8 @@
           {{ self_register.button() }}
         {% elif not event.is_confirmed() %}
           <p>Inscriptions indisponibles actuellement.</p>
+        {% elif (event.num_online_slots == 0 and event.num_waiting_list == 0) or not event.has_defined_registration_date() %}
+          <p>Il n'y a pas d'inscription par Internet pour cette événement</p>
         {% elif current_time < event.registration_open_time %}
             {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
               <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
@@ -304,10 +306,8 @@
         {% elif not event.has_free_online_slots()%}
             {% if event.num_online_slots != 0 %}
               <p>Le nombre maximum d'inscrits par internet a été atteint.</p>
-            {% elif event.num_waiting_list != 0%}
-              <p>Les inscriptions se font par la liste d'attente.</p>
             {% else %}
-              <p>Il n'y a pas d'inscription par Internet pour cette évènement</p>
+              <p>Les inscriptions se font par la liste d'attente.</p>
             {% endif %}
         {% endif %}
 
