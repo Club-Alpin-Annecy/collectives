@@ -9,17 +9,79 @@ from openpyxl import load_workbook
 from markupsafe import escape
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
+from collectives.models import RoleIds
 from tests import utils
+from tests.fixtures.user import promote_user
 
 
-def test_event_access(leader_client, event):
+def test_event_access(user1_client, event):
     """Test regular acces to event description"""
+    response = user1_client.get(f"/collectives/{event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/collectives/1-new-collective"
+
+    response = user1_client.get(response.headers["Location"])
+    assert response.status_code == 200
+
+
+def test_activity_event_access(user1_client, activity_event):
+    """Test regular acces to event description"""
+
+    # Denied access to activity event
+    response = user1_client.get(f"/collectives/{activity_event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/collectives/"
+
+    # Remove activity_event activity_type -- should still not have access
+    activity_event.activity_types.clear()
+    db.session.commit()
+
+    response = user1_client.get(f"/collectives/{activity_event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/collectives/"
+
+    # Give role to user for this activty -- should get access
+    promote_user(user1_client.user, RoleIds.Trainee, "Alpinisme")
+    db.session.commit()
+    response = user1_client.get(f"/collectives/{activity_event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith(f"/collectives/{activity_event.id}")
+
+    # Remove event's activity -- should keep access
+    activity_event.activity_types.clear()
+    db.session.commit()
+    response = user1_client.get(f"/collectives/{activity_event.id}")
+    assert response.headers["Location"].startswith(f"/collectives/{activity_event.id}")
+
+    # Set activity_type to another activity -- should lose access
+    not_alpinisme = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    activity_event.activity_types.append(not_alpinisme)
+    db.session.commit()
+    response = user1_client.get(f"/collectives/{activity_event.id}")
+    assert response.headers["Location"] == "/collectives/"
+
+
+def test_leader_event_access(leader_client, event, activity_event):
+    """Test leader acces to event description"""
     response = leader_client.get(f"/collectives/{event.id}")
     assert response.status_code == 302
     assert response.headers["Location"] == "/collectives/1-new-collective"
 
     response = leader_client.get(response.headers["Location"])
     assert response.status_code == 200
+
+    # Ok access to activity event
+    response = leader_client.get(f"/collectives/{activity_event.id}")
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith(f"/collectives/{activity_event.id}")
+
+    # Set activity_type to another activity -- should keep access because leading it
+    not_alpinisme = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    activity_event.activity_types.clear()
+    activity_event.activity_types.append(not_alpinisme)
+    db.session.commit()
+    response = leader_client.get(f"/collectives/{activity_event.id}")
+    assert response.headers["Location"].startswith(f"/collectives/{activity_event.id}")
 
 
 def test_unauthenticated(client, event1_with_reg):

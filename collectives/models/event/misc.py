@@ -40,7 +40,7 @@ class EventMiscMixin:
         return EventStatus(self.status).display_name()
 
     def is_visible_to(self, user: User) -> bool:
-        """Checks whether this event is visible to an user
+        """Checks whether this event's details are visible to an user
 
         - Moderators can see all events
         - Not logged-in users can see 'External' events only
@@ -48,7 +48,8 @@ class EventMiscMixin:
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
         - Leaders can see the events that they lead
-        - Users with role or Benevole badge for an activity can see 'Private' events
+        - Users with role for an activity can see 'Activity' events
+        - Users with any role can see 'Activity' events without activities
 
         :param user: The user for whom the test is made
         :return: Whether the event is visible
@@ -63,6 +64,8 @@ class EventMiscMixin:
             return False
         if self.visibility != EventVisibility.Activity:
             return True
+        if not self.activity_types:
+            return user.has_any_role()
 
         user_activities = user.activities_with_role()
         return any(activity in user_activities for activity in self.activity_types)
