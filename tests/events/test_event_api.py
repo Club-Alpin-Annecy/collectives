@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from collectives.models import ActivityType
+from collectives.models import ActivityType, db
 
 # pylint: disable=unused-argument,too-many-arguments
 
@@ -36,6 +36,17 @@ def test_event_access(
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
     assert data[0]["event_types"][0]["name"] == "Collective"
 
+    # Remove activity_event activity_type -- should still not have access
+    activity_event.activity_types.clear()
+    db.session.commit()
+
+    response = user1_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 4
+
 
 def test_event_access_leader(
     leader_client,
@@ -60,6 +71,40 @@ def test_event_access_leader(
     assert data[0]["title"] == past_event.title
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
     assert data[0]["event_types"][0]["name"] == "Collective"
+
+    # Remove activity_event activity_type -- should keep access
+    activity_event.activity_types.clear()
+    db.session.commit()
+
+    response = leader_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 6
+
+    # Set activity_type to another activity -- should keep access because leading it
+    not_alpinisme = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    activity_event.activity_types.append(not_alpinisme)
+    db.session.commit()
+
+    response = leader_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 6
+
+    # Remove from leaders -- should lose access
+    activity_event.leaders.clear()
+    db.session.commit()
+
+    response = leader_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 5
 
 
 def test_event_access_not_passed(

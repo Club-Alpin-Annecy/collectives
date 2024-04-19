@@ -8,7 +8,7 @@ from dateutil import parser
 from flask import url_for, request, abort
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, or_, func
+from sqlalchemy import desc, or_, and_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
@@ -43,6 +43,7 @@ def filter_hidden_events(query):
        they supervise
      - Leaders can see the events that they lead
      - Users with role for an activity can see 'Activity' events
+     - Users with any role can see 'Activity' events without activities
 
     :param query: The original query
     :type query: :py:class:`sqlalchemy.orm.query.Query`
@@ -59,7 +60,7 @@ def filter_hidden_events(query):
         pass
     else:
         # Regular user can see no Pending
-        query_filter = Event.status != EventStatus.Pending
+        status_query_filter = Event.status != EventStatus.Pending
 
         # If user is a supervisor, it can see Pending events of its activities
         if current_user.is_supervisor():
@@ -69,25 +70,28 @@ def filter_hidden_events(query):
             activity_filter = Event.activity_types.any(
                 ActivityType.id.in_(activities_ids)
             )
-            query_filter = or_(query_filter, activity_filter)
-
-        # If user can create event, it can see its pending events
-        if current_user.can_create_events():
-            lead = Event.leaders.any(id=current_user.id)
-            query_filter = or_(query_filter, lead)
-
-        # After filter construction, it is applied to the query
-        query = query.filter(query_filter)
+            status_query_filter = or_(status_query_filter, activity_filter)
 
         # Users can only see Activity events for their activities
-        query_filter = Event.visibility != EventVisibility.Activity
+        vis_query_filter = Event.visibility != EventVisibility.Activity
         activities = current_user.activities_with_role()
         if activities:
             activities_ids = [a.id for a in activities]
             activity_filter = Event.activity_types.any(
                 ActivityType.id.in_(activities_ids)
             )
-            query_filter = or_(query_filter, activity_filter)
+            vis_query_filter = or_(vis_query_filter, activity_filter)
+        # Special case for Activity events without activities: all user with roles can see them
+        if current_user.has_any_role():
+            vis_query_filter = or_(vis_query_filter, ~Event.activity_types.any())
+
+        # If user can create event, they can see all events they lead
+        query_filter = and_(status_query_filter, vis_query_filter)
+        if current_user.can_create_events():
+            lead = Event.leaders.any(id=current_user.id)
+            query_filter = or_(query_filter, lead)
+
+        # After filter construction, it is applied to the query
         query = query.filter(query_filter)
 
     return query
