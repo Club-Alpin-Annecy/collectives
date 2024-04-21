@@ -10,11 +10,17 @@ def test_csv_import(user1):
     """Test importing an event CSV file"""
 
     # pylint: disable=C0301
-    csv = f""",,,,,,,,,,,,,,,\nMr TEST,{user1.license},26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,rando cool"""
-
+    csv = (
+        "event_type,nom_encadrant,id_encadrant,debut,fin,titre,secteur,"
+        "carte_IGN,altitude,denivele,cotation,distance,observations,"
+        "places,places_internet,debut_internet,fin_internet,places_liste_attente,parent,tag"
+        f"\naccess libre,Mr TEST,{user1.license},26/11/2021 7:00,26/11/2021 7:00,"
+        "Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,"
+        "2,,rando cool"
+    )
     output = StringIO(csv)
     events, processed, failed = csv_to_events(
-        output, "{altitude}m-{denivele}m-{cotation}"
+        output, "{altitude}m-{denivele}m-{cotation}", ","
     )
     assert len(events) == 1
     event = events[0]
@@ -23,6 +29,7 @@ def test_csv_import(user1):
     assert event.title == "Aiguille des Calvaires"
     assert event.num_slots == 8
     assert event.num_online_slots == 4
+    assert event.num_waiting_list == 2
     assert event.registration_open_time == datetime.datetime(2021, 11, 19, 7, 0, 0)
     assert event.registration_close_time == datetime.datetime(2021, 11, 25, 12, 0, 0)
     assert "2322m-1200m-F" in event.rendered_description
