@@ -68,6 +68,7 @@ function buildEventsTable() {
             {title:"Date", field:"start", sorter:"string"},
             {title:"Encadrant", field:"leaders", headerSort:false},
         ],
+        headerVisible:false,
         rowFormatter: eventRowFormatter,
         groupHeader:function(value, count, data, group){
             return value;
@@ -90,9 +91,6 @@ function buildEventsTable() {
                     "prev_title":"Page Précédente",
                     "next":"Suivante",
                     "next_title":"Page Suivante",
-                },
-                'headerFilters':{
-                    "default":"Recherche 🔍",
                 }
             }
         },
@@ -150,48 +148,70 @@ function eventRowFormatter(row){
         divRow.className = "row tabulator-cell collectives-list--item";
         divRow.setAttribute("role","gridcell");
         divRow.setAttribute("href", data.view_uri);
-        divRow.style.width = (width - 18) + "px";
 
-        //add row data on right hand side
-        html += `<div class="activities section collectives-list--item--activity-type">`;
-        for (const event_type of data.event_types)
-                if (event_type['short'] != "collective")
-                    html += `<span class="activity ${event_type['short']} type s90px"></span>`;
-        for (const activity of data.activity_types)
-                    html += `<span class="activity ${activity['short']} type s90px"></span>`;
-        html += `</div>`;
-
-        html += `<div class="section section-photo collectives-list--item--photo">
-                    <img src="${data.photo_uri}" class="photo"/>
+        html += `<div class="section collectives-list--item--photo">
+                    <img src="${data.photo_uri}"/>
                  </div>`;
 
         var status_string = getStatusString(data)
         var visibility_string = getVisibilityString(data)
         var availabilities_badge = getSlotsAvailableBadge(data)
 
-        html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
-        html_tags = html_tags.join(' - ')
+        if(status_string+visibility_string+availabilities_badge != "")
+            var keywords = `
+                <div class="collectives-list--item--details-keywords">
+                    ${visibility_string}
+                    ${status_string}
+                    ${availabilities_badge}
+                </div>`;
+        else 
+            keywords = "";
+
+        html_type =  `<span class="item aligned-flex-inline"> <img src="/static/caf/icon/${data['event_types'][0]['short']}.svg" width="30px"/> ${data['event_types'][0]['name']} </span>`
+        html_tags =  data.tags.map(tag => `<span class="item aligned-flex-inline"> <img src="/static/caf/icon/${tag['short']}.svg" width="30px"/> ${tag['name']} </span>`)
+        html_tags = html_tags.join(' ')
 
         html += `<div class="section collectives-list--item--details">
-                     <h3 class="heading-3 collectives-list--item--details-heading">
-                     ${escapeHTML(data.title)}
-                     ${visibility_string}
-                     ${status_string}
-                     ${availabilities_badge}
-                     </h3>
-                     <div class="date collectives-list--item--details-date">
-                         <img src="/static/img/icon/ionicon/md-calendar.svg" class="icon"/>
-                         ${localInterval(data.start, data.end)}
-                     </div>
+                    
+                    
+                    <div class="collectives-list--item--details-heading">
 
-                     <div class="leader collectives-list--item--details-leader">
-                        Par ${escapeHTML(data.leaders.map(displayLeader).join(' et '))}
-                     </div>
-                     <div class="slots collectives-list--item--details-slots">
-                        ${slots(data.num_slots - data.free_slots)}
-                        ${slots(data.free_slots, 'free_slot')}
-                     </div>
-                     <div class="collectives-list--item--details-tags">${html_tags}</div>
+                        <div class="date collectives-list--item--details-date">
+                            ${escapeHTML(data.formated_datetime_range)}
+                        </div>
+
+                        ${keywords}
+                    
+                        <div class="heading-3">${escapeHTML(data.title)}</div>
+                    </div>
+
+                    <div class="collectives-list--item--details-bottom-left" >
+                        <div class="heading-3 collectives-list--item--details-activity-type" >
+                        ${activities_icons(data)}
+                        </div>
+                        
+
+                        <div class="leader collectives-list--item--details-leader">
+                        ${data.leaders.slice(0, 2).map(displayLeader).join('<br/>')}
+                        ${data.leaders.length>3 ? '...' : ''}
+                        </div>
+                    </div>
+
+                    <div class="collectives-list--item--details-bottom-right" >
+                        <div class="collectives-list--item--details-tags">${html_type} ${html_tags}</div>
+                        <div class="collectives-list--item--details-slots">
+                        <div class="collectives-list--item--details-slots aligned-flex">
+                            <div class="collectives-list--item--details-slots-bar">
+                                <div
+                                    class="collectives-list--item--details-slots-bar-filler" 
+                                    style="width: ${100-data.free_slots/data.num_slots*100}%">
+                                </div>
+                            </div>
+                            <div collectives-list--item--details-slots-count> 
+                                ${Math.max(0, data.num_slots-data.free_slots)}/${data.num_slots}
+                            </div>
+                        </div>
+                    </div>
                  </div>`;
         divRow.innerHTML = html;
 
@@ -201,6 +221,13 @@ function eventRowFormatter(row){
     catch(error){
       console.error(error);
     }
+}
+
+function activities_icons(data){
+    html = ""
+    for (const activity of data.activity_types.slice(0, 3))
+                html += `<img src="/static/caf/icon/${activity['short']}.svg" width="65px" alt="${activity['name']}"/>`
+    return html;
 }
 
 function getSlotsAvailableBadge(event) {
@@ -230,19 +257,6 @@ function getVisibilityString(data) {
     return ''
 }
 
-function localInterval(start, end){
-    var startDate = localDate(start);
-    var endDate = localDate(end);
-
-    if( startDate == endDate)
-        return startDate;
-    return `${startDate} au ${endDate}`;
-}
-
-function localDate(date){
-    return moment(date).format('ddd D MMM YY');
-}
-
 function slots(nb, css){
     if(css == undefined)
         css = '';
@@ -252,7 +266,7 @@ function slots(nb, css){
     return (new Array(nb)).fill( slot ).join('');
 }
 function displayLeader(user){
-    return user.name;
+    return escapeHTML(user.name);
 }
 
 function selectFilter(type, id){
@@ -289,6 +303,10 @@ function refreshFilterDisplay(){
     // Select activity filter button which appears in tabulator filter
     // and redresh checkboxes status
     for (filter of filters) {
+        // If at least one filter is set, we display filters list
+        if(filter['field'] != 'end' || filter['value'] != moment().format("DD/MM/YYYY"))
+            document.getElementById('collectives-list-filters-toggle').checked = true;
+
         if (filter['field'] == 'activity_type')
             document.getElementById('select_activity_type_'+filter['value']).checked = true;
         if (filter['field'] == 'event_type')

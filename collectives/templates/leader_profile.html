@@ -21,7 +21,7 @@
         <img src="{%   if user.avatar
                     %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
             else
-                    %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                    %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%
             endif %}"
         alt="Avatar de l'utilisateur"
         class="avatar big" />

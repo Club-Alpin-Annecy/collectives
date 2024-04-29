@@ -87,12 +87,12 @@ function leaderFilter(value, data){
 }
 
 function typesFormatter(cell, formatterParams, onRendered){
-    var names = cell.getValue().map((activity) => `<span class="activity ${activity['short']} s30px"></span>`);
+    var names = cell.getValue().map((activity) => `<img src="/static/caf/icon/${activity['short']}.svg" width="30px"/>`);
     return names.join(' ');
 }
 
 function tagsFormatter(cell, formatterParams, onRendered){
-    var names = cell.getValue().map((tag) => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> `);
+    var names = cell.getValue().map((tag) => `<img src="/static/caf/icon/${tag['short']}.svg" width="30px"/>`);
     return names.join(' ');
 }
 

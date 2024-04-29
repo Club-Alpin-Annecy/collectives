@@ -16,6 +16,7 @@ from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
+from collectives.utils.time import format_datetime_range
 
 
 def photo_uri(event):
@@ -29,8 +30,8 @@ def photo_uri(event):
     :rtype: string
     """
     if event.photo is not None:
-        return url_for("images.crop", filename=event.photo, width=200, height=130)
-    return url_for("static", filename="img/icon/ionicon/md-images.svg")
+        return url_for("images.crop", filename=event.photo, width=350, height=250)
+    return url_for("static", filename=f"img/default/events/event{event.id%8 + 1}.svg")
 
 
 def filter_hidden_events(query):
@@ -206,6 +207,10 @@ class EventSchema(marshmallow.Schema):
 
     :type: :py:class:`marshmallow.fields.Function`"""
 
+    formated_datetime_range = fields.Function(
+        lambda event: format_datetime_range(event.start, event.end)
+    )
+
     class Meta:
         """Fields to expose"""
 
@@ -232,6 +237,7 @@ class EventSchema(marshmallow.Schema):
             "has_free_slots",
             "has_free_waiting_slots",
             "has_free_online_slots",
+            "formated_datetime_range",
         )
 
 

@@ -13,7 +13,7 @@ function roleFormatter(cell, formatterParams, onRendered){
     cell.getElement().style['white-space']="normal";
     cell.getElement().style.height="auto";
 
-    return cell.getValue().map(displayRole).join(' ');
+    return '<ul>' + cell.getValue().map(displayRole).join(' ') + '</ul>';
 }
 
 function badgeFormatter(cell, formatterParams, onRendered){
@@ -26,9 +26,7 @@ function badgeFormatter(cell, formatterParams, onRendered){
 }
 
 function displayRole(role){
-    return `<span class=\"activity ${role['activity_type.short'] || 'none'} s30px\" title=\"${role['name']} ${role['activity_type.name'] || ''}\">
-                <span class=\"activity role${role['role_id']} s30px\" ></span>
-            </span>`;
+    return `<li>${role['name']} ${role['activity_type.name'] || ''}</li>` 
 }
 
 function displayBadge(badge){

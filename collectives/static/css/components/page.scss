@@ -4,5 +4,9 @@
         max-width: 1100px;
         min-height: 100vh;
         padding: $padding-sections;
+
+        @media screen and (max-width: 700px) {
+            padding: $padding-sections-mobile;
+        }
     }
 }

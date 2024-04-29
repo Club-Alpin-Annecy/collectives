@@ -2,4 +2,19 @@
     margin: 0 auto;
     max-width: 1400px;
     padding: $padding-sections;
+    
+    @media screen and (max-width: 700px) {
+        padding: $padding-sections-mobile;
+    }
+}
+
+.aligned-flex{
+    display: flex;
+    align-items: center;
+    gap: $padding-horizontal-xs;   
+}
+.aligned-flex-inline{
+    display: inline-flex;
+    align-items: center;
+    gap: $padding-horizontal-xs;   
 }

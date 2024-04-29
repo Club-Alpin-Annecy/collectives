@@ -1,10 +1,12 @@
 .event-status-badge {
-    padding: 0.3em 0.4em 0.3em;
-    border-radius: 5px;
-    font-size: $font-size-m;
+    padding: 0.4em 0.9em 0.4em;
+    border-radius: 30px;
+    font-size: $font-size-xxs;
     vertical-align: middle;
     text-transform: initial;
     background-color: $solitude;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 
     // Confirmed
     &.event-status-0 {

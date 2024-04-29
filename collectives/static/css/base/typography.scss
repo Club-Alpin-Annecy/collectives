@@ -46,9 +46,9 @@ h1, h2, h3, h4, h5, h6 {
 // e.g <h1 class="heading-3">My Title</h1> works, but will have a h3 style
 
 .h-xxl, .heading-1 {
-    font-size: $font-size-xxl;
+    font-size: $font-size-xl;
     font-weight: $font-weight-bold;
-    line-height: $line-height-xxl;
+    line-height: $line-height-xl;
     text-transform: uppercase;
 }
 
@@ -143,4 +143,20 @@ a, .link {
 	&:hover {
 		color: $color-error-dark;
 	}
+}
+
+.font-size-xs{
+	font-size: $font-size-xs;
+}
+.font-size-s{
+	font-size: $font-size-s;
+}
+.font-size-m{
+	font-size: $font-size-m;
+}
+.font-size-l{
+	font-size: $font-size-l;
+}
+.font-size-xl{
+	font-size: $font-size-xl;
 }
