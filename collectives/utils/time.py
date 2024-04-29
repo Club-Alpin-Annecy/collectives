@@ -106,6 +106,8 @@ def format_time(value):
     :rtype: string"""
     if value is None:
         return "N/A"
+    if value.minute == 0:
+        return f"{value.hour}h"
     return f"{value.hour}h{value.minute:02d}"
 
 
@@ -138,13 +140,13 @@ def format_datetime_range(start, end):
     if start == end:
         if start.time() == time(0):
             return f"{format_date(start)}"
-        return f"{format_date(start)} à {format_time(start)}"
+        return f"{format_date(start)} | {format_time(start)}"
     if start.date() == end.date():
-        return f"{format_date(start)} de {format_time(start)} à {format_time(end)}"
+        return f"{format_date(start)} | {format_time(start)}-{format_time(end)}"
     if start.time() == time(0) and end.time() == time(0):
-        return f"du {format_date(start)} au {format_date(end)}"
+        return f"{format_date(start)} au {format_date(end)}"
     return (
-        f"du {format_date(start)} à {format_time(start)} au {format_date(end)} à "
+        f"{format_date(start)} à {format_time(start)} au {format_date(end)} à "
         f"{format_time(end)}"
     )
 

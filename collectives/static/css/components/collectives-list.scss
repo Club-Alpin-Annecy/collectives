@@ -1,4 +1,4 @@
-$collectives-list-row-height: 160px;
+$collectives-list-row-height: 185px;
 
 
 .collectives-list {
@@ -28,7 +28,7 @@ $collectives-list-row-height: 160px;
     .tabulator-selectable{
         border: 1px solid $color-gray-light !important;
         border-radius: 10px;
-        margin: $padding-vertical-l 5px $padding-vertical-l 0;
+        margin: $padding-vertical-s 5px $padding-vertical-l 0;
         overflow: hidden;
         box-shadow: 2px 2px 3px lighten($dove-gray, 30%);
         &:hover {
@@ -89,7 +89,7 @@ $collectives-list-row-height: 160px;
             }
 
             &-heading {
-                margin-top: $padding-vertical-m;
+                margin-top: $padding-vertical-l;
                 white-space: normal;
                 font-weight: bold;
                 font-size: $font-size-m;
@@ -133,7 +133,7 @@ $collectives-list-row-height: 160px;
 
             &-bottom-left{
                 position: absolute;
-                bottom: 0px;
+                bottom: 3px;
                 left: 0px;
 
                 display: flex;
@@ -148,7 +148,7 @@ $collectives-list-row-height: 160px;
 
             &-bottom-right{
                 position: absolute;
-                bottom: $padding-vertical-m;
+                bottom: $padding-vertical-l;
                 right: 0px;
 
                 display: flex;
@@ -164,7 +164,7 @@ $collectives-list-row-height: 160px;
 
 
             &-leader {
-                margin: $padding-vertical-s 0;
+                margin: $padding-vertical-s $padding-vertical-xs;
                 @media screen and (max-width: 700px){
                     text-align: center;
                     font-size: $font-size-xs;
@@ -182,13 +182,14 @@ $collectives-list-row-height: 160px;
                     max-width: none;
                     position: static;
                     text-align: center;
+                    margin: $padding-vertical-l 0 0;
                 }
             }
             &-tags{
                 margin: $padding-vertical-s 0;
                 display: flex;
                 flex-flow: wrap column-reverse;
-                gap: 3px;
+                gap: 5px;
                 height: 70px;
                 align-content: end;
 
@@ -247,7 +248,7 @@ $collectives-list-row-height: 160px;
     padding: $padding-default;
     text-align: center;
     line-height: 50px;
-    display: none;
+    display: flex;
     gap: 10px;
     flex-flow: row wrap;
 
@@ -331,7 +332,7 @@ $collectives-list-row-height: 160px;
             width: 100%;
             font-weight: normal;
             color: $color-gray-dark;
-            padding: 0 $padding-horizontal-xs;
+            padding: 0 $padding-horizontal-s;
             font-size: $font-size-s;
         }
     }
@@ -349,10 +350,16 @@ $collectives-list-row-height: 160px;
         display: none;
     }
 
-    &-toggle:checked ~ & {
-        display: flex ;
+    &-toggle ~ * {
+        position: absolute;
+        visibility: hidden;
     }
-    &-toggle:checked ~ &-toggle-label {
+
+    &-toggle:checked ~ *, &-toggle-label{
+        position: relative;
+        visibility: visible;
+    }
+    &-toggle:checked + &-toggle-label {
         display: none ;
     }
 

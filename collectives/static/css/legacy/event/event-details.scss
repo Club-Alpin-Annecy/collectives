@@ -87,13 +87,14 @@
 }
 
 .select .chevrons {
-    height: 30px;
+    height: 20px;
     margin-top: 5px;
     z-index: $z-index-m+1;
     transform: rotate(90deg);
     position: absolute;
     color: rgb(29, 105, 137);
     right: $padding-horizontal-xs;
+    top: 5px;
 }
 .select input[type="checkbox"] {
     height: 100%;
