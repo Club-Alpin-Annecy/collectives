@@ -5,7 +5,7 @@ import json
 from threading import Lock
 from datetime import datetime
 from sqlalchemy.sql import func
-from flask import current_app
+from flask import current_app, Config
 
 from collectives.models.globals import db
 
@@ -217,3 +217,26 @@ class ConfigurationItem(db.Model):
         if isinstance(content, datetime):
             content = content.strftime("%Y/%m/%d %H:%M:%S")
         self.json_content = json.dumps(content, ensure_ascii=False).encode("utf8")
+
+
+class DBAdaptedFlaskConfig(Config):
+    """ Flask Config class modified to allow Flask to fetch config
+        in hot configuration. """
+    def __missing__(self, key: str):
+        """ :returns: the hot config if the key does not exists in cold config.
+        
+        It still raise a KeyError if key does not exist in cold config"""
+        try:
+            return Configuration.get(key)
+        except AttributeError:
+            raise KeyError(key) from None
+
+    def __init__(self, obj: dict, *args, **kwargs) -> None:
+        """ Constructor that copies an item.
+        
+        :param obj: Any dictionnary, eg, the regular Flask Config"""
+
+        super().__init__(*args, **kwargs)
+
+        for key, values in obj.items():
+            self[key] = values

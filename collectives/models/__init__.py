@@ -9,7 +9,7 @@ from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType
 from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
 from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
-from collectives.models.configuration import Configuration
+from collectives.models.configuration import Configuration, DBAdaptedFlaskConfig
 from collectives.models.event import Event, EventStatus, photos, EventType
 from collectives.models.event import EventVisibility
 from collectives.models.event_tag import EventTag
