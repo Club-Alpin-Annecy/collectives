@@ -23,10 +23,16 @@
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
 
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
   <script>
       window.onload = function() {
           buildEventsTable();
-      
+          var activity_types_list = {{ activity_types | tojson }};
+          setMultipleActivityTypeChoices(activity_types_list);
+
           {% if filtered_activity %}
             filterConfirmedOnly(false);
             filterFutureOnly(true);
@@ -34,7 +40,7 @@
             selectFilter('event_type', false);
             selectFilter('tags', false);
           {% endif %}
-          
+
           const searchInput = getLeaderHeaderFilter();
           setupAutoComplete(
               searchInput,
@@ -109,57 +115,33 @@
                     class="button button-secondary"
                     />
             <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
-            <label class="borders"> 📅 Depuis 
+            <label class="borders"> 📅 Depuis
                 <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('end', this.value)"/>
             </label>
 
             <!-- filter event type -->
+            <!-- TODO -->
             <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_event_type"/>
-                    <label for="select_event_type"><label>Filtrer par type d'événement</label></label>
-                    <label for="select_event_type" class="closer"></label>
+                <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
+                <input type="checkbox" id="select_event_type"/>
+                <label for="select_event_type"><label>Filtrer par type d'événement</label></label>
+                <label for="select_event_type" class="closer"></label>
 
-                    <input type="radio" name="event_type" id="select_all_event_types" checked/>
-                    <label for="select_all" onclick="selectFilter('event_type', false);">
+                <input type="radio" name="event_type" id="select_all_event_types" checked/>
+                <label for="select_all" onclick="selectFilter('event_type', false);">
+                    <label for="select_event_type">
+                        Tous types d'événement
+                    </label>
+                </label>
+                {% for type in event_types %}
+                    <input type="radio" name="event_type" id="select_event_type_{{type.short}}"/>
+                    <label for="select_event_type_{{type.short}}" onclick="selectFilter('event_type', '{{type.short}}');">
                         <label for="select_event_type">
-                            Tous types d'événement
+                            <span class="activity {{type.short}} s30px"></span>
+                            {{type.name}}
                         </label>
                     </label>
-                    {% for type in event_types %}
-                        <input type="radio" name="event_type" id="select_event_type_{{type.short}}"/>
-                        <label for="select_event_type_{{type.short}}" onclick="selectFilter('event_type', '{{type.short}}');">
-                            <label for="select_event_type">
-                                <span class="activity {{type.short}} s30px"></span>
-                                {{type.name}}
-                            </label>
-                        </label>
-                    {% endfor %}
-            </div>
-
-            <!-- filter activity type -->
-            <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_display"/>
-                    <label for="select_display"><label>Sélectionner votre activité</label></label>
-                    <label for="select_display" class="closer"></label>
-
-                    <input type="radio" name="activity" id="select_all" checked/>
-                    <label for="select_all" onclick="selectFilter('activity_type', false);">
-                        <label for="select_display">
-                            Toutes activités
-                        </label>
-                    </label>
-                    {% for type in activity_types %}
-                        <input type="radio" name="activity" id="select_activity_type_{{type.short}}"/>
-                        <label for="select_activity_type_{{type.short}}" onclick="selectFilter('activity_type', '{{type.short}}');">
-                            <label for="select_display">
-                                <span class="activity {{type.short}} s30px"></span>
-                                {{type.name}}
-                            </label>
-                        </label>
-                    {% endfor %}
-
+                {% endfor %}
             </div>
 
             <!-- filter event tag -->
@@ -188,6 +170,9 @@
             </div>
             <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
             <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" />
+
+             <!-- filter activity type -->
+             <select id="choices-multiple-labels" multiple></select>
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>
