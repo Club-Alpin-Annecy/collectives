@@ -78,14 +78,18 @@
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
             <td>{{user.license}}</td>
         </tr>
+        {% if user.license_category %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Catégorie :</td>
             <td>{{user.license_category}}</td>
         </tr>
-        <tr>
-            <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
-            <td>{{format_date(user.license_expiry_date)}}</td>
-        </tr>
+        {% endif %}
+        {% if user.license_expiry_date %}
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/> Expiration :</td>
+                <td>{{format_date(user.license_expiry_date)}}</td>
+            </tr>
+        {% endif %}
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/>Genre :</td>
             <td> {{user.get_gender_name()}}</td>
@@ -119,7 +123,7 @@
     {%endif%}
 
 
-    {% if user == current_user and not user.type == models.UserType.Extranet %}
+    {% if user == current_user and user.type == models.UserType.Extranet %}
     <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
@@ -130,6 +134,12 @@
         <input type="submit" value="Resynchroniser mes informations FFCAM" class="button button-secondary">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     </form>
+    {% endif %}
+
+    {% if user != current_user and user.type != models.UserType.Extranet %}
+        <p id="info_extranet">
+            Ces informations sont fournies par l'utilisateur et n'ont pas été vérifiées par la fédération.
+        </p>
     {% endif %}
 
     <h4 class="heading-4">Autres informations</h4>

@@ -1,3 +1,6 @@
+""" Auth login to perform account creation and recover. """
+
+import datetime
 
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app
@@ -6,20 +9,15 @@ from markupsafe import Markup
 from sqlalchemy import or_
 
 
-
 from collectives.routes.auth.globals import blueprint
 from collectives.models import db, ConfirmationToken, ConfirmationTokenType
-from collectives.models import User, Configuration
+from collectives.models import User, Configuration, UserType
 from collectives.utils.time import current_time
 from collectives.forms.auth import PasswordResetForm, AccountActivationForm
-from collectives.forms.auth import AccountCreationForm
+from collectives.forms.auth import ExtranetAccountCreationForm, LocalAccountCreationForm
 from collectives.utils import extranet
 from collectives import email_templates
 from collectives.models.auth import TokenEmailStatus
-
-
-
-
 
 
 def create_confirmation_token(license_number, user):
@@ -32,6 +30,7 @@ def create_confirmation_token(license_number, user):
     db.session.add(token)
     db.session.commit()
     return token
+
 
 @blueprint.route("/process_confirmation/<token_uuid>", methods=["GET", "POST"])
 def process_confirmation(token_uuid):
@@ -55,48 +54,71 @@ def process_confirmation(token_uuid):
 
     form = PasswordResetForm() if is_recover else AccountActivationForm()
 
+    if (
+        not is_recover
+        and token.existing_user
+        and token.existing_user.type == UserType.CandidateLocal
+    ):
+        token.existing_user.type = UserType.Local
+        token.existing_user.legal_text_signature_date = datetime.datetime.now()
+        token.existing_user.legal_text_signed_version = (
+            Configuration.CURRENT_LEGAL_TEXT_VERSION
+        )
+        db.session.add(token.existing_user)
+        db.session.delete(token)
+        db.session.commit()
+
+        flash(
+            "Votre compte a été vérifié et activé. Bienvenue. Vous pouvez à présent vous connecter."
+        )
+        return redirect(url_for("auth.login"))
+
     # Form not yet submitted or contains errors
     if not form.validate_on_submit():
         return render_confirmation_form(form, is_recover)
 
-    # Check license validity
-    license_number = token.user_license
-    try:
-        license_info = extranet.api.check_license(license_number)
-        if not license_info.is_valid_at_time(current_time()):
+    if token.existing_user is None or token.existing_user.type == UserType.Extranet:
+        # Check license validity
+        license_number = token.user_license
+        try:
+            license_info = extranet.api.check_license(license_number)
+            if not license_info.is_valid_at_time(current_time()):
+                flash(
+                    Markup(
+                        f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
+                    Si vous avez changé de numéro de licence, utilisez le
+                    <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
+                    ),
+                    "error",
+                )
+                return render_confirmation_form(form, is_recover)
+
+            # Fetch extranet data
+            user_info = extranet.api.fetch_user_info(license_number)
+            if not user_info.is_valid:
+                flash("Accès aux données FFCAM impossible actuellement", "error")
+                return render_confirmation_form(form, is_recover)
+        except extranet.ExtranetError:
             flash(
-                Markup(
-                    f"""Compte ou numéro de licence inactif, merci de renouveler votre adhésion.
-                Si vous avez changé de numéro de licence, utilisez le
-                <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>."""
-                ),
+                "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
                 "error",
             )
             return render_confirmation_form(form, is_recover)
 
-        # Fetch extranet data
-        user_info = extranet.api.fetch_user_info(license_number)
-        if not user_info.is_valid:
-            flash("Accès aux données FFCAM impossible actuellement", "error")
-            return render_confirmation_form(form, is_recover)
-    except extranet.ExtranetError:
-        flash(
-            "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
-            "error",
-        )
-        return render_confirmation_form(form, is_recover)
+        # Synchronize user info from API
+        if is_recover:
+            user = db.session.get(User, token.existing_user_id)
+        else:
+            user = User()
+            user.legal_text_signature_date = current_time()
+            version = Configuration.CURRENT_LEGAL_TEXT_VERSION
+            user.legal_text_signed_version = version
+            user.license = token.user_license
 
-    # Synchronize user info from API
-    if is_recover:
-        user = db.session.get(User, token.existing_user_id)
+        extranet.sync_user(user, user_info, license_info)
     else:
-        user = User()
-        user.legal_text_signature_date = current_time()
-        version = Configuration.CURRENT_LEGAL_TEXT_VERSION
-        user.legal_text_signed_version = version
-        user.license = token.user_license
+        user = token.existing_user
 
-    extranet.sync_user(user, user_info, license_info)
     form.populate_obj(user)
 
     # Update/add user to db
@@ -118,7 +140,7 @@ def render_signup_form(form, is_recover):
 
     :param form: Form which will be used to generate information web page.
     :type form: :py:class:`collectives.form.auth.LoginForm` or
-                :py:class:`collectives.form.auth.AccountCreationForm`
+                :py:class:`collectives.form.auth.ExtranetAccountCreationForm`
     :param is_recover: True if we are resetting the password.
     :type is_recover: boolean
     :return: Email confirmation webpage
@@ -153,7 +175,13 @@ def signup():
         return redirect(url_for("event.index"))
 
     is_recover = "recover" in request.endpoint
-    form = AccountCreationForm(is_recover)
+
+    local = Configuration.EXTRANET_ACCOUNT_ID == ""
+
+    if is_recover or not local:
+        form = ExtranetAccountCreationForm(is_recover)
+    else:
+        form = LocalAccountCreationForm()
 
     # Form data invalid or not yet submitted
     if not form.validate_on_submit():
@@ -168,26 +196,65 @@ def signup():
     # email or license
     existing_user = None
     if is_recover:
-        existing_users = User.query.filter(
-            or_(User.license == user.license, User.mail == user.mail)
-        ).all()
-        num_existing_users = len(existing_users)
-
-        # Check that a single existing account is matching the
-        # provided identifiers
-        if num_existing_users > 1:
-            form.generic_error = (
-                "Identifiant ambigus: plusieurs comptes peuvent correspondre. "
-                "Veuillez contacter le support."
-            )
-            return render_signup_form(form, is_recover)
-        if num_existing_users == 0:
-            form.error_must_activate = True
+        existing_user = get_existing_user(form)
+        if not existing_user:
             return render_signup_form(form, is_recover)
 
-        existing_user = existing_users[0]
+    if local and not is_recover:
+        user.type = UserType.CandidateLocal
 
-    # Check license validity
+        db.session.add(user)
+        db.session.commit()
+
+        existing_user = user
+
+    if not local:
+        if not check_user_validity(form):
+            return render_signup_form(form, is_recover)
+
+    # If self-provided info is correct, generate confirmation token
+    token = create_confirmation_token(user.license, existing_user)
+
+    # Send confirmation email with link to token
+    email_templates.send_confirmation_email(user.mail, user.first_name, token)
+
+    return redirect(url_for(".check_token", license_number=user.license))
+
+
+def get_existing_user(form: ExtranetAccountCreationForm):
+    """Look for en existing user equivalent to the one described in form.
+
+    If an error occurs, the form is loaded with the appropriate error message.
+
+    :param form: the form with the user info.
+    :returns: Either the User or None if an error has occured."""
+    existing_users = User.query.filter(
+        or_(User.license == form.license.data, User.mail == form.mail.data)
+    ).all()
+    num_existing_users = len(existing_users)
+
+    # Check that a single existing account is matching the
+    # provided identifiers
+    if num_existing_users > 1:
+        form.generic_error = (
+            "Identifiant ambigus: plusieurs comptes peuvent correspondre. "
+            "Veuillez contacter le support."
+        )
+        return None
+    if num_existing_users == 0:
+        form.error_must_activate = True
+        return None
+
+    return existing_users[0]
+
+
+def check_user_validity(form):
+    """Look into FFCAM extranet and check user given data.
+
+    If an error occurs, the form is loaded with the appropriate error message.
+
+    :param form: the form with the user info.
+    :returns: True if license is valid, False if not, None if there is an error"""
     license_number = form.license.data
     try:
         license_info = extranet.api.check_license(license_number)
@@ -196,7 +263,7 @@ def signup():
                 "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
                 "de pouvoir créer ou récupérer votre compte."
             )
-            return render_signup_form(form, is_recover)
+            return False
 
         user_info = extranet.api.fetch_user_info(license_number)
     except extranet.ExtranetError:
@@ -204,35 +271,25 @@ def signup():
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
             "error",
         )
-        return render_signup_form(form, is_recover)
+        return None
 
     if user_info.email == None:
         form.generic_error = f"""Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
             club. Envoyez un mail à {Configuration.SECRETARIAT_EMAIL} afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
             fait, vous pourrez alors activer votre compte"""
-        return render_signup_form(form, is_recover)
+        return False
 
     if (
-        user.date_of_birth != user_info.date_of_birth
-        or user.mail.lower() != user_info.email.lower()
+        form.date_of_birth.data != user_info.date_of_birth
+        or form.mail.data.lower() != user_info.email.lower()
     ):
         form.generic_error = (
             "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
             "de licence."
         )
-        return render_signup_form(form, is_recover)
-
-    # User-provided info is correct,
-    # generate confirmation token
-    token = create_confirmation_token(license_number, existing_user)
-
-    # Send confirmation email with link to token
-    email_templates.send_confirmation_email(
-        user_info.email, user_info.first_name, token
-    )
-
-    return redirect(url_for(".check_token", license_number=license_number))
+        return False
+    return True
 
 
 @blueprint.route("/check_token/<license_number>", methods=["GET"])
@@ -242,11 +299,10 @@ def check_token(license_number):
     If there is a failed token, an error is displayed and the token is deleted.
     """
 
-    token = (
-        ConfirmationToken.query.filter(ConfirmationToken.user_license == license_number)
-        .order_by(ConfirmationToken.expiry_date.desc())
-        .first()
-    )
+    token_query = ConfirmationToken.query
+    token_query = token_query.filter(ConfirmationToken.user_license == license_number)
+    token_query = token_query.order_by(ConfirmationToken.expiry_date.desc())
+    token = token_query.first()
 
     error_message = (
         "L'envoi de votre email de confirmation de boite mail a échoué."
@@ -278,6 +334,7 @@ def check_token(license_number):
 
     return redirect(url_for(".login"))
 
+
 def render_confirmation_form(form, is_recover):
     """Render template with right options for email confirmation webpage.
 
@@ -292,7 +349,7 @@ def render_confirmation_form(form, is_recover):
     reason = "récupérer" if is_recover else "créer"
     form.submit.label.text = f"{reason.capitalize()} le compte"
     return render_template(
-        "auth/token_confirmation.html",
+        "basicform.html",
         form=form,
         title=f"{action} de compte",
     )

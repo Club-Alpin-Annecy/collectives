@@ -2,13 +2,16 @@
 
 # pylint: disable=unused-argument
 
-from collectives.models import User, db
+from collectives.models import User, db, Configuration
 from tests import mock
 from tests import fixtures
 
 
 def test_create_account(client, extranet_monkeypatch):
     """Test valid account creation."""
+
+    # Setup conf as extranet account creation
+    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
 
     # First signup stage
     response = client.get("/auth/signup")
@@ -63,6 +66,9 @@ def test_create_account(client, extranet_monkeypatch):
 
 def test_wrong_create_account(client, extranet_monkeypatch):
     """Test valid account creation."""
+    # Setup conf as extranet account creation
+    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
+
     # wrong date of birth
     data = {
         "mail": "test@example.com",

@@ -1,3 +1,6 @@
+""" This module concerns every routes regarding 
+authentification (login, signup, etc...)"""
+
 from collectives.routes.auth.globals import login_manager, blueprint
 from collectives.routes.auth.utils import get_bad_phone_message, sync_user
 

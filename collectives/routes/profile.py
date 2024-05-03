@@ -15,7 +15,7 @@ from flask import Blueprint
 from flask_login import current_user, logout_user
 from flask_images import Images
 
-from collectives.forms import UserForm
+from collectives.forms import ExtranetUserForm, LocalUserForm
 from collectives.forms.user import DeleteUserForm
 from collectives.models import User, Role, RoleIds, Configuration, Gender
 from collectives.models import Event, db, UserType
@@ -104,7 +104,10 @@ def show_leader(leader_id):
 def update_user():
     """Route to update current user information"""
 
-    form = UserForm(obj=current_user)
+    if current_user.type == UserType.Local:
+        form = LocalUserForm(obj=current_user)
+    else:
+        form = ExtranetUserForm(obj=current_user)
 
     if not form.validate_on_submit():
         form.password.data = None
@@ -125,7 +128,7 @@ def update_user():
     # Save avatar into UploadSet
     if form.remove_avatar and form.remove_avatar.data:
         user.delete_avatar()
-    user.save_avatar(UserForm().avatar_file.data)
+    user.save_avatar(form.avatar_file.data)
 
     db.session.add(user)
     db.session.commit()

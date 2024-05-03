@@ -1,3 +1,5 @@
+""" Auth module for miscaleneous functions and classes."""
+
 from flask import url_for
 from flask_login import AnonymousUserMixin
 from markupsafe import escape
@@ -8,15 +10,18 @@ from collectives.models import db, UserType, Configuration
 from collectives.utils import extranet
 
 
-
 class UnauthenticatedUserMixin(AnonymousUserMixin):
     """Mixin that defines properties for unauthenticated users"""
 
+    # pylint: disable=invalid-name
     @property
     def id(self) -> int:
         """Id for unauthenticated users (always `-1`)"""
         return -1
-    
+
+    # pylint: enable=invalid-name
+
+
 def sync_user(user, force):
     """Synchronize user info from extranet.
 

@@ -4,6 +4,11 @@ Miscellaneous functions for forms
 
 from wtforms.fields import SelectMultipleField
 from wtforms import widgets
+from wtforms import StringField
+
+from collectives.forms.validators import LicenseValidator, PhoneValidator
+from collectives.forms.validators import UniqueValidator
+from collectives.models import db, User
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -16,3 +21,39 @@ class MultiCheckboxField(SelectMultipleField):
 
     widget = widgets.ListWidget(html_tag="ul", prefix_label=False)
     option_widget = widgets.CheckboxInput()
+
+
+class LicenseField(StringField):
+    """Field to give an FFCAM License"""
+
+    def __init__(self, *args, **kwargs):
+        """Constructor of LicenseField."""
+        super().__init__(
+            *args,
+            label="Numéro de licence",
+            description=LicenseValidator().help_string(),
+            render_kw={
+                "placeholder": LicenseValidator().sample_value(),
+                "pattern": LicenseValidator().pattern(),
+            },
+            validators=[
+                LicenseValidator(),
+                UniqueValidator(User.license, get_session=lambda: db.session),
+            ],
+            **kwargs
+        )
+
+
+class PhoneField(StringField):
+    """Field to provide a phone number.
+
+    Will be validated with pip phonenumbers"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            validators=[
+                PhoneValidator(),
+            ],
+            **kwargs
+        )

@@ -1,3 +1,5 @@
+""" Auth modules to log in an user. """
+
 import datetime
 from urllib.parse import urlparse
 
@@ -11,8 +13,6 @@ from collectives.routes.auth.utils import sync_user, get_bad_phone_message
 from collectives.models import db, Configuration, User
 from collectives.utils.time import current_time
 from collectives.utils import extranet
-
-
 
 
 @blueprint.route("/login", methods=["GET", "POST"])

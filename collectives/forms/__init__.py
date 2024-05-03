@@ -9,19 +9,15 @@ from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
 
 from collectives.forms.csv import CSVForm
-from collectives.forms.auth import LoginForm, AccountCreationForm
+from collectives.forms.auth import LoginForm, ExtranetAccountCreationForm
 from collectives.forms.event import RegistrationForm, EventForm
-from collectives.forms.user import AdminTestUserForm, AdminUserForm, UserForm, RoleForm
-from collectives.forms.reservation import (
-    CancelRentalForm,
-    EndRentalForm,
-    LeaderReservationForm,
-)
+from collectives.forms.user import AdminTestUserForm, AdminUserForm, ExtranetUserForm
+from collectives.forms.user import RoleForm, LocalUserForm
+from collectives.forms.reservation import CancelRentalForm, EndRentalForm
+from collectives.forms.reservation import LeaderReservationForm
 from collectives.forms.reservation import NewRentalEquipmentForm, NewRentalUserForm
-from collectives.forms.reservation import (
-    ReservationToRentalForm,
-    AddEquipmentInReservationForm,
-)
+from collectives.forms.reservation import ReservationToRentalForm
+from collectives.forms.reservation import AddEquipmentInReservationForm
 from collectives.models.upload import documents
 from collectives.models import photos, avatars, image_equipment_type
 from collectives.routes import technician

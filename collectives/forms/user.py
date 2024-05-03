@@ -98,8 +98,8 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
         AvatarForm.__init__(self, kwargs.get("obj"))
 
 
-class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
-    """Form for users to edit their own info"""
+class ExtranetUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+    """Form for extranet users to edit their own info"""
 
     class Meta:
         """Fields to expose"""
@@ -107,6 +107,33 @@ class UserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
         model = User
         # User should not be able to change a protected parameter
         only = ["password"]
+        unique_validator = UniqueValidator
+
+    submit = SubmitField("Enregistrer")
+    field_order = ["*", "avatar_file", "remove_avatar", "password", "confirm"]
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded constructor"""
+        OrderedModelForm.__init__(self, *args, **kwargs)
+        AvatarForm.__init__(self, kwargs.get("obj"))
+
+
+class LocalUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+    """Form for extranet users to edit their own info"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = User
+        # User should not be able to change a protected parameter
+        only = [
+            "license",
+            "date_of_birth",
+            "phone",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "password",
+        ]
         unique_validator = UniqueValidator
 
     submit = SubmitField("Enregistrer")

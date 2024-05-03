@@ -220,23 +220,24 @@ class ConfigurationItem(db.Model):
 
 
 class DBAdaptedFlaskConfig(Config):
-    """ Flask Config class modified to allow Flask to fetch config
-        in hot configuration. """
+    """Flask Config class modified to allow Flask to fetch config
+    in hot configuration."""
+
     def __missing__(self, key: str):
-        """ :returns: the hot config if the key does not exists in cold config.
-        
+        """:returns: the hot config if the key does not exists in cold config.
+
         It still raise a KeyError if key does not exist in cold config"""
         try:
             return Configuration.get(key)
         except AttributeError:
             raise KeyError(key) from None
 
-    def __init__(self, obj: dict, *args, **kwargs) -> None:
-        """ Constructor that copies an item.
-        
-        :param obj: Any dictionnary, eg, the regular Flask Config"""
+    def __init__(self, obj: Config, *args, **kwargs) -> None:
+        """Constructor that copies a Flask Config object.
 
-        super().__init__(*args, **kwargs)
+        :param obj: flask  Config to copy"""
+
+        super().__init__(obj.root_path, *args, **kwargs)
 
         for key, values in obj.items():
             self[key] = values

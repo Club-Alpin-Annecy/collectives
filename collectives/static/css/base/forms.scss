@@ -31,11 +31,6 @@ form {
             margin: 0 0;
         }
 
-        .label-top {
-            display: flex;
-            flex-direction: column;
-        }
-
         .label-help {
             display: inline-block;
             font-size: $font-size-xs;
@@ -57,7 +52,6 @@ form {
         }
         label {
             width: 100%;
-            display: flex;
             justify-content: space-between;
             &:last-of-type {
                 input {

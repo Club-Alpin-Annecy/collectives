@@ -156,13 +156,20 @@ class UserMiscMixin:
     def is_active(self):
         """Check if user is currently active.
 
-        An active user is not disabled and its license is valid.
+        An active user is not disabled, its license is valid and
+        is not candidate user.
 
         :return: True if user is active.
         :rtype: boolean
         """
+        if not self.enabled:
+            return False
+        if not self.check_license_valid_at_time(current_time()):
+            return False
+        if self.type == UserType.CandidateLocal:
+            return False
 
-        return self.enabled and self.check_license_valid_at_time(current_time())
+        return True
 
     def has_valid_phone_number(self, emergency=False):
         """Check if the user has a valid phone number.

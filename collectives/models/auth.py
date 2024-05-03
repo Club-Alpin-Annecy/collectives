@@ -10,6 +10,7 @@ import uuid
 
 from collectives.models.globals import db
 from collectives.models.configuration import Configuration
+from collectives.models.user import UserType
 from collectives.utils.time import current_time
 
 
@@ -84,6 +85,9 @@ class ConfirmationToken(db.Model):
 
     :type: :py:class:`collectives.models.auth.TokenEmailStatus`"""
 
+    existing_user = db.relationship("User")
+    """ The user to which this token is linked. """
+
     def __init__(self, user_license, existing_user, duration=None):
         """Token constructor
 
@@ -105,7 +109,9 @@ class ConfirmationToken(db.Model):
         self.status = TokenEmailStatus.Pending
 
         if existing_user:
-            self.token_type = ConfirmationTokenType.RecoverAccount
             self.existing_user_id = existing_user.id
+
+        if existing_user and existing_user.type != UserType.CandidateLocal:
+            self.token_type = ConfirmationTokenType.RecoverAccount
         else:
             self.token_type = ConfirmationTokenType.ActivateAccount

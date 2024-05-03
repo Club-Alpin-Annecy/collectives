@@ -1,3 +1,5 @@
+""" Auth module that contains all global values."""
+
 from flask_login import LoginManager
 from flask import Blueprint
 
@@ -11,11 +13,11 @@ This blueprint contains all routes for authentification actions.
 """
 
 
-
 login_manager = LoginManager()
 login_manager.anonymous_user = UnauthenticatedUserMixin
 login_manager.login_view = "auth.login"
 login_manager.login_message = "Merci de vous connecter pour accéder à cette page"
+
 
 # Flask-login user loader
 @login_manager.user_loader
@@ -34,4 +36,3 @@ def load_user(user_id):
         # License has expired, log-out user
         return None
     return user
-

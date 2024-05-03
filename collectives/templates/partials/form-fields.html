@@ -47,6 +47,7 @@
         {{ form.submit(class="button button-primary input-100") }}
     {% endif %}
     </div>
+    {{ form.csrf_token }}
   </form>
 
 {%- endmacro %}

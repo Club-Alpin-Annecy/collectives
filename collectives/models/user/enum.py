@@ -29,7 +29,7 @@ class Gender(ChoiceEnum):
             cls.Other: "Autre",
             cls.Woman: "Femme",
             cls.Man: "Homme",
-            cls.Unknown: "Inconnu",
+            cls.Unknown: "N/A",
         }
 
 

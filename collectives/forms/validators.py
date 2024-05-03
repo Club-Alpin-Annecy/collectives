@@ -6,6 +6,7 @@ See `WTForms documentation
 
 import re
 
+import phonenumbers
 from wtforms.validators import ValidationError
 from wtforms_alchemy import Unique
 
@@ -13,7 +14,7 @@ from wtforms_alchemy import Unique
 class LicenseValidator:
     """WTForm Validator for license fields"""
 
-    prefix = "7400"
+    prefix = ""
     """ Prefix for every licence.
 
     :type: string """
@@ -34,10 +35,7 @@ class LicenseValidator:
         :rtype: boolean
         """
         if not re.match(self.pattern(), field.data):
-            error_message = (
-                f"Le numéro de licence doit contenir "
-                f"12 chiffres et commencer par '{self.prefix}'"
-            )
+            error_message = "Le numéro de licence doit contenir 12 chiffres"
             raise ValidationError(error_message)
 
     def help_string(self):
@@ -104,6 +102,28 @@ class PasswordValidator:
             "Au moins {len} caractères dont majuscules, minuscules,"
             + " chiffres ou caractère spéciaux"
         ).format(len=self.min_length)
+
+
+class PhoneValidator:
+    """Custom validator to check that phone numbers are real phones."""
+
+    def __call__(self, form, field):
+        error_message = "Le numéro de téléphone n'est pas valide."
+
+        try:
+            number = field.data
+            number = phonenumbers.parse(number, "FR")
+            if not phonenumbers.is_possible_number(number):
+                raise ValidationError(error_message)
+            if not phonenumbers.is_valid_number(number):
+                raise ValidationError(error_message)
+
+        except phonenumbers.NumberParseException as exc:
+            raise ValidationError(error_message) from exc
+
+    def help_string(self):
+        """:returns: A string explaining what is accepted as a phone number"""
+        return "Les numéros de téléphones non françaix doivent être préfixés de leur indicatif"
 
 
 class UniqueValidator(Unique):
