@@ -21,7 +21,7 @@ run = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE, chec
 # -- Project information -----------------------------------------------------
 
 project = "collectives"
-copyright = "2020, CAF Annecy"
+copyright = "2020-2024, CAF Annecy"
 author = "CAF Annecy"
 
 # The full version, including alpha/beta/rc tags

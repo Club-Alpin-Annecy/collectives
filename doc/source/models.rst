@@ -15,6 +15,18 @@ Module ``collectives.models.auth``
 .. automodule:: collectives.models.auth
     :members:
 
+   
+Module ``collectives.models.badge``
+---------------------------------------
+.. automodule:: collectives.models.badge
+    :members:
+
+..
+   Disable configuration autodoc: Meta class crashes sphinx
+   Module ``collectives.models.configuration``
+   --------------------------------------------
+   .. automodule:: collectives.models.configuration
+      :members:
 
 
 Module ``collectives.models.event``
@@ -25,10 +37,29 @@ Module ``collectives.models.event``
    event
    
 
+Module ``collectives.models.event_tag``
+---------------------------------------
+.. automodule:: collectives.models.event_tag
+   :members:
+
 
 Module ``collectives.models.globals``
 ---------------------------------------
 .. automodule:: collectives.models.globals
+   :members:
+
+
+Module ``collectives.models.payment``
+---------------------------------------
+.. toctree::
+  :maxdepth: 2
+
+  payment
+
+
+Module ``collectives.models.question``
+--------------------------------------------
+.. automodule:: collectives.models.question
    :members:
 
 
@@ -41,6 +72,12 @@ Module ``collectives.models.registration``
 Module ``collectives.models.role``
 ---------------------------------------
 .. automodule:: collectives.models.role
+   :members:
+
+
+Module ``collectives.models.upload``
+---------------------------------------
+.. automodule:: collectives.models.upload
    :members:
 
 
@@ -58,12 +95,6 @@ Module ``collectives.models.user_group``
 
   user_group
 
-Module ``collectives.models.payment``
----------------------------------------
-.. toctree::
-  :maxdepth: 2
-
-  payment
 
 Module ``collectives.models.utils``
 ---------------------------------------

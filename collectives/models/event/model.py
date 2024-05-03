@@ -3,8 +3,9 @@
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates
 
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
+from collectives.utils.misc import truncate
 
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
 #  pas comptés dans le nombre de place
@@ -113,6 +114,16 @@ class EventModelMixin:
     """Status of the event (Confirmed, Cancelled...)
 
     :type: :py:class:`collectives.models.event.EventStatus`"""
+
+    visibility = db.Column(
+        db.Enum(EventVisibility),
+        nullable=False,
+        default=EventVisibility.Licensed,
+        info={"choices": EventVisibility.choices(), "coerce": EventVisibility.coerce},
+    )
+    """Visibility of the event (Public, Private...)
+
+    :type: :py:class:`collectives.models.event.EventVisibility`"""
 
     # Non DB attributes
     @property
@@ -295,9 +306,7 @@ class EventModelMixin:
         :rtype: string
         """
         max_len = getattr(self.__class__, key).prop.columns[0].type.length
-        if value and len(value) > max_len:
-            return value[: max_len - 1] + "…"
-        return value
+        return truncate(value, max_len)
 
     @property
     def tags(self):

@@ -124,3 +124,20 @@ def test_user_group_members(
 
     group0_members = group0.get_members()
     assert len(group0_members) == 0
+
+
+def test_any_role_condition(user1, president_user, leader_user):
+    """Test "any role" group condition"""
+
+    group0 = UserGroup()
+
+    any_role_condition = GroupRoleCondition()
+    group0.role_conditions.append(any_role_condition)
+
+    db.session.add(group0)
+    db.session.commit()
+
+    group0_members = group0.get_members()
+    assert user1 not in group0_members
+    assert president_user in group0_members
+    assert leader_user in group0_members

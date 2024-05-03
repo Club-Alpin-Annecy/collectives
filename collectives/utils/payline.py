@@ -13,7 +13,7 @@ from pysimplesoap.client import SoapClient
 from collectives.models.payment import PaymentStatus
 from collectives.models import Configuration
 from collectives.utils.time import format_date
-from collectives.utils.misc import to_ascii
+from collectives.utils.misc import to_ascii, truncate
 
 PAYLINE_VERSION = 26
 """ Version of payline API
@@ -363,10 +363,17 @@ class OrderInfo:
             self.date = payment.creation_time.strftime("%d/%m/%Y %H:%M")
             item_details = {
                 "ref": payment.price.id,
-                "comment": f"{payment.item.event.title} -- {payment.item.title} -- "
-                f"{payment.price.title}",
+                "comment": truncate(
+                    to_ascii(
+                        f"{payment.item.event.title} -- {payment.item.title} -- "
+                        f"{payment.price.title}"
+                    ),
+                    max_len=255,
+                    append_ellipsis=False,
+                ),
                 "price": self.amount_in_cents,
             }
+
             self.details = {"details": [item_details]}
             self.metadata = {
                 "collective": payment.item.event.title,

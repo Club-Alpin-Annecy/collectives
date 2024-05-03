@@ -21,12 +21,16 @@ FLASK_ENV = environ.get("FLASK_ENV")
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#ENV
 
+Can be set using environment variable.
+
 :type: string
 """
 FLASK_DEBUG = environ.get("FLASK_DEBUG")
 """Whether debug mode is enabled.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#DEBUG
+
+Can be set using environment variable.
 
 :type: boolean
 """
@@ -39,6 +43,8 @@ To generate a new secret key:
 >>> import random, string
 >>> "".join([random.choice(string.printable) for _ in range(24)])
 Secret key can also be set in instance/config.py
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -56,6 +62,8 @@ ADMINPWD = environ.get("ADMINPWD") or "foobar2"
 
 Will be set or reset at every application. Makes sure this is a secure password
 in production.
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -79,6 +87,8 @@ as github CI tests.
 EXTRANET_WSDL = environ.get("EXTRANET_WSDL") or DEFAULT_WSDL
 """URL of WSDL to connect to FFCAM server
 
+Can be set using environment variable.
+
 :type: string
 """
 
@@ -86,12 +96,6 @@ PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 
 :type: int
-"""
-
-PAYMENTS_TERMS_FILE = "caf/doc/cgv/2021-02-02 - CGV Collectives.pdf"
-"""Path to the file containing the current payment terms and conditions
-
-:type: string
 """
 
 # Database
@@ -106,6 +110,8 @@ or mysql: ``mysql+pymysql://username:password@localhost/db_name?charset=utf8mb4`
 
 NB: When using mysql, charset must be specified to allow UTF8 character in test field.
 
+Can be set using environment variable.
+
 :type: string
 """
 SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -113,6 +119,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Payline
 PAYLINE_WSDL = environ.get("PAYLINE_WSDL") or "./collectives/utils/payline.wsdl"
 """Path to WDSL file describing Payline WebPayment SOAP API
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -122,6 +130,8 @@ PAYLINE_DIRECTPAYMENT_WSDL = (
     or "./collectives/utils/payline_directpayment.wsdl"
 )
 """Path to WDSL file describing Payline DirectPayment SOAP API
+
+Can be set using environment variable.
 
 :type: string
 """
@@ -179,48 +189,36 @@ Contains the list of activity type as a dictionnary. id is an int, value is a ha
 
 :type: dict"""
 
-GUIDE_TITLE = (
-    "guide d'organisation des sorties et des séjours du Club Alpin Français d'Annecy"
-)
-""" Name of the guide to accept to register to an event of most types.
-
-:type: string """
-
-GUIDE_FILENAME = "CAF Annecy Organisation des sorties.pdf"
-""" Guide file name to accept to register to an event of most types.
-
-:type: string """
-
 # Event type:
 EVENT_TYPES = {
     1: {
         "short": "collective",
         "name": "Collective",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     2: {
         "short": "jeune",
         "name": "Jeunes",
         "requires_activity": True,
         "license_types": ["J1", "J2", "E1", "E2"],
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     3: {
         "short": "formation",
         "name": "Formation",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     4: {
         "short": "soiree",
         "name": "Soirée",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     5: {
         "short": "randonnees_lointaines",
@@ -235,43 +233,43 @@ EVENT_TYPES = {
         "short": "inscription",
         "name": "Inscription en ligne",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     8: {
         "short": "acces_libre",
         "name": "Accès libre",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     9: {
         "short": "entrainement",
         "name": "Entrainement",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     10: {
         "short": "cours",
         "name": "Cours",
         "requires_activity": True,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     11: {
         "short": "benevolat",
         "name": "Bénévolat",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
     12: {
         "short": "famille",
         "name": "Famille",
         "requires_activity": False,
-        "terms_title": GUIDE_TITLE,
-        "terms_file": GUIDE_FILENAME,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
     },
 }
 """List of event types
@@ -300,6 +298,7 @@ EVENT_TAGS = {
     },
     10: {"short": "tag_rando_cool", "name": "Rando Cool"},
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
+    12: {"short": "tag_environmental_consciousness", "name": "Éco-Sensibilisation"},
 }
 
 # Technical stuff
@@ -341,12 +340,19 @@ UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(
 UPLOADED_DOCUMENTS_DEST = os.path.join(basedir, "collectives/static/uploads/documents")
 """Folder path for uploaded event documents.
 
-
+:type: string
 """
+
 UPLOADED_TECH_DEST = os.path.join(basedir, "collectives/static/uploads/tech")
 """Folder path for technician data.
 
+:type: string
+"""
 
+UPLOADED_PRIVATE_DEST = os.path.join(basedir, "collectives/private_assets")
+"""Folder path for private technician data.
+
+:type: string
 """
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
@@ -369,25 +375,35 @@ IMAGES_PATH = [
 DEFAULT_ONLINE_SLOTS = environ.get("DEFAULT_ONLINE_SLOTS") or 0
 """ Default number of slots for online subscription to an event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_OPENING_DELTA_DAYS = environ.get("REGISTRATION_OPENING_DELTA_DAYS") or 7
 """ Default number of days the online registration should start before the beginning of the event
+
+Can be set using environment variable.
 
 :type: int """
 
 REGISTRATION_OPENING_HOUR = environ.get("REGISTRATION_OPENING_HOUR") or 7
 """ Default hour of the day the online registration should start before the beginning of the event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_CLOSING_DELTA_DAYS = environ.get("REGISTRATION_CLOSING_DELTA_DAYS") or 1
 """ Default number of days the online registration should end before the beginning of the event
 
+Can be set using environment variable.
+
 :type: int """
 
 REGISTRATION_CLOSING_HOUR = environ.get("REGISTRATION_CLOSING_HOUR") or 18
 """ Default hour of the day the online registration should end before the beginning of the event
+
+Can be set using environment variable.
 
 :type: int """
 

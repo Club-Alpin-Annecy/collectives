@@ -12,11 +12,13 @@ from collectives.email_templates import send_confirmation_email
 from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm
 from collectives.forms.user import RoleForm, RenewBadgeForm
 from collectives.forms.auth import AdminTokenCreationForm
-from collectives.models import User, ActivityType, Role, RoleIds, Badge, db
+from collectives.models import RoleIds, Badge, db, Configuration
+from collectives.models import User, ActivityType, Role
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export, badges
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
+from collectives.utils.misc import sanitize_file_name
 
 blueprint = Blueprint("administration", __name__, url_prefix="/administration")
 """ Administration blueprint
@@ -434,10 +436,12 @@ def export_role(raw_filters=""):
 
     out = export.export_roles(roles)
 
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
+
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"CAF Annecy - Export {filename}.xlsx",
+        download_name=f"{club_name} - Export {filename}.xlsx",
         as_attachment=True,
     )
 
@@ -445,9 +449,18 @@ def export_role(raw_filters=""):
 @blueprint.route("/token", methods=["GET"])
 def token():
     """Route for ask user registration token"""
+
+    description = """Si un utilisateur ne reçoit pas les emails contenant
+    le jeton de confirmation nécessaire à la création ou récupération de
+    son compte, vous pouvez en générer un manuellement avec le formulaire
+    ci-dessous."""
+
     return render_template(
-        "administration/token.html",
-        token_creation_form=AdminTokenCreationForm(),
+        "basicform.html",
+        title="Jetons de confirmation",
+        form=AdminTokenCreationForm(),
+        extends="administration/index.html",
+        description=description,
     )
 
 

@@ -3,6 +3,7 @@
 """
 
 import functools
+import re
 import unicodedata
 
 from flask import request
@@ -69,3 +70,31 @@ def to_ascii(value):
         .encode("ascii", "ignore")
         .decode("ascii")
     )
+
+
+def sanitize_file_name(name: str) -> str:
+    """Returns  sanitized filename without characters that cannot be in a filename.
+
+    Basically removes all characters not alphanumerical, space, accentuated character,
+    simple quote, dot, dash, commas, and underscore."""
+    return re.sub(r"[^A-Za-z0-9_ .,àâäçéèêëîïôöùûüÿÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒæœ-]", "_", name)
+
+
+def truncate(value: str, max_len: int, append_ellipsis: bool = True) -> str:
+    """
+    Truncates a string so that it is no longer that a predefined length
+
+    :param value: string to truncate
+    :param max_len: maximum length of returned string
+    :param append_ellipsis: whether to put an ellipsis at the end of the string when it is truncated
+
+    :returns: the truncated string
+    """
+
+    if value is None or len(value) <= max_len:
+        return value
+
+    if append_ellipsis:
+        return value[: max_len - 1] + "…"
+
+    return value[:max_len]

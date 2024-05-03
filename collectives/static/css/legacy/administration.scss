@@ -3,67 +3,6 @@
   margin: auto;
 }
 
-#administration .action{
-  max-width: 800px;
-  margin: auto;
-  text-align: center;
-}
-
-#administration .controls{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-
-#administration form{
-  padding: 10px 20px;
-}
-
-#administration input, #administration select, #administration textarea{
-  width : 40%;
-  margin-bottom: 1em;
-}
-
-#administration input[type=submit] {
-	margin: 8px 0;
-	width: 50%;
-}
-
-
-#administration form div.field{
-  display: inline-block;
-  text-align: right;
-  width:30%;
-  margin-bottom: 1em;
-}
-
-#administration form div.field label{
-  display:block;
-}
-
-#administration form div.field span.help{
-  padding-right: 5px;
-  font-size:80%;
-}
-
-#administration form div.inline_field{
-  text-align:justify;
-}
-
-#administration form div.inline_field label{
-  font-weight: bold;
-  display: inline;
-  text-align: left;
-  padding: auto;
-}
-
-#administration form div.inline_field input{
-  width: auto;
-  margin:auto;
-  padding: auto;
-}
-
 #administration #editor{
   width: 80%;
   margin:auto;

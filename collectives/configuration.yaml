@@ -27,16 +27,16 @@ Paiements:
         content: true
         description: Whether to enable the payment-related functionalities
         type: Boolean
+
+    PAYMENTS_TERMS_FILE:
+        content: caf/doc/CGV.pdf
+        description: Document des conditions générales de vente.
+        type: File
+
     REFUND_ENABLED:
         content: false
         description: Whether to enable refunding payments
         type: Boolean
-
-    PAYLINE_WSDL:
-        obsolete: true
-
-    PAYLINE_DIRECTPAYMENT_WSDL:
-        obsolete: true
 
     PAYLINE_MERCHANT_ID:
         content: ""
@@ -69,21 +69,7 @@ Paiements:
         description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
         type: ShortString
 
-Divers:
-    GOOGLE_ANALYTICS_UA:
-        content: ""
-        description: "Identifiant google analytics. Ex: UA-XXXXXXX-X. Vide pour désactiver"
-        type: ShortString
-
-    CURRENT_LEGAL_TEXT_VERSION:
-        content: 1
-        description: Current version of the legal text. Increment to force all site to sign it again.
-        type: Integer
-
-    TZ_NAME:
-        content: "Europe/Paris"
-        description: "Timezone to use for time comparisons"
-        type: ShortString
+FFCAM:
 
     LICENSE_CATEGORIES:
         content:
@@ -100,15 +86,32 @@ Divers:
         description: Dictionary of FFCAM licence categories with their description
         type: Dictionnary
 
-    MAIN_MENU_LINKS:
-        content:
-            News : "https://cafannecy.fr"
-            Nextcloud : https://nc.cafannecy.fr
-            Twitter : https://twitter.com/cafannecy
+    EXTRANET_ACCOUNT_ID:
+        content: ""
+        description: Identifiant de connexion à l'extranet FFCAM
+        type: ShortString
 
-        description: "Dictionnary of additional links to be added in main menu (NB: link must be full URL: https://.....)"
-        type: Dictionnary
+    EXTRANET_ACCOUNT_PWD:
+        content: ""
+        description: Mot de passe de la connexion à l'extranet FFCAM
+        type: ShortString
+        hidden: true
 
+Divers:
+    GOOGLE_ANALYTICS_UA:
+        content: ""
+        description: "Identifiant google analytics. Ex: UA-XXXXXXX-X. Vide pour désactiver"
+        type: ShortString
+
+    CURRENT_LEGAL_TEXT_VERSION:
+        content: 1
+        description: Current version of the legal text. Increment to force all site to sign it again.
+        type: Integer
+
+    TZ_NAME:
+        content: "Europe/Paris"
+        description: "Timezone to use for time comparisons"
+        type: ShortString
 
     DESCRIPTION_TEMPLATE:
         content: |
@@ -132,22 +135,6 @@ Divers:
         description: Whether to enable the reservation/rental-related functionalities
         type: Boolean
 
-    EXTRANET_ACCOUNT_ID:
-        content: ""
-        description: Identifiant de connexion à l'extranet FFCAM
-        type: ShortString
-
-    EXTRANET_ACCOUNT_PWD:
-        content: ""
-        description: Mot de passe de la connexion à l'extranet FFCAM
-        type: ShortString
-        hidden: true
-
-    BANNER_MESSAGE:
-        content: ""
-        description: Communication affichée sur la première page. MarkDown.
-        type: LongString
-
     MAX_UPLOADS_PER_EVENT:
         content : 5
         description: Maximum number of file uploads per event
@@ -155,8 +142,32 @@ Divers:
 
     VOLUNTEER_CERT_IMAGE:
         content : ""
-        description: File path to the background volunteer certificate image. Empty to deactivate volunteer certificate generation.
+        description: | 
+            File path to the background volunteer certificate image. Empty to deactivate 
+            volunteer certificate generation. Dimensions: 2479x3508
+        type: SecretFile
+
+Règlements:
+    GUIDE_FILE:
+        content: caf/doc/Organisation des sorties.pdf
+        description: Document de description des conditions de participation aux sorties.
+        type: File
+
+    GUIDE_TITLE:
+        content: guide des sorties
+        description: Titre du document de description des conditions de participation aux sorties.
         type: ShortString
+
+    GUIDE_TRAVEL_FILE:
+        content: caf/doc/Organisation Voyage.pdf
+        description: Document de description des conditions de participation aux voyages.
+        type: File
+
+    GUIDE_TRAVEL_TITLE:
+        content: guide des voyages
+        description: Titre du document de description des conditions de participation aux voyages.
+        type: ShortString
+
 Mail:
     SMTP_HOST:
         content: smtp.example.org
@@ -172,15 +183,18 @@ Mail:
         content: noreply@example.org
         description: Sending address to send administration mails. Will be used as a reply address
         type: ShortString
+
     SMTP_LOGIN:
         content: ''
         description: SMTP login to be used
         type: ShortString
+
     SMTP_PASSWORD:
         content: ""
         description: SMTP password to be used along SMTP_LOGIN as login
         type: ShortString
         hidden: true
+
     DKIM_KEY:
         content: ""
         description: |
@@ -190,17 +204,18 @@ Mail:
             Empty DKIM_KEY or DKIM_SELECTOR disable DKIM signature
         type: LongString
         hidden: true
+
     DKIM_SELECTOR:
         content: default
         description: The DKIM selector
         type: ShortString
 
-
+Template mail:
     CONFIRMATION_MESSAGE:
         content: |
             Bonjour {name},
 
-            Pour confirmer la {reason} de votre compte sur le site 'Collectives' du CAF d'Annecy, veuillez vous rendre à l'adresse ci-dessous :
+            Pour confirmer la {reason} de votre compte sur le site 'Collectives' de {club_name}, veuillez vous rendre à l'adresse ci-dessous :
             {link}
 
             Ce lien expirera après {expiry_hours} heures.
@@ -284,11 +299,9 @@ Mail:
         description: Email template content for registered users when an event is cancelled
         type: LongString
 
-
-
     ACTIVATED_REGISTRATION_SUBJECT:
         content: "Participation à la collective {event_title}"
-        description: Email subject for a waiting user when his subscription is activated
+        description: Sujet de l'email pour l'utilisateur lorsque que son inscription est activée.
         type: ShortString
 
     ACTIVATED_REGISTRATION_MESSAGE:
@@ -306,7 +319,7 @@ Mail:
 
             Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
             Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
-        description: Email template content for a waiting user when his subscription is activated
+        description: Template d'email pour l'utilisateur lorsque que son inscription est activée.
         type: LongString
 
     DELETED_REGISTRATIONS_POST_SCRIPTUM:
@@ -318,23 +331,80 @@ Mail:
         type: LongString
 
 
-APPEARANCE:
+APPARENCE:
+    BANNER_MESSAGE:
+        content: ""
+        description: Communication affichée sur la première page. MarkDown.
+        type: LongString
+
     COVER_CREDIT:
         content: Dwayne Reilander CC BY-SA 4.0
-        description: Credit of the cover on the front page.
+        description: Crédits de l'image de couverture.
         type: ShortString
 
     COVER_CREDIT_URL:
         content: https://commons.wikimedia.org/wiki/File:Ice_Climbing_in_the_Canadian_Rockies_3_-_2022.jpg
-        description: URL to the credit of the cover on the front page.
+        description: URL des crédits de l'image de couverture.
         type: ShortString
 
     COVER_POSITION:
         content: 50
-        description: Horizontal percentage where cover should be positionned
+        description: Pourcentage horizontal de la position de l'image de couverture.
         type: Integer
 
     COVER_LOGO_COLOR:
         content: "white"
-        description: Color of the logo "l'esprit club alpin"
+        description: Couleur du logo "l'esprit club alpin".
         type: ShortString
+    
+    MAIN_MENU_LINKS:
+        content:
+            News : "https://cafannecy.fr"
+            Nextcloud : https://nc.cafannecy.fr
+            Twitter : https://twitter.com/cafannecy
+
+        description: "Dictionnary of additional links to be added in main menu (NB: link must be full URL: https://.....)"
+        type: Dictionnary
+
+    CLUB_LOGO:
+        content: "caf/logo.svg"
+        description: Logo du site. Couleurs claires préférées. Dimensions 500x160.
+        type: File
+
+Information club:
+    CONTACT_EMAIL:
+        content: "[email de contact du club]"
+        description: Email de contact général affichée dans le bas de page.
+        type: ShortString
+
+    SUPPORT_EMAIL:
+        content: "[email de support du club]"
+        description: Email de support en cas de problème avec le site.
+        type: ShortString
+    
+    SECRETARIAT_EMAIL:
+        content: "[email du secretariat du club]"
+        description: Email du secretariat en cas de problème avec les inscriptions FFCAM.
+        type: ShortString
+
+    CLUB_NAME:
+        content: "[Nom du Club]"
+        description: Nom du club affichée dans le bas de page.
+        type: ShortString
+
+    CLUB_PHONE:
+        content: "01 00 00 00 00"
+        description: Téléphone du club
+        type: ShortString
+
+    CLUB_IDENTITY:
+        content: |
+            [Nom du club]
+            [Adresse du club]
+            Tél. [Téléphone du club]
+            [email de contact du club]
+
+            Informations générales sur le site internet du club [Adresse du site du club]
+        description: Information légale du club. Markdown.
+        type: LongString
+

@@ -22,7 +22,7 @@ Par
         {% if event.photo %}
             <meta property="og:image"              content="{{ url_for('images.fit', filename=event.photo, width=1100, _external=True ) | safe }}" />
         {% else %}
-            <meta property="og:image"              content="{{ url_for('static', filename='caf/logo-caf-annecy.svg', _external=True) }}" />
+            <meta property="og:image"              content="{{ url_for('static', filename=Configuration.CLUB_LOGO, _external=True) }}" />
         {% endif %}
 
     </head>
@@ -31,7 +31,7 @@ Par
         {% if event.photo %}
             <p><img src="{{ url_for('images.fit', filename=event.photo, width=1100, _external=True ) }}" alt="" /></p>
         {% else %}
-            <p><img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg', _external=True) }}" alt="" /></p>
+            <p><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO, _external=True) }}" alt="" /></p>
         {% endif %}
         
         <p>{{ summary(event)}}</p>

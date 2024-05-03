@@ -166,6 +166,7 @@ function eventRowFormatter(row){
                  </div>`;
 
         var status_string = getStatusString(data)
+        var visibility_string = getVisibilityString(data)
         var availabilities_badge = getSlotsAvailableBadge(data)
 
         html_tags =  data.tags.map(tag => `<span class="activity s30px ${tag['short']} type" title="${tag['name']}"></span> ${tag['name']} `)
@@ -174,6 +175,7 @@ function eventRowFormatter(row){
         html += `<div class="section collectives-list--item--details">
                      <h3 class="heading-3 collectives-list--item--details-heading">
                      ${escapeHTML(data.title)}
+                     ${visibility_string}
                      ${status_string}
                      ${availabilities_badge}
                      </h3>
@@ -219,6 +221,13 @@ function getStatusString(data) {
     status_string = ''
     if(!data.is_confirmed) status_string = `<span class="event-status-badge event-status-${data.status} ">${EnumEventStatus[data.status]}</span>`
     return status_string
+}
+
+function getVisibilityString(data) {
+    " Compute visibility string based on event visibility"
+    if(data.visibility == EnumEventVisibilityKeys.Activity) return `<span class="event-status-badge event-status-private">Interne</span>`
+    if(data.visibility == EnumEventVisibilityKeys.External) return `<span class="event-status-badge event-status-external">Grand public</span>`
+    return ''
 }
 
 function localInterval(start, end){

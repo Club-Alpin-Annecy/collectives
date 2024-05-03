@@ -8,10 +8,10 @@ from dateutil import parser
 from flask import url_for, request, abort
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, or_, func
+from sqlalchemy import desc, or_, and_, func
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
-from collectives.models import db, Event, EventStatus, EventType
+from collectives.models import db, Event, EventStatus, EventType, EventVisibility
 from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
@@ -42,38 +42,58 @@ def filter_hidden_events(query):
      - Activity supervisors can see 'Pending' events for the activities that
        they supervise
      - Leaders can see the events that they lead
+     - Users with role for an activity can see 'Activity' events
+     - Users with any role can see 'Activity' events without activities
 
     :param query: The original query
     :type query: :py:class:`sqlalchemy.orm.query.Query`
     :return: The filtered query
     :rtype: :py:class:`sqlalchemy.orm.query.Query`
     """
-    # Display pending events only to relevant persons
+    # Display pending/private events only to relevant persons
     if not current_user.is_authenticated:
-        # Not logged users see no pending event
+        # Not logged users see no pending/private event
         query = query.filter(Event.status != EventStatus.Pending)
+        query = query.filter(Event.visibility != EventVisibility.Activity)
     elif current_user.is_moderator():
-        # Admin see all pending events (no filter)
+        # Admin see all pending/private events (no filter)
         pass
     else:
-        # Regular user can see non Pending
-        query_filter = Event.status != EventStatus.Pending
+        # Regular user can see no Pending
+        status_query_filter = Event.status != EventStatus.Pending
 
         # If user is a supervisor, it can see Pending events of its activities
         if current_user.is_supervisor():
             # Supervisors can see all sup
             activities = current_user.get_supervised_activities()
             activities_ids = [a.id for a in activities]
-            supervised = Event.activity_types.any(ActivityType.id.in_(activities_ids))
-            query_filter = or_(query_filter, supervised)
+            activity_filter = Event.activity_types.any(
+                ActivityType.id.in_(activities_ids)
+            )
+            status_query_filter = or_(status_query_filter, activity_filter)
 
-        # If user can create event, it can see its pending events
+        # Users can only see Activity events for their activities
+        vis_query_filter = Event.visibility != EventVisibility.Activity
+        activities = current_user.activities_with_role()
+        if activities:
+            activities_ids = [a.id for a in activities]
+            activity_filter = Event.activity_types.any(
+                ActivityType.id.in_(activities_ids)
+            )
+            vis_query_filter = or_(vis_query_filter, activity_filter)
+        # Special case for Activity events without activities: all user with roles can see them
+        if current_user.has_any_role():
+            vis_query_filter = or_(vis_query_filter, ~Event.activity_types.any())
+
+        # If user can create event, they can see all events they lead
+        query_filter = and_(status_query_filter, vis_query_filter)
         if current_user.can_create_events():
             lead = Event.leaders.any(id=current_user.id)
             query_filter = or_(query_filter, lead)
 
         # After filter construction, it is applied to the query
         query = query.filter(query_filter)
+
     return query
 
 
@@ -225,6 +245,7 @@ class EventSchema(marshmallow.Schema):
             "event_types",
             "is_confirmed",
             "status",
+            "visibility",
             "tags",
             "has_free_slots",
             "has_free_waiting_slots",

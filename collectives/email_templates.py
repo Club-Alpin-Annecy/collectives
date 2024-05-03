@@ -94,6 +94,7 @@ def send_confirmation_email(email, name, token):
         link=url_for(
             "auth.process_confirmation", token_uuid=token.uuid, _external=True
         ),
+        club_name=Configuration.CLUB_NAME,
     )
 
     @wraps(token)

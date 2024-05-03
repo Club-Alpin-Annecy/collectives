@@ -1,6 +1,7 @@
 """ Module for all Event methods related to registration manipulation and check."""
 
 from operator import attrgetter
+from datetime import datetime
 
 from collectives.models.registration import RegistrationLevels, RegistrationStatus
 
@@ -250,6 +251,8 @@ class EventRegistrationMixin:
         :return: True if user can self-register.
         :rtype: boolean
         """
+        if not user.is_active:
+            return False
         if not user.has_valid_phone_number():
             return False
         if not user.has_valid_phone_number(emergency=True):
@@ -269,3 +272,26 @@ class EventRegistrationMixin:
         if self.has_free_online_slots():
             return False
         return len(self.waiting_registrations()) < self.num_waiting_list
+
+    def can_self_unregister(self, user, time: datetime) -> bool:
+        """Check if a user can self-unregister.
+
+        An user can self-register if:
+          - they have an Active, PaymentPending or Waiting registration
+          - event is in the future
+
+        :param user: User which will be tested.
+        :param time: Time that will be checked (usually, current time).
+        :return: True if user can self-register.
+        :rtype: boolean
+        """
+        if time > self.start:
+            return False
+
+        good_statuses = [
+            RegistrationStatus.PaymentPending,
+            RegistrationStatus.Active,
+            RegistrationStatus.Waiting,
+        ]
+
+        return self.is_registered_with_status(user, good_statuses)

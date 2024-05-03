@@ -3,13 +3,13 @@
         <div class="columns">
             <div class="column is-3 align-center">
                 <a href="{{ url_for('root.index')}}" class="main-footer-navigation-logo">
-                    <img src="{{ url_for('static', filename='caf/logo-caf-annecy.svg') }}" alt="{{ config['TITLE'] }}"
+                    <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="{{ config['TITLE'] }}"
                         title="{{ config['TITLE'] }}" style="height: 90px">
                 </a>
             </div>
             <div class="column">
                 <a href="{{ url_for('root.legal') }}">Mentions légales</a> - <a
-                    href="mailto:secretariat@cafannecy.fr">Contacter le club</a> <br />
+                    href="mailto:{{Configuration.CONTACT_EMAIL}}">Contacter le club</a> <br />
                 Version du site : {{ version_link(config['VERSION'])|safe }}<br />
                 Contribuez sur le <a href="https://github.com/Club-Alpin-Annecy/collectives" >projet Github</a><br />
                 Photo de couverture: <a href="{{Configuration.COVER_CREDIT_URL}}">{{Configuration.COVER_CREDIT}}</a> <br/><br/>

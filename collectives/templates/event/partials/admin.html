@@ -79,7 +79,7 @@
     </div>
 {% endif %}
 
-    <h5 class="heading-5 collective-display--administration-title">Coordonnées du groupe</h5>
+    <h5 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h5>
     {% if current_user.has_signed_ca() %}
         <div class="contactinfos">
             <p class="inputGrow">
@@ -123,7 +123,7 @@
     {% endif %}
 
     <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
-    <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" >
+    <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
         <p>
             <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom…" >
@@ -190,7 +190,7 @@
 
 {# Accountant space #}
 
-{% if Configuration.PAYMENTS_ENABLED and current_user.is_accountant()  %}
+{% if Configuration.PAYMENTS_ENABLED and current_user.is_active and current_user.is_accountant()  %}
 <div class="administration collective-display--administration">
     <h4 class="heading-4 collective-display--administration-title">Comptabilité</h4>
     <br/>

@@ -2,7 +2,7 @@
 
 from typing import List
 
-from sqlalchemy import and_, or_, true
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query
 
 from collectives.models.globals import db
@@ -63,7 +63,7 @@ class GroupRoleCondition(db.Model):
             return User.roles.any(Role.role_id == self.role_id)
         if self.activity_id:
             return User.roles.any(Role.activity_id == self.activity_id)
-        return true
+        return User.roles.any()
 
     def clone(self) -> "GroupRoleCondition":
         """:return: a deep copy of this object"""
@@ -221,6 +221,8 @@ class UserGroup(db.Model):
 
     def contains(self, user: User) -> bool:
         """:return: Whether a given user is a member of the group"""
+        if not user.is_active:
+            return False
         return self._build_query().filter(User.id == user.id).one_or_none() is not None
 
     def _build_query(self) -> Query:

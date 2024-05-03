@@ -4,8 +4,9 @@ from typing import List
 from flask_uploads import UploadSet, IMAGES
 
 from collectives.models import db
-from collectives.models.event.enum import EventStatus
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
+from collectives.models.user import User
 from collectives.utils import render_markdown
 
 
@@ -38,23 +39,36 @@ class EventMiscMixin:
         :rtype: string"""
         return EventStatus(self.status).display_name()
 
-    def is_visible_to(self, user):
-        """Checks whether this event is visible to an user
+    def is_visible_to(self, user: User) -> bool:
+        """Checks whether this event's details are visible to an user
 
         - Moderators can see all events
+        - Not logged-in users can see 'External' events only
         - Normal users cannot see 'Pending' events
         - Activity supervisors can see 'Pending' events for the activities that
           they supervise
         - Leaders can see the events that they lead
+        - Users with role for an activity can see 'Activity' events
+        - Users with any role can see 'Activity' events without activities
 
         :param user: The user for whom the test is made
-        :type user: :py:class:`collectives.models.user.User`
         :return: Whether the event is visible
-        :rtype: bool
         """
-        if self.status in (EventStatus.Confirmed, EventStatus.Cancelled):
+        if self.has_edit_rights(user):
             return True
-        return self.has_edit_rights(user)
+        if self.status == EventStatus.Pending:
+            return False
+        if self.visibility == EventVisibility.External:
+            return True
+        if not user.is_active:
+            return False
+        if self.visibility != EventVisibility.Activity:
+            return True
+        if not self.activity_types:
+            return user.has_any_role()
+
+        user_activities = user.activities_with_role()
+        return any(activity in user_activities for activity in self.activity_types)
 
     def save_photo(self, file):
         """Save event photo from a raw file
@@ -130,13 +144,15 @@ class EventMiscMixin:
             self._user_group = UserGroup()
         if not self._user_group.event_conditions:
             condition = GroupEventCondition(event_id=parent_event_id, is_leader=False)
-            condition.event = db.session.get(self, parent_event_id)
+            condition.event = db.session.get(self.__class__, parent_event_id)
             self._user_group.event_conditions.append(condition)
         else:
             self._user_group.event_conditions[0].event_id = parent_event_id
 
         self._deprecated_parent_event_id = None
 
-    def user_answers(self, user_id: int) -> List["QuestionAnswer"]:
+    def user_answers(self, user: User) -> List["QuestionAnswer"]:
         """:returns: the list of answers to this event's question by a given user"""
-        return QuestionAnswer.user_answers(self.id, user_id)
+        if not user.is_active:
+            return []
+        return QuestionAnswer.user_answers(self.id, user.id)

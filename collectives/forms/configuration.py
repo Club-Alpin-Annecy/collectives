@@ -78,6 +78,10 @@ class ConfigurationFileForm(ConfigurationBaseForm):
     content = FileField()
 
 
+class ConfigurationSecretFileForm(ConfigurationFileForm):
+    """Form for file configuration item."""
+
+
 def get_form_from_configuration(item):
     """Select right type of form from the input configuration item.
 

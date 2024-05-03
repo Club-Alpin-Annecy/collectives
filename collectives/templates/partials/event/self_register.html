@@ -5,7 +5,7 @@
 <p>
     Cet événement est payant ; votre inscription ne sera définitive qu'une fois le paiement en ligne effectué. 
     Sauf circonstances exceptionelles une éventuelle désinscription ne donnera lieu à aucun remboursement; veuillez
-    vous référer aux <a href="{{url_for('static', filename=config['PAYMENTS_TERMS_FILE'])}}">conditions de vente du club</a>.
+    vous référer aux <a href="{{url_for('static', filename=Configuration.PAYMENTS_TERMS_FILE)}}">conditions de vente du club</a>.
 </p>
 {% endif %}
 
@@ -34,7 +34,7 @@
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
                 <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
-                {% if event.event_type.terms_file %}
+                {% if event.event_type.get_terms_file() %}
                 {% if waiting_list %}
                     <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionné(e).</p>
                     <p>Vous pourrez être sélectionné(e) automatiquement jusqu'à la fin de la période d'inscription si un participant
@@ -45,7 +45,12 @@
                     <p>L'inscription à un événement vous engage à y participer.</p>
                 {% endif %}
                 <p>
-                    <label><input type="checkbox" required="required"/> J'ai lu et j'accepte le <a href="{{ url_for('static', filename='caf/doc/guide_collectives/'+event.event_type.terms_file) }}">{{event.event_type.terms_title}}</a></label><br/>
+                    <label>
+                        <input type="checkbox" required="required"/> 
+                        J'ai lu et j'accepte le 
+                        <a href="{{ url_for('static', filename=event.event_type.get_terms_file()) }}">{{event.event_type.get_terms_title()}}</a>
+                    </label>
+                    <br/>
                 </p>
                 {% endif %}
                 <h4 class="centeralign">Confirmez-vous l'inscription {% if waiting_list %} à la liste d'attente{% endif %} ? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
