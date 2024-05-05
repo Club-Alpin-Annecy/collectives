@@ -142,6 +142,10 @@ img.icon{
 	float: right;
 }
 
+.vertical-align-middle{
+	vertical-align:middle
+}
+
 form p{
 	text-align:left;
 }
@@ -169,6 +173,10 @@ form input, form select{
 	/* align-items: center; */
 	position: relative;
 	overflow: hidden;
+
+	@media screen and (max-width: 700px) {
+		height: 25vh;
+	}
 }
 #cover::before{
        content: "";
@@ -180,6 +188,9 @@ form input, form select{
        bottom: 0;
 	   margin: 0;
 	   width: 0;
+	   @media screen and (max-width: 700px) {
+			border-bottom: 6vh solid white;
+		}
 }
 
 
@@ -197,6 +208,9 @@ form input, form select{
 	animation-direction: alternate;
 	animation-timing-function: ease-in-out;
 	cursor: pointer;
+	@media screen and (max-width: 700px) {
+		display: none;
+	}
 }
 
 /* use flexbox to have a label in front of an input on the same line,

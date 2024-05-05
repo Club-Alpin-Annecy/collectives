@@ -1,133 +1,3 @@
-#eventlist #filters {
-    background: white;
-    padding: 20px;
-    text-align: center;
-    line-height: 50px;
-    display:flex;
-    gap: 5px;
-    flex-flow: row wrap;
-}
-
-#eventlist #filters::after { 
-    /* Do not fill last line if unnecessary */
-    content: '';
-    flex-grow: 3;
-}
-@media screen and (max-width: 680px) {
-    #eventlist #filters::after { 
-        /* Do not fill last line if unnecessary */
-        display: none;
-    }
-}
-
-#eventlist #filters > *{
-    flex-grow: 1;
-}
-
-#eventlist a {
-    color: inherit;
-}
-
-#eventlist #filters input.button {
-    display: none;
-}
-#eventlist #filters input.button + label {
-    height: 38px;
-    border: 2px solid rgb(29, 105, 137);
-    font-size: 20px;
-    vertical-align: middle;
-    line-height: 40px;
-    display: inline-block;
-    padding: 0 10px;
-    color: grey;
-    cursor: pointer;
-}
-#eventlist #filters input.button:checked + label {
-    color: white;
-    background-color: rgb(29, 105, 137);
-    font-weight: bold;
-}
-
-#eventlist #eventstable {
-    min-height: 2200px;
-}
-
-#eventlist #eventstable .row {
-    padding: 5px;
-    display: flex;
-    flex-direction: row;
-    white-space: normal;
-    align-items: center;
-}
-#eventlist #eventstable .row:hover {
-    text-decoration: none;
-}
-#eventlist #eventstable .row .section {
-    margin: 0 20px;
-}
-
-@media screen and (max-width: 1023px) {
-
-    #eventlist #eventstable .row .section-photo img {
-        display:none;
-    }
-    #eventlist #eventstable .row .section.activities  {
-        float: right;
-        margin: 5px 5px;
-        height: auto;
-        width: 190px;
-        max-height: 180px;
-    }
-    #eventlist #eventstable .row .section{
-        margin: 0;
-    }
-    #eventlist #eventstable .row{
-        display: block;
-        padding: 20px 0px;
-    }
-}
-@media screen and (max-width: 500px) {
-    #eventlist #eventstable .row .section.activities  {
-        float: right;
-        margin: 5px 5px;
-        height: auto;
-        width: 95px;
-        max-height: 360px;
-    }
-}
-
-#eventlist #eventstable img.photo {
-    height: 130px;
-    width: 200px;
-}
-
-#eventlist #eventstable .tabulator-table {
-    width: 100%;
-}
-
-#eventlist #eventstable .activities {
-    min-height: 130px;
-    max-height: 185px;
-    width: 185px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-right: 0 !important;
-    align-items: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-#eventlist #eventstable .activity {
-    margin: 1px;
-}
-
-#eventlist #eventstable .slots .free_slot {
-    opacity: 0.5;
-}
-
-
 /* Event details */
 
 #eventdetail .slots {
@@ -217,13 +87,14 @@
 }
 
 .select .chevrons {
-    float: right;
-    height: 30px;
+    height: 20px;
     margin-top: 5px;
     z-index: $z-index-m+1;
     transform: rotate(90deg);
-    position: relative;
+    position: absolute;
     color: rgb(29, 105, 137);
+    right: $padding-horizontal-xs;
+    top: 5px;
 }
 .select input[type="checkbox"] {
     height: 100%;
@@ -247,28 +118,8 @@
     left: 0;
     height: 100vh;
     width: 100vw;
-    background: none;
+    background: none !important;
     z-index: $z-index-m;
-}
-
-#filters input[type=text], #filters label.borders{
-    border: 2px solid rgb(29, 105, 137);
-    height: 36px;
-    font-weight: 500;
-    padding: 1px 5px;
-    max-width: 100%;
-}
-
-#filters label.borders{
-    display: flex;
-    align-items: center;
-    max-width: 100%;
-}
-
-#filters label.borders input{
-    border: none;
-    width: 80px;
-    min-width: 80px;
 }
 
 .select label {

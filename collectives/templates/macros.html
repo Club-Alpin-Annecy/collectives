@@ -5,7 +5,7 @@
             <img class="usericon-avatar" src="{% if user.avatar
                         %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
                   else
-                        %}{{ url_for('static', filename='img/icon/ionicon/md-person.svg')   }}{%
+                        %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%
                   endif %}" />
             <span class="usericon-name">
                   {% if show_info %}

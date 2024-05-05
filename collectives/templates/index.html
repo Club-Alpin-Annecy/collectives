@@ -94,24 +94,37 @@
         </div>
     {% endif %}
 
+   
+    <div class="collectives-list-filters">
+           
+            <!-- filter activity type -->
+            <div class="select" >
+                <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
+                <input type="checkbox" id="select_display"/>
+                <label for="select_display"><label>Sélectionner votre activité</label></label>
+                <label for="select_display" class="closer"></label>
 
-    <h1 class="heading-1">
-        Événements du club
-    </h1>
-    <div id="filters">
+                <input type="radio" name="activity" id="select_all" checked/>
+                <label for="select_all" onclick="selectFilter('activity_type', false);">
+                    <label for="select_display">
+                        Toutes activités
+                    </label>
+                </label>
+                {% for type in activity_types %}
+                    <input type="radio" name="activity" id="select_activity_type_{{type.short}}"/>
+                    <label for="select_activity_type_{{type.short}}" onclick="selectFilter('activity_type', '{{type.short}}');">
+                        <label for="select_display">
+                            <img src="/static/caf/icon/{{type.short}}.svg" width="30px"/>
+                            {{type.name}}
+                        </label>
+                    </label>
+                {% endfor %}
 
-            <input
-                    type="checkbox"
-                    onchange="filterConfirmedOnly(!this.checked)"
-                    autocomplete="off"
-                    checked="1"
-                    id="cancelledcheckbox"
-                    class="button button-secondary"
-                    />
-            <label class="checkbox" for="cancelledcheckbox"> Annulées </label>
-            <label class="borders"> 📅 Depuis 
-                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('end', this.value)"/>
-            </label>
+            </div>
+
+            <input type="checkbox" class="collectives-list-filters-toggle button" id="collectives-list-filters-toggle" autocomplete="off"/>
+            <label for="collectives-list-filters-toggle" class="checkbox collectives-list-filters-toggle-label button-primary">+ Plus de filtres</label>
+
 
             <!-- filter event type -->
             <div class="select" >
@@ -130,36 +143,11 @@
                         <input type="radio" name="event_type" id="select_event_type_{{type.short}}"/>
                         <label for="select_event_type_{{type.short}}" onclick="selectFilter('event_type', '{{type.short}}');">
                             <label for="select_event_type">
-                                <span class="activity {{type.short}} s30px"></span>
+                                <img src="/static/caf/icon/{{type.short}}.svg" width="30px"/>
                                 {{type.name}}
                             </label>
                         </label>
                     {% endfor %}
-            </div>
-
-            <!-- filter activity type -->
-            <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_display"/>
-                    <label for="select_display"><label>Sélectionner votre activité</label></label>
-                    <label for="select_display" class="closer"></label>
-
-                    <input type="radio" name="activity" id="select_all" checked/>
-                    <label for="select_all" onclick="selectFilter('activity_type', false);">
-                        <label for="select_display">
-                            Toutes activités
-                        </label>
-                    </label>
-                    {% for type in activity_types %}
-                        <input type="radio" name="activity" id="select_activity_type_{{type.short}}"/>
-                        <label for="select_activity_type_{{type.short}}" onclick="selectFilter('activity_type', '{{type.short}}');">
-                            <label for="select_display">
-                                <span class="activity {{type.short}} s30px"></span>
-                                {{type.name}}
-                            </label>
-                        </label>
-                    {% endfor %}
-
             </div>
 
             <!-- filter event tag -->
@@ -179,15 +167,31 @@
                         <input type="radio" name="tag" id="select_tag_{{tag['short']}}"/>
                         <label for="select_tag_{{tag['short']}}" onclick="selectFilter('tags', '{{tag['short']}}');">
                             <label for="select_tags">
-                                <span class="activity {{tag['short']}} s30px"></span>
+                                <img src="/static/caf/icon/{{tag['short']}}.svg" width="30px"/>
                                 {{tag['name']}}
                             </label>
                         </label>
                     {% endfor %}
 
             </div>
+        
+            <label class="borders"> 📅 Depuis 
+                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('end', this.value)"/>
+            </label>
+
             <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
             <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" />
+
+            <input
+                    type="checkbox"
+                    onchange="filterConfirmedOnly(!this.checked)"
+                    autocomplete="off"
+                    checked="1"
+                    id="cancelledcheckbox"
+                    class="button button-secondary"
+                    />
+
+            <label class="checkbox font-size-s" for="cancelledcheckbox"> Afficher les sorties annulées </label>
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>

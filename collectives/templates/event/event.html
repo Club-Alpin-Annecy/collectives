@@ -69,7 +69,10 @@
         {% if event.tags %}
         <h2 class="heading-3">
             {% for tag in event.tags %}
-                <span class="activity s30px {{tag.short}}" title="{{tag.name}}" ></span> {{tag.name}}
+                <span class="aligned-flex">
+                  <img src="/static/caf/icon/{{tag.short}}.svg" width="30px"  title="{{tag.name}}"/>
+                  {{tag.name}}
+                </span>
             {% endfor %}
             <br/><br/>
         </h2>
@@ -96,9 +99,10 @@
         </span>
       </div>
       <div>
-        <span class="activity {{event.event_type.short}}  collective-display--activity-type s90px" title="{{event.event_type.name}}"></span>
+        <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px"  title="{{event.event_type.name}}"/> 
+
         {% for atype in event.activity_types %}
-          <span class="activity {{atype.short}} type collective-display--activity-type s90px" title="{{atype.name}}"></span>
+          <img src="/static/caf/icon/{{atype.short}}.svg" width="90px"  title="{{atype.name}}"/> 
         {% endfor %}
       </div>
     </div>

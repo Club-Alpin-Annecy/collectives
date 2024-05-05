@@ -34,4 +34,6 @@ def avatar_url(user):
     """
     if user.avatar is not None:
         return url_for("images.crop", filename=user.avatar, width=30, height=30)
-    return url_for("static", filename="img/icon/ionicon/md-person.svg")
+    return url_for(
+        "static", filename="img/default/users/avatar-0" + str(user.id % 6 + 1) + ".png"
+    )

@@ -20,6 +20,8 @@ $padding-horizontal-xl: 4.2rem;
 $padding-default: $padding-vertical-default $padding-horizontal-default;
 
 $padding-sections: (2*$padding-vertical-default) $padding-horizontal-default;
+$padding-sections-mobile: (2*$padding-vertical-default) $padding-horizontal-s;
+
 
 $padding-xs: $padding-vertical-xs $padding-horizontal-xs;
 $padding-s: $padding-vertical-s $padding-horizontal-s;

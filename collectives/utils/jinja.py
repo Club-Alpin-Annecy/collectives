@@ -29,6 +29,7 @@ def helpers_processor():
     helper_functions["Configuration"] = models.Configuration
     helper_functions["markdown_to_html"] = markdown_to_html
     helper_functions["map_method"] = map_method
+    helper_functions["str"] = str
 
     return helper_functions
 

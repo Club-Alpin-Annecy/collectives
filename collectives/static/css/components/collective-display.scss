@@ -39,6 +39,10 @@
         padding: $padding-sections;
         background: $color-white;
         border: 1px solid $color-gray-light;
+        
+        @media screen and (max-width: 700px) {
+            padding: $padding-sections-mobile;
+        }
     }
 
     &--administration-title {
