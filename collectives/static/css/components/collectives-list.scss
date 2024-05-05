@@ -8,6 +8,20 @@ $collectives-list-row-height: 185px;
         color: inherit;
     }
 
+    .no_mobile{
+        @media screen and (max-width: 700px) {
+            display:none;
+        }
+    }
+
+    .mobile, .inline-mobile{
+        display:none;
+    }
+    @media screen and (max-width: 700px) {
+        .mobile{ display:block;}
+        .inline_mobile{ display: inline;}
+    }
+
     .row {
         display: flex;
         flex-direction: row;
@@ -62,7 +76,7 @@ $collectives-list-row-height: 185px;
         &--photo, &--photo img {
             @media screen and (max-width: 700px) {
                 width: 100% !important;
-                height: 120px;
+                height: 70px;
             }
             @media screen and (max-width: 1000px) {
                 width: $collectives-list-row-height;
@@ -85,14 +99,14 @@ $collectives-list-row-height: 185px;
             @media screen and (max-width: 700px) {
                 height:auto;
                 width: auto;
-                margin: 0 $padding-horizontal-xs $padding-vertical-s;
+                margin: 0 $padding-horizontal-s $padding-vertical-s;
             }
 
             &-heading {
                 margin-top: $padding-vertical-l;
                 white-space: normal;
                 font-weight: bold;
-                font-size: $font-size-m;
+                font-size: $font-size-l;
 
                 @media screen and (max-width: 700px) {
                     display: flex;
@@ -101,6 +115,8 @@ $collectives-list-row-height: 185px;
                     text-align: center;
                     white-space: normal;
                     margin: 0;
+                    font-size: $font-size-m;
+                    text-align: center;
                 }
             }
 
@@ -114,8 +130,17 @@ $collectives-list-row-height: 185px;
                 float: right;
 
                 @media screen and (max-width: 700px) {
-                    float: none;
-                    font-size: $font-size-xs;
+                    display: none;                        
+                }
+
+                .collectives-list--item--details-bottom-left & {
+                    display:none;
+                    @media screen and (max-width: 700px) {
+                        font-size: $font-size-xs;
+                        float: none;
+                        display: block;
+                        white-space: wrap;
+                    }
                 }
             }
 
@@ -126,7 +151,7 @@ $collectives-list-row-height: 185px;
 
                 @media screen and (max-width: 700px) {
                     float: none;
-                    margin: $padding-vertical-m 0;
+                    margin: $padding-vertical-xs 0;
                 }
             }
 
@@ -143,6 +168,7 @@ $collectives-list-row-height: 185px;
                 @media screen and (max-width: 700px) {
                     position: static;
                     display: block;
+                    text-align: center;
                 }
             }
 
@@ -157,8 +183,9 @@ $collectives-list-row-height: 185px;
 
                 @media screen and (max-width: 700px) {
                     position: static;
-                    align-content: center;
-                    align-items: center;
+                    align-content: start;
+                    align-items: start;
+                    width: 100%;
                 }
             }
 
@@ -166,23 +193,34 @@ $collectives-list-row-height: 185px;
             &-leader {
                 margin: $padding-vertical-s $padding-vertical-xs;
                 @media screen and (max-width: 700px){
-                    text-align: center;
                     font-size: $font-size-xs;
+                    margin: 0;
                 }
             }
             &-activity-type {
                 margin: $padding-vertical-s 0;
 
+                img{
+                    width: 65px;
+                }
+
                 @media screen and (max-width: 1000px) {
-                    max-width: 130px;
+                    max-width: 140px;
                     overflow: hidden;
                     white-space: nowrap;
                 }
                 @media screen and (max-width: 700px){
-                    max-width: none;
+                    width: 40px;
                     position: static;
-                    text-align: center;
-                    margin: $padding-vertical-l 0 0;
+                    margin: 0;
+                    margin-left: $padding-horizontal-xs;
+                    float: right;
+                    white-space: wrap;
+                    max-height: 95px;
+
+                    img{
+                        width: 100%;
+                    }
                 }
             }
             &-tags{
@@ -193,29 +231,36 @@ $collectives-list-row-height: 185px;
                 height: 70px;
                 align-content: end;
 
-                @media screen and (max-width: 700px) {
-                    text-align: center;
-                    white-space: normal;
-                    font-size: $font-size-xs;
-                    display: block;
-                    text-align: center;
-                    height: initial;
-                    .item{
-                        white-space: nowrap;
-                    }
-                }
-
+                
                 .item{
-                    margin-left: $padding-horizontal-s;
                     padding-right: $padding-horizontal-xs;
                     background-color: $color-gray-bg-light;
                     border-radius: 3px;
                 }
+
+                @media screen and (max-width: 700px) {
+                    text-align: center;
+                    width: 100%;
+                    white-space: normal;
+                    font-size: $font-size-xs;
+                    display: block;
+                    height: initial;
+                    .item{
+                        white-space: nowrap;
+                        padding-right: 0;
+                        span{
+                            display: none;
+                        }
+                    }
+                }
+
             }
 
             &-slots{
                 width: 250px;
-
+                @media screen and (max-width: 700px){
+                    width:100%;
+                }
                 &-bar{
                     background-color: $color-blue-bg-light;
                     overflow: hidden;

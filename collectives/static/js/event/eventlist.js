@@ -167,30 +167,49 @@ function eventRowFormatter(row){
         else 
             keywords = "";
 
-        html_type =  `<span class="item aligned-flex-inline"> <img src="/static/caf/icon/${data['event_types'][0]['short']}.svg" width="30px"/> ${data['event_types'][0]['name']} </span>`
-        html_tags =  data.tags.map(tag => `<span class="item aligned-flex-inline"> <img src="/static/caf/icon/${tag['short']}.svg" width="30px"/> ${tag['name']} </span>`)
-        html_tags = html_tags.join(' ')
+        html_type =  `<span class="item aligned-flex-inline"> 
+                            <img src="/static/caf/icon/${data['event_types'][0]['short']}.svg" width="30px"  title="${data['event_types'][0]['name']}"/> 
+                            <span>${data['event_types'][0]['name']}</span>         
+                    </span>`;
+
+        html_tags =  data.tags.map(tag => `
+                    <span class="item aligned-flex-inline"> 
+                        <img src="/static/caf/icon/${tag['short']}.svg" width="30px" title="${tag['name']}"/> 
+                        <span>${tag['name']}</span>
+                    </span>`);
+        html_tags = html_tags.join(' ');
+
+        html_mobile_activities =  data.activity_types.slice(0, 3).map(activity => `
+                        <span class="item inline-mobile aligned-flex-inline">
+                            <img src="/static/caf/icon/${activity['short']}.svg" width="30px"/>
+                            <span>${activity['name']}</span> 
+                        </span>`).join(' ')
+
+        html_activities =  data.activity_types.slice(0, 3).map(activity => `<img src="/static/caf/icon/${activity['short']}.svg" alt="${activity['name']}" title="${activity['name']}"/>`).join(' ')
+        
 
         html += `<div class="section collectives-list--item--details">
                     
                     
                     <div class="collectives-list--item--details-heading">
 
-                        <div class="date collectives-list--item--details-date">
+                        <div class="no_mobile collectives-list--item--details-date">
                             ${escapeHTML(data.formated_datetime_range)}
                         </div>
 
                         ${keywords}
                     
-                        <div class="heading-3">${escapeHTML(data.title)}</div>
+                        <div>${escapeHTML(data.title)}</div>
                     </div>
 
                     <div class="collectives-list--item--details-bottom-left" >
-                        <div class="heading-3 collectives-list--item--details-activity-type" >
-                        ${activities_icons(data)}
+                        <div class="heading-3 no_mobile collectives-list--item--details-activity-type" >
+                            ${html_activities}
                         </div>
-                        
 
+                        <div class="mobile collectives-list--item--details-date">
+                            ${escapeHTML(data.formated_datetime_range)}
+                        </div>
                         <div class="leader collectives-list--item--details-leader">
                         ${data.leaders.slice(0, 2).map(displayLeader).join('<br/>')}
                         ${data.leaders.length>3 ? '...' : ''}
@@ -198,9 +217,9 @@ function eventRowFormatter(row){
                     </div>
 
                     <div class="collectives-list--item--details-bottom-right" >
-                        <div class="collectives-list--item--details-tags">${html_type} ${html_tags}</div>
+                        <div class="collectives-list--item--details-tags"> ${html_mobile_activities} ${html_type} ${html_tags}</div>
                         <div class="collectives-list--item--details-slots">
-                        <div class="collectives-list--item--details-slots aligned-flex">
+                        <div class="aligned-flex">
                             <div class="collectives-list--item--details-slots-bar">
                                 <div
                                     class="collectives-list--item--details-slots-bar-filler" 
@@ -221,13 +240,6 @@ function eventRowFormatter(row){
     catch(error){
       console.error(error);
     }
-}
-
-function activities_icons(data){
-    html = ""
-    for (const activity of data.activity_types.slice(0, 3))
-                html += `<img src="/static/caf/icon/${activity['short']}.svg" width="65px" alt="${activity['name']}"/>`
-    return html;
 }
 
 function getSlotsAvailableBadge(event) {
