@@ -191,7 +191,12 @@
                     class="button button-secondary"
                     />
 
-            <label class="checkbox font-size-s" for="cancelledcheckbox"> Afficher les sorties annulées </label>
+            <label class="checkbox font-size-s" for="cancelledcheckbox"> 
+                
+                Sorties annulées :
+                    <span class="display-for-on">affichées <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt="&#128065"/></span>
+                    <span class="display-for-off">cachées <img src="{{ url_for('static', filename='img/icon/ionicon/eye-off.svg') }}"/></span>
+            </label>
     </div>
     <div id="eventstable" class="collectives-list"></div>
 </div>
