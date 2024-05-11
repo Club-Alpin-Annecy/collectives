@@ -39,7 +39,7 @@ function createShowAnswersTable(url, csrfToken)
           columns:[
             {title:"Auteur", field:"author_name", widthGrow:1, headerFilter:true},
             {title:"État", field:"registration_status", widthGrow:1, headerFilter:true, editor: "select", headerFilterParams:{values: makeStatusFilter()}},
-            {title:"Réponse", field:"value", widthGrow:4, headerFilter:true},
+            {title:"Réponse", field:"value", widthGrow:4, headerFilter:true, formatter:"textarea"},
             {field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: submitDeleteForm, headerSort: false },
         ],
 
