@@ -9,9 +9,8 @@ from sqlalchemy.ext.declarative import declared_attr
 
 
 from collectives.models.globals import db
-from collectives.models.user.enum import Gender
+from collectives.models.user.enum import Gender, UserType
 from collectives.utils.misc import truncate
-
 
 class UserModelMixin:
     """Part of User class with all its attributes.
@@ -26,14 +25,21 @@ class UserModelMixin:
 
     :type: int
     """
-
-    is_test = db.Column(
-        db.Boolean, default=True, nullable=False, info={"label": "Utilisateur de test"}
+    type = db.Column(
+        db.Enum(UserType),
+        nullable=False,
+        default=UserType.Test,
+        info={
+            "label": "Type",
+            "choices": UserType.choices(),
+            "coerce": UserType.coerce,
+        },
     )
-    """Attribute to know if the user is real or just for tests
+    """ User type.
 
-    :type: boolean
-    """
+    It will change how this user will be managed.
+
+    :type: :py:class:`UserType`"""
 
     # E-mail
     mail = db.Column(

@@ -14,7 +14,7 @@ from sqlalchemy import or_
 from collectives import email_templates
 from collectives.forms.auth import LoginForm, AccountCreationForm
 from collectives.forms.auth import PasswordResetForm, AccountActivationForm
-from collectives.models import User, db, Configuration
+from collectives.models import User, db, Configuration, UserType
 from collectives.models.auth import ConfirmationTokenType, ConfirmationToken
 from collectives.models.auth import TokenEmailStatus
 from collectives.utils import extranet
@@ -72,7 +72,7 @@ def sync_user(user, force):
     :param force: if True, do synchronisation even if licence has been recently renewed.
     :type force: boolean
     """
-    if user.enabled and not user.is_test:
+    if user.enabled and user.type == UserType.Extranet:
         # Check whether the license has been renewed
         license_info = extranet.api.check_license(user.license)
         if not license_info.exists:

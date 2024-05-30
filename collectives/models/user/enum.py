@@ -31,3 +31,36 @@ class Gender(ChoiceEnum):
             cls.Man: "Homme",
             cls.Unknown: "Inconnu",
         }
+
+
+class UserType(ChoiceEnum):
+    """Enum to store User type.
+
+    A user type will change how a user is managed."""
+
+    # pylint: disable=invalid-name
+    Test = 0
+    """Account type is Test """
+    Extranet = 1
+    """Account type is Extranet and it will be synnchronized with FFCAM extranet """
+    Local = 2
+    """Account type is local, and it will be based on user given data"""
+    CandidateLocal = 3
+    """Account that is in creation process: token has to be validated"""
+
+    # pylint: enable=invalid-name
+
+    @classmethod
+    def display_names(cls):
+        """Return all available types.
+
+        :return: The list of types in a dictionnary that link its id with
+            the display names.
+        :rtype: dictionnary
+        """
+        return {
+            cls.Test: "Test",
+            cls.Extranet: "Extranet",
+            cls.Local: "Local",
+            cls.CandidateLocal: "Local (email non-vérifié)",
+        }

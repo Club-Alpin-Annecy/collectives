@@ -8,7 +8,7 @@ from flask import current_app
 from zeep import Client
 from zeep.exceptions import Error as ZeepError
 
-from collectives.models import Gender, Configuration
+from collectives.models import Gender, Configuration, UserType
 from collectives.utils.time import current_time
 
 
@@ -132,12 +132,6 @@ class UserInfo:
     :type: string
     """
 
-    is_test = False
-    """ Indicates whether this object represents a test user or contains actual
-    data from the FFCAM server.
-
-    :type: boolean """
-
 
 def sync_user(user, user_info, license_info):
     """Populate a user object with user and license info from FFCAM servers.
@@ -161,7 +155,7 @@ def sync_user(user, user_info, license_info):
     user.license_category = user_info.license_category
     user.last_extranet_sync_time = current_time()
     user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
-    user.is_test = user_info.is_test
+    user.type = UserType.Extranet
 
 
 class ExtranetError(Exception):

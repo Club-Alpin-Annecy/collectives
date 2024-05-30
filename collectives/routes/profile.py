@@ -17,7 +17,8 @@ from flask_images import Images
 
 from collectives.forms import UserForm
 from collectives.forms.user import DeleteUserForm
-from collectives.models import User, Role, RoleIds, Configuration, Gender, Event, db
+from collectives.models import User, Role, RoleIds, Configuration, Gender
+from collectives.models import Event, db, UserType
 from collectives.routes.auth import sync_user
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
@@ -261,7 +262,7 @@ def volunteer_certificate():
     club_name = Configuration.CLUB_NAME
     if current_user.license_expiry_date:
         expiry = current_user.license_expiry_date.year
-    elif current_user.is_test:
+    elif current_user.type == UserType.Test:
         expiry = 1789  # Default year if user is a test user
     else:
         flash("""Erreur de date de license. Contactez le support.""", "error")

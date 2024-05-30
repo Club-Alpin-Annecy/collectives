@@ -52,7 +52,7 @@
             <a class="button button-secondary" href="{{url_for('administration.add_user_badge', user_id=user.id)}}">Gérer ses badges</a>
         {% endif %}
 
-        {% if current_user.is_hotline() and not user.is_test %}
+        {% if current_user.is_hotline() and user.type == models.UserType.Extranet %}
         <form action="{{url_for('profile.force_user_sync', user_id=user.id)}}" method="post">
             <input type="submit" value="Resynchronisation FFCAM" class="button button-secondary" style="width: 100%;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -119,7 +119,7 @@
     {%endif%}
 
 
-    {% if user == current_user and not user.is_test %}
+    {% if user == current_user and not user.type == models.UserType.Extranet %}
     <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
         <p id="info_extranet">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
