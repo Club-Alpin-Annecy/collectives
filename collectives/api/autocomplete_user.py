@@ -31,6 +31,7 @@ class AutocompleteUserSchema(marshmallow.Schema):
         fields = (
             "id",
             "full_name",
+            "license_expiry_date",
         )
 
 
