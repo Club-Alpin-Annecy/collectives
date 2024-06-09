@@ -54,7 +54,15 @@ function setupAutoComplete(
     const renderItem = function (item) {
         var val = itemValue(item);
         var innerHTML = settings.itemInnerHTML(item, val);
-        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}">${innerHTML}</div>`
+        if (new Date(item.license_expiry_date) < new Date() ){
+            var style = "text-decoration-line: line-through; color: grey; font-style: italic;"
+            var misc = `(expiré)`
+        }
+        else {
+            var style = ""; 
+            var misc = "";
+        }
+        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}" style="${style}">${innerHTML} ${misc}</div>`
     };
 
     return new window.autoComplete({
