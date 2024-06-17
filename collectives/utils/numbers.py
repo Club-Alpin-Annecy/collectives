@@ -3,6 +3,7 @@
 
 import math
 import babel
+import phonenumbers
 
 
 def format_currency(amount):
@@ -32,3 +33,19 @@ def format_bytes(size):
     index = int(math.floor(math.log2(size) / 10))
     unit = 1 << (10 * index)
     return f"{round(size / unit, 1)} {names[index]}"
+
+
+def format_phones(phone_str: str) -> str:
+    """:returns: a regurlarly formed phone number, with proper spacing.
+    :param phone: A phone number
+    """
+    phone = phonenumbers.parse(phone_str, "FR")
+
+    if not phonenumbers.is_valid_number(phone):
+        return phone_str
+
+    formats = phonenumbers.PhoneNumberFormat
+    if phone.country_code != 33:
+        return phonenumbers.format_number(phone, formats.INTERNATIONAL)
+
+    return phonenumbers.format_number(phone, formats.NATIONAL)
