@@ -2,7 +2,6 @@
 
 from typing import List, Optional, Set
 
-from datetime import date
 from collectives.models.badge import Badge, BadgeIds
 
 from collectives.models.activity_type import ActivityType
@@ -27,8 +26,7 @@ class UserBadgeMixin:
         if not valid_only:
             return list(badges)
 
-        today = date.today()
-        return [badge for badge in badges if badge.expiration_date > today]
+        return [badge for badge in badges if not badge.is_expired()]
 
     def has_badge(self, badge_ids: List[BadgeIds]) -> bool:
         """Check if user has at least one of the badges types.

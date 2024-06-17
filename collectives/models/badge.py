@@ -20,7 +20,7 @@ class BadgeIds(ChoiceEnum):
         :rtype: string
         """
         return {
-            cls.Benevole: "Bénévole",
+            cls.Benevole: "Bénévole régulier",
         }
 
     def relates_to_activity(self) -> bool:

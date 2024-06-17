@@ -18,42 +18,13 @@ from wtforms_alchemy import ModelForm
 
 from collectives.models import Event, photos, Configuration, Registration
 from collectives.models import ActivityType, EventType, EventTag
-from collectives.models import EventStatus, User, Role, RoleIds, db
+from collectives.models import EventStatus, User, db
 from collectives.models import ItemPrice, UserGroup
-from collectives.models import leaders_without_activities
 from collectives.utils.time import current_time
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import generate_price_intervals, PriceDateInterval
 
 from collectives.forms.user_group import UserGroupForm
-
-
-def available_leaders(leaders: List[User], activity_ids: List[int]) -> List[User]:
-    """Creates a list of leaders that can be added to an event.
-
-    Available leaders are users that have 'event creator' roles (EventLeader, ActivitySupervisor,
-    etc), are not in the list of current leaders, and, if `activity_ids` is not empty, can lead
-    any of the corresponding activities.
-
-    :param leaders: list of current leaders
-    :param activity_ids: if not empty, leaders must be able to lead at least one those activities
-    :return: List of available leaders
-    """
-    existing_leaders = set(leaders)
-
-    query = db.session.query(User)
-    query = query.filter(Role.user_id == User.id)
-    if current_user.is_moderator():
-        query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
-    else:
-        query = query.filter(Role.role_id.in_(RoleIds.all_activity_leader_roles()))
-        if len(activity_ids) > 0:
-            query = query.filter(Role.activity_id.in_(activity_ids))
-
-    query = query.order_by(User.first_name, User.last_name)
-    choices = query.all()
-
-    return [u for u in choices if u not in existing_leaders]
 
 
 def available_event_types(
@@ -63,7 +34,7 @@ def available_event_types(
     This means:
 
      - All existing event types if the current user is a moderator
-     - All existing event types if any of the current leaders can lead at least one activity
+     - All existing event types if all of the current leaders can lead at least one activity
      - All event types that do not require an activity in other cases, plus the source event
        type if provided
 
@@ -74,19 +45,25 @@ def available_event_types(
 
     query = EventType.query
 
-    if not current_user.is_moderator():
-        if not any(l.can_lead_at_least_one_activity() for l in leaders):
-            query_filter = EventType.requires_activity == False
-            if source_event_type:
-                query_filter = sqlalchemy.or_(
-                    query_filter, EventType.id == source_event_type.id
-                )
-            query = query.filter(query_filter)
+    if current_user.is_moderator():
+        return query.all()
+    if all(l.is_leader() for l in leaders):
+        return query.all()
+
+    query_filter = EventType.requires_activity == False
+    if source_event_type:
+        query_filter = sqlalchemy.or_(
+            query_filter, EventType.id == source_event_type.id
+        )
+    query = query.filter(query_filter)
     return query.all()
 
 
 def available_activities(
-    activities: List[ActivityType], leaders: List[User], union: bool
+    activities: List[ActivityType],
+    leaders: List[User],
+    event_type: EventType,
+    multi_activity_mode: bool,
 ) -> List[ActivityType]:
     """Creates a list of activities theses leaders can lead.
 
@@ -96,25 +73,27 @@ def available_activities(
     has a moderator role (admin or moderator), it will return all activities.
 
     :param activities: list of activities that will always appears in the list
-    :param leaders: list of leader used to build activity list.
-    :param union: If true, return the union all activities that can be led, otherwise returns
-                  the intersection
+    :param leaders: list of leader used to build activity list. Must not be empty
+    :param event_type: the type of the event
+    :param multi_activity_mode: whether this is a multi-actiivty event
     :return: List of authorized activities
     """
     if current_user.is_moderator():
         choices = ActivityType.get_all_types()
     else:
         # Gather unique activities
-        choices = None
-        for leader in leaders:
-            if choices is None:
-                choices = leader.led_activities()
-            elif union:
-                choices |= leader.led_activities()
-            else:
-                choices &= leader.led_activities()
+        need_leader = event_type.requires_activity
+        if multi_activity_mode:
+            choices = set.union(
+                *(leader.get_organizable_activities(need_leader) for leader in leaders)
+            )
+        else:
+            choices = set.intersection(
+                *(leader.get_organizable_activities(need_leader) for leader in leaders)
+            )
+
         # Always include existing activities
-        choices = list(choices | set(activities) if choices else activities)
+        choices = list(choices | set(activities))
 
     choices.sort(key=attrgetter("order", "name", "id"))
 
@@ -207,8 +186,10 @@ class EventForm(ModelForm, FlaskForm):
             # Reading from an existing event
             self.source_event = kwargs["obj"]
             activities = self.source_event.activity_types
-            self.multi_activities_mode.data = len(activities) != 1 or any(
-                leaders_without_activities(activities, self.source_event.leaders)
+
+            self.multi_activities_mode.data = len(activities) != 1 or not all(
+                leader.can_lead_activity(activities[0])
+                for leader in self.source_event.leaders
             )
             if activities:
                 self.single_activity_type.data = int(activities[0].id)
@@ -264,7 +245,10 @@ class EventForm(ModelForm, FlaskForm):
             self.multi_activities_mode.data = True
 
         activity_choices = available_activities(
-            source_activities, self.current_leaders, self.multi_activities_mode.data
+            source_activities,
+            self.current_leaders,
+            self.current_event_type(),
+            self.multi_activities_mode.data,
         )
 
         if self.single_activity_type:

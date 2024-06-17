@@ -32,10 +32,17 @@
 
 {% block page_content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">Encadrants</h2>
+  <h2 class="heading-2">Encadrants et Organisateurs</h2>
   <div id="leaders-table"></div>
 
-  <h4 class="heading-4">Ajout d'un encadrant</h4>
+  <strong>Signification des rôles:</strong>
+  <ul>
+    <li><em>{{models.RoleIds.EventLeader.display_name()}}</em> : Peut créer et encadrer tout type d'événement lié à l'activité, dont des collectives.</li>
+    <li><em>{{models.RoleIds.Trainee.display_name()}}</em> : Peut être noté comme co-encadrant d'un événement auquel il est inscrit. Peut créer certains types d'événements ne nécéssitant pas d'autorisation d'encadrement (soirées ...), mais ne peut pas créer de collectives.
+    <li><em>{{models.RoleIds.ActivityStaff.display_name()}}</em> : Peut créer certains types d'événements ne nécéssitant pas d'autorisation d'encadrement (soirées ...), mais ne peut pas créer de collectives.
+  </ul>
+
+  <h4 class="heading-4">Ajout d'un encadrant ou organisateur</h4>
 
   {{ generator.form_generator(add_leader_form, url_for('activity_supervision.add_leader')) }}
 

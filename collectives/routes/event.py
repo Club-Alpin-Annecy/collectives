@@ -30,8 +30,7 @@ from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
 from collectives.models import RegistrationStatus, User, db, Configuration
 from collectives.models import EventTag, UploadedFile, UserGroup
-from collectives.models.activity_type import activities_without_leader
-from collectives.models.activity_type import leaders_without_activities
+from collectives.models.event import event_activities_without_leaders
 from collectives.models.payment import ItemPrice, Payment
 from collectives.models.question import QuestionAnswer
 
@@ -51,18 +50,20 @@ This blueprint contains all routes for event display and management
 """
 
 
-def validate_event_leaders(activities, leaders, multi_activity_mode):
+def validate_event_leaders(
+    activities: List[ActivityType],
+    leaders: List[User],
+    event_type: EventType,
+    multi_activity_mode: bool,
+) -> bool:
     """Check whether all activities have a valid leader, display error if not.
 
     :param bool multi_activity_mode: If `False`, check that all `leaders` can lead the
     (single) activitie in `activities`. If `True`, check that each activity in
     `activities` can be lead by one of the `leaders`.
     :param activities: List of activities to check.
-    :type activities: list(:py:class:`collectives.models.activity_type.ActivityType`)
-    :param activities: List of leaders.
-    :type activities: list(:py:class:`collectives.models.user.User`)
+    :param leaders: List of leaders.
     :return: whether all tests succeeded
-    :rtype: bool
     """
 
     if current_user.is_moderator():
@@ -74,7 +75,9 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
             return False
         if current_user.is_moderator():
             return True
-        problems = activities_without_leader(activities, leaders)
+
+        problems = event_activities_without_leaders(activities, leaders, event_type)
+
         if len(problems) == 0:
             return True
         if len(problems) == 1:
@@ -93,7 +96,9 @@ def validate_event_leaders(activities, leaders, multi_activity_mode):
     if len(activities) != 1:
         flash("Une seule activité doit être définie", "error")
 
-    problems = leaders_without_activities(activities, leaders)
+    problems = [
+        leader for leader in leaders if not leader.can_lead_activity((activities[0]))
+    ]
     if len(problems) == 0:
         return True
     if len(problems) == 1:
@@ -372,7 +377,10 @@ def _prevalidate_leaders_and_activities(
     if int(form.update_activity.data):
         # Check that the set of leaders is valid for current activities
         validate_event_leaders(
-            tentative_activities, previous_leaders, form.multi_activities_mode.data
+            tentative_activities,
+            previous_leaders,
+            form.current_event_type(),
+            form.multi_activities_mode.data,
         )
         return (False, [], [])
 
@@ -401,6 +409,7 @@ def _prevalidate_leaders_and_activities(
         if validate_event_leaders(
             tentative_activities,
             tentative_leaders,
+            form.current_event_type(),
             form.multi_activities_mode.data,
         ):
             form.set_current_leaders(tentative_leaders)
@@ -435,6 +444,7 @@ def _postvalidate_leaders_and_activities(
         if not validate_event_leaders(
             event.activity_types,
             event.leaders,
+            form.current_event_type(),
             form.multi_activities_mode.data,
         ):
             return False

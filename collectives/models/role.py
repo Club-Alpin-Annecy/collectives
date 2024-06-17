@@ -1,6 +1,8 @@
 """Module for user roles related classes
 """
 
+from typing import List, Dict
+
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -16,11 +18,13 @@ class RoleIds(ChoiceEnum):
     - Technician
     - Hotline
     - Accountant
+    - Staff
 
     Activity related roles:
     - EventLeader: can lead an event of this activity type
     - ActivitySupervisor: supervises a whole activity
     - Trainee: Currently training to become a leader for an activity
+    - ActivityStaff: can create event types that do not require leader
     """
 
     # pylint: disable=invalid-name
@@ -37,6 +41,7 @@ class RoleIds(ChoiceEnum):
     EventLeader = 10
     ActivitySupervisor = 11
     Trainee = 12
+    ActivityStaff = 13
 
     # Equipment-related roles
     EquipmentManager = 21
@@ -44,11 +49,10 @@ class RoleIds(ChoiceEnum):
     # pylint: enable=invalid-name
 
     @classmethod
-    def display_names(cls):
-        """Display name of the current role
+    def display_names(cls) -> Dict["RoleIds", str]:
+        """Display names for all rolesrole
 
-        :return: role name
-        :rtype: string
+        :return: dictionnary role -> role name
         """
         return {
             cls.Administrator: "Administrateur",
@@ -57,60 +61,60 @@ class RoleIds(ChoiceEnum):
             cls.Technician: "Technicien du site",
             cls.Hotline: "Support",
             cls.Accountant: "Comptable",
-            cls.Staff: "Bénévole",
+            cls.Staff: "Organisateur (club)",
             cls.EventLeader: "Encadrant",
             cls.ActivitySupervisor: "Responsable d'activité",
             cls.Trainee: "Encadrant en formation",
+            cls.ActivityStaff: "Organisateur (activité)",
             cls.EquipmentVolunteer: "Bénévole matériel",
             cls.EquipmentManager: "Responsable matériel",
         }
 
-    def relates_to_activity(self):
+    def relates_to_activity(self) -> bool:
         """Check if this role needs an activity.
 
         See :py:class:`RoleIds` Global roles vs Event related roles.
 
         :return: True if the role requires an activity.
-        :rtype: boolean
         """
         cls = self.__class__
         return self.value in cls.all_relates_to_activity()
 
     @classmethod
-    def all_relates_to_activity(cls):
-        """:return: List of all roles that are related to an activity.
-        :rtype: list[:py:class:`RoleIds`]
-        """
-        return [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee]
+    def all_relates_to_activity(cls) -> List["RoleIds"]:
+        """:return: List of all roles that are related to an activity."""
+        return [cls.ActivitySupervisor, cls.EventLeader, cls.Trainee, cls.ActivityStaff]
 
     @classmethod
-    def all_supervisor_manageable(cls):
-        """:return: List of all roles that can be managed by an activity supervisor.
-        :rtype: list[:py:class:`RoleIds`]
-        """
-        return [cls.EventLeader, cls.Trainee]
+    def all_supervisor_manageable(cls) -> List["RoleIds"]:
+        """:return: List of all roles that can be managed by an activity supervisor."""
+        return [cls.EventLeader, cls.Trainee, cls.ActivityStaff]
 
     @classmethod
-    def all_moderator_roles(cls):
+    def all_moderator_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that grant moderator capabilities
-        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.Administrator, cls.Moderator, cls.President]
 
     @classmethod
-    def all_activity_leader_roles(cls):
+    def all_activity_leader_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users to lead event activities
-        :rtype: list[:py:class:`RoleIds`]
         """
         return [cls.EventLeader, cls.ActivitySupervisor]
 
     @classmethod
-    def all_equipment_management_roles(cls):
+    def all_activity_organizer_roles(cls) -> List["RoleIds"]:
+        """
+        :return: List of all roles that allow users to organize events with an activity
+        """
+        return cls.all_activity_leader_roles() + [cls.Trainee, cls.ActivityStaff]
+
+    @classmethod
+    def all_equipment_management_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users manage equipment
-        :rtype: list[:py:class:`RoleIds`]
         """
         return [
             cls.EquipmentVolunteer,
@@ -118,7 +122,7 @@ class RoleIds(ChoiceEnum):
         ] + cls.all_moderator_roles()
 
     @classmethod
-    def all_reservation_management_roles(cls):
+    def all_reservation_management_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users manage reservation
         :rtype: list[:py:class:`RoleIds`]
@@ -129,15 +133,19 @@ class RoleIds(ChoiceEnum):
         ] + cls.all_moderator_roles()
 
     @classmethod
-    def all_event_creator_roles(cls):
+    def all_event_creator_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users to create events
         :rtype: list[:py:class:`RoleIds`]
         """
-        return [cls.Staff] + cls.all_activity_leader_roles() + cls.all_moderator_roles()
+        return (
+            [cls.Staff, cls.ActivityStaff, cls.Trainee]
+            + cls.all_activity_leader_roles()
+            + cls.all_moderator_roles()
+        )
 
     @classmethod
-    def all_reservation_creator_roles(cls):
+    def all_reservation_creator_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users to create reservation
         :rtype: list[:py:class:`RoleIds`]
@@ -186,11 +194,10 @@ class Role(db.Model):
     """
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Returns the name of the role.
 
         :return: name of the role.
-        :rtype: string
         """
 
         return RoleIds(self.role_id).display_name()

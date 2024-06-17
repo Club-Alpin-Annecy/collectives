@@ -9,11 +9,11 @@ import json
 from flask import request, abort
 from flask_login import current_user
 from sqlalchemy.sql import text
-from sqlalchemy import func
+from sqlalchemy import func, and_
 from marshmallow import fields
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.models import db, User, Role, RoleIds
+from collectives.models import db, User, Role, RoleIds, EventType
 from collectives.utils.access import confidentiality_agreement, valid_user
 
 
@@ -174,6 +174,7 @@ def autocomplete_available_leaders():
     :param list[int] aid: List of activity ids to include. Empty means include leaders
                           of any activity
     :param list[int] eid: List of leader ids to exclude
+    :param int etype: Id of event type
     :return: A tuple:
 
         - JSON containing information describe in AutocompleteUserSchema
@@ -187,18 +188,22 @@ def autocomplete_available_leaders():
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8
+        event_type = db.session.get(
+            EventType, request.args.get("etype", type=int, default=0)
+        )
         activity_ids = request.args.getlist("aid", type=int)
         existing_ids = request.args.getlist("eid", type=int)
 
         query = db.session.query(User)
-        query = query.filter(Role.user_id == User.id)
-        if current_user.is_moderator():
-            query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
-        else:
-            query = query.filter(Role.role_id.in_(RoleIds.all_event_creator_roles()))
-            if len(activity_ids) > 0:
-                query = query.filter(Role.activity_id.in_(activity_ids))
 
+        if event_type and event_type.requires_activity:
+            ok_roles = RoleIds.all_activity_leader_roles()
+        else:
+            ok_roles = RoleIds.all_event_creator_roles()
+        role_condition = Role.role_id.in_(ok_roles)
+        if len(activity_ids) > 0:
+            role_condition = and_(role_condition, Role.activity_id.in_(activity_ids))
+        query = query.filter(User.roles.any(role_condition))
         query = query.filter(~User.id.in_(existing_ids))
         condition = func.lower(User.first_name + " " + User.last_name).ilike(
             f"%{pattern}%"
