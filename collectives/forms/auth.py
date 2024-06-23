@@ -15,7 +15,7 @@ from wtforms_alchemy.utils import strip_string
 from collectives.forms.order import OrderedForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.validators import remove_unique_validators
-from collectives.models import User
+from collectives.models import User, Configuration
 from collectives.forms.utils import LicenseField, PhoneField
 
 
@@ -176,3 +176,6 @@ class LocalAccountCreationForm(PasswordForm, ModelForm, OrderedForm, LegalAccept
             "Personne a contacter en cas d'accident."
         )
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
+
+        if Configuration.RECAPTCHA_PUBLIC_KEY == "":
+            del self.recaptcha

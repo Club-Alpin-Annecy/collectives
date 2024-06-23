@@ -62,7 +62,6 @@ class UserMiscMixin:
         :rtype: boolean
         """
         if self.type in [UserType.Local, UserType.Test]:
-            # Test users licenses never expire
             return True
         if self.license_expiry_date is None:
             return False
@@ -166,7 +165,7 @@ class UserMiscMixin:
             return False
         if not self.check_license_valid_at_time(current_time()):
             return False
-        if self.type == UserType.CandidateLocal:
+        if self.type == UserType.UnverifiedLocal:
             return False
 
         return True

@@ -24,7 +24,7 @@ class UserType(enum.IntEnum):
     Test = 0
     Extranet = 1
     Local = 2
-    CandidateLocal = 3
+    UnverifiedLocal = 3
 
 
 class User(Base):
@@ -41,7 +41,9 @@ def upgrade():
         batch_op.add_column(
             sa.Column(
                 "type",
-                sa.Enum("Test", "Extranet", "Local", "CandidateLocal", name="usertype"),
+                sa.Enum(
+                    "Test", "Extranet", "Local", "UnverifiedLocal ", name="usertype"
+                ),
                 nullable=False,
                 server_default="Test",
             )

@@ -106,14 +106,14 @@ def send_confirmation_email(email, name, token):
         :type e: :py:class:`Exception`"""
 
         # we get a token object that is not linked to another db session
-        new_token = (
+        token_copy = (
             db.session.query(ConfirmationToken)
             .filter(ConfirmationToken.uuid == token.uuid)
             .first()
         )
 
-        new_token.status = TokenEmailStatus.Failed
-        db.session.add(new_token)
+        token_copy.status = TokenEmailStatus.Failed
+        db.session.add(token_copy)
         db.session.commit()
 
     @wraps(token)
@@ -123,14 +123,14 @@ def send_confirmation_email(email, name, token):
         :param e: current exceptions
         :type e: :py:class:`Exception`"""
         # we get a token object that is not linked to another db session
-        new_token = (
+        token_copy = (
             db.session.query(ConfirmationToken)
             .filter(ConfirmationToken.uuid == token.uuid)
             .first()
         )
 
-        new_token.status = TokenEmailStatus.Success
-        db.session.add(new_token)
+        token_copy.status = TokenEmailStatus.Success
+        db.session.add(token_copy)
         db.session.commit()
 
     # Check if local dev, so that email is not sent

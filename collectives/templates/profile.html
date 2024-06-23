@@ -60,7 +60,10 @@
         {% endif %}
     </div>
 
-    <h4 class="heading-4">Informations FFCAM </h4>
+    <h4 class="heading-4">
+        Informations 
+        {% if user.type == models.UserType.Extranet %}FFCAM{% endif %}
+    </h4>
 
     <div class="centeralign">
         <img src="{%   if user.avatar
@@ -72,8 +75,16 @@
         class="avatar big" />
     </div>
 
+    {% if user.type == models.UserType.UnverifiedLocal %}
+        <div>
+            Le compte de l'utilisateur n'est pas encore validé par mail. Il peut refaire sa validation en faisant une demande de nouveau mot de passe.
+        </div>
+    {% endif %}
 
     <table id="profile_info"  class="center_table">
+
+        
+
         <tr>
             <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Licence :</td>
             <td>{{user.license}}</td>

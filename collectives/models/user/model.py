@@ -12,6 +12,7 @@ from collectives.models.globals import db
 from collectives.models.user.enum import Gender, UserType
 from collectives.utils.misc import truncate
 
+
 class UserModelMixin:
     """Part of User class with all its attributes.
 

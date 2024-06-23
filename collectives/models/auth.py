@@ -111,7 +111,7 @@ class ConfirmationToken(db.Model):
         if existing_user:
             self.existing_user_id = existing_user.id
 
-        if existing_user and existing_user.type != UserType.CandidateLocal:
+        if existing_user and existing_user.type != UserType.UnverifiedLocal:
             self.token_type = ConfirmationTokenType.RecoverAccount
         else:
             self.token_type = ConfirmationTokenType.ActivateAccount

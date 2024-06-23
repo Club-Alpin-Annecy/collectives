@@ -422,3 +422,8 @@ Information club:
         description: Information légale du club. Markdown.
         type: LongString
 
+    CLUB_PREFIX:
+        content: ""
+        description: "Quatre premiers chiffres de la licence du club (ex: 7400)"
+        type: ShortString
+

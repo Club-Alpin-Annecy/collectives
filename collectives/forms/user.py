@@ -14,7 +14,7 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
-from collectives.forms.validators import LicenseValidator
+from collectives.forms.utils import LicenseField
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, photos, ActivityType, Role, RoleIds
@@ -307,21 +307,19 @@ class AddBadgeForm(ActivityTypeSelectionForm):
 class DeleteUserForm(FlaskForm):
     """Form for confirming user suppression"""
 
-    license = StringField(
-        "Numéro de licence :",
-        description=(
-            "Pour confirmer la suppression, "
-            "veuillez re-saisir le numéro de licence du compte."
-        ),
-        render_kw={
-            "placeholder": LicenseValidator().sample_value(),
-        },
-    )
+    license = LicenseField()
 
     submit = SubmitField("Supprimer le compte utilisateur")
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.license = LicenseField(
+            description=(
+                "Pour confirmer la suppression, "
+                "veuillez re-saisir le numéro de licence du compte."
+            )
+        )
 
         self._user = user
 

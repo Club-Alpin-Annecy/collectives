@@ -57,7 +57,7 @@ def process_confirmation(token_uuid):
     if (
         not is_recover
         and token.existing_user
-        and token.existing_user.type == UserType.CandidateLocal
+        and token.existing_user.type == UserType.UnverifiedLocal
     ):
         token.existing_user.type = UserType.Local
         token.existing_user.legal_text_signature_date = datetime.datetime.now()
@@ -201,7 +201,7 @@ def signup():
             return render_signup_form(form, is_recover)
 
     if local and not is_recover:
-        user.type = UserType.CandidateLocal
+        user.type = UserType.UnverifiedLocal
 
         db.session.add(user)
         db.session.commit()
@@ -210,6 +210,18 @@ def signup():
 
     if not local:
         if not check_user_validity(form):
+            return render_signup_form(form, is_recover)
+
+    if local and is_recover:
+        if (
+            user.mail != form.mail.data
+            or user.date_of_birth != form.date_of_birth.data
+            or user.license != form.license.data
+        ):
+            form.generic_error = (
+                "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
+                "de licence."
+            )
             return render_signup_form(form, is_recover)
 
     # If self-provided info is correct, generate confirmation token

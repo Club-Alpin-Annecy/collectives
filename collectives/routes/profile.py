@@ -104,7 +104,7 @@ def show_leader(leader_id):
 def update_user():
     """Route to update current user information"""
 
-    if current_user.type == UserType.Local:
+    if current_user.type in (UserType.Local, UserType.UnverifiedLocal):
         form = LocalUserForm(obj=current_user)
     else:
         form = ExtranetUserForm(obj=current_user)

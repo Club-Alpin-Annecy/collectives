@@ -49,7 +49,7 @@ def test_local_valid_signup(client, example_data, mail_success_monkeypatch):
 
     user = db.session.query(User).filter(User.mail == example_data["mail"]).first()
     assert user is not None
-    assert user.type == UserType.CandidateLocal
+    assert user.type == UserType.UnverifiedLocal
 
     token = (
         db.session.query(ConfirmationToken)

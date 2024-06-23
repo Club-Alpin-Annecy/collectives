@@ -45,7 +45,7 @@ class UserType(ChoiceEnum):
     """Account type is Extranet and it will be synnchronized with FFCAM extranet """
     Local = 2
     """Account type is local, and it will be based on user given data"""
-    CandidateLocal = 3
+    UnverifiedLocal = 3
     """Account that is in creation process: token has to be validated"""
 
     # pylint: enable=invalid-name
@@ -62,5 +62,5 @@ class UserType(ChoiceEnum):
             cls.Test: "Test",
             cls.Extranet: "Extranet",
             cls.Local: "Local",
-            cls.CandidateLocal: "Local (email non-vérifié)",
+            cls.UnverifiedLocal: "Local (email non-vérifié)",
         }

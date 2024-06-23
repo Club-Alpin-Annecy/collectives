@@ -229,8 +229,8 @@ class DBAdaptedFlaskConfig(Config):
         It still raise a KeyError if key does not exist in cold config"""
         try:
             return Configuration.get(key)
-        except AttributeError:
-            raise KeyError(key) from None
+        except AttributeError as err:
+            raise KeyError(key) from err
 
     def __init__(self, obj: Config, *args, **kwargs) -> None:
         """Constructor that copies a Flask Config object.
@@ -239,5 +239,4 @@ class DBAdaptedFlaskConfig(Config):
 
         super().__init__(obj.root_path, *args, **kwargs)
 
-        for key, values in obj.items():
-            self[key] = values
+        self.update(obj)

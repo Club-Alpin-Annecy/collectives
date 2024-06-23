@@ -10,14 +10,11 @@ import phonenumbers
 from wtforms.validators import ValidationError
 from wtforms_alchemy import Unique
 
+from collectives.models import Configuration
+
 
 class LicenseValidator:
     """WTForm Validator for license fields"""
-
-    prefix = ""
-    """ Prefix for every licence.
-
-    :type: string """
 
     length = 12
     """ Length of the license number.
@@ -43,14 +40,19 @@ class LicenseValidator:
 
         :return: an help sentence.
         :rtype: string"""
-        return f"{self.length} chiffres commencant par '{self.prefix}'"
+        if Configuration.CLUB_PREFIX == "":
+            return f"{self.length} chiffres"
+
+        return f"{self.length} chiffres commencant par '{Configuration.CLUB_PREFIX}'"
 
     def sample_value(self):
         """Generate a sample value (place holder).
 
         :return: a place holder
         :rtype: string"""
-        return self.prefix + "X" * (self.length - len(self.prefix))
+        return Configuration.CLUB_PREFIX + "X" * (
+            self.length - len(Configuration.CLUB_PREFIX)
+        )
 
     def pattern(self):
         """Construct the pattern attribute to validate license.
@@ -58,7 +60,8 @@ class LicenseValidator:
         :return: A regex pattern to validate a license.
         :rtype: String
         """
-        return f"^{self.prefix}[0-9]{{{self.length - len(self.prefix)}}}$"
+        prefix = Configuration.CLUB_PREFIX
+        return f"^{prefix}[0-9]{{{self.length - len(prefix)}}}$"
 
 
 class PasswordValidator:
