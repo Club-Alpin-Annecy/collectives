@@ -39,13 +39,29 @@ def format_phones(phone_str: str) -> str:
     """:returns: a regurlarly formed phone number, with proper spacing.
     :param phone: A phone number
     """
-    phone = phonenumbers.parse(phone_str, "FR")
 
-    if not phonenumbers.is_valid_number(phone):
-        return phone_str
+    if not check_phone(phone_str):
+        return str(phone_str)
+
+    phone = phonenumbers.parse(phone_str, "FR")
 
     formats = phonenumbers.PhoneNumberFormat
     if phone.country_code != 33:
         return phonenumbers.format_number(phone, formats.INTERNATIONAL)
 
     return phonenumbers.format_number(phone, formats.NATIONAL)
+
+
+def check_phone(number: str) -> bool:
+    """:returns: True if the number if a real phone number"""
+    try:
+        number = phonenumbers.parse(number, "FR")
+        if not phonenumbers.is_possible_number(number):
+            return False
+        if not phonenumbers.is_valid_number(number):
+            return False
+
+        return True
+
+    except phonenumbers.NumberParseException:
+        return False
