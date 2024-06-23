@@ -6,11 +6,11 @@ See `WTForms documentation
 
 import re
 
-import phonenumbers
 from wtforms.validators import ValidationError
 from wtforms_alchemy import Unique
 
 from collectives.models import Configuration
+from collectives.utils.numbers import check_phone
 
 
 class LicenseValidator:
@@ -111,18 +111,9 @@ class PhoneValidator:
     """Custom validator to check that phone numbers are real phones."""
 
     def __call__(self, form, field):
-        error_message = "Le numéro de téléphone n'est pas valide."
-
-        try:
-            number = field.data
-            number = phonenumbers.parse(number, "FR")
-            if not phonenumbers.is_possible_number(number):
-                raise ValidationError(error_message)
-            if not phonenumbers.is_valid_number(number):
-                raise ValidationError(error_message)
-
-        except phonenumbers.NumberParseException as exc:
-            raise ValidationError(error_message) from exc
+        if check_phone(field.data):
+            return True
+        raise ValidationError("Le numéro de téléphone n'est pas valide.")
 
     def help_string(self):
         """:returns: A string explaining what is accepted as a phone number"""
