@@ -10,7 +10,7 @@ from markupsafe import Markup
 from collectives.forms.auth import LoginForm
 from collectives.routes.auth.globals import blueprint
 from collectives.routes.auth.utils import sync_user, get_bad_phone_message
-from collectives.models import db, Configuration, User
+from collectives.models import db, Configuration, User, UserType
 from collectives.utils.time import current_time
 from collectives.utils import extranet
 
@@ -60,6 +60,17 @@ def login():
               vos informations utilisateur pourront ne pas être à jour""",
             "warning",
         )
+
+    if user.type == UserType.UnverifiedLocal:
+        flash(
+            Markup(
+                f"""Compte non validé par mail. Si vous n'avez pas reçu le mail de validation,
+                     vous pouvez en redemander un en utilisant le 
+                     <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>"""
+            ),
+            "error",
+        )
+        return redirect(url_for("auth.login"))
 
     if not user.is_active:
         flash(
