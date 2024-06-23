@@ -21,6 +21,17 @@ Sécurité:
         content: 2
         description: Duration (in hours) of a token before expiration
         type: Integer
+    
+    RECAPTCHA_PUBLIC_KEY:
+        content: ""
+        description: "Mandatory for local registration. Get one: https://www.google.com/recaptcha/admin/create . Classic key & v2"
+        type: ShortString
+
+    RECAPTCHA_PRIVATE_KEY:
+        content: ""
+        description: "Mandatory for local registration. Get one: https://www.google.com/recaptcha/admin/create"
+        type: ShortString
+
 
 Paiements:
     PAYMENTS_ENABLED:
@@ -88,7 +99,10 @@ FFCAM:
 
     EXTRANET_ACCOUNT_ID:
         content: ""
-        description: Identifiant de connexion à l'extranet FFCAM
+        description: | 
+            Identifiant de connexion à l'extranet FFCAM. 
+            Si vide, les comptes créés ne seront pas synchronisés
+            avec la FFCAM
         type: ShortString
 
     EXTRANET_ACCOUNT_PWD:
@@ -407,4 +421,9 @@ Information club:
             Informations générales sur le site internet du club [Adresse du site du club]
         description: Information légale du club. Markdown.
         type: LongString
+
+    CLUB_PREFIX:
+        content: ""
+        description: "Quatre premiers chiffres de la licence du club (ex: 7400)"
+        type: ShortString
 

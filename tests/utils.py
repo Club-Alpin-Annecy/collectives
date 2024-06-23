@@ -55,3 +55,11 @@ def load_data_from_form(text: str, form_id: str) -> dict:
         values = [o["value"] for o in options]
         data[i.attrs["name"]] = values
     return data
+
+
+def get_form_errors(text: str) -> list:
+    """:returns: errors displayed to users by a form when it is not validated."""
+    soup = BeautifulSoup(text, features="lxml")
+    errors = soup.select(".form-errors .flash-error")
+
+    return [error.text for error in errors]

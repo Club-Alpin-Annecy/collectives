@@ -6,6 +6,7 @@ and account creation.
 
 from markupsafe import Markup
 from flask_wtf import FlaskForm
+from flask_wtf.recaptcha import RecaptchaField
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import InputRequired, EqualTo, DataRequired
 from wtforms_alchemy import ModelForm
@@ -13,9 +14,9 @@ from wtforms_alchemy.utils import strip_string
 
 from collectives.forms.order import OrderedForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
-from collectives.forms.validators import LicenseValidator
 from collectives.forms.validators import remove_unique_validators
-from collectives.models import User, db
+from collectives.models import User, Configuration
+from collectives.forms.utils import LicenseField, PhoneField
 
 
 class LoginForm(FlaskForm):
@@ -27,7 +28,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Login")
 
 
-class AccountCreationForm(ModelForm, OrderedForm):
+class ExtranetAccountCreationForm(ModelForm, OrderedForm):
     """Form to create an account from extranet"""
 
     class Meta:
@@ -38,18 +39,7 @@ class AccountCreationForm(ModelForm, OrderedForm):
         unique_validator = UniqueValidator
         strip_string_fields = True
 
-    license = StringField(
-        label="Numéro de licence",
-        description=LicenseValidator().help_string(),
-        render_kw={
-            "placeholder": LicenseValidator().sample_value(),
-            "pattern": LicenseValidator().pattern(),
-        },
-        validators=[
-            LicenseValidator(),
-            UniqueValidator(User.license, get_session=lambda: db.session),
-        ],
-    )
+    license = LicenseField()
 
     field_order = ["mail", "license", "*"]
 
@@ -69,8 +59,8 @@ class AccountCreationForm(ModelForm, OrderedForm):
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
 
-class PasswordResetForm(FlaskForm):
-    """Form for a user to set or reset his password."""
+class PasswordForm(FlaskForm):
+    """Form with a field to give change password"""
 
     password = PasswordField(
         label="Choisissez un mot de passe",
@@ -85,6 +75,10 @@ class PasswordResetForm(FlaskForm):
             EqualTo("password", message="Les mots de passe ne correspondent pas"),
         ],
     )
+
+
+class PasswordResetForm(PasswordForm):
+    """Form for a user to set or reset his password."""
 
     submit = SubmitField("Activer le compte")
 
@@ -117,18 +111,71 @@ class AccountActivationForm(PasswordResetForm, LegalAcceptation):
 class AdminTokenCreationForm(FlaskForm):
     """Form for administrators to generate conformation tokens"""
 
-    license = StringField(
-        label="Numéro de licence",
-        description=LicenseValidator().help_string(),
-        render_kw={
-            "placeholder": LicenseValidator().sample_value(),
-            "pattern": LicenseValidator().pattern(),
-        },
-        validators=[
-            DataRequired(),
-            LicenseValidator(),
-        ],
-    )
-
+    license = LicenseField()
     confirm = BooleanField("Confirmer la génération du jeton de confirmation")
     submit = SubmitField("Générer le jeton de confirmation")
+
+
+class LocalAccountCreationForm(PasswordForm, ModelForm, OrderedForm, LegalAcceptation):
+    """Form to create an account from extranet"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = User
+        only = [
+            "mail",
+            "first_name",
+            "last_name",
+            "phone",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "gender",
+            "license",
+            "date_of_birth",
+            "password",
+        ]
+        unique_validator = UniqueValidator
+        strip_string_fields = True
+
+    license = LicenseField()
+    phone = PhoneField(label=User.phone.info["label"])
+    emergency_contact_phone = PhoneField(
+        label=User.emergency_contact_phone.info["label"]
+    )
+
+    field_order = [
+        "mail",
+        "first_name",
+        "last_name",
+        "gender",
+        "phone",
+        "emergency_contact_name",
+        "emergency_contact_phone",
+        "license",
+        "date_of_birth",
+        "password",
+        "confirm",
+        "legal_accepted",
+        "recaptcha",
+    ]
+
+    recaptcha = RecaptchaField()
+
+    submit = SubmitField("Créer le compte")
+
+    def __init__(self, *args, **kwargs):
+        """Constructor to specialize the form regarding if it is a creation or a recover.
+
+        :param bool is_recover: True if form is for a password recover, False for a creation
+        """
+        super().__init__(*args, **kwargs)
+
+        self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
+        self.emergency_contact_name.description = (
+            "Personne a contacter en cas d'accident."
+        )
+        self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
+
+        if Configuration.RECAPTCHA_PUBLIC_KEY == "":
+            del self.recaptcha

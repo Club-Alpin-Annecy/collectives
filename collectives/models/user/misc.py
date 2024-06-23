@@ -11,7 +11,7 @@ from collectives.models.globals import db
 from collectives.models.configuration import Configuration
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
-from collectives.models.user.enum import Gender
+from collectives.models.user.enum import Gender, UserType
 from collectives.utils.time import current_time
 
 
@@ -54,15 +54,14 @@ class UserMiscMixin:
     def check_license_valid_at_time(self, time):
         """Check if the user license is still valid at a given time.
 
-        Test users (:py:attr:`is_test`) are always valid.
+        Test and Local users (:py:attr:`type`) are always valid.
 
         :param time: Time when the validity must be checked.
         :type time: :py:class:`datetime.datetime`
         :return: True if license is valid.
         :rtype: boolean
         """
-        if self.is_test:
-            # Test users licenses never expire
+        if self.type in [UserType.Local, UserType.Test]:
             return True
         if self.license_expiry_date is None:
             return False
@@ -156,13 +155,20 @@ class UserMiscMixin:
     def is_active(self):
         """Check if user is currently active.
 
-        An active user is not disabled and its license is valid.
+        An active user is not disabled, its license is valid and
+        is not candidate user.
 
         :return: True if user is active.
         :rtype: boolean
         """
+        if not self.enabled:
+            return False
+        if not self.check_license_valid_at_time(current_time()):
+            return False
+        if self.type == UserType.UnverifiedLocal:
+            return False
 
-        return self.enabled and self.check_license_valid_at_time(current_time())
+        return True
 
     def has_valid_phone_number(self, emergency=False):
         """Check if the user has a valid phone number.

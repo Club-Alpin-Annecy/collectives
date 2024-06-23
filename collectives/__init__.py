@@ -22,6 +22,7 @@ from collectives import models, api, forms
 from collectives.routes import root, profile, auth, administration, event, reservation
 from collectives.routes import payment, technician, activity_supervison, equipment
 from collectives.routes import question
+from collectives.models import Configuration, DBAdaptedFlaskConfig
 
 from collectives.utils import extranet, init, jinja, error, payline
 
@@ -84,6 +85,8 @@ def create_app(config_filename="config.py", extra_config=None):
 
     with app.app_context():
         init.populate_db(app)
+
+        app.config = DBAdaptedFlaskConfig(app.config)
 
         # Initialize asset compilation
         assets = Environment(app)

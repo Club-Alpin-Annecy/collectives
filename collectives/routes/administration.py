@@ -13,7 +13,7 @@ from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm
 from collectives.forms.user import RoleForm, RenewBadgeForm
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.models import RoleIds, Badge, db, Configuration
-from collectives.models import User, ActivityType, Role
+from collectives.models import User, ActivityType, Role, UserType
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
 from collectives.utils import extranet, export, badges
@@ -97,7 +97,10 @@ def manage_user(user_id=None):
     # If we are operating on a 'normal' user, restrict fields
     # Else allow editing everything
     FormClass = AdminUserForm
-    if user.is_test or user_id == None:
+    if (
+        user.type in [UserType.Test, UserType.Local, UserType.UnverifiedLocal]
+        or user_id == None
+    ):
         FormClass = AdminTestUserForm
 
     form = FormClass() if user_id is None else FormClass(obj=user)

@@ -9,7 +9,7 @@ from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType
 from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
 from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
-from collectives.models.configuration import Configuration
+from collectives.models.configuration import Configuration, DBAdaptedFlaskConfig
 from collectives.models.event import Event, EventStatus, photos, EventType
 from collectives.models.event import EventVisibility
 from collectives.models.event_tag import EventTag
@@ -23,7 +23,7 @@ from collectives.models.reservation import ReservationLine, Reservation
 from collectives.models.reservation import ReservationStatus
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
-from collectives.models.user import User, Gender, avatars
+from collectives.models.user import User, Gender, UserType, avatars
 from collectives.models.user_group import UserGroup, GroupEventCondition
 from collectives.models.user_group import GroupLicenseCondition, GroupRoleCondition
 from collectives.models.badge import Badge, BadgeIds

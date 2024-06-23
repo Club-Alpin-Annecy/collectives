@@ -8,7 +8,7 @@ from flask import current_app, url_for, flash
 from markupsafe import Markup
 
 
-from collectives.models import db, Configuration, Registration
+from collectives.models import db, Configuration, Registration, ConfirmationToken
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
 from collectives.utils.time import format_date
@@ -104,8 +104,16 @@ def send_confirmation_email(email, name, token):
 
         :param e: current exceptions
         :type e: :py:class:`Exception`"""
-        token.status = TokenEmailStatus.Failed
-        db.session.add(token)
+
+        # we get a token object that is not linked to another db session
+        token_copy = (
+            db.session.query(ConfirmationToken)
+            .filter(ConfirmationToken.uuid == token.uuid)
+            .first()
+        )
+
+        token_copy.status = TokenEmailStatus.Failed
+        db.session.add(token_copy)
         db.session.commit()
 
     @wraps(token)
@@ -114,8 +122,15 @@ def send_confirmation_email(email, name, token):
 
         :param e: current exceptions
         :type e: :py:class:`Exception`"""
-        token.status = TokenEmailStatus.Success
-        db.session.add(token)
+        # we get a token object that is not linked to another db session
+        token_copy = (
+            db.session.query(ConfirmationToken)
+            .filter(ConfirmationToken.uuid == token.uuid)
+            .first()
+        )
+
+        token_copy.status = TokenEmailStatus.Success
+        db.session.add(token_copy)
         db.session.commit()
 
     # Check if local dev, so that email is not sent

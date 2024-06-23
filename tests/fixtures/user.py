@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
-from collectives.models import Badge, BadgeIds
+from collectives.models import Badge, BadgeIds, UserType
 
 # pylint: disable=unused-argument,redefined-outer-name
 
@@ -46,7 +46,7 @@ def generate_user(identifier, names):
         user.last_name = names[1]
         user.gender = Gender.Unknown
         user.mail = f"user{identifier}@example.org"
-        user.is_test = True
+        user.type = UserType.Test
         user.license = str(identifier + 990000000000)
         user.license_category = "XX"
         user.date_of_birth = date(2000, 1, identifier % 30)

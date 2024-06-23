@@ -9,10 +9,9 @@
 <h4 class="heading-4">Versionnement des mentions légales:</h4>
 <p>
     <ul>
-        {% if Configuration.GOOGLE_ANALYTICS_UA %}
-            <li><b>v3</b> : (version actuelle) Mise à jour de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
-            <li><b>v2</b> : Ajout de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
-        {% endif %}
+        <li><b>v4</b> : (version actuelle) Ajout d'email de contact. Mise à jour de la façon dont les données sont mises à disposition. </li>
+        <li><b>v3</b> : Mise à jour de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
+        <li><b>v2</b> : Ajout de <a href="#statistics">Mentions relatives à la réalisation de statistiques d'utilisation</a> </li>
         <li><b>v1</b> : Document initial</li>
     </ul>
 </p>
@@ -45,25 +44,26 @@
      <!-- FIXME should be 1.1em -->
     <h5 class="heading-5">Information générales récupérées à l'activation de son compte</h5>
 
+    <p>Les données personnelles présentes sur ce site peuvent être une copie de celles
+        fournies lors de l'adhésion au {{Configuration.CLUB_NAME}}, ou directement fournies
+        par l'utilisateur à son inscription sur ce site.
+    </p>
+
     <p>
-    Les données personnelles présentes sur le site des collectives sont une copie de celles
-    fournies lors de l'adhésion au {{Configuration.CLUB_NAME}}. Elles sont sauvegardés au niveau
+    Dans le cas où les informations sont celle fournies lors de l'adhésion au club, elles sont sauvegardées au niveau
     de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est
     affilié. <br/>
     Elles sont modifiables dans l'espace personnel FFCAM de chaque adhérent sur
     <a href="https://extranet-clubalpin.com/monespace/">https://extranet-clubalpin.com/monespace/</a>
-    puis dans le menu «&nbsp;Mes informations&nbsp;».
-    </p>
-
-    <p>
-    Une fois les données à jour sur le site de la FFCAM, elles
+    puis dans le menu «&nbsp;Mes informations&nbsp;».     Une fois les données à jour sur le site de la FFCAM, elles
     peuvent étre resynchronisées à tout moment sur le
     site des collectives, depuis le menu «&nbsp;Profil adhérent&nbsp;».
     </p>
+
     <br/>
 
     <p>
-    Les données personnelles synchronisées sont&nbsp;:</p>
+    Les données personnelles sont&nbsp;:</p>
     <ul>
         <li>Nom</li>
         <li>Prénom</li>
@@ -105,8 +105,6 @@
         <li><u>Liste des personnes inscrites à une collective</u><br/>
         Pour chaque collective, sont affichés le prénom et la
         première lettre du nom de chaque inscrit.<br/>
-        Cette liste n'est visible que pour un adhérent ayant un compte activé
-        sur le site des collectives.
         </li>
         <li><u>Accès aux données par les encadrants et responsables d'activités</u><br/>
         Une fois inscrit à une collective, l'encadrant proposant
@@ -165,8 +163,7 @@
     </ol>
 
 <h5 class="heading-5">Droits de la personne concernée</h5>
-    <p>Chaque adhérent ayant un compte activé sur le site des
-    collectives dispose d'un droit d'accès, de rectification ou de suppression des données
+    <p>Chaque adhérent ayant un compte activé sur ce site dispose d'un droit d'accès, de rectification ou de suppression des données
     personnelles le concernant&nbsp;:
     </p>
     <ul>
@@ -180,11 +177,11 @@
         <li>Droit à la rectification ou à l'effacement «&nbsp;droit à l'oubli&nbsp;»</li>
         <li>Droit à la limitation du traitement des données</li>
     </ul>
+    <p>Pour l'exercer, vous pouvez contacter l'adresse <a href="{{Configuration.SUPPORT_EMAIL}}">{{Configuration.SUPPORT_EMAIL}}</a>.</p>
 
-    {% if Configuration.GOOGLE_ANALYTICS_UA %}
     <h4 id="statistics" class="heading-4">Mentions relatives à la réalisation de statistiques d'utilisation</h4>
     <p>
-        Google Analytics est utilisé pour les statistiques d'utilisation du site. La participation à ces statistiques est optionnelle
+        Google Analytics peut être utilisé pour les statistiques d'utilisation du site. La participation à ces statistiques est optionnelle
         et peut être configurée dans le <a href="" onclick="tarteaucitron.userInterface.openPanel();return false">Panneau de gestion des cookies</a>.
     </p>
     <p>
@@ -192,4 +189,3 @@
         Vous pouvez avoir plus d'information sur le site de <a href="https://policies.google.com/privacy">Google</a>, et sur
         le site de <a href="https://tarteaucitron.io/service/gajs/" >tarteaucitron</a>, le gestionnaire de consentement.
     </p>
-    {% endif %}

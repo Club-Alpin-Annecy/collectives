@@ -180,7 +180,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
                     app.logger.info(f"Absent configuration item {name}: creating")
                     item = ConfigurationItem(name)
                     item.content = config["content"]
-                elif force:
+                elif force or config.get("force", False):
                     Configuration.uncache(item.name)
                     item.content = config["content"]
 
