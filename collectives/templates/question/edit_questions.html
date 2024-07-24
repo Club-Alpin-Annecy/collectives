@@ -17,7 +17,6 @@
     <thead>
       <th> Intitulé / Description</th>
       <th> Type / Réponses possibles</th>
-      <th> Options</th>
     </thead>
     {% for question_form in form.questions %}
       {{question_form.question_id}}
@@ -41,21 +40,25 @@
           <td>
             {{ question_form.question_type() }}
           </td>
-          <td class="actions" rowspan="2"> 
-          {{question_form.enabled}} {{question_form.enabled.label}} <br/>
-          {{question_form.required}} {{question_form.required.label}} <br/>
-          {{question_form.order.label}}: {{question_form.order}} <br/>
-          {% if not question_form.question.answers %}
-            {{question_form.delete}}&nbsp;{{question_form.delete.label}}
-          {% endif %} 
-          </td>
         </tr>
-        <tr class="{{ loop.cycle('odd', 'even') }} fields bottom " >
+        <tr class="{{ loop.cycle('odd', 'even') }} fields " >
           <td>
             {{question_form.description}}
           </td>
           <td>
             {{question_form.choices}}
+          </td>
+        </tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} fields bottom " >
+          <td> 
+          {{question_form.enabled}}&nbsp;{{question_form.enabled.label}}
+          {{question_form.required}}&nbsp;{{question_form.required.label}}
+          {% if not question_form.question.answers %}
+            {{question_form.delete}}&nbsp;{{question_form.delete.label}}
+          {% endif %} 
+          </td>
+          <td>
+          {{question_form.order.label}}: {{question_form.order}} <br/>
           </td>
         </tr>
     {% endfor %}
@@ -68,8 +71,8 @@
       Aucune question n'a été créée pour le moment.
   {%endif%}
 
-    <h5 class="heading-5"> Nouvelle question</h5>
-    <form method="POST" id="new_question">
+    <form method="POST" id="new_question" class="form form-vertical">
+    <h4 class="heading-4"> Nouvelle question</h4>
 
     <div class="form-errors">
         {% for field_name, errors in new_question_form.errors.items() %}
@@ -81,30 +84,44 @@
         {% endfor %}
     </div>
 
-    <div class="field">{{ new_question_form.title.label }}</div>
-    {{ new_question_form.title}}
-    
-    <div class="field">{{ new_question_form.description.label }}<span class="help">{{ new_question_form.description.description }}</span></div>
-    {{ new_question_form.description}}
+    <div class="controls">
+    {{ new_question_form.title.label(class="label-top") }}
+    {{ new_question_form.title(class="input-100")}}
+    </div>
 
-    <div class="field">{{ new_question_form.question_type.label }}<span class="help">{{ new_question_form.question_type.description }}</span></div>
+    <div class="controls">
+    {{ new_question_form.description.label(class="label-top") }}<div class="label-help">{{ new_question_form.description.description }}</div>
+    {{ new_question_form.description(rows=12)}}
+    </div>
+
+    <div class="controls">
+    {{ new_question_form.question_type.label(class="label-top") }}<div class="label-help">{{ new_question_form.question_type.description }}</div>
     {{ new_question_form.question_type}}
+    </div>
     
-    <div class="field">{{ new_question_form.choices.label }}<span class="help">{{ new_question_form.choices.description }}</span></div>
-    {{ new_question_form.choices}}
+    <div class="controls">
+    {{ new_question_form.choices.label(class="label-top") }}<div class="label-help">{{ new_question_form.choices.description }}</div>
+    {{ new_question_form.choices(rows=8)}}
+    </div>
     
-    <div class="field">{{ new_question_form.order.label }}<span class="help">{{ new_question_form.order.description }}</span></div>
-    {{ new_question_form.order}}
+    <div class="controls">
+    {{ new_question_form.order.label(class="label-top") }}<div class="label-help">{{ new_question_form.order.description }}</div>
+    {{ new_question_form.order(class="input-25")}}
+    </div>
     
-    <div class="field">
+    <div class="controls">
+    <div class="label-top">
     {{ new_question_form.required }} 
-    </div>
     {{new_question_form.required.label}}
-
-    <div class="field">
-    {{ new_question_form.enabled }} 
     </div>
+    </div>
+
+    <div class="controls">
+    <div class="label-top">
+    {{ new_question_form.enabled }} 
     {{new_question_form.enabled.label}}
+    </div>
+    </div>
  
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <br />{{ new_question_form.add(class="button button-primary") }}
