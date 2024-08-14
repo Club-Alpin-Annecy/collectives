@@ -591,6 +591,7 @@ def manage_event(event_id=None):
         if duplicated_event != None:
             event.photo = duplicated_event.photo
             event.copy_payment_items(duplicated_event)
+            event.copy_questions(duplicated_event)
 
             db.session.add(event)
             db.session.commit()

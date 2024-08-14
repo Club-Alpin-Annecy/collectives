@@ -7,6 +7,7 @@ from flask_wtf import FlaskForm
 from wtforms_alchemy import ModelForm
 from wtforms import Field, SubmitField, HiddenField, FieldList, FormField, BooleanField
 from wtforms import TextAreaField, SelectField, SelectMultipleField, IntegerField
+from wtforms import StringField
 
 from wtforms.validators import Optional, ValidationError, InputRequired
 
@@ -215,3 +216,12 @@ class QuestionAnswersForm(FlaskForm):
             return "\n".join([choices[idx] for idx in data])
 
         return str(data)
+
+
+class CopyQuestionsForm(ModelForm, FlaskForm):
+    """Form to copy questions from an event to another."""
+
+    submit = SubmitField("Copier")
+    purge = BooleanField("Purge")
+    copied_event_id = HiddenField()
+    copied_event_search = StringField("Evénement à copier")

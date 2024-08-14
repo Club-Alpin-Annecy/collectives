@@ -1,6 +1,47 @@
 
 {% extends 'base.html' %}
 
+{% block additionalhead %}
+  <!-- Auto complete scripts -->
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  <script> 
+  function loadEventAutoComplete(eventSearchInputID, parentEventInputID){
+    const eventSearchInput = document.getElementById(eventSearchInputID);
+    const parentEventInput = document.getElementById(parentEventInputID);
+
+    setupAutoComplete(
+      eventSearchInput,
+      '{{url_for("api.autocomplete_event", eid=[event.id]) | safe}}',
+      function(item) {
+        return formatParentEvent(item.id, item.title, item.start) ;
+      },
+      function(id, val) {
+        parentEventInput.value = id;
+      }
+      );
+
+    eventSearchInput.addEventListener('change', function(event) {
+        if(!event.target.value) {
+          parentEventInput.value = "";
+        }
+    });
+
+    eventSearchInput.value = parentEventInput.value;
+
+  };
+  
+
+  window.onload = function() {
+    loadEventAutoComplete('copy-question-event-search', 'copy-question-event-id');
+  };
+  </script>
+{% endblock %}
+
 {% block content %}
 <div class="page-content" id="administration">
   <h1 class="heading-1">{{event.title}}</h1>
@@ -125,6 +166,33 @@
  
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <br />{{ new_question_form.add(class="button button-primary") }}
+    </form>
+
+    <h4 class="heading-4">Copie de questionnaire</h4>
+    <form method="POST" class="form form-vertical" action="{{url_for('question.copy_questions', event_id=event.id)}}">
+        <p>Copier les questions d'une autre collective.</p>
+
+        <div class="controls">
+        {{copy_questions_form.copied_event_search.label(class="label-top")}}  
+        <div class="label-help">Titre ou ID</div>
+        {{ copy_questions_form.copied_event_search(id='copy-question-event-search', class="input-100") }}
+        {{ copy_questions_form.copied_event_id(id='copy-question-event-id') }}
+        </div>
+
+        <div class="field"> 
+        </div>
+        
+        <div class="controls">
+        <div class="label-top">
+        {{ copy_questions_form.purge }}
+        {{ copy_questions_form.purge.label }} 
+        </div>
+        <span class="label-help">Les questions actuelles seront supprimées. 
+        Si une réponse à la question existe déjà, elle sera seulement désactivée.</span>
+        </div>
+
+        {{ copy_questions_form.hidden_tag() }}
+        {{ copy_questions_form.submit(class="button button-primary") }}
     </form>
 
 </div>

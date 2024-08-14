@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 
+import collectives
 from collectives.models.registration import RegistrationStatus
 from collectives.models.user import User
 from collectives.utils.time import current_time
@@ -58,21 +59,35 @@ class EventPaymentMixin:
             p for p in self.user_payments(user) if p.is_unsettled() or p.is_approved()
         )
 
-    def copy_payment_items(self, source_event, time_shift=timedelta(0)):
+    def copy_payment_items(
+        self,
+        source_event: "collectives.models.Event",
+        time_shift: timedelta = timedelta(0),
+    ):
         """Copy Payment item of another event into this event.
 
         Do not copy payments.
 
         :param source_event: Event that will be copied
-        :type source_event: :py:class:`collectives.models.event.Event`
         :param time_shift: Optionnal shift of copied item prices dates
-        :type time_shift: :py:class:`datetime.timedelta`"""
+        """
         for payment in source_event.payment_items:
             self.payment_items.append(
                 payment.copy(
                     time_shift, old_event_id=source_event.id, new_event_id=self.id
                 )
             )
+
+    def copy_questions(self, source_event: "collectives.models.Event"):
+        """Copy questionnaire of another event into this event.
+
+        Do not copy answers.
+
+        :param source_event: Event that will be copied
+        """
+
+        for question in source_event.questions:
+            self.questions.append(question.copy(new_event_id=self.id))
 
     def exist_available_prices_to_user(self, user: User) -> bool:
         """:returns: whether there exist currently available prices for an user

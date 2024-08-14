@@ -1,12 +1,13 @@
 """Module containing routes related to event questions"""
 
-from flask import Blueprint, flash, redirect, url_for, request, render_template
+from flask import Blueprint, flash, redirect, url_for, request, render_template, abort
 from flask_login import current_user
 
 from collectives.models import Event, Question, QuestionAnswer, db
 
 from collectives.utils.access import valid_user
 from collectives.forms.question import NewQuestionForm, QuestionnaireForm
+from collectives.forms.question import CopyQuestionsForm
 
 blueprint = Blueprint("question", __name__, url_prefix="/question")
 """ Questionnaire blueprint
@@ -86,6 +87,7 @@ def edit_questions(event_id: int):
         event=event,
         form=form,
         new_question_form=new_question_form,
+        copy_questions_form=CopyQuestionsForm(),
     )
 
 
@@ -138,3 +140,48 @@ def delete_answer(answer_id: int):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     return redirect(url_for("question.show_answers", event_id=event_id))
+
+
+@blueprint.route("/event/<event_id>/copy_questions", methods=["POST"])
+@valid_user()
+def copy_questions(event_id):
+    """Route copy questions from another event
+
+    :param event_id: Id of receiving event
+    :type event_id: int
+
+    :return: Redirection to price edit page
+    """
+    # Check that the user is allowed to modify this event
+    event: Event = db.session.get(Event, event_id)
+    if event is None:
+        return abort(403)
+    if not event.has_edit_rights(current_user):
+        return abort(403)
+
+    form = CopyQuestionsForm()
+    if not form.validate_on_submit():
+        flash("Erreur en recopiant les questions. Contactez le support.")
+        return redirect(url_for(".edit_questions"))
+
+    copied_event = db.session.get(Event, form.copied_event_id.data)
+    if copied_event is None:
+        abort(400)
+
+    if not copied_event.questions:
+        flash("Cet événement ne possède pas de questions.", "error")
+        return redirect(url_for(".edit_questions", event_id=event_id))
+
+    if form.purge.data:
+        for question in event.questions:
+            if question.answers:
+                question.enabled = False
+            else:
+                db.session.delete(question)
+
+    event.copy_questions(copied_event)
+
+    db.session.commit()
+
+    flash("Import réalisé.", "success")
+    return redirect(url_for(".edit_questions", event_id=event_id))
