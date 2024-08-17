@@ -169,7 +169,7 @@
     </form>
 
     <h4 class="heading-4">Copie de questionnaire</h4>
-    <form method="POST" class="form form-vertical" action="{{url_for('question.copy_questions', event_id=event.id)}}">
+    <form method="POST" id="copy_questions" class="form form-vertical" action="{{url_for('question.copy_questions', event_id=event.id)}}">
         <p>Copier les questions d'une autre collective.</p>
 
         <div class="controls">
