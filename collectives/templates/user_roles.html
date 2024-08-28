@@ -1,35 +1,72 @@
 
 {% extends 'base.html' %}
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+
+  <script>
+      function update_activity_visibility(){
+        var role = parseInt(document.getElementById("role_id").value);
+        var status = ActivityRequiredRoles.includes(role) ? "flex" : "none";
+        document.getElementById("activity_type_id_block").style.display = status;
+        return True;
+      }
+  </script>
+{% endblock %}
 
 {% block content %}
 <div class="page-content" id="administration">
   <h2 class="heading-2">{{user.full_name()}}</h2>
 
   <h4 class="heading-4">Roles existants</h4>
-  <ul>
-  {% for role in user.roles %}
-  <li>{{role.name}}
-  {% if role.activity_type %}
-   pour l'activité <em>{{role.activity_type.name}}</em>
-  {% endif %}
-        <form class="inline" action="{{url_for('administration.remove_user_role', role_id=role.id)}}" method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="submit" class="button button-danger" value="Supprimer" >
-        </form>
-  </li>
-  {% endfor %}
-  </ul>
+  <table style="margin: auto;">
+    {% for role in user.roles %}
+      <tr>
+        <td class="padding-s"><b>{{role.name}}</b></td>
+        <td class="padding-s">
+          {% if role.activity_type %}<em>{{role.activity_type.name}}</em>{% endif %}
+        </td>
+        <td class="padding-s"> 
+              <form class="inline" action="{{url_for('administration.remove_user_role', role_id=role.id)}}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="submit" class="button button-danger button-small" value="Supprimer" >
+              </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
 
   <h4 class="heading-4">Nouveau role</h4>
-  <form action="{{url_for('administration.add_user_role', user_id=user.id)}}" method="POST" >
-    {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-          {{ field.label }}
-          {{ field }}<br/>
-        {% endif %}
-    {% endfor %}
-    {{ form.hidden_tag() }}
-     <br/>{{ form.submit(class="button button-primary") }}
+
+  {{ generator.form_errors(form) }}
+
+  <form action="{{url_for('administration.add_user_role', user_id=user.id)}}" method="POST" class="form form-vertical" >
+    <div class="controls">
+      {{ form.role_id.label(class="label-top") }}
+      <div class="label-help">{{ form.role_id.description }}</div>
+          {{ form.role_id(title=form.role_id.description, class="input-100", onchange="update_activity_visibility()", id="role_id") }}
+    </div>
+
+    <div class="controls" style="display:none" id="activity_type_id_block">
+      {{ form.activity_type_id.label(class="label-top") }}
+      <div class="label-help">{{ form.activity_type_id.description }}</div>
+          {{ form.activity_type_id(title=form.activity_type_id.description, class="input-100") }}
+    </div>
+
+    <div class="controls">
+      <br />
+      {% if form.submit %}
+          {{ form.submit(class="button button-primary input-100") }}
+      {% endif %}
+    </div>
+    {{ form.csrf_token }}
   </form>
+
+  <h4 class="heading-4">Description des rôles</h4>
+  {% for role in models.RoleIds if role.description() %}
+    <p><em>{{role.display_name()}}</em> : {{role.description()}}</p>
+  {% endfor %}
+
 </div>
 {% endblock %}

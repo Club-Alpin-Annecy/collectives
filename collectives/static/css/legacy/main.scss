@@ -151,8 +151,9 @@ form p{
 }
 
 form.inline{
-    display: inline;
+    display: inline-block;
 	text-align:left;
+	vertical-align: middle;
 }
 
 form input, form select{

@@ -9,7 +9,7 @@ from flask import Response
 
 from collectives.api.common import blueprint
 from collectives.models.utils import ChoiceEnum
-from collectives.models import ActivityType, EventType, EventTag, Configuration
+from collectives.models import ActivityType, EventType, EventTag, Configuration, RoleIds
 
 
 @blueprint.route("/models.js")
@@ -33,5 +33,9 @@ def models_to_js():
         + json.dumps(Configuration.LICENSE_CATEGORIES)
         + ";"
     )
+
+    activity_required_js = [str(int(r)) for r in RoleIds.all_relates_to_activity()]
+    activity_required_js = "[" + ",".join(activity_required_js) + "]"
+    enums = enums + "const ActivityRequiredRoles=" + activity_required_js + ";"
 
     return Response(enums, mimetype="application/javascript")

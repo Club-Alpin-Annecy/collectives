@@ -70,6 +70,50 @@ class RoleIds(ChoiceEnum):
             cls.EquipmentManager: "Responsable matériel",
         }
 
+    @classmethod
+    def descriptions(cls) -> Dict["RoleIds", str]:
+        """Display names for all rolesrole
+
+        :return: dictionnary role -> role name
+        """
+        return {
+            cls.Administrator: "Un administrateur possède tous les droits.",
+            cls.Moderator: "Un modérateur peut créer, gérer et supprimer tous les évènements.",
+            cls.President: "Le président peut gérer les activités et les évènements. Son nom est "
+            "utilisé pour signer les attestations bénévoles. ",
+            cls.Technician: "Un technicien du site peut accèder à la configuration et aux logs du "
+            "site.",
+            cls.Hotline: "Un support peut accèder et gérer les utilisateurs du site.",
+            cls.Accountant: "Un comptable accède à la liste de tous les paiements réalisés sur le "
+            "site.",
+            cls.Staff: "Un organisateur du club peut créer certains types d'événements ne "
+            "nécéssitant pas d'autorisation d'encadrement (soirées ...), mais ne peut "
+            "pas créer de collectives.",
+            cls.EventLeader: "Un encadrant peut créer et encadrer tout type d'événement lié à "
+            "l'activité, dont des collectives.",
+            cls.ActivitySupervisor: "Un responsable d'activité peut proposer un évènement dans son "
+            "activité, gérer les encadrants et co encadrants de son "
+            "activité, et supprimer des évènements.",
+            cls.Trainee: "Un encadrant en formation peut être noté comme co-encadrant d'un "
+            "événement auquel il est inscrit. Il peut aussi créer certains "
+            "types d'événements ne nécéssitant pas d'autorisation d'encadrement "
+            "(soirées ...), mais ne peut pas créer de collectives.",
+            cls.ActivityStaff: "Un organisateur d'une activité peut créer certains types "
+            "d'événements ne nécéssitant pas d'autorisation d'encadrement "
+            "(soirées ...), mais ne peut pas créer de collectives. ",
+            cls.EquipmentVolunteer: None,
+            cls.EquipmentManager: None,
+        }
+
+    def description(self):
+        """Display name of the current value
+
+        :return: name of the instance
+        :rtype: string
+        """
+        cls = self.__class__
+        return cls.descriptions()[self.value]
+
     def relates_to_activity(self) -> bool:
         """Check if this role needs an activity.
 
