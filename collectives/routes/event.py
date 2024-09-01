@@ -718,6 +718,11 @@ def self_register(event_id):
         event.registrations.append(registration)
         db.session.commit()
 
+        db.session.expire(event)
+        if registration.is_overbooked():
+            db.session.delete(registration)
+            flash("L'évènement est complet.", "error")
+
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Paid event
@@ -736,6 +741,12 @@ def self_register(event_id):
         registration.status = RegistrationStatus.PaymentPending
         event.registrations.append(registration)
         db.session.commit()
+
+        db.session.expire(event)
+        if registration.is_overbooked():
+            db.session.delete(registration)
+            flash("L'évènement est complet.", "error")
+            return redirect(url_for("event.view_event", event_id=event_id))
 
         payment = Payment(registration=registration, item_price=item_price)
         payment.terms_version = Configuration.PAYMENTS_TERMS_FILE
