@@ -1,12 +1,11 @@
 """ Module to create fixture events. """
 
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 from functools import wraps
 
 import pytest
 
-from collectives.models import db, ActivityType
-from collectives.models import EventType, Event, EventTag, EventStatus, EventVisibility
+from collectives.models import db, ActivityType, EventType, Event, EventTag, EventStatus
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 from collectives.models import Question, QuestionType, QuestionAnswer
 
@@ -35,9 +34,6 @@ def generate_event(identifier):
 
         now = date.today()
 
-        alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
-        event_type = EventType.query.filter_by(name="Collective").first()
-
         event = Event()
         event.title = f"New collective {identifier}"
         event.start = now + timedelta(days=10)
@@ -54,10 +50,13 @@ def generate_event(identifier):
         turpis egestas. Morbi ut urna eget eros pellentesque molestie. Donec
         auctor sapien id erat congue, vel molestie sapien varius. Fusce vitae
         iaculis tellus, nec mollis turpis."""
-
         event.set_rendered_description(event.description)
         event.num_online_slots = 1
+
+        alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
         event.activity_types.append(alpinisme)
+
+        event_type = EventType.query.filter_by(name="Collective").first()
         event.event_type = event_type
 
         event.leaders = [leader_user]
@@ -127,18 +126,6 @@ def draft_event(prototype_draft_event):
     db.session.add(prototype_draft_event)
     db.session.commit()
     return prototype_draft_event
-
-
-inject_fixture("prototype_activity_event", "privé")
-
-
-@pytest.fixture
-def activity_event(prototype_activity_event):
-    """:returns: An event in with "Activity" visibility level"""
-    prototype_activity_event.visibility = EventVisibility.Activity
-    db.session.add(prototype_activity_event)
-    db.session.commit()
-    return prototype_activity_event
 
 
 inject_fixture("prototype_paying_event", "paying")
@@ -266,10 +253,133 @@ def event1_with_questions(event1_with_reg):
 def event1_with_answers(event1_with_questions):
     """:returns: An event with answered questions"""
 
-    question1 = event1_with_questions.questions[0]
-    user1 = event1_with_questions.registrations[0].user
-    question1.answers.append(QuestionAnswer(user=user1, value="B"))
+    q1 = event1_with_questions.questions[0]
+    u1 = event1_with_questions.registrations[0].user
+    q1.answers.append(QuestionAnswer(user=u1, value="B"))
 
-    db.session.add(question1)
+    db.session.add(q1)
     db.session.commit()
     return event1_with_questions
+
+
+inject_fixture(
+    "prototype_event_in_less_than_x_hours",
+    "happens in less than 48 hours (parameterized)",
+)
+
+
+@pytest.fixture
+def event_in_less_than_x_hours_with_reg(
+    prototype_event_in_less_than_x_hours,
+    user_with_no_warning_badge,
+    user_with_valid_first_warning_badge,
+    user_with_expired_first_warning_badge,
+    user_with_valid_second_warning_badge,
+    user_with_expired_second_warning_badge,
+    user_with_expired_banned_badge,
+):  # pylint: disable=too-many-arguments
+    """
+    Returns an event in less than 48 hours (parameterized)
+    with registrations for specified users.
+    """
+
+    prototype_event_in_less_than_x_hours.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_x_hours.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
+    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+    prototype_event_in_less_than_x_hours.num_online_slots = 9
+
+    for user in [
+        user_with_no_warning_badge,
+        user_with_valid_first_warning_badge,
+        user_with_expired_first_warning_badge,
+        user_with_valid_second_warning_badge,
+        user_with_expired_second_warning_badge,
+        user_with_expired_banned_badge,
+    ]:
+        prototype_event_in_less_than_x_hours.registrations.append(
+            Registration(
+                user_id=user.id,
+                status=RegistrationStatus.Active,
+                level=RegistrationLevels.Normal,
+                is_self=True,
+            )
+        )
+
+    db.session.add(prototype_event_in_less_than_x_hours)
+    db.session.commit()
+
+    return prototype_event_in_less_than_x_hours
+
+
+@pytest.fixture
+def event_in_less_than_x_hours(prototype_event_in_less_than_x_hours):
+    """Fixture for an event starting in less than 48 hours (parameterized)."""
+
+    prototype_event_in_less_than_x_hours.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_x_hours.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
+    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+
+    prototype_event_in_less_than_x_hours.num_online_slots = 9
+
+    db.session.add(prototype_event_in_less_than_x_hours)
+    db.session.commit()
+
+    return prototype_event_in_less_than_x_hours
+
+
+@pytest.fixture
+def event_with_no_activity_type_in_less_than_x_hours_with_reg(
+    prototype_event_in_less_than_x_hours,
+    user_with_no_warning_badge,
+    user_with_valid_first_warning_badge,
+):
+    """
+    Returns an event in less than 48 hours (parameterized)
+    with registrations for specified users.
+    """
+
+    prototype_event_in_less_than_x_hours.registration_open_time = (
+        datetime.now() - timedelta(hours=10)
+    )
+    prototype_event_in_less_than_x_hours.registration_close_time = (
+        datetime.now() + timedelta(hours=2)
+    )
+    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+    prototype_event_in_less_than_x_hours.num_online_slots = 9
+
+    prototype_event_in_less_than_x_hours.num_online_slots = 9
+    prototype_event_in_less_than_x_hours.num_online_slots = 9
+
+    prototype_event_in_less_than_x_hours.activity_types.clear()
+
+    event_type = EventType.query.filter_by(name="Soirée").first()
+    prototype_event_in_less_than_x_hours.event_type = event_type
+
+    for user in [
+        user_with_no_warning_badge,
+        user_with_valid_first_warning_badge,
+    ]:
+        prototype_event_in_less_than_x_hours.registrations.append(
+            Registration(
+                user_id=user.id,
+                status=RegistrationStatus.Active,
+                level=RegistrationLevels.Normal,
+                is_self=True,
+            )
+        )
+
+    db.session.add(prototype_event_in_less_than_x_hours)
+    db.session.commit()
+
+    return prototype_event_in_less_than_x_hours
