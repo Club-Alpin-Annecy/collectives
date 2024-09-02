@@ -1,13 +1,14 @@
 """ Module for all Event methods related to registration manipulation and check."""
 
+from datetime import datetime, timedelta
 from operator import attrgetter
-from datetime import datetime
 
 from collectives.models.registration import (
     Registration,
     RegistrationLevels,
     RegistrationStatus,
 )
+from collectives.models import Configuration
 from collectives.models.globals import db
 
 
@@ -233,6 +234,38 @@ class EventRegistrationMixin:
             user, [RegistrationStatus.SelfUnregistered]
         )
 
+    def is_late_unregistered(self, user):
+        """Check if a user has unregistered lately this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is registered with a ``late unregistered`` status
+        :rtype: boolean
+        """
+        return self.is_registered_with_status(
+            user, [RegistrationStatus.LateSelfUnregistered]
+        )
+
+    def starts_within_x_hours(self):
+        """Check if an event starts within xh of current time.
+
+        :return: True if event starts within xh of current time
+        :rtype: boolean
+        """
+        return self.start < datetime.now() + timedelta(
+            hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
+        )
+
+    def is_banned(self, user):
+        """Check if a user is banned on this event.
+
+        :param user: User which will be tested.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user is banned
+        :rtype: boolean
+        """
+        return user.has_a_valid_banned_badge()
+
     def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is part of the event user group
 
@@ -258,6 +291,7 @@ class EventRegistrationMixin:
           - there are available online slots
           - user is registered to the parent event if any
           - user license is compatible with event type
+          - user does not have a valid Banned badge
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -283,6 +317,8 @@ class EventRegistrationMixin:
         if not self.is_registration_open_at_time(time):
             return False
         if not self.event_type.has_valid_license(user):
+            return False
+        if user.has_a_valid_banned_badge():
             return False
         if not waiting:
             return self.has_free_online_slots()
