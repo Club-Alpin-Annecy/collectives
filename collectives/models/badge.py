@@ -90,7 +90,7 @@ class Badge(db.Model):
     creation_time = db.Column(
         db.DateTime,
         nullable=False,
-        server_default=func.now(), # pylint: disable=not-callable
+        server_default=func.now(),  # pylint: disable=not-callable
         info={"label": "Timestamp de création du badge"},
     )
     """ Timestamp at which the payment was created
