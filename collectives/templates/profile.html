@@ -156,6 +156,18 @@
     <h4 class="heading-4">Autres informations</h4>
         <table id="site_info" class="center_table">
             <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}" alt=""/> Désinscriptions tardives :</td>
+                <td>
+                    {% if user.has_a_valid_banned_badge() %}
+                        BANNI
+                    {% elif user.number_of_valid_warning_badges() > 0 %}
+                        {{user.number_of_valid_warning_badges()}} avertissement(s)
+                    {% else %}
+                        Aucun avertissement
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
                 <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat régulier :</td>
                 <td>
                     {% if user.has_a_valid_benevole_badge() %}

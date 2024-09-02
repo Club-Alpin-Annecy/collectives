@@ -184,6 +184,7 @@ class BadgeForm(ModelForm, FlaskForm):
         """Fields to expose"""
 
         model = Badge
+        exclude = ['creation_time']
 
     activity_type_id = SelectField("Activité", choices=[], coerce=int)
     submit = SubmitField("Ajouter")
@@ -207,6 +208,7 @@ class RenewBadgeForm(ModelForm, FlaskForm):
         """Fields to expose"""
 
         model = Badge
+        exclude = ['creation_time']
 
     activity_type_id = SelectField("Activité", choices=[], coerce=int)
     submit = SubmitField("Renouveler")
