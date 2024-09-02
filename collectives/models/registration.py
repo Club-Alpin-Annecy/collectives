@@ -1,6 +1,7 @@
 """Module for registration related classes
 """
 
+from sqlalchemy.sql import func
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
@@ -65,6 +66,9 @@ class RegistrationStatus(ChoiceEnum):
 
     Present = 7
     """ User has been present to the event. """
+
+    LateSelfUnregistered = 8
+    """ User has self unregister to the event, but late. """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -78,6 +82,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
             cls.SelfUnregistered: "Auto désinscrit",
+            cls.LateSelfUnregistered: "Auto désinscrit tardif",
             cls.JustifiedAbsentee: "Absent justifié",
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
@@ -122,6 +127,13 @@ class RegistrationStatus(ChoiceEnum):
                 cls.JustifiedAbsentee,
                 cls.Waiting,
                 cls.Active,
+            ],
+            cls.LateSelfUnregistered: [
+                re_register_status,
+                cls.Waiting,
+                cls.ToBeDeleted,
+                cls.JustifiedAbsentee,
+                cls.UnJustifiedAbsentee,
             ],
         }
 
@@ -187,6 +199,13 @@ class Registration(db.Model):
     """ Whether this is a self-registration (by the user themselves)
 
     :type: bool"""
+
+    registration_time = db.Column(
+        db.DateTime, nullable=False, server_default=func.now() # pylint: disable=not-callable
+    )
+    """Date of the registration of a user to an event.
+
+    :type: :py:class:`datetime.datetime`"""
 
     # Relationships
 

@@ -5,6 +5,7 @@ This modules contains the /event Blueprint
 
 # pylint: disable=too-many-lines
 from typing import Tuple, List, Set
+from datetime import timedelta
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
@@ -20,6 +21,7 @@ from collectives.email_templates import send_unregister_notification
 from collectives.email_templates import send_reject_subscription_notification
 from collectives.email_templates import send_cancelled_event_notification
 from collectives.email_templates import send_update_waiting_list_notification
+from collectives.email_templates import send_late_unregistration_notification
 
 from collectives.forms import EventForm, photos
 from collectives.forms import RegistrationForm
@@ -897,6 +899,14 @@ def self_unregister(event_id):
     previous_status = registration.status
     if registration.status == RegistrationStatus.Waiting:
         db.session.delete(registration)
+    elif (event.start - current_time()) < timedelta(
+        hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
+    ) and event.event_type.requires_activity:
+        registration.status = RegistrationStatus.LateSelfUnregistered
+        db.session.add(registration)
+        if previous_status == RegistrationStatus.Active:
+            current_user.update_warning_badges()
+            send_late_unregistration_notification(event, current_user)
     else:
         registration.status = RegistrationStatus.SelfUnregistered
         db.session.add(registration)

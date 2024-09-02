@@ -37,7 +37,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken) {
                 { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
                 { title: "Badge", field: "type", headerFilter: "input", widthGrow: 3, visible: false },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
-                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: false},
+                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: true},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
                 { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
             ],

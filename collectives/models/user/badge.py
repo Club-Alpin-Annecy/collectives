@@ -2,9 +2,10 @@
 
 from typing import List, Optional, Set
 
+from datetime import date, timedelta
 from collectives.models.badge import Badge, BadgeIds
-
 from collectives.models.activity_type import ActivityType
+from collectives.models import db
 
 
 class UserBadgeMixin:
@@ -54,6 +55,23 @@ class UserBadgeMixin:
         """
         return self.has_a_valid_badge([BadgeIds.Benevole])
 
+    def has_a_valid_banned_badge(self) -> bool:
+        """Check if user has a Banned badge.
+
+        :return: True if user has a non-expired banned badge.
+        """
+        return self.has_a_valid_badge([BadgeIds.Banned])
+
+    def number_of_valid_warning_badges(self) -> int:
+        """Number of valid warning badges.
+
+        :param badge_ids: badges that will be tested.
+        :return: Number of valid warning badges.
+        """
+        return len(
+            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+        )
+
     def has_badge_for_activity(
         self, badge_ids: List[BadgeIds], activity_id: Optional[int]
     ) -> bool:
@@ -91,3 +109,114 @@ class UserBadgeMixin:
         return set(
             badge.activity_type for badge in badges if badge.activity_type is not None
         )
+
+    def assign_badge(
+        self,
+        badge_id: BadgeIds,
+        # creation_time: datetime,
+        expiration_date: date,
+        activity_id: Optional[int] = None,
+        level: Optional[int] = None,
+    ):
+        """Assign a badge to the user.
+
+        :param badge_id: The ID of the badge to be assigned.
+        :param expiration_date: The date when the badge will expire.
+        :param activity_id: The ID of the activity onto which the badge should be applied.
+        """
+        badge = Badge(
+            user_id=self.id,
+            badge_id=badge_id,
+            # creation_time=creation_time,
+            expiration_date=expiration_date,
+            activity_id=activity_id,
+            level=level,
+        )
+        try:
+            db.session.add(badge)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    def update_badge(
+        self,
+        badge_id: BadgeIds,
+        expiration_date: Optional[date] = None,
+        activity_id: Optional[int] = None,
+        level: Optional[int] = None,
+    ):
+        """Update a badge for the user.
+
+        :param badge_id: The ID of the badge to be updated.
+        :param expiration_date: The date when the badge will expire.
+        :param activity_id: The ID of the activity onto which the badge should be applied.
+        """
+        badge_data = {}
+        if expiration_date is not None:
+            badge_data["expiration_date"] = expiration_date
+        if activity_id is not None:
+            badge_data["activity_id"] = activity_id
+        if level is not None:
+            badge_data["level"] = level
+
+        Badge.query.filter_by(user_id=self.id, badge_id=badge_id).update(badge_data)
+        db.session.commit()
+
+    def remove_badge(self, badge_id: BadgeIds):
+        """Remove a badge from the user.
+
+        :param badge_id: The ID of the badge to be removed.
+        """
+        Badge.query.filter_by(user_id=self.id, badge_id=badge_id).delete()
+        db.session.commit()
+
+    def update_warning_badges(self):
+        """
+        Update warning badges based on user's conditions and number of warning badges,
+        and assign or update the badge with appropriate expiration date and level.
+        """
+
+        # Fetch the number of warning & banned badges, whether valid or not
+        num_valid_warning_badges = len(
+            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+        )
+        num_warning_badges = len(
+            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=False)
+        )
+        num_valid_banned_badges = len(
+            self.matching_badges([BadgeIds.Banned], valid_only=True)
+        )
+        num_banned_badges = len(
+            self.matching_badges([BadgeIds.Banned], valid_only=False)
+        )
+
+        # Update badges and expiration dates based on conditions, or continue if nothing to do
+        try:
+            if num_valid_warning_badges >= 2 and num_valid_banned_badges == 0:
+                badge_id = BadgeIds.Banned
+                expiration_date = date.today() + timedelta(weeks=4)
+                self.assign_badge(
+                    badge_id,
+                    expiration_date=expiration_date,
+                    level=num_banned_badges + 1,
+                )
+            elif num_valid_warning_badges < 2:
+                badge_id = BadgeIds.LateUnregisterWarning
+                expiration_date = date(
+                    date.today().year
+                    if date.today().month < 10
+                    else date.today().year + 1,
+                    9,
+                    30,
+                )
+                self.assign_badge(
+                    badge_id,
+                    expiration_date=expiration_date,
+                    level=num_warning_badges + 1,
+                )
+            else:
+                pass
+        except ValueError:
+            # Badges update should not break unregistration logic
+            pass
