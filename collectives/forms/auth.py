@@ -111,7 +111,7 @@ class AccountActivationForm(PasswordResetForm, LegalAcceptation):
 class AdminTokenCreationForm(FlaskForm):
     """Form for administrators to generate conformation tokens"""
 
-    license = LicenseField()
+    license = LicenseField(unique=False)
     confirm = BooleanField("Confirmer la génération du jeton de confirmation")
     submit = SubmitField("Générer le jeton de confirmation")
 

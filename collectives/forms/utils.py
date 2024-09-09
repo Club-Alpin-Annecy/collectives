@@ -26,7 +26,7 @@ class MultiCheckboxField(SelectMultipleField):
 class LicenseField(StringField):
     """Field to give an FFCAM License"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, unique=True, **kwargs):
         """Constructor of LicenseField."""
         super().__init__(
             *args,
@@ -36,12 +36,13 @@ class LicenseField(StringField):
                 "placeholder": LicenseValidator().sample_value(),
                 "pattern": LicenseValidator().pattern(),
             },
-            validators=[
-                LicenseValidator(),
-                UniqueValidator(User.license, get_session=lambda: db.session),
-            ],
+            validators=[LicenseValidator()],
             **kwargs
         )
+        if unique:
+            self.validators.append(
+                UniqueValidator(User.license, get_session=lambda: db.session)
+            )
 
 
 class PhoneField(StringField):
