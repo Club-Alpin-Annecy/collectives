@@ -18,7 +18,7 @@
   {% if subtitle %}<h4 class="heading-4">{{subtitle}}</h4>{% endif  %}
   {% if description %}<p>{{description}}</p>{% endif  %}
 
-  {{ generator.form_generator(form) }}
+  {{ generator.form_generator(form, action=(action or '')) }}
 
 </div>
 
