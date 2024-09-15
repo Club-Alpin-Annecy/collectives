@@ -22,7 +22,21 @@ class UnauthenticatedUserMixin(AnonymousUserMixin):
     # pylint: enable=invalid-name
 
 
-def sync_user(user, force):
+class InvalidExtranetUserException(Exception):
+    """This Exception is raised if Extranet synchronisation is done on an invalid license
+    such as expired or non existent."""
+
+    pass
+
+
+class DifferentEmailException(Exception):
+    """This Exception is raised if Extranet synchronisation is done for a user with another
+    email and a different license number."""
+
+    pass
+
+
+def sync_user(user, force, new_license=None):
     """Synchronize user info from extranet.
 
     Synchronization is done if license has been renewed or if 'force' is True. Test users
@@ -32,16 +46,28 @@ def sync_user(user, force):
     :type user: :py:class:`collectives.models.user.User`
     :param force: if True, do synchronisation even if licence has been recently renewed.
     :type force: boolean
+    :param new_license: synchronize with this license, but only if email match
     """
     if user.enabled and user.type == UserType.Extranet:
         # Check whether the license has been renewed
-        license_info = extranet.api.check_license(user.license)
+        license_info = extranet.api.check_license(new_license or user.license)
         if not license_info.exists:
-            return
+            raise InvalidExtranetUserException
 
         if force or license_info.expiry_date() > user.license_expiry_date:
             # License has been renewd, sync user data from API
-            user_info = extranet.api.fetch_user_info(user.license)
+            user_info = extranet.api.fetch_user_info(new_license or user.license)
+
+            if (
+                new_license is not None
+                and user.mail != user_info.email
+                and new_license != user.license
+            ):
+                raise DifferentEmailException
+
+            if new_license is not None:
+                user.license = new_license
+
             extranet.sync_user(user, user_info, license_info)
             db.session.add(user)
             db.session.commit()
