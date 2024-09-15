@@ -6,7 +6,7 @@ from datetime import datetime, date
 from flask import current_app
 
 from zeep import Client
-from zeep.exceptions import Error as ZeepError
+from zeep.exceptions import Error as ZeepError, Fault
 
 from collectives.models import Gender, Configuration, UserType
 from collectives.utils.time import current_time
@@ -274,7 +274,7 @@ class ExtranetApi:
 
         :param license_number: User license to get information about.
         :type license_number: string
-        :return: Licence information, or None in case of API error
+        :return: Licence information
         :rtype: :py:class:`UserInfo`
         """
         self.init()
@@ -293,7 +293,7 @@ class ExtranetApi:
             result = self.soap_client.extractionAdherent(
                 connect=self.auth_info, id=license_number
             )
-        except (IOError, AttributeError, ZeepError) as err:
+        except (IOError, AttributeError, ZeepError, Fault) as err:
             current_app.logger.error(
                 f"Error calling extranet 'extractionAdherent' : {err}"
             )

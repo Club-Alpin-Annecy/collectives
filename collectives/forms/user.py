@@ -15,6 +15,7 @@ from wtforms_alchemy import ModelForm
 from collectives.forms.order import OrderedModelForm
 from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.validators import LicenseValidator
+from collectives.forms.utils import LicenseField
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import User, photos, ActivityType, Role, RoleIds
@@ -331,3 +332,10 @@ class DeleteUserForm(FlaskForm):
 
         if field.data.strip() != self._user.license:
             raise ValidationError("Le numéro de license ne correspond pas")
+
+
+class LicenseForm(ModelForm, FlaskForm):
+    """Form to update license"""
+
+    license = LicenseField()
+    submit = SubmitField("Valider")
