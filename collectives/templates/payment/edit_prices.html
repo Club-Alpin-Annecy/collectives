@@ -41,7 +41,6 @@
 
     eventSearchInput.addEventListener('change', function(event) {
         if(!event.target.value) {
-          var field = document.getElementById('copy-item-event-id');
           parentEventInput.value = "";
         }
     });
@@ -168,8 +167,8 @@
       Aucun tarif n'a été défini pour le moment.
     {%endif%}
 
-    <h5 class="heading-5"> Nouveau tarif </h5>
-    <form method="POST" id="new_price">
+    <form method="POST" id="new_price" class="form form-vertical">
+    <h4 class="heading-4"> Nouveau tarif </h4>
 
     <div class="form-errors">
         {% for field_name, errors in new_price_form.errors.items() %}
@@ -181,23 +180,32 @@
         {% endfor %}
     </div>
 
-    <div class="field">{{ new_price_form.existing_item.label }}<span class="help">Ajouter le tarif à un objet existant ou créer un nouvel objet</span></div>
+    <div class="controls">{{ new_price_form.existing_item.label(class="label-top") }}<span class="label-help">Ajouter le tarif à un objet existant ou créer un nouvel objet</span>
     {{ new_price_form.existing_item(onchange="updateNewItemTitleVisibility();")}}
+    </div>
     <div id = "new-item-title">
-      <div class="field">{{ new_price_form.item_title.label }}<span class="help">Par exemple «Nuitée en refuge»</span></div>
-      {{ new_price_form.item_title}}
+      <div class="controls">{{ new_price_form.item_title.label }}<span class="label-help">Par exemple «Nuitée en refuge»</span>
+      {{ new_price_form.item_title(class="input-100")}}
+      </div>
     </div>
-    <div class="field">{{ new_price_form.title.label }}<span class="help">Par exemple «Adultes»</span></div>
-    {{ new_price_form.title}}
 
-    <div class="field">{{ new_price_form.amount.label }}<span class="help">{{ new_price_form.amount.description }}</span></div>
-    {{ new_price_form.amount(type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
+    <div class="controls">
+    {{ new_price_form.title.label(class="label-top")}}<span class="label-help">Par exemple «Adultes»</span>
+    {{ new_price_form.title(class="input-100")}}
+    </div>
+
+    <div class="controls">
+    {{ new_price_form.amount.label(class="label-top") }}<span class="label-help">{{ new_price_form.amount.description }}</span>
+    {{ new_price_form.amount(class="input-25", type="number", min="0.00", max=config['PAYMENTS_MAX_PRICE'], step="0.01", lang="fr-FR")}}
     {#{ new_price_form.amount()}#}
-
-    <div class="field">
-    {{ new_price_form.enabled }} 
     </div>
+
+    <div class="controls">
+    <div class="label-top">
+    {{ new_price_form.enabled }} 
     {{new_price_form.enabled.label}}
+    </div>
+    </div>
  
     <fieldset>
     <legend>Conditions pour bénéficier du tarif</legend>
@@ -224,19 +232,24 @@
     </form>
 
     <h4 class="heading-4">Copie de tarif</h4>
-    <form method="POST" class="form" action="{{url_for('payment.copy_prices', event_id=event.id)}}">
-        <p>Copier les tarifs d'un autre collective.</p>
+    <form method="POST" class="form form-vertical" action="{{url_for('payment.copy_prices', event_id=event.id)}}">
+        <p>Copier les tarifs d'une autre collective.</p>
 
-        <div class="field">{{copy_item_form.copied_event_search.label}}  <span class="help">Titre ou ID</span></div>
-        {{ copy_item_form.copied_event_search(id='copy-item-event-search') }}
+        <div class="controls">
+        {{copy_item_form.copied_event_search.label(class="label-top")}}  
+        <span class="label-help">Titre ou ID</span>
+        {{ copy_item_form.copied_event_search(id='copy-item-event-search', class='input-100') }}
         {{ copy_item_form.copied_event_id(id='copy-item-event-id') }}
+        </div>
 
-        <div class="field"> 
+        <div class="controls">
+        <div class="label-top">
+        {{ copy_item_form.purge }}
           {{ copy_item_form.purge.label }} 
-          <span class="help">Les tarifs actuels seront supprimés. 
+        </div>
+        <span class="label-help">Les tarifs actuels seront supprimés. 
           Si un tarif a déjà fait l'objet d'un paiement, il sera seulement désactivé.</span>
         </div>
-        {{ copy_item_form.purge }}
         
 
         {{ copy_item_form.hidden_tag() }}

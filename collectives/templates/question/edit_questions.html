@@ -1,6 +1,47 @@
 
 {% extends 'base.html' %}
 
+{% block additionalhead %}
+  <!-- Auto complete scripts -->
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
+
+  <script> 
+  function loadEventAutoComplete(eventSearchInputID, parentEventInputID){
+    const eventSearchInput = document.getElementById(eventSearchInputID);
+    const parentEventInput = document.getElementById(parentEventInputID);
+
+    setupAutoComplete(
+      eventSearchInput,
+      '{{url_for("api.autocomplete_event", eid=[event.id]) | safe}}',
+      function(item) {
+        return formatParentEvent(item.id, item.title, item.start) ;
+      },
+      function(id, val) {
+        parentEventInput.value = id;
+      }
+      );
+
+    eventSearchInput.addEventListener('change', function(event) {
+        if(!event.target.value) {
+          parentEventInput.value = "";
+        }
+    });
+
+    eventSearchInput.value = parentEventInput.value;
+
+  };
+  
+
+  window.onload = function() {
+    loadEventAutoComplete('copy-question-event-search', 'copy-question-event-id');
+  };
+  </script>
+{% endblock %}
+
 {% block content %}
 <div class="page-content" id="administration">
   <h1 class="heading-1">{{event.title}}</h1>
@@ -17,7 +58,6 @@
     <thead>
       <th> Intitulé / Description</th>
       <th> Type / Réponses possibles</th>
-      <th> Options</th>
     </thead>
     {% for question_form in form.questions %}
       {{question_form.question_id}}
@@ -41,21 +81,25 @@
           <td>
             {{ question_form.question_type() }}
           </td>
-          <td class="actions" rowspan="2"> 
-          {{question_form.enabled}} {{question_form.enabled.label}} <br/>
-          {{question_form.required}} {{question_form.required.label}} <br/>
-          {{question_form.order.label}}: {{question_form.order}} <br/>
-          {% if not question_form.question.answers %}
-            {{question_form.delete}}&nbsp;{{question_form.delete.label}}
-          {% endif %} 
-          </td>
         </tr>
-        <tr class="{{ loop.cycle('odd', 'even') }} fields bottom " >
+        <tr class="{{ loop.cycle('odd', 'even') }} fields " >
           <td>
             {{question_form.description}}
           </td>
           <td>
             {{question_form.choices}}
+          </td>
+        </tr>
+        <tr class="{{ loop.cycle('odd', 'even') }} fields bottom " >
+          <td> 
+          {{question_form.enabled}}&nbsp;{{question_form.enabled.label}}
+          {{question_form.required}}&nbsp;{{question_form.required.label}}
+          {% if not question_form.question.answers %}
+            {{question_form.delete}}&nbsp;{{question_form.delete.label}}
+          {% endif %} 
+          </td>
+          <td>
+          {{question_form.order.label}}: {{question_form.order}} <br/>
           </td>
         </tr>
     {% endfor %}
@@ -68,8 +112,8 @@
       Aucune question n'a été créée pour le moment.
   {%endif%}
 
-    <h5 class="heading-5"> Nouvelle question</h5>
-    <form method="POST" id="new_question">
+    <form method="POST" id="new_question" class="form form-vertical">
+    <h4 class="heading-4"> Nouvelle question</h4>
 
     <div class="form-errors">
         {% for field_name, errors in new_question_form.errors.items() %}
@@ -81,33 +125,74 @@
         {% endfor %}
     </div>
 
-    <div class="field">{{ new_question_form.title.label }}</div>
-    {{ new_question_form.title}}
-    
-    <div class="field">{{ new_question_form.description.label }}<span class="help">{{ new_question_form.description.description }}</span></div>
-    {{ new_question_form.description}}
+    <div class="controls">
+    {{ new_question_form.title.label(class="label-top") }}
+    {{ new_question_form.title(class="input-100")}}
+    </div>
 
-    <div class="field">{{ new_question_form.question_type.label }}<span class="help">{{ new_question_form.question_type.description }}</span></div>
+    <div class="controls">
+    {{ new_question_form.description.label(class="label-top") }}<div class="label-help">{{ new_question_form.description.description }}</div>
+    {{ new_question_form.description(rows=12)}}
+    </div>
+
+    <div class="controls">
+    {{ new_question_form.question_type.label(class="label-top") }}<div class="label-help">{{ new_question_form.question_type.description }}</div>
     {{ new_question_form.question_type}}
+    </div>
     
-    <div class="field">{{ new_question_form.choices.label }}<span class="help">{{ new_question_form.choices.description }}</span></div>
-    {{ new_question_form.choices}}
+    <div class="controls">
+    {{ new_question_form.choices.label(class="label-top") }}<div class="label-help">{{ new_question_form.choices.description }}</div>
+    {{ new_question_form.choices(rows=8)}}
+    </div>
     
-    <div class="field">{{ new_question_form.order.label }}<span class="help">{{ new_question_form.order.description }}</span></div>
-    {{ new_question_form.order}}
+    <div class="controls">
+    {{ new_question_form.order.label(class="label-top") }}<div class="label-help">{{ new_question_form.order.description }}</div>
+    {{ new_question_form.order(class="input-25")}}
+    </div>
     
-    <div class="field">
+    <div class="controls">
+    <div class="label-top">
     {{ new_question_form.required }} 
-    </div>
     {{new_question_form.required.label}}
-
-    <div class="field">
-    {{ new_question_form.enabled }} 
     </div>
+    </div>
+
+    <div class="controls">
+    <div class="label-top">
+    {{ new_question_form.enabled }} 
     {{new_question_form.enabled.label}}
+    </div>
+    </div>
  
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <br />{{ new_question_form.add(class="button button-primary") }}
+    </form>
+
+    <h4 class="heading-4">Copie de questionnaire</h4>
+    <form method="POST" id="copy_questions" class="form form-vertical" action="{{url_for('question.copy_questions', event_id=event.id)}}">
+        <p>Copier les questions d'une autre collective.</p>
+
+        <div class="controls">
+        {{copy_questions_form.copied_event_search.label(class="label-top")}}  
+        <div class="label-help">Titre ou ID</div>
+        {{ copy_questions_form.copied_event_search(id='copy-question-event-search', class="input-100") }}
+        {{ copy_questions_form.copied_event_id(id='copy-question-event-id') }}
+        </div>
+
+        <div class="field"> 
+        </div>
+        
+        <div class="controls">
+        <div class="label-top">
+        {{ copy_questions_form.purge }}
+        {{ copy_questions_form.purge.label }} 
+        </div>
+        <span class="label-help">Les questions actuelles seront supprimées. 
+        Si une réponse à la question existe déjà, elle sera seulement désactivée.</span>
+        </div>
+
+        {{ copy_questions_form.hidden_tag() }}
+        {{ copy_questions_form.submit(class="button button-primary") }}
     </form>
 
 </div>

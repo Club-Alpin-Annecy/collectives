@@ -26,7 +26,7 @@ def test_question_creation(leader_client, event1):
     db.session.add(event1)
     db.session.commit()
     response = leader_client.get(
-        f"/payment/event/{event1.id}/edit_questions", follow_redirects=True
+        f"/question/event/{event1.id}/edit_questions", follow_redirects=True
     )
     assert response.status_code == 200
 
@@ -101,3 +101,30 @@ def test_answers_list(leader_client, event1_with_answers):
     assert answers[0]["value"] == "B"
     assert answers[0]["author_name"] == question.answers[0].user.full_name()
     assert answers[0]["question_title"] == question.title
+
+
+def test_copy_questions(leader_client, event1_with_questions, event2):
+    """Test basic question creation."""
+    event2.leaders.append(leader_client.user)
+    db.session.add(event2)
+    db.session.commit()
+
+    response = leader_client.get(
+        f"/question/event/{event2.id}/edit_questions", follow_redirects=True
+    )
+    assert response.status_code == 200
+
+    data = utils.load_data_from_form(response.text, "copy_questions")
+
+    data["copied_event_id"] = event1_with_questions.id
+
+    response = leader_client.post(
+        f"/question/event/{event2.id}/copy_questions", data=data, follow_redirects=True
+    )
+    assert response.status_code == 200
+
+    assert len(event2.questions) == len(event1_with_questions.questions)
+    assert (
+        event2.questions[0].choices_array()
+        == event1_with_questions.questions[0].choices_array()
+    )
