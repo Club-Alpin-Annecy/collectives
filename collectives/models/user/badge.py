@@ -62,6 +62,14 @@ class UserBadgeMixin:
         """
         return self.has_a_valid_badge([BadgeIds.Banned])
 
+    def is_banned(self):
+        """Check if a user is banned.
+
+        :return: True if user is banned
+        :rtype: boolean
+        """
+        return self.has_a_valid_banned_badge()
+
     def number_of_valid_warning_badges(self) -> int:
         """Number of valid warning badges.
 
@@ -138,38 +146,6 @@ class UserBadgeMixin:
         except Exception as e:
             db.session.rollback()
             raise e
-
-    def update_badge(
-        self,
-        badge_id: BadgeIds,
-        expiration_date: Optional[date] = None,
-        activity_id: Optional[int] = None,
-        level: Optional[int] = None,
-    ):
-        """Update a badge for the user.
-
-        :param badge_id: The ID of the badge to be updated.
-        :param expiration_date: The date when the badge will expire.
-        :param activity_id: The ID of the activity onto which the badge should be applied.
-        """
-        badge_data = {}
-        if expiration_date is not None:
-            badge_data["expiration_date"] = expiration_date
-        if activity_id is not None:
-            badge_data["activity_id"] = activity_id
-        if level is not None:
-            badge_data["level"] = level
-
-        Badge.query.filter_by(user_id=self.id, badge_id=badge_id).update(badge_data)
-        db.session.commit()
-
-    def remove_badge(self, badge_id: BadgeIds):
-        """Remove a badge from the user.
-
-        :param badge_id: The ID of the badge to be removed.
-        """
-        Badge.query.filter_by(user_id=self.id, badge_id=badge_id).delete()
-        db.session.commit()
 
     def update_warning_badges(self):
         """

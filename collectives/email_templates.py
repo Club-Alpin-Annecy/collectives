@@ -305,6 +305,8 @@ def send_late_unregistration_notification(event, user):
             user_name=user.full_name(),
             event_main_leader=event.main_leader.full_name(),
             event_title=event.title,
+            nb_hours=Configuration.LATE_UNREGISTRATION_THRESHOLD,
+            nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
             link=url_for(
                 "event.view_event",
                 event_id=event.id,

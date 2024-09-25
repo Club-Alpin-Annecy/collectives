@@ -80,52 +80,6 @@ def test_assign_badge(user1, session_monkeypatch):
     assert session_monkeypatch["rollback"] == 0  # Rollback should not be called
 
 
-def test_update_badge(user1, session_monkeypatch):
-    """
-    Updates a badge for a user and verifies the session changes.
-
-    Args:
-        user1: The user whose badge is being updated.
-        session_monkeypatch: The monkeypatched session for testing.
-
-    Returns:
-        None
-    """
-    badge_id = int(BadgeIds.LateUnregisterWarning)
-    new_expiration_date = date.today() + timedelta(days=30)
-    new_level = 2
-
-    # Assuming the user already has a badge that can be updated
-    user1.update_badge(badge_id, expiration_date=new_expiration_date, level=new_level)
-
-    # No 'add' should occur during an update, just commit
-    assert len(session_monkeypatch["add"]) == 0
-    assert session_monkeypatch["commit"] == 1  # Verify that commit was called once
-    assert session_monkeypatch["rollback"] == 0  # Verify that rollback was not called
-
-
-def test_remove_badge(user1, session_monkeypatch):
-    """
-    Removes a badge from a user and verifies the session changes.
-
-    Args:
-        user1: The user from whom the badge is being removed.
-        session_monkeypatch: The monkeypatched session for testing.
-
-    Returns:
-        None
-    """
-    badge_id = int(BadgeIds.LateUnregisterWarning)
-
-    # Assuming the user has a badge to remove
-    user1.remove_badge(badge_id)
-
-    # No 'add' should occur during a removal, just commit
-    assert len(session_monkeypatch["add"]) == 0
-    assert session_monkeypatch["commit"] == 1  # Verify that commit was called once
-    assert session_monkeypatch["rollback"] == 0  # Verify that rollback was not called
-
-
 def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatch):
     """
     Tests the update_warning_badges method without any

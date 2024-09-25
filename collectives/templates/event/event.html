@@ -214,10 +214,8 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
-        {% elif event.is_unregistered(current_user)%}
+        {% elif event.is_unregistered(current_user) or event.is_late_unregistered(current_user)%}
           <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
-        {% elif event.is_late_unregistered(current_user)%}
-          <p>Vous vous êtes désincrit tardivement. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
         {% else %}
           {# Active registration or waiting list #}
 
@@ -254,11 +252,7 @@
           {% endif %}
 
           {% if current_time < event.start %} {# Unregister #}
-            {% if event.starts_within_x_hours %} {# Late Unregister #}          
-              {{ self_unregister.button(False) }}
-            {% else %} {# Unregister #}
-              {{ self_unregister.button() }}
-            {% endif %}
+            {{ self_unregister.button(not event.starts_soon()) }} {# Late Unregister condition #} 
           <br/><br/>
           {% endif %}
 
@@ -308,7 +302,7 @@
               </p>
             {% endif %}
 
-        {% elif event.is_banned(current_user) %}
+        {% elif current_user.is_banned() %}
           <p>Vous êtes actuellement banni suite à un trop grand nombre de désinscriptions tardives. Vous pourrez vous ré-inscrire à nouveau 4 semaines après votre dernière désinscription tardive. Si vous pensez que c'est une erreur, merci de contacter un administrateur.</p>
 
         {% elif current_time > event.registration_close_time %}
