@@ -229,7 +229,7 @@ class EventRegistrationMixin:
             user, [RegistrationStatus.LateSelfUnregistered]
         )
 
-    def starts_within_x_hours(self):
+    def starts_soon(self):
         """Check if an event starts within xh of current time.
 
         :return: True if event starts within xh of current time
@@ -238,16 +238,6 @@ class EventRegistrationMixin:
         return self.start < datetime.now() + timedelta(
             hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
         )
-
-    def is_banned(self, user):
-        """Check if a user is banned on this event.
-
-        :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
-        :return: True if user is banned
-        :rtype: boolean
-        """
-        return user.has_a_valid_banned_badge()
 
     def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is part of the event user group

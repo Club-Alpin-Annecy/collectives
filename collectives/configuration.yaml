@@ -285,13 +285,13 @@ Template mail:
         content: |
             Bonjour,
 
-            Vous venez de vous désinscrire tardivement à l'événement '{event_title}' auquel vous étiez tenu de participer.
+            Vous venez de vous désinscrire moins de '{nb_heures}' heures avant la tenue de l'événement '{event_title}' auquel vous vous étiez engagé(e) à participer.
 
             Selon le code du CAF, sauf raison valable, vous êtes tenus de participer à l'évènement auquel vous êtes inscrit.
             
             Si vous avez une raison valable, merci de prévenir votre encadrant '{event_main_leader}'.
 
-            3 désinscriptions tardives résulteront en un ban et une impossibilité de s'inscrire à des futures collectives.
+            3 désinscriptions tardives résulteront en une impossibilité de s'inscrire à des futures collectives via le site.
 
             Lien vers l'événement :
             {link}
@@ -318,7 +318,7 @@ Template mail:
             
             Cela pénalise profondément le bon fonctionnement du Club et cela prive d’autres personnes de participer à nos activités.
 
-            Comme indiqué dans le Guides Collectives, votre accès au site des collectives va être suspendu pour les 4 prochaines semaines.
+            Comme indiqué dans le Guides Collectives, votre accès au site des collectives va être suspendu pour les '{nb_semaines_suspension}' prochaines semaines.
 
             Lien vers l'événement :
             {link}
@@ -482,5 +482,9 @@ Information club:
 Désinscriptions tardives:
     LATE_UNREGISTRATION_THRESHOLD:
         content: 48
-        description : Seuil en heures à partir duquel une désinscription à un évènement est consideérée comme tardive.
+        description : Seuil en heures à partir duquel une désinscription à un évènement est considérée comme tardive.
+        type: Integer
+    SUSPENSION_DURATION:
+        content: 4
+        description : Durée de la suspension de compte suite à un trop grand nombre de désinscriptions tardives, en semaines.
         type: Integer
