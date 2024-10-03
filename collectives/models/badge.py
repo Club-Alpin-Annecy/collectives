@@ -116,6 +116,21 @@ class Badge(db.Model):
     :type: int
     """
 
+    # Relationships
+    registration_id = db.Column(
+        db.Integer, db.ForeignKey("registrations.id"), nullable=True
+    )
+    """Registration id associated to this badge.
+
+    :type: int
+    """
+
+    registration = db.relationship("Registration", back_populates="badges", lazy=True)
+    """ Resgitration associated to this badge.
+
+    :type: :py:class:`collectives.models.registration.Registration`
+    """
+
     @property
     def name(self):
         """Returns the name of the badge.
