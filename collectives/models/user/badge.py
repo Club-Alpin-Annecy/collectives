@@ -4,6 +4,7 @@ from typing import List, Optional, Set
 
 from datetime import date, timedelta
 from collectives.models.badge import Badge, BadgeIds
+from collectives.models.registration import Registration
 from collectives.models.activity_type import ActivityType
 from collectives.models import db
 
@@ -118,13 +119,14 @@ class UserBadgeMixin:
             badge.activity_type for badge in badges if badge.activity_type is not None
         )
 
+    # pylint: disable=too-many-arguments
     def assign_badge(
         self,
         badge_id: BadgeIds,
-        # creation_time: datetime,
         expiration_date: date,
         activity_id: Optional[int] = None,
         level: Optional[int] = None,
+        registration: Optional[Registration] = None,
     ):
         """Assign a badge to the user.
 
@@ -135,10 +137,10 @@ class UserBadgeMixin:
         badge = Badge(
             user_id=self.id,
             badge_id=badge_id,
-            # creation_time=creation_time,
             expiration_date=expiration_date,
             activity_id=activity_id,
             level=level,
+            registration=registration,
         )
         try:
             db.session.add(badge)
@@ -147,7 +149,7 @@ class UserBadgeMixin:
             db.session.rollback()
             raise e
 
-    def update_warning_badges(self):
+    def update_warning_badges(self, registration):
         """
         Update warning badges based on user's conditions and number of warning badges,
         and assign or update the badge with appropriate expiration date and level.
@@ -166,7 +168,6 @@ class UserBadgeMixin:
         num_banned_badges = len(
             self.matching_badges([BadgeIds.Banned], valid_only=False)
         )
-
         # Update badges and expiration dates based on conditions, or continue if nothing to do
         try:
             if num_valid_warning_badges >= 2 and num_valid_banned_badges == 0:
@@ -176,6 +177,7 @@ class UserBadgeMixin:
                     badge_id,
                     expiration_date=expiration_date,
                     level=num_banned_badges + 1,
+                    registration=registration,
                 )
             elif num_valid_warning_badges < 2:
                 badge_id = BadgeIds.LateUnregisterWarning
@@ -190,6 +192,7 @@ class UserBadgeMixin:
                     badge_id,
                     expiration_date=expiration_date,
                     level=num_warning_badges + 1,
+                    registration=registration,
                 )
             else:
                 pass

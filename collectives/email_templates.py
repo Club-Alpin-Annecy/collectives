@@ -324,3 +324,58 @@ def send_late_unregistration_notification(event, user):
     # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
+
+
+def send_unjustified_absence_notification(event, user):
+    """
+    Send a notification to the user who missed an event and got assigned an 'UnjustifiedAbsentee'
+    registration status by the event organizer.
+
+    :param event: The event that the user missed according to the event organizer.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param user: The user who missed the event.
+    :type user: :py:class:`collectives.models.user.User`
+    """
+
+    # Check if the user has a valid banned badge
+    has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
+    num_valid_warning_badges = len(
+        user.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+    )
+    warning_title = (
+        "premier avertissement"
+        if num_valid_warning_badges == 1
+        else "dernier avertissement"
+    )
+
+    # Determine the content and subject of the notification based on the user's badges
+    if has_valid_banned_badge:
+        content = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_MESSAGE
+        title = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_SUBJECT
+    else:
+        content = Configuration.UNJUSTIFIED_ABSENCE_WARNING_MESSAGE
+        title = Configuration.UNJUSTIFIED_ABSENCE_WARNING_SUBJECT
+
+    try:
+        message = content.format(
+            user_name=user.full_name(),
+            event_main_leader=event.main_leader.full_name(),
+            event_title=event.title,
+            nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
+        )
+        subject = title.format(number_of_warnings=warning_title)
+
+        mail.send_mail(
+            subject=subject,
+            email=[user.mail],
+            message=message,
+        )
+    # pylint: disable=broad-except
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")

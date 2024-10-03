@@ -29,7 +29,7 @@ from collectives.forms.event import PaymentItemChoiceForm
 from collectives.forms.question import QuestionAnswersForm
 
 from collectives.models import Event, ActivityType, EventType
-from collectives.models import Registration, RegistrationLevels, EventStatus
+from collectives.models import Registration, RegistrationLevels, EventStatus, Badge
 from collectives.models import RegistrationStatus, User, db, Configuration
 from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.event import (
@@ -924,7 +924,7 @@ def self_unregister(event_id):
         registration.status = RegistrationStatus.LateSelfUnregistered
         db.session.add(registration)
         if previous_status == RegistrationStatus.Active:
-            current_user.update_warning_badges()
+            current_user.update_warning_badges(registration)
             send_late_unregistration_notification(event, current_user)
     else:
         registration.status = RegistrationStatus.SelfUnregistered
@@ -1077,6 +1077,25 @@ def delete_event(event_id):
     event.leaders.clear()
     event.activity_types.clear()
 
+    # Find users registered wih UnjustifiedAbsentee or LateUnregistration status
+    # and delete the warning badges associated to their registration
+    badges_to_delete = (
+        db.session.query(Badge)
+        .join(Registration)
+        .filter(
+            Registration.event_id == event.id,
+            Registration.status.in_(
+                [
+                    RegistrationStatus.UnJustifiedAbsentee,
+                    RegistrationStatus.LateSelfUnregistered,
+                ]
+            ),
+        )
+    ).all()
+
+    for badge in badges_to_delete:
+        db.session.delete(badge)
+
     # Delete event itself
     db.session.delete(event)
     db.session.commit()
@@ -1128,6 +1147,7 @@ def update_attendance(event_id):
             if new_status == RegistrationStatus.ToBeDeleted:
                 db.session.delete(registration)
             else:
+                previous_status = registration.status
                 registration.status = new_status
                 db.session.add(registration)
 
@@ -1138,6 +1158,24 @@ def update_attendance(event_id):
                         registration.event,
                         registration.user.mail,
                     )
+                if registration.status == RegistrationStatus.UnJustifiedAbsentee:
+                    # If a user is absent and it is unjustified,
+                    # assign warning badges according to late unsubscription logic
+                    registration.user.update_warning_badges(registration)
+                    send_late_unregistration_notification(event, registration.user)
+
+                if (
+                    previous_status == RegistrationStatus.UnJustifiedAbsentee
+                    and registration.status == RegistrationStatus.JustifiedAbsentee
+                ) or (
+                    previous_status == RegistrationStatus.LateSelfUnregistered
+                    and registration.status != RegistrationStatus.UnJustifiedAbsentee
+                ):
+                    # If a user is absent and is getting cleared by a leader,
+                    # remove warning badges for this registration. There may be several.
+                    for badge in registration.badges:
+                        db.session.delete(badge)
+
     update_waiting_list(event)
     db.session.commit()
 

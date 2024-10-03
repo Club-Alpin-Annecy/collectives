@@ -218,6 +218,12 @@ class Registration(db.Model):
     :type: list(:py:class:`collectives.models.payment.Payment`)
     """
 
+    badges = db.relationship("Badge", back_populates="registration", lazy=True)
+    """ List of badges associated to this registration.
+
+    :type: list(:py:class:`collectives.models.badge.Badge`)
+    """
+
     def is_active(self):
         """Check if this registation is active.
 
