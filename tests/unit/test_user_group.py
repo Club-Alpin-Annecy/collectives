@@ -11,6 +11,7 @@ from collectives.models import db, RoleIds, RegistrationStatus
 
 # pylint: disable=R0915
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-locals
 def test_user_group_members(
     event1_with_reg, user1, user2, president_user, leader_user, supervisor_user

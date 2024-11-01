@@ -113,7 +113,7 @@ def event_types(app):
     absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
 
     for item in EventType.query.filter(absent_filter).all():
-        app.logger.warn(f"Obsolete event type {item.name}: deleting")
+        app.logger.warning(f"Obsolete event type {item.name}: deleting")
 
     EventType.query.filter(absent_filter).delete(synchronize_session=False)
     # due to synchronize_session=False, do not use this session after without
@@ -160,7 +160,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
     :param bool clean: If True, remove configuration which is not present in the file
     """
     if force:
-        app.logger.warn("Force hot configuration reset.")
+        app.logger.warning("Force hot configuration reset.")
 
     with open(path, "r", encoding="utf-8") as file:
         yaml_content = yaml.safe_load(file.read())
@@ -171,7 +171,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
                 if config.get("obsolete", False):
                     if item is not None:
                         db.session.delete(item)
-                        app.logger.warn(
+                        app.logger.warning(
                             f"Obsolete configuration item {item.name}: deleting"
                         )
                     continue
@@ -196,7 +196,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
             absent_conf = sqlalchemy.not_(ConfigurationItem.name.in_(all_keys))
 
             for item in ConfigurationItem.query.filter(absent_conf).all():
-                app.logger.warn(f"Unknown configuration item {item.name}: deleting")
+                app.logger.warning(f"Unknown configuration item {item.name}: deleting")
 
             ConfigurationItem.query.filter(absent_conf).delete(
                 synchronize_session=False
