@@ -31,6 +31,8 @@ class LicenseValidator:
         :return: True if data is OK.
         :rtype: boolean
         """
+        if field.data is None:
+            raise ValidationError("Pas de champ licence")
         if not re.match(self.pattern(), field.data):
             error_message = "Le numéro de licence doit contenir 12 chiffres"
             raise ValidationError(error_message)

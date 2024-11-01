@@ -16,10 +16,12 @@ from flask_login import current_user, logout_user
 from flask_images import Images
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
-from collectives.forms.user import DeleteUserForm
+from collectives.forms.user import DeleteUserForm, LicenseForm
 from collectives.models import User, Role, RoleIds, Configuration, Gender
 from collectives.models import Event, db, UserType
 from collectives.routes.auth import sync_user
+from collectives.routes.auth.utils import DifferentEmailException
+from collectives.routes.auth.utils import InvalidExtranetUserException
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
@@ -163,7 +165,32 @@ def force_user_sync(user_id):
             return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
-        sync_user(user, True)
+
+        form = LicenseForm()
+        if form.validate():
+            sync_user(user, force=True, new_license=form.license.data)
+        else:
+            sync_user(user, force=True)
+    except (InvalidExtranetUserException, DifferentEmailException) as err:
+        form = LicenseForm()
+        if isinstance(err, DifferentEmailException):
+            form.generic_error = (
+                "La synchronisation avec une licence ayant un email différent n'est pas autorisé "
+                "pour des raisons de sécurité. Veuillez contacter le support."
+            )
+        return render_template(
+            "basicform.html",
+            form=form,
+            description=(
+                "La synchronisation avec la fédération a échoué. "
+                f'Votre numéro de licence "{user.license}" n\'est pas ou plus valide. '
+                "Avez vous un nouveau numéro de license? "
+                f'Votre nouveau numéro de license doit être rattaché à l\'email "{user.mail}". '
+                "En cas de difficulté, vous pouvez contacter le support: "
+                f"{Configuration.SUPPORT_EMAIL}. "
+            ),
+            title="Mise à jour du numéro de licence",
+        )
     except ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
