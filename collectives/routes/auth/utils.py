@@ -1,6 +1,8 @@
 """ Auth module for miscaleneous functions and classes."""
 
-from flask import url_for
+from datetime import date, datetime
+
+from flask import url_for, current_app
 from flask_login import AnonymousUserMixin
 from markupsafe import escape
 from flask_wtf.csrf import generate_csrf
@@ -37,6 +39,18 @@ def sync_user(user, force):
         # Check whether the license has been renewed
         license_info = extranet.api.check_license(user.license)
         if not license_info.exists:
+            if user.license_expiry_date > date.today():
+                current_app.logger.warning(
+                    f"User #{user.id} synchronization : licence is not active on extranet "
+                    "but active on this site."
+                )
+                if force:
+                    user.license_expiry_date = datetime.today()
+                    db.session.add(user)
+                    db.session.commit()
+                    current_app.logger.warning(
+                        f"User #{user.id} synchronization : licence has been updated."
+                    )
             return
 
         if force or license_info.expiry_date() > user.license_expiry_date:
