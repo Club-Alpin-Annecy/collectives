@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 from markupsafe import escape
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
-from collectives.models import RoleIds
+from collectives.models import RoleIds, Question, QuestionType
 from tests import utils
 from tests.fixtures.user import promote_user
 
@@ -235,6 +235,20 @@ def test_event_modification(event, leader_client):
 
 def test_event_duplication(leader_client, paying_event):
     """Test the event duplication functionnality"""
+
+    # Add a question to check that it will be correctly duplicated
+    paying_event.questions.append(
+        Question(
+            title="Question",
+            description="",
+            choices="A\nB\nC\n",
+            question_type=QuestionType.MultipleChoices,
+            enabled=True,
+            required=True,
+        )
+    )
+    db.session.commit()
+
     response = leader_client.get(f"/collectives/{paying_event.id}/duplicate")
     assert response.status_code == 200
 
@@ -272,6 +286,11 @@ def test_event_duplication(leader_client, paying_event):
     assert (
         new_event.payment_items[0].prices[0].amount
         == paying_event.payment_items[0].prices[0].amount
+    )
+    assert len(new_event.questions) == len(paying_event.questions)
+    assert (
+        new_event.questions[0].choices_array()
+        == paying_event.questions[0].choices_array()
     )
 
 

@@ -145,6 +145,23 @@ class Question(db.Model):
         """:returns: the list of possible choices for the question"""
         return self.make_choices_array(self.choices)
 
+    def copy(self, new_event_id: int = None):
+        """Copy current question.
+
+        :returns: Copied questions"""
+
+        question = Question()
+        question.event_id = new_event_id
+        question.title = self.title
+        question.description = self.description
+        question.choices = self.choices
+        question.question_type = self.question_type
+        question.order = self.order
+        question.required = self.required
+        question.enabled = self.enabled
+
+        return question
+
 
 class QuestionAnswer(db.Model):
     """Database model describing a set of questions"""
