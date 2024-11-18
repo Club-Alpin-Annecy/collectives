@@ -268,6 +268,9 @@ def events():
     # Process all filters.
     # All filter are added as AND
     i = 0
+    filters_activity_types = []
+    filters_tags = []
+    filters_types = []
     while f"filters[{i}][field]" in request.args:
         value = request.args.get(f"filters[{i}][value]")
         filter_type = request.args.get(f"filters[{i}][type]")
@@ -275,7 +278,11 @@ def events():
 
         query_filter = None
         if field == "activity_type":
-            query_filter = Event.activity_types.any(short=value)
+            filters_activity_types.append(value)
+        elif field == "tags":
+            filters_tags.append(EventTag.get_type_from_short(value))
+        elif field == "event_type":
+            filters_types.append(value)
         elif field == "leaders":
             query_filter = Event.leaders.any(
                 func.lower(User.first_name + " " + User.last_name).like(f"%{value}%")
@@ -298,34 +305,57 @@ def events():
                 query_filter = Event.status == value
             elif filter_type == "!=":
                 query_filter = Event.status != value
-        elif field == "tags":
-            query_filter = Event.tag_refs.any(type=EventTag.get_type_from_short(value))
-        elif field == "event_type":
-            # pylint: disable=comparison-with-callable
-            query = query.filter(EventType.id == Event.event_type_id)
-            # pylint: enable=comparison-with-callable
-            query_filter = EventType.short == value
 
         if query_filter is not None:
             query = query.filter(query_filter)
         # Get next filter
         i += 1
 
+    # Apply a OR filter on activity_types to manage several activity_type selection
+    if len(filters_activity_types) > 0:
+        query = query.filter(
+            or_(
+                *map(
+                    lambda type: Event.activity_types.any(short=type),
+                    filters_activity_types,
+                )
+            )
+        )
+
+    # Add query filter from filters_tag list
+    if len(filters_tags) > 0:
+        query = query.filter(
+            or_(*map(lambda tag: Event.tag_refs.any(type=tag), filters_tags))
+        )
+
+    # Add query filter from filters_types list
+    if len(filters_types) > 0:
+        # pylint: disable=comparison-with-callable
+        query = query.filter(EventType.id == Event.event_type_id)
+        # pylint: enable=comparison-with-callable
+        query = query.filter(
+            or_(*map(lambda type: EventType.short == type, filters_types))
+        )
+
     # Process first sorter only
     if "sorters[0][field]" in request.args:
         sort_field = request.args.get("sorters[0][field]")
         sort_dir = request.args.get("sorters[0][dir]")
-        order = desc(sort_field) if sort_dir == "desc" else sort_field
-        query = query.order_by(order)
+        query = query.order_by(desc(sort_field) if sort_dir == "desc" else sort_field)
 
     query = query.order_by(Event.id)
 
     paginated_events = query.paginate(page=page, per_page=size, error_out=False)
     data = EventSchema(many=True).dump(paginated_events.items)
-    response = {"data": data, "last_page": paginated_events.pages}
 
     return (
-        json.dumps(response),
+        json.dumps(
+            {
+                "data": data,
+                "last_page": paginated_events.pages,
+                "total": paginated_events.total,
+            }
+        ),
         200,
         {"content-type": "application/json", "Access-Control-Allow-Origin": "*"},
     )

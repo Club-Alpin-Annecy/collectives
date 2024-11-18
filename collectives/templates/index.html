@@ -1,204 +1,100 @@
+{% extends 'base.html' %} 
 
-{% extends 'base.html' %}
+{%block content %}
 
-{% import 'macros.html' as macros with context %}
+{# VUE JS APP #}
+<div id="app"></div>
 
-{% block additionalhead %}
-
-
-  {# Tabulator: for tables#}
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
-
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
-
-  {# Autocomplete for leader lookup #}
-  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
-  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
-
-  <script src="{{ url_for('static', filename='js/tail.datetime-full.min.js') }}"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tail.datetime-harx-light.min.css')}}">
-
-  <script src="{{ url_for('api.models_to_js') }}"></script>
-  <script src="{{ url_for('static', filename='js/event/eventlist.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
-
-  <script>
-      window.onload = function() {
-          buildEventsTable();
-      
-          {% if filtered_activity %}
-            filterConfirmedOnly(false);
-            filterFutureOnly(true);
-            selectFilter('activity_type', '{{filtered_activity.short}}');
-            selectFilter('event_type', false);
-            selectFilter('tags', false);
-          {% endif %}
-          
-          const searchInput = getLeaderHeaderFilter();
-          setupAutoComplete(
-              searchInput,
-              '{{url_for("api.autocomplete_leaders")}}',
-              function (item) { return item.full_name; },
-              function (id, val) { return onSelectLeaderAutocomplete(id, val); }
-          );
-      };
-  </script>
-
-  <style>
-    #cover{
-        background-position-x: {{Configuration.COVER_POSITION}}%;
+{# Polyfills for importmap #}
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+    "imports": {
+        "axios": "https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/esm/axios.min.js",
+        "moment": "https://esm.run/moment@2.30.1/min/moment-with-locales.min.js"
     }
-    {% for i in [1, 600, 768, 900, 1080, 1200, 1440, 1600, 2160] %}
-        {% if loop.index0 !=0 %}
-        @media (min-device-height: {{i}}px) {
-        {% endif %}
-
-        #cover{
-                background-image: url("{{ url_for('images', filename='cover.jpg', height=loop.nextitem ) | safe }}");
-            }
-
-        {% if loop.index0 != 0 %}
-        }
-        {% endif %}
-    {% endfor %}
-  </style>
-
-{% endblock %}
-
-{% block content %}
-
-
-<div id="cover">
-    <div><img src="{{ url_for('static', filename='caf/esprit club alpin '+Configuration.COVER_LOGO_COLOR+'.png') }}" class="motto"/>
-        <br/>
-        <img
-            src="{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}"
-            class="arrow"
-            onclick="gotoEvents()"
-        />
-
-    </div>
-</div>
-{% if current_user.is_authenticated %}
-<script>
-    window.addEventListener("load", gotoEvents);
+}
 </script>
-{% endif %}
+<script src="{{ url_for('api.models_to_js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.12/dist/vue.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/primevue@4.2.2/umd/primevue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@primevue/themes@4.2.2/umd/aura.min.js"></script>
 
-<div id="eventlist" class="page-content">
-    {% if Configuration.BANNER_MESSAGE %}
-        <div id="banner-message">
-            <h5 class="heading-1">Message important</h5>
-            {{ markdown_to_html(Configuration.BANNER_MESSAGE) | safe }}
-        </div>
-    {% endif %}
 
+<script type="module">
+
+    import axios from 'axios'
+    import moment from 'moment'
+    import * as models from '{{ url_for('api.models_to_js') }}'
+    import EventList from '{{ url_for('static', filename='js/event/eventlist.component.js') }}'
    
-    <div class="collectives-list-filters">
-           
-            <!-- filter activity type -->
-            <div class="select" >
-                <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                <input type="checkbox" id="select_display"/>
-                <label for="select_display"><label>Sélectionner votre activité</label></label>
-                <label for="select_display" class="closer"></label>
+    moment.locale('fr')
+    const { createApp } = Vue
+    
+    // TODO Move to async endpoint
+    const activityList = [
+        {% for type in activity_types %}
+            { "id": "{{type.short}}", "name": "{{type.name}}"},
+        {% endfor %}
+    ]
 
-                <input type="radio" name="activity" id="select_all" checked/>
-                <label for="select_all" onclick="selectFilter('activity_type', false);">
-                    <label for="select_display">
-                        Toutes activités
-                    </label>
-                </label>
-                {% for type in activity_types %}
-                    <input type="radio" name="activity" id="select_activity_type_{{type.short}}"/>
-                    <label for="select_activity_type_{{type.short}}" onclick="selectFilter('activity_type', '{{type.short}}');">
-                        <label for="select_display">
-                            <img src="/static/caf/icon/{{type.short}}.svg" width="30px"/>
-                            {{type.name}}
-                        </label>
-                    </label>
-                {% endfor %}
+    const eventTypes = [
+        {% for type in event_types %}
+            { "id": "{{type.short}}", "name": "{{type.name}}"},
+        {% endfor %}
+    ]
 
-            </div>
+    const eventTags = [
+        {% for tag in models.EventTag.all().values() %}
+            { "id": "{{tag['short']}}", "name": "{{tag['name']}}"},
+        {% endfor %}
+    ]
+    const app = createApp(EventList)
+    app.provide('config', {
+        activityList,
+        eventTypes,
+        eventTags,
+        models,
+        isAuthenticated: {{ current_user.is_authenticated|tojson }},
+        siteParams: {
+            coverLogo: "{{ url_for('static', filename='caf/esprit club alpin '+Configuration.COVER_LOGO_COLOR+'.png') }}",
+            arrowDown: "{{ url_for('static', filename='img/icon/ionicon/ios-arrow-down.svg') }}",
+            bannerMessage: `{{ markdown_to_html(Configuration.BANNER_MESSAGE) | safe}}`
+        },
+    })
+    app.use(PrimeVue.Config, {
+        theme: {
+            preset: PrimeVue.Themes.Aura,
+            options: {
+                darkModeSelector: false,
+            }
+        }
+    });
 
-            <input type="checkbox" class="collectives-list-filters-toggle button" id="collectives-list-filters-toggle" autocomplete="off"/>
-            <label for="collectives-list-filters-toggle" class="checkbox collectives-list-filters-toggle-label button-primary">+ Plus de filtres</label>
+    app.component('p-datepicker', PrimeVue.DatePicker);
+    app.component('p-multiselect', PrimeVue.MultiSelect);
+    app.component('DataView', PrimeVue.DataView);
+    app.component('Paginator', PrimeVue.Paginator);
+    app.component('Skeleton', PrimeVue.Skeleton);
+    app.component('AutoComplete', PrimeVue.AutoComplete);
+    app.component('Accordion', PrimeVue.Accordion );
+    app.component('AccordionPanel', PrimeVue.AccordionPanel );
+    app.component('AccordionHeader', PrimeVue.AccordionHeader );
+    app.component('AccordionContent', PrimeVue.AccordionContent );
+    app.mount('#app')
 
+    function gotoEvents(event){
+        // if we are not on top during a load, do not mess with page position
+        if(window.scrollY > 50 && event.type !== 'click')
+            return 0;
 
-            <!-- filter event type -->
-            <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_event_type"/>
-                    <label for="select_event_type"><label>Filtrer par type d'événement</label></label>
-                    <label for="select_event_type" class="closer"></label>
+        var position = document.querySelector('#eventlist').getBoundingClientRect().top +  window.scrollY - 60;
+        window.scrollTo(    {
+            top: position,
+            behavior: 'smooth'
+        });
+    }
 
-                    <input type="radio" name="event_type" id="select_all_event_types" checked/>
-                    <label for="select_all" onclick="selectFilter('event_type', false);">
-                        <label for="select_event_type">
-                            Tous types d'événement
-                        </label>
-                    </label>
-                    {% for type in event_types %}
-                        <input type="radio" name="event_type" id="select_event_type_{{type.short}}"/>
-                        <label for="select_event_type_{{type.short}}" onclick="selectFilter('event_type', '{{type.short}}');">
-                            <label for="select_event_type">
-                                <img src="/static/caf/icon/{{type.short}}.svg" width="30px"/>
-                                {{type.name}}
-                            </label>
-                        </label>
-                    {% endfor %}
-            </div>
-
-            <!-- filter event tag -->
-            <div class="select" >
-                    <img class="chevrons" alt="&#8650;" src="{{ url_for('static', filename='img/icon/ionicon/ios-code.svg') }}" />
-                    <input type="checkbox" id="select_tags"/>
-                    <label for="select_tags"><label>Filtrer par label</label></label>
-                    <label for="select_tags" class="closer"></label>
-
-                    <input type="radio" name="tag" id="select_all_tags" checked/>
-                    <label for="select_all_tags" onclick="selectFilter('tags', false);">
-                        <label for="select_tags">
-                            Tous labels
-                        </label>
-                    </label>
-                    {% for tag in models.EventTag.all().values()  %}
-                        <input type="radio" name="tag" id="select_tag_{{tag['short']}}"/>
-                        <label for="select_tag_{{tag['short']}}" onclick="selectFilter('tags', '{{tag['short']}}');">
-                            <label for="select_tags">
-                                <img src="/static/caf/icon/{{tag['short']}}.svg" width="30px"/>
-                                {{tag['name']}}
-                            </label>
-                        </label>
-                    {% endfor %}
-
-            </div>
-        
-            <label class="borders"> 📅 Depuis 
-                <input type="text" id="datefilter" autocomplete="off" onchange="filterTable('end', this.value)"/>
-            </label>
-
-            <input type="text" placeholder="🔍 Titre" id="title" autocomplete="off" value=""  onchange="filterTable('title', this.value)"/>
-            <input type="text" placeholder="🔍 Encadrant" id="leader" onchange="filterTable('leaders', this.value)" autocomplete="off" value="" />
-
-            <input
-                    type="checkbox"
-                    onchange="filterConfirmedOnly(!this.checked)"
-                    autocomplete="off"
-                    checked="1"
-                    id="cancelledcheckbox"
-                    class="button button-secondary"
-                    />
-
-            <label class="checkbox font-size-s" for="cancelledcheckbox"> 
-                
-                Sorties annulées :
-                    <span class="display-for-on">affichées <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt="&#128065"/></span>
-                    <span class="display-for-off">cachées <img src="{{ url_for('static', filename='img/icon/ionicon/eye-off.svg') }}"/></span>
-            </label>
-    </div>
-    <div id="eventstable" class="collectives-list"></div>
-</div>
+</script>
 
 {% endblock %}
