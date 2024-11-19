@@ -491,6 +491,13 @@ CSV_COLUMNS = {
         "optional": 1,
         "default": str(DEFAULT_ONLINE_SLOTS),
     },
+    "places_liste_attente": {
+        "short_desc": "Nombre de places dans la liste d'attente",
+        "description": "Nombre de places dans la liste d'attente",
+        "type": "int",
+        "optional": 1,
+        "default": 0,
+    },
     "debut_internet": {
         "short_desc": "Date d'ouverture des inscriptions par internet",
         "description": "Date d'ouverture des inscriptions par internet de "

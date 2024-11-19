@@ -238,12 +238,14 @@ def csv_import():
             "message",
         )
 
+    return_code = 200 if len(failed) == 0 else 400
+    
     return render_template(
         "activity_supervision/import_csv.html",
         form=form,
         failed=failed,
         title="Création d'event par CSV",
-    )
+    ), return_code
 
 
 @blueprint.route("/index", methods=["GET"])
