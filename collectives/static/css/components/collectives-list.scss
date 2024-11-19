@@ -387,7 +387,22 @@ $button-height:40px;
         position: relative;
         .p-multiselect-label-container {
             padding: 0 10px;
+            .p-chip-image{
+                height: 20px;
+            }
         }
     }
+    
+}
 
+.p-multiselect-list{
+    .icon {
+        width: 30px;
+        margin-right: 5px;
+        height: auto;
+    }
+    .flex.items-center {
+        align-items: center;
+        justify-content: center;
+    }
 }

@@ -31,6 +31,7 @@ export default {
       config,
       toggleCancelled: () => props.filters.displayCancelled = !props.filters.displayCancelled,
       fetchLeaders,
+      findInConfig: (list, activityId) => list.find(id =>  id.id === activityId),
       leadersSearch,
     }
   },
@@ -45,7 +46,17 @@ export default {
       optionValue="id"
       filter 
       placeholder="Toutes activités"
-    />
+    >
+      <template #option="slotProps">
+          <div class="flex items-center">
+              <img class="icon" :alt="slotProps.option.name" :src="'/static/caf/icon/' + slotProps.option.id + '.svg'" />
+              <div>{{ slotProps.option.name }}</div>
+          </div>
+      </template>
+      <template #chip="slotProps">
+          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+      </template>
+    </p-multiselect>
 
     <div 
       v-if="!displayMoreFilters"
@@ -66,7 +77,17 @@ export default {
         placeholder="Tout types d'événement"
         display="chip" 
         filter 
-      />
+      >
+        <template #option="slotProps">
+          <div class="flex items-center">
+              <img class="icon" :alt="slotProps.option.name" :src="'/static/caf/icon/' + slotProps.option.id + '.svg'" />
+              <div>{{ slotProps.option.name }}</div>
+          </div>
+        </template>
+        <template #chip="slotProps">
+            <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+        </template>
+      </p-multiselect>
 
       <p-multiselect 
         class="select-tag"
@@ -77,7 +98,17 @@ export default {
         placeholder="Tous labels"
         display="chip" 
         filter 
-      />
+      >
+        <template #option="slotProps">
+          <div class="flex items-center">
+              <img class="icon" :alt="slotProps.option.name" :src="'/static/caf/icon/' + slotProps.option.id + '.svg'" />
+              <div>{{ slotProps.option.name }}</div>
+          </div>
+        </template>
+        <template #chip="slotProps">
+            <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+        </template>
+      </p-multiselect>
 
       <div class="input date">
         <label class="borders"> 📅 Depuis
