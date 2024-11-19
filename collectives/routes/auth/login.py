@@ -53,7 +53,7 @@ def login():
         return redirect(url_for("auth.login"))
 
     try:
-        sync_user(user, False)
+        sync_user(user, force=False)
     except extranet.ExtranetError:
         flash(
             """Synchronization avec l'extranet FFCAM impossible,

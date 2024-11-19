@@ -8,7 +8,7 @@ from markupsafe import escape
 from flask_wtf.csrf import generate_csrf
 
 
-from collectives.models import db, UserType, Configuration
+from collectives.models import db, User, UserType, Configuration
 from collectives.utils import extranet
 
 
@@ -24,16 +24,15 @@ class UnauthenticatedUserMixin(AnonymousUserMixin):
     # pylint: enable=invalid-name
 
 
-def sync_user(user, force):
+def sync_user(user: User, force: bool) -> bool:
     """Synchronize user info from extranet.
 
     Synchronization is done if license has been renewed or if 'force' is True. Test users
     cannot be synchronized.
 
     :param user: User to synchronize
-    :type user: :py:class:`collectives.models.user.User`
     :param force: if True, do synchronisation even if licence has been recently renewed.
-    :type force: boolean
+    :returns: whether the user exists in the source of truth
     """
     if user.enabled and user.type == UserType.Extranet:
         # Check whether the license has been renewed
@@ -51,7 +50,7 @@ def sync_user(user, force):
                     current_app.logger.warning(
                         f"User #{user.id} synchronization : licence has been updated."
                     )
-            return
+            return False
 
         if force or license_info.expiry_date() > user.license_expiry_date:
             # License has been renewd, sync user data from API
@@ -59,6 +58,8 @@ def sync_user(user, force):
             extranet.sync_user(user, user_info, license_info)
             db.session.add(user)
             db.session.commit()
+
+    return True
 
 
 def get_bad_phone_message(user, emergency=False):
