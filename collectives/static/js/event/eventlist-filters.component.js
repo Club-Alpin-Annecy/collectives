@@ -56,6 +56,12 @@ export default {
       <template #chip="slotProps">
           <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = filters.activities.filter(id => id !== slotProps.value)"/>
       </template>
+      <template #footer>
+        <div class="p-3 flex justify-between">
+            <div></div>
+            <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.activities = []" />
+        </div>
+      </template>
     </p-multiselect>
 
     <div 
@@ -87,6 +93,12 @@ export default {
         <template #chip="slotProps">
             <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTypes = filters.eventTypes.filter(id => id !== slotProps.value)" />
         </template>
+        <template #footer>
+          <div class="p-3 flex justify-between">
+              <div></div>
+              <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.eventTypes = []" />
+          </div>
+        </template>
       </p-multiselect>
 
       <p-multiselect 
@@ -107,6 +119,12 @@ export default {
         </template>
         <template #chip="slotProps">
             <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTags = filters.eventTags.filter(id => id !== slotProps.value)" />
+        </template>
+        <template #footer>
+          <div class="p-3 flex justify-between">
+              <div></div>
+              <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.eventTags = []" />
+          </div>
         </template>
       </p-multiselect>
 
