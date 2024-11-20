@@ -5,13 +5,14 @@ import base64
 import json
 import decimal
 import uuid
+from typing import Dict, Any
 
-from flask import url_for, request, current_app
+from flask import url_for, request, current_app, Flask
 import pysimplesoap
 from pysimplesoap.client import SoapClient
 
-from collectives.models.payment import PaymentStatus
-from collectives.models import Configuration
+from collectives.models.payment import PaymentStatus, Payment
+from collectives.models import Configuration, User
 from collectives.utils.time import format_date
 from collectives.utils.misc import to_ascii, truncate
 
@@ -39,43 +40,32 @@ CPT stands for "Full"
 class PaymentResult:
     """Result returned after payline API requests. Gives information
     about whether the request has succeeded, or why it has not
+
+    :param response: response dictionary from SOAP endpoint
     """
 
-    code = ""
-    """ Return code, see https://docs.payline.com/display/DT/Return+codes
+    def __init__(self, response: Dict[str, str] = None):
+        """Constructor"""
 
-    :type: string
-    """
-    short_message = ""
-    """ short message of transaction status
-    i.e. : ACCEPTED, REFUSED, ERROR...
-    See https://docs.payline.com/display/DT/Codes+-+ShortMessage
+        self.code = ""
+        """ Return code, see https://docs.payline.com/display/DT/Return+codes"""
+        self.short_message = ""
+        """ short message of transaction status
+        i.e. : ACCEPTED, REFUSED, ERROR...
+        See https://docs.payline.com/display/DT/Codes+-+ShortMessage"""
+        self.long_message = ""
+        """ long message of transaction status details"""
 
-    :type: string
-    """
-    long_message = ""
-    """ long message of transaction status details
-
-    :type: string
-    """
-
-    def __init__(self, response=None):
-        """Constructor from an optional SOAP response dictionary
-
-        :param response: Result object from SOAP response
-        :type response: dict
-        """
         if response is not None:
             self.code = response["code"]
             self.long_message = response["longMessage"]
             self.short_message = response["shortMessage"]
 
-    def payment_status(self):
+    def payment_status(self) -> PaymentStatus:
         """Maps the API response short message and code to
         a value from our PaymentStatus enum.
 
         :return: The corresponding payment status
-        :rtype: :py:class:`collectives.models.payment.PaymentStatus`
         """
         if self.short_message == "ACCEPTED":
             return PaymentStatus.Approved
@@ -96,11 +86,10 @@ class PaymentResult:
 
         return PaymentStatus.Initiated
 
-    def is_accepted(self):
+    def is_accepted(self) -> bool:
         """Checks whether the call was successful
 
         :return: True if successful (return message 'ACCEPTED'), False for any other
-        :rtype: bool
         """
         return self.payment_status() == PaymentStatus.Approved
 
@@ -110,61 +99,47 @@ class PaymentRequest:
     Response from a payment creation request
     """
 
-    result = PaymentResult()
-    """
-    Whether the request has succeeded, or why it has not
+    def __init__(self):
+        """Constructor"""
 
-    :type: :py:class:`collectives.utils.payline.PaymentResult`
-    """
-
-    token = ""
-    """ Time stamped token that identifies the merchant's web payment request
-
-    :type: string
-    """
-    redirect_url = ""
-    """ URL on which the shopper's browser
-    must be redirected to make the payment.
-
-    :type: string
-    """
+        self.result: PaymentResult = PaymentResult()
+        """Whether the request has succeeded, or why it has not"""
+        self.token: str = ""
+        """ Time stamped token that identifies the merchant's web payment request"""
+        self.redirect_url = ""
+        """ URL on which the shopper's browser
+        must be redirected to make the payment."""
 
 
 class PaymentDetails:
     """
     Class wrapping the results of a "get payment details" API request
+
+    :param response: Dictionnary containing API call result.
+        Must contain a 'result' key.
     """
 
-    result = PaymentResult()
-    """
-    Whether the request has succeeded, or why it has not
+    def __init__(self, response: Dict[str, Any]):
+        """Constructor"""
 
-    :type: :py:class:`collectives.utils.payline.PaymentResult`
-    """
+        self.result: PaymentResult = PaymentResult(response["result"])
+        """Whether the request has succeeded, or why it has not"""
 
-    response = {}
-    """ Dictionary containing the raw SOAP api response for
-    a payment details query.
-    See https://docs.payline.com/display/DT/Webservice+-+getWebPaymentDetailsResponse
+        self.response: Dict[str, Any] = response
+        """ Dictionary containing the raw SOAP api response for
+        a payment details query.
+        See https://docs.payline.com/display/DT/Webservice+-+getWebPaymentDetailsResponse
+        """
 
-    :type: dict
-    """
-
-    response["transaction"] = {}
-    response["authorization"] = {}
-    response["payment"] = {}
-
-    def raw_metadata(self):
+    def raw_metadata(self) -> str:
         """
         :return: the raw response dictionary as a Json string
-        :rtype: string
         """
         return json.dumps(self.response)
 
-    def amount(self):
+    def amount(self) -> decimal.Decimal:
         """
         :return: The payment amount in decimal currency units
-        :rtype: :py:class:`decimal.Decimal`
         """
         try:
             amount_in_cents = self.payment["amount"]
@@ -173,149 +148,87 @@ class PaymentDetails:
             return decimal.Decimal(0)
 
     @property
-    def authorization(self):
+    def authorization(self) -> Dict[str, Any]:
         """
         :return: The dictionary corresponding to the "authorization" par of the response
-        :rtype: dict
         """
-        return self.response["authorization"]
+        return self.response.get("authorization", {})
 
     @property
-    def transaction(self):
+    def transaction(self) -> Dict[str, Any]:
         """
         See https://docs.payline.com/display/DT/Object+-+transaction
 
         :return: The dictionary corresponding to the "transaction" par of the response
-        :rtype: dict
         """
-        return self.response["transaction"]
+        return self.response.get("transaction", {})
 
     @property
-    def payment(self):
+    def payment(self) -> Dict[str, Any]:
         """
         See https://docs.payline.com/display/DT/Object+-+payment
 
         :return: The dictionary corresponding to the "payment" par of the response
-        :rtype: dict
         """
-        return self.response["payment"]
+        return self.response.get("payment", {})
 
     @staticmethod
-    def from_metadata(raw_metadata):
+    def from_metadata(raw_metadata: str) -> "PaymentDetails":
         """
         Constructs a PaymentDetails object from a metadata string
 
         :param: raw_metadata Json-encoded metadata string
-        :type: raw_metadata string
         :return: Payment details
-        :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
         """
         response = json.loads(raw_metadata)
         return PaymentDetails(response)
-
-    def __init__(self, response):
-        """
-        Constructor from response dictionnary
-
-        :param: response Dictionnary containing API call result
-        :type: response dict
-        """
-        self.result = PaymentResult(response["result"])
-        self.response = response
 
 
 class RefundDetails:
     """
     Class wrapping the results of a "do refund" API request
+
+    :param response: Dictionnary containing API call result.
+        Must contain a 'result' key.
     """
 
-    result = PaymentResult()
-    """
-    Whether the request has succeeded, or why it has not
+    def __init__(self, response: Dict[str, Any]):
+        """Constructor"""
 
-    :type: :py:class:`collectives.utils.payline.PaymentResult`
-    """
+        self.result: PaymentResult = PaymentResult(response["result"])
+        """Whether the request has succeeded, or why it has not"""
 
-    response = {}
-    """ Dictionary containing the raw SOAP api response for
-    a payment details query.
-    See https://docs.payline.com/display/DT/Webservice+-+doRefundResponse
+        self.response: Dict[str, Any] = response
+        """ Dictionary containing the raw SOAP api response for
+        a payment refund query.
+        See https://docs.payline.com/display/DT/Webservice+-+doRefundResponse
+        """
 
-    :type: dict
-    """
-
-    response["transaction"] = {}
-
-    def raw_metadata(self):
+    def raw_metadata(self) -> str:
         """
         :return: the raw response dictionary as a Json string
-        :rtype: string
         """
         return json.dumps(self.response)
 
     @property
-    def transaction(self):
+    def transaction(self) -> Dict[str, Any]:
         """
         See https://docs.payline.com/display/DT/Object+-+transaction
 
         :return: The dictionary corresponding to the "transaction" par of the response
-        :rtype: dict
         """
-        return self.response["transaction"]
-
-    def __init__(self, response):
-        """
-        Constructor from response dictionnary
-
-        :param: response Dictionnary containing API call result
-        :type: response dict
-        """
-        self.result = PaymentResult(response["result"])
-        self.response = response
+        return self.response.get("transaction", {})
 
 
 class OrderInfo:
     """Class describing an order for a payment request.
-    Will usually be constructed from a :py:class:`collectives.models.payment.Payment` object
+
+    :param payment: Payment database entry, defaults to None
     """
 
-    amount_in_cents = 0
-    """ Amount in smallest currency unit (e.g euro cents)
-
-    :type: int
-    """
-
-    payment = None
-    """ Related database Payment entry
-
-    :type: :py:class:`collectives.models.payment.Payment`
-    """
-
-    date = "01/01/1970 13:25"
-    """ Date and time at which the order is being made,
-    with format dd/mm/YYYY HH:MM
-
-    :type: string
-    """
-
-    details = {}
-    """ Dictionary containing details about the order
-        See https://docs.payline.com/display/DT/Object+-+orderDetail
-
-        :type: dict
-    """
-
-    metadata = {}
-    """ Dictionnary containing free-form metadata about the order.
-        Used in lieu of details as Payline does not seem to acknowledge orderDetails
-
-        :type: dict
-    """
-
-    def unique_ref(self):
+    def unique_ref(self) -> str:
         """
         :return: An unique reference for the order
-        :rtype: string
         """
         if self.payment is None:
             return str(uuid.uuid4())
@@ -332,10 +245,9 @@ class OrderInfo:
 
         return f"CAF{date_str}{activity_str}{rolling_id:04}"
 
-    def private_data(self):
+    def private_data(self) -> Dict[str, Any]:
         """
         :return: Metadata in the Payline key-value list format
-        :rtype: dict
         """
         key_value = []
         for key, value in self.metadata.items():
@@ -351,12 +263,26 @@ class OrderInfo:
 
         return {"privateData": key_value}
 
-    def __init__(self, payment=None):
-        """Constructor from an optional payment object
+    def __init__(self, payment: Payment = None):
+        """Constructor"""
 
-        :param payment: Payment database entry, defaults to None
-        :type payment: :py:class:`collectives.models.payment.Payment`, optional
+        self.amount_in_cents: int = 0
+        """ Amount in smallest currency unit (e.g euro cents)"""
+        self.payment: Payment = None
+        """ Related database Payment entry"""
+        self.date: str = "01/01/1970 12:34"
+        """ Date and time at which the order is being made,
+        with format dd/mm/YYYY HH:MM
         """
+        self.details: Dict[str, Any] = {}
+        """ Dictionary containing details about the order
+            See https://docs.payline.com/display/DT/Object+-+orderDetail
+        """
+        self.metadata: Dict[str, Any] = {}
+        """ Dictionnary containing free-form metadata about the order.
+            Used in lieu of details as Payline does not seem to acknowledge orderDetails
+        """
+
         if payment is not None:
             self.payment = payment
             self.amount_in_cents = (payment.amount_charged * 100).to_integral_exact()
@@ -389,40 +315,25 @@ class OrderInfo:
 
 
 class BuyerInfo:
-    """Information about the user making the payment"""
+    """Information about the user making the payment
 
-    title = ""
-    """ Title, e.g. 'M.', 'Mme.', etc
-
-    :type: string
-    """
-    last_name = ""
-    """ Buyer last name
-
-    :type: string
-    """
-    first_name = ""
-    """ Buyer first name
-
-    :type: string
-    """
-    email = ""
-    """ Email address, must be valid
-
-    :type: string
-    """
-    birth_date = ""
-    """ Data of birth, ptional
-
-    :type: string
+    :param payment: User database entry, defaults to None
     """
 
-    def __init__(self, user=None):
-        """Constructor from an optional user object
+    def __init__(self, user: User = None):
+        """Constructor from an optional user object"""
 
-        :param payment: User database entry, defaults to None
-        :type payment: :py:class:`collectives.models.user.User`, optional
-        """
+        self.title: str = ""
+        """ Title, e.g. 'M.', 'Mme.', etc"""
+        self.last_name: str = ""
+        """Buyer last name"""
+        self.first_name: str = ""
+        """ Buyer first name"""
+        self.email: str = ""
+        """ Email address, must be valid"""
+        self.birth_date: str = ""
+        """ Data of birth, ptional"""
+
         if user is not None:
             self.first_name = user.first_name
             self.last_name = user.last_name
@@ -437,130 +348,107 @@ class BuyerInfo:
 class PaylineApi:
     """SOAP Client to process payment with payline, refer to Payline docs"""
 
-    webpayment_client = None
-    """ SOAP client object to connect to Payline WebPaymentAPI.
+    def __init__(self):
+        """Constructor"""
 
-    :type: :py:class:`pysimplesoap.client.SoapClient`
-    """
+        self._webpayment_client: SoapClient = None
+        """ SOAP client object to connect to Payline WebPaymentAPI."""
+        self._directpayment_client: SoapClient = None
+        """ SOAP client object to connect to Payline DirectPaymentAPI."""
 
-    directpayment_client = None
-    """ SOAP client object to connect to Payline DirectPaymentAPI.
+        self.payline_currency: str = ""
+        """ payment currency : euro = 978"""
+        self.payline_contract_number: str = ""
+        """ payline contract number"""
+        self.payline_merchant_id: str = ""
+        """ Payline merchant id refer to payline account"""
+        self.payline_merchant_name: str = ""
+        """ Payline merchant name"""
+        self.payline_access_key: str = ""
+        """ Payline access key (to be set in payline backoffice)"""
+        self.payline_country: str = ""
+        """ Payline country code"""
 
-    :type: :py:class:`pysimplesoap.client.SoapClient`
-    """
-
-    app = None
-    """ Current flask application.
-
-    :type: :py:class:`flask.Flask`
-    """
-
-    encoded_auth = ""
-    """ authentication string for http http_header
-
-    :type: string
-    """
-
-    payline_currency = ""
-    """ payment currency : euro = 978
-
-    :type: string
-    """
-
-    payline_contract_number = ""
-    """ payline contract number
-
-    :type: string
-    """
-
-    payline_merchant_id = ""
-    """ Payline merchant id refer to payline account
-
-    :type: string
-    """
-
-    payline_merchant_name = ""
-    """ Payline merchant name
-
-    :type: string
-    """
-
-    payline_access_key = ""
-    """ Payline access key (to be set in payline backoffice)
-
-    :type: string
-    """
-
-    payline_country = ""
-    """ Payline country code
-
-    :type: string
-    """
-
-    def init_app(self, app):
+    def init_app(self, app: Flask):
         """Initialize the payline with the app.
-
         :param app: Current app.
-        :type app: :py:class:`flask.Flask`
         """
-        self.app = app
+        pass
 
-    def init(self):
-        """Initialize the SOAP Client using `app` config."""
-        if not self.webpayment_client is None:
-            # Already initialized
-            return
+    def reload_config(self):
+        """Reads current configuration, reset client if necessary"""
 
-        if not Configuration.PAYLINE_MERCHANT_ID:
-            current_app.logger.warning("Payment API disabled, using mock API")
-            return
+        merchant_id_changed = (
+            self.payline_merchant_id != Configuration.PAYLINE_MERCHANT_ID
+        )
 
         self.payline_merchant_id = Configuration.PAYLINE_MERCHANT_ID
         self.payline_access_key = Configuration.PAYLINE_ACCESS_KEY
-        encoded_auth = base64.b64encode(
-            self.payline_merchant_id.encode() + b":" + self.payline_access_key.encode()
-        ).decode("utf-8")
         self.payline_currency = Configuration.PAYLINE_CURRENCY
         self.payline_contract_number = Configuration.PAYLINE_CONTRACT_NUMBER
         self.payline_merchant_name = Configuration.PAYLINE_MERCHANT_NAME
         self.payline_country = Configuration.PAYLINE_COUNTRY
 
-        try:
-            self.webpayment_client = SoapClient(
-                wsdl=current_app.config["PAYLINE_WSDL"],
-                wsdl_basedir=".",
-                http_headers={
-                    "Authorization": f"Basic {encoded_auth}",
-                    "Content-Type": "text/plain",
-                },
-            )
-            self.directpayment_client = SoapClient(
-                wsdl=current_app.config["PAYLINE_DIRECTPAYMENT_WSDL"],
-                wsdl_basedir=".",
-                http_headers={
-                    "Authorization": f"Basic {encoded_auth}",
-                    "Content-Type": "text/plain",
-                },
+        if merchant_id_changed:
+            # Reset clients
+            self._webpayment_client = None
+            self._directpayment_client = None
+            if self.disabled():
+                current_app.logger.warning("Payment API disabled, using mock API")
+
+    @property
+    def encoded_auth(self):
+        """authentication string for http http_header"""
+        return base64.b64encode(
+            self.payline_merchant_id.encode() + b":" + self.payline_access_key.encode()
+        ).decode("utf-8")
+
+    def _create_client(self, wsdl_path: str) -> SoapClient:
+        """Creates a SOAP client from a WSDL file
+
+        :param wsdl_path: Relative path to the wsdl file
+        """
+
+        return SoapClient(
+            wsdl=wsdl_path,
+            wsdl_basedir=".",
+            http_headers={
+                "Authorization": f"Basic {self.encoded_auth}",
+                "Content-Type": "text/plain",
+            },
+        )
+
+    @property
+    def webpayment_client(self) -> SoapClient:
+        """Cached SOAP client object to connect to Payline WebPaymentAPI."""
+        if self._webpayment_client is None:
+            self._webpayment_client = self._create_client(
+                wsdl_path=current_app.config["PAYLINE_WSDL"],
             )
 
-        except pysimplesoap.client.SoapFault as err:
-            current_app.logger.error(f"Extranet API error: {err}")
-            self.webpayment_client = None
-            self.directpayment_client = None
-            raise err
+        return self._webpayment_client
 
-    def do_web_payment(self, order_info, buyer_info):
+    @property
+    def directpayment_client(self) -> SoapClient:
+        """Cached SOAP client object to connect to Payline DirectPaymentAPI."""
+        if self._directpayment_client is None:
+            self._directpayment_client = self._create_client(
+                wsdl_path=current_app.config["PAYLINE_DIRECTPAYMENT_WSDL"],
+            )
+
+        return self._directpayment_client
+
+    def do_web_payment(
+        self, order_info: OrderInfo, buyer_info: BuyerInfo
+    ) -> PaymentRequest:
         """Initiates a payment request with Payline and returns the
         resulting token identifier on success, or information about the error
 
         :param order_info: Information about the item being ordered
-        :type order_info: :py:class:`collectives.utils.payline.OrderInfo`
         :param buyer_info: Information about the user amking the order
-        :type buyer_info: :py:class:`collectives.utils.payline.OrderInfo`
         :return: An object representing the API response, or None if the API call failed
-        :rtype: :py:class:`collectives.utils.payline.PaymentRequest`
         """
-        self.init()
+        self.reload_config()
 
         payment_response = PaymentRequest()
 
@@ -623,15 +511,13 @@ class PaylineApi:
 
         return None
 
-    def get_web_payment_details(self, token):
+    def get_web_payment_details(self, token: str) -> PaymentDetails:
         """Returns the details about a payment that has been previously initiated
 
         :param token: The unique identifer returned by the :py:meth:`do_web_payment()` call
-        :type token: string
         :return: An object representing the payment details, or None if the API call failed
-        :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
         """
-        self.init()
+        self.reload_config()
 
         if self.disabled():
             # Dev mode, result is read from url parameters
@@ -660,18 +546,16 @@ class PaylineApi:
 
         return None
 
-    def do_refund(self, payment_details):
+    def do_refund(self, payment_details: PaymentDetails) -> RefundDetails:
         """Tries to refund a previously approved online payment.
 
         Will first try a 'reset' call (cancel immediately the payment if it has not
         been debited yet), and if this fail will try a full 'refund' call.
 
         :param payment_details: The payment details as returned by :py:meth:`getWebPaymentDetails`
-        :type token: :py:class:`collectives.utils.payline.PaymentDetails`
         :return: An object representing the response details, or None if the API call failed
-        :rtype: :py:class:`collectives.utils.payline.RefundDetails`
         """
-        self.init()
+        self.reload_config()
 
         if self.disabled():
             # Dev mode, refund always succeeds
@@ -706,21 +590,15 @@ class PaylineApi:
 
         return None
 
-    def disabled(self):
-        """Check if soap client has been initialized.
-
-        If soap client has not been initialized, it means we are in dev mode.
-
+    def disabled(self) -> bool:
+        """Check if Payline merchant Id has been set.
         :return: True if PaylineApi is disabled.
-        :rtype: boolean
         """
-        return self.webpayment_client is None
+        return not self.payline_merchant_id
 
 
-api = PaylineApi()
+api: PaylineApi = PaylineApi()
 """ PaylineApi object that will handle request to Payline.
 
 `api` requires to be initialized with :py:meth:`PaylineApi.init_app` to be used.
-
-:type: :py:class:`PaylineApi`
 """

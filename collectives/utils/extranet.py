@@ -285,7 +285,7 @@ class ExtranetApi:
         return info
 
 
-api = ExtranetApi()
+api: ExtranetApi = ExtranetApi()
 """ ExtranetApi object that will handle request to FFCAM servers.
 
 `api` requires to be initialized with :py:meth:`ExtranetApi.init_app` to be used.
