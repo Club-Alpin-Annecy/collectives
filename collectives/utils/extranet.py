@@ -184,12 +184,8 @@ class ExtranetApi:
     @property
     def auth_info(self) -> Dict:
         """Builds authorization info from config"""
-        self._auth_info.update(
-            {
-                "utilisateur": Configuration.EXTRANET_ACCOUNT_ID,
-                "motdepasse": Configuration.EXTRANET_ACCOUNT_PWD,
-            }
-        )
+        self._auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
+        self._auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
         return self._auth_info
 
     def disabled(self) -> bool:
