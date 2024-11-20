@@ -30,8 +30,8 @@ export default {
       filters: props.filters,
       config,
       toggleCancelled: () => props.filters.displayCancelled = !props.filters.displayCancelled,
-      fetchLeaders,
       findInConfig: (list, activityId) => list.find(id =>  id.id === activityId),
+      fetchLeaders,
       leadersSearch,
     }
   },
@@ -54,7 +54,7 @@ export default {
           </div>
       </template>
       <template #chip="slotProps">
-          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = filters.activities.filter(id => id !== slotProps.value)"/>
       </template>
     </p-multiselect>
 
@@ -85,7 +85,7 @@ export default {
           </div>
         </template>
         <template #chip="slotProps">
-            <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+            <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTypes = filters.eventTypes.filter(id => id !== slotProps.value)" />
         </template>
       </p-multiselect>
 
@@ -106,7 +106,7 @@ export default {
           </div>
         </template>
         <template #chip="slotProps">
-            <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable />
+            <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTags = filters.eventTags.filter(id => id !== slotProps.value)" />
         </template>
       </p-multiselect>
 
