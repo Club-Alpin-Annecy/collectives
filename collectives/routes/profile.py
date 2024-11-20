@@ -163,7 +163,17 @@ def force_user_sync(user_id):
             return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
-        sync_user(user, True)
+        if not sync_user(user, force=True):
+            flash(
+                f'Votre numéro de licence "{user.license}" n\'est pas ou plus valide '
+                "dans la base fédérale. Si un nouveau numéro de licence vous a été attribué, "
+                "vous pouvez utiliser le formulaire de récupération ci-dessous pour "
+                "le ré-associer avec compte",
+                "error",
+            )
+            logout_user()
+            return redirect(url_for("auth.recover"))
+
     except ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",

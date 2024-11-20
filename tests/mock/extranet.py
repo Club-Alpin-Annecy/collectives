@@ -146,7 +146,7 @@ class FakeSoapClient:
 @pytest.fixture
 def extranet_monkeypatch(monkeypatch):
     """Fix methods to avoid external dependencies"""
-    monkeypatch.setattr("collectives.utils.extranet.api.soap_client", FakeSoapClient())
+    monkeypatch.setattr("collectives.utils.extranet.api._soap_client", FakeSoapClient())
     monkeypatch.setattr(
         "collectives.email_templates.send_confirmation_email", send_confirmation_email
     )
