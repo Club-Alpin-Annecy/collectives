@@ -113,6 +113,8 @@ class EventTag(db.Model):
         :param string short: CSV code of the searched tag
         :returns: Tag id
         """
+        if csv_code == None:
+            return None
 
         # Match without accents, lowercase
         csv_code = to_ascii(csv_code.strip().lower())
