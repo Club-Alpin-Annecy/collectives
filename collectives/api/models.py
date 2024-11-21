@@ -3,39 +3,39 @@
 Usually export as js file to be directly used by js."""
 
 import inspect
-import sys
 import json
-from flask import Response
+from flask import Response, request
 
 from collectives.api.common import blueprint
-from collectives.models.utils import ChoiceEnum
-from collectives.models import ActivityType, EventType, EventTag, Configuration, RoleIds
+import collectives.models
+from collectives.models import EventTag, Configuration, RoleIds
 
 
 @blueprint.route("/models.js")
 def models_to_js():
-    """Routes to export all Enum to js"""
-    enums = ""
-    for name, obj in inspect.getmembers(sys.modules["collectives.models"]):
-        if inspect.isclass(obj) and issubclass(obj, ChoiceEnum):
-            enums = enums + "const Enum" + name + "=" + obj.js_values() + ";"
-            enums = enums + "const Enum" + name + "Keys=" + obj.js_keys() + ";"
+    """Routes to export all Enum to js
 
-    enums = enums + "const EnumActivityType=" + ActivityType.js_values() + ";"
-    enums = enums + "const EnumEventType=" + EventType.js_values() + ";"
+    :param export: If true, emits a JS module that exports all declarations
+    """
+    enums = []
+    for name, obj in inspect.getmembers(collectives.models):
+        if hasattr(obj, "js_values"):
+            enums.append(f"const Enum{name}={obj.js_values()};")
+        if hasattr(obj, "js_keys"):
+            enums.append(f"const Enum{name}Keys={obj.js_keys()};")
 
     tags = ",".join([f"{i}:'{tag['name']}'" for i, tag in EventTag.all().items()])
-    enums = enums + "const EnumEventTag={" + tags + "};"
+    enums.append(f"const EnumEventTag={{{tags}}};")
 
-    enums = (
-        enums
-        + "const LicenseCategories = "
-        + json.dumps(Configuration.LICENSE_CATEGORIES)
-        + ";"
+    enums.append(
+        f"const LicenseCategories = {json.dumps(Configuration.LICENSE_CATEGORIES)};"
     )
 
     activity_required_js = [str(int(r)) for r in RoleIds.all_relates_to_activity()]
     activity_required_js = "[" + ",".join(activity_required_js) + "]"
-    enums = enums + "const ActivityRequiredRoles=" + activity_required_js + ";"
+    enums.append(f"const ActivityRequiredRoles={activity_required_js};")
 
-    return Response(enums, mimetype="application/javascript")
+    if request.args.get("export"):
+        enums = [f"export {enum}" for enum in enums]
+
+    return Response("\n".join(enums), mimetype="application/javascript")

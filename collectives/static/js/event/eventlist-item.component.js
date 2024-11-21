@@ -7,7 +7,7 @@ export default {
     const config = inject('config')
     return {
       event: props.eventItem,
-      EventStatus: config.EnumEventStatus
+      EventStatus: config.models.EnumEventStatus
     }
   },
   methods: {
