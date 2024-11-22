@@ -28,7 +28,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
 
     import axios from 'axios'
     import moment from 'moment'
-    import * as models from '{{ url_for('api.models_to_js') }}'
+    import * as models from '{{ url_for('api.models_to_js', export=1) }}'
     import EventList from '{{ url_for('static', filename='js/event/eventlist.component.js') }}'
    
     moment.locale('fr')
