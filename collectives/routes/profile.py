@@ -163,7 +163,7 @@ def force_user_sync(user_id):
             return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
-        if not sync_user(user, force=True):
+        if not sync_user(user, force=True) and user.id == current_user.id:
             flash(
                 f'Votre numéro de licence "{user.license}" n\'est pas ou plus valide '
                 "dans la base fédérale. Si un nouveau numéro de licence vous a été attribué, "

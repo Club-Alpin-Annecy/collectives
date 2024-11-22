@@ -124,7 +124,7 @@ class FakeSoapClient:
             }
         if license == EXPIRED_LICENSE:
             return {
-                "existe": 1,
+                "existe": 0,
                 "id": license,
                 "nom": "EXPIRED",
                 "prenom": "BOB",
