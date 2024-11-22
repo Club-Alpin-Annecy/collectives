@@ -41,7 +41,7 @@ export default {
           
             <span class="event-status-badge"
               v-if="!event.is_confirmed"
-              :class="'event-status-'+ EventStatus[event.status]"
+              :class="'event-status-'+ event.status"
             >
               {{EventStatus[event.status]}}
             </span>
