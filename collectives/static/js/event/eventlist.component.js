@@ -32,7 +32,7 @@ export default {
             date: moment().format("DD/MM/YYYY"),
             title: null,
             leader: null,
-            displayCancelled: false, 
+            displayCancelled: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).displayCancelled : false
         })
 
         function saveFiltersToLocalStorage(){
