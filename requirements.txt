@@ -4,7 +4,7 @@ markupsafe
 flask
 Werkzeug
 flask-assets
-git+https://github.com/maxcountryman/flask-login.git@2204b4eee7b215977ba5a1bf85e2061f7fa65e20#egg=flask-login
+git+https://github.com/maxcountryman/flask-login.git@26d12eaa99a18fc91e662ef0c8466245b8865c1c#egg=flask-login
 sqlalchemy
 flask_sqlalchemy
 sqlalchemy-utils

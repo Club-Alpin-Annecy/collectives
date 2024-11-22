@@ -1,6 +1,7 @@
 """Module for registration related classes
 """
 
+from operator import attrgetter
 from sqlalchemy.sql import func
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
@@ -289,3 +290,72 @@ class Registration(db.Model):
         return [self.status] + self.status.valid_transitions(
             self.event.requires_payment()
         )
+
+    def holding_index(self) -> int:
+        """Returns the chronlogical place this registration has in all holding place registrations.
+        None if not active. Starts at 1."""
+        if not self.is_holding_slot():
+            return None
+        regs = self.event.registrations
+        return (
+            sorted(
+                [r for r in regs if r.is_holding_slot()], key=attrgetter("id")
+            ).index(self)
+            + 1
+        )
+
+    def online_index(self) -> int:
+        """Returns the chronlogical place this registration has in all online and holding slot
+        registrations. None if not holding slot and online. Starts at 1."""
+        if not self.is_self or not self.is_holding_slot():
+            return None
+        regs = self.event.registrations
+        return (
+            sorted(
+                [r for r in regs if r.is_self and self.is_holding_slot()],
+                key=attrgetter("id"),
+            ).index(self)
+            + 1
+        )
+
+    def waiting_index(self) -> int:
+        """Returns the chronlogical place this registration has in waiting registrations.
+        None if not waiting. Starts at 1."""
+        status = RegistrationStatus.Waiting
+        if self.status != status:
+            return None
+        regs = self.event.registrations
+        return (
+            sorted([r for r in regs if r.status == status], key=attrgetter("id")).index(
+                self
+            )
+            + 1
+        )
+
+    def is_overbooked(self) -> bool:
+        """Check if the registration is not overbooking.
+
+        An overbooked registration is:
+
+        - | an online registration with more previous Waiting registration
+          | than online slots
+        - | or an holding place registration with more previous holding place registration
+          | than total slots
+        - | a Waiting registration with more previous Waiting registration
+          | than Waiting slots
+
+        """
+
+        if self.waiting_index() is not None:
+            if self.waiting_index() > self.event.num_waiting_slots:
+                return True
+
+        if self.holding_index() is not None:
+            if self.holding_index() > self.event.num_slots:
+                return True
+
+        if self.online_index() is not None:
+            if self.online_index() > self.event.num_online_slots:
+                return True
+
+        return False

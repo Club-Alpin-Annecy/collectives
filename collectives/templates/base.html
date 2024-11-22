@@ -3,10 +3,10 @@
     <head>
         <title>Collectives {% block title %}{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
         {% assets "scss_all" %}
             <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
         {% endassets %}
+        <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
         <link rel="icon" href="{{ url_for('static', filename=config['FAVICON']) }}" />
         <script type="text/javascript">
             function getServerLocalTime(){

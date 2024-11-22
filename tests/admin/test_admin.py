@@ -79,3 +79,15 @@ def test_admin_create_valideuser(admin_client):
     assert response.headers["Location"].endswith("/administration/")
     users = User.query.all()
     assert users[1].mail == "user1@mail.domain"
+
+
+# pylint: disable=unused-argument
+def test_create_token(admin_client, extranet_monkeypatch):
+    """Test administrator token generation for another user."""
+    response = admin_client.get("/administration/token")
+    assert response.status_code == 200
+
+    data = {"license": "740020780001", "confirm": "y"}
+
+    response = admin_client.post("/administration/generate_token", data=data)
+    assert response.status_code == 200

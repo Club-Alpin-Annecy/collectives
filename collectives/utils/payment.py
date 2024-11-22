@@ -69,7 +69,7 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                         Event.activity_types.any(ActivityType.id == int(value))
                     )
                 except TypeError:
-                    current_app.logger.warn(
+                    current_app.logger.warning(
                         f"payment_list: {value} cannot be converted to an int"
                     )
             elif field == "item.event.event_type.name" and value is not None:

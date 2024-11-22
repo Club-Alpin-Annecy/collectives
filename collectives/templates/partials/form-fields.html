@@ -1,23 +1,6 @@
 {% macro form_generator(form, action='', form_id='basic_form') -%}
 
-  <div class="form-errors">
-    {% for field in form%}
-    {% for error in form.errors[field.name] %}
-
-    <div class="flash flash-error">
-        <strong>Erreur : {{field.label}}:</strong> {{error}}
-    </div>
-
-    {% endfor %}
-    {% endfor %}
-
-    {% if form.generic_error %}
-        <div class="flash flash-error">
-        <strong>Erreur :</strong> {{form.generic_error}}
-        </div>
-    {% endif %}
-
-  </div>
+  {{ form_errors(form) }}
 
   <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
@@ -50,4 +33,25 @@
     {{ form.csrf_token }}
   </form>
 
+{%- endmacro %}
+
+{% macro form_errors(form) -%}
+<div class="form-errors">
+    {% for field in form%}
+    {% for error in form.errors[field.name] %}
+
+    <div class="flash flash-error">
+        <strong>Erreur : {{field.label}}:</strong> {{error}}
+    </div>
+
+    {% endfor %}
+    {% endfor %}
+
+    {% if form.generic_error %}
+        <div class="flash flash-error">
+        <strong>Erreur :</strong> {{form.generic_error}}
+        </div>
+    {% endif %}
+
+  </div>
 {%- endmacro %}

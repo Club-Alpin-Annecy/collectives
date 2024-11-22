@@ -474,6 +474,7 @@ def token():
         form=AdminTokenCreationForm(),
         extends="administration/index.html",
         description=description,
+        action=url_for("administration.generate_token"),
     )
 
 

@@ -202,5 +202,6 @@ class FakeSoapClient:
 def payline_monkeypatch(app, monkeypatch):
     """Fix methods to avoid external dependencies"""
     monkeypatch.setattr(
-        "collectives.utils.payline.api.webpayment_client", FakeSoapClient()
+        "collectives.utils.payline.api._create_client",
+        lambda wsdl_path: FakeSoapClient(),
     )

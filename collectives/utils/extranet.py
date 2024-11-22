@@ -3,9 +3,11 @@
 
 import traceback
 from datetime import datetime, date
-from flask import current_app
+from typing import Dict
+from flask import current_app, Flask
 
 from zeep import Client
+from zeep.proxy import ServiceProxy
 from zeep.exceptions import Error as ZeepError
 
 from collectives.models import Gender, Configuration, UserType
@@ -31,15 +33,16 @@ LICENSE_EXPIRY_MONTH = 10
 class LicenseInfo:
     """Licence information as retrieved from FFCAM servers."""
 
-    exists = False
-    """ If licence exists.
-    :type: boolean
-    """
-    renewal_date = None
-    """ Date of renewal of the licence.
+    def __init__(self):
+        """Constructor"""
 
-    :type: :py:class:`datetime.date`
-    """
+        self.exists: bool = False
+        """ If licence exists."""
+        self.renewal_date: date = None
+        """ Date of renewal of the licence.
+
+        :type: :py:class:`datetime.date`
+        """
 
     def expiry_date(self):
         """Get licence expiration date.
@@ -76,61 +79,40 @@ class LicenseInfo:
 class UserInfo:
     """User information as retrieved from FFCAM servers."""
 
-    is_valid = False
-    """ True if user exists on servers.
+    def __init__(self):
+        """Constructor"""
 
-    :type: boolean """
+        self.is_valid: bool = False
+        """ True if user exists on servers."""
 
-    first_name = ""
-    """ User first name.
+        self.first_name: str = ""
+        """ User first name."""
 
-    :type: String """
+        self.last_name: str = ""
+        """ User last name."""
 
-    last_name = ""
-    """ User last name.
+        self.email: str = ""
+        """ User email."""
 
-    :type: String """
+        self.phone: str = ""
+        """ User phone."""
 
-    email = ""
-    """ User email.
+        self.qualite: str = ""
+        """ User title. "titre de civilité".
 
-    :type: String """
+        Can be `M` `Mme` `Mlle`. Is used to guess gender."""
 
-    phone = ""
-    """ User phone.
+        self.date_of_birth: date = None
+        """ User date of birth."""
 
-    :type: String """
+        self.emergency_contact_name: str = ""
+        """ User Emergency contact name."""
 
-    qualite = ""
-    """ User title. "titre de civilité".
+        self.emergency_contact_phone: str = ""
+        """ User Emergency contact phone."""
 
-    Can be `M` `Mme` `Mlle`. Is used to guess gender.
-
-    :type: String """
-
-    date_of_birth = None
-    """ User date of birth.
-
-    :type: :py:class:`datetime.date`
-    """
-
-    emergency_contact_name = ""
-    """ User Emergency contact name.
-
-    :type: string
-    """
-
-    emergency_contact_phone = ""
-    """ User Emergency contact phone.
-
-    :type: string
-    """
-
-    license_category = ""
-    """ User license category.
-
-    :type: string
-    """
+        self.license_category: str = ""
+        """ User license category."""
 
 
 def sync_user(user, user_info, license_info):
@@ -158,7 +140,7 @@ def sync_user(user, user_info, license_info):
     user.type = UserType.Extranet
 
 
-class ExtranetError(Exception):
+class ExtranetError(RuntimeError):
     """An exception indicating that something has gone wrong with extranet API"""
 
     pass
@@ -167,75 +149,61 @@ class ExtranetError(Exception):
 class ExtranetApi:
     """SOAP Client to retrieve information from FFCAM servers."""
 
-    soap_client = None
-    """ SOAP client object user to connect to FFCAM client.
+    def __init__(self):
+        """Constructor"""
 
-    :type: :py:class:`zeep.Client`
-    """
+        self._auth_info: Dict = {}
+        """Authorization info stub"""
 
-    auth_info = None
-    """ Authentication information to connect to SOAP server.
+        self._soap_client: ServiceProxy = None
+        """Cached soap client for performinfg extranet requests"""
 
-    :type: dictionnary
-    """
+    def init_app(self, app: Flask):
+        """Initializes the API for the given Flask app"""
+        if app.config["EXTRANET_DISABLE"]:
+            app.logger.warning(
+                "Extranet API is disabled, using mock API --- no license checks!"
+            )
 
-    app = None
-    """ Current flask application.
+    @property
+    def soap_client(self) -> ServiceProxy:
+        """Returns the cached SOAP client or initialize a new one"""
+        if self._soap_client is None:
+            try:
+                soap_client = Client(wsdl=current_app.config["EXTRANET_WSDL"])
+                self._auth_info = soap_client.service.auth()
+            except (IOError, ZeepError) as err:
+                current_app.logger.error(f"Error loading extranet WSDL: {err}")
+                current_app.logger.error(traceback.format_stack())
+                raise ExtranetError() from err
 
-    :type: :py:class:`flask.Flask`
-    """
+            current_app.logger.info("Extranet SOAP client initialized.")
+            self._soap_client = soap_client.service
+        return self._soap_client
 
-    def init_app(self, app):
-        """Initialize the extranet with the app.
+    @property
+    def auth_info(self) -> Dict:
+        """Builds authorization info from config"""
+        self._auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
+        self._auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
+        return self._auth_info
 
-        :param app: Current app.
-        :type app: :py:class:`flask.Flask`
-        """
-        self.app = app
-
-    def init(self):
-        """Initialize the SOAP Client using `app` config"""
-        if not self.soap_client is None:
-            # Already initialized
-            return
-
-        config = self.app.config
-        if config["EXTRANET_DISABLE"]:
-            current_app.logger.warning("extranet API disabled, using mock API")
-            return
-
-        try:
-            soap_client = Client(wsdl=config["EXTRANET_WSDL"])
-            self.auth_info = soap_client.service.auth()
-        except (IOError, ZeepError) as err:
-            current_app.logger.error(f"Error loading extranet WSDL: {err}")
-            current_app.logger.error(traceback.format_stack())
-            raise ExtranetError() from err
-
-        self.auth_info["utilisateur"] = Configuration.EXTRANET_ACCOUNT_ID
-        self.auth_info["motdepasse"] = Configuration.EXTRANET_ACCOUNT_PWD
-        self.soap_client = soap_client.service
-
-    def disabled(self):
+    def disabled(self) -> bool:
         """Check if soap client has been initialized.
 
         If soap client has not been initialized, it means we are in dev mode.
 
         :return: True if ExtranetApi is disabled.
-        :rtype: boolean
         """
-        return self.soap_client is None
+        return current_app.config["EXTRANET_DISABLE"]
 
-    def check_license(self, license_number):
+    def check_license(self, license_number: str) -> LicenseInfo:
         """Get information on a license from FFCAM server.
 
         :param license_number: License to get information about.
         :type license_number: string
-        :return: Licence information
-        :rtype: :py:class:`LicenseInfo`
         """
 
-        self.init()
         info = LicenseInfo()
 
         if self.disabled():
@@ -262,22 +230,19 @@ class ExtranetApi:
                 ).date()
                 info.exists = True
             except ValueError:
-                # Date parsing as failed, this happens for exprired licenses
+                # Date parsing as failed, this happens for expired licenses
                 # which return '0000-00-00' as date
                 # In that case simply return an invalid license
-                pass
+                info.exists = False
 
         return info
 
-    def fetch_user_info(self, license_number):
+    def fetch_user_info(self, license_number: str) -> UserInfo:
         """Get user information on a license from FFCAM server.
 
         :param license_number: User license to get information about.
-        :type license_number: string
         :return: Licence information, or None in case of API error
-        :rtype: :py:class:`UserInfo`
         """
-        self.init()
         info = UserInfo()
 
         if self.disabled():
@@ -316,10 +281,8 @@ class ExtranetApi:
         return info
 
 
-api = ExtranetApi()
+api: ExtranetApi = ExtranetApi()
 """ ExtranetApi object that will handle request to FFCAM servers.
 
 `api` requires to be initialized with :py:meth:`ExtranetApi.init_app` to be used.
-
-:type: :py:class:`ExtranetApi`
 """
