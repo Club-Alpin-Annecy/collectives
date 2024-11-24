@@ -121,6 +121,7 @@ class UserBadgeMixin:
         )
 
     # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def assign_badge(
         self,
         badge_id: BadgeIds,

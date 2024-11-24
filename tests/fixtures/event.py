@@ -13,6 +13,7 @@ from collectives.models import Question, QuestionType, QuestionAnswer
 from tests.fixtures import payment
 
 # pylint: disable=unused-argument, redefined-outer-name
+# pylint: disable=too-many-positional-arguments
 
 
 def inject_fixture(name, identifier):

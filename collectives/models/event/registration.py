@@ -231,7 +231,11 @@ class EventRegistrationMixin:
         :rtype: boolean
         """
         return self.is_registered_with_status(
-            user, [RegistrationStatus.SelfUnregistered]
+            user,
+            [
+                RegistrationStatus.SelfUnregistered,
+                RegistrationStatus.LateSelfUnregistered,
+            ],
         )
 
     def is_late_unregistered(self, user):

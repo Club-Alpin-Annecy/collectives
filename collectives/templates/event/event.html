@@ -214,7 +214,7 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
-        {% elif event.is_unregistered(current_user) or event.is_late_unregistered(current_user)%}
+        {% elif event.is_unregistered(current_user) %}
           <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
         {% else %}
           {# Active registration or waiting list #}
