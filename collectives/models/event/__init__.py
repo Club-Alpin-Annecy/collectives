@@ -12,6 +12,8 @@ from collectives.models.event.payment import EventPaymentMixin
 from collectives.models.event.role import EventRoleMixin
 from collectives.models.event.role import event_activities_without_leaders
 from collectives.models.event.registration import EventRegistrationMixin
+from collectives.models.event.registration import DuplicateRegistrationError
+from collectives.models.event.registration import OverbookedRegistrationError
 
 
 class Event(

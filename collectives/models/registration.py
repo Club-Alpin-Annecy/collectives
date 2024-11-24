@@ -1,7 +1,7 @@
 """Module for registration related classes
 """
 
-from operator import attrgetter
+from typing import List
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
@@ -264,49 +264,50 @@ class Registration(db.Model):
             self.event.requires_payment()
         )
 
+    def _index_in_list(self, regs: List["Registration"]) -> int:
+        """Returns the chronlogical place this registration has in a list of registrations.
+        -1 if not present. Starts at 0."""
+        if self not in regs:
+            return -1
+        return sum(1 for r in regs if r.id < self.id)
+
     def holding_index(self) -> int:
         """Returns the chronlogical place this registration has in all holding place registrations.
-        None if not active. Starts at 1."""
-        if not self.is_holding_slot():
-            return None
-        regs = self.event.registrations
-        return (
-            sorted(
-                [r for r in regs if r.is_holding_slot()], key=attrgetter("id")
-            ).index(self)
-            + 1
+        -1 if not active. Starts at 0."""
+        return self._index_in_list(
+            [r for r in self.event.registrations if r.is_holding_slot()]
         )
 
     def online_index(self) -> int:
-        """Returns the chronlogical place this registration has in all online and holding slot
-        registrations. None if not holding slot and online. Starts at 1."""
-        if not self.is_self or not self.is_holding_slot():
-            return None
-        regs = self.event.registrations
-        return (
-            sorted(
-                [r for r in regs if r.is_self and self.is_holding_slot()],
-                key=attrgetter("id"),
-            ).index(self)
-            + 1
+        """Returns the chronological place this registration has in all online and holding slot
+        registrations. -1 if not holding slot and online. Starts at 0."""
+        return self._index_in_list(
+            [r for r in self.event.registrations if r.is_self and r.is_holding_slot()]
         )
 
     def waiting_index(self) -> int:
-        """Returns the chronlogical place this registration has in waiting registrations.
-        None if not waiting. Starts at 1."""
-        status = RegistrationStatus.Waiting
-        if self.status != status:
-            return None
-        regs = self.event.registrations
-        return (
-            sorted([r for r in regs if r.status == status], key=attrgetter("id")).index(
-                self
-            )
-            + 1
+        """Returns the chronological place this registration has in waiting registrations.
+        -1 if not waiting. Starts at 0."""
+        return self._index_in_list(
+            [
+                r
+                for r in self.event.registrations
+                if r.status == RegistrationStatus.Waiting
+            ]
+        )
+
+    def is_duplicate(self) -> bool:
+        """Check if this registration is the duplicate of another one
+        (an earlier registration exists for the same user)
+        """
+        return any(
+            r.id < self.id
+            for r in self.event.registrations
+            if r.user_id == self.user_id
         )
 
     def is_overbooked(self) -> bool:
-        """Check if the registration is not overbooking.
+        """Check if the registration is overbooking.
 
         An overbooked registration is:
 
@@ -319,16 +320,8 @@ class Registration(db.Model):
 
         """
 
-        if self.waiting_index() is not None:
-            if self.waiting_index() > self.event.num_waiting_slots:
-                return True
-
-        if self.holding_index() is not None:
-            if self.holding_index() > self.event.num_slots:
-                return True
-
-        if self.online_index() is not None:
-            if self.online_index() > self.event.num_online_slots:
-                return True
-
-        return False
+        return (
+            self.waiting_index() >= self.event.num_waiting_list
+            or self.holding_index() >= self.event.num_slots
+            or self.online_index() >= self.event.num_online_slots
+        )

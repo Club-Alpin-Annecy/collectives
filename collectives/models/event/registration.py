@@ -3,7 +3,24 @@
 from operator import attrgetter
 from datetime import datetime
 
-from collectives.models.registration import RegistrationLevels, RegistrationStatus
+from collectives.models.registration import (
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+)
+from collectives.models.globals import db
+
+
+class DuplicateRegistrationError(RuntimeError):
+    """Exception raised when a concurrent registration makes another one a duplicate"""
+
+    pass
+
+
+class OverbookedRegistrationError(RuntimeError):
+    """Exception raised when a concurrent registration makes another one overbooked"""
+
+    pass
 
 
 class EventRegistrationMixin:
@@ -295,3 +312,28 @@ class EventRegistrationMixin:
         ]
 
         return self.is_registered_with_status(user, good_statuses)
+
+    def add_registration_check_race_conditions(
+        self, registration: Registration, allow_overbooking: bool = False
+    ):
+        """Add a registration to an event, checking for possible race conditions.
+
+        :raises DuplicateRegistrationError: If another registration exists for the same user
+        :raises OverbookedRegistrationError: If the event was already full by the time this
+          registration was committed
+
+        :param registration: Registration to attempt to add to this event
+        :param allow_overbooking: If true, to not check for overbooking race conditions
+        """
+        self.registrations.append(registration)
+        db.session.commit()
+
+        db.session.expire(self)
+        if registration.is_duplicate():
+            self.registrations.remove(registration)
+            db.session.delete(registration)
+            raise DuplicateRegistrationError("Vous êtes déjà inscrit(e).")
+        if not allow_overbooking and registration.is_overbooked():
+            self.registrations.remove(registration)
+            db.session.delete(registration)
+            raise OverbookedRegistrationError("L'événement est déjà complet.")

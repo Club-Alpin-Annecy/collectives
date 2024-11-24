@@ -30,7 +30,10 @@ from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus
 from collectives.models import RegistrationStatus, User, db, Configuration
 from collectives.models import EventTag, UploadedFile, UserGroup
-from collectives.models.event import event_activities_without_leaders
+from collectives.models.event import (
+    event_activities_without_leaders,
+    DuplicateRegistrationError,
+)
 from collectives.models.payment import ItemPrice, Payment
 from collectives.models.question import QuestionAnswer
 
@@ -665,7 +668,7 @@ def self_register(event_id):
 
     :param int event_id: Primary key of the event to manage.
     """
-    event = Event.query.filter_by(id=event_id).first()
+    event: Event = Event.query.filter_by(id=event_id).first()
 
     # Prepare registration
     registration = Registration(
@@ -692,8 +695,10 @@ def self_register(event_id):
 
         # User subscribe to waiting_list
         registration.status = RegistrationStatus.Waiting
-        event.registrations.append(registration)
-        db.session.commit()
+        try:
+            event.add_registration_check_race_conditions(registration)
+        except RuntimeError as err:
+            flash(err.value, "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if event.event_type.requires_activity:
@@ -716,13 +721,10 @@ def self_register(event_id):
 
     if not event.requires_payment():
         # Free event
-        event.registrations.append(registration)
-        db.session.commit()
-
-        db.session.expire(event)
-        if registration.is_overbooked():
-            db.session.delete(registration)
-            flash("L'évènement est complet.", "error")
+        try:
+            event.add_registration_check_race_conditions(registration)
+        except RuntimeError as err:
+            flash(err.value, "error")
 
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -740,13 +742,11 @@ def self_register(event_id):
             return redirect(url_for("event.view_event", event_id=event_id))
 
         registration.status = RegistrationStatus.PaymentPending
-        event.registrations.append(registration)
-        db.session.commit()
 
-        db.session.expire(event)
-        if registration.is_overbooked():
-            db.session.delete(registration)
-            flash("L'évènement est complet.", "error")
+        try:
+            event.add_registration_check_race_conditions(registration)
+        except RuntimeError as err:
+            flash(err.value, "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
         payment = Payment(registration=registration, item_price=item_price)
@@ -833,7 +833,7 @@ def register_user(event_id):
 
     :param int event_id: Primary key of the event to manage.
     """
-    event = Event.query.filter_by(id=event_id).first()
+    event: Event = Event.query.filter_by(id=event_id).first()
 
     if not (event and event.has_edit_rights(current_user)):
         flash("Non autorisé", "error")
@@ -862,7 +862,6 @@ def register_user(event_id):
             except StopIteration:
                 registration = Registration(
                     level=RegistrationLevels.Normal,
-                    event=event,
                     user=user,
                     is_self=False,
                 )
@@ -884,8 +883,16 @@ def register_user(event_id):
             else:
                 registration.status = RegistrationStatus.Active
 
-            db.session.add(registration)
-            db.session.commit()
+            if registration.event is None:
+                try:
+                    event.add_registration_check_race_conditions(
+                        registration, allow_overbooking=True
+                    )
+                except DuplicateRegistrationError:
+                    flash("Ce participant est déjà inscrit")
+            else:
+                db.session.add(registration)
+                db.session.commit()
 
     return redirect(url_for("event.view_event", event_id=event_id))
 
