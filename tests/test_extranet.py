@@ -5,6 +5,7 @@
 from collectives.models import User, db, Configuration
 from tests import mock
 from tests import fixtures
+from tests.mock.extranet import EXPIRED_LICENSE
 
 
 def test_create_account(client, extranet_monkeypatch):
@@ -90,19 +91,32 @@ def test_wrong_create_account(client, extranet_monkeypatch):
     assert "flash-error" in response.text
 
 
-def test_resync_own_account(user1_client, extranet_monkeypatch):
+def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
     """Test extranet resync."""
 
-    response = user1_client.post("/profile/user/force_sync", follow_redirects=True)
+    fixtures.client.login(client, extranet_user)
+
+    response = client.post("/profile/user/force_sync", follow_redirects=True)
     assert response.status_code == 200
     assert "error message" not in response.text
 
+    # test with invalid license -- should redirect to auth page
+    extranet_user = client.user
+    extranet_user.license = EXPIRED_LICENSE
+    db.session.add(extranet_user)
+    db.session.commit()
+    response = client.post("/profile/user/force_sync", follow_redirects=False)
+    assert response.status_code == 302
+    assert response.location == "/auth/recover"
 
-def test_hotline_resync_account(hotline_client, user1, extranet_monkeypatch):
+    fixtures.client.logout(client)
+
+
+def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypatch):
     """Test extranet resync by hotline user"""
 
     response = hotline_client.post(
-        f"/profile/user/{user1.id}/force_sync", follow_redirects=True
+        f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
     )
     assert response.status_code == 200
     assert "error message" not in response.text
@@ -112,6 +126,17 @@ def test_hotline_resync_account(hotline_client, user1, extranet_monkeypatch):
     )
     assert response.status_code == 200
     assert "error message" in response.text
+
+    # Forcing resyng of expired should not redirect
+    extranet_user.license = EXPIRED_LICENSE
+    db.session.add(extranet_user)
+    db.session.commit()
+
+    response = hotline_client.post(
+        f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" not in response.text
 
 
 def test_user_resync_account(user1_client, user2, extranet_monkeypatch):

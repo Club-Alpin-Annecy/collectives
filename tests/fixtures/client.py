@@ -144,3 +144,11 @@ def client_with_expired_benevole_badge(client, user_with_expired_benevole_badge)
     login(client, user_with_expired_benevole_badge)
     yield client
     logout(client)
+
+
+@pytest.fixture
+def extranet_user_client(client, extranet_user):
+    """Flask client authenticated as extranet_user user."""
+    login(client, extranet_user)
+    yield client
+    logout(client)

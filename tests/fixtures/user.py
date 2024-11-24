@@ -8,6 +8,8 @@ import pytest
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
 from collectives.models import Badge, BadgeIds, UserType
 
+from tests.mock.extranet import VALID_LICENSE
+
 # pylint: disable=unused-argument,redefined-outer-name
 
 PASSWORD = "fooBar2+!"
@@ -208,6 +210,21 @@ def user_with_expired_benevole_badge(prototype_user_with_expired_benevole_badge:
     db.session.add(prototype_user_with_expired_benevole_badge)
     db.session.commit()
     return prototype_user_with_expired_benevole_badge
+
+
+inject_fixture("prototype_extranet_user", 991, ("Extranet", "User"))
+
+
+@pytest.fixture
+def extranet_user(prototype_extranet_user):
+    """:returns: A user with type extranet."""
+    prototype_extranet_user.type = UserType.Extranet
+    prototype_extranet_user.license = VALID_LICENSE
+    prototype_extranet_user.license_expiry_date = date.today() + timedelta(days=365)
+
+    db.session.add(prototype_extranet_user)
+    db.session.commit()
+    return prototype_extranet_user
 
 
 def promote_to_leader(user, activity="Alpinisme"):
