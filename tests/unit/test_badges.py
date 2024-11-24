@@ -80,7 +80,9 @@ def test_assign_badge(user1, session_monkeypatch):
     assert session_monkeypatch["rollback"] == 0  # Rollback should not be called
 
 
-def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatch):
+def test_update_warning_badges_no_updates(
+    user1, event1_with_reg, session_monkeypatch, monkeypatch
+):
     """
     Tests the update_warning_badges method without any
     badge updates and verifies the session changes.
@@ -97,7 +99,9 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
     monkeypatch.setattr(user1, "has_a_valid_badge", lambda x: False)
     monkeypatch.setattr(user1, "has_badge", lambda x: False)
 
-    user1.update_warning_badges()
+    reg = event1_with_reg.existing_registrations(user1)[0]
+
+    user1.update_warning_badges(reg)
 
     # Verify database operations were performed
     assert len(session_monkeypatch["add"]) == 1  # New badge should be added
@@ -115,7 +119,7 @@ def test_update_warning_badges_no_updates(user1, session_monkeypatch, monkeypatc
         lambda badge_ids: BadgeIds.LateUnregisterWarning in badge_ids,
     )
 
-    user1.update_warning_badges()
+    user1.update_warning_badges(reg)
 
     # Verify database operations were performed
     assert len(session_monkeypatch["add"]) == 2  # New badge should be added

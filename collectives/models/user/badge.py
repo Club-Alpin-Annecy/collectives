@@ -7,6 +7,7 @@ from collectives.models.badge import Badge, BadgeIds
 from collectives.models.registration import Registration
 from collectives.models.activity_type import ActivityType
 from collectives.models import db
+from collectives.models.configuration import Configuration
 
 
 class UserBadgeMixin:
@@ -172,7 +173,9 @@ class UserBadgeMixin:
         try:
             if num_valid_warning_badges >= 2 and num_valid_banned_badges == 0:
                 badge_id = BadgeIds.Banned
-                expiration_date = date.today() + timedelta(weeks=4)
+                expiration_date = date.today() + timedelta(
+                    weeks=Configuration.SUSPENSION_DURATION
+                )
                 self.assign_badge(
                     badge_id,
                     expiration_date=expiration_date,
@@ -182,9 +185,11 @@ class UserBadgeMixin:
             elif num_valid_warning_badges < 2:
                 badge_id = BadgeIds.LateUnregisterWarning
                 expiration_date = date(
-                    date.today().year
-                    if date.today().month < 10
-                    else date.today().year + 1,
+                    (
+                        date.today().year
+                        if date.today().month < 10
+                        else date.today().year + 1
+                    ),
                     9,
                     30,
                 )

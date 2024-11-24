@@ -302,8 +302,8 @@
               </p>
             {% endif %}
 
-        {% elif current_user.is_banned() %}
-          <p>Vous êtes actuellement banni suite à un trop grand nombre de désinscriptions tardives. Vous pourrez vous ré-inscrire à nouveau 4 semaines après votre dernière désinscription tardive. Si vous pensez que c'est une erreur, merci de contacter un administrateur.</p>
+        {% elif current_user.is_active and current_user.is_banned() %}
+          <p>Vous êtes actuellement banni suite à un trop grand nombre de désinscriptions tardives ou d'absences non justifiées. Vous pourrez vous ré-inscrire à nouveau {{Configuration.SUSPENSION_DURATION}} semaines après votre dernière absence ou désinscription. Si vous pensez que c'est une erreur, merci de contacter un administrateur.</p>
 
         {% elif current_time > event.registration_close_time %}
           <p>Les inscriptions sont closes.</p>
