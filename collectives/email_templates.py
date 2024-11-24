@@ -284,7 +284,7 @@ def send_late_unregistration_notification(event, user):
     # Check if the user has a valid banned badge
     has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
     num_valid_warning_badges = len(
-        user.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+        user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
     )
     warning_title = (
         "premier avertissement"
@@ -340,7 +340,7 @@ def send_unjustified_absence_notification(event, user):
     # Check if the user has a valid banned badge
     has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
     num_valid_warning_badges = len(
-        user.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+        user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
     )
     warning_title = (
         "premier avertissement"

@@ -319,7 +319,7 @@ def user_with_valid_first_warning_badge(
     """:returns: A user with a valid first warning Badge."""
     add_badge_to_user(
         prototype_user_with_valid_first_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         expiration_date=date.today() + timedelta(days=60),
     )
     db.session.add(prototype_user_with_valid_first_warning_badge)
@@ -339,7 +339,7 @@ def user_with_expired_first_warning_badge(
     """:returns: A user with an expired first warning Badge."""
     add_badge_to_user(
         prototype_user_with_expired_first_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         expiration_date=date.today() - timedelta(days=3),
     )
     db.session.add(prototype_user_with_expired_first_warning_badge)
@@ -357,12 +357,12 @@ def user_with_valid_second_warning_badge(
     """:returns: A user with a valid second warning Badge."""
     add_badge_to_user(
         prototype_user_with_valid_second_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         expiration_date=date.today() + timedelta(days=60),
     )
     add_badge_to_user(
         prototype_user_with_valid_second_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         2,
         expiration_date=date.today() + timedelta(days=60),
     )
@@ -383,12 +383,12 @@ def user_with_expired_second_warning_badge(
     """:returns: A user with an expired second warning Badge."""
     add_badge_to_user(
         prototype_user_with_expired_second_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         expiration_date=date.today() + timedelta(days=30),
     )
     add_badge_to_user(
         prototype_user_with_expired_second_warning_badge,
-        BadgeIds.LateUnregisterWarning,
+        BadgeIds.UnjustifiedAbsenceWarning,
         2,
         expiration_date=date.today() - timedelta(days=3),
     )

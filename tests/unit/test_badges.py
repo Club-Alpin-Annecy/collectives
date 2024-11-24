@@ -70,7 +70,7 @@ def test_assign_badge(user1, session_monkeypatch):
     Returns:
         None
     """
-    badge_id = int(BadgeIds.LateUnregisterWarning)
+    badge_id = int(BadgeIds.UnjustifiedAbsenceWarning)
     expiration_date = date.today() + timedelta(days=1)
 
     user1.assign_badge(badge_id, expiration_date=expiration_date, level=1)
@@ -111,12 +111,12 @@ def test_update_warning_badges_no_updates(
     monkeypatch.setattr(
         user1,
         "has_a_valid_badge",
-        lambda badge_ids: BadgeIds.LateUnregisterWarning in badge_ids,
+        lambda badge_ids: BadgeIds.UnjustifiedAbsenceWarning in badge_ids,
     )
     monkeypatch.setattr(
         user1,
         "has_badge",
-        lambda badge_ids: BadgeIds.LateUnregisterWarning in badge_ids,
+        lambda badge_ids: BadgeIds.UnjustifiedAbsenceWarning in badge_ids,
     )
 
     user1.update_warning_badges(reg)
@@ -132,8 +132,8 @@ def test_update_warning_badges_no_updates(
         user1,
         "matching_badges",
         lambda badge_ids=None: [
-            BadgeIds.LateUnregisterWarning,
-            BadgeIds.LateUnregisterWarning,
+            BadgeIds.UnjustifiedAbsenceWarning,
+            BadgeIds.UnjustifiedAbsenceWarning,
         ],
     )
 

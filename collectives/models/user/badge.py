@@ -79,7 +79,7 @@ class UserBadgeMixin:
         :return: Number of valid warning badges.
         """
         return len(
-            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
         )
 
     def has_badge_for_activity(
@@ -158,10 +158,10 @@ class UserBadgeMixin:
 
         # Fetch the number of warning & banned badges, whether valid or not
         num_valid_warning_badges = len(
-            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=True)
+            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
         )
         num_warning_badges = len(
-            self.matching_badges([BadgeIds.LateUnregisterWarning], valid_only=False)
+            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=False)
         )
         num_valid_banned_badges = len(
             self.matching_badges([BadgeIds.Banned], valid_only=True)
@@ -183,7 +183,7 @@ class UserBadgeMixin:
                     registration=registration,
                 )
             elif num_valid_warning_badges < 2:
-                badge_id = BadgeIds.LateUnregisterWarning
+                badge_id = BadgeIds.UnjustifiedAbsenceWarning
                 expiration_date = date(
                     (
                         date.today().year

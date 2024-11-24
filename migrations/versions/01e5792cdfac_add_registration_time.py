@@ -24,7 +24,7 @@ def upgrade():
             "badge_id",
             existing_type=sa.VARCHAR(length=8),
             type_=sa.Enum(
-                "Benevole", "LateUnregisterWarning", "Banned", name="badgeids"
+                "Benevole", "UnjustifiedAbsenceWarning", "Banned", name="badgeids"
             ),
             existing_nullable=False,
         )
@@ -95,7 +95,7 @@ def downgrade():
         batch_op.alter_column(
             "badge_id",
             existing_type=sa.Enum(
-                "Benevole", "LateUnregisterWarning", "Banned", name="badgeids"
+                "Benevole", "UnjustifiedAbsenceWarning", "Banned", name="badgeids"
             ),
             type_=sa.VARCHAR(length=8),
             existing_nullable=False,

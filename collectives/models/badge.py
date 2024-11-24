@@ -13,7 +13,7 @@ class BadgeIds(ChoiceEnum):
     # pylint: disable=invalid-name
     Benevole = 1
 
-    LateUnregisterWarning = 2
+    UnjustifiedAbsenceWarning = 2
     """ User has been issued a warning regarding 
     late unregistrations and unjustified absences. 
     """
@@ -30,7 +30,7 @@ class BadgeIds(ChoiceEnum):
         """
         return {
             cls.Benevole: "Bénévole régulier",
-            cls.LateUnregisterWarning: "Désinscription Tardive - avertissement",
+            cls.UnjustifiedAbsenceWarning: "Désinscription Tardive - avertissement",
             cls.Banned: "Désinscription Tardive - Banni",
         }
 
