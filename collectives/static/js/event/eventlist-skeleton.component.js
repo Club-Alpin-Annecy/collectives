@@ -4,11 +4,10 @@ export default {
   },
   template: `
   <div
-    class="tabulator-row tabulator-selectable tabulator-row-odd"
-    style="padding-left: 0px"
+    class="tabulator-row tabulator-selectable"
   >
     <div
-      class="row tabulator-cell collectives-list-item"
+      class="row collectives-list--item"
     >
       <div class="section collectives-list--item--photo">
         <Skeleton width="277.5px" height="185px"></Skeleton>

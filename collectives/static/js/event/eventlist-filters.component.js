@@ -45,6 +45,7 @@ export default {
       optionLabel="name" 
       optionValue="id"
       filter 
+      scrollHeight="90vh"
       placeholder="Toutes activités"
     >
       <template #option="slotProps">
@@ -56,8 +57,8 @@ export default {
       <template #chip="slotProps">
           <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = filters.activities.filter(id => id !== slotProps.value)"/>
       </template>
-      <template #footer>
-        <div class="p-3 flex justify-between">
+      <template #footer="slotProps">
+        <div class="flex justify-between" v-if="slotProps.value.length > 0">
             <div></div>
             <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.activities = []" />
         </div>
@@ -80,6 +81,7 @@ export default {
         :options="config.eventTypes" 
         optionLabel="name" 
         optionValue="id"
+        scrollHeight="90vh"
         placeholder="Tout types d'événement"
         display="chip" 
         filter 
@@ -93,8 +95,8 @@ export default {
         <template #chip="slotProps">
             <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTypes = filters.eventTypes.filter(id => id !== slotProps.value)" />
         </template>
-        <template #footer>
-          <div class="p-3 flex justify-between">
+        <template #footer="slotProps">
+          <div class="flex justify-between" v-if="slotProps.value?.length > 0">
               <div></div>
               <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.eventTypes = []" />
           </div>
@@ -107,6 +109,7 @@ export default {
         :options="config.eventTags" 
         optionLabel="name" 
         optionValue="id"
+        scrollHeight="90vh"
         placeholder="Tous labels"
         display="chip" 
         filter 
@@ -120,8 +123,8 @@ export default {
         <template #chip="slotProps">
             <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTags = filters.eventTags.filter(id => id !== slotProps.value)" />
         </template>
-        <template #footer>
-          <div class="p-3 flex justify-between">
+        <template #footer="slotProps">
+          <div class="flex justify-between" v-if="slotProps.value?.length > 0">
               <div></div>
               <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.eventTags = []" />
           </div>
