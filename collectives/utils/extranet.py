@@ -14,22 +14,6 @@ from collectives.models import Gender, Configuration, User, UserType
 from collectives.utils.time import current_time
 
 
-LICENSE_RENEWAL_MONTH = 9
-""" Month of license start.
-
-If a license has been renewed after RENEWAL_MONTH of year Y,
-then it is valid until EXPIRY_MONTH of year Y+1; else it is
-only valid until EXPITY_MONTH of year Y.
-
-:type: int
-"""
-LICENSE_EXPIRY_MONTH = 10
-""" Month of license end.
-
-:type: int
-"""
-
-
 class LicenseInfo:
     """Licence information as retrieved from FFCAM servers."""
 
@@ -56,9 +40,9 @@ class LicenseInfo:
             return None
 
         year = self.renewal_date.year
-        if self.renewal_date.month >= LICENSE_RENEWAL_MONTH:
+        if self.renewal_date.month >= Configuration.LICENSE_RENEWAL_MONTH:
             year = year + 1
-        return date(year, LICENSE_EXPIRY_MONTH, 1)
+        return date(year, Configuration.LICENSE_EXPIRY_MONTH, 1)
 
     def is_valid_at_time(self, time: datetime) -> bool:
         """Check if license is valid at a given date.

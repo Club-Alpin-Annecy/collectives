@@ -1,4 +1,4 @@
-"""add Unjustified Absence and banned badges, late unregister status, registration time
+"""add Unjustified Absence and suspended badges, late unregister status, registration time
 
 Revision ID: 01e5792cdfac
 Revises: bf9a9943d273
@@ -24,7 +24,7 @@ def upgrade():
             "badge_id",
             existing_type=sa.VARCHAR(length=8),
             type_=sa.Enum(
-                "Benevole", "UnjustifiedAbsenceWarning", "Banned", name="badgeids"
+                "Benevole", "UnjustifiedAbsenceWarning", "Suspended", name="badgeids"
             ),
             existing_nullable=False,
         )
@@ -89,7 +89,7 @@ def downgrade():
         batch_op.alter_column(
             "badge_id",
             existing_type=sa.Enum(
-                "Benevole", "UnjustifiedAbsenceWarning", "Banned", name="badgeids"
+                "Benevole", "UnjustifiedAbsenceWarning", "Suspended", name="badgeids"
             ),
             type_=sa.VARCHAR(length=8),
             existing_nullable=False,

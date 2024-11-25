@@ -80,11 +80,11 @@ def test_assign_badge(user1, session_monkeypatch):
     assert session_monkeypatch["rollback"] == 0  # Rollback should not be called
 
 
-def test_update_warning_badges_no_updates(
+def test_increment_warning_badges_no_updates(
     user1, event1_with_reg, session_monkeypatch, monkeypatch
 ):
     """
-    Tests the update_warning_badges method without any
+    Tests the increment_warning_badges method without any
     badge updates and verifies the session changes.
 
     Args:
@@ -101,7 +101,7 @@ def test_update_warning_badges_no_updates(
 
     reg = event1_with_reg.existing_registrations(user1)[0]
 
-    user1.update_warning_badges(reg)
+    user1.increment_warning_badges(reg)
 
     # Verify database operations were performed
     assert len(session_monkeypatch["add"]) == 1  # New badge should be added
@@ -119,7 +119,7 @@ def test_update_warning_badges_no_updates(
         lambda badge_ids: BadgeIds.UnjustifiedAbsenceWarning in badge_ids,
     )
 
-    user1.update_warning_badges(reg)
+    user1.increment_warning_badges(reg)
 
     # Verify database operations were performed
     assert len(session_monkeypatch["add"]) == 2  # New badge should be added

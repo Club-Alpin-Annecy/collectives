@@ -194,17 +194,17 @@ def client_with_expired_second_warning_badge(
 
 
 @pytest.fixture
-def client_with_valid_banned_badge(client, user_with_valid_banned_badge):
-    """Flask client authenticated as user with a valid banned badge."""
-    login(client, user_with_valid_banned_badge)
+def client_with_valid_suspended_badge(client, user_with_valid_suspended_badge):
+    """Flask client authenticated as user with a valid suspended badge."""
+    login(client, user_with_valid_suspended_badge)
     yield client
     logout(client)
 
 
 @pytest.fixture
-def client_with_expired_banned_badge(client, user_with_expired_banned_badge):
-    """Flask client authenticated as user with an expired banned badge."""
-    login(client, user_with_expired_banned_badge)
+def client_with_expired_suspended_badge(client, user_with_expired_suspended_badge):
+    """Flask client authenticated as user with an expired suspended badge."""
+    login(client, user_with_expired_suspended_badge)
     yield client
     logout(client)
 

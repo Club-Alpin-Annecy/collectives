@@ -8,7 +8,7 @@ import pytest
 
 import collectives
 from collectives.utils import init
-from collectives.models import db
+from collectives.models import db, Configuration
 
 # pylint: disable=redefined-outer-name
 
@@ -48,3 +48,10 @@ def app(db_file):
 
         db.session.remove()
         db.session.close()
+
+
+@pytest.fixture
+def enable_sanctions():
+    """Enable sanctions in configuration"""
+    Configuration.get_item("ENABLE_SANCTIONS").content = True
+    Configuration.uncache("ENABLE_SANCTIONS")

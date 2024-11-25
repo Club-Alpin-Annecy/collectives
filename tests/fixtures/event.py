@@ -290,7 +290,7 @@ def event_in_less_than_x_hours_with_reg(
     user_with_expired_first_warning_badge,
     user_with_valid_second_warning_badge,
     user_with_expired_second_warning_badge,
-    user_with_expired_banned_badge,
+    user_with_expired_suspended_badge,
 ):  # pylint: disable=too-many-arguments
     """
     Returns an event in less than 48 hours (parameterized)
@@ -313,7 +313,7 @@ def event_in_less_than_x_hours_with_reg(
         user_with_expired_first_warning_badge,
         user_with_valid_second_warning_badge,
         user_with_expired_second_warning_badge,
-        user_with_expired_banned_badge,
+        user_with_expired_suspended_badge,
     ]:
         prototype_event_in_less_than_x_hours.registrations.append(
             Registration(

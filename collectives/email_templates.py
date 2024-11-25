@@ -281,8 +281,8 @@ def send_late_unregistration_notification(event, user):
     :type user: :py:class:`collectives.models.user.User`
     """
 
-    # Check if the user has a valid banned badge
-    has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
+    # Check if the user has a valid suspended badge
+    has_valid_suspended_badge = user.has_a_valid_badge([BadgeIds.Suspended])
     num_valid_warning_badges = len(
         user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
     )
@@ -293,7 +293,7 @@ def send_late_unregistration_notification(event, user):
     )
 
     # Determine the content and subject of the notification based on the user's badges
-    if has_valid_banned_badge:
+    if has_valid_suspended_badge:
         content = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_MESSAGE
         title = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_SUBJECT
     else:
@@ -307,6 +307,8 @@ def send_late_unregistration_notification(event, user):
             event_title=event.title,
             nb_hours=Configuration.LATE_UNREGISTRATION_THRESHOLD,
             nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
+            num_warnings_for_suspension=Configuration.NUM_WARNINGS_BEFORE_SUSPENSION
+            + 1,
             link=url_for(
                 "event.view_event",
                 event_id=event.id,
@@ -337,8 +339,8 @@ def send_unjustified_absence_notification(event, user):
     :type user: :py:class:`collectives.models.user.User`
     """
 
-    # Check if the user has a valid banned badge
-    has_valid_banned_badge = user.has_a_valid_badge([BadgeIds.Banned])
+    # Check if the user has a valid suspended badge
+    has_valid_suspended_badge = user.has_a_valid_badge([BadgeIds.Suspended])
     num_valid_warning_badges = len(
         user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
     )
@@ -349,7 +351,7 @@ def send_unjustified_absence_notification(event, user):
     )
 
     # Determine the content and subject of the notification based on the user's badges
-    if has_valid_banned_badge:
+    if has_valid_suspended_badge:
         content = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_MESSAGE
         title = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_SUBJECT
     else:
@@ -362,6 +364,8 @@ def send_unjustified_absence_notification(event, user):
             event_main_leader=event.main_leader.full_name(),
             event_title=event.title,
             nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
+            num_warnings_for_suspension=Configuration.NUM_WARNINGS_BEFORE_SUSPENSION
+            + 1,
             link=url_for(
                 "event.view_event",
                 event_id=event.id,

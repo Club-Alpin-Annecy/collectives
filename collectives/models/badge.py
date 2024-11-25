@@ -18,8 +18,8 @@ class BadgeIds(ChoiceEnum):
     late unregistrations and unjustified absences. 
     """
 
-    Banned = 3
-    """ User has been banned. """
+    Suspended = 3
+    """ User has been suspended. """
 
     @classmethod
     def display_names(cls):
@@ -30,8 +30,8 @@ class BadgeIds(ChoiceEnum):
         """
         return {
             cls.Benevole: "Bénévole régulier",
-            cls.UnjustifiedAbsenceWarning: "Désinscription Tardive - avertissement",
-            cls.Banned: "Désinscription Tardive - Banni",
+            cls.UnjustifiedAbsenceWarning: "Absence injustifiée - avertissement",
+            cls.Suspended: "Absence injustifiée - suspension",
         }
 
     def relates_to_activity(self) -> bool:

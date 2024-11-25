@@ -285,7 +285,7 @@ class EventRegistrationMixin:
           - there are available online slots
           - user is registered to the parent event if any
           - user license is compatible with event type
-          - user does not have a valid Banned badge
+          - user does not have a valid Suspended badge
 
         :param user: User which will be tested.
         :type user: :py:class:`collectives.models.user.User`
@@ -312,7 +312,7 @@ class EventRegistrationMixin:
             return False
         if not self.event_type.has_valid_license(user):
             return False
-        if user.has_a_valid_banned_badge():
+        if user.has_a_valid_suspended_badge():
             return False
         if not waiting:
             return self.has_free_online_slots()

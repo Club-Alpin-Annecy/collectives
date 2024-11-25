@@ -111,6 +111,16 @@ FFCAM:
         type: ShortString
         hidden: true
 
+    LICENSE_RENEWAL_MONTH:
+        content: 9
+        description: Month at which license renewals start.
+        type: Integer
+
+    LICENSE_EXPIRY_MONTH:
+        content: 10
+        description: Month at which licenses from the previous year expire.
+        type: Integer
+
 Divers:
     GOOGLE_ANALYTICS_UA:
         content: ""
@@ -291,7 +301,7 @@ Template mail:
             
             Si vous avez une raison valable, merci de prévenir votre encadrant '{event_main_leader}'.
 
-            3 désinscriptions tardives ou absences injustifiées résulteront en une impossibilité de s'inscrire à des futures collectives via le site.
+            {num_warnings_for_suspension} désinscriptions tardives ou absences injustifiées résulteront en une impossibilité de s'inscrire à des futures collectives via le site.
 
             Lien vers l'événement :
             {link}
@@ -343,7 +353,7 @@ Template mail:
             
             Si vous avez une raison valable, merci de prévenir votre encadrant '{event_main_leader}'.
 
-            3 absences injustifiées ou désinscriptions tardives résulteront en une impossibilité de s'inscrire à des futures collectives via le site.
+            {num_warnings_for_suspension} absences injustifiées ou désinscriptions tardives résulteront en une impossibilité de s'inscrire à des futures collectives via le site.
 
             Lien vers l'événement :
             {link}
@@ -532,9 +542,17 @@ Information club:
         type: ShortString
 
 Désinscriptions tardives:
+    ENABLE_SANCTIONS:
+        content: false
+        description: Whether to enable warning and suspension badges for unjustified absences
+        type: Boolean
     LATE_UNREGISTRATION_THRESHOLD:
         content: 48
         description : Seuil en heures à partir duquel une désinscription à un évènement est considérée comme tardive.
+        type: Integer
+    NUM_WARNINGS_BEFORE_SUSPENSION:
+        content: 2
+        description : Nombre d'avertissements avant la suspension du compte
         type: Integer
     SUSPENSION_DURATION:
         content: 4

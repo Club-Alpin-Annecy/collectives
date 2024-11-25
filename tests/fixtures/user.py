@@ -8,9 +8,11 @@ import pytest
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
 from collectives.models import Badge, BadgeIds, UserType
 
+# pylint: disable=unused-argument,redefined-outer-name, unused-import
+
+from tests.fixtures.app import enable_sanctions
 from tests.mock.extranet import VALID_LICENSE
 
-# pylint: disable=unused-argument,redefined-outer-name
 
 PASSWORD = "fooBar2+!"
 """ Default test password for non admin users.
@@ -314,7 +316,7 @@ inject_fixture(
 
 @pytest.fixture
 def user_with_valid_first_warning_badge(
-    prototype_user_with_valid_first_warning_badge: User,
+    prototype_user_with_valid_first_warning_badge: User, enable_sanctions
 ):
     """:returns: A user with a valid first warning Badge."""
     add_badge_to_user(
@@ -335,6 +337,7 @@ inject_fixture(
 @pytest.fixture
 def user_with_expired_first_warning_badge(
     prototype_user_with_expired_first_warning_badge: User,
+    enable_sanctions,
 ):
     """:returns: A user with an expired first warning Badge."""
     add_badge_to_user(
@@ -353,6 +356,7 @@ inject_fixture("prototype_user_with_valid_second_warning_badge", 989, ("Han", "S
 @pytest.fixture
 def user_with_valid_second_warning_badge(
     prototype_user_with_valid_second_warning_badge: User,
+    enable_sanctions,
 ):
     """:returns: A user with a valid second warning Badge."""
     add_badge_to_user(
@@ -379,6 +383,7 @@ inject_fixture(
 @pytest.fixture
 def user_with_expired_second_warning_badge(
     prototype_user_with_expired_second_warning_badge: User,
+    enable_sanctions,
 ):
     """:returns: A user with an expired second warning Badge."""
     add_badge_to_user(
@@ -398,37 +403,42 @@ def user_with_expired_second_warning_badge(
 
 
 inject_fixture(
-    "prototype_user_with_valid_banned_badge", 987, ("Chewbacca", "The Wookiee")
+    "prototype_user_with_valid_suspended_badge", 987, ("Chewbacca", "The Wookiee")
 )
 
 
 @pytest.fixture
-def user_with_valid_banned_badge(prototype_user_with_valid_banned_badge: User):
-    """:returns: A user with a valid banned Badge."""
+def user_with_valid_suspended_badge(
+    prototype_user_with_valid_suspended_badge: User, enable_sanctions
+):
+    """:returns: A user with a valid suspended Badge."""
     add_badge_to_user(
-        prototype_user_with_valid_banned_badge,
-        BadgeIds.Banned,
+        prototype_user_with_valid_suspended_badge,
+        BadgeIds.Suspended,
         expiration_date=date.today() + timedelta(days=60),
     )
-    db.session.add(prototype_user_with_valid_banned_badge)
+    db.session.add(prototype_user_with_valid_suspended_badge)
     db.session.commit()
-    return prototype_user_with_valid_banned_badge
+    return prototype_user_with_valid_suspended_badge
 
 
-inject_fixture("prototype_user_with_expired_banned_badge", 986, ("Darth", "Vader"))
+inject_fixture("prototype_user_with_expired_suspended_badge", 986, ("Darth", "Vader"))
 
 
 @pytest.fixture
-def user_with_expired_banned_badge(prototype_user_with_expired_banned_badge: User):
-    """:returns: A user with an expired banned Badge."""
+def user_with_expired_suspended_badge(
+    prototype_user_with_expired_suspended_badge: User,
+    enable_sanctions,
+):
+    """:returns: A user with an expired suspended Badge."""
     add_badge_to_user(
-        prototype_user_with_expired_banned_badge,
-        BadgeIds.Banned,
+        prototype_user_with_expired_suspended_badge,
+        BadgeIds.Suspended,
         expiration_date=date.today() - timedelta(days=3),
     )
-    db.session.add(prototype_user_with_expired_banned_badge)
+    db.session.add(prototype_user_with_expired_suspended_badge)
     db.session.commit()
-    return prototype_user_with_expired_banned_badge
+    return prototype_user_with_expired_suspended_badge
 
 
 inject_fixture("user_with_no_warning_badge", 985, ("Jabba", "The Hutt"))

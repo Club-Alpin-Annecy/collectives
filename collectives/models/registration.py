@@ -146,11 +146,19 @@ class RegistrationStatus(ChoiceEnum):
         return self in RegistrationStatus.valid_status()
 
     @classmethod
-    def valid_status(cls) -> list:
+    def valid_status(cls) -> List["RegistrationStatus"]:
         """Returns the list of registration status considered as valid.
 
         See :py:meth:`collectives.models.registration.RegistrationStatus.is_valid()`"""
-        return [RegistrationStatus.Active, RegistrationStatus.Present]
+        return (RegistrationStatus.Active, RegistrationStatus.Present)
+
+    @classmethod
+    def sanctioned_statuses(cls) -> List["RegistrationStatus"]:
+        """Returns the list of status thay may trigger sanctions"""
+        return (
+            RegistrationStatus.UnJustifiedAbsentee,
+            RegistrationStatus.LateSelfUnregistered,
+        )
 
     def valid_transitions(self, requires_payment):
         """
