@@ -133,7 +133,10 @@ export default {
 
       <div class="input date">
         <label class="borders"> 📅 Depuis
-          <p-datepicker v-model="filters.date"></p-datepicker>
+          <p-datepicker 
+            dateFormat="dd/mm/yy"
+            v-model="filters.date"
+          ></p-datepicker>
         </label>
       </div>
 
