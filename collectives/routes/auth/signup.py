@@ -113,8 +113,8 @@ def process_confirmation(token_uuid):
             user.legal_text_signature_date = current_time()
             version = Configuration.CURRENT_LEGAL_TEXT_VERSION
             user.legal_text_signed_version = version
-            user.license = token.user_license
 
+        user.license = token.user_license
         extranet.sync_user(user, user_info, license_info)
     else:
         user = token.existing_user

@@ -1,7 +1,5 @@
 """ Auth module for miscaleneous functions and classes."""
 
-from datetime import date, datetime
-
 from flask import url_for, current_app
 from flask_login import AnonymousUserMixin
 from markupsafe import escape
@@ -10,6 +8,7 @@ from flask_wtf.csrf import generate_csrf
 
 from collectives.models import db, User, UserType, Configuration
 from collectives.utils import extranet
+from collectives.utils.time import current_time
 
 
 class UnauthenticatedUserMixin(AnonymousUserMixin):
@@ -34,21 +33,24 @@ def sync_user(user: User, force: bool) -> bool:
     :param force: if True, do synchronisation even if licence has been recently renewed.
     :returns: whether the user exists in the source of truth
     """
-    if user.enabled and user.type == UserType.Extranet:
+    if not user.enabled:
+        return False
+    if user.type == UserType.Extranet:
         # Check whether the license has been renewed
         license_info = extranet.api.check_license(user.license)
-        if not license_info.exists:
-            if user.license_expiry_date > date.today():
+        time = current_time()
+        if not license_info.is_valid_at_time(time):
+            if user.license_expiry_date > time.date():
                 current_app.logger.warning(
-                    f"User #{user.id} synchronization : licence is not active on extranet "
+                    f"User #{user.id} synchronization : license is not active on extranet "
                     "but active on this site."
                 )
                 if force:
-                    user.license_expiry_date = datetime.today()
+                    user.license_expiry_date = time.date()
                     db.session.add(user)
                     db.session.commit()
                     current_app.logger.warning(
-                        f"User #{user.id} synchronization : licence has been updated."
+                        f"User #{user.id} synchronization : license has been updated."
                     )
             return False
 
