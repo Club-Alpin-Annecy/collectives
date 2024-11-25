@@ -2,6 +2,7 @@
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates
+from wtforms.validators import InputRequired
 
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
@@ -72,20 +73,31 @@ class EventModelMixin:
 
     :type: :py:class:`datetime.datetime`"""
 
-    num_slots = db.Column(db.Integer, nullable=False, default="10", info={"min": 1})
+    num_slots = db.Column(
+        db.Integer,
+        nullable=False,
+        default="10",
+        info={"min": 1, "validators": InputRequired()},
+    )
     """Maximum number of user that can register to this event.
 
     :type: int"""
 
     num_online_slots = db.Column(
-        db.Integer, nullable=False, default="0", info={"min": 0}
+        db.Integer,
+        nullable=False,
+        default="0",
+        info={"min": 0, "validators": InputRequired()},
     )
     """Maximum number of user that can self-register to this event.
 
     :type: int"""
 
     num_waiting_list = db.Column(
-        db.Integer, nullable=False, default="0", info={"min": 0}
+        db.Integer,
+        nullable=False,
+        default="0",
+        info={"min": 0, "validators": InputRequired()},
     )
     """Maximum number of user that can queue for this event.
 
