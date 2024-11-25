@@ -148,6 +148,12 @@ def test_crawler(client, event):
         "imgsizer/test.jpg" in soup.select_one('meta[property="og:image"]')["content"]
     )
 
+    # No user agent means not a crawler
+    headers = {"User-Agent": ""}
+    response = client.get(f"/collectives/{event.id}", headers=headers)
+    assert response.status_code == 302
+    assert "preview" not in response.headers["Location"]
+
 
 def test_event_creation(leader_client):
     """Test regular event creation by a leader"""
