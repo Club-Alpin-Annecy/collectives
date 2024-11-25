@@ -29,6 +29,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
     import axios from 'axios'
     import moment from 'moment'
     import * as models from '{{ url_for('api.models_to_js', export=1) }}'
+    import { locale } from '{{ url_for('static', filename='js/locale.js') }}'
     import EventList from '{{ url_for('static', filename='js/event/eventlist.component.js') }}'
    
     moment.locale('fr')
@@ -66,6 +67,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
         },
     })
     app.use(PrimeVue.Config, {
+        locale: locale,
         theme: {
             preset: PrimeVue.Themes.Aura,
             options: {
