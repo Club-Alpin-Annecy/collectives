@@ -1,6 +1,6 @@
 """ List of crawler. Data comes from https://github.com/monperrus/crawler-user-agents"""
 
-from functools import wraps
+from functools import wraps, cache
 import json
 import os
 import re
@@ -8,26 +8,17 @@ import re
 from flask import request, redirect, url_for
 from flask_login import current_user
 
-CRAWLERS = None
 
+@cache
+def get_crawlers_pattern() -> re.Pattern:
+    """:returns: a global pattern matching any crawler"""
 
-def get_crawlers():
-    """Get the crawler list.
+    path = os.path.dirname(__file__) + "/../data/crawler-user-agents.json"
+    with open(path, encoding="utf-8") as file:
+        crawlers = json.load(file)
 
-    Will try to get it from the cache. If not, it will load the cache
-    from data/crawler-user-agents.json
-
-    :returns: the list of known crawlers"""
-
-    # pylint: disable = global-statement
-    global CRAWLERS
-    # pylint: enable = global-statement
-    if not CRAWLERS:
-        path = os.path.dirname(__file__) + "/../data/crawler-user-agents.json"
-        with open(path, encoding="utf-8") as file:
-            CRAWLERS = json.load(file)
-
-    return CRAWLERS
+    global_pattern = "|".join(crawler["pattern"] for crawler in crawlers)
+    return re.compile(global_pattern)
 
 
 def is_crawler():
@@ -36,11 +27,7 @@ def is_crawler():
     :returns: True if request user agent match a crawler pattern."""
 
     agent = request.headers.get("User-Agent")
-
-    for crawler in get_crawlers():
-        if re.search(crawler["pattern"], agent):
-            return True
-    return False
+    return agent and re.search(get_crawlers_pattern(), agent)
 
 
 def crawlers_catcher(url):
