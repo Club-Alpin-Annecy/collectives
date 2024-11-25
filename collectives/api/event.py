@@ -3,7 +3,6 @@
 """
 
 import json
-from dateutil import parser
 
 from flask import url_for, request, abort
 from flask_login import current_user
@@ -16,7 +15,7 @@ from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
-from collectives.utils.time import format_datetime_range
+from collectives.utils.time import format_datetime_range, parse_api_date
 
 
 def photo_uri(event):
@@ -290,15 +289,13 @@ def events():
         elif field == "title":
             query_filter = Event.title.like(f"%{value}%")
         elif field == "start":
-            try:
-                query_filter = Event.start >= parser.parse(value, dayfirst=True)
-            except parser.ParserError:
-                pass
+            value = parse_api_date(value)
+            if value is not None:
+                query_filter = Event.start >= value
         elif field == "end":
-            try:
-                query_filter = Event.end >= parser.parse(value, dayfirst=True)
-            except parser.ParserError:
-                pass
+            value = parse_api_date(value)
+            if value is not None:
+                query_filter = Event.end >= value
         elif field == "status":
             value = getattr(EventStatus, value)
             if filter_type == "=":
