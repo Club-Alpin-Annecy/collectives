@@ -49,7 +49,7 @@ Server may not have fr_FR locale installed, for convenience, we
 simply define months abbreviations here"""
 
 
-def current_time():
+def current_time() -> datetime:
     """Return current time in the defined time zone.
 
     See :py:data:`config.TZ_NAME`

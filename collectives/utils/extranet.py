@@ -10,7 +10,7 @@ from zeep import Client
 from zeep.proxy import ServiceProxy
 from zeep.exceptions import Error as ZeepError
 
-from collectives.models import Gender, Configuration, UserType
+from collectives.models import Gender, Configuration, User, UserType
 from collectives.utils.time import current_time
 
 
@@ -44,15 +44,13 @@ class LicenseInfo:
         :type: :py:class:`datetime.date`
         """
 
-    def expiry_date(self):
+    def expiry_date(self) -> date:
         """Get licence expiration date.
 
         Licence expire at the start of the month `LICENSE_EXPIRY_MONTH` which follow
         the renewal date.
 
         :return: License expiration date. `None` if renewal_date is `None`
-        :rtype: :py:class:`datetime.date`
-
         """
         if self.renewal_date is None:
             return None
@@ -62,18 +60,16 @@ class LicenseInfo:
             year = year + 1
         return date(year, LICENSE_EXPIRY_MONTH, 1)
 
-    def is_valid_at_time(self, time):
+    def is_valid_at_time(self, time: datetime) -> bool:
         """Check if license is valid at a given date.
 
         :param time: Date to test license validity.
-        :type time: :py:class:`datetime.date`
         :return: True if license is valid
-        :rtype: boolean
         """
-        if not self.exists:
+        if not self.exists or self.renewal_date is None:
             return False
         expiry = self.expiry_date()
-        return expiry is None or expiry > time.date()
+        return expiry > time.date()
 
 
 class UserInfo:
@@ -115,16 +111,16 @@ class UserInfo:
         """ User license category."""
 
 
-def sync_user(user, user_info, license_info):
+def sync_user(user: User, user_info: UserInfo, license_info: LicenseInfo):
     """Populate a user object with user and license info from FFCAM servers.
 
     :param user: User to populate.
-    :type user: :py:class:`collectives.models.user.User`
     :param user_info: User info from FFCAM server used to populate `user`.
-    :type user_info: :py:class:`UserInfo`
     :param license_info: License info from FFCAM server used to populate `user`.
-    :type license_info: :py:class:`UserInfo`
     """
+
+    if not license_info.exists or license_info.renewal_date is None:
+        raise RuntimeError("Cannot synchronize with an invalid license")
 
     user.mail = user_info.email
     user.date_of_birth = user_info.date_of_birth

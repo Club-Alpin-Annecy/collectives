@@ -8,7 +8,7 @@ import pytest
 
 from tests import utils
 from tests.mock.mail import mail_success_monkeypatch
-from tests.mock.extranet import extranet_monkeypatch, VALID_LICENSE
+from tests.mock.extranet import extranet_monkeypatch, VALID_LICENSE, EXPIRED_LICENSE
 from collectives.models import db, ConfirmationToken, User, UserType
 from collectives.models import ConfirmationTokenType, Configuration
 
@@ -142,22 +142,22 @@ def test_local_password_rescue(user1, client, mail_success_monkeypatch):
 
 
 def test_extranet_password_rescue(
-    user1, client, mail_success_monkeypatch, extranet_monkeypatch
+    extranet_user, client, mail_success_monkeypatch, extranet_monkeypatch
 ):
-    """Test to get a new password"""
+    """Test to get a new password and new license"""
 
-    user1.type = UserType.Extranet
-    user1.license = VALID_LICENSE
-    db.session.add(user1)
+    extranet_user.type = UserType.Extranet
+    extranet_user.license = EXPIRED_LICENSE
+    db.session.add(extranet_user)
     db.session.commit()
 
     response = client.get("/auth/recover")
     assert response.status_code == 200
 
     data = {
-        "mail": user1.mail,
-        "license": user1.license,
-        "date_of_birth": user1.date_of_birth,
+        "mail": extranet_user.mail,
+        "license": VALID_LICENSE,
+        "date_of_birth": extranet_user.date_of_birth,
     }
 
     response = client.post("/auth/recover", data=data)
@@ -165,7 +165,7 @@ def test_extranet_password_rescue(
 
     token = (
         db.session.query(ConfirmationToken)
-        .filter(ConfirmationToken.existing_user_id == user1.id)
+        .filter(ConfirmationToken.existing_user_id == extranet_user.id)
         .first()
     )
     assert token is not None
@@ -179,6 +179,8 @@ def test_extranet_password_rescue(
     assert response.status_code == 302
 
     response = client.post(
-        "/auth/login", data={"mail": user1.mail, "password": "TTaa123++"}
+        "/auth/login", data={"mail": extranet_user.mail, "password": "TTaa123++"}
     )
     assert response.headers["Location"] in ["http://localhost/", "/"]
+
+    assert extranet_user.license == VALID_LICENSE

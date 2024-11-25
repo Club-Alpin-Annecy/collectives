@@ -7,6 +7,7 @@ from datetime import date
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
+from sqlalchemy import or_
 
 from collectives.email_templates import send_confirmation_email
 from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm
@@ -508,7 +509,17 @@ def generate_token():
         return redirect(url_for(".administration"))
 
     # Check whether there is an existing account
-    user = User.query.filter_by(license=form.license.data).first()
+    existing_users = User.query.filter(
+        or_(User.license == form.license.data, User.mail == user_info.email)
+    ).all()
+    if len(existing_users) > 1:
+        flash(
+            f"Le numéro de license {form.license.data} et l'adresse email {user_info.email}"
+            "sont associés à des comptes différents, impossible de générer un jeton",
+            "error",
+        )
+        return redirect(url_for(".administration"))
+    user = existing_users[0] if existing_users else None
 
     # If the 'confirm' flag has been checked, create the token
     token_link = None
