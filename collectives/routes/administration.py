@@ -4,12 +4,12 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
  """
 
 from datetime import date
-from sqlalchemy.orm import joinedload
 
 from flask import flash, render_template, redirect, url_for, send_file
 from flask import Blueprint
 from flask_login import current_user
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from collectives.email_templates import send_confirmation_email
 from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm

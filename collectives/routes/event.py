@@ -861,6 +861,14 @@ def register_user(event_id):
                 registration = next(
                     r for r in event.registrations if r.user_id == user.id
                 )
+
+                if registration.status in (
+                    RegistrationStatus.Waiting,
+                    RegistrationStatus.Rejected,
+                ):
+                    # Reset registration time to restart grace period
+                    registration.registration_time = current_time()
+
             except StopIteration:
                 registration = Registration(
                     level=RegistrationLevels.Normal,
@@ -1132,6 +1140,13 @@ def update_attendance(event_id):
 
             previous_status = registration.status
             registration.status = new_status
+            if registration.is_holding_slot() and previous_status in (
+                RegistrationStatus.Waiting,
+                RegistrationStatus.Rejected,
+            ):
+                # Reset registration time to restart grace period
+                registration.registration_time = current_time()
+
             db.session.add(registration)
 
             if registration.status == RegistrationStatus.Rejected:
