@@ -26,16 +26,16 @@ export default {
         })
 
         const eventFilters = reactive({
-            activities: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).activities : [],
-            eventTypes: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTypes : [],
-            eventTags: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTags : [],
+            activities: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).activities || [] : [],
+            eventTypes: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTypes || [] : [],
+            eventTags: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTags || [] : [],
             date: moment().format("DD/MM/YYYY"),
             title: null,
             leader: null,
             displayCancelled: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).displayCancelled : false
         })
 
-        function saveFiltersToLocalStorage(){
+        function saveFiltersToLocalStorage() {
             localStorage.setItem('eventlist-filters', JSON.stringify(eventFilters))
         }
         watch(eventFilters, (filters) => saveFiltersToLocalStorage(filters))
@@ -44,7 +44,7 @@ export default {
         function groupByDate(events) {
             return events.reduce((acc, event) => {
                 const date = moment(event.start).format("dddd Do MMMM YYYY")
-                if(!acc[date]) acc[date] = []
+                if (!acc[date]) acc[date] = []
                 acc[date].push(event)
                 return acc
             }, {})
@@ -70,21 +70,21 @@ export default {
             eventParams.page = pageNumber
             eventParams.pageSize = pageState.rows
             eventParams.first = pageState.page * pageState.rows + 1
-            history.pushState(null,null,'#' + pageNumber);
+            history.pushState(null, null, '#' + pageNumber);
         }
 
         /**
          * Smooth scroll to the top of the event list
          */
         function gotoEvents() {
-            eventlistRefEl.value.scrollIntoView({ behavior: 'smooth' }) 
+            eventlistRefEl.value.scrollIntoView({ behavior: 'smooth' })
         }
 
         onMounted(() => {
-                gotoEvents()
+            gotoEvents()
         })
 
-        return { 
+        return {
             events,
             config,
             IsLoading: () => loading.value,
@@ -120,7 +120,7 @@ export default {
                 <h5 class="heading-1">Message important</h5>
                 <div v-html="config.siteParams.bannerMessage" />
             </div>
-            <div class="collectives-list tabulator">
+            <div class="collectives-list">
 
                 <EventListFilters v-bind:filters="eventFilters"/>
 
