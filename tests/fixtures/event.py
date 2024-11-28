@@ -321,6 +321,7 @@ def event_in_less_than_x_hours_with_reg(
                 status=RegistrationStatus.Active,
                 level=RegistrationLevels.Normal,
                 is_self=True,
+                registration_time=datetime.now() - timedelta(weeks=1),
             )
         )
 

@@ -558,3 +558,7 @@ Désinscriptions tardives:
         content: 4
         description : Durée de la suspension de compte suite à un trop grand nombre de désinscriptions tardives, en semaines.
         type: Integer
+    UNREGISTRATION_GRACE_PERIOD:
+        content: 24
+        description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
+        type: Integer

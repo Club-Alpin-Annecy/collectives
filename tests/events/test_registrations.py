@@ -228,6 +228,37 @@ def test_youth_event_failed_autoregistration(user1, user1_client, youth_event):
 
 
 # Late unregistration-related tests
+def test_unregister_in_grace_period(
+    user1_client,
+    user1,
+    event_in_less_than_x_hours_with_reg,
+):
+    """
+    Tests the late self-unregistration of a user without any unregistration-related warning badge.
+    Verifies that the user is correctly unregistered and that badges are assigned as expected.
+    """
+    event = event_in_less_than_x_hours_with_reg
+
+    # Register
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 7
+    assert len(event.registrations) == 7
+
+    # Immediately unregister
+    response = user1_client.post(
+        f"/collectives/{event.id}/self_unregister", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert event.num_taken_slots() == 6
+    assert len(event.registrations) == 7
+
+    assert not event.is_late_unregistered(user1)
+    assert not user1.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
+
+
 def test_unregister_lately_no_warning(
     client_with_no_warning_badge,
     user_with_no_warning_badge,

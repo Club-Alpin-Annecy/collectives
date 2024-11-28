@@ -919,7 +919,7 @@ def self_unregister(event_id):
 
     if registration.status == RegistrationStatus.Waiting:
         db.session.delete(registration)
-    elif event.starts_soon() and event.event_type.requires_activity:
+    elif registration.is_in_late_unregistration_period():
         registration.status = RegistrationStatus.LateSelfUnregistered
         db.session.add(registration)
         if was_holding_slot and Configuration.ENABLE_SANCTIONS:

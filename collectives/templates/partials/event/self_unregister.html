@@ -1,4 +1,4 @@
-{% macro button(within_limit = True) -%}
+{% macro button(config, is_late = False) -%}
 
     <form
             action="{{url_for('event.self_unregister', event_id=event.id)}}"
@@ -22,15 +22,16 @@
                                 onclick= "this.parentNode.parentNode.style.display='none'"
                             />
                 <h1 class="heading-1">Confirmation de désincription</h1>
-                {% if within_limit == False %}
-                    <p>Attention nous vous rappelons qu’une inscription vous engage.</p>
-                    <p>N’oubliez pas de prévenir l’encadrant bénévole car vous risquez de bouleverser le bon déroulement de la collective.</p>
-                    <p>Comme indiqué dans le Guides Collectives une nouvelle désinscription non anticipée pourra entrainer une suspension temporaire de votre compte.</p>
+                <p>Nous vous rappelons qu’une inscription vous engage.</p>
+                {% if is_late %}
+                    <p><strong>Votre désinscription est tardive</strong> ; n’oubliez pas de prévenir l’encadrant bénévole car celle-ci peut bouleverser le bon déroulement de la collective.</p>
+                    {% if config.ENABLE_SANCTIONS %}
+                        <p>Comme indiqué dans le Guides Collectives une nouvelle désinscription non anticipée pourra entrainer une suspension temporaire de votre compte.</p>
+                    {% endif %}
                 {% else %}
-                    <p>Comme indiqué dans le Guides Collectives, nous vous rappelons qu’une inscription vous engage.</p>
                     <p>Dans la mesure du possible faites en sorte de vous inscrire, uniquement lorsque vous êtes sûr de pouvoir être présent.</p>
-                    <p>Si vous avez payé des frais, ceux-ci ne vous seront pas remboursés conformément aux CGU.</p>
                 {% endif %}
+                <p>Si vous avez payé des frais, ceux-ci ne vous seront pas remboursés conformément aux CGU.</p>
                 <h4 class="centeralign">Confirmez-vous votre désinscription ?<br/> 
                     <input type="submit" id="submitSelfUnregister" value="Confirmer" class="button button-danger">
                     <input type="button" id="cancelSelfUnregister" value="Annuler" class="button button-secondary" onclick="this.closest('.messages').style.display='none'">

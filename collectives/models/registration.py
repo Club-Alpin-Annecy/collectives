@@ -2,9 +2,13 @@
 """
 
 from typing import List
+from datetime import timedelta
 from sqlalchemy.sql import func
+
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+from collectives.models.configuration import Configuration
+from collectives.utils.time import current_time
 
 
 # pylint: disable=invalid-name
@@ -360,3 +364,19 @@ class Registration(db.Model):
             or self.holding_index() >= self.event.num_slots
             or self.online_index() >= self.event.num_online_slots
         )
+
+    def is_in_late_unregistration_period(self) -> bool:
+        """
+        :returns: whether unregistering now should be considered "late"
+        """
+        if not self.event.event_type.requires_activity or not self.is_holding_slot():
+            return False
+
+        late_period_start = self.event.start - timedelta(
+            hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
+        )
+        grace_period_end = self.registration_time + timedelta(
+            hours=Configuration.UNREGISTRATION_GRACE_PERIOD
+        )
+
+        return current_time() > max(late_period_start, grace_period_end)

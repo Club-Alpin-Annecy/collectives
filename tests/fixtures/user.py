@@ -20,19 +20,33 @@ PASSWORD = "fooBar2+!"
 :type: string
 """
 
+# pylint: disable=invalid-name, global-statement
+_id_seed = 0
+""" A unique identifier number for fixture users. It is not the
+    user id. It determines the user license number.
+"""
 
-def inject_fixture(name, someparam, names):
+
+def _next_id_seed() -> int:
+    """Generates a new unique identifier"""
+    global _id_seed
+    _id_seed += 1
+    return _id_seed
+
+
+# pylint: enable=invalid-name, global-statement
+
+
+def inject_fixture(name, names):
     """Create and add a new fixture user.
 
     :param string name: Fixture name.
-    :param int someparam: A unique identifier number for this user. It is not the
-        user id. It determines the user license number.
     :param "(string,string)" names: First and lastname of the user.
     """
-    globals()[name] = generate_user(someparam, names)
+    globals()[name] = generate_user(names)
 
 
-def generate_user(identifier, names):
+def generate_user(names):
     """Generate fixture users.
 
     :param int id: An identifiying integer for the user
@@ -40,11 +54,16 @@ def generate_user(identifier, names):
     :returns: the newly created user
     :rtype: :py:class:`collectives.models.user.User`"""
 
+    identifier = _next_id_seed()
+
     @wraps(identifier)
     @wraps(names)
     @pytest.fixture
     def user(app):
         """A Standard user"""
+
+        print(names, identifier)
+
         user = User()
         user.first_name = names[0]
         user.last_name = names[1]
@@ -53,7 +72,7 @@ def generate_user(identifier, names):
         user.type = UserType.Test
         user.license = str(identifier + 990000000000)
         user.license_category = "XX"
-        user.date_of_birth = date(2000, 1, identifier % 28)
+        user.date_of_birth = date(2000, 1, identifier % 28 + 1)
         user.password = PASSWORD
         user.phone = f"0601020{identifier:03d}"
         user.emergency_contact_name = f"Emergency {identifier}"
@@ -85,7 +104,7 @@ USER_NAMES = [
 
 :type: list()"""
 for i, user_name in enumerate(USER_NAMES):
-    inject_fixture(f"user{i}", i, user_name)
+    inject_fixture(f"user{i+1}", user_name)
 
 
 @pytest.fixture
@@ -94,7 +113,7 @@ def admin_user(app):
     return db.session.get(User, 1)
 
 
-inject_fixture("prototype_leader_user", 999, ("Romeo", "Capo"))
+inject_fixture("prototype_leader_user", ("Romeo", "Capo"))
 
 
 @pytest.fixture
@@ -116,7 +135,7 @@ def leader_user_with_event(leader_user, event1):
     return leader_user
 
 
-inject_fixture("prototype_leader2_user", 998, ("Evan", "Przewodnik"))
+inject_fixture("prototype_leader2_user", ("Evan", "Przewodnik"))
 
 
 @pytest.fixture
@@ -138,7 +157,7 @@ def leader2_user_with_event(leader2_user, event2):
     return leader2_user
 
 
-inject_fixture("prototype_president_user", 997, ("Russ", "Guevara"))
+inject_fixture("prototype_president_user", ("Russ", "Guevara"))
 
 
 @pytest.fixture
@@ -150,7 +169,7 @@ def president_user(prototype_president_user):
     return prototype_president_user
 
 
-inject_fixture("prototype_supervisor_user", 996, ("Ted", "Fincher"))
+inject_fixture("prototype_supervisor_user", ("Ted", "Fincher"))
 
 
 @pytest.fixture
@@ -162,7 +181,7 @@ def supervisor_user(prototype_supervisor_user):
     return prototype_supervisor_user
 
 
-inject_fixture("prototype_hotline_user", 995, ("Bill", "Hatch"))
+inject_fixture("prototype_hotline_user", ("Bill", "Hatch"))
 
 
 @pytest.fixture
@@ -174,7 +193,7 @@ def hotline_user(prototype_hotline_user):
     return prototype_hotline_user
 
 
-inject_fixture("prototype_youth_user", 994, ("Young", "Climber"))
+inject_fixture("prototype_youth_user", ("Young", "Climber"))
 
 
 @pytest.fixture
@@ -186,7 +205,7 @@ def youth_user(prototype_youth_user: User):
     return prototype_youth_user
 
 
-inject_fixture("prototype_user_with_valid_benevole_badge", 993, ("Good", "Girl"))
+inject_fixture("prototype_user_with_valid_benevole_badge", ("Good", "Girl"))
 
 
 @pytest.fixture
@@ -199,7 +218,7 @@ def user_with_valid_benevole_badge(prototype_user_with_valid_benevole_badge: Use
 
 
 inject_fixture(
-    "prototype_user_with_expired_benevole_badge", 992, ("Boy", "WhoShoulContribute")
+    "prototype_user_with_expired_benevole_badge", ("Boy", "WhoShoulContribute")
 )
 
 
@@ -214,7 +233,7 @@ def user_with_expired_benevole_badge(prototype_user_with_expired_benevole_badge:
     return prototype_user_with_expired_benevole_badge
 
 
-inject_fixture("prototype_extranet_user", 991, ("Extranet", "User"))
+inject_fixture("prototype_extranet_user", ("Extranet", "User"))
 
 
 @pytest.fixture
@@ -309,9 +328,7 @@ def add_badge_to_user(
     db.session.add(badge)
 
 
-inject_fixture(
-    "prototype_user_with_valid_first_warning_badge", 991, ("Anakin", "Skywalker")
-)
+inject_fixture("prototype_user_with_valid_first_warning_badge", ("Anakin", "Skywalker"))
 
 
 @pytest.fixture
@@ -329,9 +346,7 @@ def user_with_valid_first_warning_badge(
     return prototype_user_with_valid_first_warning_badge
 
 
-inject_fixture(
-    "prototype_user_with_expired_first_warning_badge", 990, ("Obi-Wan", "Kenobi")
-)
+inject_fixture("prototype_user_with_expired_first_warning_badge", ("Obi-Wan", "Kenobi"))
 
 
 @pytest.fixture
@@ -350,7 +365,7 @@ def user_with_expired_first_warning_badge(
     return prototype_user_with_expired_first_warning_badge
 
 
-inject_fixture("prototype_user_with_valid_second_warning_badge", 989, ("Han", "Solo"))
+inject_fixture("prototype_user_with_valid_second_warning_badge", ("Han", "Solo"))
 
 
 @pytest.fixture
@@ -375,9 +390,7 @@ def user_with_valid_second_warning_badge(
     return prototype_user_with_valid_second_warning_badge
 
 
-inject_fixture(
-    "prototype_user_with_expired_second_warning_badge", 988, ("Leia", "Organa")
-)
+inject_fixture("prototype_user_with_expired_second_warning_badge", ("Leia", "Organa"))
 
 
 @pytest.fixture
@@ -403,7 +416,7 @@ def user_with_expired_second_warning_badge(
 
 
 inject_fixture(
-    "prototype_user_with_valid_suspended_badge", 987, ("Chewbacca", "The Wookiee")
+    "prototype_user_with_valid_suspended_badge", ("Chewbacca", "The Wookiee")
 )
 
 
@@ -422,7 +435,7 @@ def user_with_valid_suspended_badge(
     return prototype_user_with_valid_suspended_badge
 
 
-inject_fixture("prototype_user_with_expired_suspended_badge", 986, ("Darth", "Vader"))
+inject_fixture("prototype_user_with_expired_suspended_badge", ("Darth", "Vader"))
 
 
 @pytest.fixture
@@ -441,4 +454,4 @@ def user_with_expired_suspended_badge(
     return prototype_user_with_expired_suspended_badge
 
 
-inject_fixture("user_with_no_warning_badge", 985, ("Jabba", "The Hutt"))
+inject_fixture("user_with_no_warning_badge", ("Jabba", "The Hutt"))

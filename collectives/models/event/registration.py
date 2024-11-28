@@ -1,6 +1,7 @@
 """ Module for all Event methods related to registration manipulation and check."""
 
-from datetime import datetime, timedelta
+from typing import List
+from datetime import datetime
 from operator import attrgetter
 
 from collectives.models.registration import (
@@ -8,7 +9,6 @@ from collectives.models.registration import (
     RegistrationLevels,
     RegistrationStatus,
 )
-from collectives.models import Configuration
 from collectives.models.globals import db
 
 
@@ -29,70 +29,64 @@ class EventRegistrationMixin:
 
     Not meant to be used alone."""
 
-    def has_valid_slots(self):
+    def has_valid_slots(self) -> bool:
         """Check if this event does not have more online slots than overall
         slots.
 
         :return: True if event has a good configuration of num_slots.
-        :rtype: boolean
         """
         # pylint: disable=C0301
         return self.num_online_slots >= 0 and self.num_slots >= self.num_online_slots
 
-    def is_registration_open_at_time(self, time):
+    def is_registration_open_at_time(self, time: datetime) -> bool:
         """Check if online registration for this event is open.
 
         :param time: Time that will be checked (usually, current time).
-        :type time: :py:class:`datetime.datetime`
         :return: True if registration is open at ``time``
-        :rtype: boolean
         """
         if self.registration_open_time is None or self.registration_close_time is None:
             return False
         # pylint: disable=C0301
         return self.registration_open_time <= time <= self.registration_close_time
 
-    def active_registrations(self):
+    def active_registrations(self) -> List[Registration]:
         """Returns all actives registrations.
 
         See :py:meth:`collectives.models.registration.Registration.is_active`
 
         :return: All registration of this event which are active
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return [r for r in self.registrations if r.is_active()]
 
-    def active_registrations_with_level(self, level):
+    def active_registrations_with_level(
+        self, level: RegistrationLevels
+    ) -> List[Registration]:
         """
         :return Active registrations with a given registration level.
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return [r for r in self.active_registrations() if r.level == level]
 
-    def active_normal_registrations(self):
+    def active_normal_registrations(self) -> List[Registration]:
         """
         :return Active registrations with a "normal" level.
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return self.active_registrations_with_level(RegistrationLevels.Normal)
 
-    def holding_slot_registrations(self):
+    def holding_slot_registrations(self) -> List[Registration]:
         """Returns all holding slot registrations.
 
         See :py:meth:`collectives.models.registration.Registration.is_holding_slot`
 
         :return: All registration of this event which are valid
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         return [r for r in self.registrations if r.is_holding_slot()]
 
-    def waiting_registrations(self):
+    def waiting_registrations(self) -> List[Registration]:
         """Returns all waiting list registrations.
 
         See :py:meth:`collectives.models.registration.RegistrationStatus.Waiting`
 
         :return: All registration of this event which are waiting, ordered.
-        :rtype: list(:py:class:`collectives.models.registration.Registration`)
         """
         waiting = [
             r for r in self.registrations if r.status == RegistrationStatus.Waiting
@@ -100,77 +94,75 @@ class EventRegistrationMixin:
         waiting.sort(key=attrgetter("id"))
         return waiting
 
-    def num_taken_slots(self):
+    def num_taken_slots(self) -> int:
         """Return the number of slots that have been taken
         (registration is either active or pending)
 
         :return: count of taken slots
-        :rtype: int
         """
-        return len(
-            [
-                registration
-                for registration in self.registrations
-                if registration.is_holding_slot()
-            ]
+        return sum(
+            1 for registration in self.registrations if registration.is_holding_slot()
         )
 
-    def num_pending_registrations(self):
+    def num_pending_registrations(self) -> int:
         """Return the number of pending registrations
         (registrations that are holding a slot but not active yet)
 
         :return: count of pending slots
-        :rtype: int
         """
-        return len(
-            [
-                registration
-                for registration in self.registrations
-                if (registration.is_holding_slot() and not registration.is_active())
-            ]
+        return sum(
+            1
+            for registration in self.registrations
+            if (registration.is_holding_slot() and not registration.is_active())
         )
 
-    def has_free_slots(self):
+    def num_waiting_registrations(self) -> int:
+        """Return the number of registrations in witing list"""
+        return sum(
+            1
+            for registration in self.registrations
+            if registration.status == RegistrationStatus.Waiting
+        )
+
+    def has_free_slots(self) -> bool:
         """Check if this event is full.
 
         :return: True if there is less active registrations than available slots.
-        :rtype: boolean
         """
         return self.num_taken_slots() < self.num_slots
 
-    def has_free_online_slots(self):
+    def has_free_online_slots(self) -> bool:
         """Check if an user can self-register.
 
         :return: True if there is less active registrations than available
                 online slots.
-        :rtype: boolean
         """
         return self.num_taken_slots() < self.num_online_slots
 
-    def has_free_waiting_slots(self):
+    def has_free_waiting_slots(self) -> bool:
         """Check if an user can self-register to the waiting list.
 
         :return: True if there is less waiting registrations than available
                 wainting slots.
         :rtype: boolean
         """
-        return len(self.waiting_registrations()) < self.num_waiting_list
+        return self.num_waiting_registrations() < self.num_waiting_list
 
-    def free_slots(self):
+    def free_slots(self) -> bool:
         """Calculate the amount of available slot for new registrations.
 
         :return: Number of free slots for this event.
-        :rtype: int"""
+        """
         free = self.num_slots - self.num_taken_slots()
         return max(free, 0)
 
-    def existing_registrations(self, user):
+    def existing_registrations(
+        self, user: "collectives.models.user.User"
+    ) -> List[Registration]:
         """
         Returns all existing registrations of a given user for this event
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: List of existing registrations
-        :rtype: :py:class:`collectives.models.registration.Registration`
         """
         return [
             registration
@@ -178,7 +170,7 @@ class EventRegistrationMixin:
             if registration.user_id == user.id
         ]
 
-    def is_registered(self, user):
+    def is_registered(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is registered to this event.
 
         Note:
@@ -186,78 +178,69 @@ class EventRegistrationMixin:
         - a rejected user user is still considered as registered.
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: True if user is registered.
-        :rtype: boolean
         """
         return any(self.existing_registrations(user))
 
-    def is_registered_with_status(self, user, statuses):
+    def is_registered_with_status(
+        self, user: "collectives.models.user.User", statuses: List[RegistrationStatus]
+    ) -> bool:
         """Check if a user is registered to this event with specific status.
 
         Note:
         - leader is not considered as registered.
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :param statuses: Status acceptable to test registrations.
-        :type statuses: list(:py:class:`collectives.models.registration.RegistrationStatus`)
         :return: True if user is registered with a specific status
-        :rtype: boolean
         """
-        existing_registrations = [
+        return any(
             registration
             for registration in self.registrations
             if registration.user_id == user.id and registration.status in statuses
-        ]
-        return any(existing_registrations)
+        )
 
-    def is_rejected(self, user):
+    def is_rejected(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is rejected on this event.
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: True if user is registered with a ``rejected`` status
-        :rtype: boolean
         """
-        return self.is_registered_with_status(user, [RegistrationStatus.Rejected])
+        return self.is_registered_with_status(user, (RegistrationStatus.Rejected,))
 
-    def is_unregistered(self, user):
+    def is_unregistered(self, user: "collectives.models.user.User") -> bool:
         """Check if a user has unregistered this event.
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: True if user is registered with a ``unregistered`` status
-        :rtype: boolean
         """
         return self.is_registered_with_status(
             user,
-            [
+            (
                 RegistrationStatus.SelfUnregistered,
                 RegistrationStatus.LateSelfUnregistered,
-            ],
+            ),
         )
 
-    def is_late_unregistered(self, user):
+    def is_late_unregistered(self, user: "collectives.models.user.User"):
         """Check if a user has unregistered lately this event.
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: True if user is registered with a ``late unregistered`` status
-        :rtype: boolean
         """
         return self.is_registered_with_status(
-            user, [RegistrationStatus.LateSelfUnregistered]
+            user, (RegistrationStatus.LateSelfUnregistered,)
         )
 
-    def starts_soon(self):
-        """Check if an event starts within xh of current time.
-
-        :return: True if event starts within xh of current time
-        :rtype: boolean
+    def is_in_late_unregistration_period(
+        self, user: "collectives.models.user.User"
+    ) -> bool:
         """
-        return self.start < datetime.now() + timedelta(
-            hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
+        :returns: whether `user` unregistering now should be considered "late"
+        """
+        return any(
+            reg.is_in_late_unregistration_period()
+            for reg in self.existing_registrations(user)
         )
 
     def is_user_in_user_group(self, user: "collectives.models.user.User") -> bool:
@@ -265,14 +248,18 @@ class EventRegistrationMixin:
 
         :param user: User which will be tested.
         :return: True if there is no user group or the user is a member of the group
-        :rtype: boolean
         """
 
         if self.user_group is None:
             return True
         return self.user_group.contains(user)
 
-    def can_self_register(self, user, time, waiting=False):
+    def can_self_register(
+        self,
+        user: "collectives.models.user.User",
+        time: datetime,
+        waiting: bool = False,
+    ) -> bool:
         """Check if a user can self-register.
 
         An user can self-register if:
@@ -288,13 +275,9 @@ class EventRegistrationMixin:
           - user does not have a valid Suspended badge
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :param time: Time that will be checked (usually, current time).
-        :type time: :py:class:`datetime.datetime`
         :param waiting: check if user can self register into waiting list
-        :type time: boolean
         :return: True if user can self-register.
-        :rtype: boolean
         """
         if not user.is_active:
             return False
@@ -320,7 +303,9 @@ class EventRegistrationMixin:
             return False
         return len(self.waiting_registrations()) < self.num_waiting_list
 
-    def can_self_unregister(self, user, time: datetime) -> bool:
+    def can_self_unregister(
+        self, user: "collectives.models.user.User", time: datetime
+    ) -> bool:
         """Check if a user can self-unregister.
 
         An user can self-register if:
@@ -330,16 +315,15 @@ class EventRegistrationMixin:
         :param user: User which will be tested.
         :param time: Time that will be checked (usually, current time).
         :return: True if user can self-register.
-        :rtype: boolean
         """
         if time > self.start:
             return False
 
-        good_statuses = [
+        good_statuses = (
             RegistrationStatus.PaymentPending,
             RegistrationStatus.Active,
             RegistrationStatus.Waiting,
-        ]
+        )
 
         return self.is_registered_with_status(user, good_statuses)
 
