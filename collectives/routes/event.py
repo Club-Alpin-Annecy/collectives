@@ -1236,6 +1236,9 @@ def update_waiting_list(event: Event) -> List[Registration]:
             waiting_registration, removed_waiting_registrations
         )
 
+        # Reset registration time to restart grace period
+        waiting_registration.registration_time = current_time()
+
         db.session.add(waiting_registration)
         registrations.append(waiting_registration)
 
