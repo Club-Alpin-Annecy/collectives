@@ -2,6 +2,8 @@ import { searchLeaders } from "../api.js";
 
 const { ref, inject, reactive } = Vue
 
+
+
 export default {
 
   props: ["filters"],
@@ -24,6 +26,10 @@ export default {
         leadersSearch.results = data.map(res => res.full_name)
         leadersSearch.loading = false
     }
+    const removeFilterElement = (filterList, element) => {
+      if (!filterList) return filterList;
+      return filterList.filter(id => id !== element);
+    }
 
     return {
       displayMoreFilters,
@@ -33,6 +39,7 @@ export default {
       findInConfig: (list, activityId) => list.find(id =>  id.id === activityId),
       fetchLeaders,
       leadersSearch,
+      removeFilterElement
     }
   },
   template: `
@@ -44,7 +51,8 @@ export default {
       :options="config.activityList" 
       optionLabel="name" 
       optionValue="id"
-      filter 
+      appendTo="self"
+      :showToggleAll="false"
       scrollHeight="90vh"
       placeholder="Toutes activités"
     >
@@ -55,10 +63,10 @@ export default {
           </div>
       </template>
       <template #chip="slotProps">
-          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = filters.activities.filter(id => id !== slotProps.value)"/>
+          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = removeFilterElement(filters.activities, slotProps.value)"/>
       </template>
       <template #footer="slotProps">
-        <div class="flex justify-between" v-if="slotProps.value.length > 0">
+        <div class="flex justify-between" v-if="slotProps.value?.length > 0">
             <div></div>
             <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.activities = []" />
         </div>
@@ -84,7 +92,8 @@ export default {
         scrollHeight="90vh"
         placeholder="Tout types d'événement"
         display="chip" 
-        filter 
+        appendTo="self"
+        :showToggleAll="false"
       >
         <template #option="slotProps">
           <div class="flex items-center">
@@ -93,7 +102,7 @@ export default {
           </div>
         </template>
         <template #chip="slotProps">
-            <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTypes = filters.eventTypes.filter(id => id !== slotProps.value)" />
+            <Chip :label="findInConfig(config.eventTypes, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTypes = removeFilterElement(filters.eventTypes, slotProps.value)" />
         </template>
         <template #footer="slotProps">
           <div class="flex justify-between" v-if="slotProps.value?.length > 0">
@@ -112,7 +121,8 @@ export default {
         scrollHeight="90vh"
         placeholder="Tous labels"
         display="chip" 
-        filter 
+        appendTo="self"
+        :showToggleAll="false"
       >
         <template #option="slotProps">
           <div class="flex items-center">
@@ -121,7 +131,7 @@ export default {
           </div>
         </template>
         <template #chip="slotProps">
-            <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTags = filters.eventTags.filter(id => id !== slotProps.value)" />
+            <Chip :label="findInConfig(config.eventTags, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.eventTags = removeFilterElement(filters.eventTags, slotProps.value)" />
         </template>
         <template #footer="slotProps">
           <div class="flex justify-between" v-if="slotProps.value?.length > 0">

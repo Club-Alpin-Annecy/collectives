@@ -53,7 +53,7 @@ function filtersToQuery(filters) {
     filterPayload.push({ field: 'status', type: '!=', value: 'Cancelled' })
   }
 
-  if(filters.activities.length > 0) {
+  if(filters.activities?.length > 0) {
     filterPayload.push(...
       filters.activities.map(activity => ({
         field: 'activity_type',type: '=', value: activity
@@ -61,7 +61,7 @@ function filtersToQuery(filters) {
     )
   }
 
-  if(filters.eventTypes.length > 0) {
+  if(filters.eventTypes?.length > 0) {
     filterPayload.push(...
       filters.eventTypes.map(value => ({
         field: 'event_type',type: '=', value
@@ -69,7 +69,7 @@ function filtersToQuery(filters) {
     )
   }
 
-  if(filters.eventTags.length > 0) {
+  if(filters.eventTags?.length > 0) {
     filterPayload.push(...
       filters.eventTags.map(value => ({
         field: 'tags',type: '=', value

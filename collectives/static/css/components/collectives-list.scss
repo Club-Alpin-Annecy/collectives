@@ -392,23 +392,26 @@ $button-height:40px;
             }
         }
     }
-    
-}
 
-.p-multiselect-overlay {
-    .p-multiselect-list {
-        .icon {
-            width: 30px;
-            margin-right: 5px;
-            height: auto;
-        }
-        .flex.items-center {
-            align-items: center;
-            justify-content: center;
-        }
+    .p-multiselect-option {
+        padding: 0.15rem 0.5rem;
     }
-    .justify-between {
-        justify-content: space-between;
-        padding: .75rem;
+
+    .p-multiselect-overlay {
+        .p-multiselect-list {
+            .icon {
+                width: 30px;
+                margin-right: 5px;
+                height: auto;
+            }
+            .flex.items-center {
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        .justify-between {
+            justify-content: space-between;
+            padding: .75rem;
+        }
     }
 }
