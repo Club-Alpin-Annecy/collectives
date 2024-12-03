@@ -170,11 +170,12 @@ def signup():
     to create an account or reset a password. If the information matches a user or
     a potential user, a confirmation email is sent.
     """
-    if current_user.is_authenticated:
-        flash("Vous êtes déjà connecté", "warning")
-        return redirect(url_for("event.index"))
 
     is_recover = "recover" in request.endpoint
+
+    if current_user.is_authenticated and not is_recover:
+        flash("Vous êtes déjà connecté", "warning")
+        return redirect(url_for("event.index"))
 
     local = Configuration.EXTRANET_ACCOUNT_ID == ""
 
