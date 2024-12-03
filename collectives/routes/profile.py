@@ -14,12 +14,18 @@ from flask import flash, render_template, redirect, url_for, request, send_file,
 from flask import Blueprint
 from flask_login import current_user, logout_user
 from flask_images import Images
+from markupsafe import Markup
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
 from collectives.forms.user import DeleteUserForm
 from collectives.models import User, Role, RoleIds, Configuration, Gender
 from collectives.models import Event, db, UserType
-from collectives.routes.auth import sync_user
+from collectives.routes.auth import (
+    sync_user,
+    InvalidLicenseError,
+    EmailChangedError,
+    get_changed_email_message,
+)
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
@@ -163,7 +169,9 @@ def force_user_sync(user_id):
             return redirect(url_for("profile.show_user", user_id=user.id))
 
     try:
-        if not sync_user(user, force=True) and user.id == current_user.id:
+        sync_user(user, force=True)
+    except InvalidLicenseError:
+        if user.id == current_user.id:
             flash(
                 f'Votre numéro de licence "{user.license}" n\'est pas ou plus valide '
                 "dans la base fédérale. Si un nouveau numéro de licence vous a été attribué, "
@@ -174,6 +182,12 @@ def force_user_sync(user_id):
             logout_user()
             return redirect(url_for("auth.recover"))
 
+        flash(
+            f'Le numéro de licence "{user.license}" n\'est pas ou plus valide.',
+            "error",
+        )
+    except EmailChangedError as err:
+        flash(Markup(get_changed_email_message(err.new_email)), "error")
     except ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",

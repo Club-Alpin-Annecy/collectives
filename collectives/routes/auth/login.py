@@ -9,7 +9,13 @@ from markupsafe import Markup
 
 from collectives.forms.auth import LoginForm
 from collectives.routes.auth.globals import blueprint
-from collectives.routes.auth.utils import sync_user, get_bad_phone_message
+from collectives.routes.auth.utils import (
+    sync_user,
+    get_bad_phone_message,
+    get_changed_email_message,
+    InvalidLicenseError,
+    EmailChangedError,
+)
 from collectives.models import db, Configuration, User, UserType
 from collectives.utils.time import current_time
 from collectives.utils import extranet
@@ -54,6 +60,11 @@ def login():
 
     try:
         sync_user(user, force=False)
+    except InvalidLicenseError:
+        # do nothing, will be handled by checking user.is_active below
+        pass
+    except EmailChangedError as err:
+        flash(Markup(get_changed_email_message(err.new_email)), "warning")
     except extranet.ExtranetError:
         flash(
             """Synchronization avec l'extranet FFCAM impossible,

@@ -5,7 +5,12 @@
 from collectives.models import User, db, Configuration
 from tests import mock
 from tests import fixtures
-from tests.mock.extranet import EXPIRED_LICENSE
+from tests.mock.extranet import (
+    EXPIRED_LICENSE,
+    VALID_USER_EMAIL,
+    VALID_USER_EMERGENCY,
+    VALID_LICENSE_WITH_NO_EMAIL,
+)
 
 
 def test_create_account(client, extranet_monkeypatch):
@@ -96,9 +101,13 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
 
     fixtures.client.login(client, extranet_user)
 
+    extranet_user.mail = VALID_USER_EMAIL
     response = client.post("/profile/user/force_sync", follow_redirects=True)
     assert response.status_code == 200
     assert "error message" not in response.text
+
+    # sync should have succeeded
+    assert extranet_user.emergency_contact_name == "EMERGENCY"
 
     # test with invalid license -- should redirect to auth page
     extranet_user = client.user
@@ -112,8 +121,47 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
     fixtures.client.logout(client)
 
 
+def test_resync_own_account_changed_email(client, extranet_user, extranet_monkeypatch):
+    """Test extranet resync with changed email"""
+
+    fixtures.client.login(client, extranet_user)
+
+    response = client.post("/profile/user/force_sync", follow_redirects=True)
+    assert response.status_code == 200
+    assert "error message" in response.text
+    assert "adresse email a été modifiée" in response.text
+    # sync should have failed
+    assert extranet_user.emergency_contact_name != VALID_USER_EMERGENCY
+
+    # test user with no email defined in extranet
+    extranet_user = client.user
+    extranet_user.license = VALID_LICENSE_WITH_NO_EMAIL
+    extranet_user.emergency_contact_name = ""
+    db.session.add(extranet_user)
+    db.session.commit()
+    response = client.post("/profile/user/force_sync", follow_redirects=True)
+    assert response.status_code == 200
+    assert "error message" in response.text
+    assert "pas renseignée " in response.text
+    # sync should have failed
+    assert extranet_user.emergency_contact_name != VALID_USER_EMERGENCY
+
+    fixtures.client.logout(client)
+
+
 def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypatch):
     """Test extranet resync by hotline user"""
+
+    response = hotline_client.post(
+        f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
+    assert "adresse email a été modifiée" in response.text
+
+    extranet_user.mail = VALID_USER_EMAIL
+    db.session.add(extranet_user)
+    db.session.commit()
 
     response = hotline_client.post(
         f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
@@ -136,7 +184,8 @@ def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypa
         f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
     )
     assert response.status_code == 200
-    assert "error message" not in response.text
+    assert "error message" in response.text
+    assert "pas ou plus valide" in response.text
 
 
 def test_user_resync_account(user1_client, user2, extranet_monkeypatch):
