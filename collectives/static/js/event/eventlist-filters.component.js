@@ -146,6 +146,7 @@ export default {
           <p-datepicker 
             dateFormat="dd/mm/yy"
             v-model="filters.date"
+            placeholder="Aujourd'hui"
           ></p-datepicker>
         </label>
       </div>

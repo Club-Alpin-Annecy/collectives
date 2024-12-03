@@ -37,11 +37,9 @@ function filtersToQuery(filters) {
     filterPayload.push({ field: 'title', type: 'like', value: filters.title })
   }
 
-  if (filters.date) {
-    filterPayload.push({ field: 'end', type: 'like', value: 
-      filters.date
-    })
-  }
+  filterPayload.push({ field: 'end', type: 'like', value: 
+    filters.date || getServerLocalTime()
+  })
 
   if (filters.leader) {
     filterPayload.push({ field: 'leaders', type: 'like', value: 

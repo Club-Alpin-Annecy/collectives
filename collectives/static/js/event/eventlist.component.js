@@ -29,7 +29,7 @@ export default {
             activities: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).activities || [] : [],
             eventTypes: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTypes || [] : [],
             eventTags: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).eventTags || [] : [],
-            date: moment().format("DD/MM/YYYY"),
+            date: null,
             title: null,
             leader: null,
             displayCancelled: localStorage.getItem('eventlist-filters') ? JSON.parse(localStorage.getItem('eventlist-filters')).displayCancelled : false
