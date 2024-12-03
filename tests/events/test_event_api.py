@@ -10,7 +10,7 @@ from collectives.models import ActivityType, db, EventTag
 
 def today():
     """Returns today's date as string"""
-    return date.today().strftime("%d/%m/%Y")
+    return date.today().strftime("%Y-%m-%d")
 
 
 def test_event_access(
