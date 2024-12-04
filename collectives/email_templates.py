@@ -3,15 +3,22 @@
 
 from functools import wraps
 from typing import List
+from datetime import timedelta
 
 from flask import current_app, url_for, flash
 from markupsafe import Markup
 
 
-from collectives.models import db, Configuration, Registration, ConfirmationToken
+from collectives.models import (
+    db,
+    Configuration,
+    Registration,
+    ConfirmationToken,
+    BadgeIds,
+)
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
-from collectives.utils.time import format_date
+from collectives.utils.time import format_date, current_time
 from collectives.utils.url import slugify
 
 
@@ -229,17 +236,36 @@ def send_update_waiting_list_notification(
     :param registration: Activated registration
     """
     try:
-        current_app.logger.warning(f"Send mail to: {registration.user.mail}")
-        message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
-            event_title=registration.event.title,
-            event_date=format_date(registration.event.start),
-            link=url_for(
-                "event.view_event",
-                event_id=registration.event.id,
-                name=slugify(registration.event.title),
-                _external=True,
-            ),
+        current_app.logger.warning(
+            f"Send mail to: {_anonymize_mail(registration.user.mail)}"
         )
+
+        end_of_grace = current_time() + timedelta(hours=Configuration.GRACE_PERIOD + 1)
+        if registration.is_in_late_unregistration_period(end_of_grace):
+            message = (
+                Configuration.ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE.format(
+                    event_title=registration.event.title,
+                    event_date=format_date(registration.event.start),
+                    grace_period=Configuration.GRACE_PERIOD,
+                    link=url_for(
+                        "event.view_event",
+                        event_id=registration.event.id,
+                        name=slugify(registration.event.title),
+                        _external=True,
+                    ),
+                )
+            )
+        else:
+            message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
+                event_title=registration.event.title,
+                event_date=format_date(registration.event.start),
+                link=url_for(
+                    "event.view_event",
+                    event_id=registration.event.id,
+                    name=slugify(registration.event.title),
+                    _external=True,
+                ),
+            )
 
         if deleted_registrations:
             event_titles = "\n".join(
@@ -263,3 +289,127 @@ def send_update_waiting_list_notification(
     # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
+
+
+def send_late_unregistration_notification(event, user):
+    """
+    Send a notification to the user who recently unregistered lately from an event.
+
+    :param event: The event from which the user recently unregistered.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param user: The user who recently unregistered.
+    :type user: :py:class:`collectives.models.user.User`
+    """
+
+    # Check if the user has a valid suspended badge
+    has_valid_suspended_badge = user.has_a_valid_badge([BadgeIds.Suspended])
+    num_valid_warning_badges = len(
+        user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
+    )
+    warning_title = (
+        "premier avertissement"
+        if num_valid_warning_badges == 1
+        else "dernier avertissement"
+    )
+
+    # Determine the content and subject of the notification based on the user's badges
+    if has_valid_suspended_badge:
+        content = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_MESSAGE
+        title = Configuration.LATE_UNREGISTER_ACCOUNT_SUSPENSION_SUBJECT
+    else:
+        content = Configuration.LATE_UNREGISTER_WARNING_MESSAGE
+        title = Configuration.LATE_UNREGISTER_WARNING_SUBJECT
+
+    try:
+        message = content.format(
+            user_name=user.full_name(),
+            event_main_leader=event.main_leader.full_name(),
+            event_title=event.title,
+            nb_hours=Configuration.LATE_UNREGISTRATION_THRESHOLD,
+            nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
+            num_warnings_for_suspension=Configuration.NUM_WARNINGS_BEFORE_SUSPENSION
+            + 1,
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
+        )
+        subject = title.format(number_of_warnings=warning_title)
+
+        mail.send_mail(
+            subject=subject,
+            email=[user.mail],
+            message=message,
+        )
+    # pylint: disable=broad-except
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")
+
+
+def send_unjustified_absence_notification(event, user):
+    """
+    Send a notification to the user who missed an event and got assigned an 'UnjustifiedAbsentee'
+    registration status by the event organizer.
+
+    :param event: The event that the user missed according to the event organizer.
+    :type event: :py:class:`collectives.modes.event.Event`
+    :param user: The user who missed the event.
+    :type user: :py:class:`collectives.models.user.User`
+    """
+
+    # Check if the user has a valid suspended badge
+    has_valid_suspended_badge = user.has_a_valid_badge([BadgeIds.Suspended])
+    num_valid_warning_badges = len(
+        user.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
+    )
+    warning_title = (
+        "premier avertissement"
+        if num_valid_warning_badges == 1
+        else "dernier avertissement"
+    )
+
+    # Determine the content and subject of the notification based on the user's badges
+    if has_valid_suspended_badge:
+        content = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_MESSAGE
+        title = Configuration.UNJUSTIFIED_ABSENCE_ACCOUNT_SUSPENSION_SUBJECT
+    else:
+        content = Configuration.UNJUSTIFIED_ABSENCE_WARNING_MESSAGE
+        title = Configuration.UNJUSTIFIED_ABSENCE_WARNING_SUBJECT
+
+    try:
+        message = content.format(
+            user_name=user.full_name(),
+            event_main_leader=event.main_leader.full_name(),
+            event_title=event.title,
+            nb_semaines_suspension=Configuration.SUSPENSION_DURATION,
+            num_warnings_for_suspension=Configuration.NUM_WARNINGS_BEFORE_SUSPENSION
+            + 1,
+            link=url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                _external=True,
+            ),
+        )
+        subject = title.format(number_of_warnings=warning_title)
+
+        mail.send_mail(
+            subject=subject,
+            email=[user.mail],
+            message=message,
+        )
+    # pylint: disable=broad-except
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")
+
+
+def _anonymize_mail(email: str):
+    """Returns an anonymized version of an email, for logging"""
+    parts = email.split("@")
+    n = len(parts[0])
+    kept = min(3, max(0, (n - 3) // 2))
+    mid = parts[0][kept : n - kept]
+    parts[0] = parts[0][:kept] + "*" * len(mid) + parts[0][n - kept :]
+    return "@".join(parts)

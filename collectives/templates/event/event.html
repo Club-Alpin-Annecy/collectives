@@ -3,6 +3,7 @@
 
 {% import 'macros.html' as macros with context %}
 {% import 'partials/event/self_register.html' as self_register with context %}
+{% import 'partials/event/self_unregister.html' as self_unregister with context %}
 
 
 {% block additionalhead %}
@@ -213,7 +214,7 @@
       {% if event.is_registered(current_user) %}
         {% if event.is_rejected(current_user)%}
           <p>Votre inscription a été refusée.</p>
-        {% elif event.is_unregistered(current_user)%}
+        {% elif event.is_unregistered(current_user) %}
           <p>Vous vous êtes désincrit. Si vous souhaitez vous réinscrire, contactez l'encadrant.</p>
         {% else %}
           {# Active registration or waiting list #}
@@ -250,14 +251,9 @@
             </form>
           {% endif %}
 
-          {% if event.can_self_unregister(current_user, current_time) %}
-            <form action="{{url_for('event.self_unregister', event_id=event.id)}}" method="post"   class="selfunregister">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-              <a  class="button button-secondary"
-                  onclick="if(confirm(unregister_message{% if event.is_registered_with_status(current_user, [models.RegistrationStatus.Waiting]) %}_waiting{%endif%})) this.parentNode.submit()" >
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
-              </a>
-            </form><br/><br/>
+          {% if current_time < event.start %} {# Unregister #}
+            {{ self_unregister.button(Configuration, event.is_in_late_unregistration_period(current_user)) }} {# Late Unregister condition #} 
+          <br/><br/>
           {% endif %}
 
           {# Questionnaire #}
@@ -305,6 +301,10 @@
                 </ul>
               </p>
             {% endif %}
+
+        {% elif current_user.is_active and current_user.is_suspended() %}
+          <p>Votre compte est suspendu jusqu'au {{format_date(current_user.suspension_end_date())}}  suite à un trop grand nombre de désinscriptions tardives ou d'absences non justifiées. Vous pourrez vous ré-inscrire à nouveau après cette échéance. Si vous pensez que c'est une erreur, merci de contacter un administrateur.</p>
+
         {% elif current_time > event.registration_close_time %}
           <p>Les inscriptions sont closes.</p>
         {% elif not event.has_free_online_slots()%}
@@ -316,7 +316,7 @@
         {% endif %}
 
         {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}
-          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() |length }} / {{ event.num_waiting_list }}
+          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() }} / {{ event.num_waiting_list }}
               {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
               {% endif %}

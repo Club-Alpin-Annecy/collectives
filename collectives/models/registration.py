@@ -1,9 +1,14 @@
 """Module for registration related classes
 """
 
-from typing import List
+from typing import List, Optional
+from datetime import timedelta, datetime
+from sqlalchemy.sql import func
+
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+from collectives.models.configuration import Configuration
+from collectives.utils.time import current_time
 
 
 # pylint: disable=invalid-name
@@ -66,6 +71,9 @@ class RegistrationStatus(ChoiceEnum):
 
     Present = 7
     """ User has been present to the event. """
+
+    LateSelfUnregistered = 8
+    """ User has self unregister to the event, but late. """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -79,6 +87,7 @@ class RegistrationStatus(ChoiceEnum):
             cls.Rejected: "Refusée",
             cls.PaymentPending: "Attente de Paiement",
             cls.SelfUnregistered: "Auto désinscrit",
+            cls.LateSelfUnregistered: "Auto désinscrit tardif",
             cls.JustifiedAbsentee: "Absent justifié",
             cls.UnJustifiedAbsentee: "Absent non justifié",
             cls.ToBeDeleted: "Effacer l'inscription",
@@ -124,6 +133,13 @@ class RegistrationStatus(ChoiceEnum):
                 cls.Waiting,
                 cls.Active,
             ],
+            cls.LateSelfUnregistered: [
+                re_register_status,
+                cls.Waiting,
+                cls.ToBeDeleted,
+                cls.JustifiedAbsentee,
+                cls.UnJustifiedAbsentee,
+            ],
         }
 
     def is_valid(self):
@@ -134,11 +150,19 @@ class RegistrationStatus(ChoiceEnum):
         return self in RegistrationStatus.valid_status()
 
     @classmethod
-    def valid_status(cls) -> list:
+    def valid_status(cls) -> List["RegistrationStatus"]:
         """Returns the list of registration status considered as valid.
 
         See :py:meth:`collectives.models.registration.RegistrationStatus.is_valid()`"""
-        return [RegistrationStatus.Active, RegistrationStatus.Present]
+        return (RegistrationStatus.Active, RegistrationStatus.Present)
+
+    @classmethod
+    def sanctioned_statuses(cls) -> List["RegistrationStatus"]:
+        """Returns the list of status thay may trigger sanctions"""
+        return (
+            RegistrationStatus.UnJustifiedAbsentee,
+            RegistrationStatus.LateSelfUnregistered,
+        )
 
     def valid_transitions(self, requires_payment):
         """
@@ -189,12 +213,27 @@ class Registration(db.Model):
 
     :type: bool"""
 
+    registration_time = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=func.now(),  # pylint: disable=not-callable
+    )
+    """Date of the registration of a user to an event.
+
+    :type: :py:class:`datetime.datetime`"""
+
     # Relationships
 
     payments = db.relationship("Payment", backref="registration", lazy=True)
     """ List of payments associated to this registration.
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
+    """
+
+    badges = db.relationship("Badge", back_populates="registration", lazy=True)
+    """ List of badges associated to this registration.
+
+    :type: list(:py:class:`collectives.models.badge.Badge`)
     """
 
     def is_active(self):
@@ -325,3 +364,23 @@ class Registration(db.Model):
             or self.holding_index() >= self.event.num_slots
             or self.online_index() >= self.event.num_online_slots
         )
+
+    def is_in_late_unregistration_period(self, time: Optional[datetime] = None) -> bool:
+        """
+        :param time: Time for which to make the test, defaults to curren time
+        :returns: whether unregistering now should be considered "late"
+        """
+        if not self.event.event_type.requires_activity or not self.is_holding_slot():
+            return False
+
+        if time is None:
+            time = current_time()
+
+        late_period_start = self.event.start - timedelta(
+            hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
+        )
+        grace_period_end = self.registration_time + timedelta(
+            hours=Configuration.UNREGISTRATION_GRACE_PERIOD
+        )
+
+        return time > max(late_period_start, grace_period_end)

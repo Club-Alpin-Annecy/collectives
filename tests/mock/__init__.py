@@ -7,4 +7,4 @@ website. To mock it, `monkeypatch`
 a function, a method or a class by another one from this module.
 """
 
-from tests.mock import extranet, payline, mail
+from tests.mock import extranet, payline, session

@@ -20,6 +20,7 @@ from collectives.email_templates import send_unregister_notification
 from collectives.email_templates import send_reject_subscription_notification
 from collectives.email_templates import send_cancelled_event_notification
 from collectives.email_templates import send_update_waiting_list_notification
+from collectives.email_templates import send_late_unregistration_notification
 
 from collectives.forms import EventForm, photos
 from collectives.forms import RegistrationForm
@@ -27,7 +28,7 @@ from collectives.forms.event import PaymentItemChoiceForm
 from collectives.forms.question import QuestionAnswersForm
 
 from collectives.models import Event, ActivityType, EventType
-from collectives.models import Registration, RegistrationLevels, EventStatus
+from collectives.models import Registration, RegistrationLevels, EventStatus, Badge
 from collectives.models import RegistrationStatus, User, db, Configuration
 from collectives.models import EventTag, UploadedFile, UserGroup
 from collectives.models.event import (
@@ -614,12 +615,13 @@ def manage_event(event_id=None):
         send_new_event_notification(event)
     else:
         # This is a modified event and the status has changed from Confirmed to Cancelled.
-        # then, a notification is sent to supervisors
+        # then, a notification is sent to registered users and sanction status are rehabilitated
         if (
             current_status == EventStatus.Confirmed
             and event.status == EventStatus.Cancelled
         ):
             send_cancelled_event_notification(current_user.full_name(), event)
+            _clear_sanctioned_registrations(event)
 
     return redirect(url_for("event.view_event", event_id=event.id))
 
@@ -859,6 +861,14 @@ def register_user(event_id):
                 registration = next(
                     r for r in event.registrations if r.user_id == user.id
                 )
+
+                if registration.status in (
+                    RegistrationStatus.Waiting,
+                    RegistrationStatus.Rejected,
+                ):
+                    # Reset registration time to restart grace period
+                    registration.registration_time = current_time()
+
             except StopIteration:
                 registration = Registration(
                     level=RegistrationLevels.Normal,
@@ -907,15 +917,22 @@ def self_unregister(event_id):
     event = db.session.get(Event, event_id)
 
     query = Registration.query.filter_by(user=current_user)
-    registration = query.filter_by(event=event).first()
+    registration: Registration = query.filter_by(event=event).first()
 
     if not event.can_self_unregister(current_user, current_time()):
         flash("Désinscription impossible.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    previous_status = registration.status
+    was_holding_slot = registration.is_holding_slot()
+
     if registration.status == RegistrationStatus.Waiting:
         db.session.delete(registration)
+    elif registration.is_in_late_unregistration_period():
+        registration.status = RegistrationStatus.LateSelfUnregistered
+        db.session.add(registration)
+        if was_holding_slot and Configuration.ENABLE_SANCTIONS:
+            current_user.increment_warning_badges(registration)
+            send_late_unregistration_notification(event, current_user)
     else:
         registration.status = RegistrationStatus.SelfUnregistered
         db.session.add(registration)
@@ -924,7 +941,7 @@ def self_unregister(event_id):
     db.session.commit()
 
     # Send notification e-mail to leaders only if definitive subscription
-    if previous_status == RegistrationStatus.Active:
+    if was_holding_slot == RegistrationStatus.Active:
         send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))
@@ -1067,6 +1084,8 @@ def delete_event(event_id):
     event.leaders.clear()
     event.activity_types.clear()
 
+    _clear_sanctioned_registrations(event)
+
     # Delete event itself
     db.session.delete(event)
     db.session.commit()
@@ -1117,17 +1136,39 @@ def update_attendance(event_id):
 
             if new_status == RegistrationStatus.ToBeDeleted:
                 db.session.delete(registration)
-            else:
-                registration.status = new_status
-                db.session.add(registration)
+                continue
 
-                if registration.status == RegistrationStatus.Rejected:
-                    # Send notification e-mail to user
-                    send_reject_subscription_notification(
-                        current_user.full_name(),
-                        registration.event,
-                        registration.user.mail,
-                    )
+            previous_status = registration.status
+            registration.status = new_status
+            if registration.is_holding_slot() and previous_status in (
+                RegistrationStatus.Waiting,
+                RegistrationStatus.Rejected,
+            ):
+                # Reset registration time to restart grace period
+                registration.registration_time = current_time()
+
+            db.session.add(registration)
+
+            if registration.status == RegistrationStatus.Rejected:
+                # Send notification e-mail to user
+                send_reject_subscription_notification(
+                    current_user.full_name(),
+                    registration.event,
+                    registration.user.mail,
+                )
+
+            if Configuration.ENABLE_SANCTIONS and event.event_type.requires_activity:
+                sanctioned_statuses = RegistrationStatus.sanctioned_statuses()
+                if registration.status in sanctioned_statuses:
+                    # If a user is absent and it is unjustified,
+                    # assign warning badges according to late unsubscription logic
+                    registration.user.increment_warning_badges(registration)
+                    send_late_unregistration_notification(event, registration.user)
+                elif previous_status in sanctioned_statuses:
+                    # If a user is absent and is getting cleared by a leader,
+                    # remove warning badges for this registration. There may be several.
+                    registration.user.remove_warning_badges(registration)
+
     update_waiting_list(event)
     db.session.commit()
 
@@ -1210,6 +1251,9 @@ def update_waiting_list(event: Event) -> List[Registration]:
             waiting_registration, removed_waiting_registrations
         )
 
+        # Reset registration time to restart grace period
+        waiting_registration.registration_time = current_time()
+
         db.session.add(waiting_registration)
         registrations.append(waiting_registration)
 
@@ -1218,3 +1262,19 @@ def update_waiting_list(event: Event) -> List[Registration]:
             db.session.delete(other_reg)
 
     return registrations
+
+
+def _clear_sanctioned_registrations(event: Event):
+    """Find users registered wih UnjustifiedAbsentee or LateUnregistration status
+    and delete the warning badges associated to their registration"""
+    badges_to_delete = (
+        db.session.query(Badge)
+        .join(Registration)
+        .filter(
+            Registration.event_id == event.id,
+            Registration.status.in_(RegistrationStatus.sanctioned_statuses()),
+        )
+    ).all()
+
+    for badge in badges_to_delete:
+        db.session.delete(badge)

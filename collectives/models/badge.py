@@ -2,6 +2,7 @@
 """
 
 from datetime import date
+from sqlalchemy.sql import func
 from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
 
@@ -12,6 +13,14 @@ class BadgeIds(ChoiceEnum):
     # pylint: disable=invalid-name
     Benevole = 1
 
+    UnjustifiedAbsenceWarning = 2
+    """ User has been issued a warning regarding 
+    late unregistrations and unjustified absences. 
+    """
+
+    Suspended = 3
+    """ User has been suspended. """
+
     @classmethod
     def display_names(cls):
         """Display name for all badges
@@ -21,6 +30,8 @@ class BadgeIds(ChoiceEnum):
         """
         return {
             cls.Benevole: "Bénévole régulier",
+            cls.UnjustifiedAbsenceWarning: "Absence injustifiée - avertissement",
+            cls.Suspended: "Absence injustifiée - suspension",
         }
 
     def relates_to_activity(self) -> bool:
@@ -76,6 +87,15 @@ class Badge(db.Model):
 
     :type: :py:class:`BadgeIds`
     """
+    creation_time = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=func.now(),  # pylint: disable=not-callable
+        info={"label": "Timestamp de création du badge"},
+    )
+    """ Timestamp at which the payment was created
+
+    :type: :py:class:`datetime.datetime`"""
 
     expiration_date = db.Column(
         db.Date(),
@@ -94,6 +114,21 @@ class Badge(db.Model):
     level of expertise, nb of absences,...
 
     :type: int
+    """
+
+    # Relationships
+    registration_id = db.Column(
+        db.Integer, db.ForeignKey("registrations.id"), nullable=True
+    )
+    """Registration id associated to this badge.
+
+    :type: int
+    """
+
+    registration = db.relationship("Registration", back_populates="badges", lazy=True)
+    """ Resgitration associated to this badge.
+
+    :type: :py:class:`collectives.models.registration.Registration`
     """
 
     @property

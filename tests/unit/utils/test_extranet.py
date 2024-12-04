@@ -10,7 +10,7 @@ from tests import mock
 # pylint: disable=unused-argument
 
 
-def test_license_expiry():
+def test_license_expiry(app):
     """Test :py:meth:`collectives.utils.extranet.LicenseInfo.expiry_date`"""
     info = extranet.LicenseInfo()
     info.renewal_date = datetime.date(2018, 10, 1)

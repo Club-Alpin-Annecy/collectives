@@ -1,0 +1,45 @@
+{% macro button(config, is_late = False) -%}
+
+    <form
+            action="{{url_for('event.self_unregister', event_id=event.id)}}"
+            method="post"
+
+        >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div
+                class="button button-secondary"
+                onclick= "this.nextSibling.nextSibling.style.display='block'"
+            >
+            <span class="name" ><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</span>
+        </div>
+
+        <div class="messages" style="display:none">
+            <div class="innermessages">
+                <img
+                                src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
+                                class="close"
+                                onclick= "this.parentNode.parentNode.style.display='none'"
+                            />
+                <h1 class="heading-1">Confirmation de désincription</h1>
+                <p>Nous vous rappelons qu’une inscription vous engage.</p>
+                {% if is_late %}
+                    <p><strong>Votre désinscription est tardive</strong> ; n’oubliez pas de prévenir l’encadrant bénévole car celle-ci peut bouleverser le bon déroulement de la collective.</p>
+                    {% if config.ENABLE_SANCTIONS %}
+                        <p>Comme indiqué dans le Guides Collectives une nouvelle désinscription non anticipée pourra entrainer une suspension temporaire de votre compte.</p>
+                    {% endif %}
+                {% else %}
+                    <p>Dans la mesure du possible faites en sorte de vous inscrire, uniquement lorsque vous êtes sûr de pouvoir être présent.</p>
+                {% endif %}
+                <p>Si vous avez payé des frais, ceux-ci ne vous seront pas remboursés conformément aux CGU.</p>
+                <h4 class="centeralign">Confirmez-vous votre désinscription ?<br/> 
+                    <input type="submit" id="submitSelfUnregister" value="Confirmer" class="button button-danger">
+                    <input type="button" id="cancelSelfUnregister" value="Annuler" class="button button-secondary" onclick="this.closest('.messages').style.display='none'">
+                </h4>
+            </div>
+            <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+        </div>
+
+    </form>
+
+{%- endmacro %}

@@ -8,9 +8,11 @@ import pytest
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
 from collectives.models import Badge, BadgeIds, UserType
 
+# pylint: disable=unused-argument,redefined-outer-name, unused-import
+
+from tests.fixtures.app import enable_sanctions
 from tests.mock.extranet import VALID_LICENSE
 
-# pylint: disable=unused-argument,redefined-outer-name
 
 PASSWORD = "fooBar2+!"
 """ Default test password for non admin users.
@@ -18,19 +20,33 @@ PASSWORD = "fooBar2+!"
 :type: string
 """
 
+# pylint: disable=invalid-name, global-statement
+_id_seed = 0
+""" A unique identifier number for fixture users. It is not the
+    user id. It determines the user license number.
+"""
 
-def inject_fixture(name, someparam, names):
+
+def _next_id_seed() -> int:
+    """Generates a new unique identifier"""
+    global _id_seed
+    _id_seed += 1
+    return _id_seed
+
+
+# pylint: enable=invalid-name, global-statement
+
+
+def inject_fixture(name, names):
     """Create and add a new fixture user.
 
     :param string name: Fixture name.
-    :param int someparam: A unique identifier number for this user. It is not the
-        user id. It determines the user license number.
     :param "(string,string)" names: First and lastname of the user.
     """
-    globals()[name] = generate_user(someparam, names)
+    globals()[name] = generate_user(names)
 
 
-def generate_user(identifier, names):
+def generate_user(names):
     """Generate fixture users.
 
     :param int id: An identifiying integer for the user
@@ -38,11 +54,16 @@ def generate_user(identifier, names):
     :returns: the newly created user
     :rtype: :py:class:`collectives.models.user.User`"""
 
+    identifier = _next_id_seed()
+
     @wraps(identifier)
     @wraps(names)
     @pytest.fixture
     def user(app):
         """A Standard user"""
+
+        print(names, identifier)
+
         user = User()
         user.first_name = names[0]
         user.last_name = names[1]
@@ -51,7 +72,7 @@ def generate_user(identifier, names):
         user.type = UserType.Test
         user.license = str(identifier + 990000000000)
         user.license_category = "XX"
-        user.date_of_birth = date(2000, 1, identifier % 30)
+        user.date_of_birth = date(2000, 1, identifier % 28 + 1)
         user.password = PASSWORD
         user.phone = f"0601020{identifier:03d}"
         user.emergency_contact_name = f"Emergency {identifier}"
@@ -83,7 +104,7 @@ USER_NAMES = [
 
 :type: list()"""
 for i, user_name in enumerate(USER_NAMES):
-    inject_fixture(f"user{i}", i, user_name)
+    inject_fixture(f"user{i+1}", user_name)
 
 
 @pytest.fixture
@@ -92,7 +113,7 @@ def admin_user(app):
     return db.session.get(User, 1)
 
 
-inject_fixture("prototype_leader_user", 999, ("Romeo", "Capo"))
+inject_fixture("prototype_leader_user", ("Romeo", "Capo"))
 
 
 @pytest.fixture
@@ -114,7 +135,7 @@ def leader_user_with_event(leader_user, event1):
     return leader_user
 
 
-inject_fixture("prototype_leader2_user", 998, ("Evan", "Przewodnik"))
+inject_fixture("prototype_leader2_user", ("Evan", "Przewodnik"))
 
 
 @pytest.fixture
@@ -136,7 +157,7 @@ def leader2_user_with_event(leader2_user, event2):
     return leader2_user
 
 
-inject_fixture("prototype_president_user", 997, ("Russ", "Guevara"))
+inject_fixture("prototype_president_user", ("Russ", "Guevara"))
 
 
 @pytest.fixture
@@ -148,7 +169,7 @@ def president_user(prototype_president_user):
     return prototype_president_user
 
 
-inject_fixture("prototype_supervisor_user", 996, ("Ted", "Fincher"))
+inject_fixture("prototype_supervisor_user", ("Ted", "Fincher"))
 
 
 @pytest.fixture
@@ -160,7 +181,7 @@ def supervisor_user(prototype_supervisor_user):
     return prototype_supervisor_user
 
 
-inject_fixture("prototype_hotline_user", 995, ("Bill", "Hatch"))
+inject_fixture("prototype_hotline_user", ("Bill", "Hatch"))
 
 
 @pytest.fixture
@@ -172,7 +193,7 @@ def hotline_user(prototype_hotline_user):
     return prototype_hotline_user
 
 
-inject_fixture("prototype_youth_user", 994, ("Young", "Climber"))
+inject_fixture("prototype_youth_user", ("Young", "Climber"))
 
 
 @pytest.fixture
@@ -184,7 +205,7 @@ def youth_user(prototype_youth_user: User):
     return prototype_youth_user
 
 
-inject_fixture("prototype_user_with_valid_benevole_badge", 993, ("Good", "Girl"))
+inject_fixture("prototype_user_with_valid_benevole_badge", ("Good", "Girl"))
 
 
 @pytest.fixture
@@ -197,7 +218,7 @@ def user_with_valid_benevole_badge(prototype_user_with_valid_benevole_badge: Use
 
 
 inject_fixture(
-    "prototype_user_with_expired_benevole_badge", 992, ("Boy", "WhoShoulContribute")
+    "prototype_user_with_expired_benevole_badge", ("Boy", "WhoShoulContribute")
 )
 
 
@@ -212,7 +233,7 @@ def user_with_expired_benevole_badge(prototype_user_with_expired_benevole_badge:
     return prototype_user_with_expired_benevole_badge
 
 
-inject_fixture("prototype_extranet_user", 991, ("Extranet", "User"))
+inject_fixture("prototype_extranet_user", ("Extranet", "User"))
 
 
 @pytest.fixture
@@ -279,3 +300,158 @@ def add_benevole_badge_to_user(
         activity_type = ActivityType.query.filter_by(name=activity_name).first()
         badge.activity_id = activity_type.id
     db.session.add(badge)
+
+
+# Users with badges related to late unregistration
+def add_badge_to_user(
+    user,
+    badge_id,
+    level=1,
+    expiration_date=(date.today() + timedelta(days=365)),
+    activity_name="Alpinisme",
+):
+    """Manage to add a badge to a user
+
+    :param User user: the user to add a badge to
+    :expiration_date: the expiration date of the badge (Default is today + 1 year, so a valid one)
+    :param badgeIds badge_id: the type of badge to add
+    :param string activity_name: The activity name for the role. Default Alpinisme
+    """
+    badge = Badge()
+    badge.user_id = user.id
+    badge.badge_id = badge_id
+    badge.level = level
+    badge.expiration_date = expiration_date
+    if activity_name:
+        activity_type = ActivityType.query.filter_by(name=activity_name).first()
+        badge.activity_id = activity_type.id
+    db.session.add(badge)
+
+
+inject_fixture("prototype_user_with_valid_first_warning_badge", ("Anakin", "Skywalker"))
+
+
+@pytest.fixture
+def user_with_valid_first_warning_badge(
+    prototype_user_with_valid_first_warning_badge: User, enable_sanctions
+):
+    """:returns: A user with a valid first warning Badge."""
+    add_badge_to_user(
+        prototype_user_with_valid_first_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=date.today() + timedelta(days=60),
+    )
+    db.session.add(prototype_user_with_valid_first_warning_badge)
+    db.session.commit()
+    return prototype_user_with_valid_first_warning_badge
+
+
+inject_fixture("prototype_user_with_expired_first_warning_badge", ("Obi-Wan", "Kenobi"))
+
+
+@pytest.fixture
+def user_with_expired_first_warning_badge(
+    prototype_user_with_expired_first_warning_badge: User,
+    enable_sanctions,
+):
+    """:returns: A user with an expired first warning Badge."""
+    add_badge_to_user(
+        prototype_user_with_expired_first_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=date.today() - timedelta(days=3),
+    )
+    db.session.add(prototype_user_with_expired_first_warning_badge)
+    db.session.commit()
+    return prototype_user_with_expired_first_warning_badge
+
+
+inject_fixture("prototype_user_with_valid_second_warning_badge", ("Han", "Solo"))
+
+
+@pytest.fixture
+def user_with_valid_second_warning_badge(
+    prototype_user_with_valid_second_warning_badge: User,
+    enable_sanctions,
+):
+    """:returns: A user with a valid second warning Badge."""
+    add_badge_to_user(
+        prototype_user_with_valid_second_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=date.today() + timedelta(days=60),
+    )
+    add_badge_to_user(
+        prototype_user_with_valid_second_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        2,
+        expiration_date=date.today() + timedelta(days=60),
+    )
+    db.session.add(prototype_user_with_valid_second_warning_badge)
+    db.session.commit()
+    return prototype_user_with_valid_second_warning_badge
+
+
+inject_fixture("prototype_user_with_expired_second_warning_badge", ("Leia", "Organa"))
+
+
+@pytest.fixture
+def user_with_expired_second_warning_badge(
+    prototype_user_with_expired_second_warning_badge: User,
+    enable_sanctions,
+):
+    """:returns: A user with an expired second warning Badge."""
+    add_badge_to_user(
+        prototype_user_with_expired_second_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=date.today() + timedelta(days=30),
+    )
+    add_badge_to_user(
+        prototype_user_with_expired_second_warning_badge,
+        BadgeIds.UnjustifiedAbsenceWarning,
+        2,
+        expiration_date=date.today() - timedelta(days=3),
+    )
+    db.session.add(prototype_user_with_expired_second_warning_badge)
+    db.session.commit()
+    return prototype_user_with_expired_second_warning_badge
+
+
+inject_fixture(
+    "prototype_user_with_valid_suspended_badge", ("Chewbacca", "The Wookiee")
+)
+
+
+@pytest.fixture
+def user_with_valid_suspended_badge(
+    prototype_user_with_valid_suspended_badge: User, enable_sanctions
+):
+    """:returns: A user with a valid suspended Badge."""
+    add_badge_to_user(
+        prototype_user_with_valid_suspended_badge,
+        BadgeIds.Suspended,
+        expiration_date=date.today() + timedelta(days=60),
+    )
+    db.session.add(prototype_user_with_valid_suspended_badge)
+    db.session.commit()
+    return prototype_user_with_valid_suspended_badge
+
+
+inject_fixture("prototype_user_with_expired_suspended_badge", ("Darth", "Vader"))
+
+
+@pytest.fixture
+def user_with_expired_suspended_badge(
+    prototype_user_with_expired_suspended_badge: User,
+    enable_sanctions,
+):
+    """:returns: A user with an expired suspended Badge."""
+    add_badge_to_user(
+        prototype_user_with_expired_suspended_badge,
+        BadgeIds.Suspended,
+        expiration_date=date.today() - timedelta(days=3),
+    )
+    db.session.add(prototype_user_with_expired_suspended_badge)
+    db.session.commit()
+    return prototype_user_with_expired_suspended_badge
+
+
+inject_fixture("user_with_no_warning_badge", ("Jabba", "The Hutt"))
