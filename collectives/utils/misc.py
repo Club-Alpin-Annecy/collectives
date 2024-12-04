@@ -3,6 +3,7 @@
 """
 
 from typing import Union, IO
+import io
 import functools
 import re
 import unicodedata
@@ -93,9 +94,17 @@ def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
     try:
         with Image.open(file) as im:
             im.verify()
-            return True
     except:
         return False
+
+    # If passed an IO stream need to seek back to start of file
+    # otherwise in some environments saved file will be incomplete
+    try:
+        file.seek(0)
+    except (AttributeError, io.UnsupportedOperation):
+        pass
+
+    return True
 
 
 # pylint: enable=bare-except
