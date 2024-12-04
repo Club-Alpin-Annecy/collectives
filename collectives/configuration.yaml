@@ -437,10 +437,11 @@ Template mail:
             Bonjour,
 
             Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
-            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit
+            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit(e)
             à la collective, ou en attente de paiement si la collective en nécessite un.
 
-            Si vous ne pouvez pas participer, merci de vous désincrire au plus tôt.
+            Si vous ne pouvez plus participer, merci de vous désincrire au plus tôt afin de ne pas 
+            perturber l'organisation de la collective.
 
             Merci de vérifier si la collective nécessite un paiement de votre part:
             {link}
@@ -448,6 +449,26 @@ Template mail:
             Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
             Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
         description: Template d'email pour l'utilisateur lorsque que son inscription est activée.
+        type: LongString
+
+    ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE:
+        content: |
+            Bonjour,
+
+            Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
+            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit(e)
+            à la collective, ou en attente de paiement si la collective en nécessite un.
+
+            Cet événement commence bientôt ; si vous ne pouvez plus participer, merci de vous désincrire 
+            dans les prochaines {grace_period} heures afin de ne pas perturber l'organisation et que
+            votre désinscription ne soit pas considérée comme tardive.
+
+            Merci de vérifier si la collective nécessite un paiement de votre part:
+            {link}
+
+            Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Template d'email pour l'utilisateur lorsque que son inscription est activée et que l'événement commence bientôt.
         type: LongString
 
     DELETED_REGISTRATIONS_POST_SCRIPTUM:
@@ -559,6 +580,6 @@ Désinscriptions tardives:
         description : Durée de la suspension de compte suite à un trop grand nombre de désinscriptions tardives, en semaines.
         type: Integer
     UNREGISTRATION_GRACE_PERIOD:
-        content: 24
+        content: 18
         description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
         type: Integer

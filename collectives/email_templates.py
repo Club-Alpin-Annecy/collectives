@@ -3,6 +3,7 @@
 
 from functools import wraps
 from typing import List
+from datetime import timedelta
 
 from flask import current_app, url_for, flash
 from markupsafe import Markup
@@ -17,7 +18,7 @@ from collectives.models import (
 )
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
-from collectives.utils.time import format_date
+from collectives.utils.time import format_date, current_time
 from collectives.utils.url import slugify
 
 
@@ -235,17 +236,36 @@ def send_update_waiting_list_notification(
     :param registration: Activated registration
     """
     try:
-        current_app.logger.warning(f"Send mail to: {registration.user.mail}")
-        message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
-            event_title=registration.event.title,
-            event_date=format_date(registration.event.start),
-            link=url_for(
-                "event.view_event",
-                event_id=registration.event.id,
-                name=slugify(registration.event.title),
-                _external=True,
-            ),
+        current_app.logger.warning(
+            f"Send mail to: {_anonymize_mail(registration.user.mail)}"
         )
+
+        end_of_grace = current_time() + timedelta(hours=Configuration.GRACE_PERIOD + 1)
+        if registration.is_in_late_unregistration_period(end_of_grace):
+            message = (
+                Configuration.ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE.format(
+                    event_title=registration.event.title,
+                    event_date=format_date(registration.event.start),
+                    grace_period=Configuration.GRACE_PERIOD,
+                    link=url_for(
+                        "event.view_event",
+                        event_id=registration.event.id,
+                        name=slugify(registration.event.title),
+                        _external=True,
+                    ),
+                )
+            )
+        else:
+            message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
+                event_title=registration.event.title,
+                event_date=format_date(registration.event.start),
+                link=url_for(
+                    "event.view_event",
+                    event_id=registration.event.id,
+                    name=slugify(registration.event.title),
+                    _external=True,
+                ),
+            )
 
         if deleted_registrations:
             event_titles = "\n".join(
@@ -383,3 +403,13 @@ def send_unjustified_absence_notification(event, user):
     # pylint: disable=broad-except
     except BaseException as err:
         current_app.logger.error(f"Mailer error: {err}")
+
+
+def _anonymize_mail(email: str):
+    """Returns an anonymized version of an email, for logging"""
+    parts = email.split("@")
+    n = len(parts[0])
+    kept = min(3, max(0, (n - 3) // 2))
+    mid = parts[0][kept : n - kept]
+    parts[0] = parts[0][:kept] + "*" * len(mid) + parts[0][n - kept :]
+    return "@".join(parts)

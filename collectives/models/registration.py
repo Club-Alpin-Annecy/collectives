@@ -1,8 +1,8 @@
 """Module for registration related classes
 """
 
-from typing import List
-from datetime import timedelta
+from typing import List, Optional
+from datetime import timedelta, datetime
 from sqlalchemy.sql import func
 
 from collectives.models.globals import db
@@ -365,12 +365,16 @@ class Registration(db.Model):
             or self.online_index() >= self.event.num_online_slots
         )
 
-    def is_in_late_unregistration_period(self) -> bool:
+    def is_in_late_unregistration_period(self, time: Optional[datetime] = None) -> bool:
         """
+        :param time: Time for which to make the test, defaults to curren time
         :returns: whether unregistering now should be considered "late"
         """
         if not self.event.event_type.requires_activity or not self.is_holding_slot():
             return False
+
+        if time is None:
+            time = current_time()
 
         late_period_start = self.event.start - timedelta(
             hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
@@ -379,4 +383,4 @@ class Registration(db.Model):
             hours=Configuration.UNREGISTRATION_GRACE_PERIOD
         )
 
-        return current_time() > max(late_period_start, grace_period_end)
+        return time > max(late_period_start, grace_period_end)
