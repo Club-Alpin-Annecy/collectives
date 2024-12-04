@@ -35,7 +35,7 @@ class AvatarForm:
             del self.remove_avatar
 
 
-class ConfirmPasswordForm:
+class OptionalPasswordForm:
     """Form component adding password and password confirmation fields"""
 
     password = PasswordField(
@@ -52,7 +52,7 @@ class ConfirmPasswordForm:
     )
 
 
-class AdminTestUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+class AdminTestUserForm(OrderedModelForm, AvatarForm, OptionalPasswordForm):
     """Form for admins to edit test users info"""
 
     class Meta:
@@ -98,7 +98,7 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
         AvatarForm.__init__(self, kwargs.get("obj"))
 
 
-class ExtranetUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+class ExtranetUserForm(OrderedModelForm, AvatarForm, OptionalPasswordForm):
     """Form for extranet users to edit their own info"""
 
     class Meta:
@@ -118,7 +118,7 @@ class ExtranetUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
         AvatarForm.__init__(self, kwargs.get("obj"))
 
 
-class LocalUserForm(OrderedModelForm, AvatarForm, ConfirmPasswordForm):
+class LocalUserForm(OrderedModelForm, AvatarForm, OptionalPasswordForm):
     """Form for extranet users to edit their own info"""
 
     class Meta:

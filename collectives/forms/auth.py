@@ -17,6 +17,7 @@ from collectives.forms.validators import UniqueValidator, PasswordValidator
 from collectives.forms.validators import remove_unique_validators
 from collectives.models import User, Configuration
 from collectives.forms.utils import LicenseField, PhoneField
+from collectives.forms.user import OptionalPasswordForm
 
 
 class LoginForm(FlaskForm):
@@ -59,8 +60,8 @@ class ExtranetAccountCreationForm(ModelForm, OrderedForm):
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
 
-class PasswordForm(FlaskForm):
-    """Form with a field to give change password"""
+class RequiredPasswordForm:
+    """Form with required field to define a password"""
 
     password = PasswordField(
         label="Choisissez un mot de passe",
@@ -77,13 +78,13 @@ class PasswordForm(FlaskForm):
     )
 
 
-class PasswordResetForm(PasswordForm):
-    """Form for a user to set or reset his password."""
+class AccountRecoverForm(OptionalPasswordForm, FlaskForm):
+    """Form for a user to (optionally) reset their password."""
 
-    submit = SubmitField("Activer le compte")
+    submit = SubmitField("Mettre à jour le compte")
 
 
-class LegalAcceptation(FlaskForm):
+class LegalAcceptation:
     """Form to accept or reject the legal terms of the site"""
 
     legal_accepted = BooleanField(
@@ -102,10 +103,10 @@ class LegalAcceptation(FlaskForm):
     )
 
 
-class AccountActivationForm(PasswordResetForm, LegalAcceptation):
-    """Final form merging password (re)set and legal acceptance."""
+class AccountActivationForm(RequiredPasswordForm, LegalAcceptation, FlaskForm):
+    """Account activation form merging password definition and legal acceptance."""
 
-    pass
+    submit = SubmitField("Activer le compte")
 
 
 class AdminTokenCreationForm(FlaskForm):
@@ -116,7 +117,9 @@ class AdminTokenCreationForm(FlaskForm):
     submit = SubmitField("Générer le jeton de confirmation")
 
 
-class LocalAccountCreationForm(PasswordForm, ModelForm, OrderedForm, LegalAcceptation):
+class LocalAccountCreationForm(
+    RequiredPasswordForm, ModelForm, OrderedForm, LegalAcceptation
+):
     """Form to create an account from extranet"""
 
     class Meta:
