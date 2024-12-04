@@ -23,7 +23,21 @@ class UnauthenticatedUserMixin(AnonymousUserMixin):
     # pylint: enable=invalid-name
 
 
-def sync_user(user: User, force: bool) -> bool:
+class InvalidLicenseError(RuntimeError):
+    """Exception raised when synchronizing an user without license"""
+
+    pass
+
+
+class EmailChangedError(RuntimeError):
+    """Exception raised when synchronizing an user whose email has changed"""
+
+    def __init__(self, new_email: str):
+        """Constructor"""
+        self.new_email = new_email
+
+
+def sync_user(user: User, force: bool):
     """Synchronize user info from extranet.
 
     Synchronization is done if license has been renewed or if 'force' is True. Test users
@@ -31,37 +45,38 @@ def sync_user(user: User, force: bool) -> bool:
 
     :param user: User to synchronize
     :param force: if True, do synchronisation even if licence has been recently renewed.
-    :returns: whether the user exists in the source of truth
     """
-    if not user.enabled:
-        return False
-    if user.type == UserType.Extranet:
-        # Check whether the license has been renewed
-        license_info = extranet.api.check_license(user.license)
-        time = current_time()
-        if not license_info.is_valid_at_time(time):
-            if user.license_expiry_date > time.date():
+    if not user.enabled or user.type != UserType.Extranet:
+        return
+
+    # Check whether the license has been renewed
+    license_info = extranet.api.check_license(user.license)
+    time = current_time()
+    if not license_info.is_valid_at_time(time):
+        if user.license_expiry_date > time.date():
+            current_app.logger.warning(
+                f"User #{user.id} synchronization : license is not active on extranet "
+                "but active on this site."
+            )
+            if force:
+                user.license_expiry_date = time.date()
+                db.session.add(user)
+                db.session.commit()
                 current_app.logger.warning(
-                    f"User #{user.id} synchronization : license is not active on extranet "
-                    "but active on this site."
+                    f"User #{user.id} synchronization : license has been updated."
                 )
-                if force:
-                    user.license_expiry_date = time.date()
-                    db.session.add(user)
-                    db.session.commit()
-                    current_app.logger.warning(
-                        f"User #{user.id} synchronization : license has been updated."
-                    )
-            return False
+        raise InvalidLicenseError()
 
-        if force or license_info.expiry_date() > user.license_expiry_date:
-            # License has been renewd, sync user data from API
-            user_info = extranet.api.fetch_user_info(user.license)
-            extranet.sync_user(user, user_info, license_info)
-            db.session.add(user)
-            db.session.commit()
+    if force or license_info.expiry_date() > user.license_expiry_date:
+        # License has been renewd, sync user data from API
+        user_info = extranet.api.fetch_user_info(user.license)
 
-    return True
+        if user.mail != user_info.email:
+            raise EmailChangedError(user_info.email)
+
+        extranet.sync_user(user, user_info, license_info)
+        db.session.add(user)
+        db.session.commit()
 
 
 def get_bad_phone_message(user, emergency=False):
@@ -100,3 +115,28 @@ def get_bad_phone_message(user, emergency=False):
         Si besoin, vous pouvez contacter le support à 
         <a href="mailto:{Configuration.SUPPORT_EMAIL}">{Configuration.SUPPORT_EMAIL}</a>.
         """
+
+
+def get_changed_email_message(new_email: str):
+    """Craft a message for when the user has changed their email adress
+
+    :param new_email: Email adress from extranet
+    """
+
+    form_link = f"<a href='{url_for('auth.recover')}'>le formulaire de récupération de compte</a>"
+
+    if new_email:
+        message = f"""Attention, votre adresse email a été modifiée dans l'extranet FFCAM.
+                    Pour permettre la validation de la nouvelle adresse et poursuivre
+                    la synchronization de vos données, veuillez utiliser {form_link}."""
+    else:
+        message = f"""Votre adresse email n'est pas renseignée dans l'extranet FFCAM.<br/>
+        Veuillez saisir une adresse valide dans <a 
+        href="https://extranet-clubalpin.com/monespace/">
+        votre espace personnel FFCAM </a>, menu "Mes informations", puis utilisez {form_link}
+        pour resynchroniser vos informations.
+        """
+    message += f"""<br />Si besoin, vous pouvez contacter le support à
+        <a href="mailto:{Configuration.SUPPORT_EMAIL}">{Configuration.SUPPORT_EMAIL}</a>."""
+
+    return message

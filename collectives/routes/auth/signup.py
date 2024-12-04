@@ -13,7 +13,7 @@ from collectives.routes.auth.globals import blueprint
 from collectives.models import db, ConfirmationToken, ConfirmationTokenType
 from collectives.models import User, Configuration, UserType
 from collectives.utils.time import current_time
-from collectives.forms.auth import PasswordResetForm, AccountActivationForm
+from collectives.forms.auth import AccountRecoverForm, AccountActivationForm
 from collectives.forms.auth import ExtranetAccountCreationForm, LocalAccountCreationForm
 from collectives.utils import extranet
 from collectives import email_templates
@@ -52,7 +52,7 @@ def process_confirmation(token_uuid):
 
     is_recover = token.token_type == ConfirmationTokenType.RecoverAccount
 
-    form = PasswordResetForm() if is_recover else AccountActivationForm()
+    form = AccountRecoverForm() if is_recover else AccountActivationForm()
 
     if (
         not is_recover
@@ -119,6 +119,9 @@ def process_confirmation(token_uuid):
     else:
         user = token.existing_user
 
+    # Do not touch password if user does not want to change it
+    if form.password.data == "":
+        delattr(form, "password")
     form.populate_obj(user)
 
     # Update/add user to db
@@ -170,11 +173,12 @@ def signup():
     to create an account or reset a password. If the information matches a user or
     a potential user, a confirmation email is sent.
     """
-    if current_user.is_authenticated:
-        flash("Vous êtes déjà connecté", "warning")
-        return redirect(url_for("event.index"))
 
     is_recover = "recover" in request.endpoint
+
+    if current_user.is_authenticated and not is_recover:
+        flash("Vous êtes déjà connecté", "warning")
+        return redirect(url_for("event.index"))
 
     local = Configuration.EXTRANET_ACCOUNT_ID == ""
 

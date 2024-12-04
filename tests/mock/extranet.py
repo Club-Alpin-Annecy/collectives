@@ -2,7 +2,6 @@
 
 from datetime import date, timedelta
 import pytest
-from collectives.utils import extranet
 
 # pylint: disable=unused-argument,redefined-builtin
 
@@ -12,6 +11,16 @@ VALID_LICENSE = "740020780001"
 EXPIRED_LICENSE = "740020780002"
 """ A license number linked to an expired extranet account """
 
+VALID_LICENSE_WITH_NO_EMAIL = "740020780003"
+""" A license number linked to a valid extranet account
+    but without an email adress
+"""
+
+VALID_USER_EMAIL = "test@example.com"
+""" Email stored in extranet for VALID_LICENSE """
+
+VALID_USER_EMERGENCY = "EMERGENCY"
+""" Emergency ciontact stored in extranet for VALID_LICENSE """
 
 STORED_TOKEN = None
 
@@ -44,8 +53,6 @@ class FakeSoapClient:
         :returns: All data related to this license
         :rtype: dict"""
         license = kwargs["id"]
-        license_info = extranet.LicenseInfo()
-        license_info.exists = license in [VALID_LICENSE, EXPIRED_LICENSE]
 
         data = {
             "id": license,
@@ -74,11 +81,13 @@ class FakeSoapClient:
             "date_assurance_paralpinisme": None,
             "assurance_acr": 0,
             "date_assurance_acr": None,
-            "accident_qui": "EMERGENCY",
+            "accident_qui": VALID_USER_EMERGENCY,
             "accident_tel": "06 01 10 99 99",
             "tel": None,
             "portable": "06 01 10 01 10",
-            "email": "test@example.com",
+            "email": (
+                "" if license == VALID_LICENSE_WITH_NO_EMAIL else VALID_USER_EMAIL
+            ),
             "date_radiation": None,
             "motif_radiation": None,
             "diplomes": [],
@@ -111,7 +120,7 @@ class FakeSoapClient:
         :returns: some data related to this license
         :rtype: dict"""
         license = kwargs["id"]
-        if license == VALID_LICENSE:
+        if license in (VALID_LICENSE, VALID_LICENSE_WITH_NO_EMAIL):
             # Registered 15 days ago
             reg_date = date.today() - timedelta(days=15)
             return {
