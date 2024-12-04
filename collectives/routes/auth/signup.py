@@ -327,7 +327,7 @@ def check_token(license_number):
     )
 
     if token == None:
-        current_app.logger.err(f"Cannot find a token for license {license_number}")
+        current_app.logger.error(f"Cannot find a token for license {license_number}")
         flash(
             error_message,
             "error",
