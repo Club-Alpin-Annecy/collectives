@@ -27,7 +27,7 @@ from collectives.models import (
 )
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
-from collectives.utils import extranet, export, badges
+from collectives.utils import extranet, export, badges, time
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import sanitize_file_name
 
@@ -274,7 +274,7 @@ def add_user_badge(user_id):
             now=date.today(),
         )
 
-    badge = Badge()
+    badge = Badge(creation_time=time.current_time())
     form.populate_obj(badge)
 
     badge_id = badge.badge_id

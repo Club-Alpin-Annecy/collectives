@@ -673,11 +673,13 @@ def self_register(event_id):
     event: Event = Event.query.filter_by(id=event_id).first()
 
     # Prepare registration
+    now = current_time()
     registration = Registration(
         user_id=current_user.id,
         status=RegistrationStatus.Active,
         level=RegistrationLevels.Normal,
         is_self=True,
+        registration_time=now,
     )
 
     if not current_user.has_valid_phone_number():
@@ -687,7 +689,6 @@ def self_register(event_id):
         flash(Markup(get_bad_phone_message(current_user, emergency=True)), "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
-    now = current_time()
     # Check if user cannot directly subscribe
     if not event or not event.can_self_register(current_user, now):
         # Check if user cannot subscribe in waiting list either
@@ -874,6 +875,7 @@ def register_user(event_id):
                     level=RegistrationLevels.Normal,
                     user=user,
                     is_self=False,
+                    registration_time=current_time(),
                 )
 
             if not user.check_license_valid_at_time(event.end):
