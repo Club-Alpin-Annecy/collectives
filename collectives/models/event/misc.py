@@ -2,12 +2,14 @@
 
 from typing import List
 from flask_uploads import UploadSet, IMAGES
+from werkzeug.datastructures import FileStorage
 
 from collectives.models import db
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
 from collectives.utils import render_markdown
+from collectives.utils.misc import is_valid_image
 
 
 photos = UploadSet("photos", IMAGES)
@@ -70,7 +72,7 @@ class EventMiscMixin:
         user_activities = user.activities_with_role()
         return any(activity in user_activities for activity in self.activity_types)
 
-    def save_photo(self, file):
+    def save_photo(self, file: FileStorage) -> bool:
         """Save event photo from a raw file
 
         Process a raw form data field to add it to the Event as the event
@@ -81,8 +83,12 @@ class EventMiscMixin:
         :type file: :py:class:`werkzeug.datastructures.FileStorage`
         """
         if file is not None:
+            if not is_valid_image(file.stream):
+                return False
+
             filename = photos.save(file, name="event-" + str(self.id) + ".")
             self.photo = filename
+        return True
 
     def set_rendered_description(self, description):
         """Render description and returns it.
