@@ -8,7 +8,7 @@ from collectives.forms.user import AddBadgeForm, compute_default_expiration_date
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import db, ActivityType, Configuration
 from collectives.models import BadgeIds, Badge, User
-from collectives.utils import export
+from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
 
 
@@ -131,7 +131,7 @@ def add_badge(
         flash(f"Erreur lors de l'ajout du statut {type_title(badge_type)}", "error")
         return None
 
-    badge = Badge()
+    badge = Badge(creation_time=time.current_time())
     add_badge_form.populate_obj(badge)
 
     if badge_type:

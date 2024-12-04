@@ -8,6 +8,7 @@ from collectives.models.registration import Registration
 from collectives.models.activity_type import ActivityType
 from collectives.models import db
 from collectives.models.configuration import Configuration
+from collectives.utils.time import current_time
 
 
 class UserBadgeMixin:
@@ -151,6 +152,7 @@ class UserBadgeMixin:
             activity_id=activity_id,
             level=level,
             registration=registration,
+            creation_time=current_time(),
         )
         try:
             db.session.add(badge)
