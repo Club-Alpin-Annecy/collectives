@@ -584,7 +584,9 @@ def manage_event(event_id=None):
     # If no photo is sent, we don't do anything, especially if a photo is
     # already existing
     if form.photo_file.data is not None:
-        event.save_photo(form.photo_file.data)
+        if not event.save_photo(form.photo_file.data):
+            flash("La photo téléchargée n'est pas dans un format d'image valide")
+
         db.session.add(event)
         db.session.commit()
     elif form.duplicate_event.data != "":

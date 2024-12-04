@@ -12,6 +12,7 @@ from sqlalchemy.orm import validates
 from collectives.models.globals import db
 from collectives.models.user import User
 from collectives.utils.time import current_time
+from collectives.utils.misc import is_valid_image
 
 documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
 """Upload instance for documents
@@ -145,7 +146,7 @@ class UploadedFile(db.Model):
         :return: True if extension is in flask_uploads.IMAGES
         """
         ext = os.path.splitext(self.name)[1][1:]
-        return ext in IMAGES
+        return ext in IMAGES and is_valid_image(self.full_path())
 
     def save_file(self, file):
         """Save from a raw file

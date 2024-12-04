@@ -128,7 +128,8 @@ def update_user():
     # Save avatar into UploadSet
     if form.remove_avatar and form.remove_avatar.data:
         user.delete_avatar()
-    user.save_avatar(form.avatar_file.data)
+    if not user.save_avatar(form.avatar_file.data):
+        flash("L'avatar téléchargé n'est pas dans un format d'image valide")
 
     db.session.add(user)
     db.session.commit()

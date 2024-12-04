@@ -2,11 +2,13 @@
 
 """
 
+from typing import Union, IO
 import functools
 import re
 import unicodedata
 
 from flask import request
+from PIL import Image
 
 
 class NoDefault:
@@ -78,6 +80,25 @@ def sanitize_file_name(name: str) -> str:
     Basically removes all characters not alphanumerical, space, accentuated character,
     simple quote, dot, dash, commas, and underscore."""
     return re.sub(r"[^A-Za-z0-9_ .,àâäçéèêëîïôöùûüÿÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒæœ-]", "_", name)
+
+
+# pylint: disable=bare-except
+
+
+def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
+    """Uses PIL to check whether a file is a valid image
+
+    :param file: File to verify. Path or binary stream, as accepted by :func:`PIL.Image.open`
+    """
+    try:
+        with Image.open(file) as im:
+            im.verify()
+            return True
+    except:
+        return False
+
+
+# pylint: enable=bare-except
 
 
 def truncate(value: str, max_len: int, append_ellipsis: bool = True) -> str:

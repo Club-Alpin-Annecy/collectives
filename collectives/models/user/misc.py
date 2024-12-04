@@ -6,6 +6,7 @@ from typing import List
 
 import phonenumbers
 from flask_uploads import UploadSet, IMAGES
+from werkzeug.datastructures import FileStorage
 
 from collectives.models.globals import db
 from collectives.models.configuration import Configuration
@@ -13,6 +14,7 @@ from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender, UserType
 from collectives.utils.time import current_time
+from collectives.utils.misc import is_valid_image
 
 
 # Upload
@@ -24,18 +26,22 @@ class UserMiscMixin:
 
     Not meant to be used alone."""
 
-    def save_avatar(self, file):
+    def save_avatar(self, file: FileStorage) -> bool:
         """Save an image as user avatar.
 
         It will both save the files into the file system and save the path into the database.
         If file is None, it will do nothing. It will use Flask-Upload to save the image.
 
         :param file: request param to be saved.
-        :type file: :py:class:`werkzeug.datastructures.FileStorage`
+        :return: Whether the operation succeeded
         """
         if file is not None:
+            if not is_valid_image(file.stream):
+                return False
+
             filename = avatars.save(file, name="user-" + str(self.id) + ".")
             self.avatar = filename
+        return True
 
     def delete_avatar(self):
         """Remove and dereference an user avatar."""
