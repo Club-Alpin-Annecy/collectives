@@ -273,6 +273,14 @@ def check_user_validity(form):
     :returns: True if license is valid, False if not, None if there is an error"""
     license_number = form.license.data
     try:
+        if Configuration.CLUB_PREFIX:
+            if not license_number.startswith(Configuration.CLUB_PREFIX):
+                form.generic_error = (
+                    f"La license n'est pas active pour {Configuration.CLUB_NAME}. Merci d'indiquer "
+                    f"un numéro de licence débutant par {Configuration.CLUB_PREFIX}."
+                )
+                return False
+
         license_info = extranet.api.check_license(license_number)
         if not license_info.is_valid_at_time(current_time()):
             form.generic_error = (

@@ -18,6 +18,7 @@ def test_create_account(client, extranet_monkeypatch):
 
     # Setup conf as extranet account creation
     Configuration.EXTRANET_ACCOUNT_ID = "XXX"
+    Configuration.CLUB_PREFIX = "7400"
 
     # First signup stage
     response = client.get("/auth/signup")
@@ -196,3 +197,44 @@ def test_user_resync_account(user1_client, user2, extranet_monkeypatch):
     )
     assert response.status_code == 200
     assert "error message" in response.text
+
+
+def test_signup_licence_nocheck(client, extranet_monkeypatch):
+    """Test the licence check during signup without club licence check"""
+
+    # Setup conf as extranet account creation
+    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
+    Configuration.CLUB_PREFIX = ""
+
+    # First signup stage
+    response = client.get("/auth/signup")
+    assert response.status_code == 200
+    data = {
+        "mail": "test@example.com",
+        "license": mock.extranet.VALID_LICENSE,
+        "date_of_birth": "2022-10-04",
+    }
+    response = client.post("/auth/signup", data=data)
+    assert response.status_code == 302
+    assert "flash-error" not in response.text
+    assert mock.extranet.STORED_TOKEN is not None
+
+
+def test_signup_licence_check_wrong_club(client, extranet_monkeypatch):
+    """Test the not valdi licence during signup with club licence check"""
+
+    # Setup conf as extranet account creation
+    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
+    Configuration.CLUB_PREFIX = "9900"
+
+    # First signup stage
+    response = client.get("/auth/signup")
+    assert response.status_code == 200
+    data = {
+        "mail": "test@example.com",
+        "license": mock.extranet.VALID_LICENSE,
+        "date_of_birth": "2022-10-04",
+    }
+    response = client.post("/auth/signup", data=data)
+    assert response.status_code == 200
+    assert "flash-error" in response.text
