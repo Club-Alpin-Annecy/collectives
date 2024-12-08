@@ -12,6 +12,7 @@ from flask import Blueprint, abort
 from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
+from sqlalchemy.orm import joinedload
 
 from collectives.routes.auth import get_bad_phone_message, login_manager
 
@@ -30,7 +31,7 @@ from collectives.forms.question import QuestionAnswersForm
 from collectives.models import Event, ActivityType, EventType
 from collectives.models import Registration, RegistrationLevels, EventStatus, Badge
 from collectives.models import RegistrationStatus, User, db, Configuration
-from collectives.models import EventTag, UploadedFile, UserGroup
+from collectives.models import EventTag, UploadedFile, UserGroup, PaymentItem
 from collectives.models.event import (
     event_activities_without_leaders,
     DuplicateRegistrationError,
@@ -230,7 +231,19 @@ def view_event(event_id, name=""):
     :param int event_id: ID of the event to display.
     :param string name: Name of the event, only for URL cosmetic purpose.
     """
-    event = Event.query.filter_by(id=event_id).first()
+    event = (
+        Event.query.options(
+            joinedload(Event.registrations)
+            .joinedload(Registration.user)
+            .joinedload(User.roles),
+            joinedload(Event.payment_items).joinedload(PaymentItem.prices),
+            joinedload(Event.uploaded_files),
+            joinedload(Event.questions),
+            joinedload(Event.tag_refs),
+        )
+        .filter_by(id=event_id)
+        .first()
+    )
 
     if event is None or not event.is_visible_to(current_user):
         if not current_user.is_authenticated:

@@ -205,7 +205,7 @@ class EventModelMixin:
         """Type of this event.
 
         :type: :py:class:`collectives.models.event_type.EventType`"""
-        return db.relationship("EventType")
+        return db.relationship("EventType", lazy="subquery")
 
     @declared_attr
     def activity_types(self):

@@ -7,7 +7,8 @@ import json
 from flask import url_for, request, abort
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, or_, and_, func
+from sqlalchemy import or_, and_, func
+from sqlalchemy.orm import joinedload
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
@@ -259,7 +260,8 @@ def events():
     size = int(request.args.get("size", 25))
 
     # Initialize query
-    query = Event.query
+    query = db.session.query(Event)
+    query = query.options(joinedload(Event.tag_refs), joinedload(Event.registrations))
 
     # Display pending events only to relevant persons
     query = filter_hidden_events(query)
@@ -334,12 +336,7 @@ def events():
             or_(*map(lambda type: EventType.short == type, filters_types))
         )
 
-    # Process first sorter only
-    if "sorters[0][field]" in request.args:
-        sort_field = request.args.get("sorters[0][field]")
-        sort_dir = request.args.get("sorters[0][dir]")
-        query = query.order_by(desc(sort_field) if sort_dir == "desc" else sort_field)
-
+    query = query.order_by(Event.start)
     query = query.order_by(Event.id)
 
     paginated_events = query.paginate(page=page, per_page=size, error_out=False)
@@ -504,4 +501,5 @@ def event_question_answers(event_id: int):
     )
 
     content = QuestionAnswerSchema().dumps(answers, many=True)
+
     return content, 200, {"content-type": "application/json"}

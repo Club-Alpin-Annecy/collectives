@@ -2,6 +2,7 @@
 
 from flask_login import LoginManager
 from flask import Blueprint
+from sqlalchemy.orm import joinedload
 
 from collectives.models import User, db
 from collectives.routes.auth.utils import UnauthenticatedUserMixin
@@ -31,7 +32,12 @@ def load_user(user_id):
     :return: current user or None
     :rtype: :py:class:`collectives.models.user.User`
     """
-    user = db.session.get(User, int(user_id))
+    user = (
+        db.session.query(User)
+        .options(joinedload(User.roles))
+        .filter_by(id=int(user_id))
+        .first()
+    )
     if user is None or not user.is_active:
         # License has expired, log-out user
         return None
