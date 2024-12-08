@@ -701,7 +701,7 @@ def self_register(event_id):
         try:
             event.add_registration_check_race_conditions(registration)
         except RuntimeError as err:
-            flash(err.value, "error")
+            flash(str(err), "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if event.event_type.requires_activity:
@@ -727,7 +727,7 @@ def self_register(event_id):
         try:
             event.add_registration_check_race_conditions(registration)
         except RuntimeError as err:
-            flash(err.value, "error")
+            flash(str(err), "error")
 
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -749,7 +749,7 @@ def self_register(event_id):
         try:
             event.add_registration_check_race_conditions(registration)
         except RuntimeError as err:
-            flash(err.value, "error")
+            flash(str(err), "error")
             return redirect(url_for("event.view_event", event_id=event_id))
 
         payment = Payment(registration=registration, item_price=item_price)
