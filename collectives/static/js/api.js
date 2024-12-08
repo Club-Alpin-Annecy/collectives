@@ -21,9 +21,6 @@ export async function getEvents(pageParam, filters) {
       params: {
           page: pageParam.page,
           size: pageParam.pageSize,
-          sorters: [
-              { field: 'start', dir: 'asc' }
-          ],
           filters: filtersToQuery(filters),
       }
   })
