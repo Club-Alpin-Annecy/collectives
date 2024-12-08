@@ -461,9 +461,14 @@ class StatisticsEngine:
         Returns the number of unregistrations and unjustifited absentees per week,
         split by registration status.
         """
+        if "sqlite" in db.engine.name:
+            week_fn = func.strftime("%Y-%W", Event.start)
+        else:
+            week_fn = func.date_format(Event.start, "%Y-%W")
+
         query = (
             db.session.query(
-                func.strftime("%Y-%W", Event.start).label("event_week"),
+                week_fn.label("event_week"),
                 Registration.status,
                 func.count(Registration.id).label("num_unregistrations"),
             )
