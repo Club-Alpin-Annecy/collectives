@@ -464,7 +464,7 @@ class StatisticsEngine:
         if "sqlite" in db.engine.name:
             week_fn = func.strftime("%Y-%W", Event.start)
         else:
-            week_fn = func.date_format(Event.start, "%Y-%W")
+            week_fn = func.date_format(Event.start, "%Y-%u")
 
         query = (
             db.session.query(
