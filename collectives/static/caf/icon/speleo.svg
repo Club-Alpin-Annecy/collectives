@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 116.22 116.22">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: #1d1d1b;
+        stroke-width: 1.22px;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-6 {
+        stroke-linecap: round;
+      }
+
+      .cls-2 {
+        stroke-dasharray: 1 1;
+      }
+
+      .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8 {
+        stroke: #fff;
+      }
+
+      .cls-2, .cls-4, .cls-8 {
+        stroke-width: .56px;
+      }
+
+      .cls-9 {
+        fill: #1d1d1b;
+      }
+
+      .cls-3 {
+        stroke-dasharray: 1.36 1.36;
+      }
+
+      .cls-3, .cls-5, .cls-7 {
+        stroke-width: .59px;
+      }
+
+      .cls-6 {
+        stroke-width: 3px;
+      }
+
+      .cls-10 {
+        fill: #8d9fbb;
+      }
+
+      .cls-7 {
+        stroke-dasharray: 1.28 1.28;
+      }
+
+      .cls-8 {
+        stroke-dasharray: 1.23 1.23;
+      }
+
+      .cls-11 {
+        clip-path: url(#clippath);
+      }
+
+      .cls-12 {
+        fill: #fcfbf8;
+      }
+    </style>
+    <clipPath id="clippath">
+      <path class="cls-10" d="M41.9,3.33c17.25-9.34,61.14,15.44,66.95,52.52,5.81,37.08-46.31,66.95-81.99,57.13C-8.82,103.16,7.82,21.77,41.9,3.33Z"/>
+    </clipPath>
+  </defs>
+  <path class="cls-10" d="M41.9,3.33c17.25-9.34,61.14,15.44,66.95,52.52,5.81,37.08-46.31,66.95-81.99,57.13C-8.82,103.16,7.82,21.77,41.9,3.33Z"/>
+  <g class="cls-11">
+    <rect x="-.24" y="50.97" width="116.22" height="18"/>
+    <rect x="-1.29" y="-7.65" width="116.22" height="18" transform="translate(58.18 -55.47) rotate(90)"/>
+    <g>
+      <polyline class="cls-4" points="13.16 64.22 13.16 64.78 12.6 64.78"/>
+      <line class="cls-8" x1="11.37" y1="64.78" x2="7.05" y2="64.78"/>
+      <polyline class="cls-4" points="6.43 64.78 5.87 64.78 5.87 64.22"/>
+      <line class="cls-2" x1="5.87" y1="63.22" x2="5.87" y2="55.74"/>
+      <polyline class="cls-4" points="5.87 55.24 5.87 54.68 6.43 54.68"/>
+      <line class="cls-8" x1="7.67" y1="54.68" x2="11.98" y2="54.68"/>
+      <polyline class="cls-4" points="12.6 54.68 13.16 54.68 13.16 55.24"/>
+      <line class="cls-2" x1="13.16" y1="56.24" x2="13.16" y2="63.72"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="25.05 64.22 25.05 64.78 24.49 64.78"/>
+      <line class="cls-8" x1="23.26" y1="64.78" x2="18.94" y2="64.78"/>
+      <polyline class="cls-4" points="18.33 64.78 17.76 64.78 17.76 64.22"/>
+      <line class="cls-2" x1="17.76" y1="63.22" x2="17.76" y2="55.74"/>
+      <polyline class="cls-4" points="17.76 55.24 17.76 54.68 18.33 54.68"/>
+      <line class="cls-8" x1="19.56" y1="54.68" x2="23.88" y2="54.68"/>
+      <polyline class="cls-4" points="24.49 54.68 25.05 54.68 25.05 55.24"/>
+      <line class="cls-2" x1="25.05" y1="56.24" x2="25.05" y2="63.72"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="36.95 64.22 36.95 64.78 36.39 64.78"/>
+      <line class="cls-8" x1="35.15" y1="64.78" x2="30.83" y2="64.78"/>
+      <polyline class="cls-4" points="30.22 64.78 29.66 64.78 29.66 64.22"/>
+      <line class="cls-2" x1="29.66" y1="63.22" x2="29.66" y2="55.74"/>
+      <polyline class="cls-4" points="29.66 55.24 29.66 54.68 30.22 54.68"/>
+      <line class="cls-8" x1="31.45" y1="54.68" x2="35.77" y2="54.68"/>
+      <polyline class="cls-4" points="36.39 54.68 36.95 54.68 36.95 55.24"/>
+      <line class="cls-2" x1="36.95" y1="56.24" x2="36.95" y2="63.72"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="84.52 64.22 84.52 64.78 83.96 64.78"/>
+      <line class="cls-8" x1="82.72" y1="64.78" x2="78.41" y2="64.78"/>
+      <polyline class="cls-4" points="77.79 64.78 77.23 64.78 77.23 64.22"/>
+      <line class="cls-2" x1="77.23" y1="63.22" x2="77.23" y2="55.74"/>
+      <polyline class="cls-4" points="77.23 55.24 77.23 54.68 77.79 54.68"/>
+      <line class="cls-8" x1="79.02" y1="54.68" x2="83.34" y2="54.68"/>
+      <polyline class="cls-4" points="83.96 54.68 84.52 54.68 84.52 55.24"/>
+      <line class="cls-2" x1="84.52" y1="56.24" x2="84.52" y2="63.72"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="52.56 46.05 52 46.05 52 45.49"/>
+      <line class="cls-8" x1="52" y1="44.26" x2="52" y2="39.94"/>
+      <polyline class="cls-4" points="52 39.32 52 38.76 52.56 38.76"/>
+      <line class="cls-2" x1="53.56" y1="38.76" x2="61.05" y2="38.76"/>
+      <polyline class="cls-4" points="61.55 38.76 62.11 38.76 62.11 39.32"/>
+      <line class="cls-8" x1="62.11" y1="40.56" x2="62.11" y2="44.88"/>
+      <polyline class="cls-4" points="62.11 45.49 62.11 46.05 61.55 46.05"/>
+      <line class="cls-2" x1="60.55" y1="46.05" x2="53.06" y2="46.05"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="52.56 33.44 52 33.44 52 32.88"/>
+      <line class="cls-8" x1="52" y1="31.64" x2="52" y2="27.32"/>
+      <polyline class="cls-4" points="52 26.71 52 26.15 52.56 26.15"/>
+      <line class="cls-2" x1="53.56" y1="26.15" x2="61.05" y2="26.15"/>
+      <polyline class="cls-4" points="61.55 26.15 62.11 26.15 62.11 26.71"/>
+      <line class="cls-8" x1="62.11" y1="27.94" x2="62.11" y2="32.26"/>
+      <polyline class="cls-4" points="62.11 32.88 62.11 33.44 61.55 33.44"/>
+      <line class="cls-2" x1="60.55" y1="33.44" x2="53.06" y2="33.44"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="52.56 20.82 52 20.82 52 20.26"/>
+      <line class="cls-8" x1="52" y1="19.02" x2="52" y2="14.71"/>
+      <polyline class="cls-4" points="52 14.09 52 13.53 52.56 13.53"/>
+      <line class="cls-2" x1="53.56" y1="13.53" x2="61.05" y2="13.53"/>
+      <polyline class="cls-4" points="61.55 13.53 62.11 13.53 62.11 14.09"/>
+      <line class="cls-8" x1="62.11" y1="15.32" x2="62.11" y2="19.64"/>
+      <polyline class="cls-4" points="62.11 20.26 62.11 20.82 61.55 20.82"/>
+      <line class="cls-2" x1="60.55" y1="20.82" x2="53.06" y2="20.82"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="52.56 8.2 52 8.2 52 7.64"/>
+      <line class="cls-8" x1="52" y1="6.41" x2="52" y2="2.09"/>
+      <polyline class="cls-4" points="52 1.47 52 .91 52.56 .91"/>
+      <line class="cls-2" x1="53.56" y1=".91" x2="61.05" y2=".91"/>
+      <polyline class="cls-4" points="61.55 .91 62.11 .91 62.11 1.47"/>
+      <line class="cls-8" x1="62.11" y1="2.71" x2="62.11" y2="7.02"/>
+      <polyline class="cls-4" points="62.11 7.64 62.11 8.2 61.55 8.2"/>
+      <line class="cls-2" x1="60.55" y1="8.2" x2="53.06" y2="8.2"/>
+    </g>
+    <g>
+      <polyline class="cls-4" points="97.08 64.22 97.08 64.78 96.52 64.78"/>
+      <line class="cls-8" x1="95.28" y1="64.78" x2="90.97" y2="64.78"/>
+      <polyline class="cls-4" points="90.35 64.78 89.79 64.78 89.79 64.22"/>
+      <line class="cls-2" x1="89.79" y1="63.22" x2="89.79" y2="55.74"/>
+      <polyline class="cls-4" points="89.79 55.24 89.79 54.68 90.35 54.68"/>
+      <line class="cls-8" x1="91.58" y1="54.68" x2="95.9" y2="54.68"/>
+      <polyline class="cls-4" points="96.52 54.68 97.08 54.68 97.08 55.24"/>
+      <line class="cls-2" x1="97.08" y1="56.24" x2="97.08" y2="63.72"/>
+    </g>
+    <g>
+      <polyline class="cls-5" points="109.98 64.2 109.98 64.78 109.39 64.78"/>
+      <line class="cls-3" x1="108.03" y1="64.78" x2="103.28" y2="64.78"/>
+      <polyline class="cls-5" points="102.6 64.78 102.01 64.78 102.01 64.2"/>
+      <line class="cls-7" x1="102.01" y1="62.92" x2="102.01" y2="55.9"/>
+      <polyline class="cls-5" points="102.01 55.27 102.01 54.68 102.6 54.68"/>
+      <line class="cls-3" x1="103.96" y1="54.68" x2="108.71" y2="54.68"/>
+      <polyline class="cls-5" points="109.39 54.68 109.98 54.68 109.98 55.27"/>
+      <line class="cls-7" x1="109.98" y1="56.54" x2="109.98" y2="63.56"/>
+    </g>
+    <g>
+      <rect x="35.3" y="44.85" width="43.37" height="28.91" rx="4.69" ry="4.69"/>
+      <circle class="cls-12" cx="56.98" cy="59.3" r="9.6"/>
+      <line class="cls-6" x1="56.98" y1="80.53" x2="56.98" y2="96.69"/>
+      <g>
+        <line class="cls-6" x1="49.8" y1="79.87" x2="41.07" y2="88.61"/>
+        <line class="cls-6" x1="64.16" y1="79.87" x2="72.89" y2="88.61"/>
+      </g>
+      <g>
+        <circle class="cls-9" cx="56.98" cy="59.3" r="2.02"/>
+        <line class="cls-1" x1="56.98" y1="52.38" x2="56.98" y2="55.2"/>
+        <line class="cls-1" x1="52.09" y1="54.41" x2="54.08" y2="56.4"/>
+        <line class="cls-1" x1="50.06" y1="59.3" x2="52.88" y2="59.3"/>
+        <line class="cls-1" x1="52.09" y1="64.2" x2="54.08" y2="62.2"/>
+        <line class="cls-1" x1="56.98" y1="66.22" x2="56.98" y2="63.41"/>
+        <line class="cls-1" x1="61.87" y1="64.2" x2="59.88" y2="62.2"/>
+        <line class="cls-1" x1="63.9" y1="59.3" x2="61.08" y2="59.3"/>
+        <line class="cls-1" x1="61.87" y1="54.41" x2="59.88" y2="56.4"/>
+      </g>
+    </g>
+    <g>
+      <circle class="cls-12" cx="72.41" cy="59.39" r="2.09"/>
+      <circle class="cls-12" cx="41.55" cy="59.39" r="2.09"/>
+    </g>
+  </g>
+</svg>

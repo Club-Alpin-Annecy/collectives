@@ -177,6 +177,10 @@ ACTIVITY_TYPES = {
     20: {"short": "jeune", "name": "Jeunes", "trigram": "AJAL", "deprecated" : True},
     21: {"short": "randonnees_lointaines", "name": "Randonnées lointaines", "trigram": "ARL", "deprecated" : True},
     22: {"short": "viaferrata", "name": "Via ferrata", "email":"dev-collectives@cafannecy.fr", "trigram": "AVF"},
+    23: {"short": "dry_tooling", "name": "Dry tooling", "email":"dev-collectives@cafannecy.fr", "trigram": "ADRY"},
+    24: {"short": "premier_secours", "name": "Premier secours", "email":"dev-collectives@cafannecy.fr", "trigram": "APSC"},
+    25: {"short": "neige_avalanche", "name": "Neige Avalanche", "email":"dev-collectives@cafannecy.fr", "trigram": "AAV"},
+    26: {"short": "speleo", "name": "Spéléologie", "email":"dev-collectives@cafannecy.fr", "trigram": "ASP"},
 }
 # fmt: on
 # pylint: enable=line-too-long
