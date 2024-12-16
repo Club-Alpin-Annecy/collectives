@@ -7,6 +7,7 @@ See `WTForms documentation
 import re
 
 from wtforms.validators import ValidationError
+from wtforms import Field, Form
 from wtforms_alchemy import Unique
 
 from collectives.models import Configuration
@@ -19,20 +20,17 @@ class LicenseValidator:
     length = 12
     """ Length of the license number.
 
-    Type: string """
+    Type: int """
 
-    def __call__(self, form, field):
-        """Validates the license field data.
+    def __call__(self, form: Form, field: Field) -> bool:
+        """Validates the license field data (check length and prefix)
 
         :param form: Form of the field.
-        :type form: :py:class:`wtforms.form.Form`
         :param field: The license field.
-        :type: :py:class:`wtforms.Field`
         :return: True if data is OK.
-        :rtype: boolean
         """
         if not re.match(self.pattern(), field.data):
-            error_message = "Le numéro de licence doit contenir 12 chiffres"
+            error_message = f"Le numéro de licence doit contenir {self.help_string()}"
             raise ValidationError(error_message)
 
     def help_string(self):

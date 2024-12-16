@@ -13,6 +13,13 @@ from zeep.exceptions import Error as ZeepError
 from collectives.models import Gender, Configuration, User, UserType
 from collectives.utils.time import current_time
 
+_OTHER_CLUB_LICENSE_MESSAGE = "Les donnees demandees ne vous sont pas accessibles"
+"""Error message returned by extranet API when querying a
+license number that belongs to another club
+
+:type: str
+"""
+
 
 class LicenseInfo:
     """Licence information as retrieved from FFCAM servers."""
@@ -126,6 +133,12 @@ class ExtranetError(RuntimeError):
     pass
 
 
+class LicenseBelongsToOtherClubError(ExtranetError):
+    """An exception indicating that the tested license belongs to another club"""
+
+    pass
+
+
 class ExtranetApi:
     """SOAP Client to retrieve information from FFCAM servers."""
 
@@ -197,6 +210,12 @@ class ExtranetApi:
                 connect=self.auth_info, id=license_number
             )
         except (IOError, AttributeError, ZeepError) as err:
+            if (
+                isinstance(err, ZeepError)
+                and _OTHER_CLUB_LICENSE_MESSAGE in err.message
+            ):
+                raise LicenseBelongsToOtherClubError() from err
+
             current_app.logger.error(
                 f"Error calling extranet 'verifierUnAdherent' : {err}"
             )
@@ -239,6 +258,12 @@ class ExtranetApi:
                 connect=self.auth_info, id=license_number
             )
         except (IOError, AttributeError, ZeepError) as err:
+            if (
+                isinstance(err, ZeepError)
+                and _OTHER_CLUB_LICENSE_MESSAGE in err.message
+            ):
+                raise LicenseBelongsToOtherClubError() from err
+
             current_app.logger.error(
                 f"Error calling extranet 'extractionAdherent' : {err}"
             )

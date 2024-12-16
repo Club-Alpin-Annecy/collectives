@@ -98,6 +98,12 @@ def process_confirmation(token_uuid):
             if not user_info.is_valid:
                 flash("Accès aux données FFCAM impossible actuellement", "error")
                 return render_confirmation_form(form, is_recover)
+        except extranet.LicenseBelongsToOtherClubError:
+            flash(
+                "Ce numéro de licence appartient à un autre club",
+                "error",
+            )
+            return render_confirmation_form(form, is_recover)
         except extranet.ExtranetError:
             flash(
                 "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
@@ -273,14 +279,6 @@ def check_user_validity(form):
     :returns: True if license is valid, False if not, None if there is an error"""
     license_number = form.license.data
     try:
-        if Configuration.CLUB_PREFIX:
-            if not license_number.startswith(Configuration.CLUB_PREFIX):
-                form.generic_error = (
-                    f"La license n'est pas active pour {Configuration.CLUB_NAME}. Merci d'indiquer "
-                    f"un numéro de licence débutant par {Configuration.CLUB_PREFIX}."
-                )
-                return False
-
         license_info = extranet.api.check_license(license_number)
         if not license_info.is_valid_at_time(current_time()):
             form.generic_error = (
@@ -290,6 +288,10 @@ def check_user_validity(form):
             return False
 
         user_info = extranet.api.fetch_user_info(license_number)
+    except extranet.LicenseBelongsToOtherClubError:
+        # should not happen due to form's license validator. catch exception nonetheless
+        form.generic_error = "Ce numéro de licence appartient à un autre club"
+        return False
     except extranet.ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
