@@ -512,6 +512,12 @@ def generate_token():
                 "error",
             )
             return redirect(url_for(".administration"))
+    except extranet.LicenseBelongsToOtherClubError:
+        flash(
+            "Ce numéro de licence appartient à un autre club",
+            "error",
+        )
+        return redirect(url_for(".administration"))
     except extranet.ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",

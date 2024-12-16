@@ -96,6 +96,17 @@ def test_wrong_create_account(client, extranet_monkeypatch):
     assert response.status_code == 200
     assert "flash-error" in response.text
 
+    # license from other club
+    data = {
+        "mail": "test@example.com",
+        "license": mock.extranet.OTHER_CLUB_LICENSE,
+        "date_of_birth": "2022-10-04",
+    }
+    response = client.post("/auth/signup", data=data)
+    assert response.status_code == 200
+    assert "flash-error" in response.text
+    assert "licence doit contenir" in response.text
+
 
 def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
     """Test extranet resync."""
@@ -187,6 +198,17 @@ def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypa
     assert response.status_code == 200
     assert "error message" in response.text
     assert "pas ou plus valide" in response.text
+
+    # Same if license from other club
+    extranet_user.license = mock.extranet.OTHER_CLUB_LICENSE
+    db.session.add(extranet_user)
+    db.session.commit()
+
+    response = hotline_client.post(
+        f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
 
 
 def test_user_resync_account(user1_client, user2, extranet_monkeypatch):

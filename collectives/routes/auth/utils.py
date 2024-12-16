@@ -49,10 +49,15 @@ def sync_user(user: User, force: bool):
     if not user.enabled or user.type != UserType.Extranet:
         return
 
-    # Check whether the license has been renewed
-    license_info = extranet.api.check_license(user.license)
     time = current_time()
-    if not license_info.is_valid_at_time(time):
+    try:
+        # Check whether the license has been renewed
+        license_info = extranet.api.check_license(user.license)
+        valid = license_info.is_valid_at_time(time)
+    except extranet.LicenseBelongsToOtherClubError:
+        valid = False
+
+    if not valid:
         if user.license_expiry_date > time.date():
             current_app.logger.warning(
                 f"User #{user.id} synchronization : license is not active on extranet "

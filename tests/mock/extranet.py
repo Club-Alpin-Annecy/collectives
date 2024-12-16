@@ -3,6 +3,9 @@
 from datetime import date, timedelta
 import pytest
 
+from zeep.exceptions import Error as ZeepError
+from collectives.utils.extranet import _OTHER_CLUB_LICENSE_MESSAGE
+
 # pylint: disable=unused-argument,redefined-builtin
 
 VALID_LICENSE = "740020780001"
@@ -15,6 +18,9 @@ VALID_LICENSE_WITH_NO_EMAIL = "740020780003"
 """ A license number linked to a valid extranet account
     but without an email adress
 """
+
+OTHER_CLUB_LICENSE = "741020780002"
+""" A license number linked to an account from another club"""
 
 VALID_USER_EMAIL = "test@example.com"
 """ Email stored in extranet for VALID_LICENSE """
@@ -53,6 +59,8 @@ class FakeSoapClient:
         :returns: All data related to this license
         :rtype: dict"""
         license = kwargs["id"]
+        if license == OTHER_CLUB_LICENSE:
+            raise ZeepError(_OTHER_CLUB_LICENSE_MESSAGE)
 
         data = {
             "id": license,
@@ -120,6 +128,8 @@ class FakeSoapClient:
         :returns: some data related to this license
         :rtype: dict"""
         license = kwargs["id"]
+        if license == OTHER_CLUB_LICENSE:
+            raise ZeepError(_OTHER_CLUB_LICENSE_MESSAGE)
         if license in (VALID_LICENSE, VALID_LICENSE_WITH_NO_EMAIL):
             # Registered 15 days ago
             reg_date = date.today() - timedelta(days=15)
@@ -131,6 +141,7 @@ class FakeSoapClient:
                 "inscription": reg_date.isoformat(),
                 "assurance_personne": 1,
             }
+
         if license == EXPIRED_LICENSE:
             return {
                 "existe": 0,
