@@ -240,13 +240,15 @@ def send_update_waiting_list_notification(
             f"Send mail to: {_anonymize_mail(registration.user.mail)}"
         )
 
-        end_of_grace = current_time() + timedelta(hours=Configuration.GRACE_PERIOD + 1)
+        end_of_grace = current_time() + timedelta(
+            hours=Configuration.UNREGISTRATION_GRACE_PERIOD + 1
+        )
         if registration.is_in_late_unregistration_period(end_of_grace):
             message = (
                 Configuration.ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE.format(
                     event_title=registration.event.title,
                     event_date=format_date(registration.event.start),
-                    grace_period=Configuration.GRACE_PERIOD,
+                    grace_period=Configuration.UNREGISTRATION_GRACE_PERIOD,
                     link=url_for(
                         "event.view_event",
                         event_id=registration.event.id,

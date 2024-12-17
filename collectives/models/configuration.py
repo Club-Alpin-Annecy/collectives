@@ -111,7 +111,10 @@ class Meta(type):
             if age < current_app.config["CONFIGURATION_CACHE_TIME"]:
                 return cached_entry["content"]
 
-        return cls.get_item(name).content
+        item = cls.get_item(name)
+        if item is None:
+            raise RuntimeError(f"Configuration variable '{name}' does not exist")
+        return item.content
 
     def get_item(cls, name):
         """Get the named configuration item.
