@@ -315,8 +315,8 @@
             {% endif %}
         {% endif %}
 
-        {% if event.num_waiting_list != 0 and  ( not event.has_free_online_slots() or event.waiting_registrations())  %}
-          <h3 class="heading-3"> Liste d'attente {{event.waiting_registrations() }} / {{ event.num_waiting_list }}
+        {% if (event.num_waiting_list != 0 and not event.has_free_online_slots()) or event.num_waiting_registrations() > 0 %}
+          <h3 class="heading-3"> Liste d'attente {{event.num_waiting_registrations() }} / {{ event.num_waiting_list }}
               {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
               {% endif %}
