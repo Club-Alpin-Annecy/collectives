@@ -112,7 +112,9 @@ class Meta(type):
                 return cached_entry["content"]
 
         item = cls.get_item(name)
-        return item.content
+        if item is None:
+            raise AttributeError(f"Configuration variable '{name}' does not exist")
+        return item
 
     def get_item(cls, name):
         """Get the named configuration item.
