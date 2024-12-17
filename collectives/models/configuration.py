@@ -112,8 +112,6 @@ class Meta(type):
                 return cached_entry["content"]
 
         item = cls.get_item(name)
-        if item is None:
-            raise RuntimeError(f"Configuration variable '{name}' does not exist")
         return item.content
 
     def get_item(cls, name):
