@@ -7,6 +7,7 @@ import json
 
 from flask_login import current_user
 from marshmallow import fields
+from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.event import EventSchema, filter_hidden_events
@@ -55,6 +56,9 @@ def user_events(user_id):
         return "[]", 403, {"content-type": "application/json"}
 
     query = db.session.query(Event)
+    query = query.options(
+        selectinload(Event.tag_refs), selectinload(Event.registrations)
+    )
     query = filter_hidden_events(query)
 
     query = query.filter(Registration.user_id == user_id)
@@ -91,6 +95,9 @@ def leader_events(leader_id):
         return "[]", 403, {"content-type": "application/json"}
 
     query = db.session.query(Event)
+    query = query.options(
+        selectinload(Event.tag_refs), selectinload(Event.registrations)
+    )
     query = filter_hidden_events(query)
 
     query = query.filter(Event.leaders.contains(leader))

@@ -7,6 +7,7 @@ from typing import List
 import phonenumbers
 from flask_uploads import UploadSet, IMAGES
 from werkzeug.datastructures import FileStorage
+from sqlalchemy.orm import selectinload
 
 from collectives.models.globals import db
 from collectives.models.configuration import Configuration
@@ -217,6 +218,7 @@ class UserMiscMixin:
         from collectives.models.event import Event, EventStatus
 
         query = db.session.query(Registration)
+        query = query.options(selectinload(Registration.event))
         if end is not None:
             if end == start and end.time() == datetime.time(0):
                 # If both start and end are set to midnight the same day,

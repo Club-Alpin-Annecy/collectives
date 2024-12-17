@@ -6,6 +6,7 @@ import decimal
 from typing import List
 
 from flask import current_app
+from sqlalchemy.orm import selectinload
 
 from collectives.models import db, Payment, PaymentStatus, PaymentItem, Event
 from collectives.models import ActivityType, ItemPrice, User, PaymentType
@@ -25,6 +26,12 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
     """
 
     query = db.session.query(Payment)
+    query = query.options(
+        selectinload(Payment.item).selectinload(PaymentItem.event),
+        selectinload(Payment.price),
+        selectinload(Payment.registration),
+        selectinload(Payment.buyer),
+    )
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
     query = query.filter(Event.id == PaymentItem.event_id)
 

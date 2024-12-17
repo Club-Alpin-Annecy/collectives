@@ -8,6 +8,7 @@ from flask import url_for, request
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import desc, and_, or_
+from sqlalchemy.orm import selectinload, joinedload
 
 from collectives.models import db, User, RoleIds, Role, Badge, ActivityType
 from collectives.models.badge import BadgeIds
@@ -169,6 +170,7 @@ def users():
     """
 
     query = db.session.query(User)
+    query = query.options(selectinload(User.roles), selectinload(User.badges))
 
     # Process all filters.
     # All filter are added as AND
@@ -349,6 +351,10 @@ def leaders():
     supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Role)
+    query = query.options(
+        joinedload(Role.user).selectinload(User.roles),
+        joinedload(Role.user).selectinload(User.badges),
+    )
     query = query.filter(
         Role.role_id.in_(
             [RoleIds.Trainee, RoleIds.EventLeader, RoleIds.ActivitySupervisor]
@@ -385,6 +391,10 @@ def badges():
         supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Badge)
+    query = query.options(
+        joinedload(Badge.user).selectinload(User.roles),
+        joinedload(Badge.user).selectinload(User.badges),
+    )
     query = query.filter(
         or_(
             Badge.activity_id == None,

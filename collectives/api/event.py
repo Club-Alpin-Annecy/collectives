@@ -8,7 +8,7 @@ from flask import url_for, request, abort
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import or_, and_, func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload, joinedload
 
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
@@ -261,7 +261,9 @@ def events():
 
     # Initialize query
     query = db.session.query(Event)
-    query = query.options(joinedload(Event.tag_refs), joinedload(Event.registrations))
+    query = query.options(
+        selectinload(Event.tag_refs), selectinload(Event.registrations)
+    )
 
     # Display pending events only to relevant persons
     query = filter_hidden_events(query)
@@ -493,12 +495,19 @@ def event_question_answers(event_id: int):
     if not event.has_edit_rights(current_user):
         return abort(403)
 
-    answers = (
-        QuestionAnswer.query.filter(QuestionAnswer.question_id == Question.id)
+    query = db.session.query(QuestionAnswer)
+    query = query.options(
+        joinedload(QuestionAnswer.question)
+        .selectinload(Question.event)
+        .joinedload(Event.registrations),
+        selectinload(QuestionAnswer.user),
+    )
+    query = (
+        query.filter(QuestionAnswer.question_id == Question.id)
         .filter(Question.event_id == event_id)
         .order_by(Question.order)
-        .all()
     )
+    answers = query.all()
 
     content = QuestionAnswerSchema().dumps(answers, many=True)
 

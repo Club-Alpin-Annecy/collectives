@@ -144,8 +144,8 @@ def autocomplete_leaders():
     :rtype: (string, int, dict)
     """
 
-    pattern = request.args.get("q").lower()
-    if pattern is None or (len(pattern) < 2):
+    pattern = request.args.get("q", "").lower()
+    if len(pattern) < 2:
         found_users = []
     else:
         limit = request.args.get("l", type=int) or 8

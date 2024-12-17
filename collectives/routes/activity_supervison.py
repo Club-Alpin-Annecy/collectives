@@ -8,7 +8,7 @@ from flask import Blueprint, send_file, abort, request
 from flask_login import current_user
 from flask_uploads import UploadNotAllowed
 from werkzeug.datastructures import CombinedMultiDict
-
+from sqlalchemy.orm import joinedload
 
 from collectives.forms.csv import CSVForm
 from collectives.forms.user import AddLeaderForm
@@ -135,12 +135,12 @@ def export_role():
     activity_type = db.session.get(ActivityType, form.activity_id.data)
 
     query = Role.query
+    query = query.options(joinedload(Role.user))
     # we remove role not linked anymore to a user
     query = query.filter(Role.user.has(User.id))
     query = query.filter(Role.activity_id == activity_type.id)
 
     roles = query.all()
-
     out = export.export_roles(roles)
 
     return send_file(

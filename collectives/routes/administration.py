@@ -431,6 +431,7 @@ def export_role(raw_filters=""):
     :return: The Excel file with the roles.
     """
     query_filter = Role.query
+    query_filter = query_filter.options(joinedload(Role.user))
     # we remove role not linked anymore to a user
     query_filter = query_filter.filter(Role.user.has(User.id))
 
