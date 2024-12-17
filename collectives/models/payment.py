@@ -45,14 +45,19 @@ class PaymentItem(db.Model):
     # Relationships
 
     prices = db.relationship(
-        "ItemPrice", backref="item", lazy=True, cascade="all, delete-orphan"
+        "ItemPrice",
+        backref=db.backref("item", lazy="selectin"),
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
     """ List of prices associated to this payment item.
 
     :type: list(:py:class:`collectives.models.payment.ItemPrice`)
     """
 
-    payments = db.relationship("Payment", backref="item", lazy=True)
+    payments = db.relationship(
+        "Payment", backref=db.backref("item", lazy="selectin"), lazy=True
+    )
     """ List of payments associated to this payment item.
 
     :type: list(:py:class:`collectives.models.payment.Payment`)
@@ -244,7 +249,9 @@ class ItemPrice(db.Model):
 
     # Relationships
 
-    payments = db.relationship("Payment", backref="price", lazy=True)
+    payments = db.relationship(
+        "Payment", backref=db.backref("price", lazy="selectin"), lazy=True
+    )
     """ List of payments associated to this payment option.
 
     :type: list(:py:class:`collectives.models.payment.Payment`)

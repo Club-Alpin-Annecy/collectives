@@ -103,14 +103,18 @@ class ActivityType(db.Model):
     """
 
     # Relationships
-    persons = db.relationship("Role", backref="activity_type", lazy=True)
+    persons = db.relationship(
+        "Role", backref=db.backref("activity_type", lazy="selectin"), lazy=True
+    )
     """Person with a role with this activity
 
     :type: :py:class:`collectives.models.user.User`
     """
 
     # Relationships
-    badges = db.relationship("Badge", backref="activity_type", lazy=True)
+    badges = db.relationship(
+        "Badge", backref=db.backref("activity_type", lazy="selectin"), lazy=True
+    )
     """Person with a badge with this activity
 
     :type: :py:class:`collectives.models.user.User`

@@ -189,7 +189,7 @@ class EventModelMixin:
         return db.relationship(
             "User",
             secondary=event_leaders,
-            lazy="subquery",
+            lazy="selectin",
             backref=db.backref("led_events", lazy=True, order_by="Event.start"),
         )
 
@@ -205,7 +205,7 @@ class EventModelMixin:
         """Type of this event.
 
         :type: :py:class:`collectives.models.event_type.EventType`"""
-        return db.relationship("EventType", lazy="subquery")
+        return db.relationship("EventType", lazy="joined")
 
     @declared_attr
     def activity_types(self):
@@ -215,7 +215,7 @@ class EventModelMixin:
         return db.relationship(
             "ActivityType",
             secondary=event_activity_types,
-            lazy="subquery",
+            lazy="selectin",
             backref=db.backref("events", lazy=True),
             order_by="asc(ActivityType.id)",
         )

@@ -12,7 +12,7 @@ from flask import Blueprint, abort
 from markupsafe import Markup, escape
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.routes.auth import get_bad_phone_message, login_manager
 
@@ -234,12 +234,9 @@ def view_event(event_id, name=""):
     event = (
         Event.query.options(
             joinedload(Event.registrations)
-            .joinedload(Registration.user)
-            .joinedload(User.roles),
-            joinedload(Event.payment_items).joinedload(PaymentItem.prices),
-            joinedload(Event.uploaded_files),
-            joinedload(Event.questions),
-            joinedload(Event.tag_refs),
+            .selectinload(Registration.user)
+            .selectinload(User.roles),
+            selectinload(Event.payment_items).selectinload(PaymentItem.prices),
         )
         .filter_by(id=event_id)
         .first()
