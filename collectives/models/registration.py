@@ -379,7 +379,7 @@ class Registration(db.Model):
         late_period_start = self.event.start - timedelta(
             hours=Configuration.LATE_UNREGISTRATION_THRESHOLD
         )
-        grace_period_end = self.registration_time + timedelta(
+        grace_period_end = (self.registration_time or time) + timedelta(
             hours=Configuration.UNREGISTRATION_GRACE_PERIOD
         )
 
