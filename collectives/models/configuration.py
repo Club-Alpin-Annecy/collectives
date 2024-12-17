@@ -114,7 +114,7 @@ class Meta(type):
         item = cls.get_item(name)
         if item is None:
             raise AttributeError(f"Configuration variable '{name}' does not exist")
-        return item
+        return item.content
 
     def get_item(cls, name):
         """Get the named configuration item.
