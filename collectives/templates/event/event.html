@@ -290,7 +290,7 @@
         {% elif not event.is_confirmed() %}
           <p>Inscriptions indisponibles actuellement.</p>
         {% elif (event.num_online_slots == 0 and event.num_waiting_list == 0) or not event.has_defined_registration_date() %}
-          <p>Il n'y a pas d'inscription par Internet pour cette événement</p>
+          <p>Il n'y a pas d'inscription par Internet pour cet événement</p>
         {% elif current_time < event.registration_open_time %}
             {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
               <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
