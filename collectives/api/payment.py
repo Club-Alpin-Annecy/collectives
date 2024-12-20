@@ -7,9 +7,10 @@ import json
 from flask import abort, url_for, request
 from flask_login import current_user
 from marshmallow import fields
+from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.models import db, Event, ItemPrice, Payment, PaymentStatus
+from collectives.models import db, Event, ItemPrice, Payment, PaymentItem, PaymentStatus
 from collectives.utils.access import payments_enabled, valid_user
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import extract_payments
@@ -236,7 +237,9 @@ def my_payments(status_code):
     :type status_code: string
     """
 
-    query = Payment.query.filter_by(buyer_id=current_user.id, status=status_code)
+    query = Payment.query
+    query = query.options(selectinload(Payment.item).selectinload(PaymentItem.event))
+    query = query.filter_by(buyer_id=current_user.id, status=status_code)
 
     if PaymentStatus[status_code] == PaymentStatus.Initiated:
         # We only care about unsettled payments with an active registration

@@ -130,7 +130,10 @@ class Question(db.Model):
     """
 
     answers = db.relationship(
-        "QuestionAnswer", backref="question", lazy=True, cascade="all, delete-orphan"
+        "QuestionAnswer",
+        backref=db.backref("question", lazy="selectin"),
+        lazy=True,
+        cascade="all, delete-orphan",
     )
 
     @staticmethod
