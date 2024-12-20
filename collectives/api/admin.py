@@ -355,11 +355,7 @@ def leaders():
         joinedload(Role.user).selectinload(User.roles),
         joinedload(Role.user).selectinload(User.badges),
     )
-    query = query.filter(
-        Role.role_id.in_(
-            [RoleIds.Trainee, RoleIds.EventLeader, RoleIds.ActivitySupervisor]
-        )
-    )
+    query = query.filter(Role.role_id.in_(RoleIds.all_relates_to_activity()))
     query = query.filter(Role.activity_id.in_(a.id for a in supervised_activities))
     query = query.join(Role.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
@@ -390,11 +386,16 @@ def badges():
     else:
         supervised_activities = current_user.get_supervised_activities()
 
+    badge_ids = request.args.getlist("badge_ids", type=int)
+    badge_ids = [BadgeIds(badge_id) for badge_id in badge_ids]
+
     query = db.session.query(Badge)
     query = query.options(
         joinedload(Badge.user).selectinload(User.roles),
         joinedload(Badge.user).selectinload(User.badges),
     )
+    if badge_ids:
+        query = query.filter(Badge.badge_id.in_(badge_ids))
     query = query.filter(
         or_(
             Badge.activity_id == None,

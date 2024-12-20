@@ -174,7 +174,9 @@ def volunteers_list():
         "renew": "activity_supervision.renew_volunteer",
     }
 
-    return badges.list_page(badge_type=BadgeIds.Benevole, auto_date=True, routes=routes)
+    return badges.list_page(
+        badge_types=BadgeIds.Benevole, auto_date=True, routes=routes
+    )
 
 
 @blueprint.route("/volunteers/add", methods=["POST"])
