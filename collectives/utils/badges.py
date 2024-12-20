@@ -1,5 +1,7 @@
 """ Module for base functions of badge management"""
 
+from typing import List, Union
+
 from flask import send_file
 from flask import flash, render_template
 from flask_login import current_user
@@ -67,31 +69,47 @@ def export_badge(badge_type: BadgeIds = None):
     )
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 def list_page(
     routes: dict,
-    badge_type: BadgeIds = None,
+    badge_types: Union[BadgeIds, List[BadgeIds]] = None,
     auto_date: bool = False,
     level: bool = False,
     extends: str = "activity_supervision/activity_supervision.html",
+    allow_add: bool = True,
 ):
     """Route for activity supervisors to access badges list and management form.
 
-    :param type: The type of badge to export
+    :param type: The type(s) of badge to export
     :param auto_date: if True, Badges are added to the end of the federal year. Else
         activity supervisor can choose.
     :param level: if True, display level setting
     :param extends: path to the template which extends the page
     :param routes: Lists of urls of others endpoint. This dict should have these keys:
-                ``add``, ``export``, ``delete``, ``renew``,."""
+                ``add``, ``export``, ``delete``, ``renew``,.
+    :param allow_add: Whether to allow adding new badges
+    """
 
-    add_badge_form = AddBadgeForm(badge_type=type_title(badge_type))
+    # convert to list
+    if isinstance(badge_types, BadgeIds):
+        badge_types = [
+            badge_types,
+        ]
+    elif badge_types is None:
+        badge_types = []
 
-    if badge_type:
-        del add_badge_form.badge_id
-    if auto_date:
-        del add_badge_form.expiration_date
-    if not level:
-        del add_badge_form.level
+    if allow_add:
+        add_badge_form = AddBadgeForm(badge_type=type_title(badge_types))
+
+        if badge_types:
+            del add_badge_form.badge_id
+        if auto_date:
+            del add_badge_form.expiration_date
+        if not level:
+            del add_badge_form.level
+    else:
+        add_badge_form = None
 
     export_form = ActivityTypeSelectionForm(
         submit_label="Générer Excel",
@@ -103,9 +121,9 @@ def list_page(
         "activity_supervision/badges_list.html",
         add_badge_form=add_badge_form,
         export_form=export_form,
-        title=type_title(badge_type),
+        title=type_title(badge_types),
+        badge_ids=[badge_id.value for badge_id in badge_types],
         auto_date=auto_date,
-        type=badge_type,
         level=level,
         extends=extends,
         routes=routes,
@@ -228,14 +246,16 @@ def delete_badge(badge_id: int, badge_type: BadgeIds = None) -> None:
     return None
 
 
-def type_title(badge_type: BadgeIds) -> str:
+def type_title(badge_type: Union[BadgeIds, List[BadgeIds]]) -> str:
     """Returns a title regard the type of badge.
 
     :param type: The type of badge to export
     """
-    if badge_type is None:
-        return "Badge"
-    return badge_type.display_name()
+    if isinstance(badge_type, BadgeIds):
+        return badge_type.display_name()
+    if badge_type and len(badge_type) == 1:
+        return badge_type[0].display_name()
+    return "Badge"
 
 
 def has_rights_to_modify_badge(badge: Badge, badge_type: BadgeIds) -> bool:
