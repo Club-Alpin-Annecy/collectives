@@ -1,8 +1,8 @@
 """Module to describe the type of activity.
 """
 
+import json
 from sqlalchemy.orm import validates
-from markupsafe import escape
 
 from collectives.models.globals import db
 from collectives.utils.misc import truncate
@@ -170,5 +170,4 @@ class ActivityType(db.Model):
         :rtype: String
         """
         types = cls.get_all_types()
-        items = [f"{type.id}:'{escape(type.name)}'" for type in types]
-        return "{" + ",".join(items) + "}"
+        return json.dumps({typ.id: typ.name for typ in types}, ensure_ascii=False)
