@@ -28,7 +28,7 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
         if date.today().month < 9:
             current_year = current_year - 1
 
-        super().__init__(year=2000 + current_year, *args, **kwargs)
+        super().__init__(*args, all_enabled=True, year=2000 + current_year, **kwargs)
         self.activity_id.choices = [
             (self.ALL_ACTIVITIES, "Toute activité")
         ] + self.activity_id.choices

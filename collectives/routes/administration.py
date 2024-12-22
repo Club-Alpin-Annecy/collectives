@@ -281,7 +281,7 @@ def add_user_badge(user_id):
 
     try:
         # Check that the badge does not already exist
-        badge.activity_type = db.session.get(ActivityType, form.activity_type_id.data)
+        badge.activity_type = db.session.get(ActivityType, form.activity_id.data)
 
         if badge_id.relates_to_activity():
             if badge.activity_type is None:
@@ -576,7 +576,9 @@ def badges_list():
         "delete": "administration.delete_badge",
         "renew": "administration.renew_badge",
     }
-    return badges.list_page(routes=routes, extends="administration/index.html")
+    return badges.list_page(
+        routes=routes, extends="administration/index.html", level=True
+    )
 
 
 @blueprint.route("/badges/export/", methods=["POST"])
