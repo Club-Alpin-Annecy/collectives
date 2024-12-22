@@ -157,10 +157,6 @@ def add_badge(
     if auto_date:
         badge.expiration_date = compute_default_expiration_date()
 
-    if badge_type and not badge_type.relates_to_activity():
-        badge.activity_type = None
-        badge.activity_id = None
-
     user: User = db.session.get(User, badge.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")

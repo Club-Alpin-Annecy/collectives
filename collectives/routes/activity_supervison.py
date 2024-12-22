@@ -56,17 +56,14 @@ def add_leader():
         flash("Erreur lors de l'ajout des droits", "error")
         return redirect(url_for(".leader_list"))
 
-    role = Role()
-    add_leader_form.populate_obj(role)
-
-    user = db.session.get(User, role.user_id)
+    user = db.session.get(User, add_leader_form.user_id.data)
     if user is None:
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".leader_list"))
 
     if user.has_role_for_activity(
         RoleIds.all_relates_to_activity(),
-        role.activity_id,
+        add_leader_form.activity_id.data,
     ):
         flash(
             "L'utilisateur a déjà un rôle pour cette activité. Vous devez le supprimer avant "
@@ -75,6 +72,8 @@ def add_leader():
         )
         return redirect(url_for(".leader_list"))
 
+    role = Role()
+    add_leader_form.populate_obj(role)
     db.session.add(role)
     db.session.commit()
 
