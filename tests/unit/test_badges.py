@@ -3,8 +3,14 @@
 from datetime import date, timedelta
 from collectives.models.activity_type import ActivityType
 from collectives.models.badge import Badge, BadgeIds
-from collectives.models import db
 from collectives.models.user import User
+from collectives.models import (
+    db,
+    Event,
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+)
 
 
 def test_add_a_valid_badge(user1):
@@ -143,3 +149,77 @@ def test_increment_warning_badges_no_updates(
     assert len(session_monkeypatch["add"]) == 2  # No badge should be added
     assert session_monkeypatch["commit"] == 2  # No commit should occur
     assert session_monkeypatch["rollback"] == 0  # No rollback should occur
+
+
+def test_remove_sanction_badge(user1: User, event: Event):
+    """Test that removing a warning badge removes suspension
+    if that warning was counted towards suspension"""
+
+    db.session.add(event)
+    db.session.commit()
+
+    expiration_date = date.today() + timedelta(days=1)
+
+    reg1 = Registration(
+        user_id=user1.id,
+        status=RegistrationStatus.UnJustifiedAbsentee,
+        level=RegistrationLevels.Normal,
+        is_self=True,
+    )
+    reg2 = Registration(
+        user_id=user1.id,
+        status=RegistrationStatus.UnJustifiedAbsentee,
+        level=RegistrationLevels.Normal,
+        is_self=True,
+    )
+    reg3 = Registration(
+        user_id=user1.id,
+        status=RegistrationStatus.UnJustifiedAbsentee,
+        level=RegistrationLevels.Normal,
+        is_self=True,
+    )
+    event.registrations.append(reg1)
+    event.registrations.append(reg2)
+    event.registrations.append(reg3)
+
+    user1.assign_badge(
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=expiration_date,
+        registration=reg1,
+    )
+    user1.assign_badge(
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=expiration_date,
+        registration=reg2,
+    )
+    user1.assign_badge(
+        BadgeIds.Suspended,
+        expiration_date=expiration_date,
+        registration=reg2,
+    )
+    user1.assign_badge(
+        BadgeIds.UnjustifiedAbsenceWarning,
+        expiration_date=expiration_date,
+        registration=reg3,
+    )
+    user1.assign_badge(
+        BadgeIds.Suspended,
+        expiration_date=expiration_date,
+        registration=reg3,
+    )
+    db.session.commit()
+
+    assert user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 3
+
+    user1.remove_warning_badges(reg1)
+    db.session.commit()
+
+    assert user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 2
+
+    user1.remove_warning_badges(reg2)
+    db.session.commit()
+
+    assert not user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 1
