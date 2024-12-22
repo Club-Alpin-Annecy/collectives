@@ -357,7 +357,7 @@ def test_unregister_lately_valid_second_warning(
 
     assert event.is_late_unregistered(user)
     assert user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
-    assert user.number_of_valid_warning_badges() == 2
+    assert user.number_of_valid_warning_badges() == 3
     assert user.has_a_valid_badge([BadgeIds.Suspended])
 
 

@@ -194,23 +194,25 @@ class UserBadgeMixin:
                     level=num_suspended_badges + 1,
                     registration=registration,
                 )
-            else:
-                badge_id = BadgeIds.UnjustifiedAbsenceWarning
-                expiration_date = date(
-                    (
-                        date.today().year
-                        if date.today().month < Configuration.LICENSE_EXPIRY_MONTH
-                        else date.today().year + 1
-                    ),
-                    Configuration.LICENSE_EXPIRY_MONTH,
-                    1,
-                ) - timedelta(days=1)
-                self.assign_badge(
-                    badge_id,
-                    expiration_date=expiration_date,
-                    level=num_warning_badges + 1,
-                    registration=registration,
-                )
+
+            # always add a warning badge as well
+            # this simplifies logic when removing badge due to status change
+            badge_id = BadgeIds.UnjustifiedAbsenceWarning
+            expiration_date = date(
+                (
+                    date.today().year
+                    if date.today().month < Configuration.LICENSE_EXPIRY_MONTH
+                    else date.today().year + 1
+                ),
+                Configuration.LICENSE_EXPIRY_MONTH,
+                1,
+            ) - timedelta(days=1)
+            self.assign_badge(
+                badge_id,
+                expiration_date=expiration_date,
+                level=num_warning_badges + 1,
+                registration=registration,
+            )
         except ValueError:
             # Badges update should not break unregistration logic
             pass
@@ -220,11 +222,32 @@ class UserBadgeMixin:
         Removes warning badges associated to this registration
         """
 
-        badges = [
+        registration_badges = [
             badge
             for badge in registration.badges
             if badge.badge_id
             in (BadgeIds.Suspended, BadgeIds.UnjustifiedAbsenceWarning)
         ]
-        for badge in badges:
+
+        if not any(
+            badge
+            for badge in registration_badges
+            if badge.badge_id == BadgeIds.Suspended
+        ):
+            # If this badge was counted towards a later suspension,
+            # Remove the first suspended badge from a later registration
+            max_id = max(badge.id for badge in registration_badges)
+
+            later_suspended_badges = [
+                badge
+                for badge in self.matching_badges([BadgeIds.Suspended], valid_only=True)
+                if badge.id > max_id
+            ]
+            if later_suspended_badges:
+                first_suspended_badge = min(
+                    later_suspended_badges, key=lambda badge: badge.id
+                )
+                db.session.delete(first_suspended_badge)
+
+        for badge in registration_badges:
             db.session.delete(badge)
