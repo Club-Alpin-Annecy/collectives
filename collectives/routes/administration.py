@@ -294,7 +294,6 @@ def add_user_badge(user_id):
                 [badge_id], badge.activity_type.id
             )
         else:
-            badge.activity_type = None
             badge_exists = user.has_badge_for_activity([badge_id], None)
 
         if badge_exists:
