@@ -22,6 +22,8 @@ class AddActivityDocumentForm(ActivityTypeSelectionForm):
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-        kwargs["activity_list"] = current_user.get_supervised_activities()
-        kwargs["submit_label"] = "Ajouter un document"
-        super().__init__(*args, **kwargs)
+        activity_list = current_user.get_supervised_activities()
+        submit_label = "Ajouter un document"
+        super().__init__(
+            *args, activity_list=activity_list, submit_label=submit_label, **kwargs
+        )

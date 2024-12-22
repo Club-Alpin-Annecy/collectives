@@ -2,6 +2,7 @@
 """
 
 from datetime import date
+from flask import request
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
@@ -177,7 +178,7 @@ def compute_default_expiration_date():
     return default_date
 
 
-class BadgeForm(ModelForm, FlaskForm):
+class BadgeForm(ModelForm, ActivityTypeSelectionForm):
     """Form for administrators to add badges to users"""
 
     class Meta:
@@ -186,22 +187,18 @@ class BadgeForm(ModelForm, FlaskForm):
         model = Badge
         exclude = ["creation_time"]
 
-    activity_type_id = SelectField("Activité", choices=[], coerce=int)
     submit = SubmitField("Ajouter")
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-        kwargs["expiration_date"] = compute_default_expiration_date()
 
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, no_enabled=True, **kwargs)
 
-        # In case this is a CREATION
-        self.activity_type_id.choices = [
-            (a.id, a.name) for a in ActivityType.get_all_types(True)
-        ]
+        if "expiration_date" not in request.form:
+            self.expiration_date.data = compute_default_expiration_date()
 
 
-class RenewBadgeForm(ModelForm, FlaskForm):
+class RenewBadgeForm(BadgeForm):
     """Form for administrators to add badges to users"""
 
     class Meta:
@@ -210,32 +207,18 @@ class RenewBadgeForm(ModelForm, FlaskForm):
         model = Badge
         exclude = ["creation_time"]
 
-    activity_type_id = SelectField("Activité", choices=[], coerce=int)
     submit = SubmitField("Renouveler")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, badge: Badge, **kwargs):
         """Overloaded constructor populating activity list"""
-        badge = kwargs.pop("badge", {})
-        kwargs["expiration_date"] = compute_default_expiration_date()
-        if badge:
-            if badge.level:
-                kwargs["level"] = badge.level
+        super().__init__(*args, obj=badge, **kwargs)
 
-        super().__init__(*args, **kwargs)
         # In case this is a RENEWAL
-        if badge:
-            if badge.activity_id:
-                self.activity_type_id.choices = [
-                    (badge.activity_id, ActivityType.get(badge.activity_id).name)
-                ]
-            if badge.badge_id:
-                self.badge_id = [BadgeIds(int(badge.badge_id))]
-
-        # In case this is a CREATION
-        else:
-            self.activity_type_id.choices = [
-                (a.id, a.name) for a in ActivityType.get_all_types(True)
+        if badge.activity_id:
+            self.activity_id.choices = [
+                (badge.activity_id, ActivityType.get(badge.activity_id).name)
             ]
+        self.badge_id.choices = [(int(badge.badge_id), str(badge.badge_id))]
 
 
 class AddLeaderForm(ActivityTypeSelectionForm):
@@ -261,9 +244,11 @@ class AddLeaderForm(ActivityTypeSelectionForm):
 
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-        kwargs["activity_list"] = current_user.get_supervised_activities()
-        kwargs["submit_label"] = "Ajouter un rôle"
-        super().__init__(*args, **kwargs)
+        activity_list = current_user.get_supervised_activities()
+        submit_label = "Ajouter un rôle"
+        super().__init__(
+            *args, activity_list=activity_list, submit_label=submit_label, **kwargs
+        )
 
 
 class AddBadgeForm(ActivityTypeSelectionForm):
@@ -296,14 +281,22 @@ class AddBadgeForm(ActivityTypeSelectionForm):
         :param badge_type: The type of badge to be displayed in submit label"""
 
         if current_user.is_hotline():
-            kwargs["activity_list"] = ActivityType.query.all()
+            activity_list = ActivityType.get_all_types()
+            no_enabled = True
         else:
-            kwargs["activity_list"] = current_user.get_supervised_activities()
+            activity_list = current_user.get_supervised_activities()
+            no_enabled = False
 
-        kwargs["submit_label"] = f"Ajouter un {badge_type}"
+        submit_label = f"Ajouter un {badge_type}"
         kwargs["expiration_date"] = compute_default_expiration_date()
 
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            *args,
+            activity_list=activity_list,
+            no_enabled=no_enabled,
+            submit_label=submit_label,
+            **kwargs,
+        )
 
 
 class DeleteUserForm(FlaskForm):

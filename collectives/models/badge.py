@@ -38,9 +38,8 @@ class BadgeIds(ChoiceEnum):
         """Check if this badge needs an activity.
 
         :return: True if the badge requires an activity.
-        :rtype: boolean
         """
-        return True
+        return False
 
 
 class Badge(db.Model):

@@ -7,10 +7,10 @@ import json
 from flask import url_for, request
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, and_, or_
+from sqlalchemy import desc, and_
 from sqlalchemy.orm import selectinload, joinedload
 
-from collectives.models import db, User, RoleIds, Role, Badge, ActivityType
+from collectives.models import db, User, RoleIds, Role, Badge
 from collectives.models.badge import BadgeIds
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
@@ -382,7 +382,7 @@ def badges():
     :rtype: (string, int, dict)
     """
     if current_user.is_hotline():
-        supervised_activities = ActivityType.query.all()
+        supervised_activities = None
     else:
         supervised_activities = current_user.get_supervised_activities()
 
@@ -396,12 +396,10 @@ def badges():
     )
     if badge_ids:
         query = query.filter(Badge.badge_id.in_(badge_ids))
-    query = query.filter(
-        or_(
-            Badge.activity_id == None,
+    if supervised_activities:
+        query = query.filter(
             Badge.activity_id.in_(a.id for a in supervised_activities),
         )
-    )
     query = query.join(Badge.user)
     query = query.order_by(User.last_name, User.first_name, User.id)
 
