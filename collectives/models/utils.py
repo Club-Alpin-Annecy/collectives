@@ -4,7 +4,6 @@
 import enum
 import json
 from typing import List
-from markupsafe import escape
 
 
 class ChoiceEnum(enum.IntEnum):
@@ -26,8 +25,7 @@ class ChoiceEnum(enum.IntEnum):
         :return: enum as js Dictionnary
         :rtype: String
         """
-        items = [str(s.value) + ":'" + str(escape(s.display_name())) + "'" for s in cls]
-        return "{" + ",".join(items) + "}"
+        return json.dumps({s.value: s.display_name() for s in cls}, ensure_ascii=False)
 
     @classmethod
     def js_keys(cls) -> List[str]:

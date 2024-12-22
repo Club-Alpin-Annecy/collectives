@@ -15,6 +15,7 @@
   <script src="{{ url_for('static', filename='js/activity_supervision/badges_list.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
   <script>
       window.onload = function () {
         const show_type = {{ 'false' if badge_ids|length==1 else 'true' }};

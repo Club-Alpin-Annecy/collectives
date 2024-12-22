@@ -1,7 +1,7 @@
 """Module to describe the type of event.
 """
 
-from markupsafe import escape
+import json
 
 from collectives.models.globals import db
 from collectives.models import Configuration
@@ -116,8 +116,7 @@ class EventType(db.Model):
         :rtype: String
         """
         types = cls.get_all_types()
-        items = [f"{type.id}:'{escape(type.name)}'" for type in types]
-        return "{" + ",".join(items) + "}"
+        return json.dumps({typ.id: typ.name for typ in types}, ensure_ascii=False)
 
     def get_terms_file(self) -> str:
         """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_file`

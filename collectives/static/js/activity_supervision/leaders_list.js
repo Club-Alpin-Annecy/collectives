@@ -34,8 +34,8 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
             columns: [
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
-                { title: "Activité", field: "activity_type.name", headerFilter: "input", widthGrow: 3 },
-                { title: "Rôle", field: "type", headerFilter: "input", widthGrow: 3},
+                { title: "Activité", field: "activity_type.name", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumActivityType)}, widthGrow: 3 },
+                { title: "Rôle", field: "type", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumRoleIds, ActivityRequiredRoles)}, widthGrow: 3},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: submitDeleteForm, headerSort: false },
             ],
 
@@ -48,4 +48,12 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
                 }
             },
         });
+}
+
+
+function makeOptions(dict, subset){
+    if (subset) {
+        dict = subset.map(id => dict[id])
+    }
+    return [""].concat(Object.values(dict).sort());
 }
