@@ -10,3 +10,23 @@
 		top: -15vh;
 	}
 }
+
+
+input[passsword-reveal=true] {
+  padding-right: 3em;
+
+  + div{
+    display: inline-block !important;
+    text-align: right; 
+    position: relative; 
+    bottom: 2.9em; 
+    height: 0px;  
+    opacity: 0.65;
+    margin: $padding-input-default !important;
+
+    img{
+      height: 1.5em;
+      cursor: pointer;
+    }
+  }
+}
