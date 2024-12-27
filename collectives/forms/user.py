@@ -42,6 +42,7 @@ class OptionalPasswordForm:
         label="Nouveau mot de passe",
         description="Laisser vide pour conserver l'actuel",
         validators=[PasswordValidator()],
+        render_kw={"passsword-reveal": "true"},
     )
 
     confirm = PasswordField(
@@ -49,6 +50,7 @@ class OptionalPasswordForm:
         validators=[
             EqualTo("password", message="Les mots de passe ne correspondent pas")
         ],
+        render_kw={"passsword-reveal": "true"},
     )
 
 
