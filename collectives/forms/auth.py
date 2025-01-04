@@ -60,7 +60,7 @@ class ExtranetAccountCreationForm(ModelForm, OrderedForm):
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
 
-class RequiredPasswordForm:
+class RequiredPasswordForm(FlaskForm):
     """Form with required field to define a password"""
 
     password = PasswordField(
@@ -84,7 +84,7 @@ class AccountRecoverForm(OptionalPasswordForm, FlaskForm):
     submit = SubmitField("Mettre à jour le compte")
 
 
-class LegalAcceptation:
+class LegalAcceptation(FlaskForm):
     """Form to accept or reject the legal terms of the site"""
 
     legal_accepted = BooleanField(
