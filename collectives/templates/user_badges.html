@@ -9,6 +9,9 @@
   <ul>
   {% for badge in user.badges %}
   <li>{{badge.name}}
+  {% if badge.registration %}
+   pour l'événement <a href="{{url_for('event.view_event', event_id=badge.registration.event.id)}}">{{badge.registration.event.title}}</a>
+  {% endif %}
   {% if badge.activity_id %}
    pour l'activité <em>{{badge.activity_name}}</em>
   {% endif %}
