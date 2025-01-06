@@ -953,7 +953,7 @@ def self_unregister(event_id):
     db.session.commit()
 
     # Send notification e-mail to leaders only if definitive subscription
-    if was_holding_slot == RegistrationStatus.Active:
+    if was_holding_slot:
         send_unregister_notification(event, current_user)
 
     return redirect(url_for("event.view_event", event_id=event_id))
