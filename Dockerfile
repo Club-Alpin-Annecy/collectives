@@ -19,6 +19,7 @@ RUN pip install waitress
 
 COPY collectives /app/collectives/
 COPY deployment/docker/logging.cfg /app/
+COPY metadata.jso[n] /app/
 
 WORKDIR /app
 

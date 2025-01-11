@@ -9,6 +9,7 @@ WARNING: for production, some parameter MUST be modified (ADMINPWD, SECRET_KEY)
 # All configuration parameters defined in
 # this file can be overriden in instance/config.py
 
+import json
 import os
 from os import environ
 import subprocess
@@ -136,14 +137,33 @@ Can be set using environment variable.
 :type: string
 """
 
-# Page information
-run = subprocess.run(
-    ["git", "describe", "--tags"],
-    stdout=subprocess.PIPE,
-    check=False,
-    cwd=os.path.dirname(__file__),
-)
-VERSION = run.stdout.decode("utf-8")
+
+if os.path.exists(".git"):
+    # If git is here, version is extracted from git tags
+    run = subprocess.run(
+        ["git", "describe", "--tags"],
+        stdout=subprocess.PIPE,
+        check=False,
+        cwd=os.path.dirname(__file__),
+    )
+    VERSION = run.stdout.decode("utf-8")
+elif os.path.exists("metadata.json"):
+    # If metadata is here, version is extracted from docker metadata
+    try:
+        with open("metadata.json", "r", encoding="utf-8") as file:
+            VERSION = json.load(file)["labels"]["org.opencontainers.image.version"]
+    except json.JSONDecodeError:
+        print("Erreur : Le fichier 'metadata.json' est mal formé.")
+        VERSION = ""
+    except KeyError as e:
+        print(f"Erreur : La clé {e} est manquante dans le fichier 'metadata.json'.")
+        VERSION = ""
+    except TypeError:
+        print("Erreur : Le format du fichier JSON n'est pas valide.")
+        VERSION = ""
+else:
+    VERSION = ""
+
 # FAVICON= "img/icon/favicon.ico"
 FAVICON = "caf/favicon.ico"
 """URL to the site favicon
