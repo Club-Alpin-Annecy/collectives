@@ -1,4 +1,4 @@
-""" Module for all Event attributes. """
+"""Module for all Event attributes."""
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates

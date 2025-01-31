@@ -1,4 +1,4 @@
-""" Unit test on :py:mod:`collectives.utils.jinja` functions. """
+"""Unit test on :py:mod:`collectives.utils.jinja` functions."""
 
 import datetime
 from collectives.utils.jinja import helpers_processor

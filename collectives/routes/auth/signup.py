@@ -1,4 +1,4 @@
-""" Auth login to perform account creation and recover. """
+"""Auth login to perform account creation and recover."""
 
 import datetime
 

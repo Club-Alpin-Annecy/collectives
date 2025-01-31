@@ -1,4 +1,4 @@
-""" Module to creaate a fixture db barely rich enough to test statistics engine"""
+"""Module to creaate a fixture db barely rich enough to test statistics engine"""
 
 import pytest
 

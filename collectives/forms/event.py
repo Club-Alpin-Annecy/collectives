@@ -1,5 +1,4 @@
-"""Module containing forms related to event management
-"""
+"""Module containing forms related to event management"""
 
 from operator import attrgetter
 from uuid import uuid4

@@ -1,4 +1,4 @@
-""" Module to load fixtures """
+"""Module to load fixtures"""
 
 pytest_plugins = [
     "tests.fixtures.event",

@@ -1,5 +1,4 @@
-"""Module for registration related classes
-"""
+"""Module for registration related classes"""
 
 from typing import List, Optional
 from datetime import timedelta, datetime

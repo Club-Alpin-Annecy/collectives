@@ -1,4 +1,4 @@
-""" Mock functions for session. """
+"""Mock functions for session."""
 
 import pytest
 

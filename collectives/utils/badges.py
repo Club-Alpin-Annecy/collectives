@@ -1,4 +1,4 @@
-""" Module for base functions of badge management"""
+"""Module for base functions of badge management"""
 
 from typing import List, Union
 

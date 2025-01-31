@@ -1,4 +1,4 @@
-""" Module for event related route
+"""Module for event related route
 
 This modules contains the /event Blueprint
 """

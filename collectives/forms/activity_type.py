@@ -1,4 +1,4 @@
-""" Module for activity type related forms"""
+"""Module for activity type related forms"""
 
 from typing import List
 

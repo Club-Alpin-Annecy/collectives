@@ -1,4 +1,4 @@
-""" Module to handle HTTP errors """
+"""Module to handle HTTP errors"""
 
 import logging
 from flask import redirect, url_for, flash, request, render_template

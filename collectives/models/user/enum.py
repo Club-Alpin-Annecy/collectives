@@ -1,4 +1,4 @@
-""" Module for enum related to users"""
+"""Module for enum related to users"""
 
 from collectives.models.utils import ChoiceEnum
 

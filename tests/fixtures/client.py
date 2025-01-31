@@ -1,4 +1,4 @@
-""" Module to create flask client from existing fixture users.
+"""Module to create flask client from existing fixture users.
 
 Connection to the application does not use http but a special client available
 from the app object. See flask

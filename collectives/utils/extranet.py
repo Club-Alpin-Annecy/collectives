@@ -1,5 +1,4 @@
-"""Module to handle connexions to FFCAM extranet.
-"""
+"""Module to handle connexions to FFCAM extranet."""
 
 import traceback
 from datetime import datetime, date

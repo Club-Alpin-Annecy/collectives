@@ -1,4 +1,4 @@
-""" This module concerns every routes regarding 
+"""This module concerns every routes regarding
 authentification (login, signup, etc...)"""
 
 from collectives.routes.auth.globals import login_manager, blueprint

@@ -1,4 +1,4 @@
-""" API for autocomplete users name.
+"""API for autocomplete users name.
 
 Especially used for user registration by leader in events.
 

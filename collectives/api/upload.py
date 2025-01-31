@@ -1,6 +1,4 @@
-""" API endpoint for managing uploaded files.
-
-"""
+"""API endpoint for managing uploaded files."""
 
 import json
 

@@ -1,4 +1,4 @@
-""" API submodule for the blueprint
+"""API submodule for the blueprint
 
 Typical usage example:
 ::

@@ -1,4 +1,4 @@
-""" Module to test user profile pages. """
+"""Module to test user profile pages."""
 
 from flask import url_for
 

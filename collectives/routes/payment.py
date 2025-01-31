@@ -1,4 +1,4 @@
-""" Module for payment related routes
+"""Module for payment related routes
 
 This modules contains the /payment Blueprint
 """

@@ -1,4 +1,4 @@
-""" Test API related to event """
+"""Test API related to event"""
 
 from datetime import date
 

@@ -1,5 +1,4 @@
-"""Module for user badges related classes
-"""
+"""Module for user badges related classes"""
 
 from datetime import date
 from sqlalchemy.sql import func

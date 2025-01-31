@@ -1,4 +1,4 @@
-""" Event actions tests related to registrations"""
+"""Event actions tests related to registrations"""
 
 from datetime import date, timedelta, datetime
 from collectives.models import db, RegistrationStatus, BadgeIds

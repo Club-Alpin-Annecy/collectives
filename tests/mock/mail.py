@@ -1,4 +1,4 @@
-""" Mock functions for mail. """
+"""Mock functions for mail."""
 
 import pytest
 

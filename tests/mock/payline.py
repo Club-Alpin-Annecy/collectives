@@ -1,4 +1,4 @@
-""" Mock functions for payline. """
+"""Mock functions for payline."""
 
 import pytest
 

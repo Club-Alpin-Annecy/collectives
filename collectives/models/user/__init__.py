@@ -1,6 +1,4 @@
-"""Module for user related classes
-
-"""
+"""Module for user related classes"""
 
 import os
 

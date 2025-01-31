@@ -1,5 +1,4 @@
-"""Module for file upload related classes
-"""
+"""Module for file upload related classes"""
 
 import os
 from datetime import timedelta

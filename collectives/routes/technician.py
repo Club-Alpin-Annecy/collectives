@@ -1,7 +1,8 @@
-""" Module for technician routes.
+"""Module for technician routes.
 
 All routes are protected by :py:fun:`before_request` which protect acces to technician only.
- """
+
+"""
 
 import logging
 import os.path

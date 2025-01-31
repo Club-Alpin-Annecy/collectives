@@ -1,5 +1,4 @@
-"""Module containing forms related to equipment management
-"""
+"""Module containing forms related to equipment management"""
 
 from datetime import datetime
 from decimal import Decimal

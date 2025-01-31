@@ -1,4 +1,4 @@
-""" Add leader-only prices
+"""Add leader-only prices
 
 Revision ID: c755ea630b55
 Revises: 527d9aca94fa

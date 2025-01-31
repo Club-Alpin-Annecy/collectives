@@ -1,4 +1,4 @@
-""" Modules for payment relative objects.
+"""Modules for payment relative objects.
 
 These are not pytest fixtures."""
 

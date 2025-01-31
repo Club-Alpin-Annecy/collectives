@@ -1,7 +1,7 @@
-""" Module for activity supervision routes.
+"""Module for activity supervision routes.
 
 Restricted to activity supervisor, adminstrators, and President.
- """
+"""
 
 from flask import flash, render_template, redirect, url_for
 from flask import Blueprint, send_file, abort, request

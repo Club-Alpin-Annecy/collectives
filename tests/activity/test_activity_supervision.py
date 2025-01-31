@@ -1,4 +1,4 @@
-""" Module to test activity supervision functions."""
+"""Module to test activity supervision functions."""
 
 
 def test_index(supervisor_client):

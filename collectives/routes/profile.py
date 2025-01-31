@@ -1,4 +1,4 @@
-""" Module for profile related route
+"""Module for profile related route
 
 This modules contains the /profile Blueprint
 """

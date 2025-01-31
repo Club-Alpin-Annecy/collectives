@@ -1,5 +1,4 @@
-"""Module to describe the type of event.
-"""
+"""Module to describe the type of event."""
 
 import json
 

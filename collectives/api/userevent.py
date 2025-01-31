@@ -1,4 +1,4 @@
-""" API used to get events linked to a user for profiles.
+"""API used to get events linked to a user for profiles.
 
 Event schema is the one from :py:class:`collectives.api.event.EventSchema`
 """

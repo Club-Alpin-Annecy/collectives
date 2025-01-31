@@ -1,4 +1,4 @@
-""" Test technician functions """
+"""Test technician functions"""
 
 
 def test_index(admin_client):

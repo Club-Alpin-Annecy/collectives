@@ -1,4 +1,4 @@
-""" Event actions tests."""
+"""Event actions tests."""
 
 from datetime import datetime, timedelta
 import re

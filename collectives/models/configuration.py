@@ -1,4 +1,4 @@
-"""Model to store flask config into sql. """
+"""Model to store flask config into sql."""
 
 import enum
 import json

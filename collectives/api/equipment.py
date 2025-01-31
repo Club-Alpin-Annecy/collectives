@@ -1,6 +1,4 @@
-""" API for equipment.
-
-"""
+"""API for equipment."""
 
 import json
 

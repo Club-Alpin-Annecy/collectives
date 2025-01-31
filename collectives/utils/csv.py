@@ -1,5 +1,4 @@
-""" Module to handle csv import
-"""
+"""Module to handle csv import"""
 
 import builtins
 from datetime import datetime, timedelta

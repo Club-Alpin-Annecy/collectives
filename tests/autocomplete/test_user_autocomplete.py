@@ -1,4 +1,4 @@
-""" User autocomplete tests. """
+"""User autocomplete tests."""
 
 # pylint: disable=unused-argument
 

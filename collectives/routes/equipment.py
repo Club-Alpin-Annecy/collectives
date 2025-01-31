@@ -1,4 +1,4 @@
-""" Module for equipment related route
+"""Module for equipment related route
 
 This modules contains the /equipment Blueprint
 """

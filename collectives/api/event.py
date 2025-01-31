@@ -1,6 +1,4 @@
-""" API to get the event list in index page.
-
-"""
+"""API to get the event list in index page."""
 
 import json
 

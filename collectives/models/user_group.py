@@ -1,4 +1,4 @@
-""" Handle dynamic user groups, for restricting or payment options """
+"""Handle dynamic user groups, for restricting or payment options"""
 
 from typing import List
 

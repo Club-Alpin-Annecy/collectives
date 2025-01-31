@@ -1,4 +1,4 @@
-""" Auth module that contains all global values."""
+"""Auth module that contains all global values."""
 
 from flask_login import LoginManager
 from flask import Blueprint

@@ -1,4 +1,4 @@
-""" Form for statistics display and parameters """
+"""Form for statistics display and parameters"""
 
 from datetime import date
 

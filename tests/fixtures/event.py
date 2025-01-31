@@ -1,4 +1,4 @@
-""" Module to create fixture events. """
+"""Module to create fixture events."""
 
 from datetime import date, timedelta, datetime
 from functools import wraps

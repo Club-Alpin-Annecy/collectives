@@ -1,4 +1,4 @@
-""" Module for payment forms"""
+"""Module for payment forms"""
 
 from decimal import Decimal
 

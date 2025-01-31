@@ -1,5 +1,4 @@
-"""Module containing forms for uploading documents
-"""
+"""Module containing forms for uploading documents"""
 
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired

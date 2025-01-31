@@ -1,5 +1,4 @@
-"""Module containing forms for updating user information
-"""
+"""Module containing forms for updating user information"""
 
 from datetime import date
 from flask import request

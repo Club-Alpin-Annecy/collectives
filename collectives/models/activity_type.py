@@ -1,5 +1,4 @@
-"""Module to describe the type of activity.
-"""
+"""Module to describe the type of activity."""
 
 import json
 from sqlalchemy.orm import validates
