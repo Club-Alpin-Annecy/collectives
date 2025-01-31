@@ -5,6 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% assets "scss_all" %}
             <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
+            <style>
+                #cover {
+                    background-image: url({{ url_for('images', filename='cover.jpg' ) | safe }});
+                    background-position-x: {{Configuration.COVER_POSITION}}%;
+                }
+            </style>
         {% endassets %}
         <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/materialize/tabulator_materialize.min.css" rel="stylesheet">
         <link rel="icon" href="{{ url_for('static', filename=config['FAVICON']) }}" />
