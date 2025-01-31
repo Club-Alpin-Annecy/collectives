@@ -1,4 +1,4 @@
-""" Module to test statistcs engine"""
+"""Module to test statistcs engine"""
 
 # pylint: disable=unused-argument
 

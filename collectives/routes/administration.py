@@ -1,7 +1,8 @@
-""" Module for all administration routes.
+"""Module for all administration routes.
 
 All routes are protected by :py:fun:`before_request` which protect acces to admin only.
- """
+
+"""
 
 from datetime import date
 

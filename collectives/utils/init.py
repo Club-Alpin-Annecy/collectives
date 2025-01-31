@@ -1,6 +1,4 @@
-""" Module to initialise DB
-
-"""
+"""Module to initialise DB"""
 
 import sqlite3
 import datetime

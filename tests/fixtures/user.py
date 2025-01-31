@@ -1,4 +1,4 @@
-""" Module to create fixture users. """
+"""Module to create fixture users."""
 
 from functools import wraps
 from datetime import date, datetime, timedelta

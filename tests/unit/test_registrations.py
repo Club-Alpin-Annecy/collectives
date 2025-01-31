@@ -1,4 +1,4 @@
-""" Unit tests for registrations"""
+"""Unit tests for registrations"""
 
 import pytest
 from collectives.models import db, RegistrationStatus, Registration, RegistrationLevels

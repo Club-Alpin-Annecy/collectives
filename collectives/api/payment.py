@@ -1,6 +1,4 @@
-""" API endpoint for listing payments.
-
-"""
+"""API endpoint for listing payments."""
 
 import json
 

@@ -1,4 +1,4 @@
-""" Module for all Event methods related to registration manipulation and check."""
+"""Module for all Event methods related to registration manipulation and check."""
 
 from typing import List
 from datetime import datetime

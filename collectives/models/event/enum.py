@@ -1,4 +1,4 @@
-""" Module for enum related to events"""
+"""Module for enum related to events"""
 
 from typing import Dict
 

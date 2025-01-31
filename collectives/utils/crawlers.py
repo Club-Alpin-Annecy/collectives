@@ -1,4 +1,4 @@
-""" List of crawler. Data comes from https://github.com/monperrus/crawler-user-agents"""
+"""List of crawler. Data comes from https://github.com/monperrus/crawler-user-agents"""
 
 from functools import wraps, cache
 import json

@@ -1,4 +1,4 @@
-""" Mock functions for extranet. """
+"""Mock functions for extranet."""
 
 from datetime import date, timedelta
 import pytest

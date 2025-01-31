@@ -1,4 +1,4 @@
-""" Unit test on :py:mod:`collectives.utils.extranet` functions. """
+"""Unit test on :py:mod:`collectives.utils.extranet` functions."""
 
 import datetime
 

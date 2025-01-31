@@ -1,4 +1,4 @@
-""" List of Form used to modify configuration """
+"""List of Form used to modify configuration"""
 
 from flask_wtf import FlaskForm
 

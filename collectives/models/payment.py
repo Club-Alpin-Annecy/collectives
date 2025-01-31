@@ -1,5 +1,4 @@
-"""Module defining payment-related models
-"""
+"""Module defining payment-related models"""
 
 from decimal import Decimal
 from datetime import timedelta

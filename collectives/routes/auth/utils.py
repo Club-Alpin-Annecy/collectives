@@ -1,4 +1,4 @@
-""" Auth module for miscaleneous functions and classes."""
+"""Auth module for miscaleneous functions and classes."""
 
 from flask import url_for, current_app
 from flask_login import AnonymousUserMixin

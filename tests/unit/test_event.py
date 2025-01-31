@@ -1,4 +1,4 @@
-""" Unit tests for Event class """
+"""Unit tests for Event class"""
 
 import datetime
 

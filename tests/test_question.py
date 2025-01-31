@@ -1,4 +1,4 @@
-""" Module to test question module. """
+"""Module to test question module."""
 
 # pylint: disable=unused-argument
 

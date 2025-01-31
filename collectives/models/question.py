@@ -1,5 +1,4 @@
-"""Module defining question-related models
-"""
+"""Module defining question-related models"""
 
 from typing import List
 

@@ -1,4 +1,4 @@
-""" Leader autocomplete tests. """
+"""Leader autocomplete tests."""
 
 from collectives import models
 

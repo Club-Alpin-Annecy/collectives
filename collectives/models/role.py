@@ -1,5 +1,4 @@
-"""Module for user roles related classes
-"""
+"""Module for user roles related classes"""
 
 from typing import List, Dict
 

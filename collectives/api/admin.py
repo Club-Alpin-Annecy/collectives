@@ -1,6 +1,4 @@
-""" API for user list in administration page.
-
-"""
+"""API for user list in administration page."""
 
 import json
 

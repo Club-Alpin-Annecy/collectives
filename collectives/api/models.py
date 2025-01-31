@@ -1,4 +1,4 @@
-""" Module to expose part of the model.
+"""Module to expose part of the model.
 
 Usually export as js file to be directly used by js."""
 

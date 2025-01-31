@@ -1,4 +1,4 @@
-""" Module for all Event methods related to payments."""
+"""Module for all Event methods related to payments."""
 
 from datetime import timedelta
 

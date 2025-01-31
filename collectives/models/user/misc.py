@@ -1,4 +1,4 @@
-""" Module for misc User methods which does not fit in another submodule"""
+"""Module for misc User methods which does not fit in another submodule"""
 
 import os
 import datetime

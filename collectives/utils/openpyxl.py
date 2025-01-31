@@ -1,4 +1,4 @@
-""" Varous helping function for openpyxl """
+"""Varous helping function for openpyxl"""
 
 from openpyxl.worksheet.worksheet import Worksheet
 

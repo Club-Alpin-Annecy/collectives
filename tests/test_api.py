@@ -1,4 +1,4 @@
-""" Module to test api """
+"""Module to test api"""
 
 import pytest
 

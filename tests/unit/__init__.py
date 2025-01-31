@@ -1,4 +1,4 @@
-""" Unit tests modules
+"""Unit tests modules
 =======================
 
 Basic unit tests for an application module. This module architecture mimics the

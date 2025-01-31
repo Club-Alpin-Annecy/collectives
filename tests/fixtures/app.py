@@ -1,4 +1,4 @@
-""" Creation of fixture app"""
+"""Creation of fixture app"""
 
 import os
 import tempfile

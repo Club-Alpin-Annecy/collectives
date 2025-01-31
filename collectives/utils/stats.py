@@ -1,5 +1,5 @@
 """
-Module to calculate statistics of the event database. 
+Module to calculate statistics of the event database.
 
 """
 

@@ -1,4 +1,4 @@
-""" Unit test on :py:mod:`collectives.utils.misc` functions. """
+"""Unit test on :py:mod:`collectives.utils.misc` functions."""
 
 from collectives.utils import misc
 

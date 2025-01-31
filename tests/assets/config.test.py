@@ -1,4 +1,4 @@
-""" App config file for automated tests """
+"""App config file for automated tests"""
 
 TESTING = True
 WTF_CSRF_ENABLED = False

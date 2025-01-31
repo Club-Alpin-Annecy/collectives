@@ -1,4 +1,4 @@
-""" Module to test extranet calls"""
+"""Module to test extranet calls"""
 
 # pylint: disable=unused-argument
 

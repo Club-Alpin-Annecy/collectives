@@ -1,4 +1,4 @@
-""" Tests
+"""Tests
 ===================
 
 Tests are done using pytest on the module :py:mod:`tests`. Tests must be done before merging

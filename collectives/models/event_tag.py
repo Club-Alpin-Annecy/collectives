@@ -1,5 +1,4 @@
-"""Module for event tag classes.
-"""
+"""Module for event tag classes."""
 
 from typing import Dict, Any
 from flask import current_app

@@ -1,4 +1,4 @@
-""" Module for all User methods related to role manipulation and check."""
+"""Module for all User methods related to role manipulation and check."""
 
 from typing import List, Set
 import datetime

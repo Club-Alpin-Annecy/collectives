@@ -1,5 +1,4 @@
-"""Set utils classes for models
-"""
+"""Set utils classes for models"""
 
 import enum
 import json

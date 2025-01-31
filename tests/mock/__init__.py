@@ -1,4 +1,4 @@
-""" Mock module for better tests.
+"""Mock module for better tests.
 ===================================
 
 Mocks are build to test without the need of outside ressources such as extranet ou payment

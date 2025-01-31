@@ -1,4 +1,4 @@
-""" Module for miscaleneous routes
+"""Module for miscaleneous routes
 
 This modules contains the root Blueprint
 """

@@ -1,4 +1,4 @@
-""" Module for equipment reservation forms"""
+"""Module for equipment reservation forms"""
 
 from datetime import datetime
 from wtforms import SubmitField, HiddenField

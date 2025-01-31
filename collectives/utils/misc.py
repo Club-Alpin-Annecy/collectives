@@ -1,6 +1,4 @@
-"""  Miscellaneous utils functions
-
-"""
+"""Miscellaneous utils functions"""
 
 from typing import Union, IO
 import io

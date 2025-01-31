@@ -1,4 +1,4 @@
-""" Test account creation of local user (ie not attached to
+"""Test account creation of local user (ie not attached to
 FFCAM extranet)"""
 
 # pylint: disable=redefined-outer-name, unused-argument, unused-import

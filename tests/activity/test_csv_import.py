@@ -1,4 +1,4 @@
-""" Module to test the CSV import functions. """
+"""Module to test the CSV import functions."""
 
 from datetime import datetime
 from io import BytesIO

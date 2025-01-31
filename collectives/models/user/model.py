@@ -1,4 +1,4 @@
-""" Module for all User attributes. """
+"""Module for all User attributes."""
 
 from datetime import date, datetime
 

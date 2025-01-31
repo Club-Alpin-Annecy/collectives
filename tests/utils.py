@@ -1,4 +1,4 @@
-""" Module with various useful functions for tests. """
+"""Module with various useful functions for tests."""
 
 from bs4 import BeautifulSoup
 

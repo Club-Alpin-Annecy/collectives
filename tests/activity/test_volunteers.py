@@ -1,4 +1,4 @@
-"""" Testing badge management for administration """
+""" " Testing badge management for administration"""
 
 from io import BytesIO
 import json

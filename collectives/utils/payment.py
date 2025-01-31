@@ -1,5 +1,4 @@
-"""Module to help payment extraction
-"""
+"""Module to help payment extraction"""
 
 import datetime
 import decimal

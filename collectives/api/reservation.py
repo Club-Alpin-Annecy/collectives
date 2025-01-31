@@ -1,6 +1,4 @@
-""" API for reservation.
-
-"""
+"""API for reservation."""
 
 from datetime import datetime, timedelta
 import json

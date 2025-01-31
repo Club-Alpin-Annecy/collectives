@@ -1,4 +1,4 @@
-""" Module for reservation related route
+"""Module for reservation related route
 
 This modules contains the /reservation Blueprint
 """

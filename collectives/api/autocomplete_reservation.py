@@ -1,4 +1,4 @@
-""" API for autocomplete equipment type names and images.
+"""API for autocomplete equipment type names and images.
 
 Especially used for reservations by leaders.
 

@@ -1,5 +1,4 @@
-"""Module for registration related classes
-"""
+"""Module for registration related classes"""
 
 from datetime import datetime
 from sqlalchemy import CheckConstraint

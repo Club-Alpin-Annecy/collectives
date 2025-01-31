@@ -1,4 +1,4 @@
-""" Test administration api endpoints. """
+"""Test administration api endpoints."""
 
 import pytest
 

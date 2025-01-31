@@ -1,4 +1,4 @@
-""" Auth modules to log in an user. """
+"""Auth modules to log in an user."""
 
 import datetime
 from urllib.parse import urlparse

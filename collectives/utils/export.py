@@ -1,4 +1,4 @@
-""" Module to help export informations. """
+"""Module to help export informations."""
 
 from io import BytesIO
 

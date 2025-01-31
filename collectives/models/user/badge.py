@@ -1,4 +1,4 @@
-""" Module for all User methods related to badge manipulation and check."""
+"""Module for all User methods related to badge manipulation and check."""
 
 from typing import List, Optional, Set
 
