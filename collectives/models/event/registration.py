@@ -346,8 +346,10 @@ class EventRegistrationMixin:
         if registration.is_duplicate():
             self.registrations.remove(registration)
             db.session.delete(registration)
+            db.session.commit()
             raise DuplicateRegistrationError("Vous êtes déjà inscrit(e).")
         if not allow_overbooking and registration.is_overbooked():
             self.registrations.remove(registration)
             db.session.delete(registration)
+            db.session.commit()
             raise OverbookedRegistrationError("L'événement est déjà complet.")
