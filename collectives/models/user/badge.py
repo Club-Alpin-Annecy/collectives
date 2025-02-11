@@ -171,6 +171,15 @@ class UserBadgeMixin:
         if self.is_suspended():
             return
 
+        # There is already a badge associated to this registration
+        if any(
+            badge
+            for badge in registration.badges
+            if badge.badge_id
+            in (BadgeIds.Suspended, BadgeIds.UnjustifiedAbsenceWarning)
+        ):
+            return
+
         # Fetch the number of warning & suspended badges, whether valid or not
         num_valid_warning_badges = len(
             self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
@@ -228,6 +237,9 @@ class UserBadgeMixin:
             if badge.badge_id
             in (BadgeIds.Suspended, BadgeIds.UnjustifiedAbsenceWarning)
         ]
+
+        if not registration_badges:
+            return
 
         if not any(
             badge

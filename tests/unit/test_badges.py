@@ -106,6 +106,12 @@ def test_increment_warning_badges_no_updates(
     monkeypatch.setattr(user1, "has_badge", lambda x: False)
 
     reg = event1_with_reg.existing_registrations(user1)[0]
+    reg2 = Registration(
+        user_id=user1.id,
+        status=RegistrationStatus.UnJustifiedAbsentee,
+        level=RegistrationLevels.Normal,
+        is_self=True,
+    )
 
     user1.increment_warning_badges(reg)
 
@@ -125,8 +131,15 @@ def test_increment_warning_badges_no_updates(
         lambda badge_ids: BadgeIds.UnjustifiedAbsenceWarning in badge_ids,
     )
 
+    # Same registration, should not double-count
     user1.increment_warning_badges(reg)
+    # Verify database operations were performed
+    assert len(session_monkeypatch["add"]) == 1  # New badge should be added
+    assert session_monkeypatch["commit"] == 1  # New commit should occur
+    assert session_monkeypatch["rollback"] == 0  # No rollback should occur
 
+    # other registration
+    user1.increment_warning_badges(reg2)
     # Verify database operations were performed
     assert len(session_monkeypatch["add"]) == 2  # New badge should be added
     assert session_monkeypatch["commit"] == 2  # New commit should occur
@@ -182,11 +195,14 @@ def test_remove_sanction_badge(user1: User, event: Event):
     event.registrations.append(reg2)
     event.registrations.append(reg3)
 
-    user1.assign_badge(
-        BadgeIds.UnjustifiedAbsenceWarning,
-        expiration_date=expiration_date,
-        registration=reg1,
-    )
+    user1.increment_warning_badges(reg1)
+    assert not user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 1
+
+    user1.increment_warning_badges(reg1)
+    assert not user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 1
+
     user1.assign_badge(
         BadgeIds.UnjustifiedAbsenceWarning,
         expiration_date=expiration_date,
@@ -221,5 +237,10 @@ def test_remove_sanction_badge(user1: User, event: Event):
     user1.remove_warning_badges(reg2)
     db.session.commit()
 
+    assert not user1.has_a_valid_suspended_badge()
+    assert user1.number_of_valid_warning_badges() == 1
+
+    # no-op
+    user1.remove_warning_badges(reg2)
     assert not user1.has_a_valid_suspended_badge()
     assert user1.number_of_valid_warning_badges() == 1
