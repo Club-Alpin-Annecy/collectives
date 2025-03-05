@@ -54,6 +54,8 @@
                 <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Liste des paiements
             </a>
+            {% endif %}
+
             {% if Configuration.REFUND_ENABLED %}
                 <form class="inline" action="{{url_for('payment.refund_all', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer le remboursement de tous les inscrits ayant fait un paiment en ligne ? Les inscriptions correspondantes ne seront pas supprimées.')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -77,7 +79,6 @@
         </a>
         {% endif %}
     </div>
-{% endif %}
 
     <h5 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h5>
     {% if current_user.has_signed_ca() %}
