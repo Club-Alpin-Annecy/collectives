@@ -9,7 +9,7 @@ from typing import Tuple, List, Set
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
 from flask import Blueprint, abort
-from markupsafe import Markup, escape
+from markupsafe import Markup
 from flask_login import current_user
 from werkzeug.datastructures import CombinedMultiDict
 from sqlalchemy.orm import joinedload, selectinload
@@ -331,11 +331,10 @@ def print_event(event_id):
         return redirect(url_for("event.index"))
 
     activity_names = [at.name for at in event.activity_types]
-    description = escape(event.description)
     return render_template(
         "event/print_event.html",
         event=event,
-        description=description,
+        description=event.rendered_description,
         activity_names=activity_names,
     )
 

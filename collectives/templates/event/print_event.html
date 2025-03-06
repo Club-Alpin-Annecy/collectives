@@ -14,7 +14,9 @@
             </ul>
         </div>
         
-        <div id="logo"><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}"></div>
+        <div id="logo"><img 
+            style = "max-width: 200px; max-height: 50px" 
+            src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}"></div>
 
         <div id="title">
             <h2 class="heading-2">
@@ -29,7 +31,7 @@
 
         <div id="description">
             <pre>
-            {{description}}
+            {{description | safe}}
             </pre>
         </div>
 
