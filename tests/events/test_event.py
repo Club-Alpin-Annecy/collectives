@@ -6,7 +6,6 @@ from io import BytesIO
 
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-from markupsafe import escape
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
 from collectives.models import RoleIds, Question, QuestionType
@@ -331,4 +330,4 @@ def test_event_print(leader_client, event1_with_reg, user2):
     assert user2.full_name() in response.text
     assert user2.license in response.text
     assert event1_with_reg.leaders[0].full_name() in response.text
-    assert escape(event1_with_reg.description) in response.text
+    assert event1_with_reg.rendered_description in response.text
