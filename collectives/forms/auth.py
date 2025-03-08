@@ -24,7 +24,11 @@ class LoginForm(FlaskForm):
     """Form to log a user ."""
 
     mail = StringField("Email", validators=[DataRequired()], filters=[strip_string])
-    password = PasswordField("Mot de passe", validators=[DataRequired()])
+    password = PasswordField(
+        "Mot de passe",
+        validators=[DataRequired()],
+        render_kw={"passsword-reveal": "true"},
+    )
     remember_me = BooleanField("Se souvenir de la connexion")
     submit = SubmitField("Login")
 
@@ -67,6 +71,7 @@ class RequiredPasswordForm(FlaskForm):
         label="Choisissez un mot de passe",
         description=PasswordValidator().help_string(),
         validators=[InputRequired(), PasswordValidator()],
+        render_kw={"passsword-reveal": "true"},
     )
 
     confirm = PasswordField(
@@ -75,6 +80,7 @@ class RequiredPasswordForm(FlaskForm):
             InputRequired(),
             EqualTo("password", message="Les mots de passe ne correspondent pas"),
         ],
+        render_kw={"passsword-reveal": "true"},
     )
 
 

@@ -2,6 +2,14 @@
 
   {{ form_errors(form) }}
 
+  <script  type="text/javascript">
+    function togglePassword( inputId ) {
+        const passwordInput = document.getElementById(inputId);
+        const type = passwordInput.type === "password" ? "text" : "password";
+        passwordInput.type = type;
+    }
+  </script>
+
   <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
         {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "HiddenField" ]) %}
@@ -11,6 +19,9 @@
 
                 {% if field.type == "PasswordField" %}
                     {{ field(autocomplete="new-password", title=field.description, class="input-100") }}
+                    <div style="display: none" >
+                        <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt="👁️" onclick="togglePassword('{{field.id}}')"/>
+                    </div>
                 {% elif field.type == "FileField" %}
                     {{ field(onchange="checkFileFieldSize(this)", title=field.description, class="input-100") }}
                 {% else %}
