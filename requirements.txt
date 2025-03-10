@@ -29,6 +29,7 @@ phonenumbers
 zeep
 Pillow
 PyYAML
+argon2-cffi
 # Home made fixed version of staled pip
 git+https://github.com/Club-Alpin-Annecy/Flask-Images@master#egg=Flask-Images
 git+https://github.com/Club-Alpin-Annecy/flask-marshmallow.git@dev#egg=flask-marshmallow
