@@ -94,7 +94,7 @@ class UserModelMixin:
     :type: :py:class:`datetime.date`"""
 
     password = db.Column(
-        PasswordType(schemes=["pbkdf2_sha512"]),
+        PasswordType(schemes=["argon2", "pbkdf2_sha512"], deprecated=["pbkdf2_sha512"]),
         nullable=True,
         info={"label": "Mot de passe"},
     )
