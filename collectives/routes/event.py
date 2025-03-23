@@ -5,6 +5,7 @@ This modules contains the /event Blueprint
 
 # pylint: disable=too-many-lines
 from typing import Tuple, List, Set
+from datetime import datetime, timedelta
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
@@ -42,7 +43,7 @@ from collectives.models.question import QuestionAnswer
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 from collectives.utils.access import confidentiality_agreement, valid_user
-from collectives.utils.crawlers import crawlers_catcher
+from collectives.utils.crawlers import crawlers_catcher, is_crawler
 from collectives.utils.misc import sanitize_file_name
 
 from collectives.utils import export
@@ -1194,12 +1195,21 @@ def preview(event_id):
 
     :param int event_id: Primary key of the event to update.
     """
+    if not is_crawler():
+        redirect(url_for("event.view_event", event_id=event_id))
+
     event = db.session.get(Event, event_id)
     if event is None:
         abort(404)
 
+    min_date = datetime.now() - timedelta(days=Configuration.MAX_HISTORY_FOR_ANONYMOUS)
+    if event.end < min_date:
+        abort(404)
+
     url = url_for("event.view_event", event_id=event.id, name=slugify(event.title))
-    return render_template("event/preview.html", event=event, url=url)
+    return render_template(
+        "event/preview.html", event=event, url=url, now=current_time()
+    )
 
 
 def update_waiting_list(event: Event) -> List[Registration]:

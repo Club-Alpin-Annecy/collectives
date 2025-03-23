@@ -19,7 +19,7 @@ Par
         <meta property="og:type"               content="website" />
         <meta property="og:title"              content="Collectives: {{event.title}}" />
         <meta property="og:description"        content="{{summary(event) | striptags  }}" />
-        {% if event.photo %}
+        {% if event.photo and event.end > now %}
             <meta property="og:image"              content="{{ url_for('images.fit', filename=event.photo, width=1100, _external=True ) | safe }}" />
         {% else %}
             <meta property="og:image"              content="{{ url_for('static', filename=Configuration.CLUB_LOGO, _external=True) }}" />
@@ -28,7 +28,7 @@ Par
     </head>
     <body>
         <h1>Collectives: {{event.title}}</h1>
-        {% if event.photo %}
+        {% if event.photo  and event.end > now %}
             <p><img src="{{ url_for('images.fit', filename=event.photo, width=1100, _external=True ) }}" alt="" /></p>
         {% else %}
             <p><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO, _external=True) }}" alt="" /></p>

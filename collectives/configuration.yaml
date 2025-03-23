@@ -32,6 +32,11 @@ Sécurité:
         description: "Mandatory for local registration. Get one: https://www.google.com/recaptcha/admin/create"
         type: ShortString
 
+    MAX_HISTORY_FOR_ANONYMOUS:
+        content: 30
+        description: "Max number of days an unauthenticated users can go back in time."
+        type: Integer
+
 
 Paiements:
     PAYMENTS_ENABLED:
