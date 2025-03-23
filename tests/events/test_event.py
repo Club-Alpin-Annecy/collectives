@@ -107,8 +107,8 @@ def test_crawler(client, event):
         "User-Agent": "facebookexternalhit/1.0 (+http://www.facebook.com/externalhit_uatext.php)"
     }
 
-    event.start = datetime(2022, 10, 20, 0, 0, 0)
-    event.end = datetime(2022, 10, 20, 0, 0, 0)
+    event.start = datetime(2072, 10, 20, 0, 0, 0)
+    event.end = datetime(2072, 10, 20, 0, 0, 0)
 
     response = client.get(f"/collectives/{event.id}", headers=headers)
     assert response.status_code == 302
@@ -133,7 +133,7 @@ def test_crawler(client, event):
     description = soup.select_one('meta[property="og:description"]')["content"]
 
     assert (
-        description == "Collective Alpinisme - jeudi 20 octobre 2022 - 10 places - "
+        description == "Collective Alpinisme - jeudi 20 octobre 2072 - 10 places - "
         "Par Romeo CAPO - Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
         "Quisque mollis vitae diam at hendrerit...."
     )

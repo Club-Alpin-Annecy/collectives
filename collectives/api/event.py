@@ -1,6 +1,7 @@
 """API to get the event list in index page."""
 
 import json
+from datetime import datetime, timedelta
 
 from flask import url_for, request, abort
 from flask_login import current_user
@@ -11,7 +12,7 @@ from sqlalchemy.orm import selectinload, joinedload
 from collectives.api.common import blueprint, marshmallow, avatar_url
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
 from collectives.models import ActivityType, User, EventTag
-from collectives.models import Question, QuestionAnswer
+from collectives.models import Question, QuestionAnswer, Configuration
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
 from collectives.utils.time import format_datetime_range, parse_api_date
@@ -262,6 +263,13 @@ def events():
     query = query.options(
         selectinload(Event.tag_refs), selectinload(Event.registrations)
     )
+
+    # Hide very old events to unauthenticated
+    if not current_user.is_authenticated:
+        min_date = datetime.now() - timedelta(
+            days=Configuration.MAX_HISTORY_FOR_ANONYMOUS
+        )
+        query = query.filter(Event.end > min_date)
 
     # Display pending events only to relevant persons
     query = filter_hidden_events(query)

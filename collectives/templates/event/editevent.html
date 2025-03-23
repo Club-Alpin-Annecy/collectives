@@ -243,7 +243,10 @@
     </div>
 
     <div class="controls">
-        <label for="photo_file">Image de présentation :<span class="label-help">&#9432; Photo uniquement, d'une taille maximum de 2Mo</span></label> {{ form.photo_file(onchange="checkFileFieldSize(this)") }}
+        <label for="photo_file">Image de présentation :
+          <span class="label-help">&#9432; Photo uniquement, d'une taille maximum de 2Mo. Uniquement libre de droit ou dont vous avez les droits.</span>
+        </label> 
+        {{ form.photo_file(onchange="checkFileFieldSize(this)") }}
     </div>
     <div class="controls">
         <label for="{{form.tag_list.id_for_label}}">Labels:</label>{{ form.tag_list }}
