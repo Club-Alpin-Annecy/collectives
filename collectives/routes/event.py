@@ -1156,6 +1156,11 @@ def update_attendance(event_id):
                 RegistrationStatus.Waiting,
                 RegistrationStatus.Rejected,
             ):
+                if previous_status == RegistrationStatus.Waiting:
+                    send_update_waiting_list_notification(
+                        registration, deleted_registrations=[]
+                    )
+
                 # Reset registration time to restart grace period
                 registration.registration_time = current_time()
 
