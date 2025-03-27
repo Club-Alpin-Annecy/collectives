@@ -62,9 +62,7 @@ def send_unregister_notification(event: Event, user: User, reason: str):
     """
     try:
         leader_emails = [l.mail for l in event.leaders]
-
         reason = f"Justification fournie pour la désinscription : \n {escape(reason)}" if reason else ""
-
         message = Configuration.SELF_UNREGISTER_MESSAGE_v2.format(
             user_name=user.full_name(),
             event_title=event.title,

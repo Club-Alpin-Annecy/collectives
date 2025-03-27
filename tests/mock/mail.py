@@ -1,20 +1,36 @@
 """Mock functions for mail."""
 
+from typing import List
 import pytest
 import flask
 
 from collectives.utils.mail import send_mail_threaded
 
+
 class FakeSMTPLog:
     def __init__(self) -> None:
         self._mails = []
 
-    def log(self, *args):
-        self._mails.append(args)
+    def log(self, **kwargs):
+        self._mails.append(kwargs)
 
     def sent_mail_count(self) -> int:
         """Returns the number of mails that have been (fakely) sent"""
         return len(self._mails)
+
+    @property
+    def mails(self) -> List:
+        return self._mails
+
+    def sent_to(self, email: str) -> List:
+        """Returns the list of mails sent to a given address"""
+        def is_dest(mail) -> bool:
+            try:
+                return email in mail["email"]
+            except TypeError:
+                return email == mail["email"]
+        
+        return [mail for mail in self.mails if is_dest(mail)]
 
 
 class FakeSMTP:
@@ -43,9 +59,8 @@ def mail_success_monkeypatch(monkeypatch):
     mailer_log = FakeSMTPLog()
 
     def send_mail(**kwargs):
-        mailer_log.log(*kwargs)
+        mailer_log.log(**kwargs)
         send_mail_threaded(flask.current_app._get_current_object(), **kwargs)
-
 
     monkeypatch.setattr("smtplib.SMTP", FakeSMTP)
     monkeypatch.setattr("collectives.utils.mail.send_mail", send_mail)
