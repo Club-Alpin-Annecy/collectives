@@ -2,7 +2,7 @@
 
 # pylint: disable=unused-argument
 
-from collectives.models import User, db, Configuration
+from collectives.models import User, db
 from tests import mock
 from tests import fixtures
 from tests.mock.extranet import (

@@ -3,8 +3,6 @@
 from datetime import date, timedelta
 import pytest
 
-from tests.mock.mail import mail_success_monkeypatch
-
 from zeep.exceptions import Error as ZeepError
 from collectives.models import Configuration
 from collectives.utils.extranet import _OTHER_CLUB_LICENSE_MESSAGE
@@ -180,7 +178,7 @@ def local_accounts():
 
 
 @pytest.fixture
-def extranet_monkeypatch(monkeypatch, mail_success_monkeypatch):
+def extranet_monkeypatch(monkeypatch):
     """Fix methods to avoid external dependencies and ensures proper configuration"""
 
     Configuration.EXTRANET_ACCOUNT_ID = "XXX"

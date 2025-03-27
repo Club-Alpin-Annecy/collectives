@@ -11,6 +11,9 @@ from collectives.models import db, EventStatus, ActivityType, Event, EventVisibi
 from collectives.models import RoleIds, Question, QuestionType, RegistrationStatus
 from tests import utils
 from tests.fixtures.user import promote_user
+
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-import
 from tests.mock.mail import mail_success_monkeypatch
 
 
@@ -337,6 +340,7 @@ def test_event_print(leader_client, event1_with_reg, user2):
 def test_update_attendance(
     leader_client, event1_with_reg_waiting_list, mail_success_monkeypatch
 ):
+    """Test leader changing status of registrations"""
 
     event = event1_with_reg_waiting_list
     event.num_waiting_list = 0  # avoids automatic promotion

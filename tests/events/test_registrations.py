@@ -3,9 +3,12 @@
 from datetime import date, timedelta, datetime
 from collectives.models import db, RegistrationStatus, BadgeIds
 
-from tests.mock.mail import mail_success_monkeypatch
 
 # pylint: disable=unused-argument
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-import
+
+from tests.mock.mail import mail_success_monkeypatch
 
 
 def test_valid_event_autoregistration(user1, user1_client, user2, event):

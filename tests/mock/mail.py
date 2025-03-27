@@ -8,22 +8,25 @@ from collectives.utils.mail import send_mail_threaded
 
 
 class FakeSMTPLog:
+    """Class for logging mails sent by the FakeSMTP mock"""
+
     def __init__(self) -> None:
+        """constructor"""
         self._mails = []
 
     def log(self, **kwargs):
+        """Logs a sent email (save for later)"""
         self._mails.append(kwargs)
 
     def sent_mail_count(self) -> int:
         """Returns the number of mails that have been (fakely) sent"""
         return len(self._mails)
 
-    @property
-    def mails(self) -> List:
-        return self._mails
-
     def sent_to(self, email: str) -> List:
-        """Returns the list of mails sent to a given address"""
+        """Returns the list of mails sent to a given address
+
+        :param email: the target address
+        """
 
         def is_dest(mail) -> bool:
             try:
@@ -31,7 +34,7 @@ class FakeSMTPLog:
             except TypeError:
                 return email == mail["email"]
 
-        return [mail for mail in self.mails if is_dest(mail)]
+        return [mail for mail in self._mails if is_dest(mail)]
 
 
 class FakeSMTP:
@@ -61,7 +64,7 @@ def mail_success_monkeypatch(monkeypatch):
 
     def send_mail(**kwargs):
         mailer_log.log(**kwargs)
-        send_mail_threaded(flask.current_app._get_current_object(), **kwargs)
+        send_mail_threaded(flask.current_app, **kwargs)
 
     monkeypatch.setattr("smtplib.SMTP", FakeSMTP)
     monkeypatch.setattr("collectives.utils.mail.send_mail", send_mail)
