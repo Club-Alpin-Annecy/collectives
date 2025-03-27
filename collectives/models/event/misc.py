@@ -1,5 +1,6 @@
 """Module for misc Event methods which does not fit in another submodule"""
 
+import os
 from typing import List
 from flask_uploads import UploadSet, IMAGES
 from werkzeug.datastructures import FileStorage
@@ -72,6 +73,12 @@ class EventMiscMixin:
         user_activities = user.activities_with_role()
         return any(activity in user_activities for activity in self.activity_types)
 
+    def delete_photo(self):
+        """Remove and dereference an event photo."""
+        if self.photo:
+            os.remove(photos.path(self.photo))
+            self.photo = None
+
     def save_photo(self, file: FileStorage) -> bool:
         """Save event photo from a raw file
 
@@ -85,6 +92,8 @@ class EventMiscMixin:
         if file is not None:
             if not is_valid_image(file.stream):
                 return False
+
+            self.delete_photo()  # remove existing
 
             filename = photos.save(file, name="event-" + str(self.id) + ".")
             self.photo = filename
