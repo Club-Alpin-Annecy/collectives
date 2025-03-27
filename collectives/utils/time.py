@@ -68,12 +68,15 @@ def current_time() -> datetime:
     return now.replace(tzinfo=None)
 
 
-def parse_api_date(date_str: str) -> datetime:
+def parse_api_date(date_str: str, day_only: bool = True) -> datetime:
     """
     Parse a date from client API calls
 
     Expected format is YYYY-MM-DD + optional time/tz
     Returns a naive datetime object in the server timezone
+
+    :param day_only: If true, sets time portion of datetime to midnight
+
     Returns ``None`` if `date_str` is invalid
     """
     try:
@@ -82,6 +85,10 @@ def parse_api_date(date_str: str) -> datetime:
             tz_name = Configuration.TZ_NAME
             tz_info = tz.gettz(tz_name)
             date = date.astimezone(tz=tz_info).replace(tzinfo=None)
+
+        if day_only:
+            date = datetime.combine(date.date(), datetime.min.time())
+
         return date
     except parser.ParserError:
         return None
