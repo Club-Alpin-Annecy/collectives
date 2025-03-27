@@ -130,7 +130,7 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
 
 def test_resync_own_account_changed_email(client, extranet_user, extranet_monkeypatch):
     """Test extranet resync with changed email"""
-    
+
     extranet_user.mail = "random@example.org"
     db.session.commit()
 
@@ -164,7 +164,7 @@ def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypa
 
     extranet_user.mail = "random@example.org"
     db.session.commit()
-    
+
     response = hotline_client.post(
         f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
     )

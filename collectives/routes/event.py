@@ -1173,7 +1173,7 @@ def update_attendance(event_id):
                     current_user.full_name(),
                     registration.event,
                     registration.user.mail,
-                    reason=request.form.get("rejection-reason")
+                    reason=request.form.get("rejection-reason"),
                 )
 
             if Configuration.ENABLE_SANCTIONS and event.event_type.requires_activity:

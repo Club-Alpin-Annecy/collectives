@@ -8,9 +8,10 @@ from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
-from collectives.models import RoleIds, Question, QuestionType
+from collectives.models import RoleIds, Question, QuestionType, RegistrationStatus
 from tests import utils
 from tests.fixtures.user import promote_user
+from tests.mock.mail import mail_success_monkeypatch
 
 
 def test_event_access(user1_client, event):
@@ -331,3 +332,41 @@ def test_event_print(leader_client, event1_with_reg, user2):
     assert user2.license in response.text
     assert event1_with_reg.leaders[0].full_name() in response.text
     assert event1_with_reg.rendered_description in response.text
+
+
+def test_update_attendance(
+    leader_client, event1_with_reg_waiting_list, mail_success_monkeypatch
+):
+
+    event = event1_with_reg_waiting_list
+    event.num_waiting_list = 0  # avoids automatic promotion
+    db.session.commit()
+
+    active_reg = event.active_registrations()[0]
+    waiting_reg = event.waiting_registrations()[0]
+
+    # Reject one previously active, confirms a previously waiting
+    data = {
+        f"reg_{active_reg.id}": RegistrationStatus.Rejected.value,
+        f"reg_{waiting_reg.id}": RegistrationStatus.Active.value,
+        "rejection-reason": "<test>",
+    }
+
+    response = leader_client.post(f"/collectives/{event.id}/attendance", data=data)
+
+    assert response.status_code == 302
+
+    db.session.expire(active_reg)
+    db.session.expire(waiting_reg)
+    assert active_reg.status == RegistrationStatus.Rejected
+    assert waiting_reg.status == RegistrationStatus.Active
+
+    assert len(event.active_registrations()) == 2
+    assert len(event.waiting_registrations()) == 1
+
+    assert mail_success_monkeypatch.sent_mail_count() == 2
+    reject_mail = mail_success_monkeypatch.sent_to(active_reg.user.mail)[0]
+    confirm_mail = mail_success_monkeypatch.sent_to(waiting_reg.user.mail)[0]
+
+    assert "<test>" in reject_mail["message"]
+    assert "participation" in confirm_mail["subject"].lower()

@@ -5,7 +5,7 @@ from typing import List
 from datetime import timedelta
 
 from flask import current_app, url_for, flash
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 
 from collectives.models import (
@@ -62,7 +62,11 @@ def send_unregister_notification(event: Event, user: User, reason: str):
     """
     try:
         leader_emails = [l.mail for l in event.leaders]
-        reason = f"Justification fournie pour la désinscription : \n {escape(reason)}" if reason else ""
+        reason = (
+            f"Justification fournie pour la désinscription : \n {reason}"
+            if reason
+            else ""
+        )
         message = Configuration.SELF_UNREGISTER_MESSAGE_v2.format(
             user_name=user.full_name(),
             event_title=event.title,
@@ -173,7 +177,7 @@ def send_reject_subscription_notification(
     :param reason: Reason for the rejection
     """
     try:
-        reason = f"Justification du refus : \n {escape(reason)}" if reason else ""
+        reason = f"Justification du refus : \n {reason}" if reason else ""
         message = Configuration.REJECTED_REGISTRATION_MESSAGE_v2.format(
             rejector_name=rejector_name,
             event_title=event.title,

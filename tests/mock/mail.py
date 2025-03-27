@@ -24,12 +24,13 @@ class FakeSMTPLog:
 
     def sent_to(self, email: str) -> List:
         """Returns the list of mails sent to a given address"""
+
         def is_dest(mail) -> bool:
             try:
                 return email in mail["email"]
             except TypeError:
                 return email == mail["email"]
-        
+
         return [mail for mail in self.mails if is_dest(mail)]
 
 

@@ -1,4 +1,4 @@
-""" Mock functions for extranet. """
+"""Mock functions for extranet."""
 
 from datetime import date, timedelta
 import pytest
@@ -171,11 +171,13 @@ class FakeSoapClient:
 
         # pylint: enable=invalid-name
 
+
 @pytest.fixture
 def local_accounts():
     """Make sure extranet is disabled"""
     Configuration.EXTRANET_ACCOUNT_ID = ""
     Configuration.CLUB_PREFIX = ""
+
 
 @pytest.fixture
 def extranet_monkeypatch(monkeypatch, mail_success_monkeypatch):
