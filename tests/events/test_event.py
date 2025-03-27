@@ -365,6 +365,7 @@ def test_update_attendance(
     assert active_reg.status == RegistrationStatus.Rejected
     assert waiting_reg.status == RegistrationStatus.Active
 
+    assert len(event.registrations) == 4
     assert len(event.active_registrations()) == 2
     assert len(event.waiting_registrations()) == 1
 
@@ -374,3 +375,21 @@ def test_update_attendance(
 
     assert "<test>" in reject_mail["message"]
     assert "participation" in confirm_mail["subject"].lower()
+    assert "Si vous ne pouvez plus" in confirm_mail["message"]
+
+    # Test deleting the registration
+    # First transition is valid, the second is not
+    data = {
+        f"reg_{active_reg.id}": RegistrationStatus.ToBeDeleted.value,
+        f"reg_{waiting_reg.id}": RegistrationStatus.ToBeDeleted.value,
+    }
+
+    response = leader_client.post(f"/collectives/{event.id}/attendance", data=data)
+    assert response.status_code == 302
+
+    db.session.expire(waiting_reg)
+    assert waiting_reg.status == RegistrationStatus.Active
+
+    assert len(event.registrations) == 3
+    assert len(event.active_registrations()) == 2
+    assert len(event.waiting_registrations()) == 1
