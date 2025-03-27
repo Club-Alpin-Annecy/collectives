@@ -8,7 +8,7 @@ import pytest
 
 from tests import utils
 from tests.mock.mail import mail_success_monkeypatch
-from tests.mock.extranet import extranet_monkeypatch, VALID_LICENSE, EXPIRED_LICENSE
+from tests.mock.extranet import extranet_monkeypatch, local_accounts, VALID_LICENSE, EXPIRED_LICENSE
 from collectives.models import db, ConfirmationToken, User, UserType
 from collectives.models import ConfirmationTokenType, Configuration
 
@@ -33,10 +33,9 @@ def example_data():
     }
 
 
-def test_local_valid_signup(client, example_data, mail_success_monkeypatch):
+def test_local_valid_signup(client, example_data, mail_success_monkeypatch, local_accounts):
     """Valid signup of a user"""
 
-    Configuration.EXTRANET_ACCOUNT_ID = ""
 
     response = client.get("/auth/signup")
     assert response.status_code == 200
@@ -59,6 +58,8 @@ def test_local_valid_signup(client, example_data, mail_success_monkeypatch):
     assert token is not None
     assert token.token_type == ConfirmationTokenType.ActivateAccount
 
+    assert mail_success_monkeypatch.sent_mail_count() == 1
+
     response = client.post(
         "/auth/login",
         data={"mail": example_data["mail"], "password": example_data["password"]},
@@ -78,7 +79,7 @@ def test_local_valid_signup(client, example_data, mail_success_monkeypatch):
     assert response.headers["Location"] in ["http://localhost/", "/"]
 
 
-def test_local_signup_no_phone(client, example_data, mail_success_monkeypatch):
+def test_local_signup_no_phone(client, example_data, mail_success_monkeypatch, local_accounts):
     """Invalid signup of a user"""
 
     response = client.get("/auth/signup")
@@ -100,8 +101,10 @@ def test_local_signup_no_phone(client, example_data, mail_success_monkeypatch):
     )
     assert token is None
 
+    assert mail_success_monkeypatch.sent_mail_count() == 0
 
-def test_local_password_rescue(user1, client, mail_success_monkeypatch):
+
+def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_accounts):
     """Test to get a new password"""
 
     user1.type = UserType.Local
@@ -119,6 +122,8 @@ def test_local_password_rescue(user1, client, mail_success_monkeypatch):
 
     response = client.post("/auth/recover", data=data)
     assert response.status_code == 302
+
+    assert mail_success_monkeypatch.sent_mail_count() == 1
 
     token = (
         db.session.query(ConfirmationToken)
@@ -145,7 +150,7 @@ def test_extranet_password_rescue(
     extranet_user, client, mail_success_monkeypatch, extranet_monkeypatch
 ):
     """Test to get a new password and new license"""
-
+    
     extranet_user.type = UserType.Extranet
     extranet_user.license = EXPIRED_LICENSE
     db.session.add(extranet_user)
@@ -161,7 +166,12 @@ def test_extranet_password_rescue(
     }
 
     response = client.post("/auth/recover", data=data)
+
+
+    assert mail_success_monkeypatch.sent_mail_count() == 1
+
     assert response.status_code == 302
+    
 
     token = (
         db.session.query(ConfirmationToken)

@@ -1,10 +1,14 @@
-"""Mock functions for extranet."""
+""" Mock functions for extranet. """
 
 from datetime import date, timedelta
 import pytest
 
+from tests.mock.mail import mail_success_monkeypatch
+
 from zeep.exceptions import Error as ZeepError
+from collectives.models import Configuration
 from collectives.utils.extranet import _OTHER_CLUB_LICENSE_MESSAGE
+from collectives.email_templates import send_confirmation_email
 
 # pylint: disable=unused-argument,redefined-builtin
 
@@ -25,13 +29,16 @@ OTHER_CLUB_LICENSE = "741020780002"
 VALID_USER_EMAIL = "test@example.com"
 """ Email stored in extranet for VALID_LICENSE """
 
+VALID_USER_DOB = date(1874, 4, 2)
+""" Date of birth stored in extranet for VALID_LICENSE """
+
 VALID_USER_EMERGENCY = "EMERGENCY"
 """ Emergency ciontact stored in extranet for VALID_LICENSE """
 
 STORED_TOKEN = None
 
 
-def send_confirmation_email(email, name, token):
+def _send_confirmation_email(email, name, token):
     """Fake an email sending to user and puts token into `STORED_TOKEN`
 
     :param string email: Address where to send the email
@@ -42,6 +49,8 @@ def send_confirmation_email(email, name, token):
     # pylint: disable = global-statement
     global STORED_TOKEN
     STORED_TOKEN = token
+
+    send_confirmation_email(email, name, token)
 
 
 class FakeSoapClient:
@@ -69,7 +78,7 @@ class FakeSoapClient:
             "cle_publique": "63",
             "categorie": "T1",
             "chef_famille": None,
-            "date_naissance": "2022-10-04",
+            "date_naissance": VALID_USER_DOB.strftime("%Y-%m-%d"),
             "date_inscription": "2022-09-09",
             "qualite": "M",
             "nom": "GUIOT",
@@ -162,11 +171,20 @@ class FakeSoapClient:
 
         # pylint: enable=invalid-name
 
+@pytest.fixture
+def local_accounts():
+    """Make sure extranet is disabled"""
+    Configuration.EXTRANET_ACCOUNT_ID = ""
+    Configuration.CLUB_PREFIX = ""
 
 @pytest.fixture
-def extranet_monkeypatch(monkeypatch):
-    """Fix methods to avoid external dependencies"""
+def extranet_monkeypatch(monkeypatch, mail_success_monkeypatch):
+    """Fix methods to avoid external dependencies and ensures proper configuration"""
+
+    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
+    Configuration.CLUB_PREFIX = "7400"
+
     monkeypatch.setattr("collectives.utils.extranet.api._soap_client", FakeSoapClient())
     monkeypatch.setattr(
-        "collectives.email_templates.send_confirmation_email", send_confirmation_email
+        "collectives.email_templates.send_confirmation_email", _send_confirmation_email
     )
