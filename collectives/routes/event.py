@@ -954,7 +954,8 @@ def self_unregister(event_id):
 
     # Send notification e-mail to leaders only if definitive subscription
     if was_holding_slot:
-        send_unregister_notification(event, current_user)
+        reason = request.form.get("reason")
+        send_unregister_notification(event, current_user, reason)
 
     return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -1172,6 +1173,7 @@ def update_attendance(event_id):
                     current_user.full_name(),
                     registration.event,
                     registration.user.mail,
+                    reason=request.form.get("rejection-reason")
                 )
 
             if Configuration.ENABLE_SANCTIONS and event.event_type.requires_activity:

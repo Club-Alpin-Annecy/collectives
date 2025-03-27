@@ -277,11 +277,13 @@ Template mail:
         description: Email subject for user self unregister
         type: ShortString
 
-    SELF_UNREGISTER_MESSAGE:
+    SELF_UNREGISTER_MESSAGE_v2:
         content: |
             Bonjour,
 
             '{user_name}' vient de se désinscrire de l'événement '{event_title}' que vous encadrez.
+            {reason}
+            
             Lien vers l'événement :
             {link}
 
@@ -400,11 +402,13 @@ Template mail:
         description: Email subject for rejected registration to an event
         type: ShortString
 
-    REJECTED_REGISTRATION_MESSAGE:
+    REJECTED_REGISTRATION_MESSAGE_v2:
         content: |
             Bonjour,
 
-            {rejector_name} vient de refuser votre inscription à la collective {event_title} débutant le {event_date}.
+            {rejector_name} vient de refuser votre inscription à l'événement {event_title} débutant le {event_date}.
+            {reason}
+            
             Lien vers l'événement :
             {link}
 
@@ -437,42 +441,35 @@ Template mail:
         description: Sujet de l'email pour l'utilisateur lorsque que son inscription est activée.
         type: ShortString
 
-    ACTIVATED_REGISTRATION_MESSAGE:
+    ACTIVATED_REGISTRATION_MESSAGE_v2:
         content: |
             Bonjour,
 
-            Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
-            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit(e)
-            à la collective, ou en attente de paiement si la collective en nécessite un.
+            Votre inscription vient d'être validée pour l'événement {event_title} débutant le {event_date}
+            pour lequel vous étiez jusqu'alors en liste d'attente.
 
-            Si vous ne pouvez plus participer, merci de vous désincrire au plus tôt afin de ne pas 
-            perturber l'organisation de la collective.
-
-            Merci de vérifier si la collective nécessite un paiement de votre part:
+            Merci de vérifier si l'événement nécessite un paiement de votre part et de procéder à celui-ci le cas échéant:
             {link}
+
+            {unregistration_text}
 
             Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
             Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
         description: Template d'email pour l'utilisateur lorsque que son inscription est activée.
         type: LongString
-
-    ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE:
+    
+    ACTIVATED_REGISTRATION_STANDARD_EVENT_MESSAGE:
         content: |
-            Bonjour,
+            Si vous ne pouvez plus participer, merci de vous désincrire au plus tôt afin de ne pas 
+            perturber l'organisation de la collective.
+        description: Template d'email pour l'utilisateur lorsque que son inscription est activée et que l'événement commence bientôt.
+        type: LongString
 
-            Une place vient de se libérer pour la collective {event_title} débutant le {event_date}.
-            Votre place dans la liste d'attente a donc été validée et vous êtes à présent inscrit(e)
-            à la collective, ou en attente de paiement si la collective en nécessite un.
-
-            Cet événement commence bientôt ; si vous ne pouvez plus participer, merci de vous désincrire 
+    ACTIVATED_REGISTRATION_UPCOMING_EVENT_WARING:
+        content: |
+            Attention : cet événement commence bientôt ! Si vous ne pouvez plus participer, merci de vous désincrire 
             dans les prochaines {grace_period} heures afin de ne pas perturber l'organisation et que
             votre désinscription ne soit pas considérée comme tardive.
-
-            Merci de vérifier si la collective nécessite un paiement de votre part:
-            {link}
-
-            Vous recevez cet e-mail en tant qu'adhérent inscrit à cette collective.
-            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
         description: Template d'email pour l'utilisateur lorsque que son inscription est activée et que l'événement commence bientôt.
         type: LongString
 

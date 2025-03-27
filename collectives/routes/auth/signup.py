@@ -188,6 +188,8 @@ def signup():
 
     local = Configuration.EXTRANET_ACCOUNT_ID == ""
 
+
+    print("LOcal?", local)
     if is_recover or not local:
         form = ExtranetAccountCreationForm(is_recover)
     else:

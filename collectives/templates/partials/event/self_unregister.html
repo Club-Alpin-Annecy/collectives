@@ -3,7 +3,7 @@
     <form
             action="{{url_for('event.self_unregister', event_id=event.id)}}"
             method="post"
-
+            class="form"
         >
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
@@ -35,6 +35,9 @@
                 <h4 class="centeralign">Confirmez-vous votre désinscription ?<br/> 
                     <input type="submit" id="submitSelfUnregister" value="Confirmer" class="button button-danger">
                     <input type="button" id="cancelSelfUnregister" value="Annuler" class="button button-secondary" onclick="this.closest('.messages').style.display='none'">
+                </h4>
+                <h4 class="centeralign"> 
+                    <textarea name="unregister-reason" class="input-75" placeholder="Justification pour les encadrants..." rows="5" style="min-width:20em; max-width:50em;"></textarea>
                 </h4>
             </div>
             <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
