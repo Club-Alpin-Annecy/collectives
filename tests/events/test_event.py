@@ -343,7 +343,6 @@ def test_update_attendance(
     """Test leader changing status of registrations"""
 
     event = event1_with_reg_waiting_list
-    event.num_waiting_list = 0  # avoids automatic promotion
     db.session.commit()
 
     active_reg = event.active_registrations()[0]
@@ -376,6 +375,7 @@ def test_update_attendance(
     assert "<test>" in reject_mail["message"]
     assert "participation" in confirm_mail["subject"].lower()
     assert "Si vous ne pouvez plus" in confirm_mail["message"]
+    assert "bientôt" not in confirm_mail["message"]
 
     # Test deleting the registration
     # First transition is valid, the second is not
@@ -393,3 +393,36 @@ def test_update_attendance(
     assert len(event.registrations) == 3
     assert len(event.active_registrations()) == 2
     assert len(event.waiting_registrations()) == 1
+
+
+def test_update_attendance_upcoming_event(
+    leader_client, event1_with_reg_waiting_list, mail_success_monkeypatch
+):
+    """Test leader changing status of registrations for an event that starts soon"""
+
+    event = event1_with_reg_waiting_list
+    event.start = datetime.now() + timedelta(hours=1)
+    db.session.commit()
+
+    waiting_reg = event.waiting_registrations()[0]
+
+    # Reject one previously active, confirms a previously waiting
+    data = {
+        f"reg_{waiting_reg.id}": RegistrationStatus.Active.value,
+    }
+
+    response = leader_client.post(f"/collectives/{event.id}/attendance", data=data)
+    assert response.status_code == 302
+
+    db.session.expire(waiting_reg)
+    assert waiting_reg.status == RegistrationStatus.Active
+
+    assert len(event.registrations) == 4
+    assert len(event.active_registrations()) == 3
+    assert len(event.waiting_registrations()) == 1
+
+    assert mail_success_monkeypatch.sent_mail_count() == 1
+    confirm_mail = mail_success_monkeypatch.sent_to(waiting_reg.user.mail)[0]
+
+    assert "participation" in confirm_mail["subject"].lower()
+    assert "bientôt" in confirm_mail["message"]

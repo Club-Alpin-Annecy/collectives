@@ -465,7 +465,7 @@ Template mail:
         description: Template d'email pour l'utilisateur lorsque que son inscription est activée et que l'événement commence bientôt.
         type: LongString
 
-    ACTIVATED_REGISTRATION_UPCOMING_EVENT_WARING:
+    ACTIVATED_REGISTRATION_UPCOMING_EVENT_WARNING:
         content: |
             Attention : cet événement commence bientôt ! Si vous ne pouvez plus participer, merci de vous désincrire 
             dans les prochaines {grace_period} heures afin de ne pas perturber l'organisation et que
