@@ -90,7 +90,7 @@ class RoleIds(ChoiceEnum):
             "pas créer de collectives.",
             cls.EventLeader: "Un encadrant peut créer et encadrer tout type d'événement lié à "
             "l'activité, dont des collectives. Il peut supprimer ses événements à condition "
-            "qu'aucun paiement n'ait été effectué et que l'événement n'ait pas débuté.",
+            "qu'aucun paiement n'ait été effectué et qu'il n'y ait pas d'inscription active.",
             cls.ActivitySupervisor: "Un responsable d'activité peut proposer un événement dans son "
             "activité, gérer les rôles (encadrement, ...), badges (bénévolat, ...) et documents "
             "liés à son activité, et a pouvoir de modération sur tout événement de l'activité.",
