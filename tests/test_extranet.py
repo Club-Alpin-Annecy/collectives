@@ -2,7 +2,7 @@
 
 # pylint: disable=unused-argument
 
-from collectives.models import User, db, Configuration
+from collectives.models import User, db
 from tests import mock
 from tests import fixtures
 from tests.mock.extranet import (
@@ -17,16 +17,14 @@ def test_create_account(client, extranet_monkeypatch):
     """Test valid account creation."""
 
     # Setup conf as extranet account creation
-    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
-    Configuration.CLUB_PREFIX = "7400"
 
     # First signup stage
     response = client.get("/auth/signup")
     assert response.status_code == 200
     data = {
-        "mail": "test@example.com",
+        "mail": mock.extranet.VALID_USER_EMAIL,
         "license": mock.extranet.VALID_LICENSE,
-        "date_of_birth": "2022-10-04",
+        "date_of_birth": mock.extranet.VALID_USER_DOB,
     }
     response = client.post("/auth/signup", data=data)
     assert response.status_code == 302
@@ -73,8 +71,6 @@ def test_create_account(client, extranet_monkeypatch):
 
 def test_wrong_create_account(client, extranet_monkeypatch):
     """Test valid account creation."""
-    # Setup conf as extranet account creation
-    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
 
     # wrong date of birth
     data = {
@@ -113,7 +109,6 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
 
     fixtures.client.login(client, extranet_user)
 
-    extranet_user.mail = VALID_USER_EMAIL
     response = client.post("/profile/user/force_sync", follow_redirects=True)
     assert response.status_code == 200
     assert "error message" not in response.text
@@ -135,6 +130,9 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
 
 def test_resync_own_account_changed_email(client, extranet_user, extranet_monkeypatch):
     """Test extranet resync with changed email"""
+
+    extranet_user.mail = "random@example.org"
+    db.session.commit()
 
     fixtures.client.login(client, extranet_user)
 
@@ -164,6 +162,9 @@ def test_resync_own_account_changed_email(client, extranet_user, extranet_monkey
 def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypatch):
     """Test extranet resync by hotline user"""
 
+    extranet_user.mail = "random@example.org"
+    db.session.commit()
+
     response = hotline_client.post(
         f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
     )
@@ -172,7 +173,6 @@ def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypa
     assert "adresse email a été modifiée" in response.text
 
     extranet_user.mail = VALID_USER_EMAIL
-    db.session.add(extranet_user)
     db.session.commit()
 
     response = hotline_client.post(
@@ -224,17 +224,13 @@ def test_user_resync_account(user1_client, user2, extranet_monkeypatch):
 def test_signup_licence_nocheck(client, extranet_monkeypatch):
     """Test the licence check during signup without club licence check"""
 
-    # Setup conf as extranet account creation
-    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
-    Configuration.CLUB_PREFIX = ""
-
     # First signup stage
     response = client.get("/auth/signup")
     assert response.status_code == 200
     data = {
-        "mail": "test@example.com",
+        "mail": mock.extranet.VALID_USER_EMAIL,
         "license": mock.extranet.VALID_LICENSE,
-        "date_of_birth": "2022-10-04",
+        "date_of_birth": mock.extranet.VALID_USER_DOB,
     }
     response = client.post("/auth/signup", data=data)
     assert response.status_code == 302
@@ -245,17 +241,13 @@ def test_signup_licence_nocheck(client, extranet_monkeypatch):
 def test_signup_licence_check_wrong_club(client, extranet_monkeypatch):
     """Test the not valdi licence during signup with club licence check"""
 
-    # Setup conf as extranet account creation
-    Configuration.EXTRANET_ACCOUNT_ID = "XXX"
-    Configuration.CLUB_PREFIX = "9900"
-
     # First signup stage
     response = client.get("/auth/signup")
     assert response.status_code == 200
     data = {
-        "mail": "test@example.com",
-        "license": mock.extranet.VALID_LICENSE,
-        "date_of_birth": "2022-10-04",
+        "mail": mock.extranet.VALID_USER_EMAIL,
+        "license": mock.extranet.OTHER_CLUB_LICENSE,
+        "date_of_birth": mock.extranet.VALID_USER_DOB,
     }
     response = client.post("/auth/signup", data=data)
     assert response.status_code == 200

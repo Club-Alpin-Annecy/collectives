@@ -14,6 +14,8 @@ from collectives.models import (
     Registration,
     ConfirmationToken,
     BadgeIds,
+    Event,
+    User,
 )
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
@@ -51,19 +53,24 @@ def send_new_event_notification(event):
             current_app.logger.error(f"Mailer error: {err}")
 
 
-def send_unregister_notification(event, user):
+def send_unregister_notification(event: Event, user: User, reason: str):
     """Send a notification to leaders when a user unregisters from an event
 
     :param event: Event on which user unregisters.
-    :type event: :py:class:`collectives.modes.event.Event`
     :param user: User who unregisters.
-    :type user: :py:class:`collectives.models.user.User`
+    :param reason: Use-provided reason for unregistering
     """
     try:
         leader_emails = [l.mail for l in event.leaders]
-        message = Configuration.SELF_UNREGISTER_MESSAGE.format(
+        reason = (
+            f"Justification fournie pour la désinscription : \n {reason}"
+            if reason
+            else ""
+        )
+        message = Configuration.SELF_UNREGISTER_MESSAGE_v2.format(
             user_name=user.full_name(),
             event_title=event.title,
+            reason=reason,
             link=url_for(
                 "event.view_event",
                 event_id=event.id,
@@ -139,18 +146,16 @@ def send_confirmation_email(email, name, token):
         db.session.add(token_copy)
         db.session.commit()
 
-    # Check if local dev, so that email is not sent
-    # and token validation link is displayed in flash popup
-    config = current_app.config
-    if not config["EXTRANET_DISABLE"]:
-        mail.send_mail(
-            email=email,
-            subject=f"{reason.capitalize()} de compte Collectives",
-            message=message,
-            error_action=has_failed,
-            success_action=has_succeed,
-        )
-    else:
+    mail.send_mail(
+        email=email,
+        subject=f"{reason.capitalize()} de compte Collectives",
+        message=message,
+        error_action=has_failed,
+        success_action=has_succeed,
+    )
+
+    # Check if local dev, then token validation link is displayed in flash popup
+    if current_app.config["EXTRANET_DISABLE"]:
         has_succeed()
         url = url_for(
             "auth.process_confirmation", token_uuid=token.uuid, _external=True
@@ -161,19 +166,23 @@ def send_confirmation_email(email, name, token):
         flash(Markup(line))
 
 
-def send_reject_subscription_notification(rejector_name, event, rejected_user_email):
+def send_reject_subscription_notification(
+    rejector_name: str, event: Event, rejected_user_email: str, reason: str
+):
     """Send a notification to user whom registration has been rejected
 
-    :param string rejector_name: User name who rejects the subscription.
+    :param rejector_name: User name who rejects the subscription.
     :param event: Event the registraton is rejected on.
-    :type event: :py:class:`collectives.modes.event.Event`
-    :param string rejected_user_email: User email for who registraton is rejected.
+    :param rejected_user_email: User email for who registraton is rejected.
+    :param reason: Reason for the rejection
     """
     try:
-        message = Configuration.REJECTED_REGISTRATION_MESSAGE.format(
+        reason = f"Justification du refus : \n {reason}" if reason else ""
+        message = Configuration.REJECTED_REGISTRATION_MESSAGE_v2.format(
             rejector_name=rejector_name,
             event_title=event.title,
             event_date=format_date(event.start),
+            reason=reason,
             link=url_for(
                 "event.view_event",
                 event_id=event.id,
@@ -242,31 +251,29 @@ def send_update_waiting_list_notification(
         end_of_grace = current_time() + timedelta(
             hours=Configuration.UNREGISTRATION_GRACE_PERIOD + 1
         )
+
         if registration.is_in_late_unregistration_period(end_of_grace):
-            message = (
-                Configuration.ACTIVATED_REGISTRATION_UPCOMING_EVENT_MESSAGE.format(
-                    event_title=registration.event.title,
-                    event_date=format_date(registration.event.start),
+            unregistration_text = (
+                Configuration.ACTIVATED_REGISTRATION_UPCOMING_EVENT_WARNING.format(
                     grace_period=Configuration.UNREGISTRATION_GRACE_PERIOD,
-                    link=url_for(
-                        "event.view_event",
-                        event_id=registration.event.id,
-                        name=slugify(registration.event.title),
-                        _external=True,
-                    ),
                 )
             )
         else:
-            message = Configuration.ACTIVATED_REGISTRATION_MESSAGE.format(
-                event_title=registration.event.title,
-                event_date=format_date(registration.event.start),
-                link=url_for(
-                    "event.view_event",
-                    event_id=registration.event.id,
-                    name=slugify(registration.event.title),
-                    _external=True,
-                ),
+            unregistration_text = (
+                Configuration.ACTIVATED_REGISTRATION_STANDARD_EVENT_MESSAGE
             )
+
+        message = Configuration.ACTIVATED_REGISTRATION_MESSAGE_v2.format(
+            event_title=registration.event.title,
+            event_date=format_date(registration.event.start),
+            unregistration_text=unregistration_text,
+            link=url_for(
+                "event.view_event",
+                event_id=registration.event.id,
+                name=slugify(registration.event.title),
+                _external=True,
+            ),
+        )
 
         if deleted_registrations:
             event_titles = "\n".join(

@@ -11,7 +11,7 @@ from collectives.models import Badge, BadgeIds, UserType
 # pylint: disable=unused-argument,redefined-outer-name, unused-import
 
 from tests.fixtures.app import enable_sanctions
-from tests.mock.extranet import VALID_LICENSE
+from tests.mock.extranet import VALID_LICENSE, VALID_USER_DOB, VALID_USER_EMAIL
 
 
 PASSWORD = "fooBar2+!"
@@ -61,9 +61,6 @@ def generate_user(names):
     @pytest.fixture
     def user(app):
         """A Standard user"""
-
-        print(names, identifier)
-
         user = User()
         user.first_name = names[0]
         user.last_name = names[1]
@@ -241,6 +238,8 @@ def extranet_user(prototype_extranet_user):
     """:returns: A user with type extranet."""
     prototype_extranet_user.type = UserType.Extranet
     prototype_extranet_user.license = VALID_LICENSE
+    prototype_extranet_user.mail = VALID_USER_EMAIL
+    prototype_extranet_user.date_of_birth = VALID_USER_DOB
     prototype_extranet_user.license_expiry_date = date.today() + timedelta(days=365)
 
     db.session.add(prototype_extranet_user)

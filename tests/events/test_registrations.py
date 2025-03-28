@@ -3,7 +3,12 @@
 from datetime import date, timedelta, datetime
 from collectives.models import db, RegistrationStatus, BadgeIds
 
+
 # pylint: disable=unused-argument
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-import
+
+from tests.mock.mail import mail_success_monkeypatch
 
 
 def test_valid_event_autoregistration(user1, user1_client, user2, event):
@@ -113,19 +118,29 @@ def test_full_event_autoregistration_with_waiting_list(user1, user1_client, even
     assert len(event.waiting_registrations()) == 1
 
 
-def test_unregister(user1_client, event1_with_reg):
+def test_unregister(user1_client, event1_with_reg, mail_success_monkeypatch):
     """Tests self unregistering of a user"""
     event = event1_with_reg
 
     response = user1_client.post(
-        f"/collectives/{event.id}/self_unregister", follow_redirects=True
+        f"/collectives/{event.id}/self_unregister",
+        follow_redirects=True,
+        data={"reason": "la flemme"},
     )
     assert response.status_code == 200
     assert event.num_taken_slots() == 3
     assert len(event.registrations) == 4
 
+    # One mail sent to leader
+    assert (
+        "flemme"
+        in mail_success_monkeypatch.sent_to(event.leaders[0].mail)[0]["message"]
+    )
 
-def test_unregister_with_waiting_list(user1_client, event1_with_reg_waiting_list):
+
+def test_unregister_with_waiting_list(
+    user1_client, event1_with_reg_waiting_list, mail_success_monkeypatch
+):
     """Tests self unregistering of a client, with waiting list update"""
     event = event1_with_reg_waiting_list
 
@@ -136,6 +151,10 @@ def test_unregister_with_waiting_list(user1_client, event1_with_reg_waiting_list
     assert event.num_taken_slots() == 2
     assert len(event.waiting_registrations()) == 1
     assert len(event.registrations) == 4
+
+    # One to leader, one to promoted user
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert mail_success_monkeypatch.sent_to(event.active_registrations()[-1].user.mail)
 
 
 def test_unregister_from_waiting_list(user3_client, event1_with_reg_waiting_list):
@@ -229,9 +248,7 @@ def test_youth_event_failed_autoregistration(user1, user1_client, youth_event):
 
 # Late unregistration-related tests
 def test_unregister_in_grace_period(
-    user1_client,
-    user1,
-    event_in_less_than_x_hours_with_reg,
+    user1_client, user1, event_in_less_than_x_hours_with_reg, mail_success_monkeypatch
 ):
     """
     Tests the late self-unregistration of a user without any unregistration-related warning badge.
@@ -258,11 +275,14 @@ def test_unregister_in_grace_period(
     assert not event.is_late_unregistered(user1)
     assert not user1.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+
 
 def test_unregister_lately_no_warning(
     client_with_no_warning_badge,
     user_with_no_warning_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user without any unregistration-related warning badge.
@@ -282,11 +302,18 @@ def test_unregister_lately_no_warning(
     assert user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
     assert user.number_of_valid_warning_badges() == 1
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "premier avertissement"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"]
+    )
+
 
 def test_unregister_lately_valid_first_warning(
     client_with_valid_first_warning_badge,
     user_with_valid_first_warning_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user with a valid first warning badge.
@@ -306,11 +333,18 @@ def test_unregister_lately_valid_first_warning(
     assert user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
     assert user.number_of_valid_warning_badges() == 2
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "dernier avertissement"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"]
+    )
+
 
 def test_unregister_lately_expired_first_warning(
     client_with_expired_first_warning_badge,
     user_with_expired_first_warning_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user with an expired first warning badge.
@@ -335,11 +369,18 @@ def test_unregister_lately_expired_first_warning(
     assert user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
     assert user.number_of_valid_warning_badges() == 1
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "premier avertissement"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"]
+    )
+
 
 def test_unregister_lately_valid_second_warning(
     client_with_valid_second_warning_badge,
     user_with_valid_second_warning_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user with a valid second warning badge.
@@ -360,11 +401,18 @@ def test_unregister_lately_valid_second_warning(
     assert user.number_of_valid_warning_badges() == 3
     assert user.has_a_valid_badge([BadgeIds.Suspended])
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "suspension"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"].lower()
+    )
+
 
 def test_unregister_lately_expired_second_warning(
     client_with_expired_second_warning_badge,
     user_with_expired_second_warning_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user with an expired second warning badge.
@@ -389,11 +437,18 @@ def test_unregister_lately_expired_second_warning(
     assert user.number_of_valid_warning_badges() == 2
     assert not user.has_a_valid_badge([BadgeIds.Suspended])
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "dernier avertissement"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"]
+    )
+
 
 def test_unregister_lately_from_event_with_no_activity_type(
     client_with_no_warning_badge,
     user_with_no_warning_badge,
     event_with_no_activity_type_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user to an event not requiring an
@@ -414,11 +469,15 @@ def test_unregister_lately_from_event_with_no_activity_type(
     assert event.is_unregistered(user)
     assert not user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
 
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert len(mail_success_monkeypatch.sent_to(user.mail)) == 0
+
 
 def test_unregister_lately_expired_suspended(
     client_with_expired_suspended_badge,
     user_with_expired_suspended_badge,
     event_in_less_than_x_hours_with_reg,
+    mail_success_monkeypatch,
 ):
     """
     Tests the late self-unregistration of a user with an expired suspended badge.
@@ -442,6 +501,12 @@ def test_unregister_lately_expired_suspended(
     assert user.has_a_valid_badge([BadgeIds.UnjustifiedAbsenceWarning])
     assert user.number_of_valid_warning_badges() == 1
     assert not user.has_a_valid_badge([BadgeIds.Suspended])
+
+    assert mail_success_monkeypatch.sent_to(event.leaders[0].mail)
+    assert (
+        "premier avertissement"
+        in mail_success_monkeypatch.sent_to(user.mail)[0]["subject"]
+    )
 
 
 def test_register_for_valid_suspended_user(
