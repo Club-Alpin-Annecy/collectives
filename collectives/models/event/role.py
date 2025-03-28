@@ -6,6 +6,7 @@ from collectives.models.activity_type import ActivityType
 from collectives.models.event.event_type import EventType
 from collectives.models.user import User
 from collectives.models.registration import RegistrationLevels
+from collectives.utils.time import current_time
 
 
 class EventRoleMixin:
@@ -84,12 +85,17 @@ class EventRoleMixin:
     def has_delete_rights(self, user: User) -> bool:
         """Check if a user can delete this event.
 
-        Equivalent to :func:`has_edit_rights`
+        For events in the future, equivalent to :func:`has_edit_rights`
+        For past events, needs supervisor or moderator rights
 
         :param user: User which will be tested.
         :return: True if user can delete the event.
         """
-        return self.has_edit_rights(user)
+
+        if self.start > current_time():
+            return self.has_edit_rights(user)
+
+        return user.is_moderator() or self.is_supervisor(user)
 
     def can_remove_leader(self, user, leader):
         """
