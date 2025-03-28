@@ -136,7 +136,7 @@
 
             <div class="inline_field">
               {{action.leader_id}}
-              {% if form.can_remove_leader(event, user)  %}
+              {% if form.can_remove_leader(user)  %}
                 <button class="button button-danger delete"  name="{{action.delete.name}}" onclick="javascript:removeRequiredAttributes();" value="y">
                   <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
                   Supprimer
