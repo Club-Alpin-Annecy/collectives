@@ -81,18 +81,18 @@ class EventRoleMixin:
             return True
         return self.is_leader(user) or self.is_supervisor(user)
 
-    def has_delete_rights(self, user):
+    def has_delete_rights(self, user: User) -> bool:
         """Check if a user can delete this event.
 
-        Returns true if either:
-         - user supervises any of this event activities
-         - user is moderator
+        For events with no active registration, equivalent to :func:`has_edit_rights`
+        For past events, needs supervisor or moderator rights
 
         :param user: User which will be tested.
-        :type user: :py:class:`collectives.models.user.User`
         :return: True if user can delete the event.
-        :rtype: boolean
         """
+        if len(self.active_registrations()) == 0:
+            return self.has_edit_rights(user)
+
         return user.is_moderator() or self.is_supervisor(user)
 
     def can_remove_leader(self, user, leader):

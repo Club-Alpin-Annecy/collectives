@@ -10,7 +10,7 @@ from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
 from flask_login import current_user
 import sqlalchemy
-from wtforms import SubmitField, SelectField, IntegerField, HiddenField
+from wtforms import SubmitField, SelectField, IntegerField, HiddenField, Field
 from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultipleField
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
@@ -144,6 +144,8 @@ class EventForm(ModelForm, FlaskForm):
         exclude = ["photo"]
 
     photo_file = FileField(validators=[FileAllowed(photos, "Image only!")])
+    remove_photo = BooleanField("Supprimer la photo existante")
+
     duplicate_event = HiddenField()
     event_type_id = SelectField("Type d'événement", choices=[], coerce=int)
     single_activity_type = SelectField("Activité", choices=[], coerce=int)
@@ -166,15 +168,15 @@ class EventForm(ModelForm, FlaskForm):
 
     user_group = FormField(UserGroupForm, default=UserGroup)
 
-    source_event = None
-    current_leaders = []
-    main_leader_fields = []
-
     def __init__(self, *args, **kwargs):
         """
         Constructor
         """
         super().__init__(*args, **kwargs)
+
+        self.source_event: Event = None
+        self.current_leaders: List[User] = []
+        self.main_leader_fields: List[Field] = []
 
         # Unique identifier for the editing session
         # Useful to associate to temporary data when creating a new event
@@ -199,6 +201,9 @@ class EventForm(ModelForm, FlaskForm):
             self.set_current_leaders([])
 
         self.update_choices()
+
+        if "obj" not in kwargs or not kwargs["obj"].photo:
+            del self.remove_photo
 
         if not self.can_switch_multi_activity_mode():
             self.multi_activities_mode.data = True

@@ -587,6 +587,10 @@ def manage_event(event_id=None):
         for tag in form.tag_list.data:
             event.tag_refs.append(EventTag(tag))
 
+        # delete existing photo if requested
+        if form.remove_photo and form.remove_photo.data:
+            event.delete_photo()
+
         # We have to save new event before add the photo, or id is not defined
         db.session.add(event)
         update_waiting_list(event)

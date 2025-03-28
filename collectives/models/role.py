@@ -71,7 +71,7 @@ class RoleIds(ChoiceEnum):
 
     @classmethod
     def descriptions(cls) -> Dict["RoleIds", str]:
-        """Display names for all rolesrole
+        """Description for all roles
 
         :return: dictionnary role -> role name
         """
@@ -89,10 +89,11 @@ class RoleIds(ChoiceEnum):
             "nécéssitant pas d'autorisation d'encadrement (soirées ...), mais ne peut "
             "pas créer de collectives.",
             cls.EventLeader: "Un encadrant peut créer et encadrer tout type d'événement lié à "
-            "l'activité, dont des collectives.",
-            cls.ActivitySupervisor: "Un responsable d'activité peut proposer un évènement dans son "
-            "activité, gérer les encadrants et co encadrants de son "
-            "activité, et supprimer des évènements.",
+            "l'activité, dont des collectives. Il peut supprimer ses événements à condition "
+            "qu'aucun paiement n'ait été effectué et qu'il n'y ait pas d'inscription active.",
+            cls.ActivitySupervisor: "Un responsable d'activité peut proposer un événement dans son "
+            "activité, gérer les rôles (encadrement, ...), badges (bénévolat, ...) et documents "
+            "liés à son activité, et a pouvoir de modération sur tout événement de l'activité.",
             cls.Trainee: "Un encadrant en formation peut être noté comme co-encadrant d'un "
             "événement auquel il est inscrit. Il peut aussi créer certains "
             "types d'événements ne nécéssitant pas d'autorisation d'encadrement "

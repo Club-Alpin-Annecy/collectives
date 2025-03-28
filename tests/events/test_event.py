@@ -6,6 +6,7 @@ from io import BytesIO
 
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
+from flask import url_for
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
 from collectives.models import RoleIds, Question, QuestionType
@@ -81,6 +82,37 @@ def test_leader_event_access(leader_client, event, activity_event):
     db.session.commit()
     response = leader_client.get(f"/collectives/{activity_event.id}")
     assert response.headers["Location"].startswith(f"/collectives/{activity_event.id}")
+
+
+def test_event_deletion(leader_client, event, event1_with_reg):
+    """Test leader delete rights"""
+
+    # Leader can delete their event if no reg
+    response = leader_client.post(
+        url_for("event.delete_event", event_id=event.id), follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "error message" not in response.text
+
+    # Leader cannot delete event with reg
+    response = leader_client.post(
+        url_for("event.delete_event", event_id=event1_with_reg.id),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
+
+
+def test_supervisor_event_deletion(supervisor_client, event1_with_reg):
+    """Test supervisor delete rights"""
+
+    # Supervisor can delete events with registrations
+    response = supervisor_client.post(
+        url_for("event.delete_event", event_id=event1_with_reg.id),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "error message" not in response.text
 
 
 def test_unauthenticated(client, event1_with_reg):
