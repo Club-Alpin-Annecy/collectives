@@ -5,12 +5,14 @@ from datetime import date, datetime
 from wtforms.validators import Email
 from sqlalchemy_utils import PasswordType
 from sqlalchemy.orm import validates
+from sqlalchemy.sql import and_, case
 from sqlalchemy.ext.declarative import declared_attr
-
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from collectives.models.globals import db
 from collectives.models.user.enum import Gender, UserType
 from collectives.utils.misc import truncate
+from collectives.utils.time import current_time
 
 
 class UserModelMixin:
@@ -316,4 +318,58 @@ class UserModelMixin:
             "QuestionAnswer",
             backref="user",
             lazy=True,
+        )
+
+    @hybrid_method
+    def full_name(self) -> str:
+        """Returns the user full name as a string"""
+        return self.first_name + " " + self.last_name.upper()
+
+    # pylint: disable=no-self-argument
+
+    @full_name.expression
+    def full_name(cls):
+        """Returns the user full name as a SQL expression"""
+        return cls.first_name + " " + cls.last_name
+
+    @hybrid_property
+    def is_active(self) -> bool:
+        """Check if user is currently active.
+
+        An active user is not disabled, its license is valid and
+        is not candidate user.
+
+        :return: True if user is active.
+        """
+        if not self.enabled:
+            return False
+        if self.type == UserType.Extranet and not self.check_license_valid_at_time(
+            current_time()
+        ):
+            return False
+        if self.type == UserType.UnverifiedLocal:
+            return False
+
+        return True
+
+    @is_active.expression
+    def is_active(cls):
+        """Check if user is currently active.
+
+        An active user is not disabled, its license is valid and
+        is not candidate user.
+
+        :return: A SQL expression
+        """
+
+        return and_(
+            cls.enabled,
+            case(
+                {
+                    UserType.UnverifiedLocal: False,
+                    UserType.Extranet: cls.license_expiry_date >= current_time(),
+                },
+                value=cls.type,
+                else_=True,
+            ),
         )
