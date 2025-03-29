@@ -1,6 +1,6 @@
 """Unit tests for user name auto-completion"""
 
-from collectives.api.autocomplete_user import find_users_by_fuzzy_name
+from collectives.api.autocomplete_user import _make_autocomplete_query
 
 from collectives.models import db
 
@@ -17,13 +17,19 @@ def test_autocomplete(user1, user2):
     db.session.add(user2)
     db.session.commit()
 
-    users = list(find_users_by_fuzzy_name("user"))
+    users = list(_make_autocomplete_query("user").all())
     assert len(users) == 2
-    users = list(find_users_by_fuzzy_name("rst u"))
+    assert users[0] == user1
+    users = list(_make_autocomplete_query("rst u").all())
     assert len(users) == 1
     assert users[0].mail == "user1@example.org"
-    users = list(find_users_by_fuzzy_name("sec"))
+    users = list(_make_autocomplete_query("sec").all())
     assert len(users) == 1
     assert users[0].mail == "user2@example.org"
-    users = list(find_users_by_fuzzy_name("z"))
+    users = list(_make_autocomplete_query("z").all())
     assert len(users) == 0
+
+    user1.enabled = False
+    users = list(_make_autocomplete_query("user").all())
+    assert len(users) == 2
+    assert users[0] == user2
