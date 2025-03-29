@@ -253,7 +253,12 @@ def view_event(event_id, name=""):
     # If name is empty, redirect to a more meaningful URL
     if name == "" and slugify(event.title) != "":
         return redirect(
-            url_for("event.view_event", event_id=event.id, name=slugify(event.title))
+            url_for(
+                "event.view_event",
+                event_id=event.id,
+                name=slugify(event.title),
+                **request.args,
+            )
         )
 
     register_user_form = (
@@ -280,6 +285,7 @@ def view_event(event_id, name=""):
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
         question_form=question_form,
+        sort_key=request.args.get("sort_key", "id"),
     )
 
 
@@ -1189,7 +1195,8 @@ def update_attendance(event_id):
     db.session.commit()
 
     return redirect(
-        url_for("event.view_event", event_id=event_id) + "#attendancelistform"
+        url_for("event.view_event", event_id=event_id, **request.args)
+        + "#attendancelistform"
     )
 
 

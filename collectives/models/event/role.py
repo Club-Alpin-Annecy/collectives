@@ -95,19 +95,15 @@ class EventRoleMixin:
 
         return user.is_moderator() or self.is_supervisor(user)
 
-    def can_remove_leader(self, user, leader):
+    def can_remove_leader(self, user: User, leader: User) -> bool:
         """
-        Returns true if either:
-         - user supervises any of this event activities
-         - user is moderator
-         - user is leader of this event and is not removing themselves
-        """
-        if not self.has_edit_rights(user):
-            return False
-        if user != leader:
-            return True
+        Checks if an user may remove a leader from this event.
 
-        return user.is_moderator() or self.is_supervisor(user)
+        True if user has edit rights on this event, and the leader
+        is not the "main" leader
+        """
+
+        return self.has_edit_rights(user) and leader.id != self.main_leader_id
 
     def coleaders(self):
         """

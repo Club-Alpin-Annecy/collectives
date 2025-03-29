@@ -197,6 +197,9 @@ class EventForm(ModelForm, FlaskForm):
             self.multi_activity_types.data = [a.id for a in activities]
             self.set_current_leaders(self.source_event.leaders)
             self.tag_list.data = [tag.type for tag in self.source_event.tag_refs]
+            self.include_leaders_in_counts.data = (
+                self.source_event.include_leaders_in_counts
+            )
         else:
             self.set_current_leaders([])
 
@@ -389,29 +392,18 @@ class EventForm(ModelForm, FlaskForm):
             activity_ids = [a[0] for a in self.single_activity_type.choices]
         return activity_ids
 
-    def can_remove_leader(self, event: Event, leader: User) -> int:
+    def can_remove_leader(self, leader: User) -> bool:
         """
         Checks whether the current user has the right to remove a leader from the form.
-        This is prevented if:
-
-        - There is only one leader
-        - The leader is the main leader
-        - The user is not allowed to remove the leader from the event
+        This is prevented if the leader is the main leader
 
         seealso:: :py::meth:`collectives.models.event.Event.can_remove_leader`
 
         :param event: Event the form is operating on
-        :type event: :py:class:`collectives.models.event.Event`:
         :param leader: leader to be removed from the form
-        :type leader: :py:class:`collectives.models.user.User`:
         :return: whether authorization to remove the leader is granted.
-        :rtype: bool
         """
-        if leader.id == self.main_leader_id.data:
-            return False
-        if len(self.current_leaders) <= 1:
-            return False
-        return event.can_remove_leader(current_user, leader)
+        return leader.id != self.main_leader_id.data
 
 
 def payment_item_choice_text(

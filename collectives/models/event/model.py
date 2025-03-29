@@ -103,6 +103,15 @@ class EventModelMixin:
 
     :type: int"""
 
+    include_leaders_in_counts = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+    )
+    """Whether to include leaders when counting available slots
+
+    :type: bool"""
+
     registration_open_time = db.Column(db.DateTime, nullable=True)
     """Earliest moment an user can self-register to this event.
 
