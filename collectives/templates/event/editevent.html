@@ -37,31 +37,36 @@
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script>
       var easymde = undefined;
-      window.onload = function () {
-        const searchInput = document.getElementById('new-leader');
-        setupAutoComplete(
-          searchInput,
-          '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids(), etype=form.current_event_type().id) | safe}}',
-          function(item) {
-            return item.full_name;
-          },
-          function(id, val) {
-            var field = document.getElementById('{{form.add_leader.id}}');
-            field.value = id;
-            updateLeaders(field);
-          }
+        window.onload = function () {
+
+          // Leader autocomplete
+          const searchInput = document.getElementById('new-leader');
+          setupAutoComplete(
+            searchInput,
+            '{{url_for("api.autocomplete_available_leaders", eid=form.current_leader_ids(), aid=form.leader_activity_ids(), etype=form.current_event_type().id) | safe}}',
+            function (item) {
+              return item.full_name;
+            },
+            function (id, val) {
+              var field = document.getElementById('{{form.add_leader.id}}');
+              field.value = id;
+              updateLeaders(field);
+            }
           );
 
-
+          // Uploads
           let uploadedFilesEndpoint = "{{url_for("api.list_event_files", event_id=event.id) if event.id else url_for("api.list_new_event_files", edit_session_id = form.edit_session_id.data) }}";
           let imageUploadEndpoint = "{{url_for("api.upload_event_file", event_id=event.id) if event.id else url_for("api.upload_new_event_file", edit_session_id = form.edit_session_id.data)}}";
           easymde = makeEditor("description", {
-            imageUploadEndpoint : imageUploadEndpoint,
-            listUploadedFilesEndpoint : uploadedFilesEndpoint,
-            imageCSRFToken : "{{csrf_token()}}"
+            imageUploadEndpoint: imageUploadEndpoint,
+            listUploadedFilesEndpoint: uploadedFilesEndpoint,
+            imageCSRFToken: "{{csrf_token()}}"
           });
-            
-          const uploadedFilesTable = createUploadedFilesTable(easymde, "{{csrf_token()}}") 
+
+          const uploadedFilesTable = createUploadedFilesTable(easymde, "{{csrf_token()}}")
+
+          setupDatePickers(newEvent = {{ "false" if event.id else "true" }});
+        setupMultiselect();
 
       };
   </script>
@@ -167,34 +172,30 @@
     <div class="controls">
       <label for="visibility">Visibilité : </label> {{ form.visibility }}
     </div>
+
     <div class="controls">
       <label for="num_slots">Nombre de participants : </label> {{ form.num_slots(size=4) }}
+    </div>
+    <div class="controls">
+      <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
+    </div>
+    <div class="controls">
+      <label for="num_waiting_list">Nombre de places en liste d'attente :
+        <span class="label-help">&#9432; Inscription automatique avant la date de fin d'inscription, manuellement ensuite.</span>
+      </label>
+      {{ form.num_waiting_list(size=4) }}
     </div>
 
     <div class="dates">
       <h4 class="heading-4">Dates</h4>
-
       <div class="controls">
-        <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start(onchange="copyStartDate(); checkDateOrder();")}}</div>
-        <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date et heure de fin : </label>{{ form.end(onchange="checkDateOrder();") }}</div>
+        <div class="datetimepicker" id="datetimepickerstart"><label for="start">Date et heure de rendez-vous : </label>{{ form.start}}</div>
+        <div class="datetimepicker" id="datetimepickerend"><label for="end" >Date et heure de fin : </label>{{ form.end }}</div>
         <span id="starts_before_ends_error" class="date_error flash flash-error">
             L'événement doit commencer avant de se terminer.
         </span>
       </div>
-
-    </div>
-
-    <div class="dates">
       <h4 class="heading-4">Inscriptions par internet</h4>
-      <div class="controls">
-        <label for="num_online_slots">Nombre de participants internet : </label> {{ form.num_online_slots(size=4) }}
-      </div>
-      <div class="controls">
-        <label for="num_waiting_list">Nombre de places en liste d'attente : 
-          <span class="label-help">&#9432; Inscription automatique avant la date de fin d'inscription, manuellement ensuite.</span> 
-        </label> 
-        {{ form.num_waiting_list(size=4) }}
-      </div>
       <div class="controls">
         <div class="datetimepicker" id="datetimepicker_open"><label for="registration_open_time" >Ouverture des inscriptions : </label>{{ form.registration_open_time(onchange="checkDateOrder();")}}</div>
         <div class="datetimepicker" id="datetimepicker_close" ><label for="registration_close_time" >Fermeture des inscriptions : </label>{{ form.registration_close_time(onchange="checkDateOrder();") }}</div>
@@ -266,53 +267,5 @@
     </div>
   </form>
 </div>
-<script>
-function updateActivity(element)
-{
-    document.getElementById('update_activity').value=1;
-    element.form.submit();
-}
-function updateLeaders(element)
-{
-    document.getElementById('update_leaders').value=1;
-    element.form.submit();
-}
-
-document.querySelectorAll("input[type=datetime]").forEach(function(input){
-                var datepicker = tail.DateTime(input,{
-                    animate: false,
-                    weekStart: 1,
-                    locale: "fr",
-                    {% if not event.id %}
-                    timeHours: 0,
-                    timeMinutes: 0,
-                    {% endif  %}
-                    timeStepMinutes: 15,
-                    timeSeconds: false,
-                    closeButton: false,
-                    startOpen: true,
-                    stayOpen: true,
-                    position: "#"+input.parentElement.id,
-                    classNames:"form-tail-datetime default",
-                });
-});
-
-var activities_multiselect = document.getElementById("multi_activity_types");
-if(activities_multiselect) {
-  const choices = new Choices(activities_multiselect, {
-    removeItemButton:true,
-    noChoicesText: 'Veuillez d\'abord ajouter un encadrant de l\'activité désirée.',
-  });
-}
-const labelChoices = new Choices(document.getElementById("tag_list"), {
-    maxItemCount: 3,
-    removeItemButton:true,
-    maxItemText: (maxItemCount) => {
-      return `Maximum ${maxItemCount} labels`;
-    },
-
-});
-
-</script>
 
 {% endblock %}

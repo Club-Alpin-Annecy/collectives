@@ -2,11 +2,114 @@
 var locale = window.navigator.userLanguage || window.navigator.language;
 moment.locale(locale);
 
+function updateActivity(element) {
+    document.getElementById('update_activity').value = 1;
+    element.form.submit();
+}
+function updateLeaders(element) {
+    document.getElementById('update_leaders').value = 1;
+    element.form.submit();
+}
 
-// Fonction to copy start date into end date in case of one day event
-function copyStartDate() {
-    if (!document.querySelector('input[name=end]').value)
-        document.querySelector('input[name=end]').value = document.querySelector('input[name=start]').value;
+function setupMultiselect() {
+    var activities_multiselect = document.getElementById("multi_activity_types");
+    if (activities_multiselect) {
+        const choices = new Choices(activities_multiselect, {
+            removeItemButton: true,
+            noChoicesText: 'Veuillez d\'abord ajouter un encadrant de l\'activité désirée.',
+        });
+    }
+    const labelChoices = new Choices(document.getElementById("tag_list"), {
+        maxItemCount: 3,
+        removeItemButton: true,
+        maxItemText: (maxItemCount) => {
+            return `Maximum ${maxItemCount} labels`;
+        },
+
+    });
+}
+
+function setupDatePickers(newEvent) {
+    sharedConfig = {
+        animate: false,
+        weekStart: 1,
+        locale: "fr",
+        timeStepMinutes: 15,
+        timeSeconds: false,
+        closeButton: false,
+        startOpen: true,
+        stayOpen: true,
+        classNames: "form-tail-datetime default",
+    }
+
+    datepickers = {}
+
+    document.querySelectorAll("input[type=datetime]").forEach(function (input) {
+
+        config = { ...sharedConfig };
+        config.position = `#${input.parentElement.id}`;
+        if (newEvent && !input.value) {
+            config.timeHours = 0;
+            config.timeMinutes = 0;
+        }
+
+        datepickers[input.parentElement.id] = tail.DateTime(input, config);
+
+        input.addEventListener("change", checkDateOrder);
+    });
+
+
+    startPicker = datepickers["datetimepickerstart"];
+    endPicker = datepickers["datetimepickerend"];
+    regOpenPicker = datepickers["datetimepicker_open"];
+    regClosePicker = datepickers["datetimepicker_close"];
+
+    endInput = document.getElementById('end');
+    regOpenInput = document.getElementById('registration_open_time');
+    regCloseInput = document.getElementById('registration_close_time');
+
+    regOpenCallback = () => {
+        newDate = regOpenPicker.fetchDate()
+
+        if (!regCloseInput.value || regClosePicker.fetchDate() < newDate) {
+            regClosePicker.selectDate(newDate);
+        }
+
+        // constraints
+        regClosePicker.config("dateStart", newDate);
+    }
+
+    startPicker.on(
+        "change", () => {
+            newDate = startPicker.fetchDate()
+
+            // Use as defauly for other dates
+            if (!endInput.value || endPicker.fetchDate() < newDate) {
+                endPicker.selectDate(newDate);
+            }
+            if (!regCloseInput.value || regClosePicker.fetchDate() > newDate) {
+                regClosePicker.selectDate(newDate);
+            }
+            if (!regOpenInput.value) {
+                prevDate = new Date()
+                prevDate.setDate(startPicker.fetchDate().getDate() - 7)
+                regOpenPicker.selectDate(prevDate);
+            } else if (regOpenPicker.fetchDate() > newDate) {
+                regOpenPicker.selectDate(newDate);
+            }
+
+            // constraints
+            regOpenPicker.config("dateEnd", newDate);
+            endPicker.config("dateStart", newDate);
+
+            regClosePicker.config("dateEnd", newDate);
+            regOpenPicker.on("change", regOpenCallback);
+        }
+    );
+
+    regOpenPicker.on("change", regOpenCallback);
+
+
 }
 
 function getActivityIds() {
