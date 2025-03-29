@@ -197,6 +197,9 @@ class EventForm(ModelForm, FlaskForm):
             self.multi_activity_types.data = [a.id for a in activities]
             self.set_current_leaders(self.source_event.leaders)
             self.tag_list.data = [tag.type for tag in self.source_event.tag_refs]
+            self.include_leaders_in_counts.data = (
+                self.source_event.include_leaders_in_counts
+            )
         else:
             self.set_current_leaders([])
 

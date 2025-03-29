@@ -130,6 +130,19 @@ def test_add_registration(event1, user1, user2):
     assert db_event.can_self_register(user2, now)
 
 
+def test_event_include_leaders_in_counts(event, user1):
+    """Test including leaders when counting slots"""
+    now = datetime.datetime.now()
+
+    event.num_online_slots = 1
+    assert event.num_taken_slots() == 0
+    assert event.can_self_register(user1, now)
+
+    event.include_leaders_in_counts = True
+    assert event.num_taken_slots() == 1
+    assert not event.can_self_register(user1, now)
+
+
 def test_event_volunteer_duration(event):
     """Test volunteer duration calculation"""
     assert event.volunteer_duration() == 1
