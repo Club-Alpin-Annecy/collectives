@@ -14,7 +14,6 @@ from collectives.models.configuration import Configuration
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender, UserType
-from collectives.utils.time import current_time
 from collectives.utils.misc import is_valid_image
 
 
@@ -115,13 +114,6 @@ class UserMiscMixin:
 
     # Format
 
-    def full_name(self):
-        """Get user full name.
-
-        :rtype: String
-        """
-        return f"{self.first_name} {self.last_name.upper()}"
-
     def __str__(self) -> str:
         """Displays the user name."""
         return self.full_name() + f" (ID {self.id})"
@@ -157,25 +149,6 @@ class UserMiscMixin:
             if reservation.status == ReservationStatus.Completed:
                 reservation_list.append(reservation)
         return reservation_list
-
-    @property
-    def is_active(self):
-        """Check if user is currently active.
-
-        An active user is not disabled, its license is valid and
-        is not candidate user.
-
-        :return: True if user is active.
-        :rtype: boolean
-        """
-        if not self.enabled:
-            return False
-        if not self.check_license_valid_at_time(current_time()):
-            return False
-        if self.type == UserType.UnverifiedLocal:
-            return False
-
-        return True
 
     def has_valid_phone_number(self, emergency=False):
         """Check if the user has a valid phone number.

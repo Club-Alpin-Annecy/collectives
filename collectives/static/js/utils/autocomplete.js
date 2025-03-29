@@ -54,7 +54,7 @@ function setupAutoComplete(
     const renderItem = function (item) {
         var val = itemValue(item);
         var innerHTML = settings.itemInnerHTML(item, val);
-        if (new Date(item.license_expiry_date) < new Date() ){
+        if (item.is_active === false){
             var style = "text-decoration-line: line-through; color: grey; font-style: italic;"
             var misc = `(expiré)`
         }
