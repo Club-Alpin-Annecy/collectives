@@ -96,13 +96,18 @@ class EventRegistrationMixin:
 
     def num_taken_slots(self) -> int:
         """Return the number of slots that have been taken
-        (registration is either active or pending)
+
+        (registrations that are either active or pending, plus
+        number of leaders if requested)
 
         :return: count of taken slots
         """
-        return sum(
+        taken_count = sum(
             1 for registration in self.registrations if registration.is_holding_slot()
         )
+        if self.include_leaders_in_counts:
+            taken_count += len(self.leaders)
+        return taken_count
 
     def num_pending_registrations(self) -> int:
         """Return the number of pending registrations

@@ -112,6 +112,22 @@
                 <input type="button" value="Copier" onclick="copyToClipboard('maillist')">
                 <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('maillist').value">
                 </p>
+
+            {%if event.leaders|length > 1 %}
+            <p class="inputGrow">
+                <label>
+                    Liste d'email des encadrants :
+                </label>
+                <input type="text"
+                        value="{{ event.leaders | map(attribute='mail') | join('; ') }}"
+                        id="leader_maillist"
+                        readonly
+                        class="grow"
+                        />
+                <input type="button" value="Copier" onclick="copyToClipboard('leader_maillist')">
+                <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('leader_maillist').value">
+                </p>
+            {%endif%}
         </div>
     {% else %}
         <p>
@@ -135,11 +151,22 @@
     </form>
 
     <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
-        <form  class="form" action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
+    <form class="form" action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
+            <thead>
+                <tr>
+                    <th>
+        {%if sort_key == "id"%}
+            <a href="{{url_for('event.view_event', event_id=event.id, sort_key='user.first_name,user.last_name')}}#attendancelist" >Trier par nom</a>
+        {%else%}
+            <a href="{{url_for('event.view_event', event_id=event.id)}}#attendancelist" >Trier par ordre d'inscription</a>
+        {%endif%}
+                    </th>
+                </tr>
+            </thead>
             <tbody>
                 {% set ns = namespace(license_to_renew=False) %}
-                {% for registration in event.registrations %}
+                {% for registration in event.registrations | sort(attribute=sort_key) %}
                 <tr>
                     <td>
                         <a href="{{url_for('profile.show_user', user_id=registration.user.id, event_id=registration.event.id)}}">
