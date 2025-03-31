@@ -143,7 +143,7 @@
     <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
         <p>
-            <input id = "user-search"  autocomplete="off" class="search-input" placeholder="Nom…" >
+            <input id = "user-search" size="32" autocomplete="off" class="search-input" placeholder="Nom…" >
         </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
@@ -151,7 +151,7 @@
     </form>
 
     <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
-    <form  action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
+    <form class="form" action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <thead>
                 <tr>
@@ -178,7 +178,7 @@
                         </a>
                     </td>
                     <td style="text-align:center">
-                        <select name="reg_{{ registration.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
+                        <select name="reg_{{ registration.id }}" onchange="attendanceUpdate(this, {{registration.status.value}});">
                             {% for status in registration.valid_transitions() %}
                                 <option
                                         value="{{status.value}}"
@@ -209,6 +209,10 @@
             <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
             = Licence à renouveler <br/>
             {% endif %}
+
+        <textarea id="attendance-rejection-explanation" name="rejection-reason" class="input-50" style="min-width: 22em;" rows="5"
+            placeholder="Explication optionelle pour les personnes nouvellement refusées..."
+        ></textarea>
 
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
         <input type="submit" value="Sauvegarder" class="button button-primary">

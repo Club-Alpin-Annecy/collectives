@@ -18,7 +18,7 @@ def test_search_users(leader_client, user1, user2, user3, user4):
     response = leader_client.get(get_url("Pat"))
     assert response.status_code == 200
     assert len(response.json) == 2
-    assert response.json[0]["full_name"] == "Kimberly PATERSON"
+    assert response.json[0]["full_name"] == "Jake PATERSON"
 
 
 def test_search_users_full_name(leader_client, user1, user2, user3, user4):

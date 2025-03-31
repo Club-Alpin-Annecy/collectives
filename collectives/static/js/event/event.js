@@ -34,3 +34,17 @@ function attendanceSelectAll(value){
                                                 }
                                             });
 }
+
+function attendanceUpdate(select, origValue){
+    if(select.value != origValue) {
+        select.style.color='#eb691c'; 
+        select.style.fontWeight='bold';
+    } else {
+        select.style.color=null; 
+        select.style.fontWeight=null;
+    }
+
+    if(select.value == EnumRegistrationStatusKeys["Rejected"]) {
+        document.getElementById('attendance-rejection-explanation').style.display = null;
+    }
+}
