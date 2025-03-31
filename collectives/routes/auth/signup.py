@@ -1,7 +1,5 @@
 """Auth login to perform account creation and recover."""
 
-import datetime
-
 from flask import flash, render_template, redirect, url_for, request
 from flask import current_app
 from flask_login import current_user
@@ -60,7 +58,7 @@ def process_confirmation(token_uuid):
         and token.existing_user.type == UserType.UnverifiedLocal
     ):
         token.existing_user.type = UserType.Local
-        token.existing_user.legal_text_signature_date = datetime.datetime.now()
+        token.existing_user.legal_text_signature_date = current_time()
         token.existing_user.legal_text_signed_version = (
             Configuration.CURRENT_LEGAL_TEXT_VERSION
         )

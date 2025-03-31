@@ -10,6 +10,7 @@ from flask import url_for
 
 from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
 from collectives.models import RoleIds, Question, QuestionType, RegistrationStatus
+from collectives.utils.time import current_time
 from tests import utils
 from tests.fixtures.user import promote_user
 
@@ -195,7 +196,7 @@ def test_event_creation(leader_client):
     response = leader_client.get("/collectives/add")
     assert response.status_code == 200
 
-    now = datetime.now()
+    now = current_time()
     alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
     data = {
         "update_activity": "0",
@@ -294,7 +295,7 @@ def test_event_duplication(leader_client, paying_event):
     assert response.status_code == 200
 
     data = utils.load_data_from_form(response.text, "form_edit_event")
-    now = datetime.now()
+    now = current_time()
     data["start"] = (now + timedelta(days=33)).strftime("%Y-%m-%d %X")
     data["end"] = (now + timedelta(days=33, hours=3)).strftime("%Y-%m-%d %X")
     response = leader_client.post("/collectives/add", data=data)
@@ -433,7 +434,7 @@ def test_update_attendance_upcoming_event(
     """Test leader changing status of registrations for an event that starts soon"""
 
     event = event1_with_reg_waiting_list
-    event.start = datetime.now() + timedelta(hours=1)
+    event.start = current_time() + timedelta(hours=1)
     db.session.commit()
 
     waiting_reg = event.waiting_registrations()[0]

@@ -201,7 +201,7 @@ class ExtranetApi:
         if self.disabled():
             # Dev mode, every license is valid
             info.exists = True
-            info.renewal_date = datetime.now()
+            info.renewal_date = current_time()
             return info
 
         try:

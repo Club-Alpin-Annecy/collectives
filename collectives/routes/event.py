@@ -5,7 +5,7 @@ This modules contains the /event Blueprint
 
 # pylint: disable=too-many-lines
 from typing import Tuple, List, Set
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import builtins
 from flask import flash, render_template, redirect, url_for, request, send_file
@@ -1220,7 +1220,7 @@ def preview(event_id):
     if event is None:
         abort(404)
 
-    min_date = datetime.now() - timedelta(days=Configuration.MAX_HISTORY_FOR_ANONYMOUS)
+    min_date = current_time() - timedelta(days=Configuration.MAX_HISTORY_FOR_ANONYMOUS)
     if event.end < min_date:
         abort(404)
 

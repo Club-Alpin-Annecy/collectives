@@ -1,12 +1,12 @@
 """Module for equipment reservation forms"""
 
-from datetime import datetime
 from wtforms import SubmitField, HiddenField
 
 from flask_wtf.form import FlaskForm
 from wtforms_alchemy import ModelForm
 
 from collectives.models import Reservation
+from collectives.utils.time import current_time
 
 
 class ReservationForm(FlaskForm, ModelForm):
@@ -27,7 +27,7 @@ class ReservationForm(FlaskForm, ModelForm):
             self.event = kwargs["event"]
             self.collect_date.data = self.event.start
         else:
-            self.collect_date.data = datetime.now()
+            self.collect_date.data = current_time()
 
 
 class LeaderReservationForm(ReservationForm):

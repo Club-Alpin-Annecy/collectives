@@ -16,6 +16,7 @@ from collectives.models import db, Registration, Event, EventType
 from collectives.models import RegistrationStatus, EventStatus, ActivityType
 from collectives.models import User, EventTag
 from collectives.utils.openpyxl import columns_best_fit
+from collectives.utils.time import current_time
 
 # Pylint does not understand that func.count IS callable.
 # See https://github.com/pylint-dev/pylint/issues/1682
@@ -223,7 +224,7 @@ class StatisticsEngine:
             self.start = datetime(int(kwargs["year"]), 9, 1, 0, 0, 0)
             self.end = datetime(int(kwargs["year"]) + 1, 8, 30, 23, 59)
 
-        self.creation_time = datetime.now()
+        self.creation_time = current_time()
 
     def nb_days(self) -> int:
         """Returns number of days during the Engine interval.
@@ -482,7 +483,7 @@ class StatisticsEngine:
                     ]
                 ),
                 Event.start < func.now(),
-                Event.start >= datetime.now() - timedelta(weeks=52),
+                Event.start >= current_time() - timedelta(weeks=52),
             )
             .group_by("event_week", Registration.status)
         )

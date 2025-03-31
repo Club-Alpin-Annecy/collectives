@@ -3,7 +3,7 @@
 This modules contains the /profile Blueprint
 """
 
-from datetime import date, datetime
+from datetime import date
 from os.path import exists
 from io import BytesIO
 import textwrap
@@ -29,6 +29,7 @@ from collectives.routes.auth import (
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
+from collectives.utils.time import current_time
 
 
 images = Images()
@@ -205,7 +206,7 @@ def confidentiality_agreement():
         request.method == "POST"
         and current_user.confidentiality_agreement_signature_date == None
     ):
-        current_user.confidentiality_agreement_signature_date = datetime.now()
+        current_user.confidentiality_agreement_signature_date = current_time()
         db.session.add(current_user)
         db.session.commit()
         flash("Merci d'avoir signé la charte RGPD", "success")
