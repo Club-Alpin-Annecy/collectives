@@ -135,7 +135,7 @@
     </form>
 
     <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
-        <form  action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
+        <form  class="form" action="{{url_for('event.update_attendance', event_id=event.id)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <tbody>
                 {% set ns = namespace(license_to_renew=False) %}
@@ -151,7 +151,7 @@
                         </a>
                     </td>
                     <td style="text-align:center">
-                        <select name="reg_{{ registration.id }}" onchange="this.style.color='#eb691c'; this.style.fontWeight='bold';">
+                        <select name="reg_{{ registration.id }}" onchange="attendanceUpdate(this, {{registration.status.value}});">
                             {% for status in registration.valid_transitions() %}
                                 <option
                                         value="{{status.value}}"
@@ -182,6 +182,10 @@
             <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
             = Licence à renouveler <br/>
             {% endif %}
+
+        <textarea id="attendance-rejection-explanation" name="rejection-reason" class="input-50" style="min-width: 22em;" rows="5"
+            placeholder="Explication optionelle pour les personnes nouvellement refusées..."
+        ></textarea>
 
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
         <input type="submit" value="Sauvegarder" class="button button-primary">
