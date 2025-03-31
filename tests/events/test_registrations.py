@@ -1,7 +1,8 @@
 """Event actions tests related to registrations"""
 
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 from collectives.models import db, RegistrationStatus, BadgeIds
+from collectives.utils.time import current_time
 
 
 # pylint: disable=unused-argument
@@ -526,7 +527,7 @@ def test_register_for_valid_suspended_user(
     assert user.has_a_valid_badge([BadgeIds.Suspended])
     assert user.has_a_valid_suspended_badge()
     assert len(event.registrations) == 6
-    assert not event.can_self_register(user, datetime.now())
+    assert not event.can_self_register(user, current_time())
 
     response = user_client.post(
         f"/collectives/{event.id}/self_register", follow_redirects=True

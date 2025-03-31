@@ -9,6 +9,7 @@ from collectives.models import Registration, RegistrationLevels, RegistrationSta
 from collectives.models.user_group import UserGroup, GroupRoleCondition
 
 from collectives.routes.event import update_waiting_list
+from collectives.utils.time import current_time
 
 from tests.fixtures.user import promote_to_leader
 
@@ -51,16 +52,16 @@ def test_event_validity(event1, user1, user2):
     assert event.is_valid()
 
     # Test dates
-    event.end = datetime.datetime.now()
+    event.end = current_time()
     assert not event.is_valid()
     event.end = event.start
     assert event.is_valid()
 
     event.num_online_slots = 1
-    event.registration_open_time = datetime.datetime.now()
-    event.registration_close_time = datetime.datetime.now() + datetime.timedelta(days=1)
+    event.registration_open_time = current_time()
+    event.registration_close_time = current_time() + datetime.timedelta(days=1)
 
-    assert event.is_registration_open_at_time(datetime.datetime.now())
+    assert event.is_registration_open_at_time(current_time())
 
     event.registration_open_time = event.registration_close_time + datetime.timedelta(
         hours=1
@@ -78,7 +79,7 @@ def test_event_validity(event1, user1, user2):
     assert not event.opens_before_ends()
     assert not event.is_valid()
 
-    assert not event.is_registration_open_at_time(datetime.datetime.now())
+    assert not event.is_registration_open_at_time(current_time())
 
 
 def test_add_registration(event1, user1, user2):
@@ -86,20 +87,20 @@ def test_add_registration(event1, user1, user2):
 
     def make_registration(user):
         """Utility func to create a registration for the given user"""
-        datetime.datetime.timestamp(datetime.datetime.now())
+        datetime.datetime.timestamp(current_time())
         return Registration(
             user=user, status=RegistrationStatus.Active, level=RegistrationLevels.Normal
         )
 
     event = event1
     event.num_online_slots = 2
-    event.registration_open_time = datetime.datetime.now()
-    event.registration_close_time = datetime.datetime.now() + datetime.timedelta(days=1)
+    event.registration_open_time = current_time()
+    event.registration_close_time = current_time() + datetime.timedelta(days=1)
 
     db.session.add(event)
     db.session.commit()
 
-    now = datetime.datetime.now()
+    now = current_time()
     assert event.is_registration_open_at_time(now)
     assert event.has_free_online_slots()
 
@@ -161,17 +162,13 @@ def test_waiting_list_update(event1: Event, event2: Event, user1: User, user2: U
 
     event1.num_online_slots = 1
     event1.num_waiting_list = 2
-    event1.registration_open_time = datetime.datetime.now()
-    event1.registration_close_time = datetime.datetime.now() + datetime.timedelta(
-        days=1
-    )
+    event1.registration_open_time = current_time()
+    event1.registration_close_time = current_time() + datetime.timedelta(days=1)
 
     event2.num_online_slots = 1
     event2.num_waiting_list = 2
-    event2.registration_open_time = datetime.datetime.now()
-    event2.registration_close_time = datetime.datetime.now() + datetime.timedelta(
-        days=1
-    )
+    event2.registration_open_time = current_time()
+    event2.registration_close_time = current_time() + datetime.timedelta(days=1)
 
     def make_registration(event, user, status):
         """Utility func to create a registration for the given user"""
@@ -233,10 +230,8 @@ def test_paying_event_waiting_list_update(
 
     paying_event.num_online_slots = 1
     paying_event.num_waiting_list = 2
-    paying_event.registration_open_time = datetime.datetime.now()
-    paying_event.registration_close_time = datetime.datetime.now() + datetime.timedelta(
-        days=1
-    )
+    paying_event.registration_open_time = current_time()
+    paying_event.registration_close_time = current_time() + datetime.timedelta(days=1)
 
     def make_waiting_registration(event, user):
         """Utility func to create a registration for the given user"""

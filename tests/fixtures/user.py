@@ -1,12 +1,13 @@
 """Module to create fixture users."""
 
 from functools import wraps
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import pytest
 
 from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
 from collectives.models import Badge, BadgeIds, UserType
+from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument,redefined-outer-name, unused-import
 
@@ -74,7 +75,7 @@ def generate_user(names):
         user.phone = f"0601020{identifier:03d}"
         user.emergency_contact_name = f"Emergency {identifier}"
         user.emergency_contact_phone = f"0699999{identifier:03}"
-        user.legal_text_signature_date = datetime.now()
+        user.legal_text_signature_date = current_time()
         user.legal_text_signed_version = 1
         user.gender = Gender(identifier % 2 + 1)
 
@@ -274,7 +275,7 @@ def promote_user(
         activity_type = ActivityType.query.filter_by(name=activity_name).first()
         role.activity_id = activity_type.id
     if confidentiality_agreement_signature:
-        user.confidentiality_agreement_signature_date = datetime.now()
+        user.confidentiality_agreement_signature_date = current_time()
     db.session.add(role)
 
 

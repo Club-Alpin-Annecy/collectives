@@ -2,11 +2,12 @@
 
 # pylint: disable=unused-argument
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import openpyxl
 
 from collectives.utils.stats import StatisticsEngine
+from collectives.utils.time import current_time
 from collectives.models import ActivityType
 
 
@@ -47,7 +48,7 @@ def test_statistics_engine_all(stats_env, leader2_user):
 def test_statistics_engine_from_now(stats_env, leader2_user):
     """Tests statistics engine on future events."""
     engine = StatisticsEngine(
-        start=datetime.now(), end=datetime.now() + timedelta(days=365)
+        start=current_time(), end=current_time() + timedelta(days=365)
     )
     assert engine.nb_events() == 5
     assert engine.nb_registrations() == 5

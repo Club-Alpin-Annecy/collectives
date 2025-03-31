@@ -1,6 +1,6 @@
 """Module to create fixture events."""
 
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 from functools import wraps
 
 import pytest
@@ -9,6 +9,7 @@ from collectives.models import db, ActivityType
 from collectives.models import EventType, Event, EventTag, EventStatus, EventVisibility
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 from collectives.models import Question, QuestionType, QuestionAnswer
+from collectives.utils.time import current_time
 
 from tests.fixtures import payment
 
@@ -298,13 +299,13 @@ def event_in_less_than_x_hours_with_reg(
     """
 
     prototype_event_in_less_than_x_hours.registration_open_time = (
-        datetime.now() - timedelta(hours=10)
+        current_time() - timedelta(hours=10)
     )
     prototype_event_in_less_than_x_hours.registration_close_time = (
-        datetime.now() + timedelta(hours=2)
+        current_time() + timedelta(hours=2)
     )
-    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
-    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+    prototype_event_in_less_than_x_hours.start = current_time() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = current_time() + timedelta(hours=4)
     prototype_event_in_less_than_x_hours.num_online_slots = 9
 
     for user in [
@@ -321,7 +322,7 @@ def event_in_less_than_x_hours_with_reg(
                 status=RegistrationStatus.Active,
                 level=RegistrationLevels.Normal,
                 is_self=True,
-                registration_time=datetime.now() - timedelta(weeks=1),
+                registration_time=current_time() - timedelta(weeks=1),
             )
         )
 
@@ -336,13 +337,13 @@ def event_in_less_than_x_hours(prototype_event_in_less_than_x_hours):
     """Fixture for an event starting in less than 48 hours (parameterized)."""
 
     prototype_event_in_less_than_x_hours.registration_open_time = (
-        datetime.now() - timedelta(hours=10)
+        current_time() - timedelta(hours=10)
     )
     prototype_event_in_less_than_x_hours.registration_close_time = (
-        datetime.now() + timedelta(hours=2)
+        current_time() + timedelta(hours=2)
     )
-    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
-    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+    prototype_event_in_less_than_x_hours.start = current_time() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = current_time() + timedelta(hours=4)
 
     prototype_event_in_less_than_x_hours.num_online_slots = 9
 
@@ -364,13 +365,13 @@ def event_with_no_activity_type_in_less_than_x_hours_with_reg(
     """
 
     prototype_event_in_less_than_x_hours.registration_open_time = (
-        datetime.now() - timedelta(hours=10)
+        current_time() - timedelta(hours=10)
     )
     prototype_event_in_less_than_x_hours.registration_close_time = (
-        datetime.now() + timedelta(hours=2)
+        current_time() + timedelta(hours=2)
     )
-    prototype_event_in_less_than_x_hours.start = datetime.now() + timedelta(hours=3)
-    prototype_event_in_less_than_x_hours.end = datetime.now() + timedelta(hours=4)
+    prototype_event_in_less_than_x_hours.start = current_time() + timedelta(hours=3)
+    prototype_event_in_less_than_x_hours.end = current_time() + timedelta(hours=4)
     prototype_event_in_less_than_x_hours.num_online_slots = 9
 
     prototype_event_in_less_than_x_hours.num_online_slots = 9

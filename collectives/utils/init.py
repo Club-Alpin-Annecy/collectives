@@ -1,7 +1,6 @@
 """Module to initialise DB"""
 
 import sqlite3
-import datetime
 import uuid
 import sys
 
@@ -12,6 +11,7 @@ from click import pass_context
 
 from collectives.models import ActivityType, EventType, User, Role, db, RoleIds
 from collectives.models import Configuration, ConfigurationTypeEnum, ConfigurationItem
+from collectives.utils.time import current_time
 
 
 def catch_db_errors(fct, app, *args, **kwargs):
@@ -133,10 +133,10 @@ def init_admin(app):
         user.license = str(uuid.uuid4())[:12]
         user.first_name = "Compte"
         user.last_name = "Administrateur"
-        user.confidentiality_agreement_signature_date = datetime.datetime.now()
+        user.confidentiality_agreement_signature_date = current_time()
         version = Configuration.CURRENT_LEGAL_TEXT_VERSION
         user.legal_text_signed_version = version
-        user.legal_text_signature_date = datetime.datetime.now()
+        user.legal_text_signature_date = current_time()
         user.password = app.config["ADMINPWD"]
         admin_role = Role(user=user, role_id=int(RoleIds.Administrator))
         user.roles.append(admin_role)

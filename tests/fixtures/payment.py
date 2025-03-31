@@ -2,9 +2,8 @@
 
 These are not pytest fixtures."""
 
-from datetime import datetime
-
 from collectives.models.payment import ItemPrice, PaymentItem
+from collectives.utils.time import current_time
 
 
 def regular_price():
@@ -13,7 +12,7 @@ def regular_price():
     price.amount = 12.5
     price.title = "Normal"
     price.enabled = True
-    price.update_time = datetime.now()
+    price.update_time = current_time()
     return price
 
 
@@ -27,7 +26,7 @@ def leader_price(item):
     # pylint: disable=protected-access
     price._deprecated_leader_only = True  # Test migration as well
     # pylint: enable=protected-access
-    price.update_time = datetime.now()
+    price.update_time = current_time()
     return price
 
 
@@ -37,7 +36,7 @@ def free_price():
     price.amount = 0
     price.title = "Gratuit"
     price.enabled = True
-    price.update_time = datetime.now()
+    price.update_time = current_time()
     return price
 
 
@@ -47,7 +46,7 @@ def disabled_price():
     price.amount = 0.01
     price.title = "Test"
     price.enabled = False
-    price.update_time = datetime.now()
+    price.update_time = current_time()
     return price
 
 

@@ -1,7 +1,7 @@
 """API to get the event list in index page."""
 
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from flask import url_for, request, abort
 from flask_login import current_user
@@ -15,7 +15,7 @@ from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer, Configuration
 from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
-from collectives.utils.time import format_datetime_range, parse_api_date
+from collectives.utils.time import format_datetime_range, parse_api_date, current_time
 
 
 def photo_uri(event):
@@ -266,7 +266,7 @@ def events():
 
     # Hide very old events to unauthenticated
     if not current_user.is_authenticated:
-        min_date = datetime.now() - timedelta(
+        min_date = current_time() - timedelta(
             days=Configuration.MAX_HISTORY_FOR_ANONYMOUS
         )
         query = query.filter(Event.end > min_date)
