@@ -286,6 +286,12 @@ def view_event(event_id, name=""):
         payment_item_choice_form=payment_item_choice_form,
         question_form=question_form,
         sort_key=request.args.get("sort_key", "id"),
+        possible_sort_keys={
+            "user.last_name,user.first_name": "nom",
+            "user.first_name,user.last_name": "prénom",
+            "status,id": "statut",
+            "id": "ordre d'inscription",
+        },
     )
 
 
