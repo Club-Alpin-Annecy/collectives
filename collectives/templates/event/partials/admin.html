@@ -156,11 +156,15 @@
             <thead>
                 <tr>
                     <th>
-        {%if sort_key == "id"%}
-            <a href="{{url_for('event.view_event', event_id=event.id, sort_key='user.first_name,user.last_name')}}#attendancelist" >Trier par nom</a>
-        {%else%}
-            <a href="{{url_for('event.view_event', event_id=event.id)}}#attendancelist" >Trier par ordre d'inscription</a>
-        {%endif%}
+                        Trier par :
+                        {%for key, key_name in possible_sort_keys.items()%}
+                            {%if key == sort_key%}
+                                {{key_name}}
+                            {%else%}
+                                <a href="{{url_for('event.view_event', event_id=event.id, sort_key=key)}}#attendancelist" >{{key_name}}</a>
+                            {%endif%}
+                            {% if not loop.last %} | {%endif%}
+                        {% endfor %}
                     </th>
                 </tr>
             </thead>

@@ -286,6 +286,12 @@ def view_event(event_id, name=""):
         payment_item_choice_form=payment_item_choice_form,
         question_form=question_form,
         sort_key=request.args.get("sort_key", "id"),
+        possible_sort_keys={
+            "user.last_name,user.first_name": "nom",
+            "user.first_name,user.last_name": "prénom",
+            "status,id": "statut",
+            "id": "ordre d'inscription",
+        },
     )
 
 
@@ -478,7 +484,7 @@ def _postvalidate_leaders_and_activities(
     # Check that we have not removed leaders that we don't have the right to
     removed_leaders = existing_leaders_set - new_leaders_set
     for removed_leader in removed_leaders:
-        if not event.can_remove_leader(current_user, removed_leader):
+        if not event.can_remove_leader(removed_leader):
             flash(
                 f"Impossible de supprimer l'encadrant: {removed_leader.full_name()}",
                 "error",
