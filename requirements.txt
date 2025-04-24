@@ -16,6 +16,7 @@ WTForms-Alchemy
 git+https://github.com/maxcountryman/flask-uploads.git@f66d7dc93e684fa0a3a4350a38e41ae00483a796#egg=flask-uploads
 flask-migrate
 marshmallow-sqlalchemy
+flask-marshmallow
 cmarkgfm
 # Grab pysimplesoap from Github to get list serialization fixes
 git+https://github.com/pysimplesoap/pysimplesoap.git@ad03a21cafab982eed321553c4bfcda1755182eb#egg=pysimplesoap
@@ -32,5 +33,4 @@ PyYAML
 argon2-cffi
 # Home made fixed version of staled pip
 git+https://github.com/Club-Alpin-Annecy/Flask-Images@master#egg=Flask-Images
-git+https://github.com/Club-Alpin-Annecy/flask-marshmallow.git@dev#egg=flask-marshmallow
 git+https://github.com/Club-Alpin-Annecy/wtforms-components.git@master#egg=WTForms-Components
