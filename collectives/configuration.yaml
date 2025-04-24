@@ -37,6 +37,14 @@ Sécurité:
         description: "Max number of days an unauthenticated users can go back in time."
         type: Integer
 
+    ROBOTS_TXT:
+        content: |
+            User-agent: * 
+            Allow: /$
+            Allow: /collectives/$
+            Disallow: /
+        description: "robots.txt content; configures which pages search engines are allowed to index"
+        type: LongString
 
 Paiements:
     PAYMENTS_ENABLED:

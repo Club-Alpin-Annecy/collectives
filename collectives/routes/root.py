@@ -3,7 +3,7 @@
 This modules contains the root Blueprint
 """
 
-from flask import redirect, url_for, Blueprint, send_file
+from flask import redirect, url_for, Blueprint, send_file, Response
 from flask import render_template, request
 from flask_login import current_user, login_required
 
@@ -28,6 +28,12 @@ def index():
 def legal():
     """Route to display site legal terms"""
     return render_template("legal.html", form=LegalAcceptation())
+
+
+@blueprint.route("/robots.txt")
+def robots_txt():
+    """Robots file to disallow indexing"""
+    return Response(Configuration.ROBOTS_TXT, "text/plain")
 
 
 @blueprint.route("/legal/accept", methods=["POST"])
