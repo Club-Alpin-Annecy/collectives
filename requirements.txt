@@ -33,4 +33,3 @@ PyYAML
 argon2-cffi
 # Home made fixed version of staled pip
 git+https://github.com/Club-Alpin-Annecy/Flask-Images@master#egg=Flask-Images
-git+https://github.com/Club-Alpin-Annecy/wtforms-components.git@master#egg=WTForms-Components
