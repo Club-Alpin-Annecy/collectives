@@ -21,7 +21,7 @@ def test_volunteers_display(supervisor_client, user_with_valid_benevole_badge):
     assert response.status_code == 200
     data = json.loads(response.text)
     assert len(data) == 1
-    assert data[0]["type"] == BadgeIds.Benevole.display_name()
+    assert data[0]["name"] == BadgeIds.Benevole.display_name()
     assert data[0]["user"]["mail"] == user_with_valid_benevole_badge.mail
 
 

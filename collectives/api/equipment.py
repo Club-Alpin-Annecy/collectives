@@ -27,7 +27,7 @@ def photo_uri(equipment_type):
     return url_for("static", filename="img/icon/ionicon/md-images.svg")
 
 
-class EquipmentTypeSchema(marshmallow.Schema):
+class EquipmentTypeSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe equipment types"""
 
     path_img = fields.Function(photo_uri)
@@ -64,6 +64,7 @@ class EquipmentTypeSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
+        model = EquipmentType
         fields = (
             "id",
             "name",
@@ -99,12 +100,13 @@ def equipment_types():
     return abort(404, "Equipment types not found")
 
 
-class EquipmentModelSchema(marshmallow.Schema):
+class EquipmentModelSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe equipment model"""
 
     class Meta:
         """Fields to expose"""
 
+        model = EquipmentModel
         fields = ("id", "name", "manufacturer")
 
 
@@ -180,7 +182,7 @@ def equipment_model_delete(model_id):
     return abort(404, "Equipment model not found")
 
 
-class EquipmentSchema(marshmallow.Schema):
+class EquipmentSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe equipment"""
 
     type_name = fields.Function(lambda obj: obj.model.equipment_type.name)
@@ -199,6 +201,7 @@ class EquipmentSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
+        model = Equipment
         fields = (
             "id",
             "reference",

@@ -71,7 +71,6 @@ function createMyPaymentsTable(id, url, payment_status) {
             layout: "fitColumns",
             columns: tableColumns(payment_status, state),
 
-            nestedFieldSeparator: false,
             rowClick: function (e, row) {
                 if (state.cellClicked) return;
                 document.location.href = row.getData().details_uri;

@@ -11,12 +11,13 @@ from collectives.models.equipment import EquipmentType
 from collectives.api.common import blueprint, marshmallow
 
 
-class AutocompleteEquipmentTypeSchema(marshmallow.Schema):
+class AutocompleteEquipmentTypeSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe autocomplete equipment type"""
 
     class Meta:
         """Fields to expose"""
 
+        model = EquipmentType
         fields = (
             "id",
             "name",

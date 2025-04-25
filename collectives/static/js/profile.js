@@ -15,7 +15,7 @@ window.onload = function(){
         responsiveLayout:true,
         paginationSize: [50,100,200],
         columns:[
-            {title: "Type",     field:"event_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
+            {title: "Type",     field:"event_type", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
                     headerFilterParams:{values: addEmpty(EnumEventType)}, headerFilterFunc: multiEnumFilter, responsive: 3, minWidth: 35   },
             {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
                     headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter, responsive: 1, minWidth: 35   },
@@ -77,7 +77,7 @@ window.onload = function(){
 }
 
 function leadersFormatter(cell, formatterParams, onRendered){
-    var names = cell.getValue().map((leader) => leader['name']);
+    var names = cell.getValue().map((leader) => leader['full_name']);
     return names.join('<br/>');
 }
 
@@ -87,8 +87,13 @@ function leaderFilter(value, data){
 }
 
 function typesFormatter(cell, formatterParams, onRendered){
-    var names = cell.getValue().map((activity) => `<img src="/static/caf/icon/${activity['short']}.svg" width="30px"/>`);
-    return names.join(' ');
+
+    formatFunc = (activity) => `<img src="/static/caf/icon/${activity['short']}.svg" width="30px"/>`
+
+    var val = cell.getValue()
+    if (Array.isArray(val))
+        return val.map(formatFunc).join(' ');
+    return formatFunc(val);
 }
 
 function tagsFormatter(cell, formatterParams, onRendered){

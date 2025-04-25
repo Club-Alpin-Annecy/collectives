@@ -35,7 +35,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel) {
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
                 { title: "Activité", field: "activity_type.name",  headerFilter: "select", headerFilterParams:{values: makeOptions(EnumActivityType)}, widthGrow: 3 },
-                { title: "Badge", field: "type", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumBadgeIds)}, widthGrow: 3, visible: showType },
+                { title: "Badge", field: "name", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumBadgeIds)}, widthGrow: 3, visible: showType },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
                 { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },

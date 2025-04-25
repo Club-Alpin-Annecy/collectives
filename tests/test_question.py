@@ -99,8 +99,8 @@ def test_answers_list(leader_client, event1_with_answers):
 
     assert len(answers) == 1
     assert answers[0]["value"] == "B"
-    assert answers[0]["author_name"] == question.answers[0].user.full_name()
-    assert answers[0]["question_title"] == question.title
+    assert answers[0]["user"]["full_name"] == question.answers[0].user.full_name()
+    assert answers[0]["question"]["title"] == question.title
 
 
 def test_copy_questions(leader_client, event1_with_questions, event2):

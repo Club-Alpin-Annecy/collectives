@@ -26,21 +26,18 @@ function makeStatusFilter(){
 
 function createShowAnswersTable(url, csrfToken)
 {
-    return new Tabulator("#answers-table",
+    table =  new Tabulator("#answers-table",
         {
           ajaxURL: url,
           layout:"fitColumns",
-          groupBy:"question_title",
-          groupHeader:function(value, count, data, group){
-            return value;
-          },
+          groupBy:"question.title",
           headerSort:true,
-          nestedFieldSeparator: false,
           columns:[
-            {title:"Auteur", field:"author_name", widthGrow:1, headerFilter:true},
+            {title:"Auteur", field:"user.full_name", widthGrow:1, headerFilter:true},
             {title:"État", field:"registration_status", widthGrow:1, headerFilter:true, editor: "select", headerFilterParams:{values: makeStatusFilter()}},
             {title:"Réponse", field:"value", widthGrow:4, headerFilter:true, formatter:"textarea"},
             {field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: submitDeleteForm, headerSort: false },
+            {field:"question.title"}, // required for header, hidden
         ],
 
         locale:true,
@@ -53,4 +50,7 @@ function createShowAnswersTable(url, csrfToken)
             }
         },
 });
+
+    table.hideColumn("question.title");
+    return table;
 }
