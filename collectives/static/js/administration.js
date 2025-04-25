@@ -26,11 +26,11 @@ function badgeFormatter(cell, formatterParams, onRendered){
 }
 
 function displayRole(role){
-    return `<li>${role['name']} ${role['activity_type.name'] || ''}</li>` 
+    return `<li>${role['name']} ${role.activity_type?.name || ''}</li>`
 }
 
 function displayBadge(badge){
-    return `<li>${badge['name']} ${badge['activity_type.name'] || ''}</li>` 
+    return `<li>${badge['name']} ${badge.activity_type?.name || ''}</li>`
 }
 
 var table;
