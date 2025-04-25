@@ -10,17 +10,19 @@ from marshmallow import fields
 from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.api.event import EventSchema, filter_hidden_events
+from collectives.api.schemas import EventSchema
+from collectives.api.event import filter_hidden_events
 from collectives.models import db, User, Event, Registration
 from collectives.utils.access import valid_user
 
 
-class RegistrationSchema(marshmallow.Schema):
+class RegistrationSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe a registration"""
 
     class Meta:
         """Fields to expose"""
 
+        model = Registration
         fields = ("id", "status", "level", "is_self")
 
 

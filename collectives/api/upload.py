@@ -90,7 +90,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
     return json.dumps(response), 200, {"content-type": "application/json"}
 
 
-class UploadedFileSchema(marshmallow.Schema):
+class UploadedFileSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to serialize an uploaded file description"""
 
     url = fields.Function(lambda file: file.url())
@@ -122,6 +122,7 @@ class UploadedFileSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
+        model = UploadedFile
         fields = (
             "name",
             "date",

@@ -9,28 +9,13 @@ from marshmallow import fields
 from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import selectinload, joinedload
 
-from collectives.api.common import blueprint, marshmallow, avatar_url
+from collectives.api.common import blueprint, marshmallow
+from collectives.api.schemas import EventSchema, UserSchema
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
 from collectives.models import ActivityType, User, EventTag
 from collectives.models import Question, QuestionAnswer, Configuration
-from collectives.utils.url import slugify
 from collectives.utils.access import valid_user
-from collectives.utils.time import format_datetime_range, parse_api_date, current_time
-
-
-def photo_uri(event):
-    """Generate an URI for event image using Flask-Images.
-
-    Returned images are thumbnail of 200x130 px.
-
-    :param event: Event which will be used to get the image.
-    :type event: :py:class:`collectives.models.event.Event`
-    :return: The URL to the thumbnail
-    :rtype: string
-    """
-    if event.photo is not None:
-        return url_for("images.crop", filename=event.photo, width=350, height=250)
-    return url_for("static", filename=f"img/default/events/event{event.id%8 + 1}.svg")
+from collectives.utils.time import parse_api_date, current_time
 
 
 def filter_hidden_events(query):
@@ -95,147 +80,6 @@ def filter_hidden_events(query):
         query = query.filter(query_filter)
 
     return query
-
-
-class UserSimpleSchema(marshmallow.Schema):
-    """Schema used to describe leaders in event list"""
-
-    avatar_uri = fields.Function(avatar_url)
-    """ Profile picture URI of the user.
-
-    :type: string"""
-    name = fields.Function(lambda user: user.full_name())
-    """ User full name.
-
-    :type: string"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = ("id", "name", "avatar_uri")
-
-
-class ActivityTypeSchema(marshmallow.Schema):
-    """Schema to describe activity types"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = ("id", "short", "name")
-
-
-class EventTypeSchema(marshmallow.Schema):
-    """Schema to describe event types"""
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = ("id", "short", "name")
-
-
-class EventSchema(marshmallow.Schema):
-    """Schema used to describe event in index page."""
-
-    photo_uri = fields.Function(photo_uri)
-    """ URI of the event image thumnail.
-
-    See also: :py:func:`photo_uri`
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    free_slots = fields.Function(lambda event: event.free_slots())
-    """ Number of free user slots for this event.
-
-    :type: :py:class:`marshmallow.fields.Function` """
-    occupied_slots = fields.Function(lambda event: event.num_taken_slots())
-    """ Number of occupied user slots for this event.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    leaders = fields.Function(
-        lambda event: UserSimpleSchema(many=True).dump(event.ranked_leaders())
-    )
-    """ Information about event leaders in JSON.
-
-    See also: :py:class:`UserSimpleSchema`
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    event_types = fields.Function(
-        lambda event: EventTypeSchema(many=True).dump([event.event_type])
-    )
-    """ Type of event.
-    Note: this is a list so that the frontend code can be shared with activity types / tags.
-    Only one value is ever expected.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    activity_types = fields.Function(
-        lambda event: ActivityTypeSchema(many=True).dump(event.activity_types)
-    )
-    """ Types of activity of this event.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    view_uri = fields.Function(
-        lambda event: url_for(
-            "event.view_event", event_id=event.id, name=slugify(event.title)
-        )
-    )
-    """ URI to the event page.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-
-    is_confirmed = fields.Function(lambda event: event.is_confirmed())
-    """ Current event status is confirmed.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    tags = fields.Function(lambda event: event.tags)
-    """ Tags this event.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    has_free_slots = fields.Function(lambda event: event.has_free_slots())
-    """ Tags this event.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-    has_free_waiting_slots = fields.Function(
-        lambda event: event.has_free_waiting_slots()
-    )
-    """ Tags this event.
-
-     :type: :py:class:`marshmallow.fields.Function`"""
-    has_free_online_slots = fields.Function(lambda event: event.has_free_online_slots())
-    """ Tags this event.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-
-    formated_datetime_range = fields.Function(
-        lambda event: format_datetime_range(event.start, event.end)
-    )
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = (
-            "id",
-            "title",
-            "start",
-            "end",
-            "num_slots",
-            "num_online_slots",
-            "registration_open_time",
-            "registration_close_time",
-            "photo_uri",
-            "view_uri",
-            "free_slots",
-            "occupied_slots",
-            "leaders",
-            "activity_types",
-            "event_types",
-            "is_confirmed",
-            "status",
-            "visibility",
-            "tags",
-            "has_free_slots",
-            "has_free_waiting_slots",
-            "has_free_online_slots",
-            "formated_datetime_range",
-        )
 
 
 @blueprint.route("/events/")
@@ -361,19 +205,10 @@ def events():
     )
 
 
-class AutocompleteEventSchema(marshmallow.Schema):
+class AutocompleteEventSchema(EventSchema):
     """Schema under which autocomplete suggestions are returned"""
 
-    view_uri = fields.Function(
-        lambda event: url_for(
-            "event.view_event", event_id=event.id, name=slugify(event.title)
-        )
-    )
-    """ URI to the event page.
-
-    :type: :py:class:`marshmallow.fields.Function`"""
-
-    class Meta:
+    class Meta(EventSchema.Meta):
         """Fields to expose"""
 
         fields = ("id", "title", "start", "view_uri")
@@ -456,7 +291,16 @@ def _get_answer_registration_status(answer: QuestionAnswer) -> str:
     return reg.status.display_name() if reg else "Supprimée"
 
 
-class QuestionAnswerSchema(marshmallow.Schema):
+class QuestionSchema(marshmallow.SQLAlchemyAutoSchema):
+    """Schema according to which question are returned"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Question
+
+
+class QuestionAnswerSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema according to which question answers are returned"""
 
     delete_uri = fields.Function(
@@ -466,20 +310,21 @@ class QuestionAnswerSchema(marshmallow.Schema):
 
     :type: :py:class:`marshmallow.fields.Function`"""
 
-    author_name = fields.Function(lambda answer: answer.user.full_name())
-
-    question_title = fields.Function(lambda answer: answer.question.title)
+    user = fields.Nested(UserSchema, only=("full_name",))
+    question = fields.Nested(QuestionSchema, only=("title",))
 
     registration_status = fields.Function(_get_answer_registration_status)
 
     class Meta:
         """Fields to expose"""
 
+        model = QuestionAnswer
+        include_relationships = True
         fields = (
             "id",
             "value",
-            "author_name",
-            "question_title",
+            "user",
+            "question",
             "delete_uri",
             "registration_status",
         )

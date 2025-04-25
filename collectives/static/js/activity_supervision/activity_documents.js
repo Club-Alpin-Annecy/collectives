@@ -26,7 +26,6 @@ function createActivityDocumentsTable(url, csrf_token) {
             ajaxURL: url,
             layout: "fitColumns",
 
-            nestedFieldSeparator: false,
             columns: [
                 {
                     title: "Fichier", headerFilter: "input", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }

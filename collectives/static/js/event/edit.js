@@ -490,7 +490,6 @@ function createUploadedFilesTable(editor, csrf_token) {
         {
             layout: "fitColumns",
 
-            nestedFieldSeparator: false,
             columns: [
                 {
                     title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles

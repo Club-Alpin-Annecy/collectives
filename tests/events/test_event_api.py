@@ -32,10 +32,10 @@ def test_event_access(
     assert len(data) == 4
     assert f"/collectives/{past_event.id}" in data[0]["view_uri"]
     assert data[0]["num_online_slots"] == 1
-    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["leaders"][0]["full_name"] == "Romeo CAPO"
     assert data[0]["title"] == past_event.title
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
-    assert data[0]["event_types"][0]["name"] == "Collective"
+    assert data[0]["event_type"]["name"] == "Collective"
 
     # Remove activity_event activity_type -- should still not have access
     activity_event.activity_types.clear()
@@ -68,10 +68,10 @@ def test_event_access_leader(
     assert len(data) == 6
     assert f"/collectives/{past_event.id}" in data[0]["view_uri"]
     assert data[0]["num_online_slots"] == 1
-    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["leaders"][0]["full_name"] == "Romeo CAPO"
     assert data[0]["title"] == past_event.title
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
-    assert data[0]["event_types"][0]["name"] == "Collective"
+    assert data[0]["event_type"]["name"] == "Collective"
 
     # Remove activity_event activity_type -- should keep access
     activity_event.activity_types.clear()
@@ -152,10 +152,10 @@ def test_event_filter_activity(user1_client, event1, event2, event3):
     assert len(data) == 1
     assert data[0]["view_uri"] == "/collectives/2-new-collective-2"
     assert data[0]["num_online_slots"] == 1
-    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["leaders"][0]["full_name"] == "Romeo CAPO"
     assert data[0]["title"] == "New collective 2"
     assert data[0]["activity_types"][0]["name"] == "Canyon"
-    assert data[0]["event_types"][0]["name"] == "Collective"
+    assert data[0]["event_type"]["name"] == "Collective"
 
 
 def test_event_filter_activity_with_several_types(user1_client, event1, event2, event3):
@@ -175,16 +175,16 @@ def test_event_filter_activity_with_several_types(user1_client, event1, event2, 
     assert len(data) == 2
     assert data[1]["view_uri"] == "/collectives/2-new-collective-2"
     assert data[1]["num_online_slots"] == 1
-    assert data[1]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[1]["leaders"][0]["full_name"] == "Romeo CAPO"
     assert data[1]["title"] == "New collective 2"
     assert data[1]["activity_types"][0]["name"] == "Canyon"
-    assert data[1]["event_types"][0]["name"] == "Collective"
+    assert data[1]["event_type"]["name"] == "Collective"
     assert data[0]["view_uri"] == "/collectives/1-new-collective-1"
     assert data[0]["num_online_slots"] == 1
-    assert data[0]["leaders"][0]["name"] == "Romeo CAPO"
+    assert data[0]["leaders"][0]["full_name"] == "Romeo CAPO"
     assert data[0]["title"] == "New collective 1"
     assert data[0]["activity_types"][0]["name"] == "Alpinisme"
-    assert data[0]["event_types"][0]["name"] == "Collective"
+    assert data[0]["event_type"]["name"] == "Collective"
 
 
 def test_event_filter_tags(user1_client, event1, event2, event3):

@@ -8,14 +8,30 @@ from marshmallow import fields
 from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
+from collectives.api.schemas import EventSchema
 from collectives.models import db, Event, ItemPrice, Payment, PaymentItem, PaymentStatus
 from collectives.utils.access import payments_enabled, valid_user
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import extract_payments
 
 
-class ItemPriceSchema(marshmallow.Schema):
-    """Schema to serialiaze a price"""
+class PaymentItemSchema(marshmallow.SQLAlchemyAutoSchema):
+    """Schema to serialize a payment item"""
+
+    event = fields.Nested(
+        EventSchema, only=["title", "activity_type_names", "event_type", "start"]
+    )
+
+    class Meta:
+        """Fields to expose"""
+
+        model = PaymentItem
+        include_relationships = True
+        fields = ("id", "title", "event")
+
+
+class ItemPriceSchema(marshmallow.SQLAlchemyAutoSchema):
+    """Schema to serialize a price"""
 
     total_use_count = fields.Function(lambda p: p.total_use_count())
     """ Total number of times this price has been used, even if the
@@ -27,9 +43,13 @@ class ItemPriceSchema(marshmallow.Schema):
 
     :type: string"""
 
+    item = fields.Nested(PaymentItemSchema)
+
     class Meta:
         """Fields to expose"""
 
+        model = ItemPrice
+        include_relationships = True
         fields = (
             "id",
             "title",
@@ -39,11 +59,11 @@ class ItemPriceSchema(marshmallow.Schema):
             "leader_only",
             "license_types",
             "max_uses",
-            "item.title",
+            "item",
         )
 
 
-class PaymentSchema(marshmallow.Schema):
+class PaymentSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema representing payment data for use in tabulator listings"""
 
     status = fields.Function(lambda p: p.status.display_name())
@@ -78,6 +98,16 @@ class PaymentSchema(marshmallow.Schema):
 
     :type: string"""
 
+    item = fields.Nested(PaymentItemSchema, only=["title", "event"])
+
+    price = fields.Nested(ItemPriceSchema, only=["title"])
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Payment
+        include_relationships = True
+
 
 class EventPaymentSchema(PaymentSchema):
     """Specialization of PaymentSchema for listing the payments associated to an event"""
@@ -89,14 +119,14 @@ class EventPaymentSchema(PaymentSchema):
 
     :type: string"""
 
-    class Meta:
+    class Meta(PaymentSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "id",
             "status",
-            "item.title",
-            "price.title",
+            "item",
+            "price",
             "amount_charged",
             "amount_paid",
             "buyer_name",
@@ -106,10 +136,6 @@ class EventPaymentSchema(PaymentSchema):
             "creation_time",
             "finalization_time",
             "processor_order_ref",
-            "item.event.title",
-            "item.event.event_type.name",
-            "item.event.activity_type_names",
-            "item.event.start",
         )
 
 
@@ -145,14 +171,13 @@ class MyPaymentSchema(PaymentSchema):
 
     :type: string"""
 
-    class Meta:
+    class Meta(PaymentSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "id",
-            "item.event.title",
-            "item.title",
-            "price.title",
+            "item",
+            "price",
             "amount_charged",
             "amount_paid",
             "payment_type",

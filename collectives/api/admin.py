@@ -12,55 +12,13 @@ from collectives.models import db, User, RoleIds, Role, Badge
 from collectives.models.badge import BadgeIds
 from collectives.utils.access import valid_user, user_is, confidentiality_agreement
 
-from collectives.api.common import blueprint, marshmallow, avatar_url
-from collectives.api.event import ActivityTypeSchema
+from collectives.api.common import blueprint
+from collectives.api.schemas import UserSchema, RoleSchema, BadgeSchema
 
 
-class RoleSchema(marshmallow.Schema):
-    """Schema for the role of a user.
+class AdminUserSchema(UserSchema):
+    """Schema for users in admin list"""
 
-    Mainly used in :py:attr:`UserSchema.roles`
-    """
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = (
-            "name",
-            "role_id",
-            "activity_type.name",
-            "activity_type.short",
-        )
-
-
-class BadgeSchema(marshmallow.Schema):
-    """Schema for the badges of a user.
-
-    Mainly used in :py:attr:`UserSchema.badges`
-    """
-
-    class Meta:
-        """Fields to expose"""
-
-        fields = (
-            "name",
-            "badge_id",
-            "activity_type.name",
-        )
-
-
-class UserSchema(marshmallow.Schema):
-    """Schema of a user to be used to extract API information.
-
-    This class is a ``marshmallow`` schema which automatically gets its
-    structure from the ``User`` class. Plus, we add some useful information
-    or link. This schema is only used for administration listing.
-    """
-
-    isadmin = fields.Function(lambda user: user.is_admin())
-    """ Wraps :py:meth:`collectives.models.user.User.is_admin`
-
-    :type: boolean"""
     roles_uri = fields.Function(
         lambda user: url_for("administration.add_user_role", user_id=user.id)
     )
@@ -89,50 +47,14 @@ class UserSchema(marshmallow.Schema):
 
     :type: string
     """
-    profile_uri = fields.Function(
-        lambda user: url_for("profile.show_user", user_id=user.id)
-    )
-    """ URI to see user profile
 
-    :type: string
-    """
-    leader_profile_uri = fields.Function(
-        lambda user: (
-            url_for("profile.show_leader", leader_id=user.id)
-            if user.can_create_events()
-            else None
-        )
-    )
-    """ URI to see user profile
-
-    :type: string
-    """
-    avatar_uri = fields.Function(avatar_url)
-    """ URI to a resized version (30px) of user avatar
-
-    :type: string
-    """
-    roles = fields.Function(lambda user: RoleSchema(many=True).dump(user.roles))
-    """ List of roles of the User.
-
-    :type: list(dict())"""
-
-    badges = fields.Function(lambda user: BadgeSchema(many=True).dump(user.badges))
-    """ List of badges of the User.
-
-    :type: list(dict())"""
-    full_name = fields.Function(lambda user: user.full_name())
-    """ User full name
-
-    :type: string"""
-
-    class Meta:
+    class Meta(UserSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "id",
             "mail",
-            "isadmin",
+            "is_active",
             "enabled",
             "roles_uri",
             "badges_uri",
@@ -144,7 +66,6 @@ class UserSchema(marshmallow.Schema):
             "last_name",
             "roles",
             "badges",
-            "isadmin",
             "leader_profile_uri",
             "full_name",
         )
@@ -161,7 +82,8 @@ def users():
 
     :return: A tuple:
 
-        - JSON containing information describe in UserSchema
+        - JSON containing information describe in AdminUserSchema
+
         - HTTP return code : 200
         - additional header (content as JSON)
     :rtype: (string, int, dict)
@@ -228,13 +150,13 @@ def users():
     page = int(request.args.get("page"))
     size = int(request.args.get("size"))
     paginated_users = query.paginate(page=page, per_page=size, error_out=False)
-    data = UserSchema(many=True).dump(paginated_users.items)
+    data = AdminUserSchema(many=True).dump(paginated_users.items)
     response = {"data": data, "last_page": paginated_users.pages}
 
     return response, 200, {"content-type": "application/json"}
 
 
-class LeaderRoleSchema(marshmallow.Schema):
+class LeaderRoleSchema(RoleSchema):
     """Schema for a leader role
 
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
@@ -247,81 +169,48 @@ class LeaderRoleSchema(marshmallow.Schema):
             else ""
         )
     )
-    """ URI to delete this user (WIP)
 
-    :type: string
-    """
-    user = fields.Function(lambda role: UserSchema().dump(role.user))
-    """ URI to get the user corresponding to the Role
+    user = fields.Nested(UserSchema)
 
-    :type: :py:class:`UserSchema`
-    """
-
-    activity_type = fields.Function(
-        lambda role: ActivityTypeSchema().dump(role.activity_type)
-    )
-    """ List of roles of the User.
-
-    Roles are encoded as JSON.
-
-    :type: list(dict())"""
-
-    type = fields.Function(lambda role: role.role_id.display_name())
-    """ Role type
-
-    :type: string"""
-
-    class Meta:
+    class Meta(RoleSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "user",
             "activity_type",
             "delete_uri",
-            "type",
+            "name",
         )
 
 
-class UserBadgeSchema(marshmallow.Schema):
+class UserBadgeSchema(BadgeSchema):
     """Schema for a badge
 
     Combines a :py:class:`UserSchema` and :py:class:`.event.ActivityTypeSchema`.
     """
 
-    user = fields.Function(lambda badge: UserSchema().dump(badge.user))
-    """ URI to get the user corresponding to the Badge
-
-    :type: :py:class:`UserSchema`
-    """
-
-    activity_type = fields.Function(
-        lambda badge: ActivityTypeSchema().dump(badge.activity_type)
+    delete_uri = fields.Function(
+        lambda badge: url_for(
+            request.args.get("delete", "activity_supervision.delete_volunteer"),
+            badge_id=badge.id,
+        )
     )
-    """ List of roles of the User.
+    renew_uri = fields.Function(
+        lambda badge: url_for(
+            request.args.get("renew", "activity_supervision.renew_volunteer"),
+            badge_id=badge.id,
+        )
+    )
 
-    Roles are encoded as JSON.
+    user = fields.Nested(UserSchema)
 
-    :type: list(dict())"""
-
-    type = fields.Function(lambda badge: badge.badge_id.display_name())
-    """ Badge type
-
-    :type: string"""
-
-    level = fields.Function(lambda badge: badge.level)
-    """ Badge level
-
-    :type: integer"""
-
-    class Meta:
+    class Meta(BadgeSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "user",
             "activity_type",
-            "delete_uri",
-            "renew_uri",
-            "type",
+            "name",
             "expiration_date",
             "level",
             "delete_uri",

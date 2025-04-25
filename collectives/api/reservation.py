@@ -14,7 +14,7 @@ from collectives.models import db, Equipment, EquipmentStatus, Reservation
 from collectives.models import ReservationLine, ReservationStatus, User
 
 
-class ReservationSchema(marshmallow.Schema):
+class ReservationSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe a reservation"""
 
     user_licence = fields.Function(lambda obj: obj.user.license if obj.user else "")
@@ -31,6 +31,7 @@ class ReservationSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
+        model = Reservation
         fields = (
             "collect_date",
             "return_date",
@@ -142,7 +143,7 @@ def equipment_histo_reservations(equipment_id):
     return abort(404, "Reservations not found")
 
 
-class ReservationLineSchema(marshmallow.Schema):
+class ReservationLineSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe reservation line"""
 
     equipment_type_name = fields.Function(lambda obj: obj.equipment_type.name)
@@ -160,6 +161,7 @@ class ReservationLineSchema(marshmallow.Schema):
     class Meta:
         """Fields to expose"""
 
+        model = ReservationLine
         fields = (
             "quantity",
             "equipment_type_name",
@@ -449,12 +451,13 @@ def my_reservation(reservation_id):
     return abort(404, "Reservation not found")
 
 
-class AutocompleteEquipmentSchema(marshmallow.Schema):
+class AutocompleteEquipmentSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe autocomplete equipment"""
 
     class Meta:
         """Fields to expose"""
 
+        model = Equipment
         fields = (
             "id",
             "reference",

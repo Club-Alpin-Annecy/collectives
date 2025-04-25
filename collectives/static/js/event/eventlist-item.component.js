@@ -89,7 +89,7 @@ export default {
             class="leader collectives-list--item--details-leader"
           >
             <span v-for="(leader, index) in event.leaders.slice(0, 2)">
-              {{ leader.name}}
+              {{ leader.full_name}}
               <br v-if="index < event.leaders.length" />
             </span>
           </div>
@@ -116,11 +116,11 @@ export default {
 
             <span class="item aligned-flex-inline">
               <img 
-                :src="'/static/caf/icon/' + event.event_types[0].short + '.svg'"
+                :src="'/static/caf/icon/' + event.event_type.short + '.svg'"
                 width="30px"
-                :title="event.event_types[0].name"
+                :title="event.event_type.name"
               />
-              <span>{{event.event_types[0].name}}</span>
+              <span>{{event.event_type.name}}</span>
             </span>
 
             <span class="item aligned-flex-inline" 

@@ -10,22 +10,17 @@ from flask import request, abort
 from flask_login import current_user
 from sqlalchemy.orm import Query
 from sqlalchemy import func, and_
-from marshmallow import fields
 
-from collectives.api.common import blueprint, marshmallow
+from collectives.api.common import blueprint
+from collectives.api.schemas import UserSchema
 from collectives.models import db, User, Role, RoleIds, EventType
 from collectives.utils.access import confidentiality_agreement, valid_user
 
 
-class AutocompleteUserSchema(marshmallow.Schema):
+class AutocompleteUserSchema(UserSchema):
     """Schema under which autocomplete suggestions are returned"""
 
-    full_name = fields.Function(lambda user: user.full_name())
-    """ User full name as :py:meth:`collectives.models.user.User.full_name`
-
-    :type: string"""
-
-    class Meta:
+    class Meta(UserSchema.Meta):
         """Fields to expose"""
 
         fields = (

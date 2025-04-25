@@ -6,12 +6,15 @@ from typing import List
 
 from flask import current_app
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql import func
 
 from collectives.models import db, Payment, PaymentStatus, PaymentItem, Event
 from collectives.models import ActivityType, ItemPrice, User, PaymentType
 from collectives.models import Registration, RegistrationStatus
 from collectives.utils.time import current_time, format_date, format_date_range
 from collectives.utils.numbers import format_currency
+
+# pylint: disable=no-value-for-parameter
 
 
 def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
@@ -89,9 +92,7 @@ def extract_payments(event_id=None, page=None, pagesize=50, filters=None):
                 query = query.filter(ItemPrice.title.like(f"%{value}%"))
             elif field == "buyer_name":
                 query = query.filter(User.id == Payment.buyer_id)
-                query = query.filter(
-                    User.first_name + " " + User.last_name.ilike(f"%{value}%")
-                )
+                query = query.filter(func.lower(User.full_name()).like(f"%{value}%"))
             elif field == "payment_type" and value is not None:
                 query = query.filter(Payment.payment_type == PaymentType(int(value)))
             elif field == "status" and value is not None:

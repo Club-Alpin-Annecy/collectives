@@ -14,7 +14,6 @@ function createPaymentsTable(url)
           paginationSize : 50,
           paginationSizeSelector:[ 50, 100, 200, 500],
 
-          nestedFieldSeparator: false,
           columns:[
             {title:"État", field:"status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumPaymentStatus)}, headerFilterParams:{values: addEmpty(EnumPaymentStatus)}},
             {title:"Date", field:"finalization_time", widthGrow:1.2, headerFilter:dateFilterEditor, formatter:"datetime", formatterParams: { outputFormat:"DD/MM/YYYY" }},
