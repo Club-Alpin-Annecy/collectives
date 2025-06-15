@@ -201,6 +201,7 @@ ACTIVITY_TYPES = {
     24: {"short": "premier_secours", "name": "Premier secours", "email":"dev-collectives@cafannecy.fr", "trigram": "APSC"},
     25: {"short": "neige_avalanche", "name": "Neige Avalanche", "email":"dev-collectives@cafannecy.fr", "trigram": "AAV"},
     26: {"short": "speleo", "name": "Spéléologie", "email":"dev-collectives@cafannecy.fr", "trigram": "ASP"},
+    27: {"short": "handicaf", "name": "Handicaf", "email":"dev-collectives@cafannecy.fr", "trigram": "HAN"},
 }
 # fmt: on
 # pylint: enable=line-too-long
