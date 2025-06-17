@@ -25,6 +25,7 @@ from collectives.utils import export, badges
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 blueprint = Blueprint(
     "activity_supervision", __name__, url_prefix="/activity_supervision"
@@ -337,12 +338,23 @@ def configuration_form(activity_type_id: int = None):
 
         if activity is None:
             # May only create services, not regular activities
-            activity = ActivityType(kind=ActivityKind.Service)
+            # Generate short name from full name
+            activity = ActivityType(
+                kind=ActivityKind.Service, short=slugify(form.name.data)
+            )
 
         form.populate_obj(activity)
         db.session.add(activity)
         db.session.commit()
+
+        if ActivityType.query.filter(ActivityType.short == activity.short).count() > 1:
+            # Make sure short name is unique
+            activity.short = f"{activity.short}-{activity.id}"
+            db.session.commit()
+
         flash(f"Activité {activity.name} modifiée avec succès.", "success")
+
+        return redirect(url_for(".configuration"))
 
     return render_template(
         "basicform.html",

@@ -2,6 +2,7 @@
 
 import json
 from sqlalchemy.orm import validates
+from wtforms_alchemy.validators import Unique
 
 from collectives.models.globals import db
 from collectives.utils.misc import truncate
@@ -83,7 +84,10 @@ class ActivityType(db.Model):
         db.String(8),
         nullable=False,
         info={
-            "label": "Trigramme",
+            "label": "Trigramme (compta)",
+            "validators": Unique(
+                column="trigram", message="Ce trigramme est déjà utilisé"
+            ),
         },
     )
     """ Three-letter code.
@@ -96,6 +100,7 @@ class ActivityType(db.Model):
     order = db.Column(
         db.Integer,
         nullable=False,
+        default=50,
         info={
             "label": "Ordre d'apparence",
         },

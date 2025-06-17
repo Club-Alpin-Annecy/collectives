@@ -81,6 +81,6 @@ class ActivityTypeCreationForm(ModelForm, FlaskForm):
         """Fields to expose"""
 
         model = ActivityType
-        exclude = ["kind"]
+        exclude = ["short", "kind"]
 
     submit = SubmitField("Ajouter")
