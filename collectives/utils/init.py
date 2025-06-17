@@ -9,7 +9,15 @@ import sqlalchemy
 import pymysql
 from click import pass_context
 
-from collectives.models import ActivityType, EventType, User, Role, db, RoleIds
+from collectives.models import (
+    ActivityType,
+    EventType,
+    User,
+    Role,
+    db,
+    RoleIds,
+    ActivityKind,
+)
 from collectives.models import Configuration, ConfigurationTypeEnum, ConfigurationItem
 from collectives.utils.time import current_time
 
@@ -57,18 +65,22 @@ def activity_types(app):
             activity_type.email = atype.get("email", None)
             activity_type.trigram = atype["trigram"]
 
+            activity_type.deprecated = atype.get("deprecated", False)
+            activity_type.order = atype.get("order", 50)
+
         activity_type.short = atype["short"]
-        activity_type.deprecated = atype.get("deprecated", False)
 
         # if order is not specified, default to '50'
-        activity_type.order = atype.get("order", 50)
+        activity_type.kind = ActivityKind.Regular
         db.session.add(activity_type)
 
     # Remove activity not in config
     absent_filter = sqlalchemy.not_(
         ActivityType.id.in_(app.config["ACTIVITY_TYPES"].keys())
     )
-    ActivityType.query.filter(absent_filter).delete(synchronize_session=False)
+    ActivityType.query.filter(absent_filter).filter(
+        ActivityType.kind == ActivityKind.Regular
+    ).delete(synchronize_session=False)
     # due to synchronize_session=False, do not use this session after without
     # commit it
 

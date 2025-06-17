@@ -5,12 +5,31 @@ from sqlalchemy.orm import validates
 
 from collectives.models.globals import db
 from collectives.utils.misc import truncate
+from collectives.models.utils import ChoiceEnum
+
+
+class ActivityKind(ChoiceEnum):
+    """Enum listing kinds of activities."""
+
+    # pylint: disable=invalid-name
+    Regular = 0
+    Service = 1
+
+    @classmethod
+    def display_names(cls) -> str:
+        """Display name for all activity kinds.
+        :return: activity kind name
+        """
+        return {
+            cls.Regular: "Activité régulière",
+            cls.Service: "Service du club",
+        }
 
 
 class ActivityType(db.Model):
     """Class of the type of activity.
 
-    An activity type is a sport (climbing, hiking). Previouslu it could
+    An activity type is a sport (climbing, hiking) or a service. Previously it could
     also be another occupation (training), but this distinction should now
     be made using event types.
     Persistence is done with SQLAlchemy and in the table
@@ -101,6 +120,18 @@ class ActivityType(db.Model):
     :type: bool
     """
 
+    kind = db.Column(
+        db.Enum(ActivityKind),
+        nullable=False,
+        default=ActivityKind.Regular,
+        info={
+            "label": "Type d'activité",
+            "choices": ActivityKind.display_names(),
+            "coerce": ActivityKind.coerce,
+        },
+    )
+    """ Kind of activity"""
+
     # Relationships
     persons = db.relationship(
         "Role", backref=db.backref("activity_type", lazy="selectin"), lazy=True
@@ -139,16 +170,20 @@ class ActivityType(db.Model):
         return truncate(value, max_len)
 
     @classmethod
-    def get_all_types(cls, include_deprecated=False):
+    def get_all_types(
+        cls, include_deprecated: bool = False, include_services: bool = True
+    ) -> list["ActivityType"]:
         """List all activity_types in database
 
         :param include_deprecated: Whether to include deprecated activity types
         :type include_deprecated: bool
         :return: list of types
         :rtype: list(:py:class:`ActivityType`)"""
-        query = cls.query.order_by("order", "name")
+        query = cls.query.order_by("kind", "order", "name")
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
+        if not include_services:
+            query = query.filter_by(kind=ActivityKind.Regular)
         return query.all()
 
     @classmethod

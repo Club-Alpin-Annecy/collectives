@@ -62,13 +62,25 @@ class ActivityTypeSelectionForm(FlaskForm):
             self.submit.label = Label(self.submit.id, submit_label)
 
 
-class ActivityTypeForm(ModelForm, FlaskForm):
+class ActivityTypeEditForm(ModelForm, FlaskForm):
     """Form to modify an activity type."""
 
     class Meta:
         """Fields to expose"""
 
         model = ActivityType
-        exclude = ["short"]
+        exclude = ["short", "kind"]
 
     submit = SubmitField("Modifier")
+
+
+class ActivityTypeCreationForm(ModelForm, FlaskForm):
+    """Form to create an activity type."""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = ActivityType
+        exclude = ["kind"]
+
+    submit = SubmitField("Ajouter")

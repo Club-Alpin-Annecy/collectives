@@ -192,6 +192,10 @@ class UserRoleMixin:
         """
         return self.has_role_for_activity([RoleIds.ActivitySupervisor], activity_id)
 
+    def can_manage_all_activities(self) -> bool:
+        """Admins and Presidents can manage all activities."""
+        return self.is_admin() or self.has_role([RoleIds.President])
+
     def can_lead_on(
         self,
         start: datetime.datetime,
@@ -245,8 +249,8 @@ class UserRoleMixin:
 
         Admin and President supervise all.
         """
-        if self.is_admin() or self.has_role([RoleIds.President]):
-            return ActivityType.get_all_types(True)
+        if self.can_manage_all_activities():
+            return ActivityType.get_all_types(include_deprecated=True)
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
         return [role.activity_type for role in roles]

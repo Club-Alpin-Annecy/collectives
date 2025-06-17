@@ -180,8 +180,6 @@ def index(activity_type_id=None, name=""):
     :param int activity_type_id: Optional, ID of the activity_type to filter on.
     :param string title: Name of the activity type, only for URL cosmetic purpose.
     """
-    event_types = EventType.get_all_types()
-    activity_types = ActivityType.get_all_types()
 
     filtered_activity = None
     if activity_type_id:
@@ -210,6 +208,8 @@ def index(activity_type_id=None, name=""):
                 )
             )
 
+    event_types = EventType.get_all_types()
+    activity_types = ActivityType.get_all_types(include_services=False)
     return render_template(
         "index.html",
         activity_types=activity_types,
