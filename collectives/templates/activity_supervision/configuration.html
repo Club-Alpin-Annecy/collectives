@@ -9,20 +9,32 @@
 <div class="page-content" id="administration">
   <h2 class="heading-2">{{title}}</h2>
 
-  <p>Merci de sélectionner l'activité que vous souhaitez modifier:</p>
+  <p>Merci de sélectionner l'activité ou service que vous souhaitez modifier :</p>
 
   <p>
     <ul>
       {% for activity in activities %}
         <li>
           <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=activity.id) }}" >
-            {{ activity.name }} ({{activity.short}})
+            {% if activity.deprecated %}
+              <del>{{ activity.name }} ({{activity.short}})</del>
+            {% else %}
+              {{ activity.name }} ({{activity.short}})
+            {% endif %}
           </a>
         </li>
       {% endfor %}
     </ul>
   </p>
-  
+
+  {% if current_user.can_manage_all_activities() %}
+    <p>
+      <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=None) }}" class="button button-secondary">
+        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"/>
+        Ajouter un nouveau service
+      </a>
+    </p>
+  {% endif %}
 
 </div>
 {% endblock %}

@@ -12,8 +12,12 @@ from sqlalchemy.orm import joinedload
 
 from collectives.forms.csv import CSVForm
 from collectives.forms.user import AddLeaderForm
-from collectives.forms.activity_type import ActivityTypeSelectionForm, ActivityTypeForm
-from collectives.models import User, Role, RoleIds, ActivityType, db
+from collectives.forms.activity_type import (
+    ActivityTypeEditForm,
+    ActivityTypeSelectionForm,
+    ActivityTypeCreationForm,
+)
+from collectives.models import User, Role, RoleIds, ActivityType, ActivityKind, db
 from collectives.models import Configuration, UploadedFile
 from collectives.forms.upload import AddActivityDocumentForm
 from collectives.models.badge import BadgeIds
@@ -21,6 +25,7 @@ from collectives.utils import export, badges
 from collectives.utils.access import confidentiality_agreement, valid_user, user_is
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 blueprint = Blueprint(
     "activity_supervision", __name__, url_prefix="/activity_supervision"
@@ -302,34 +307,58 @@ def configuration():
     return render_template(
         "activity_supervision/configuration.html",
         activities=activities,
-        title="Configuration",
+        title="Configuration des activités et services",
     )
 
 
 @blueprint.route("/configuration/<int:activity_type_id>", methods=["GET", "POST"])
-def configuration_form(activity_type_id):
+@blueprint.route("/configuration/add", methods=["GET", "POST"])
+def configuration_form(activity_type_id: int = None):
     """Route for managing activity configuration."""
 
-    activity = ActivityType.query.get(activity_type_id)
-    if activity is None:
-        flash(f"L'activité #{activity_type_id} n'existe pas", "error")
-        return redirect(url_for(".activity_supervision"))
+    if activity_type_id is None:
+        if not current_user.can_manage_all_activities():
+            flash("Vous n'avez pas le droit de créer une activité.", "error")
+            return redirect(url_for(".activity_supervision"))
+        activity = None
 
-    if activity not in current_user.get_supervised_activities():
-        flash("L'activité {activity.name} n'est pas gérable par vous.")
-        return redirect(url_for(".activity_supervision"))
+        form = ActivityTypeCreationForm()
+    else:
+        activity = ActivityType.query.get(activity_type_id)
+        if activity is None:
+            flash(f"L'activité #{activity_type_id} n'existe pas", "error")
+            return redirect(url_for(".activity_supervision"))
+        if activity not in current_user.get_supervised_activities():
+            flash("L'activité {activity.name} n'est pas gérable par vous.")
+            return redirect(url_for(".activity_supervision"))
 
-    form = ActivityTypeForm(obj=activity)
+        form = ActivityTypeEditForm(obj=activity)
 
     if form.validate_on_submit():
+
+        if activity is None:
+            # May only create services, not regular activities
+            # Generate short name from full name
+            activity = ActivityType(
+                kind=ActivityKind.Service, short=slugify(form.name.data)
+            )
+
         form.populate_obj(activity)
         db.session.add(activity)
         db.session.commit()
+
+        if ActivityType.query.filter(ActivityType.short == activity.short).count() > 1:
+            # Make sure short name is unique
+            activity.short = f"{activity.short}-{activity.id}"
+            db.session.commit()
+
         flash(f"Activité {activity.name} modifiée avec succès.", "success")
+
+        return redirect(url_for(".configuration"))
 
     return render_template(
         "basicform.html",
-        title=f"Configuration {activity.name}",
+        title=f"Configuration {activity.name}" if activity else "Nouveau service",
         form=form,
         extends="activity_supervision/activity_supervision.html",
     )

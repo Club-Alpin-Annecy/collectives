@@ -74,9 +74,9 @@ export default {
           >
             <img
               v-for="type in event.activity_types"
-              :src="'/static/caf/icon/' + type.short + '.svg'"
-              :alt="type.short"
-              :title="type.short"
+              :src="'/static/caf/icon/' + (type.kind=='Regular'?type.short:'benevolat') + '.svg'"
+              :alt="type.name"
+              :title="type.name"
             />
           </div>
 

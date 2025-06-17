@@ -6,7 +6,7 @@ submodules classes by importing them. It also create the ``db`` object
 """
 
 from collectives.models.globals import db
-from collectives.models.activity_type import ActivityType
+from collectives.models.activity_type import ActivityType, ActivityKind
 from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
 from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
 from collectives.models.configuration import Configuration, DBAdaptedFlaskConfig
