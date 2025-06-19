@@ -76,7 +76,11 @@ class EventMiscMixin:
     def delete_photo(self):
         """Remove and dereference an event photo."""
         if self.photo:
-            os.remove(photos.path(self.photo))
+            try:
+                os.remove(photos.path(self.photo))
+            except (OSError, FileNotFoundError):
+                # If the file does not exist, we just ignore the error
+                pass
             self.photo = None
 
     def save_photo(self, file: FileStorage) -> bool:

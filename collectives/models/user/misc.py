@@ -46,7 +46,11 @@ class UserMiscMixin:
     def delete_avatar(self):
         """Remove and dereference an user avatar."""
         if self.avatar:
-            os.remove(avatars.path(self.avatar))
+            try:
+                os.remove(avatars.path(self.avatar))
+            except (OSError, FileNotFoundError):
+                # If the file does not exist, we just ignore the error
+                pass
             self.avatar = None
 
     def get_gender_name(self):

@@ -169,7 +169,12 @@ class UploadedFile(db.Model):
 
     def delete_file(self):
         """Deletes the on-disk file"""
-        os.remove(self.full_path())
+        try:
+            os.remove(self.full_path())
+        except (FileNotFoundError, OSError):
+            # If the file does not exist, we just ignore the error
+            pass
+        self.path = None
         self.size = 0
 
     def url(self):
