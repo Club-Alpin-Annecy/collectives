@@ -56,10 +56,12 @@ def activity_types(app):
     :type: flask.Application
     :return: None
     """
-    for aid, atype in app.config["ACTIVITY_TYPES"].items():
-        activity_type = db.session.get(ActivityType, aid)
+    for atype in app.config["ACTIVITY_TYPES"].values():
+        activity_type = (
+            db.session.query(ActivityType).filter_by(short=atype["short"]).first()
+        )
         if activity_type == None:
-            activity_type = ActivityType(id=aid)
+            activity_type = ActivityType()
 
             activity_type.name = atype["name"]
             activity_type.email = atype.get("email", None)
@@ -68,16 +70,15 @@ def activity_types(app):
             activity_type.deprecated = atype.get("deprecated", False)
             activity_type.order = atype.get("order", 50)
 
-        activity_type.short = atype["short"]
+            activity_type.short = atype["short"]
 
         # if order is not specified, default to '50'
         activity_type.kind = ActivityKind.Regular
         db.session.add(activity_type)
 
     # Remove activity not in config
-    absent_filter = sqlalchemy.not_(
-        ActivityType.id.in_(app.config["ACTIVITY_TYPES"].keys())
-    )
+    all_shorts = [atype["short"] for atype in app.config["ACTIVITY_TYPES"].values()]
+    absent_filter = sqlalchemy.not_(ActivityType.short.in_(all_shorts))
     ActivityType.query.filter(absent_filter).filter(
         ActivityType.kind == ActivityKind.Regular
     ).delete(synchronize_session=False)
