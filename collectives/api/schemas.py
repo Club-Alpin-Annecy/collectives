@@ -249,6 +249,12 @@ class EventSchema(marshmallow.SQLAlchemyAutoSchema):
 
     activity_type_names = fields.Str()
 
+    status = fields.Function(lambda event: event.status.value)
+    """Status of the event, as an int for backward compatibility"""
+
+    visibility = fields.Function(lambda event: event.visibility.value)
+    """Visibility of the event, as an int for backward compatibility"""
+
     class Meta:
         """Fields to expose"""
 
