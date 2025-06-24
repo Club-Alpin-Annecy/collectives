@@ -18,7 +18,7 @@ class ActivityTypeSchema(marshmallow.SQLAlchemyAutoSchema):
         """Fields to expose"""
 
         model = ActivityType
-        fields = ("id", "short", "name")
+        fields = ("id", "short", "name", "kind")
 
 
 class RoleSchema(marshmallow.SQLAlchemyAutoSchema):

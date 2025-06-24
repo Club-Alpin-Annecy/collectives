@@ -93,8 +93,7 @@ def available_activities(
 
         # Always include existing activities
         choices = list(choices | set(activities))
-
-    choices.sort(key=attrgetter("order", "name", "id"))
+        choices.sort(key=attrgetter("kind", "order", "name", "id"))
 
     return choices
 
