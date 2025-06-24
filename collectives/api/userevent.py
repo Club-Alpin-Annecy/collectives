@@ -19,6 +19,12 @@ from collectives.utils.access import valid_user
 class RegistrationSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe a registration"""
 
+    status = fields.Function(lambda reg: reg.status.value)
+    """Status of the registration, as an int for backward compatibility"""
+
+    level = fields.Function(lambda reg: reg.level.value)
+    """Level of the registration, as an int for backward compatibility"""
+
     class Meta:
         """Fields to expose"""
 
