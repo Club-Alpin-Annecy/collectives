@@ -88,7 +88,13 @@ function leaderFilter(value, data){
 
 function typesFormatter(cell, formatterParams, onRendered){
 
-    formatFunc = (activity) => `<img src="/static/caf/icon/${activity['short']}.svg" width="30px"/>`
+    function formatFunc(activity){
+        if (activity['kind'] == 'Service') {
+            return `<img src="/static/caf/icon/benevolat.svg" width="30px" title="${activity['name']}"/>`;
+        } else {
+            return `<img src="/static/caf/icon/${activity['short']}.svg" width="30px" title="${activity['name']}"/>`;
+        }
+    }
 
     var val = cell.getValue()
     if (Array.isArray(val))
