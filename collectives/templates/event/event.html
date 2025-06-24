@@ -103,7 +103,11 @@
         <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px"  title="{{event.event_type.name}}"/> 
 
         {% for atype in event.activity_types %}
-          <img src="/static/caf/icon/{{atype.short}}.svg" width="90px"  title="{{atype.name}}"/> 
+          {% if atype.kind == models.ActivityKind.Service %}
+            <img src="/static/caf/icon/benevolat.svg" width="90px"  title="{{atype.name}}"/> 
+          {% else %}
+            <img src="/static/caf/icon/{{atype.short}}.svg" width="90px"  title="{{atype.name}}"/> 
+          {% endif %}
         {% endfor %}
       </div>
     </div>
