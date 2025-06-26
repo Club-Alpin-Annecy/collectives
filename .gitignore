@@ -1,4 +1,3 @@
-9842
 __pycache__
 app.db
 uploads
@@ -7,16 +6,14 @@ uploads
 /collectives/static/.webassets-cache
 /collectives/static/dist/*
 /collectives/private_assets
-
-# Test DB
-collectives/testdb.sqlite
-
-# Populate db of equipments and reservations
-collectives/routes/populate_db_equipment_reservation.py
+/collectives/testdb.sqlite
 
 .env
+.venv
 .coverage
-.python-version
+.cache
+*.egg-info
+
 
 doc/build
 
