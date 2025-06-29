@@ -51,7 +51,6 @@ include = ["/collectives"]
 
 [tool.ruff]
 include = ["pyproject.toml", "collectives/**/*.py", "tests/**/*.py"]
-line-length = 88 # black default
 
 [tool.ruff.lint]
 select = [
