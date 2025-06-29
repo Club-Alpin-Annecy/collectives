@@ -4,7 +4,6 @@
 <div id="{{user_group_form.event_conditions.id}}" class="user_group_condition_table">
 </div>
 
-Autoriser les 
 {{user_group_form.new_event_is_leader(style="width:auto; margin:auto")}}
 à l' événement :
 <input type="text" id="{{user_group_form.prefix}}event-search" placeholder="Titre ou ID…">
@@ -14,14 +13,27 @@ Autoriser les
 </div>
 
 <div class="inline_field">
-Autoriser les détenteurs du rôle :
+Détenteurs du rôle :
 {{user_group_form.new_role_id(style="width:auto; margin:auto")}}
 {{user_group_form.new_role_activity_id(style="width:auto; margin:auto")}}
 <input type="button" id="{{user_group_form.prefix}}role-add" value="Ajouter" 
     onclick='addRoleCondition("{{user_group_form.role_conditions.id}}", "{{user_group_form.new_role_id.id}}", "{{user_group_form.new_role_activity_id.id}}")'
 ></div>
 
+<h5 class="heading-5">Détention d'un badge</h4>
+<div id="{{user_group_form.badge_conditions.id}}" class="user_group_condition_table">
+</div>
+
+<div class="inline_field">
+Détenteurs du badge :
+{{user_group_form.new_badge_id(style="width:auto; margin:auto")}}
+{{user_group_form.new_badge_activity_id(style="width:auto; margin:auto")}}
+<input type="button" id="{{user_group_form.prefix}}badge-add" value="Ajouter" 
+    onclick='addBadgeCondition("{{user_group_form.badge_conditions.id}}", "{{user_group_form.new_badge_id.id}}", "{{user_group_form.new_badge_activity_id.id}}")'
+></div>
+
 <h5 class="heading-5">Types de licence</h4>
+{{user_group_form.license_invert}}
 {{user_group_form.license_conditions(class="choices")}}
 
 <script>
@@ -31,7 +43,7 @@ document.addEventListener('DOMContentLoaded', ()=> {
         const choices = new Choices(license_multiselect, {
             removeItemButton:true,
             placeholder:true,
-            placeholderValue:"Types de licence autorisés"
+            placeholderValue:"Types de licence"
         });
     }
 
@@ -60,6 +72,8 @@ document.addEventListener('DOMContentLoaded', ()=> {
     current_role_conditions = {{ user_group_form.role_conditions_as_json()  | safe}};
     var roleConditionsTable = setupRoleConditionsEditor("{{user_group_form.role_conditions.id}}", current_role_conditions);
 
+    current_badge_conditions = {{ user_group_form.badge_conditions_as_json()  | safe}};
+    var badgeConditionsTable = setupBadgeConditionsEditor("{{user_group_form.badge_conditions.id}}", current_badge_conditions);
 
 });
 

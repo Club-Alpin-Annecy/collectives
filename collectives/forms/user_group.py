@@ -11,8 +11,12 @@ from wtforms.validators import ValidationError
 from markupsafe import Markup
 from flask import url_for
 
-from collectives.models import db, ActivityType, RoleIds, Configuration, Event
-from collectives.models.user_group import UserGroup, GroupRoleCondition
+from collectives.models import db, ActivityType, RoleIds, Configuration, Event, BadgeIds
+from collectives.models.user_group import (
+    UserGroup,
+    GroupRoleCondition,
+    GroupBadgeCondition,
+)
 from collectives.models.user_group import GroupEventCondition, GroupLicenseCondition
 
 T = TypeVar("T")
@@ -90,6 +94,59 @@ class GroupRoleConditionForm(ModelForm):
             field.data = None
 
 
+class GroupBadgeConditionForm(ModelForm):
+    """Form for creating badge conditions in user group forms"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = GroupBadgeCondition
+        only = []
+
+    condition_id = HiddenField()
+
+    badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
+    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+
+    delete = BooleanField("Supprimer")
+
+    def __init__(self, *args, **kwargs):
+        """Overloaded  constructor"""
+        super().__init__(*args, **kwargs)
+
+        if "obj" in kwargs:
+            self.condition_id.data = kwargs["obj"].id
+
+        self.activity_id.choices = [("", "N'importe quelle activité")] + [
+            (activity.id, activity.name) for activity in ActivityType.get_all_types()
+        ]
+        self.badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+
+    def activity(self) -> Optional[ActivityType]:
+        """:returns: the activity corresponding to the current activity_id"""
+        if self.activity_id.data:
+            return db.session.get(ActivityType, self.activity_id.data)
+        return None
+
+    def activity_name(self) -> str:
+        """:returns: the name of the activity if it is not None, a default text otherwise"""
+        activity = self.activity()
+        return "N'importe quelle activité" if not activity else activity.name
+
+    def badge_name(self) -> str:
+        """:returns: the name of the badge if it is not None, a default text otherwise"""
+        if self.badge_id.data:
+            return BadgeIds.display_name(BadgeIds(self.badge_id.data))
+        return "N'importe quel rôle"
+
+    def validate_activity_id(self, field):
+        """WTFForms validator function that make sure the activity_id field is not set
+        if the selected badge is not related to an activity"""
+        badge_id = self.badge_id.coerce(self.badge_id.data)
+        if badge_id is not None and not badge_id.relates_to_activity():
+            field.data = None
+
+
 class GroupEventConditionForm(ModelForm):
     """Form for creating event conditions in user group forms"""
 
@@ -136,6 +193,9 @@ class UserGroupForm(ModelForm):
     role_conditions = FieldList(
         FormField(GroupRoleConditionForm, default=GroupRoleCondition)
     )
+    badge_conditions = FieldList(
+        FormField(GroupBadgeConditionForm, default=GroupBadgeCondition)
+    )
     event_conditions = FieldList(
         FormField(GroupEventConditionForm, default=GroupEventCondition)
     )
@@ -143,9 +203,13 @@ class UserGroupForm(ModelForm):
     new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
 
     license_conditions = SelectMultipleField("Types de licence")
+    license_invert = SelectField("Négation", coerce=int, default=0)
 
     new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
     new_role_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+
+    new_badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
+    new_badge_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -160,6 +224,8 @@ class UserGroupForm(ModelForm):
             self.license_conditions.data = [
                 cond.license_category for cond in user_group.license_conditions
             ]
+            if user_group.license_conditions:
+                self.license_invert.data = int(user_group.license_conditions[0].invert)
 
         self.license_conditions.choices = [
             (cat, f"{cat} — {descr}")
@@ -171,10 +237,19 @@ class UserGroupForm(ModelForm):
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
 
+        self.new_badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+        self.new_badge_activity_id.choices = [("", "N'importe quelle activité")] + [
+            (activity.id, activity.name) for activity in ActivityType.get_all_types()
+        ]
+
         self.new_event_is_leader.choices = [
             ("", "Encadrants ou Participants"),
             (int(False), "Participants"),
             (int(True), "Encadrants"),
+        ]
+        self.license_invert.choices = [
+            (int(False), "Autoriser"),
+            (int(True), "Refuser"),
         ]
 
     def validate_license_conditions(self, field):
@@ -183,14 +258,17 @@ class UserGroupForm(ModelForm):
 
         valid_types = Configuration.LICENSE_CATEGORIES
         for license_type in field.data:
-            if not license_type in valid_types:
+            if license_type not in valid_types:
                 raise ValidationError(
                     f"'{license_type}' n'est pas une catégorie de licence FFCAM valide."
                 )
 
         if field.data:
             field.data = [
-                GroupLicenseCondition(license_category=cat) for cat in field.data
+                GroupLicenseCondition(
+                    license_category=cat, invert=self.license_invert.data
+                )
+                for cat in field.data
             ]
 
     def event_conditions_as_json(self) -> str:
@@ -208,16 +286,17 @@ class UserGroupForm(ModelForm):
                     event_id=condition_form.event_id.data,
                 ),
                 "is_leader": _empty_string_if_none(condition_form.is_leader.data),
+                "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.event_conditions)
         ]
         return json.dumps(event_conditions)
 
     def role_conditions_as_json(self) -> str:
-        """:returns: the current riole condition form values as a JSON string
+        """:returns: the current role condition form values as a JSON string
         for creating JS entries"""
 
-        event_conditions = [
+        role_conditions = [
             {
                 "id": id,
                 "condition_id": _empty_string_if_none(condition_form.condition_id.data),
@@ -225,7 +304,26 @@ class UserGroupForm(ModelForm):
                 "role_name": Markup(condition_form.role_name()),
                 "activity_id": _empty_string_if_none(condition_form.activity_id.data),
                 "activity_name": Markup(condition_form.activity_name()),
+                "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.role_conditions)
         ]
-        return json.dumps(event_conditions)
+        return json.dumps(role_conditions)
+
+    def badge_conditions_as_json(self) -> str:
+        """:returns: the current badge condition form values as a JSON string
+        for creating JS entries"""
+
+        badge_conditions = [
+            {
+                "id": id,
+                "condition_id": _empty_string_if_none(condition_form.condition_id.data),
+                "badge_id": _empty_string_if_none(condition_form.badge_id.data),
+                "badge_name": Markup(condition_form.badge_name()),
+                "activity_id": _empty_string_if_none(condition_form.activity_id.data),
+                "activity_name": Markup(condition_form.activity_name()),
+                "invert": condition_form.invert.data,
+            }
+            for id, condition_form in enumerate(self.badge_conditions)
+        ]
+        return json.dumps(badge_conditions)

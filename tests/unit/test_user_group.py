@@ -3,10 +3,12 @@
 from collectives.models.user_group import (
     UserGroup,
     GroupEventCondition,
+    GroupBadgeCondition,
     GroupLicenseCondition,
     GroupRoleCondition,
 )
-from collectives.models import db, RoleIds, RegistrationStatus
+from collectives.models import db, RoleIds, BadgeIds, RegistrationStatus
+from collectives.utils.time import current_time
 
 
 # pylint: disable=R0915
@@ -14,7 +16,12 @@ from collectives.models import db, RoleIds, RegistrationStatus
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-locals
 def test_user_group_members(
-    event1_with_reg, user1, user2, president_user, leader_user, supervisor_user
+    event1_with_reg,
+    user1,
+    user2,
+    president_user,
+    leader_user,
+    supervisor_user,
 ):
     """Test listing user group members"""
 
@@ -125,6 +132,66 @@ def test_user_group_members(
 
     group0_members = group0.get_members()
     assert len(group0_members) == 0
+
+    # Test negation
+    gec.invert = True
+    db.session.add(gec)
+    db.session.commit()
+    group0_members = group0.get_members()
+    assert len(group0_members) == 1
+    assert president_user in group0_members
+
+    group0.badge_conditions.clear()
+    group0.role_conditions.clear()
+    group0.event_conditions.clear()
+    for cond in group0.license_conditions:
+        cond.invert = True
+    db.session.commit()
+
+    group0_members = group0.get_members()
+    assert len(group0_members) == 5
+    assert president_user not in group0_members
+    assert user1 not in group0_members
+
+
+def test_badge_user_group_members(
+    user_with_expired_benevole_badge,
+    user_with_valid_benevole_badge,
+    user_with_valid_suspended_badge,
+):
+    """Test listing user group members with bagde conditions"""
+
+    time = current_time()
+    group0 = UserGroup()
+
+    # Test event conditions
+    grc = GroupBadgeCondition(badge_id=BadgeIds.Benevole)
+    db.session.add(grc)
+
+    group0.badge_conditions.append(grc)
+    db.session.add(group0)
+    db.session.commit()
+
+    group0_members = group0.get_members(time=time)
+    assert len(group0_members) == 1
+    assert user_with_valid_benevole_badge in group0_members
+
+    grc.invert = True
+    db.session.commit()
+
+    group0_members = group0.get_members(time=time)
+    assert len(group0_members) >= 2
+    assert user_with_valid_benevole_badge not in group0_members
+
+    grc.invert = False
+    grc.badge_id = None
+    db.session.commit()
+
+    group0_members = group0.get_members(time=time)
+    assert len(group0_members) == 2
+    assert user_with_valid_benevole_badge in group0_members
+    assert user_with_valid_suspended_badge in group0_members
+    assert user_with_expired_benevole_badge not in group0_members
 
 
 def test_any_role_condition(user1, president_user, leader_user):
