@@ -16,6 +16,8 @@ from collectives.models.event import Event
 
 
 class GroupConditionBase:
+    """Base class with common fields for all group conditions."""
+
     id = db.Column(db.Integer, primary_key=True)
     """Database primary key
 
@@ -31,7 +33,8 @@ class GroupConditionBase:
     invert = db.Column(
         db.Boolean, nullable=False, default=False, info={"label": "Négation"}
     )
-    """ Whether this condition should be inverted, i.e. whether the user should not match the condition to be part of the group
+    """ Whether this condition should be inverted, i.e. whether the user should
+    not match the condition to be part of the group
     
     :type: bool"""
 
@@ -117,29 +120,22 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
 
     def get_condition(self, time: datetime):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
+        non_expired = ~(Badge.expiration_date < time.date())  # NULL means non-expired
         if self.badge_id and self.activity_id:
             return User.badges.any(
                 and_(
                     Badge.badge_id == self.badge_id,
                     Badge.activity_id == self.activity_id,
-                    ~(Badge.expiration_date < time.date()),  # NULL means non-expired
+                    non_expired,
                 )
             )
         if self.badge_id:
-            return User.badges.any(
-                and_(
-                    Badge.badge_id == self.badge_id,
-                    ~(Badge.expiration_date < time.date()),
-                )
-            )
+            return User.badges.any(and_(Badge.badge_id == self.badge_id, non_expired))
         if self.activity_id:
             return User.badges.any(
-                and_(
-                    Badge.activity_id == self.activity_id,
-                    ~(Badge.expiration_date < time.date()),
-                )
+                and_(Badge.activity_id == self.activity_id, non_expired)
             )
-        return User.badges.any()
+        return User.badges.any(non_expired)
 
     def clone(self) -> "GroupBadgeCondition":
         """:return: a deep copy of this object"""
