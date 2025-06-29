@@ -2,11 +2,11 @@
 
 {% set first_condition = true %}
 
-{# Event conditions #}
+{# Event conditions (+) #}
 
-{% if user_group.event_conditions | length %}
+{% if user_group.positive_event_conditions | length %}
 {% set first_condition = false %}
-{% for event_condition in user_group.event_conditions %}
+{% for event_condition in user_group.positive_event_conditions %}
 {% if event_condition.is_leader == none %}
 participants ou encadrants de
 {% elif event_condition.is_leader == false %}
@@ -22,9 +22,35 @@ l'événement <a
 {% endfor %}
 {% endif %}
 
+{# Event conditions (-) #}
 
-{# Role conditions #}
-{% if user_group.role_conditions | length %}
+{% if not first_condition %}
+, mais
+{% else %}
+personnes
+{% endif %}
+
+{% if user_group.negative_event_conditions | length %}
+{% set first_condition = false %}
+{% for event_condition in user_group.negative_event_conditions %}
+{% if event_condition.is_leader == none %}
+ne participant pas et n'encadrant pas
+{% elif event_condition.is_leader == false %}
+ne participant pas à
+{% else %}
+n'encadrant pas
+{% endif %}
+l'événement <a
+    href="{{url_for('event.view_event', event_id=event_condition.event_id)}}">{{event_condition.event.title}}</a>
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# Role conditions (+) #}
+{% if user_group.positive_role_conditions | length %}
 
 {% if not first_condition %}
 , également
@@ -32,7 +58,7 @@ l'événement <a
 {% set first_condition = false %}
 
 détenteurs
-{% for role_condition in user_group.role_conditions %}
+{% for role_condition in user_group.positive_role_conditions %}
 {% if role_condition.role_id == none %}
 d'un rôle
 {% else %}
@@ -49,8 +75,89 @@ pour l'activité {{role_condition.activity.name}}
 {% endfor %}
 {% endif %}
 
-{# License conditions #}
-{% if user_group.license_conditions | length %}
+
+{# Role conditions (-) #}
+{% if user_group.negative_role_conditions | length %}
+
+{% if not first_condition %}
+, et
+{% endif %}
+{% set first_condition = false %}
+
+non-détenteurs
+{% for role_condition in user_group.negative_role_conditions %}
+{% if role_condition.role_id == none %}
+d'un rôle
+{% else %}
+du rôle <em>{{role_condition.role_id.display_name()}}</em>
+{% endif %}
+
+{% if not role_condition.activity_id == none %}
+pour l'activité {{role_condition.activity.name}}
+{% endif %}
+
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# Badge conditions (+) #}
+{% if user_group.positive_badge_conditions | length %}
+
+{% if not first_condition %}
+, également
+{% endif %}
+{% set first_condition = false %}
+
+détenteurs
+{% for badge_condition in user_group.positive_badge_conditions %}
+{% if badge_condition.badge_id == none %}
+d'un badge
+{% else %}
+du badge <em>{{badge_condition.badge_id.display_name()}}</em>
+{% endif %}
+
+{% if not badge_condition.activity_id == none %}
+pour l'activité {{badge_condition.activity.name}}
+{% endif %}
+
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{# Badge conditions (-) #}
+{% if user_group.negative_badge_conditions | length %}
+
+{% if not first_condition %}
+, et
+{% endif %}
+{% set first_condition = false %}
+
+non-détenteurs
+{% for badge_condition in user_group.negative_badge_conditions %}
+{% if badge_condition.badge_id == none %}
+d'un badge
+{% else %}
+du badge <em>{{badge_condition.badge_id.display_name()}}</em>
+{% endif %}
+
+{% if not badge_condition.activity_id == none %}
+pour l'activité {{badge_condition.activity.name}}
+{% endif %}
+
+{% if not loop.last %}
+, ou
+{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{# License conditions (+) #}
+{% if user_group.positive_license_conditions | length %}
 
 {% if not first_condition %}
 , et
@@ -60,7 +167,7 @@ adhérents
 {% set first_condition = false %}
 
 ayant une licence de type
-{% for license_condition in user_group.license_conditions %}
+{% for license_condition in user_group.positive_license_conditions %}
 
 {% if loop.last and not loop.first %}
 ou
@@ -70,6 +177,30 @@ ou
 
 {% endfor %}
 {% endif %}
+
+
+{# License conditions (-) #}
+{% if user_group.negative_license_conditions | length %}
+
+{% if not first_condition %}
+, et
+{% else %}
+adhérents
+{% endif %}
+{% set first_condition = false %}
+
+n'ayant pas une licence de type
+{% for license_condition in user_group.negative_license_conditions %}
+
+{% if loop.last and not loop.first %}
+ou
+{% endif %}
+
+{{license_condition.license_category}}
+
+{% endfor %}
+{% endif %}
+
 
 {% else %}
 pas de restrictions

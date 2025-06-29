@@ -377,7 +377,7 @@ class ItemPrice(db.Model):
         if not self.enabled:
             return False
 
-        return self.user_group is None or self.user_group.contains(user)
+        return self.user_group is None or self.user_group.contains(user, time=self.item.event.start)
 
     # pylint: disable=import-outside-toplevel
     def _migrate_parent_event_id(self):

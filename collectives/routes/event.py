@@ -530,10 +530,15 @@ def manage_event(event_id=None):
         flash("Accès restreint.", "error")
         return redirect(url_for("event.index"))
 
-    if event_id is None:
-        form = EventForm(CombinedMultiDict((request.files, request.form)))
+    if request.form:
+        formdata = CombinedMultiDict((request.files, request.form))
     else:
-        form = EventForm(CombinedMultiDict((request.files, request.form)), obj=event)
+        formdata = None
+
+    if event_id is None:
+        form = EventForm(formdata=formdata)
+    else:
+        form = EventForm(formdata=formdata, obj=event)
 
     if not form.is_submitted():
         if event_id is None:
@@ -586,6 +591,8 @@ def manage_event(event_id=None):
         # For some readon we need to explicitly add the conditions
         if event.user_group.has_conditions():
             for cond in event.user_group.role_conditions:
+                db.session.add(cond)
+            for cond in event.user_group.badge_conditions:
                 db.session.add(cond)
             for cond in event.user_group.event_conditions:
                 db.session.add(cond)

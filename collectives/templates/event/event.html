@@ -279,7 +279,7 @@
             {% with user_group = event.user_group %}
               {% include 'partials/user-group-text.html' %}
             {% endwith %},
-            {% if event.user_group.contains(current_user) %}
+            {% if event.user_group.contains(current_user, time=event.start) %}
               dont vous faites partie.
             {% else %}
               dont vous ne faites pas partie.
