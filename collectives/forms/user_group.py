@@ -203,7 +203,7 @@ class UserGroupForm(ModelForm):
     new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
 
     license_conditions = SelectMultipleField("Types de licence")
-    license_invert = SelectField("Négation", coerce=int)
+    license_invert = SelectField("Négation", coerce=int, default=0)
 
     new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
     new_role_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
