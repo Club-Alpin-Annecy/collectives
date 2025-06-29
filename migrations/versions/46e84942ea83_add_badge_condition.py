@@ -49,17 +49,17 @@ def upgrade():
 
     with op.batch_alter_table("group_event_conditions", schema=None) as batch_op:
         batch_op.add_column(
-            sa.Column("invert", sa.Boolean(), nullable=False, server_default="false")
+            sa.Column("invert", sa.Boolean(), nullable=False, server_default="0")
         )
 
     with op.batch_alter_table("group_license_conditions", schema=None) as batch_op:
         batch_op.add_column(
-            sa.Column("invert", sa.Boolean(), nullable=False, server_default="false")
+            sa.Column("invert", sa.Boolean(), nullable=False, server_default="0")
         )
 
     with op.batch_alter_table("group_role_conditions", schema=None) as batch_op:
         batch_op.add_column(
-            sa.Column("invert", sa.Boolean(), nullable=False, server_default="false")
+            sa.Column("invert", sa.Boolean(), nullable=False, server_default="0")
         )
 
     # ### end Alembic commands ###
