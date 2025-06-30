@@ -10,10 +10,10 @@
   <h2 class="heading-2">{{title}}</h2>
 
   <p>Merci de sélectionner l'activité ou service que vous souhaitez modifier :</p>
-
+  <h3 class="heading-3"> Activités</h3>
   <p>
     <ul>
-      {% for activity in activities %}
+      {% for activity in activities if activity.kind == models.ActivityKind.Regular %}
         <li>
           <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=activity.id) }}" >
             {% if activity.deprecated %}
@@ -23,10 +23,30 @@
             {% endif %}
           </a>
         </li>
+      {% else %}
+        Vous n'êtes responsable d'aucune activité.
       {% endfor %}
     </ul>
   </p>
 
+  <h3 class="heading-3"> Services</h3>
+  <p>
+    <ul>
+      {% for activity in activities if activity.kind == models.ActivityKind.Service %}
+        <li>
+          <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=activity.id) }}" >
+            {% if activity.deprecated %}
+              <del>{{ activity.name }} ({{activity.short}})</del>
+            {% else %}
+              {{ activity.name }} ({{activity.short}})
+            {% endif %}
+          </a>
+        </li>
+      {% else %}
+        Vous n'êtes responsable d'aucun service.
+      {% endfor %}
+    </ul>
+  </p>
   {% if current_user.can_manage_all_activities() %}
     <p>
       <a href="{{url_for('activity_supervision.configuration_form', activity_type_id=None) }}" class="button button-secondary">

@@ -187,6 +187,20 @@ def test_event_filter_activity_with_several_types(user1_client, event1, event2, 
     assert data[0]["event_type"]["name"] == "Collective"
 
 
+def test_event_filter_service(user1_client, event1, service_event):
+    """Test list of event with activity filter"""
+
+    response = user1_client.get(
+        "/api/events/?page=1&size=25&sorters[0][field]=title"
+        "&sorters[0][dir]=asc&filters[0][field]=activity_type&filters[0][type]=="
+        "&filters[0][value]=__services"
+    )
+    assert response.status_code == 200
+    data = response.json["data"]
+    assert len(data) == 1
+    assert data[0]["activity_types"][0]["name"] == "Service"
+
+
 def test_event_filter_tags(user1_client, event1, event2, event3):
     """Test list of event with tag filters"""
     event1.tag_refs.append(EventTag(6))

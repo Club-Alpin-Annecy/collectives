@@ -5,7 +5,7 @@ from functools import wraps
 
 import pytest
 
-from collectives.models import db, ActivityType
+from collectives.models import db, ActivityType, ActivityKind
 from collectives.models import EventType, Event, EventTag, EventStatus, EventVisibility
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus
 from collectives.models import Question, QuestionType, QuestionAnswer
@@ -15,6 +15,20 @@ from tests.fixtures import payment
 
 # pylint: disable=unused-argument, redefined-outer-name
 # pylint: disable=too-many-positional-arguments
+
+
+@pytest.fixture
+def service():
+    """Create a service activity type fixture."""
+
+    service = ActivityType(
+        name="Service", short="service", trigram="SRV", kind=ActivityKind.Service
+    )
+
+    db.session.add(service)
+    db.session.commit()
+
+    return service
 
 
 def inject_fixture(name, identifier):
@@ -399,3 +413,17 @@ def event_with_no_activity_type_in_less_than_x_hours_with_reg(
     db.session.commit()
 
     return prototype_event_in_less_than_x_hours
+
+
+inject_fixture("prototype_service_event", "service")
+
+
+@pytest.fixture
+def service_event(prototype_service_event, service):
+    """:returns: An event with a service activity type"""
+
+    prototype_service_event.activity_types.clear()
+    prototype_service_event.activity_types.append(service)
+
+    db.session.commit()
+    return prototype_service_event

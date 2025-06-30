@@ -31,6 +31,11 @@ export default {
       return filterList.filter(id => id !== element);
     }
 
+    const getActivityIcon = (activityId) => {
+      var iconName = activityId == "__services" ? "benevolat" : activityId;
+      return `/static/caf/icon/${iconName}.svg`
+    };
+
     return {
       displayMoreFilters,
       filters: props.filters,
@@ -39,7 +44,8 @@ export default {
       findInConfig: (list, activityId) => list.find(id =>  id.id === activityId),
       fetchLeaders,
       leadersSearch,
-      removeFilterElement
+      removeFilterElement,
+      getActivityIcon
     }
   },
   template: `
@@ -58,12 +64,12 @@ export default {
     >
       <template #option="slotProps">
           <div class="flex items-center">
-              <img class="icon" :alt="slotProps.option.name" :src="'/static/caf/icon/' + slotProps.option.id + '.svg'" />
+              <img class="icon" :alt="slotProps.option.name" :src="getActivityIcon(slotProps.option.id)" />
               <div>{{ slotProps.option.name }}</div>
           </div>
       </template>
       <template #chip="slotProps">
-          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="'/static/caf/icon/' + slotProps.value + '.svg'" removable @remove="filters.activities = removeFilterElement(filters.activities, slotProps.value)"/>
+          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="getActivityIcon(slotProps.value)" removable @remove="filters.activities = removeFilterElement(filters.activities, slotProps.value)"/>
       </template>
       <template #footer="slotProps">
         <div class="flex justify-between" v-if="slotProps.value?.length > 0">
