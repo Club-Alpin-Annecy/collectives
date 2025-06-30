@@ -1,6 +1,7 @@
 """Handle dynamic user groups, for restricting or payment options"""
 
 from typing import List
+from datetime import datetime
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query
@@ -8,15 +9,14 @@ from sqlalchemy.orm import Query
 from collectives.models.globals import db
 
 from collectives.models.role import RoleIds, Role
+from collectives.models.badge import BadgeIds, Badge
 from collectives.models.user import User
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.event import Event
 
 
-class GroupRoleCondition(db.Model):
-    """Relationship indicating that group members must have a certain role"""
-
-    __tablename__ = "group_role_conditions"
+class GroupConditionBase:
+    """Base class with common fields for all group conditions."""
 
     id = db.Column(db.Integer, primary_key=True)
     """Database primary key
@@ -29,6 +29,20 @@ class GroupRoleCondition(db.Model):
     """ ID of the group this condition applies to
 
     :type: int"""
+
+    invert = db.Column(
+        db.Boolean, nullable=False, default=False, info={"label": "Négation"}
+    )
+    """ Whether this condition should be inverted, i.e. whether the user should
+    not match the condition to be part of the group
+    
+    :type: bool"""
+
+
+class GroupRoleCondition(db.Model, GroupConditionBase):
+    """Relationship indicating that group members must have a certain role"""
+
+    __tablename__ = "group_role_conditions"
 
     role_id = db.Column(
         db.Enum(RoleIds),
@@ -67,25 +81,73 @@ class GroupRoleCondition(db.Model):
 
     def clone(self) -> "GroupRoleCondition":
         """:return: a deep copy of this object"""
-        return GroupRoleCondition(role_id=self.role_id, activity_id=self.activity_id)
+        return GroupRoleCondition(
+            role_id=self.role_id, activity_id=self.activity_id, invert=self.invert
+        )
 
 
-class GroupEventCondition(db.Model):
+class GroupBadgeCondition(db.Model, GroupConditionBase):
+    """Relationship indicating that group members must have a certain badge"""
+
+    __tablename__ = "group_badge_conditions"
+
+    badge_id = db.Column(
+        db.Enum(BadgeIds),
+        nullable=True,
+        info={
+            "choices": BadgeIds.choices(),
+            "coerce": BadgeIds.coerce,
+            "label": "Badge",
+        },
+    )
+    """ Id of the role that group members must have. If null, any role is allowed
+
+    :type: :py:class:`collectives.models.RoleId``
+    """
+
+    activity_id = db.Column(
+        db.Integer, db.ForeignKey("activity_types.id"), nullable=True
+    )
+    """ ID of the activity to which the user role should relate to. If null, any activity is allowed
+
+    :type: int"""
+
+    activity = db.relationship("ActivityType", lazy=True)
+    """ Activity type associated with this condition
+
+    :type: list(:py:class:`collectives.models.activity_type.ActivityType`)
+    """
+
+    def get_condition(self, time: datetime):
+        """:returns: the SQLAlchemy expression corresponding to this condition"""
+        non_expired = ~(Badge.expiration_date < time.date())  # NULL means non-expired
+        if self.badge_id and self.activity_id:
+            return User.badges.any(
+                and_(
+                    Badge.badge_id == self.badge_id,
+                    Badge.activity_id == self.activity_id,
+                    non_expired,
+                )
+            )
+        if self.badge_id:
+            return User.badges.any(and_(Badge.badge_id == self.badge_id, non_expired))
+        if self.activity_id:
+            return User.badges.any(
+                and_(Badge.activity_id == self.activity_id, non_expired)
+            )
+        return User.badges.any(non_expired)
+
+    def clone(self) -> "GroupBadgeCondition":
+        """:return: a deep copy of this object"""
+        return GroupBadgeCondition(
+            badge_id=self.badge_id, activity_id=self.activity_id, invert=self.invert
+        )
+
+
+class GroupEventCondition(db.Model, GroupConditionBase):
     """Relationship indicating that group members must participate (or lead) a given event."""
 
     __tablename__ = "group_event_conditions"
-
-    id = db.Column(db.Integer, primary_key=True)
-    """Database primary key
-
-    :type: int"""
-
-    group_id = db.Column(
-        db.Integer, db.ForeignKey("user_groups.id"), nullable=False, index=True
-    )
-    """ ID of the group this condition applies to
-
-    :type: int"""
 
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
     """ ID of the activity to which the user role should relate to.
@@ -135,25 +197,15 @@ class GroupEventCondition(db.Model):
 
     def clone(self) -> "GroupEventCondition":
         """:return: a deep copy of this object"""
-        return GroupEventCondition(is_leader=self.is_leader, event_id=self.event_id)
+        return GroupEventCondition(
+            is_leader=self.is_leader, event_id=self.event_id, invert=self.invert
+        )
 
 
-class GroupLicenseCondition(db.Model):
+class GroupLicenseCondition(db.Model, GroupConditionBase):
     """Relationship indicating that group members must have a certain license type"""
 
     __tablename__ = "group_license_conditions"
-
-    id = db.Column(db.Integer, primary_key=True)
-    """Database primary key
-
-    :type: int"""
-
-    group_id = db.Column(
-        db.Integer, db.ForeignKey("user_groups.id"), nullable=False, index=True
-    )
-    """ ID of the group this condition applies to
-
-    :type: int"""
 
     license_category = db.Column(db.String(2), info={"label": "Catégorie de licence"})
     """ User club license category.
@@ -162,7 +214,9 @@ class GroupLicenseCondition(db.Model):
 
     def clone(self) -> "GroupLicenseCondition":
         """:return: a deep copy of this object"""
-        return GroupLicenseCondition(license_category=self.license_category)
+        return GroupLicenseCondition(
+            license_category=self.license_category, invert=self.invert
+        )
 
 
 class UserGroup(db.Model):
@@ -202,6 +256,17 @@ class UserGroup(db.Model):
     :type: list(:py:class:`collectives.models.user_group.GroupRoleCondition`)
     """
 
+    badge_conditions = db.relationship(
+        "GroupBadgeCondition",
+        backref="group",
+        cascade="all, delete-orphan",
+        lazy="joined",
+    )
+    """ List of badge conditions associated with this group
+
+    :type: list(:py:class:`collectives.models.user_group.GroupBadgeCondition`)
+    """
+
     event_conditions = db.relationship(
         "GroupEventCondition",
         backref="group",
@@ -224,36 +289,131 @@ class UserGroup(db.Model):
     :type: list(:py:class:`collectives.models.user_group.GroupRoleCondition`)
     """
 
-    def get_members(self) -> List[User]:
-        """:return: the list of group members"""
-        return self._build_query().all()
+    @property
+    def positive_role_conditions(self) -> List[GroupRoleCondition]:
+        """:return: the list of positive role conditions"""
+        return [condition for condition in self.role_conditions if not condition.invert]
 
-    def contains(self, user: User) -> bool:
-        """:return: Whether a given user is a member of the group"""
+    @property
+    def negative_role_conditions(self) -> List[GroupRoleCondition]:
+        """:return: the list of negative role conditions"""
+        return [condition for condition in self.role_conditions if condition.invert]
+
+    @property
+    def positive_badge_conditions(self) -> List[GroupBadgeCondition]:
+        """:return: the list of positive badge conditions"""
+        return [
+            condition for condition in self.badge_conditions if not condition.invert
+        ]
+
+    @property
+    def negative_badge_conditions(self) -> List[GroupBadgeCondition]:
+        """:return: the list of negative badge conditions"""
+        return [condition for condition in self.badge_conditions if condition.invert]
+
+    @property
+    def positive_event_conditions(self) -> List[GroupEventCondition]:
+        """:return: the list of positive event conditions"""
+        return [
+            condition for condition in self.event_conditions if not condition.invert
+        ]
+
+    @property
+    def negative_event_conditions(self) -> List[GroupEventCondition]:
+        """:return: the list of negative event conditions"""
+        return [condition for condition in self.event_conditions if condition.invert]
+
+    @property
+    def positive_license_conditions(self) -> List[GroupLicenseCondition]:
+        """:return: the list of positive license conditions"""
+        return [
+            condition for condition in self.license_conditions if not condition.invert
+        ]
+
+    @property
+    def negative_license_conditions(self) -> List[GroupLicenseCondition]:
+        """:return: the list of negative license conditions"""
+        return [condition for condition in self.license_conditions if condition.invert]
+
+    def get_members(self, time: datetime = None) -> List[User]:
+        """:return: the list of group members"""
+        return self._build_query(time).all()
+
+    def contains(self, user: User, time: datetime) -> bool:
+        """
+        Checks if a given user is a member of the group at a specific time.
+        The time is used to check for badge expiry.
+
+        :return: Whether a given user is a member of the group"""
         if not user.is_active:
             return False
-        return self._build_query().filter(User.id == user.id).one_or_none() is not None
+        return (
+            self._build_query(time).filter(User.id == user.id).one_or_none() is not None
+        )
 
-    def _build_query(self) -> Query:
+    def _build_query(self, time) -> Query:
         """:return: the SQLAlchemy query used to check group members"""
         query = User.query
 
+        # We use "OR" to combine positive conditions,
+        # and "AND" to combine nedgatove conditions.
+
         if self.role_conditions:
-            roles = [role_cond.get_condition() for role_cond in self.role_conditions]
-            query = query.filter(or_(*roles))
+            roles = [
+                role_cond.get_condition() for role_cond in self.positive_role_conditions
+            ]
+            excluded_roles = [
+                ~role_cond.get_condition()
+                for role_cond in self.negative_role_conditions
+            ]
+            if roles:
+                query = query.filter(or_(*roles))
+            if excluded_roles:
+                query = query.filter(and_(*excluded_roles))
+
+        if self.badge_conditions:
+            badges = [
+                badge_cond.get_condition(time)
+                for badge_cond in self.positive_badge_conditions
+            ]
+            excluded_badges = [
+                ~badge_cond.get_condition(time)
+                for badge_cond in self.negative_badge_conditions
+            ]
+            if badges:
+                query = query.filter(or_(*badges))
+            if excluded_badges:
+                query = query.filter(and_(*excluded_badges))
 
         if self.event_conditions:
             events = [
-                event_cond.get_condition() for event_cond in self.event_conditions
+                event_cond.get_condition()
+                for event_cond in self.positive_event_conditions
             ]
-            query = query.filter(or_(*events))
+            excluded_events = [
+                ~event_cond.get_condition()
+                for event_cond in self.negative_event_conditions
+            ]
+            if events:
+                query = query.filter(or_(*events))
+            if excluded_events:
+                query = query.filter(and_(*excluded_events))
 
         if self.license_conditions:
-            categories = [
+            categories = {
                 license_cond.license_category
                 for license_cond in self.license_conditions
-            ]
-            query = query.filter(User.license_category.in_(categories))
+                if not license_cond.invert
+            }
+            excluded_categories = {
+                license_cond.license_category
+                for license_cond in self.license_conditions
+                if license_cond.invert
+            }
+            if categories:
+                query = query.filter(User.license_category.in_(categories))
+            if excluded_categories:
+                query = query.filter(User.license_category.not_in(excluded_categories))
 
         return query
 
@@ -266,6 +426,9 @@ class UserGroup(db.Model):
         clone.role_conditions = [
             condition.clone() for condition in self.role_conditions
         ]
+        clone.badge_conditions = [
+            condition.clone() for condition in self.badge_conditions
+        ]
         clone.license_conditions = [
             condition.clone() for condition in self.license_conditions
         ]
@@ -274,5 +437,8 @@ class UserGroup(db.Model):
     def has_conditions(self) -> bool:
         """:return: whether the group defines at least one condition"""
         return bool(
-            self.event_conditions or self.role_conditions or self.license_conditions
+            self.event_conditions
+            or self.role_conditions
+            or self.badge_conditions
+            or self.license_conditions
         )

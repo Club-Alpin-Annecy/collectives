@@ -12,8 +12,7 @@ def get_textarea_value(soup, name):
     :param soup: a beautiful soup object with the whole html page loaded
     :param name: the name of the textarea to extract
     :returns: the textarea value"""
-    return soup.select_one(f'#form_{name} textarea[name="content"]').getText()[2:]
-    # The [2:] is to remove the '\r\n' added by wtforms in textarea
+    return soup.select_one(f'#form_{name} textarea[name="content"]').getText().strip()
 
 
 def get_input_value(soup, name):
