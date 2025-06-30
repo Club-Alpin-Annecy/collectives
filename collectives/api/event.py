@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload, joinedload
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.schemas import EventSchema, UserSchema
 from collectives.models import db, Event, EventStatus, EventType, EventVisibility
-from collectives.models import ActivityType, User, EventTag
+from collectives.models import ActivityType, User, EventTag, ActivityKind
 from collectives.models import Question, QuestionAnswer, Configuration
 from collectives.utils.access import valid_user
 from collectives.utils.time import parse_api_date, current_time
@@ -164,9 +164,13 @@ def events():
     if len(filters_activity_types) > 0:
         query = query.filter(
             or_(
-                *map(
-                    lambda type: Event.activity_types.any(short=type),
-                    filters_activity_types,
+                *(
+                    (
+                        Event.activity_types.any(kind=ActivityKind.Service)
+                        if type == "__services"
+                        else Event.activity_types.any(short=type)
+                    )
+                    for type in filters_activity_types
                 )
             )
         )

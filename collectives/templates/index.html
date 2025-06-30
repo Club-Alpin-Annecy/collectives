@@ -46,6 +46,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
         {% for type in activity_types %}
             { "id": "{{type.short}}", "name": "{{type.name}}"},
         {% endfor %}
+        { "id": "__services", "name": "Services"}
     ]
 
     const eventTypes = [
