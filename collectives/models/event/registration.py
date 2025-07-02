@@ -257,7 +257,7 @@ class EventRegistrationMixin:
 
         if self.user_group is None:
             return True
-        return self.user_group.contains(user, time=self.event.start)
+        return self.user_group.contains(user, time=self.start)
 
     def can_self_register(
         self,
