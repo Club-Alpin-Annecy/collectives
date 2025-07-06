@@ -3,19 +3,30 @@
 import json
 from datetime import timedelta
 
-from flask import url_for, request, abort
+from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import or_, and_, func
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import and_, func, or_
+from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.schemas import EventSchema, UserSchema
-from collectives.models import db, Event, EventStatus, EventType, EventVisibility
-from collectives.models import ActivityType, User, EventTag, ActivityKind
-from collectives.models import Question, QuestionAnswer, Configuration
+from collectives.models import (
+    ActivityKind,
+    ActivityType,
+    Configuration,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    EventVisibility,
+    Question,
+    QuestionAnswer,
+    User,
+    db,
+)
 from collectives.utils.access import valid_user
-from collectives.utils.time import parse_api_date, current_time
+from collectives.utils.time import current_time, parse_api_date
 
 
 def filter_hidden_events(query):

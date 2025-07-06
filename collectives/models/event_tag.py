@@ -1,6 +1,7 @@
 """Module for event tag classes."""
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from flask import current_app
 
 from collectives.models.globals import db

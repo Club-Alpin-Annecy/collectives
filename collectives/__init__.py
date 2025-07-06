@@ -10,21 +10,30 @@ Typical usage example::
 """
 
 from logging.config import fileConfig
-import werkzeug
 
+import werkzeug
 from flask import Flask, current_app
-from flask_assets import Environment, Bundle
+from flask_assets import Bundle, Environment
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 
-from collectives import models, api, forms
-from collectives.routes import root, profile, auth, administration, event, reservation
-from collectives.routes import payment, technician, activity_supervison, equipment
-from collectives.routes import question
+from collectives import api, forms, models
 from collectives.models import Configuration, DBAdaptedFlaskConfig
-
-from collectives.utils import extranet, init, jinja, error, payline
+from collectives.routes import (
+    activity_supervison,
+    administration,
+    auth,
+    equipment,
+    event,
+    payment,
+    profile,
+    question,
+    reservation,
+    root,
+    technician,
+)
+from collectives.utils import error, extranet, init, jinja, payline
 
 csrf = CSRFProtect()
 

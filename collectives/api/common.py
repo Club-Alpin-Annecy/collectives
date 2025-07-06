@@ -11,7 +11,6 @@ Typical usage example:
 from flask import Blueprint, url_for
 from flask_marshmallow import Marshmallow
 
-
 marshmallow = Marshmallow()
 """ Marshmallow object.
 

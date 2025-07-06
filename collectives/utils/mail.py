@@ -12,17 +12,16 @@ DKIM. Conf are taken from app :py:mod:`config`:
 - :py:data:`config.DKIM_KEY`: DKIM private key as PEM format
 """
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import email
 import smtplib
 import threading
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # pylint: disable=E0001
 import dkim
 
 # pylint: enable=E0001
-
 import flask
 
 from collectives.models import Configuration

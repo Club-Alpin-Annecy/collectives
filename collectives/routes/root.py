@@ -3,17 +3,15 @@
 This modules contains the root Blueprint
 """
 
-from flask import redirect, url_for, Blueprint, send_file
-from flask import render_template, request
+from flask import Blueprint, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
 
+from collectives.forms import csrf
 from collectives.forms.auth import LegalAcceptation
 from collectives.forms.stats import StatisticsParametersForm
-from collectives.forms import csrf
-from collectives.models import db, Configuration
-from collectives.utils.time import current_time
+from collectives.models import Configuration, db
 from collectives.utils.stats import StatisticsEngine
-
+from collectives.utils.time import current_time
 
 blueprint = Blueprint("root", __name__)
 

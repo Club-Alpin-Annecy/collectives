@@ -1,12 +1,13 @@
 """Module for registration related classes"""
 
+from datetime import datetime, timedelta
 from typing import List, Optional
-from datetime import timedelta, datetime
+
 from sqlalchemy.sql import func
 
+from collectives.models.configuration import Configuration
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
-from collectives.models.configuration import Configuration
 from collectives.utils.time import current_time
 
 

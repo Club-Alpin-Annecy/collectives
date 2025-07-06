@@ -1,23 +1,30 @@
 """Module containing form widgets for editing user groups"""
 
 import json
-from typing import Callable, TypeVar, Optional, Union
+from typing import Callable, Optional, TypeVar, Union
 
-from wtforms_alchemy import ModelForm
-from wtforms import SelectField, FieldList, FormField, BooleanField
-from wtforms import HiddenField, IntegerField, SelectMultipleField
-from wtforms.validators import ValidationError
-
-from markupsafe import Markup
 from flask import url_for
-
-from collectives.models import db, ActivityType, RoleIds, Configuration, Event, BadgeIds
-from collectives.models.user_group import (
-    UserGroup,
-    GroupRoleCondition,
-    GroupBadgeCondition,
+from markupsafe import Markup
+from wtforms import (
+    BooleanField,
+    FieldList,
+    FormField,
+    HiddenField,
+    IntegerField,
+    SelectField,
+    SelectMultipleField,
 )
-from collectives.models.user_group import GroupEventCondition, GroupLicenseCondition
+from wtforms.validators import ValidationError
+from wtforms_alchemy import ModelForm
+
+from collectives.models import ActivityType, BadgeIds, Configuration, Event, RoleIds, db
+from collectives.models.user_group import (
+    GroupBadgeCondition,
+    GroupEventCondition,
+    GroupLicenseCondition,
+    GroupRoleCondition,
+    UserGroup,
+)
 
 T = TypeVar("T")
 """ Type variable for typing annotations """

@@ -2,10 +2,11 @@
 
 import enum
 import json
-from threading import Lock
 from datetime import datetime
+from threading import Lock
+
+from flask import Config, current_app
 from sqlalchemy.sql import func
-from flask import current_app, Config
 
 from collectives.models.globals import db
 

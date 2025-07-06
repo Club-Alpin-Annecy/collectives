@@ -1,13 +1,13 @@
 """Unit tests for UserGroup class"""
 
+from collectives.models import BadgeIds, RegistrationStatus, RoleIds, db
 from collectives.models.user_group import (
-    UserGroup,
-    GroupEventCondition,
     GroupBadgeCondition,
+    GroupEventCondition,
     GroupLicenseCondition,
     GroupRoleCondition,
+    UserGroup,
 )
-from collectives.models import db, RoleIds, BadgeIds, RegistrationStatus
 from collectives.utils.time import current_time
 
 

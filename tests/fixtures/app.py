@@ -1,14 +1,14 @@
 """Creation of fixture app"""
 
+import logging
 import os
 import tempfile
-import logging
 
 import pytest
 
 import collectives
+from collectives.models import Configuration, db
 from collectives.utils import init
-from collectives.models import db, Configuration
 
 # pylint: disable=redefined-outer-name
 

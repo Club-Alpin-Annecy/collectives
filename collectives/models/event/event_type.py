@@ -2,8 +2,8 @@
 
 import json
 
-from collectives.models.globals import db
 from collectives.models import Configuration
+from collectives.models.globals import db
 
 
 class EventType(db.Model):

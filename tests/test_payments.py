@@ -2,7 +2,7 @@
 
 # pylint: disable=unused-argument
 
-from collectives.models import db, RegistrationStatus
+from collectives.models import RegistrationStatus, db
 from tests import utils
 
 

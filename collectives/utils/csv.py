@@ -1,13 +1,13 @@
 """Module to handle csv import"""
 
 import builtins
-from datetime import datetime, timedelta
 import codecs
 import csv
+from datetime import datetime, timedelta
 
 from flask import current_app
 
-from collectives.models import User, Event, EventTag, db
+from collectives.models import Event, EventTag, User, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
@@ -221,7 +221,7 @@ def csv_to_events(stream, description):
         # pylint: disable=broad-except
         except builtins.Exception as ex:
             failed.append(
-                f"Impossible d'importer la ligne {processed+1}: [{type(ex).__name__}] {str(ex)}"
+                f"Impossible d'importer la ligne {processed+1}: [{type(ex).__name__}] {ex!s}"
             )
         # pylint: enable=broad-except
     return events, processed, failed

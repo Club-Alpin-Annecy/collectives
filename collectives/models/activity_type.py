@@ -1,12 +1,13 @@
 """Module to describe the type of activity."""
 
 import json
+
 from sqlalchemy.orm import validates
 from wtforms_alchemy.validators import Unique
 
 from collectives.models.globals import db
-from collectives.utils.misc import truncate
 from collectives.models.utils import ChoiceEnum
+from collectives.utils.misc import truncate
 
 
 class ActivityKind(ChoiceEnum):

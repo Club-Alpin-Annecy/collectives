@@ -5,23 +5,31 @@ the WTForm pip. By default, all form are CSRF protected. This module imports
 other form submodules and create some configuration for all forms.
 """
 
-from flask_wtf.csrf import CSRFProtect
 from flask_uploads import configure_uploads, patch_request_class
+from flask_wtf.csrf import CSRFProtect
 
+from collectives.forms.auth import ExtranetAccountCreationForm, LoginForm
 from collectives.forms.csv import CSVForm
-from collectives.forms.auth import LoginForm, ExtranetAccountCreationForm
-from collectives.forms.event import RegistrationForm, EventForm
-from collectives.forms.user import AdminTestUserForm, AdminUserForm, ExtranetUserForm
-from collectives.forms.user import RoleForm, LocalUserForm
-from collectives.forms.reservation import CancelRentalForm, EndRentalForm
-from collectives.forms.reservation import LeaderReservationForm
-from collectives.forms.reservation import NewRentalEquipmentForm, NewRentalUserForm
-from collectives.forms.reservation import ReservationToRentalForm
-from collectives.forms.reservation import AddEquipmentInReservationForm
+from collectives.forms.event import EventForm, RegistrationForm
+from collectives.forms.reservation import (
+    AddEquipmentInReservationForm,
+    CancelRentalForm,
+    EndRentalForm,
+    LeaderReservationForm,
+    NewRentalEquipmentForm,
+    NewRentalUserForm,
+    ReservationToRentalForm,
+)
+from collectives.forms.user import (
+    AdminTestUserForm,
+    AdminUserForm,
+    ExtranetUserForm,
+    LocalUserForm,
+    RoleForm,
+)
+from collectives.models import avatars, image_equipment_type, photos
 from collectives.models.upload import documents
-from collectives.models import photos, avatars, image_equipment_type
 from collectives.routes import technician
-
 
 csrf = CSRFProtect()
 

@@ -1,11 +1,11 @@
 """List of crawler. Data comes from https://github.com/monperrus/crawler-user-agents"""
 
-from functools import wraps, cache
 import json
 import os
 import re
+from functools import cache, wraps
 
-from flask import request, redirect, url_for
+from flask import redirect, request, url_for
 from flask_login import current_user
 
 

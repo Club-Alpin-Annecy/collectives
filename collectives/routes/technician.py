@@ -4,23 +4,34 @@ All routes are protected by :py:fun:`before_request` which protect acces to tech
 
 """
 
-import logging
-import os.path
-import os
-import json
 import datetime
+import json
+import logging
+import os
+import os.path
 import re
-import yaml
 
-from flask import Blueprint, render_template, send_from_directory
-from flask import url_for, redirect, request, flash
+import yaml
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user
-from flask_uploads import UploadSet, IMAGES, DOCUMENTS
+from flask_uploads import DOCUMENTS, IMAGES, UploadSet
 from werkzeug.utils import secure_filename
 
-from collectives.forms.configuration import get_form_from_configuration, CoverUploadForm
-from collectives.models import ConfigurationItem, db
-from collectives.models import ConfigurationTypeEnum, Configuration
+from collectives.forms.configuration import CoverUploadForm, get_form_from_configuration
+from collectives.models import (
+    Configuration,
+    ConfigurationItem,
+    ConfigurationTypeEnum,
+    db,
+)
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")

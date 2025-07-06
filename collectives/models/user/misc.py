@@ -1,21 +1,20 @@
 """Module for misc User methods which does not fit in another submodule"""
 
-import os
 import datetime
+import os
 from typing import List
 
 import phonenumbers
-from flask_uploads import UploadSet, IMAGES
-from werkzeug.datastructures import FileStorage
+from flask_uploads import IMAGES, UploadSet
 from sqlalchemy.orm import selectinload
+from werkzeug.datastructures import FileStorage
 
-from collectives.models.globals import db
 from collectives.models.configuration import Configuration
+from collectives.models.globals import db
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender, UserType
 from collectives.utils.misc import is_valid_image
-
 
 # Upload
 avatars = UploadSet("avatars", IMAGES)

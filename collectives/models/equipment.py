@@ -2,14 +2,16 @@
 
 import os
 from genericpath import isfile
-from flask_uploads import UploadSet, IMAGES, extension
 
-from collectives.models.reservation import Reservation, ReservationLineEquipment
-from collectives.models.reservation import ReservationStatus
+from flask_uploads import IMAGES, UploadSet, extension
 
 from collectives.models.globals import db
+from collectives.models.reservation import (
+    Reservation,
+    ReservationLineEquipment,
+    ReservationStatus,
+)
 from collectives.models.utils import ChoiceEnum
-
 
 image_equipment_type = UploadSet("imgtypeequip", IMAGES)
 

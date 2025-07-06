@@ -1,15 +1,24 @@
 """Event actions tests."""
 
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
 from io import BytesIO
 
 from bs4 import BeautifulSoup
-from openpyxl import load_workbook
 from flask import url_for
+from openpyxl import load_workbook
 
-from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
-from collectives.models import RoleIds, Question, QuestionType, RegistrationStatus
+from collectives.models import (
+    ActivityType,
+    Event,
+    EventStatus,
+    EventVisibility,
+    Question,
+    QuestionType,
+    RegistrationStatus,
+    RoleIds,
+    db,
+)
 from collectives.utils.time import current_time
 from tests import utils
 from tests.fixtures.user import promote_user

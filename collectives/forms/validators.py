@@ -6,8 +6,8 @@ See `WTForms documentation
 
 import re
 
-from wtforms.validators import ValidationError
 from wtforms import Field, Form
+from wtforms.validators import ValidationError
 from wtforms_alchemy import Unique
 
 from collectives.models import Configuration

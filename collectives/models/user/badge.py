@@ -1,13 +1,13 @@
 """Module for all User methods related to badge manipulation and check."""
 
+from datetime import date, timedelta
 from typing import List, Optional, Set
 
-from datetime import date, timedelta
-from collectives.models.badge import Badge, BadgeIds
-from collectives.models.registration import Registration
-from collectives.models.activity_type import ActivityType
 from collectives.models import db
+from collectives.models.activity_type import ActivityType
+from collectives.models.badge import Badge, BadgeIds
 from collectives.models.configuration import Configuration
+from collectives.models.registration import Registration
 from collectives.utils.time import current_time
 
 

@@ -2,8 +2,15 @@
 
 import pytest
 
-from collectives.models import db, ActivityType, EventType, EventTag
-from collectives.models import Registration, RegistrationStatus, RegistrationLevels
+from collectives.models import (
+    ActivityType,
+    EventTag,
+    EventType,
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+    db,
+)
 
 # pylint: disable=unused-argument,too-many-arguments
 # pylint: disable=too-many-positional-arguments

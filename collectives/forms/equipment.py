@@ -4,15 +4,20 @@ from datetime import datetime
 from decimal import Decimal
 
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
-
-from wtforms import StringField, SubmitField, DateField, SelectField, HiddenField
-from wtforms import DecimalField
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import (
+    DateField,
+    DecimalField,
+    HiddenField,
+    SelectField,
+    StringField,
+    SubmitField,
+)
 from wtforms.validators import DataRequired, NumberRange
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.validators import UniqueValidator
-from collectives.models import Equipment, EquipmentType, EquipmentModel, photos, db
+from collectives.models import Equipment, EquipmentModel, EquipmentType, db, photos
 
 
 class LocalizedDecimalField(DecimalField):

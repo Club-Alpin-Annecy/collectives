@@ -1,9 +1,11 @@
 """Module for user badges related classes"""
 
 from datetime import date
+
 from sqlalchemy.sql import func
-from collectives.models.utils import ChoiceEnum
+
 from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
 
 
 class BadgeIds(ChoiceEnum):

@@ -1,10 +1,19 @@
 """List of Form used to modify configuration"""
 
 from flask_wtf import FlaskForm
-
-from wtforms import SubmitField, BooleanField, IntegerField, FloatField, TextAreaField
-from wtforms import StringField, DateTimeField, FileField, HiddenField, SelectField
-from wtforms.validators import NumberRange, DataRequired
+from wtforms import (
+    BooleanField,
+    DateTimeField,
+    FileField,
+    FloatField,
+    HiddenField,
+    IntegerField,
+    SelectField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
+from wtforms.validators import DataRequired, NumberRange
 from wtforms_alchemy.utils import strip_string
 
 

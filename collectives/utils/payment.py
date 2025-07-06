@@ -8,11 +8,21 @@ from flask import current_app
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 
-from collectives.models import db, Payment, PaymentStatus, PaymentItem, Event
-from collectives.models import ActivityType, ItemPrice, User, PaymentType
-from collectives.models import Registration, RegistrationStatus
-from collectives.utils.time import current_time, format_date, format_date_range
+from collectives.models import (
+    ActivityType,
+    Event,
+    ItemPrice,
+    Payment,
+    PaymentItem,
+    PaymentStatus,
+    PaymentType,
+    Registration,
+    RegistrationStatus,
+    User,
+    db,
+)
 from collectives.utils.numbers import format_currency
+from collectives.utils.time import current_time, format_date, format_date_range
 
 # pylint: disable=no-value-for-parameter
 

@@ -1,25 +1,24 @@
 """Templates for mails"""
 
+from datetime import timedelta
 from functools import wraps
 from typing import List
-from datetime import timedelta
 
-from flask import current_app, url_for, flash
+from flask import current_app, flash, url_for
 from markupsafe import Markup
 
-
 from collectives.models import (
-    db,
-    Configuration,
-    Registration,
-    ConfirmationToken,
     BadgeIds,
+    Configuration,
+    ConfirmationToken,
     Event,
+    Registration,
     User,
+    db,
 )
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
 from collectives.utils import mail
-from collectives.utils.time import format_date, current_time
+from collectives.utils.time import current_time, format_date
 from collectives.utils.url import slugify
 
 

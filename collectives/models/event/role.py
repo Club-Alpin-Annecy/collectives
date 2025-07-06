@@ -4,8 +4,8 @@ from typing import List
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.event.event_type import EventType
-from collectives.models.user import User
 from collectives.models.registration import RegistrationLevels
+from collectives.models.user import User
 
 
 class EventRoleMixin:

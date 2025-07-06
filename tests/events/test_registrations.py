@@ -1,14 +1,13 @@
 """Event actions tests related to registrations"""
 
 from datetime import date, timedelta
-from collectives.models import db, RegistrationStatus, BadgeIds
-from collectives.utils.time import current_time
 
+from collectives.models import BadgeIds, RegistrationStatus, db
+from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-import
-
 from tests.mock.mail import mail_success_monkeypatch
 
 

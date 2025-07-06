@@ -1,10 +1,10 @@
 """Miscellaneous utils functions"""
 
-from typing import Union, IO
-import io
 import functools
+import io
 import re
 import unicodedata
+from typing import IO, Union
 
 from flask import request
 from PIL import Image

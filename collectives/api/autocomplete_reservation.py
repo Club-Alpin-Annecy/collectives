@@ -5,10 +5,11 @@ Especially used for reservations by leaders.
 """
 
 import json
-from flask import request, abort
 
-from collectives.models.equipment import EquipmentType
+from flask import abort, request
+
 from collectives.api.common import blueprint, marshmallow
+from collectives.models.equipment import EquipmentType
 
 
 class AutocompleteEquipmentTypeSchema(marshmallow.SQLAlchemyAutoSchema):

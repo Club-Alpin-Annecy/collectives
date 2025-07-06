@@ -2,18 +2,17 @@
 
 import json
 
-from flask import url_for, request
+from flask import request, url_for
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc, and_
-from sqlalchemy.orm import selectinload, joinedload
-
-from collectives.models import db, User, RoleIds, Role, Badge
-from collectives.models.badge import BadgeIds
-from collectives.utils.access import valid_user, user_is, confidentiality_agreement
+from sqlalchemy import and_, desc
+from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.api.common import blueprint
-from collectives.api.schemas import UserSchema, RoleSchema, BadgeSchema
+from collectives.api.schemas import BadgeSchema, RoleSchema, UserSchema
+from collectives.models import Badge, Role, RoleIds, User, db
+from collectives.models.badge import BadgeIds
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 
 class AdminUserSchema(UserSchema):

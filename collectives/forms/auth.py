@@ -4,20 +4,23 @@ This module contains form related to authentification such as login
 and account creation.
 """
 
-from markupsafe import Markup
 from flask_wtf import FlaskForm
 from flask_wtf.recaptcha import RecaptchaField
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import InputRequired, EqualTo, DataRequired
+from markupsafe import Markup
+from wtforms import BooleanField, PasswordField, StringField, SubmitField
+from wtforms.validators import DataRequired, EqualTo, InputRequired
 from wtforms_alchemy import ModelForm
 from wtforms_alchemy.utils import strip_string
 
 from collectives.forms.order import OrderedForm
-from collectives.forms.validators import UniqueValidator, PasswordValidator
-from collectives.forms.validators import remove_unique_validators
-from collectives.models import User, Configuration
-from collectives.forms.utils import LicenseField, PhoneField
 from collectives.forms.user import OptionalPasswordForm
+from collectives.forms.utils import LicenseField, PhoneField
+from collectives.forms.validators import (
+    PasswordValidator,
+    UniqueValidator,
+    remove_unique_validators,
+)
+from collectives.models import Configuration, User
 
 
 class LoginForm(FlaskForm):

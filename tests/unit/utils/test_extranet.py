@@ -4,7 +4,6 @@ import datetime
 
 from collectives.utils import extranet
 from collectives.utils.time import current_time
-
 from tests import mock
 
 # pylint: disable=unused-argument

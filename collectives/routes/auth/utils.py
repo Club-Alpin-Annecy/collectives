@@ -1,12 +1,11 @@
 """Auth module for miscaleneous functions and classes."""
 
-from flask import url_for, current_app
+from flask import current_app, url_for
 from flask_login import AnonymousUserMixin
-from markupsafe import escape
 from flask_wtf.csrf import generate_csrf
+from markupsafe import escape
 
-
-from collectives.models import db, User, UserType, Configuration
+from collectives.models import Configuration, User, UserType, db
 from collectives.utils import extranet
 from collectives.utils.time import current_time
 

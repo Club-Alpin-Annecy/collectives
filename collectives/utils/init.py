@@ -1,24 +1,26 @@
 """Module to initialise DB"""
 
 import sqlite3
-import uuid
 import sys
+import uuid
 
-import yaml
-import sqlalchemy
 import pymysql
+import sqlalchemy
+import yaml
 from click import pass_context
 
 from collectives.models import (
-    ActivityType,
-    EventType,
-    User,
-    Role,
-    db,
-    RoleIds,
     ActivityKind,
+    ActivityType,
+    Configuration,
+    ConfigurationItem,
+    ConfigurationTypeEnum,
+    EventType,
+    Role,
+    RoleIds,
+    User,
+    db,
 )
-from collectives.models import Configuration, ConfigurationTypeEnum, ConfigurationItem
 from collectives.utils.time import current_time
 
 

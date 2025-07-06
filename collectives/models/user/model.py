@@ -2,12 +2,12 @@
 
 from datetime import date, datetime
 
-from wtforms.validators import Email
-from sqlalchemy_utils import PasswordType
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import validates
 from sqlalchemy.sql import and_, case
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy_utils import PasswordType
+from wtforms.validators import Email
 
 from collectives.models.globals import db
 from collectives.models.user.enum import Gender, UserType

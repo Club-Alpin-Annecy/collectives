@@ -2,11 +2,11 @@
 
 import json
 
-from flask import url_for, abort
+from flask import abort, url_for
 from marshmallow import fields
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.models import db, Equipment, EquipmentType, EquipmentModel
+from collectives.models import Equipment, EquipmentModel, EquipmentType, db
 from collectives.utils.numbers import format_currency
 
 

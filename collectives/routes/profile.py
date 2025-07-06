@@ -3,34 +3,48 @@
 This modules contains the /profile Blueprint
 """
 
-from datetime import date
-from os.path import exists
-from io import BytesIO
 import textwrap
+from datetime import date
+from io import BytesIO
+from os.path import exists
 
-
-from PIL import Image, ImageDraw, ImageFont
-from flask import flash, render_template, redirect, url_for, request, send_file, abort
-from flask import Blueprint
-from flask_login import current_user, logout_user
+from flask import (
+    Blueprint,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_images import Images
+from flask_login import current_user, logout_user
 from markupsafe import Markup
+from PIL import Image, ImageDraw, ImageFont
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
 from collectives.forms.user import DeleteUserForm
-from collectives.models import User, Role, RoleIds, Configuration, Gender
-from collectives.models import Event, db, UserType
+from collectives.models import (
+    Configuration,
+    Event,
+    Gender,
+    Role,
+    RoleIds,
+    User,
+    UserType,
+    db,
+)
 from collectives.routes.auth import (
-    sync_user,
-    InvalidLicenseError,
     EmailChangedError,
+    InvalidLicenseError,
     get_changed_email_message,
+    sync_user,
 )
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
 from collectives.utils.time import current_time
-
 
 images = Images()
 

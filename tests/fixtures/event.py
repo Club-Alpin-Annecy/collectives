@@ -5,12 +5,23 @@ from functools import wraps
 
 import pytest
 
-from collectives.models import db, ActivityType, ActivityKind
-from collectives.models import EventType, Event, EventTag, EventStatus, EventVisibility
-from collectives.models import Registration, RegistrationLevels, RegistrationStatus
-from collectives.models import Question, QuestionType, QuestionAnswer
+from collectives.models import (
+    ActivityKind,
+    ActivityType,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    EventVisibility,
+    Question,
+    QuestionAnswer,
+    QuestionType,
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+    db,
+)
 from collectives.utils.time import current_time
-
 from tests.fixtures import payment
 
 # pylint: disable=unused-argument, redefined-outer-name

@@ -1,9 +1,9 @@
 """Module for user roles related classes"""
 
-from typing import List, Dict
+from typing import Dict, List
 
-from collectives.models.utils import ChoiceEnum
 from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
 
 
 class RoleIds(ChoiceEnum):

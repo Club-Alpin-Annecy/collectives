@@ -1,10 +1,10 @@
 """Module for all User methods related to role manipulation and check."""
 
-from typing import List, Set
 import datetime
+from typing import List, Set
 
-from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType
+from collectives.models.globals import db
 from collectives.models.role import Role, RoleIds
 
 
