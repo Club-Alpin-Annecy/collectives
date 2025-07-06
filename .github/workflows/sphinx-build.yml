@@ -26,7 +26,7 @@ jobs:
           uv run make html
       - name: Check general doc coverage
         run: |
-          uv run docstr-coverage .  -e ".env|migrations|instance|doc" -F 73
+          uv run docstr-coverage .  -e ".*(.env|.venv|migrations|instance|doc).*" -F 73
       - name: Check models doc coverage
         run: |
           uv run docstr-coverage collectives/models

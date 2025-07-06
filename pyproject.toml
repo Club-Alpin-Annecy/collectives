@@ -99,9 +99,6 @@ docstr-coverage = { git = "https://github.com/HunterMcGushion/docstr_coverage.gi
 [project.optional-dependencies]
 dev = [
     "flask-testing",
-    "pylint-quotes",
-    "pylint-flask-sqlalchemy",
-    "black",
     "pytest",
     "pytest-cov",
     "beautifulsoup4",
