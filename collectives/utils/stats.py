@@ -282,7 +282,7 @@ class StatisticsEngine:
             query = query.filter(condition)
 
         if requires_activity:
-            query.filter(Event.event_type.has(EventType.requires_activity == True))
+            query.filter(Event.event_type.has(EventType.requires_activity))
 
         return query
 
@@ -530,7 +530,7 @@ class StatisticsEngine:
         functions = [getattr(self, fnc) for fnc in functions]
 
         for fnc in functions:
-            if fnc.__annotations__["return"] == dict:
+            if issubclass(fnc.__annotations__["return"], dict):
                 worksheet = workbook.create_sheet()
                 worksheet.title = self.INDEX[fnc.__name__]["name"]
                 worksheet.append([worksheet.title])

@@ -37,7 +37,7 @@ class EventRoleMixin:
                 other_leaders.append(leader)
         if main_leader is None:
             return other_leaders
-        return [main_leader] + other_leaders
+        return [main_leader, *other_leaders]
 
     def is_leader(self, user):
         """Check if a user is one of this event leaders.

@@ -46,7 +46,7 @@ def test_price_creation(leader_client, event1):
     assert price.title == "Adult"
     assert price.item.title == "Banana"
     assert price.amount == 10
-    assert price.enabled == True
+    assert price.enabled
 
 
 def test_price_list(user1_client, paying_event, disabled_paying_event):

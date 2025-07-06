@@ -178,7 +178,7 @@ def photo_uri(event):
     """
     if event.photo is not None:
         return url_for("images.crop", filename=event.photo, width=350, height=250)
-    return url_for("static", filename=f"img/default/events/event{event.id%8 + 1}.svg")
+    return url_for("static", filename=f"img/default/events/event{event.id % 8 + 1}.svg")
 
 
 class EventSchema(marshmallow.SQLAlchemyAutoSchema):

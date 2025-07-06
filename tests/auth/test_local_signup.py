@@ -3,7 +3,6 @@ FFCAM extranet)"""
 
 # pylint: disable=redefined-outer-name, unused-argument, unused-import
 
-
 import pytest
 
 from collectives.models import (

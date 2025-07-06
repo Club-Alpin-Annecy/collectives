@@ -30,7 +30,7 @@ def format_bytes(size):
     if size == 0:
         return "0 B"
     names = ("B", "kB", "MB", "GB")
-    index = int(math.floor(math.log2(size) / 10))
+    index = math.floor(math.log2(size) / 10)
     unit = 1 << (10 * index)
     return f"{round(size / unit, 1)} {names[index]}"
 

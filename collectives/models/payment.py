@@ -731,7 +731,7 @@ class Payment(db.Model):
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
             self.amount_charged = item_price.amount
-            self.amount_paid = Decimal(0)
+            self.amount_paid = Decimal()
             self.payment_type = PaymentType.Online
             self.status = PaymentStatus.Initiated
             self.processor_token = ""

@@ -46,9 +46,9 @@ class ConfigurationTypeEnum(enum.Enum):
     File = 9
     """ A file will be stored.
     
-    Actual file is stored in local file system, in 
-    ``collectives/static/uploads/tech``. The ``content`` attribute 
-    of a ``File`` configuration instance only contains the path, 
+    Actual file is stored in local file system, in
+    ``collectives/static/uploads/tech``. The ``content`` attribute
+    of a ``File`` configuration instance only contains the path,
     relative to the ``uploads`` folder.
     
     Often, default content are not in ``uploads``."""
@@ -56,8 +56,8 @@ class ConfigurationTypeEnum(enum.Enum):
     SecretFile = 10
     """ A file will be stored, but that should not be exposed in static.
     
-    Actual file is stored in local file system, in 
-    ``collectives/private_assets``. The ``content`` attribute 
+    Actual file is stored in local file system, in
+    ``collectives/private_assets``. The ``content`` attribute
     of a ``SecretFile`` configuration instance only contains the path,
     relative to the current working directory of the application.
     
@@ -190,7 +190,8 @@ class ConfigurationItem(db.Model):
     :type: int"""
 
     date = db.Column(
-        db.DateTime, server_default=func.now()  # pylint: disable=not-callable
+        db.DateTime,
+        server_default=func.now(),  # pylint: disable=not-callable
     )
     """ Edition date
 

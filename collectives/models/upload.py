@@ -218,8 +218,8 @@ class UploadedFile(db.Model):
         :param days: Number of days since upload to consider purging the file
         :type days: int
         """
-        to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
-        to_delete = to_delete.filter(UploadedFile.activity_id == None)
+        to_delete = UploadedFile.query.filter(UploadedFile.event_id.is_(None))
+        to_delete = to_delete.filter(UploadedFile.activity_id.is_(None))
         to_delete = to_delete.filter(UploadedFile.session_id != current_session_id)
         to_delete = to_delete.filter(
             UploadedFile.date <= current_time() - timedelta(days=days)

@@ -513,11 +513,11 @@ def request_payment(payment_id):
         abort(403)
 
     # If the item is free, approve the payment immediately
-    if payment.amount_charged == Decimal(0.0):
+    if payment.amount_charged == Decimal(0):
         payment.payment_type = PaymentType.Cash
         payment.status = PaymentStatus.Approved
         payment.finalization_time = current_time()
-        payment.amount_paid = Decimal(0.0)
+        payment.amount_paid = Decimal(0)
         if payment.registration is not None:
             flash("Votre inscription est désormais confirmée.")
             payment.registration.status = RegistrationStatus.Active

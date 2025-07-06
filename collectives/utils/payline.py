@@ -252,7 +252,7 @@ class OrderInfo:
         for key, value in self.metadata.items():
             if isinstance(value, list):
                 for i, multi_v in enumerate(value):
-                    key_value.append({"key": f"{key}_{i+1}", "value": multi_v})
+                    key_value.append({"key": f"{key}_{i + 1}", "value": multi_v})
             else:
                 key_value.append({"key": key, "value": value})
 

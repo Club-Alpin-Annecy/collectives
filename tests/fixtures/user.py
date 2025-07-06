@@ -109,7 +109,7 @@ USER_NAMES = [
 
 :type: list()"""
 for i, user_name in enumerate(USER_NAMES):
-    inject_fixture(f"user{i+1}", user_name)
+    inject_fixture(f"user{i + 1}", user_name)
 
 
 @pytest.fixture

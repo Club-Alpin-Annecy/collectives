@@ -3,10 +3,10 @@
 from datetime import date, timedelta
 from typing import List, Optional, Set
 
-from collectives.models import db
 from collectives.models.activity_type import ActivityType
 from collectives.models.badge import Badge, BadgeIds
 from collectives.models.configuration import Configuration
+from collectives.models.globals import db
 from collectives.models.registration import Registration
 from collectives.utils.time import current_time
 
@@ -125,9 +125,9 @@ class UserBadgeMixin:
         :return: The set of activities for which the user has a badge
         """
         badges = self.matching_badges(badge_ids, valid_only=True)
-        return set(
+        return {
             badge.activity_type for badge in badges if badge.activity_type is not None
-        )
+        }
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments

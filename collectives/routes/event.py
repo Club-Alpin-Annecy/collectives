@@ -641,7 +641,7 @@ def manage_event(event_id=None):
         db.session.commit()
     elif form.duplicate_event.data != "":
         duplicated_event = db.session.get(Event, form.duplicate_event.data)
-        if duplicated_event != None:
+        if duplicated_event is not None:
             event.photo = duplicated_event.photo
             event.copy_payment_items(duplicated_event)
             event.copy_questions(duplicated_event)
@@ -696,7 +696,7 @@ def duplicate(event_id=None):
 
     event = db.session.get(Event, event_id)
 
-    if event == None:
+    if event is None:
         flash("Pas d'événement à dupliquer", "error")
         return redirect(url_for("event.index"))
 

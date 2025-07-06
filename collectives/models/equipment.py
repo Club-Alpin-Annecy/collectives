@@ -197,7 +197,7 @@ class EquipmentType(db.Model):
         :return: The automatic reference for the creation of a new equipment of this type
         :rtype: string
         """
-        return f"{self.reference_prefix} {self.last_reference+1}"
+        return f"{self.reference_prefix} {self.last_reference + 1}"
 
     def increment_last_reference(self):
         """

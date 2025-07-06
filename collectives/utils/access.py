@@ -67,7 +67,7 @@ def user_is(methods, api=False, **kwargs):
 
     .. code-block:: python
 
-        @user_is('is_admin')
+        @user_is("is_admin")
         @blueprint.route("/", methods=["GET", "POST"])
         def administration():
             pass

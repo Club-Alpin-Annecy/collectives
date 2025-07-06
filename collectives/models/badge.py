@@ -15,8 +15,8 @@ class BadgeIds(ChoiceEnum):
     Benevole = 1
 
     UnjustifiedAbsenceWarning = 2
-    """ User has been issued a warning regarding 
-    late unregistrations and unjustified absences. 
+    """ User has been issued a warning regarding
+    late unregistrations and unjustified absences.
     """
 
     Suspended = 3

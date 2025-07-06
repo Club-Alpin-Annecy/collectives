@@ -185,7 +185,7 @@ def generate_price_intervals(item: PaymentItem, user: User) -> List[PriceDateInt
             boundaries.add(price.start_date)
 
     # Sort boundaries, generate intervals
-    boundaries = sorted(list(boundaries))
+    boundaries = sorted(boundaries)
 
     intervals = []
     current_start = boundaries[0]

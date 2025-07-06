@@ -1,5 +1,7 @@
 """Module to initialise DB"""
 
+import functools
+import operator
 import sqlite3
 import sys
 import uuid
@@ -62,7 +64,7 @@ def activity_types(app):
         activity_type = (
             db.session.query(ActivityType).filter_by(short=atype["short"]).first()
         )
-        if activity_type == None:
+        if activity_type is None:
             activity_type = ActivityType()
 
             activity_type.name = atype["name"]
@@ -104,7 +106,7 @@ def event_types(app):
     """
     for tid, etype in app.config["EVENT_TYPES"].items():
         event_type = db.session.get(EventType, tid)
-        if event_type == None:
+        if event_type is None:
             event_type = EventType(id=tid)
 
         event_type.name = etype["name"]
@@ -205,7 +207,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
 
         if clean:
             folders = [list(folder.keys()) for folder in yaml_content.values()]
-            all_keys = sum(folders, [])
+            all_keys = functools.reduce(operator.iadd, folders, [])
             absent_conf = sqlalchemy.not_(ConfigurationItem.name.in_(all_keys))
 
             for item in ConfigurationItem.query.filter(absent_conf).all():

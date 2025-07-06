@@ -39,7 +39,7 @@ class LicenseField(StringField):
                 "pattern": LicenseValidator().pattern(),
             },
             validators=[LicenseValidator()],
-            **kwargs
+            **kwargs,
         )
         if unique:
             self.validators.append(
@@ -58,5 +58,5 @@ class PhoneField(StringField):
             validators=[
                 PhoneValidator(),
             ],
-            **kwargs
+            **kwargs,
         )

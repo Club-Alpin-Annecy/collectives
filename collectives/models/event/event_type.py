@@ -23,7 +23,7 @@ class EventType(db.Model):
     """ List of configuration keys that can be used to format the terms_file
     or terms_title.
 
-    It should never be a secret configuration.  
+    It should never be a secret configuration.
 
     :type: list"""
 

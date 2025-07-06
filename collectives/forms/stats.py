@@ -30,11 +30,12 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
 
         super().__init__(*args, all_enabled=True, year=2000 + current_year, **kwargs)
         self.activity_id.choices = [
-            (self.ALL_ACTIVITIES, "Toute activité")
-        ] + self.activity_id.choices
+            (self.ALL_ACTIVITIES, "Toute activité"),
+            *self.activity_id.choices,
+        ]
         current_year = date.today().year - 2000
         self.year.choices = [
-            (2000 + year, f"Année 20{year}/{year+1}")
+            (2000 + year, f"Année 20{year}/{year + 1}")
             for year in range(20, current_year)
         ]
 

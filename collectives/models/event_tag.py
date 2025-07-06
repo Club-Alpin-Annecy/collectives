@@ -32,7 +32,7 @@ class EventTag(db.Model):
     :type: :py:class:`collectives.models.event_tag.EventTagTypes`"""
 
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
-    """ Primary key of the event which holds this tag (see  
+    """ Primary key of the event which holds this tag (see
     :py:class:`collectives.models.event.Event`)
 
     :type: int"""

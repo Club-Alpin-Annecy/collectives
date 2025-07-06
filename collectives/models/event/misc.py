@@ -6,8 +6,8 @@ from typing import List
 from flask_uploads import IMAGES, UploadSet
 from werkzeug.datastructures import FileStorage
 
-from collectives.models import db
 from collectives.models.event.enum import EventStatus, EventVisibility
+from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
 from collectives.utils import render_markdown

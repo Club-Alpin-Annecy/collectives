@@ -76,7 +76,7 @@ def login():
         flash(
             Markup(
                 f"""Compte non validé par mail. Si vous n'avez pas reçu le mail de validation,
-                     vous pouvez en redemander un en utilisant le 
+                     vous pouvez en redemander un en utilisant le
                      <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>"""
             ),
             "error",

@@ -74,7 +74,7 @@ class GroupRoleConditionForm(ModelForm):
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
-        self.role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
+        self.role_id.choices = [("", "N'importe quel rôle"), *RoleIds.choices()]
 
     def activity(self) -> Optional[ActivityType]:
         """:returns: the activity corresponding to the current activity_id"""
@@ -127,7 +127,7 @@ class GroupBadgeConditionForm(ModelForm):
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
-        self.badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+        self.badge_id.choices = [("", "N'importe quel badge"), *BadgeIds.choices()]
 
     def activity(self) -> Optional[ActivityType]:
         """:returns: the activity corresponding to the current activity_id"""
@@ -239,12 +239,12 @@ class UserGroupForm(ModelForm):
             for cat, descr in Configuration.LICENSE_CATEGORIES.items()
         ]
 
-        self.new_role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
+        self.new_role_id.choices = [("", "N'importe quel rôle"), *RoleIds.choices()]
         self.new_role_activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
 
-        self.new_badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+        self.new_badge_id.choices = [("", "N'importe quel badge"), *BadgeIds.choices()]
         self.new_badge_activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]

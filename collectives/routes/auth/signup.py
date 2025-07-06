@@ -305,7 +305,7 @@ def check_user_validity(form):
         )
         return None
 
-    if user_info.email == None:
+    if user_info.email is None:
         form.generic_error = f"""Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
             club. Envoyez un mail à {Configuration.SECRETARIAT_EMAIL} afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
@@ -342,7 +342,7 @@ def check_token(license_number):
         + f" à {Configuration.SUPPORT_EMAIL} si le problème persiste."
     )
 
-    if token == None:
+    if token is None:
         current_app.logger.error(f"Cannot find a token for license {license_number}")
         flash(
             error_message,

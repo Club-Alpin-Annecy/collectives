@@ -39,10 +39,11 @@ def crawlers_catcher(url):
     How to use:
     .. code-block:: python
 
-        @crawlers_catcher('event.preview')
+        @crawlers_catcher("event.preview")
         @blueprint.route("/", methods=["GET", "POST"])
         def event():
             return "for users"
+
 
         def preview():
             return "for crawler"

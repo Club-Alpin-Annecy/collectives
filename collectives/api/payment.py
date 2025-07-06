@@ -266,7 +266,7 @@ def my_payments(status_code):
 
     if PaymentStatus[status_code] == PaymentStatus.Initiated:
         # We only care about unsettled payments with an active registration
-        query = query.filter(Payment.registration != None)
+        query = query.filter(Payment.registration.isnot(None))
 
     result = query.order_by(Payment.id.desc()).all()
     response = MyPaymentSchema(many=True).dump(result)

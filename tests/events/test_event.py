@@ -225,8 +225,8 @@ def test_event_creation(leader_client):
         "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "description": """**Lorem ipsum** dolor sit amet, consectetur adipiscing elit.
-                                Cras sodales ut ipsum sit amet ultrices. Curabitur aliquet 
-                                id dolor et maximus. Praesent iaculis pretium orci vitae 
+                                Cras sodales ut ipsum sit amet ultrices. Curabitur aliquet
+                                id dolor et maximus. Praesent iaculis pretium orci vitae
                                 laoreet. Phasellus laoreet iaculis justo, in vulputate augue
                                 bibendum et. _Vestibulum dapibus_ posuere sagittis. Praesent
                                 commodo facilisis orci. Sed a volutpat ex. Donec in quam ornare,
@@ -258,9 +258,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "Annulée" in response.text
 
     data["status"] = int(EventStatus.Pending)
@@ -268,9 +268,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "En attente" in response.text
 
     data["description"] = "New **description** for you"
@@ -278,9 +278,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "New <strong>description</strong> for you" in response.text
 
 

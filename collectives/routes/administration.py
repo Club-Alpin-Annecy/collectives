@@ -86,7 +86,7 @@ def administration():
 
     count = {}
     count["total"] = User.query.count()
-    count["enable"] = User.query.filter(User.enabled == True).count()
+    count["enable"] = User.query.filter(User.enabled).count()
 
     return render_template(
         "administration/user_list.html",
@@ -115,7 +115,7 @@ def manage_user(user_id=None):
     FormClass = AdminUserForm
     if (
         user.type in [UserType.Test, UserType.Local, UserType.UnverifiedLocal]
-        or user_id == None
+        or user_id is None
     ):
         FormClass = AdminTestUserForm
 
@@ -136,7 +136,7 @@ def manage_user(user_id=None):
     form.populate_obj(user)
     # Commit this object will create the id if it
     # is a user creation
-    if user_id == None:
+    if user_id is None:
         db.session.add(user)
         db.session.commit()
 
@@ -510,7 +510,7 @@ def generate_token():
 
         # Check that the license number has an email associated to it
         user_info = extranet.api.fetch_user_info(license_number)
-        if user_info.email == None:
+        if user_info.email is None:
             flash(
                 "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de "
                 "créer un compte",

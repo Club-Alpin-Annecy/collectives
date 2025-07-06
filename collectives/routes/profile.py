@@ -218,7 +218,7 @@ def confidentiality_agreement():
     """Route to show confidentiality agreement."""
     if (
         request.method == "POST"
-        and current_user.confidentiality_agreement_signature_date == None
+        and current_user.confidentiality_agreement_signature_date is None
     ):
         current_user.confidentiality_agreement_signature_date = current_time()
         db.session.add(current_user)
@@ -320,7 +320,7 @@ def volunteer_certificate():
         f"est licencié{conjugate} au {club_name} sous le numéro d'adhérent "
         f"{current_user.license}, est membre de la FFCAM, la Fédération "
         "Française des Clubs Alpins et de Montagne, est à jour de cotisation "
-        f"pour l'année en cours, du 1er septembre {expiry-1} au 30 septembre "
+        f"pour l'année en cours, du 1er septembre {expiry - 1} au 30 septembre "
         f"{expiry}, et est Bénévole reconnu{conjugate} au sein de notre "
         "association.\n\n"
         f"Nom et adresse de la structure:\n{Configuration.CLUB_IDENTITY}\n"

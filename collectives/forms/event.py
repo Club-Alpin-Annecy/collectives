@@ -68,7 +68,7 @@ def available_event_types(
     if all(l.is_leader() for l in leaders):
         return query.all()
 
-    query_filter = EventType.requires_activity == False
+    query_filter = sqlalchemy.not_(EventType.requires_activity)
     if source_event_type:
         query_filter = sqlalchemy.or_(
             query_filter, EventType.id == source_event_type.id

@@ -31,7 +31,7 @@ class LocalizedDecimalField(DecimalField):
         min_value: float = 0,
         max_value: float = 10000,
         placeholder: str = "",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             validators=[
@@ -52,7 +52,7 @@ class LocalizedDecimalField(DecimalField):
             },
             default=Decimal(0),
             *args,
-            **kwargs
+            **kwargs,
         )
 
 

@@ -42,7 +42,7 @@ class RegistrationEventSchema(EventSchema):
     class Meta:
         """Fields to expose"""
 
-        fields = EventSchema.Meta.fields + tuple(["registration"])
+        fields = (*EventSchema.Meta.fields, "registration")
 
 
 @blueprint.route("/user/<user_id>/events")

@@ -256,7 +256,7 @@ def csv_import():
         )
 
         flash(
-            f"Importation de {processed-len(failed)} éléments sur {processed}",
+            f"Importation de {processed - len(failed)} éléments sur {processed}",
             "message",
         )
 
@@ -351,7 +351,6 @@ def configuration_form(activity_type_id: int = None):
         form = ActivityTypeEditForm(obj=activity)
 
     if form.validate_on_submit():
-
         if activity is None:
             # May only create services, not regular activities
             # Generate short name from full name

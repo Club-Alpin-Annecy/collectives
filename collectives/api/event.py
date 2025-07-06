@@ -189,7 +189,7 @@ def events():
     # Add query filter from filters_tag list
     if len(filters_tags) > 0:
         query = query.filter(
-            or_(*map(lambda tag: Event.tag_refs.any(type=tag), filters_tags))
+            or_(*(Event.tag_refs.any(type=tag) for tag in filters_tags))
         )
 
     # Add query filter from filters_types list
@@ -197,9 +197,7 @@ def events():
         # pylint: disable=comparison-with-callable
         query = query.filter(EventType.id == Event.event_type_id)
         # pylint: enable=comparison-with-callable
-        query = query.filter(
-            or_(*map(lambda type: EventType.short == type, filters_types))
-        )
+        query = query.filter(or_(*(EventType.short == type for type in filters_types)))
 
     query = query.order_by(Event.start)
     query = query.order_by(Event.id)

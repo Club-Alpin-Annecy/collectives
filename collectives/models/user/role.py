@@ -222,7 +222,7 @@ class UserRoleMixin:
         # pylint: disable=comparison-with-callable
         query = query.filter(EventType.id == Event.event_type_id)
         # pylint: enable=comparison-with-callable
-        query = query.filter(EventType.requires_activity == True)
+        query = query.filter(EventType.requires_activity)
         events = query.all()
 
         return not any(event.is_confirmed() for event in events)
@@ -242,7 +242,7 @@ class UserRoleMixin:
             else RoleIds.all_activity_organizer_roles()
         )
         user_roles = self.matching_roles(ok_roles)
-        return set(role.activity_type for role in user_roles)
+        return {role.activity_type for role in user_roles}
 
     def get_supervised_activities(self) -> Set[ActivityType]:
         """Get set of activities the user supervises.
@@ -259,6 +259,6 @@ class UserRoleMixin:
         """
         :return: The set of activities for which the user has a role
         """
-        return set(
+        return {
             role.activity_type for role in self.roles if role.activity_type is not None
-        )
+        }

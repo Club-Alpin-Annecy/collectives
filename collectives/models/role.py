@@ -153,7 +153,7 @@ class RoleIds(ChoiceEnum):
         """
         :return: List of all roles that allow users to organize events with an activity
         """
-        return cls.all_activity_leader_roles() + (cls.Trainee, cls.ActivityStaff)
+        return (*cls.all_activity_leader_roles(), cls.Trainee, cls.ActivityStaff)
 
     @classmethod
     def all_equipment_management_roles(cls) -> List["RoleIds"]:
@@ -163,7 +163,8 @@ class RoleIds(ChoiceEnum):
         return (
             cls.EquipmentVolunteer,
             cls.EquipmentManager,
-        ) + cls.all_moderator_roles()
+            *cls.all_moderator_roles(),
+        )
 
     @classmethod
     def all_reservation_management_roles(cls) -> List["RoleIds"]:
@@ -174,7 +175,8 @@ class RoleIds(ChoiceEnum):
         return (
             cls.EquipmentVolunteer,
             cls.EquipmentManager,
-        ) + cls.all_moderator_roles()
+            *cls.all_moderator_roles(),
+        )
 
     @classmethod
     def all_event_creator_roles(cls) -> List["RoleIds"]:
@@ -183,9 +185,11 @@ class RoleIds(ChoiceEnum):
         :rtype: list[:py:class:`RoleIds`]
         """
         return (
-            (cls.Staff, cls.ActivityStaff, cls.Trainee)
-            + cls.all_activity_leader_roles()
-            + cls.all_moderator_roles()
+            cls.Staff,
+            cls.ActivityStaff,
+            cls.Trainee,
+            *cls.all_activity_leader_roles(),
+            *cls.all_moderator_roles(),
         )
 
     @classmethod
@@ -194,7 +198,7 @@ class RoleIds(ChoiceEnum):
         :return: List of all roles that allow users to create reservation
         :rtype: list[:py:class:`RoleIds`]
         """
-        return (cls.EventLeader,) + cls.all_reservation_management_roles()
+        return (cls.EventLeader, *cls.all_reservation_management_roles())
 
 
 class Role(db.Model):

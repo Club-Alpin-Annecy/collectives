@@ -6,6 +6,7 @@ imports all the submodule and contains the application factory.
 Typical usage example::
 
   import collectives
+
   collectives.create_app().run(debug=True)
 """
 

@@ -35,7 +35,7 @@ class ActivityTypeSelectionForm(FlaskForm):
         no_enabled: bool = False,
         activity_list: List[ActivityType] = None,
         submit_label: str = None,
-        **kwargs
+        **kwargs,
     ):
         """Overloaded constructor populating activity list.
 
