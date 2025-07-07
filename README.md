@@ -25,8 +25,7 @@
 
 2. Format: `uvx ruff format`
 
-2. Lint: `uvx ruff check --fix`
-
+2. Run linter: `uvx ruff check --fix`
 
 
 # INTRODUCTION
@@ -34,7 +33,7 @@
 This is the collectives site to plan events within a mountain sport club.
 It is based on Flask.
 
-# Installation
+# Legacy installation via pip (deprecated)
 
 1. Unzip the package from the source.
 2. Install Python (this app has been tested with Python 3.8) and pip3
@@ -62,13 +61,8 @@ More detailed documentation can be found in ``doc`` folder or on the doc
 website: https://doc.collectives.cafannecy.fr
 
 # Tests
-:hammer_and_wrench: [WIP] :hammer_and_wrench:
 
-Install required test dependencies with pip:
-    `pip install -r requirements-tools.txt`
-run the tests:
-- `python tests.py` to run Unit Tests
-- `pytest` to run Integration Tests
+- `uv run pytest` to run Integration Tests
 
 # Contributing
 Refer to the CODING file.

@@ -12,14 +12,13 @@ COPY instance /app/instance/
 COPY logs /app/logs/
 
 COPY migrations /app/migrations/
-COPY config.py pyproject.toml .python-version uv.lock /app/
+COPY config.py pyproject.toml .python-version uv.lock README.md /app/
 
 COPY collectives /app/collectives/
 COPY deployment/docker/logging.cfg /app/
 COPY metadata.jso[n] /app/
 
-RUN cd /app; uv sync --locked
-RUN cd /app; uv tool install waitress
+RUN cd /app; uv sync --locked --no-dev --extra deploy
 
 WORKDIR /app
 
