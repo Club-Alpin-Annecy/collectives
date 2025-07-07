@@ -1,7 +1,7 @@
 """Tests
 ===================
 
-Tests are done using pytest on the module :py:mod:`tests`. Tests must be done before merging
+Tests are run using pytest on the module :py:mod:`tests`. Tests must be done before merging
 into `master` branch. Test driven development is encouraged.
 
 Tests
@@ -28,13 +28,7 @@ The code can be tested using this command.
 
 .. code-block:: bash
 
-    pytest --cov=collectives tests/
-
-Please note that requirement-tools.txt must be installed before starting tests.
-
-.. code-block:: bash
-
-    pip install -r requirements-tools.txt
+    uv run pytest --cov=collectives tests/
 
 VSCode integration
 ----------------------
@@ -47,8 +41,6 @@ tests can be launched as a batch or independently.
     :alt: VScode test hmi
 
 VSCode configuration is already present in the repository, in `.vscode/settings.json`.
-Please note that this integration assumes that your python executable is in a virtualenv
-named `.env`.
 
 Fixtures
 -----------------
