@@ -1,8 +1,8 @@
 """ " Testing badge management for administration"""
 
-from io import BytesIO
 import json
 from datetime import date
+from io import BytesIO
 
 import openpyxl
 

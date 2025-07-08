@@ -9,8 +9,8 @@ See `functools <https://docs.python.org/3.8/library/functools.html>`_
 
 from functools import wraps
 
-from flask import redirect, url_for, flash, abort
 import flask_login
+from flask import abort, flash, redirect, url_for
 
 from collectives.models import Configuration
 
@@ -67,7 +67,7 @@ def user_is(methods, api=False, **kwargs):
 
     .. code-block:: python
 
-        @user_is('is_admin')
+        @user_is("is_admin")
         @blueprint.route("/", methods=["GET", "POST"])
         def administration():
             pass

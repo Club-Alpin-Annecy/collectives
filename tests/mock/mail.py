@@ -1,8 +1,9 @@
 """Mock functions for mail."""
 
 from typing import List
-import pytest
+
 import flask
+import pytest
 
 from collectives.utils.mail import send_mail_threaded
 

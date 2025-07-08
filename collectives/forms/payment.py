@@ -5,23 +5,30 @@ from decimal import Decimal
 from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import (
-    SubmitField,
-    StringField,
+    BooleanField,
     DecimalField,
-    FormField,
     FieldList,
+    FormField,
+    HiddenField,
+    SelectField,
+    StringField,
+    SubmitField,
 )
-from wtforms import HiddenField, BooleanField, SelectField
-from wtforms.validators import NumberRange, ValidationError, Optional
+from wtforms.validators import NumberRange, Optional, ValidationError
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.order import OrderedForm
-from collectives.models import db, ItemPrice, PaymentItem, Payment
-from collectives.models import PaymentType, PaymentStatus
-from collectives.models import UserGroup
-from collectives.utils.numbers import format_currency
-
 from collectives.forms.user_group import UserGroupForm
+from collectives.models import (
+    ItemPrice,
+    Payment,
+    PaymentItem,
+    PaymentStatus,
+    PaymentType,
+    UserGroup,
+    db,
+)
+from collectives.utils.numbers import format_currency
 
 
 class AmountForm(FlaskForm):

@@ -3,13 +3,12 @@
 # pylint: disable=unused-argument
 
 from collectives.models import User, db
-from tests import mock
-from tests import fixtures
+from tests import fixtures, mock
 from tests.mock.extranet import (
     EXPIRED_LICENSE,
+    VALID_LICENSE_WITH_NO_EMAIL,
     VALID_USER_EMAIL,
     VALID_USER_EMERGENCY,
-    VALID_LICENSE_WITH_NO_EMAIL,
 )
 
 

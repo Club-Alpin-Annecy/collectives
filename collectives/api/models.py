@@ -4,11 +4,12 @@ Usually export as js file to be directly used by js."""
 
 import inspect
 import json
+
 from flask import Response, request
 
-from collectives.api.common import blueprint
 import collectives.models
-from collectives.models import EventTag, Configuration, RoleIds
+from collectives.api.common import blueprint
+from collectives.models import Configuration, EventTag, RoleIds
 
 
 @blueprint.route("/models.js")

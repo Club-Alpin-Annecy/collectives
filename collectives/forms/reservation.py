@@ -1,8 +1,7 @@
 """Module for equipment reservation forms"""
 
-from wtforms import SubmitField, HiddenField
-
 from flask_wtf.form import FlaskForm
+from wtforms import HiddenField, SubmitField
 from wtforms_alchemy import ModelForm
 
 from collectives.models import Reservation

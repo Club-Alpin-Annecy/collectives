@@ -4,11 +4,11 @@ Github validation
 Every branches has to succeed tests to be merged into master.
 There is three workflows:
 
-Workflow `Pylint`
+Workflow `Lint`
 -------------------
 
-Pylint takes care that good coding practices have been used during the development.
-Black is also used to standardize the code format.
+Ruff takes care that good coding practices have been used during the development.
+Ruff is also used to standardize the code format.
 
 Workflow `Tests`
 ------------------

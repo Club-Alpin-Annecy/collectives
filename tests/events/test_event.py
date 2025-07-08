@@ -1,15 +1,24 @@
 """Event actions tests."""
 
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
 from io import BytesIO
 
 from bs4 import BeautifulSoup
-from openpyxl import load_workbook
 from flask import url_for
+from openpyxl import load_workbook
 
-from collectives.models import db, EventStatus, ActivityType, Event, EventVisibility
-from collectives.models import RoleIds, Question, QuestionType, RegistrationStatus
+from collectives.models import (
+    ActivityType,
+    Event,
+    EventStatus,
+    EventVisibility,
+    Question,
+    QuestionType,
+    RegistrationStatus,
+    RoleIds,
+    db,
+)
 from collectives.utils.time import current_time
 from tests import utils
 from tests.fixtures.user import promote_user
@@ -216,8 +225,8 @@ def test_event_creation(leader_client):
         "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "description": """**Lorem ipsum** dolor sit amet, consectetur adipiscing elit.
-                                Cras sodales ut ipsum sit amet ultrices. Curabitur aliquet 
-                                id dolor et maximus. Praesent iaculis pretium orci vitae 
+                                Cras sodales ut ipsum sit amet ultrices. Curabitur aliquet
+                                id dolor et maximus. Praesent iaculis pretium orci vitae
                                 laoreet. Phasellus laoreet iaculis justo, in vulputate augue
                                 bibendum et. _Vestibulum dapibus_ posuere sagittis. Praesent
                                 commodo facilisis orci. Sed a volutpat ex. Donec in quam ornare,
@@ -249,9 +258,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "Annulée" in response.text
 
     data["status"] = int(EventStatus.Pending)
@@ -259,9 +268,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "En attente" in response.text
 
     data["description"] = "New **description** for you"
@@ -269,9 +278,9 @@ def test_event_modification(event, leader_client):
         f"/collectives/{event.id}/edit", data=data, follow_redirects=True
     )
     assert response.status_code == 200
-    assert (
-        f"collectives/{event.id}-" in response.request.path
-    ), "There is an error in request"
+    assert f"collectives/{event.id}-" in response.request.path, (
+        "There is an error in request"
+    )
     assert "New <strong>description</strong> for you" in response.text
 
 

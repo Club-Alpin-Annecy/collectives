@@ -6,22 +6,46 @@ This modules contains the /payment Blueprint
 from decimal import Decimal
 from io import BytesIO
 
-from flask import Blueprint, request, send_file
-from flask import render_template, current_app, flash, redirect, url_for, abort
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
-
 from openpyxl import Workbook
 
-from collectives.forms.payment import PaymentItemsForm, OfflinePaymentForm
-from collectives.forms.payment import NewItemPriceForm, CopyItemForm
-
-from collectives.models import db, Configuration, Event, PaymentItem, ItemPrice, Payment
-from collectives.models import PaymentStatus, PaymentType, RegistrationStatus
-from collectives.models import Registration, UserGroup
-
+from collectives.forms.payment import (
+    CopyItemForm,
+    NewItemPriceForm,
+    OfflinePaymentForm,
+    PaymentItemsForm,
+)
+from collectives.models import (
+    Configuration,
+    Event,
+    ItemPrice,
+    Payment,
+    PaymentItem,
+    PaymentStatus,
+    PaymentType,
+    Registration,
+    RegistrationStatus,
+    UserGroup,
+    db,
+)
 from collectives.utils import payline
-from collectives.utils.access import payments_enabled, valid_user, user_is
-from collectives.utils.access import confidentiality_agreement
+from collectives.utils.access import (
+    confidentiality_agreement,
+    payments_enabled,
+    user_is,
+    valid_user,
+)
 from collectives.utils.misc import deepgetattr, sanitize_file_name
 from collectives.utils.payment import extract_payments
 from collectives.utils.time import current_time
@@ -489,11 +513,11 @@ def request_payment(payment_id):
         abort(403)
 
     # If the item is free, approve the payment immediately
-    if payment.amount_charged == Decimal(0.0):
+    if payment.amount_charged == Decimal(0):
         payment.payment_type = PaymentType.Cash
         payment.status = PaymentStatus.Approved
         payment.finalization_time = current_time()
-        payment.amount_paid = Decimal(0.0)
+        payment.amount_paid = Decimal(0)
         if payment.registration is not None:
             flash("Votre inscription est désormais confirmée.")
             payment.registration.status = RegistrationStatus.Active

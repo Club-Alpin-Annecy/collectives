@@ -6,9 +6,9 @@ from datetime import timedelta
 
 import openpyxl
 
+from collectives.models import ActivityType
 from collectives.utils.stats import StatisticsEngine
 from collectives.utils.time import current_time
-from collectives.models import ActivityType
 
 
 def test_statistics_engine_all(stats_env, leader2_user):

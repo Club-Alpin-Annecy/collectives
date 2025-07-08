@@ -1,13 +1,13 @@
 """Unit tests for UserGroup class"""
 
+from collectives.models import BadgeIds, RegistrationStatus, RoleIds, db
 from collectives.models.user_group import (
-    UserGroup,
-    GroupEventCondition,
     GroupBadgeCondition,
+    GroupEventCondition,
     GroupLicenseCondition,
     GroupRoleCondition,
+    UserGroup,
 )
-from collectives.models import db, RoleIds, BadgeIds, RegistrationStatus
 from collectives.utils.time import current_time
 
 
@@ -25,7 +25,7 @@ def test_user_group_members(
 ):
     """Test listing user group members"""
 
-    user2_reg = [reg for reg in event1_with_reg.registrations if reg.user == user2][0]
+    user2_reg = next(reg for reg in event1_with_reg.registrations if reg.user == user2)
     user2_reg.status = RegistrationStatus.Waiting
     db.session.add(user2_reg)
 

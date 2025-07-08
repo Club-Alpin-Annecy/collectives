@@ -1,21 +1,29 @@
 """Auth login to perform account creation and recover."""
 
-from flask import flash, render_template, redirect, url_for, request
-from flask import current_app
+from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from markupsafe import Markup
 from sqlalchemy import or_
 
-
-from collectives.routes.auth.globals import blueprint
-from collectives.models import db, ConfirmationToken, ConfirmationTokenType
-from collectives.models import User, Configuration, UserType
-from collectives.utils.time import current_time
-from collectives.forms.auth import AccountRecoverForm, AccountActivationForm
-from collectives.forms.auth import ExtranetAccountCreationForm, LocalAccountCreationForm
-from collectives.utils import extranet
 from collectives import email_templates
+from collectives.forms.auth import (
+    AccountActivationForm,
+    AccountRecoverForm,
+    ExtranetAccountCreationForm,
+    LocalAccountCreationForm,
+)
+from collectives.models import (
+    Configuration,
+    ConfirmationToken,
+    ConfirmationTokenType,
+    User,
+    UserType,
+    db,
+)
 from collectives.models.auth import TokenEmailStatus
+from collectives.routes.auth.globals import blueprint
+from collectives.utils import extranet
+from collectives.utils.time import current_time
 
 
 def create_confirmation_token(license_number, user):
@@ -297,7 +305,7 @@ def check_user_validity(form):
         )
         return None
 
-    if user_info.email == None:
+    if user_info.email is None:
         form.generic_error = f"""Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
             club. Envoyez un mail à {Configuration.SECRETARIAT_EMAIL} afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
@@ -334,7 +342,7 @@ def check_token(license_number):
         + f" à {Configuration.SUPPORT_EMAIL} si le problème persiste."
     )
 
-    if token == None:
+    if token is None:
         current_app.logger.error(f"Cannot find a token for license {license_number}")
         flash(
             error_message,

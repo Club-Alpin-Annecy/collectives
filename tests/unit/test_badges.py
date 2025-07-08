@@ -1,16 +1,17 @@
 """Unit tests for Badge class"""
 
 from datetime import date, timedelta
-from collectives.models.activity_type import ActivityType
-from collectives.models.badge import Badge, BadgeIds
-from collectives.models.user import User
+
 from collectives.models import (
-    db,
     Event,
     Registration,
     RegistrationLevels,
     RegistrationStatus,
+    db,
 )
+from collectives.models.activity_type import ActivityType
+from collectives.models.badge import Badge, BadgeIds
+from collectives.models.user import User
 
 
 def test_add_a_valid_badge(user1):

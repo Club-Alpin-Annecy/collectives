@@ -2,13 +2,15 @@
 Miscellaneous functions for forms
 """
 
+from wtforms import StringField, widgets
 from wtforms.fields import SelectMultipleField
-from wtforms import widgets
-from wtforms import StringField
 
-from collectives.forms.validators import LicenseValidator, PhoneValidator
-from collectives.forms.validators import UniqueValidator
-from collectives.models import db, User
+from collectives.forms.validators import (
+    LicenseValidator,
+    PhoneValidator,
+    UniqueValidator,
+)
+from collectives.models import User, db
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -37,7 +39,7 @@ class LicenseField(StringField):
                 "pattern": LicenseValidator().pattern(),
             },
             validators=[LicenseValidator()],
-            **kwargs
+            **kwargs,
         )
         if unique:
             self.validators.append(
@@ -56,5 +58,5 @@ class PhoneField(StringField):
             validators=[
                 PhoneValidator(),
             ],
-            **kwargs
+            **kwargs,
         )

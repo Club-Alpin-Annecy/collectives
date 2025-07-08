@@ -3,18 +3,31 @@
 This modules contains the /reservation Blueprint
 """
 
+from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user
-from flask import render_template, redirect, url_for
-from flask import Blueprint, flash
 from wtforms import IntegerField
 
-from collectives.forms import CancelRentalForm, EndRentalForm, LeaderReservationForm
-from collectives.forms import NewRentalEquipmentForm, NewRentalUserForm
-from collectives.forms import ReservationToRentalForm, AddEquipmentInReservationForm
-from collectives.models import db, Event, RoleIds, User, Equipment, EquipmentType
-from collectives.models import Reservation, ReservationLine, ReservationStatus
-from collectives.utils.access import valid_user, confidentiality_agreement, user_is
-
+from collectives.forms import (
+    AddEquipmentInReservationForm,
+    CancelRentalForm,
+    EndRentalForm,
+    LeaderReservationForm,
+    NewRentalEquipmentForm,
+    NewRentalUserForm,
+    ReservationToRentalForm,
+)
+from collectives.models import (
+    Equipment,
+    EquipmentType,
+    Event,
+    Reservation,
+    ReservationLine,
+    ReservationStatus,
+    RoleIds,
+    User,
+    db,
+)
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("reservation", __name__, url_prefix="/reservation")
 """ Reservation blueprint

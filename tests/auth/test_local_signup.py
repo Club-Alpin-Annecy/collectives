@@ -3,19 +3,24 @@ FFCAM extranet)"""
 
 # pylint: disable=redefined-outer-name, unused-argument, unused-import
 
-
 import pytest
 
+from collectives.models import (
+    Configuration,
+    ConfirmationToken,
+    ConfirmationTokenType,
+    User,
+    UserType,
+    db,
+)
 from tests import utils
-from tests.mock.mail import mail_success_monkeypatch
 from tests.mock.extranet import (
+    EXPIRED_LICENSE,
+    VALID_LICENSE,
     extranet_monkeypatch,
     local_accounts,
-    VALID_LICENSE,
-    EXPIRED_LICENSE,
 )
-from collectives.models import db, ConfirmationToken, User, UserType
-from collectives.models import ConfirmationTokenType, Configuration
+from tests.mock.mail import mail_success_monkeypatch
 
 
 @pytest.fixture

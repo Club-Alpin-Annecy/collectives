@@ -1,13 +1,15 @@
 """Module containing routes related to event questions"""
 
-from flask import Blueprint, flash, redirect, url_for, request, render_template, abort
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 
+from collectives.forms.question import (
+    CopyQuestionsForm,
+    NewQuestionForm,
+    QuestionnaireForm,
+)
 from collectives.models import Event, Question, QuestionAnswer, db
-
 from collectives.utils.access import valid_user
-from collectives.forms.question import NewQuestionForm, QuestionnaireForm
-from collectives.forms.question import CopyQuestionsForm
 
 blueprint = Blueprint("question", __name__, url_prefix="/question")
 """ Questionnaire blueprint

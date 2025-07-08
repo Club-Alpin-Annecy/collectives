@@ -1,7 +1,6 @@
 """Unit tests for user name auto-completion"""
 
 from collectives.api.autocomplete_user import _make_autocomplete_query
-
 from collectives.models import db
 
 

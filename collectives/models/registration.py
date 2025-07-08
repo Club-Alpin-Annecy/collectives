@@ -1,12 +1,13 @@
 """Module for registration related classes"""
 
+from datetime import datetime, timedelta
 from typing import List, Optional
-from datetime import timedelta, datetime
+
 from sqlalchemy.sql import func
 
+from collectives.models.configuration import Configuration
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
-from collectives.models.configuration import Configuration
 from collectives.utils.time import current_time
 
 
@@ -298,9 +299,10 @@ class Registration(db.Model):
         :return: The list of all achievable transitions from the current status
         :rtype: list[:py:class:`collectives.models.registration.RegistrationStatus`]
         """
-        return [self.status] + self.status.valid_transitions(
-            self.event.requires_payment()
-        )
+        return [
+            self.status,
+            *self.status.valid_transitions(self.event.requires_payment()),
+        ]
 
     def _index_in_list(self, regs: List["Registration"]) -> int:
         """Returns the chronlogical place this registration has in a list of registrations.

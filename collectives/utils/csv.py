@@ -1,13 +1,13 @@
 """Module to handle csv import"""
 
 import builtins
-from datetime import datetime, timedelta
 import codecs
 import csv
+from datetime import datetime, timedelta
 
 from flask import current_app
 
-from collectives.models import User, Event, EventTag, db
+from collectives.models import Event, EventTag, User, db
 from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import format_date
 
@@ -48,7 +48,7 @@ def fill_from_csv(event, row, template):
                 "Le nombre de places par internet doit être inférieur au nombre de places de "
                 "la collective"
             )
-        if row["debut_internet"] != None and row["debut_internet"].strip():
+        if row["debut_internet"] is not None and row["debut_internet"].strip():
             event.registration_open_time = parse(row, "debut_internet")
         else:
             # Set default value
@@ -59,7 +59,7 @@ def fill_from_csv(event, row, template):
                 hour=current_app.config["REGISTRATION_OPENING_HOUR"],
                 minute=0,
             )
-        if row["fin_internet"] != None and row["fin_internet"].strip():
+        if row["fin_internet"] is not None and row["fin_internet"].strip():
             event.registration_close_time = parse(row, "fin_internet")
         else:
             # Set default value
@@ -221,7 +221,7 @@ def csv_to_events(stream, description):
         # pylint: disable=broad-except
         except builtins.Exception as ex:
             failed.append(
-                f"Impossible d'importer la ligne {processed+1}: [{type(ex).__name__}] {str(ex)}"
+                f"Impossible d'importer la ligne {processed + 1}: [{type(ex).__name__}] {ex!s}"
             )
         # pylint: enable=broad-except
     return events, processed, failed

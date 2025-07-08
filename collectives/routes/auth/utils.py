@@ -1,12 +1,11 @@
 """Auth module for miscaleneous functions and classes."""
 
-from flask import url_for, current_app
+from flask import current_app, url_for
 from flask_login import AnonymousUserMixin
-from markupsafe import escape
 from flask_wtf.csrf import generate_csrf
+from markupsafe import escape
 
-
-from collectives.models import db, User, UserType, Configuration
+from collectives.models import Configuration, User, UserType, db
 from collectives.utils import extranet
 from collectives.utils.time import current_time
 
@@ -100,24 +99,24 @@ def get_bad_phone_message(user, emergency=False):
 
     if not emergency:
         description = """un encadrant ne pourrait donc pas vous contacter pour vous communiquer
-        des informations importantes comme un changement de lieu de rendez-vous, un changement 
+        des informations importantes comme un changement de lieu de rendez-vous, un changement
         du lieu de la sortie ou l'annulation de la sortie"""
     else:
         description = """le club ne pourrait donc pas contacter vos proches en cas de
         besoin."""
 
-    return f"""Votre numéro de téléphone {"d'urgence " if emergency else ''} {phone} renseigné:
+    return f"""Votre numéro de téléphone {"d'urgence " if emergency else ""} {phone} renseigné:
         {description}<br/>
-        Veuillez saisir un numéro de téléphone valide dans <a 
+        Veuillez saisir un numéro de téléphone valide dans <a
         href="https://extranet-clubalpin.com/monespace/">
-        votre espace personnel FFCAM </a>, menu "Mes informations", puis resynchronisez vos 
-        informations en cliquant 
-        <form action="{url_for('profile.force_user_sync')}" method="post" style="display: inline">
+        votre espace personnel FFCAM </a>, menu "Mes informations", puis resynchronisez vos
+        informations en cliquant
+        <form action="{url_for("profile.force_user_sync")}" method="post" style="display: inline">
             <a onclick="this.closest('form').submit(); return false;" href="#"/>  ici </a>
             <input type="hidden" name="csrf_token" value="{generate_csrf()}"/>
         </form>. <br/>
         <b>Sans cette information, vous ne pourrez pas participer aux collectives.</b> <br/>
-        Si besoin, vous pouvez contacter le support à 
+        Si besoin, vous pouvez contacter le support à
         <a href="mailto:{Configuration.SUPPORT_EMAIL}">{Configuration.SUPPORT_EMAIL}</a>.
         """
 
@@ -136,7 +135,7 @@ def get_changed_email_message(new_email: str):
                     la synchronization de vos données, veuillez utiliser {form_link}."""
     else:
         message = f"""Votre adresse email n'est pas renseignée dans l'extranet FFCAM.<br/>
-        Veuillez saisir une adresse valide dans <a 
+        Veuillez saisir une adresse valide dans <a
         href="https://extranet-clubalpin.com/monespace/">
         votre espace personnel FFCAM </a>, menu "Mes informations", puis utilisez {form_link}
         pour resynchroniser vos informations.

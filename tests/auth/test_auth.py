@@ -1,6 +1,7 @@
 """ " Testing authentication"""
 
 from datetime import datetime
+
 from tests.fixtures import user
 
 

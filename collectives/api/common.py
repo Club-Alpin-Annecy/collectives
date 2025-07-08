@@ -4,13 +4,13 @@ Typical usage example:
 ::
 
     from . import api
+
     app = Flask(__name__)
     app.register_blueprint(api.blueprint)
 """
 
 from flask import Blueprint, url_for
 from flask_marshmallow import Marshmallow
-
 
 marshmallow = Marshmallow()
 """ Marshmallow object.

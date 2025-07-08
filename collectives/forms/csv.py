@@ -2,7 +2,7 @@
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from wtforms import SubmitField, SelectField, TextAreaField
+from wtforms import SelectField, SubmitField, TextAreaField
 from wtforms.validators import InputRequired
 
 

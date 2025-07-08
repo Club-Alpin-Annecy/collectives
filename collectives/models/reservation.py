@@ -1,6 +1,7 @@
 """Module for registration related classes"""
 
 from datetime import datetime
+
 from sqlalchemy import CheckConstraint
 
 from collectives.models.globals import db

@@ -1,6 +1,6 @@
 """Module to test activity supervision functions."""
 
-from collectives.models.activity_type import ActivityType, ActivityKind
+from collectives.models.activity_type import ActivityKind, ActivityType
 
 
 def test_index(supervisor_client):

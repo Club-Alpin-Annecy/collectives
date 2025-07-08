@@ -1,19 +1,19 @@
 """Module to handle connexions to Payline."""
 
 import base64
-import json
 import decimal
+import json
 import uuid
-from typing import Dict, Any
+from typing import Any, Dict
 
-from flask import url_for, request, current_app, Flask
 import pysimplesoap
+from flask import Flask, current_app, request, url_for
 from pysimplesoap.client import SoapClient
 
-from collectives.models.payment import PaymentStatus, Payment
 from collectives.models import Configuration, User
-from collectives.utils.time import format_date
+from collectives.models.payment import Payment, PaymentStatus
 from collectives.utils.misc import to_ascii, truncate
+from collectives.utils.time import format_date
 
 PAYLINE_VERSION = 26
 """ Version of payline API
@@ -252,7 +252,7 @@ class OrderInfo:
         for key, value in self.metadata.items():
             if isinstance(value, list):
                 for i, multi_v in enumerate(value):
-                    key_value.append({"key": f"{key}_{i+1}", "value": multi_v})
+                    key_value.append({"key": f"{key}_{i + 1}", "value": multi_v})
             else:
                 key_value.append({"key": key, "value": value})
 

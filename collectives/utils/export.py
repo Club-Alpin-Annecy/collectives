@@ -106,7 +106,7 @@ def export_users_registered(event):
             reg.user.last_name.upper(),
             reg.user.phone,
             reg.user.mail,
-            f"{ reg.user.emergency_contact_name } ({ reg.user.emergency_contact_phone })",
+            f"{reg.user.emergency_contact_name} ({reg.user.emergency_contact_phone})",
         ]
         worksheet.append(temp)
 

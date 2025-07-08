@@ -1,0 +1,113 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "collectives-cafannecy"
+version = "0.1.0"
+description = "Event management system for outdoor activities"
+authors = [{name = "Caf Annecy", email = "support-collectives@cafannecy.fr"}]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "cssmin",
+    "itsdangerous",
+    "markupsafe",
+    "flask",
+    "Werkzeug",
+    "flask-assets",
+    "sqlalchemy",
+    "flask_sqlalchemy",
+    "sqlalchemy-utils",
+    "passlib",
+    "libsass",
+    "flask-wtf",
+    "WTForms-Alchemy",
+    "flask-migrate",
+    "marshmallow-sqlalchemy",
+    "flask-marshmallow",
+    "cmarkgfm",
+    "pymysql",
+    "dkimpy",
+    "email_validator",
+    "openpyxl",
+    "babel",
+    "python-dateutil",
+    "phonenumbers",
+    "zeep",
+    "Pillow",
+    "PyYAML",
+    "argon2-cffi",
+    "flask-login",
+    "flask-uploads",
+    "pysimplesoap",
+    "flask-images",
+]
+
+[project.optional-dependencies]
+deploy = [
+    "waitress",
+]
+
+[dependency-groups]
+dev = [
+    "flask-testing",
+    "pytest",
+    "pytest-cov",
+    "beautifulsoup4",
+    "Sphinx==6.1.3",
+    "sphinx-book-theme",
+    "docstr-coverage",
+]
+
+[tool.uv.sources]
+flask-login = { git = "https://github.com/maxcountryman/flask-login.git", rev = "26d12eaa99a18fc91e662ef0c8466245b8865c1c" }
+flask-uploads = { git = "https://github.com/maxcountryman/flask-uploads.git", rev = "f66d7dc93e684fa0a3a4350a38e41ae00483a796" }
+pysimplesoap = { git = "https://github.com/pysimplesoap/pysimplesoap.git", rev = "ad03a21cafab982eed321553c4bfcda1755182eb" }
+flask-images = { git = "https://github.com/Club-Alpin-Annecy/Flask-Images", rev = "master" }
+docstr-coverage = { git = "https://github.com/HunterMcGushion/docstr_coverage.git" }
+
+
+[tool.hatch.build.targets.wheel]
+include = ["/collectives"]
+
+
+[tool.ruff]
+include = ["pyproject.toml", "collectives/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "I",   # isort
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "C4",  # flake8-comprehensions
+    "NPY", # NumPy-specific rules
+    "PLC", # pylint convention
+    "PLE", # pylint error
+    "PLW", # pylint warning
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "F401",
+    "E501", # line too long
+    "E741", # ambiguous variable name
+    "W293", # blank line contains whitespace
+    "RUF012", # Classvar annotation 
+    "RUF013", # implicit Optional 
+    "PLW0603", # global statement to update var
+    "F811", # redefinition of unused variable (pytest fixtures)
+    "F821", # undefined name 
+    "PLC0415", # `import` should be at the top-level of a file
+    ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+

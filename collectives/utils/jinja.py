@@ -3,13 +3,13 @@
 This module should not contains other functions than :py:func:`helpers_processors`
 """
 
-import inspect
 import html
+import inspect
 
 from collectives import models
 from collectives.routes.auth import get_bad_phone_message
-from collectives.utils import time as custom_time
 from collectives.utils import numbers
+from collectives.utils import time as custom_time
 from collectives.utils.misc import is_mobile_user
 from collectives.utils.render_markdown import markdown_to_html
 

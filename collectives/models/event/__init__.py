@@ -1,18 +1,21 @@
 """Module for event related classes"""
 
-from collectives.models.globals import db
-from collectives.models.event.model import EventModelMixin
-from collectives.models.event.enum import EventStatus, EventVisibility
-
 from collectives.models.event.date import EventDateMixin
+from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.event.event_type import EventType
 from collectives.models.event.misc import EventMiscMixin, photos
+from collectives.models.event.model import EventModelMixin
 from collectives.models.event.payment import EventPaymentMixin
-from collectives.models.event.role import EventRoleMixin
-from collectives.models.event.role import event_activities_without_leaders
-from collectives.models.event.registration import EventRegistrationMixin
-from collectives.models.event.registration import DuplicateRegistrationError
-from collectives.models.event.registration import OverbookedRegistrationError
+from collectives.models.event.registration import (
+    DuplicateRegistrationError,
+    EventRegistrationMixin,
+    OverbookedRegistrationError,
+)
+from collectives.models.event.role import (
+    EventRoleMixin,
+    event_activities_without_leaders,
+)
+from collectives.models.globals import db
 
 
 class Event(

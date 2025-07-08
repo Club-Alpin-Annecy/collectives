@@ -3,48 +3,48 @@
 PWD=`pwd`
 
 run_black () {
- echo "***** RUN black *****"
- python -m black *.py collectives migrations tests
+ echo "***** RUN format *****"
+ uvx ruff format
 }
 
 run_linter () {
  echo " ***** RUN linter *****"
- find collectives tests -name "*.py" -type f -print0 | xargs -0 pylint config.py
+ uvx ruff check
 }
 
 exec_tests () {
  echo " ***** EXEC Tests*****"
- pytest --cov=collectives tests/ --cov-fail-under=60
+ uv run pytest --cov=collectives tests/ --cov-fail-under=60
 }
 
 build_html_doc () {
  echo " ***** BUILD Doc in $PWD/doc *****"
- cd $PWD/doc && make html
+ cd $PWD/doc && uv run make html
 }
 
 check_doc_coverage_side_folders () {
  echo " ***** CHECK Doc coverage for side folders *****"
- cd $PWD && docstr-coverage .  -e ".env|migrations|instance|doc" -F 73
+ cd $PWD && uv run docstr-coverage .  -e ".*(.env|.venv|migrations|instance|doc).*" -F 73
 }
 
 check_doc_coverage_models () {
  echo " ***** CHECK doc coverage on Models *****"
- cd $PWD && docstr-coverage collectives/models
+ cd $PWD && uv run docstr-coverage collectives/models
 }
 
 check_doc_coverage_utils () {
  echo " ***** CHECK doc coverage on Uils *****"
- cd $PWD && docstr-coverage collectives/utils
+ cd $PWD && uv run docstr-coverage collectives/utils
 }
 
 check_doc_coverage_apis () {
  echo " ***** CHECK doc coverage on API *****"
- cd $PWD && docstr-coverage collectives/api
+ cd $PWD && uv run docstr-coverage collectives/api
 }
 
 check_doc_coverage_routes () {
  echo " ***** CHECK doc coverage on Routes *****"
- cd $PWD && docstr-coverage collectives/routes
+ cd $PWD && uv run docstr-coverage collectives/routes
 }
 
 # catch first arguments with $1

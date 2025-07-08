@@ -75,8 +75,8 @@ def test_change_password(user1_client, user1):
     data["confirm"] = "tEst1234+"
     response = user1_client.post("/profile/user/edit", data=data)
     assert response.status_code == 302
-    assert client.login(user1_client, user1) == False
-    assert client.login(user1_client, user1, "tEst1234+") == True
+    assert not client.login(user1_client, user1)
+    assert client.login(user1_client, user1, "tEst1234+")
 
 
 def test_change_password_no_modification(user1_client, user1):
@@ -88,7 +88,7 @@ def test_change_password_no_modification(user1_client, user1):
     response = user1_client.post("/profile/user/edit", data=data)
     assert response.status_code == 302
     assert response.location == "/profile/user/edit"
-    assert client.login(user1_client, user1) == True
+    assert client.login(user1_client, user1)
 
 
 def test_change_password_wrong_confirm(user1_client, user1):
@@ -101,8 +101,8 @@ def test_change_password_wrong_confirm(user1_client, user1):
     data["confirm"] = "++++"
     response = user1_client.post("/profile/user/edit", data=data)
     assert response.status_code == 200
-    assert client.login(user1_client, user1, "tEst1234+") == False
-    assert client.login(user1_client, user1) == True
+    assert not client.login(user1_client, user1, "tEst1234+")
+    assert client.login(user1_client, user1)
 
 
 def test_change_password_unacceptable(user1_client, user1):
@@ -115,8 +115,8 @@ def test_change_password_unacceptable(user1_client, user1):
     data["confirm"] = "test123"
     response = user1_client.post("/profile/user/edit", data=data)
     assert response.status_code == 200
-    assert client.login(user1_client, user1, "test123") == False
-    assert client.login(user1_client, user1) == True
+    assert not client.login(user1_client, user1, "test123")
+    assert client.login(user1_client, user1)
 
 
 def test_delete_user(user1_client, user2):
@@ -146,7 +146,7 @@ def test_delete_user(user1_client, user2):
     assert response.location == "/auth/login"
 
     # check user has been anonymised
-    assert user1_client.user.enabled == False
+    assert not user1_client.user.enabled
     assert user1_client.user.first_name == "Compte"
     assert user1_client.user.license == str(user1_client.user.id)
     assert "localhost" in user1_client.user.mail

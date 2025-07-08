@@ -1,24 +1,40 @@
 """Module containing forms for updating user information"""
 
 from datetime import date
+
 from flask import request
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import PasswordField, SubmitField, StringField
-from wtforms import SelectField, BooleanField, HiddenField, IntegerField
-from wtforms.validators import EqualTo, DataRequired, Optional, ValidationError
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import (
+    BooleanField,
+    HiddenField,
+    IntegerField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+)
 from wtforms.fields import DateField
+from wtforms.validators import DataRequired, EqualTo, Optional, ValidationError
 from wtforms_alchemy import ModelForm
 
-
-from collectives.forms.order import OrderedModelForm
-from collectives.forms.validators import UniqueValidator, PasswordValidator
-from collectives.forms.validators import LicenseValidator
-
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.models import User, photos, ActivityType, Role, RoleIds
-from collectives.models import Badge, BadgeIds
+from collectives.forms.order import OrderedModelForm
+from collectives.forms.validators import (
+    LicenseValidator,
+    PasswordValidator,
+    UniqueValidator,
+)
+from collectives.models import (
+    ActivityType,
+    Badge,
+    BadgeIds,
+    Role,
+    RoleIds,
+    User,
+    photos,
+)
 
 
 class AvatarForm:

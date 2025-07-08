@@ -5,26 +5,55 @@ Persistence is made by SQLAlchemy. This module exposes most important
 submodules classes by importing them. It also create the ``db`` object
 """
 
-from collectives.models.globals import db
-from collectives.models.activity_type import ActivityType, ActivityKind
+from collectives.models.activity_type import ActivityKind, ActivityType
 from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
-from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
-from collectives.models.configuration import Configuration, DBAdaptedFlaskConfig
-from collectives.models.event import Event, EventStatus, photos, EventType
-from collectives.models.event import EventVisibility
+from collectives.models.badge import Badge, BadgeIds
+from collectives.models.configuration import (
+    Configuration,
+    ConfigurationItem,
+    ConfigurationTypeEnum,
+    DBAdaptedFlaskConfig,
+)
+from collectives.models.equipment import (
+    Equipment,
+    EquipmentModel,
+    EquipmentStatus,
+    EquipmentType,
+    image_equipment_type,
+)
+from collectives.models.event import (
+    Event,
+    EventStatus,
+    EventType,
+    EventVisibility,
+    photos,
+)
 from collectives.models.event_tag import EventTag
-from collectives.models.equipment import EquipmentModel, Equipment, EquipmentType
-from collectives.models.equipment import image_equipment_type, EquipmentStatus
-from collectives.models.payment import PaymentItem, ItemPrice, PaymentStatus
-from collectives.models.payment import Payment, PaymentType
-from collectives.models.registration import Registration, RegistrationLevels
-from collectives.models.registration import RegistrationStatus
-from collectives.models.reservation import ReservationLine, Reservation
-from collectives.models.reservation import ReservationStatus
+from collectives.models.globals import db
+from collectives.models.payment import (
+    ItemPrice,
+    Payment,
+    PaymentItem,
+    PaymentStatus,
+    PaymentType,
+)
+from collectives.models.question import Question, QuestionAnswer, QuestionType
+from collectives.models.registration import (
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+)
+from collectives.models.reservation import (
+    Reservation,
+    ReservationLine,
+    ReservationStatus,
+)
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
-from collectives.models.user import User, Gender, UserType, avatars
-from collectives.models.user_group import UserGroup, GroupEventCondition
-from collectives.models.user_group import GroupLicenseCondition, GroupRoleCondition
-from collectives.models.badge import Badge, BadgeIds
-from collectives.models.question import Question, QuestionType, QuestionAnswer
+from collectives.models.user import Gender, User, UserType, avatars
+from collectives.models.user_group import (
+    GroupEventCondition,
+    GroupLicenseCondition,
+    GroupRoleCondition,
+    UserGroup,
+)

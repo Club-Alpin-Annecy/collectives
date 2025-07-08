@@ -1,10 +1,9 @@
 """Unit tests for Role class"""
 
-from collectives.models.role import RoleIds, Role
-from collectives.models.user import User, activity_supervisors
-from collectives.models.activity_type import ActivityType
 from collectives.models import db
-
+from collectives.models.activity_type import ActivityType
+from collectives.models.role import Role, RoleIds
+from collectives.models.user import User, activity_supervisors
 from tests.fixtures.user import promote_to_leader, promote_user
 
 

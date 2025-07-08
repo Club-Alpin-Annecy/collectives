@@ -1,9 +1,11 @@
 """Module for user badges related classes"""
 
 from datetime import date
+
 from sqlalchemy.sql import func
-from collectives.models.utils import ChoiceEnum
+
 from collectives.models.globals import db
+from collectives.models.utils import ChoiceEnum
 
 
 class BadgeIds(ChoiceEnum):
@@ -13,8 +15,8 @@ class BadgeIds(ChoiceEnum):
     Benevole = 1
 
     UnjustifiedAbsenceWarning = 2
-    """ User has been issued a warning regarding 
-    late unregistrations and unjustified absences. 
+    """ User has been issued a warning regarding
+    late unregistrations and unjustified absences.
     """
 
     Suspended = 3

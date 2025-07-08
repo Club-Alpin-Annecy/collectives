@@ -1,3 +1,3 @@
 """Module for all fixtures."""
 
-from tests.fixtures import event, user, client, app, payment, stats
+from tests.fixtures import app, client, event, payment, stats, user

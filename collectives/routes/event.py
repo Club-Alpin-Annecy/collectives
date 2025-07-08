@@ -4,50 +4,66 @@ This modules contains the /event Blueprint
 """
 
 # pylint: disable=too-many-lines
-from typing import Tuple, List, Set
-from datetime import timedelta
-
 import builtins
-from flask import flash, render_template, redirect, url_for, request, send_file
-from flask import Blueprint, abort
-from markupsafe import Markup
+from datetime import timedelta
+from typing import List, Set, Tuple
+
+from flask import (
+    Blueprint,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
-from werkzeug.datastructures import CombinedMultiDict
+from markupsafe import Markup
 from sqlalchemy.orm import joinedload, selectinload
+from werkzeug.datastructures import CombinedMultiDict
 
-from collectives.routes.auth import get_bad_phone_message, login_manager
-
-from collectives.email_templates import send_new_event_notification
-from collectives.email_templates import send_unregister_notification
-from collectives.email_templates import send_reject_subscription_notification
-from collectives.email_templates import send_cancelled_event_notification
-from collectives.email_templates import send_update_waiting_list_notification
-from collectives.email_templates import send_late_unregistration_notification
-
-from collectives.forms import EventForm, photos
-from collectives.forms import RegistrationForm
+from collectives.email_templates import (
+    send_cancelled_event_notification,
+    send_late_unregistration_notification,
+    send_new_event_notification,
+    send_reject_subscription_notification,
+    send_unregister_notification,
+    send_update_waiting_list_notification,
+)
+from collectives.forms import EventForm, RegistrationForm, photos
 from collectives.forms.event import PaymentItemChoiceForm
 from collectives.forms.question import QuestionAnswersForm
-
-from collectives.models import Event, ActivityType, EventType
-from collectives.models import Registration, RegistrationLevels, EventStatus, Badge
-from collectives.models import RegistrationStatus, User, db, Configuration
-from collectives.models import EventTag, UploadedFile, UserGroup, PaymentItem
+from collectives.models import (
+    ActivityType,
+    Badge,
+    Configuration,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    PaymentItem,
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+    UploadedFile,
+    User,
+    UserGroup,
+    db,
+)
 from collectives.models.event import (
-    event_activities_without_leaders,
     DuplicateRegistrationError,
+    event_activities_without_leaders,
 )
 from collectives.models.payment import ItemPrice, Payment
 from collectives.models.question import QuestionAnswer
-
-from collectives.utils.time import current_time
-from collectives.utils.url import slugify
+from collectives.routes.auth import get_bad_phone_message, login_manager
+from collectives.utils import export
 from collectives.utils.access import confidentiality_agreement, valid_user
 from collectives.utils.crawlers import crawlers_catcher, is_crawler
 from collectives.utils.misc import sanitize_file_name
-
-from collectives.utils import export
-
+from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 blueprint = Blueprint("event", __name__, url_prefix="/collectives")
 """ Event blueprint
@@ -625,7 +641,7 @@ def manage_event(event_id=None):
         db.session.commit()
     elif form.duplicate_event.data != "":
         duplicated_event = db.session.get(Event, form.duplicate_event.data)
-        if duplicated_event != None:
+        if duplicated_event is not None:
             event.photo = duplicated_event.photo
             event.copy_payment_items(duplicated_event)
             event.copy_questions(duplicated_event)
@@ -680,7 +696,7 @@ def duplicate(event_id=None):
 
     event = db.session.get(Event, event_id)
 
-    if event == None:
+    if event is None:
         flash("Pas d'événement à dupliquer", "error")
         return redirect(url_for("event.index"))
 

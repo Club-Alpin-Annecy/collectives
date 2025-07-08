@@ -1,14 +1,20 @@
 """Module defining frequently used marshmallow schemas"""
 
+from flask import url_for
 from marshmallow import fields
 
-from flask import url_for
-
-from collectives.utils.url import slugify
-from collectives.api.common import marshmallow, avatar_url
-from collectives.models import Event, EventType, Role, Badge
-from collectives.models import ActivityType, User, EventTag
+from collectives.api.common import avatar_url, marshmallow
+from collectives.models import (
+    ActivityType,
+    Badge,
+    Event,
+    EventTag,
+    EventType,
+    Role,
+    User,
+)
 from collectives.utils.time import format_datetime_range
+from collectives.utils.url import slugify
 
 
 class ActivityTypeSchema(marshmallow.SQLAlchemyAutoSchema):
@@ -172,7 +178,7 @@ def photo_uri(event):
     """
     if event.photo is not None:
         return url_for("images.crop", filename=event.photo, width=350, height=250)
-    return url_for("static", filename=f"img/default/events/event{event.id%8 + 1}.svg")
+    return url_for("static", filename=f"img/default/events/event{event.id % 8 + 1}.svg")
 
 
 class EventSchema(marshmallow.SQLAlchemyAutoSchema):

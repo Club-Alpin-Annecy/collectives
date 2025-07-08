@@ -4,8 +4,8 @@ from typing import List
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.event.event_type import EventType
-from collectives.models.user import User
 from collectives.models.registration import RegistrationLevels
+from collectives.models.user import User
 
 
 class EventRoleMixin:
@@ -37,7 +37,7 @@ class EventRoleMixin:
                 other_leaders.append(leader)
         if main_leader is None:
             return other_leaders
-        return [main_leader] + other_leaders
+        return [main_leader, *other_leaders]
 
     def is_leader(self, user):
         """Check if a user is one of this event leaders.

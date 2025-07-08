@@ -2,14 +2,14 @@
 
 import json
 
-from flask import abort, url_for, request
+from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.schemas import EventSchema
-from collectives.models import db, Event, ItemPrice, Payment, PaymentItem, PaymentStatus
+from collectives.models import Event, ItemPrice, Payment, PaymentItem, PaymentStatus, db
 from collectives.utils.access import payments_enabled, valid_user
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import extract_payments
@@ -266,7 +266,7 @@ def my_payments(status_code):
 
     if PaymentStatus[status_code] == PaymentStatus.Initiated:
         # We only care about unsettled payments with an active registration
-        query = query.filter(Payment.registration != None)
+        query = query.filter(Payment.registration.isnot(None))
 
     result = query.order_by(Payment.id.desc()).all()
     response = MyPaymentSchema(many=True).dump(result)

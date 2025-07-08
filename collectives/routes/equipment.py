@@ -3,16 +3,17 @@
 This modules contains the /equipment Blueprint
 """
 
+from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user
-from flask import render_template, redirect, url_for
-from flask import Blueprint, flash
 
-from collectives.forms.equipment import EquipmentTypeForm, DeleteForm
-from collectives.forms.equipment import EquipmentModelForm
-from collectives.forms.equipment import EquipmentForm
-from collectives.models import db, Equipment, EquipmentType, EquipmentModel, RoleIds
-from collectives.utils.access import valid_user, confidentiality_agreement, user_is
-
+from collectives.forms.equipment import (
+    DeleteForm,
+    EquipmentForm,
+    EquipmentModelForm,
+    EquipmentTypeForm,
+)
+from collectives.models import Equipment, EquipmentModel, EquipmentType, RoleIds, db
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 blueprint = Blueprint("equipment", __name__, url_prefix="/equipment")
 """ Equipment blueprint

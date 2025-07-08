@@ -1,15 +1,15 @@
 """Module for all Event methods related to registration manipulation and check."""
 
-from typing import List
 from datetime import datetime
 from operator import attrgetter
+from typing import List
 
+from collectives.models.globals import db
 from collectives.models.registration import (
     Registration,
     RegistrationLevels,
     RegistrationStatus,
 )
-from collectives.models.globals import db
 
 
 class DuplicateRegistrationError(RuntimeError):

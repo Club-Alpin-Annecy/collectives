@@ -1,10 +1,11 @@
 """Unit tests for registrations"""
 
 import pytest
-from collectives.models import db, RegistrationStatus, Registration, RegistrationLevels
+
+from collectives.models import Registration, RegistrationLevels, RegistrationStatus, db
 from collectives.models.event import (
-    Event,
     DuplicateRegistrationError,
+    Event,
     OverbookedRegistrationError,
 )
 

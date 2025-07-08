@@ -1,12 +1,13 @@
 """Mock functions for extranet."""
 
 from datetime import date, timedelta
-import pytest
 
+import pytest
 from zeep.exceptions import Error as ZeepError
+
+from collectives.email_templates import send_confirmation_email
 from collectives.models import Configuration
 from collectives.utils.extranet import _OTHER_CLUB_LICENSE_MESSAGE
-from collectives.email_templates import send_confirmation_email
 
 # pylint: disable=unused-argument,redefined-builtin
 
