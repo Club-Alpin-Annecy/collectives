@@ -105,7 +105,7 @@ class AdminUserForm(OrderedModelForm, AvatarForm):
 
         model = User
         # User should not be able to change a protected parameter
-        only = ["enabled"]
+        only = ["enabled", "license_expiry_date"]
         unique_validator = UniqueValidator
 
     submit = SubmitField("Enregistrer")

@@ -147,7 +147,9 @@ class UserModelMixin:
     :type: boolean
     """
 
-    license_expiry_date = db.Column(db.Date)
+    license_expiry_date = db.Column(
+        db.Date, info={"label": "Date de fin de validité de la licence"}
+    )
     """ User license expiration date.
 
     :type: :py:class:`datetime.date`"""
