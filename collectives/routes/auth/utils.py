@@ -62,13 +62,9 @@ def sync_user(user: User, force: bool):
                 f"User #{user.id} synchronization : license is not active on extranet "
                 "but active on this site."
             )
-            if force:
-                user.license_expiry_date = time.date()
-                db.session.add(user)
-                db.session.commit()
-                current_app.logger.warning(
-                    f"User #{user.id} synchronization : license has been updated."
-                )
+            # Do not mark the user as invalid
+            # FFCAM API may return a invalid code for previous year licenses
+            # between September 1st and 31st, while they remain technically valid
         raise InvalidLicenseError()
 
     if force or license_info.expiry_date() > user.license_expiry_date:
