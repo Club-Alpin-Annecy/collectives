@@ -1,6 +1,7 @@
 """ " Testing administration"""
 
 from io import BytesIO
+
 import openpyxl
 
 from collectives.models import User

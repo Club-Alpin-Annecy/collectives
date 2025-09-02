@@ -1,14 +1,13 @@
 """Event actions tests related to registrations"""
 
 from datetime import date, timedelta
-from collectives.models import db, RegistrationStatus, BadgeIds
-from collectives.utils.time import current_time
 
+from collectives.models import BadgeIds, RegistrationStatus, db
+from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-import
-
 from tests.mock.mail import mail_success_monkeypatch
 
 
@@ -27,11 +26,11 @@ def test_valid_event_autoregistration(user1, user1_client, user2, event):
     assert len(event.holding_slot_registrations()) == 1
     assert event.num_taken_slots() == 1
     assert event.num_pending_registrations() == 0
-    assert event.has_free_slots() == True
-    assert event.has_free_online_slots() == False
+    assert event.has_free_slots()
+    assert not event.has_free_online_slots()
     assert len(event.existing_registrations(user1_client.user)) == 1
-    assert event.is_registered(user1_client.user) == True
-    assert event.is_registered(user2) == False
+    assert event.is_registered(user1_client.user)
+    assert not event.is_registered(user2)
     assert event.num_taken_slots() == 1
     assert event.active_registrations()[0].user == user1
 
@@ -178,7 +177,7 @@ def test_leader_register_user(leader_client, user1, event):
     )
     assert response.status_code == 302
     assert event.num_taken_slots() == 1
-    assert event.is_registered(user1) == True
+    assert event.is_registered(user1)
     assert event.registrations[0].status == RegistrationStatus.Active
 
     response = leader_client.post(
@@ -186,7 +185,7 @@ def test_leader_register_user(leader_client, user1, event):
     )
     assert response.status_code == 302
     assert event.num_taken_slots() == 1
-    assert event.is_registered(user1) == True
+    assert event.is_registered(user1)
     assert event.registrations[0].status == RegistrationStatus.Active
 
 
@@ -199,7 +198,7 @@ def test_leader_register_paying_user(leader_client, user1, paying_event):
     )
     assert response.status_code == 302
     assert paying_event.num_taken_slots() == 1
-    assert paying_event.is_registered(user1) == True
+    assert paying_event.is_registered(user1)
     assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
 
     response = leader_client.post(
@@ -207,7 +206,7 @@ def test_leader_register_paying_user(leader_client, user1, paying_event):
     )
     assert response.status_code == 302
     assert paying_event.num_taken_slots() == 1
-    assert paying_event.is_registered(user1) == True
+    assert paying_event.is_registered(user1)
     assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
 
     paying_event.registrations[0].status = RegistrationStatus.Active
@@ -216,7 +215,7 @@ def test_leader_register_paying_user(leader_client, user1, paying_event):
     )
     assert response.status_code == 302
     assert paying_event.num_taken_slots() == 1
-    assert paying_event.is_registered(user1) == True
+    assert paying_event.is_registered(user1)
     assert paying_event.registrations[0].status == RegistrationStatus.Active
 
 
@@ -231,7 +230,7 @@ def test_youth_event_autoregistration(youth_user, youth_client, youth_event):
     assert response.status_code == 200
     assert len(youth_event.registrations) == 1
     assert youth_event.num_taken_slots() == 1
-    assert youth_event.is_registered(youth_user) == True
+    assert youth_event.is_registered(youth_user)
     assert youth_event.registrations[0].status == RegistrationStatus.Active
 
 

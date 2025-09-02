@@ -3,10 +3,9 @@
 from typing import List
 
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, SelectField, Label, Field
+from wtforms import Field, Label, SelectField, SubmitField
 from wtforms.validators import InputRequired
 from wtforms_alchemy import ModelForm
-
 
 from collectives.models import ActivityType
 
@@ -36,7 +35,7 @@ class ActivityTypeSelectionForm(FlaskForm):
         no_enabled: bool = False,
         activity_list: List[ActivityType] = None,
         submit_label: str = None,
-        **kwargs
+        **kwargs,
     ):
         """Overloaded constructor populating activity list.
 

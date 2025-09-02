@@ -3,19 +3,30 @@
 import json
 from datetime import timedelta
 
-from flask import url_for, request, abort
+from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import or_, and_, func
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy import and_, func, or_
+from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.schemas import EventSchema, UserSchema
-from collectives.models import db, Event, EventStatus, EventType, EventVisibility
-from collectives.models import ActivityType, User, EventTag, ActivityKind
-from collectives.models import Question, QuestionAnswer, Configuration
+from collectives.models import (
+    ActivityKind,
+    ActivityType,
+    Configuration,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    EventVisibility,
+    Question,
+    QuestionAnswer,
+    User,
+    db,
+)
 from collectives.utils.access import valid_user
-from collectives.utils.time import parse_api_date, current_time
+from collectives.utils.time import current_time, parse_api_date
 
 
 def filter_hidden_events(query):
@@ -178,7 +189,7 @@ def events():
     # Add query filter from filters_tag list
     if len(filters_tags) > 0:
         query = query.filter(
-            or_(*map(lambda tag: Event.tag_refs.any(type=tag), filters_tags))
+            or_(*(Event.tag_refs.any(type=tag) for tag in filters_tags))
         )
 
     # Add query filter from filters_types list
@@ -186,9 +197,7 @@ def events():
         # pylint: disable=comparison-with-callable
         query = query.filter(EventType.id == Event.event_type_id)
         # pylint: enable=comparison-with-callable
-        query = query.filter(
-            or_(*map(lambda type: EventType.short == type, filters_types))
-        )
+        query = query.filter(or_(*(EventType.short == type for type in filters_types)))
 
     query = query.order_by(Event.start)
     query = query.order_by(Event.id)

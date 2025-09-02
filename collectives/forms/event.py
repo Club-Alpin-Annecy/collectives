@@ -1,29 +1,48 @@
 """Module containing forms related to event management"""
 
-from operator import attrgetter
-from uuid import uuid4
-from typing import List
-
 from datetime import timedelta
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
+from operator import attrgetter
+from typing import List
+from uuid import uuid4
+
+import sqlalchemy
 from flask import current_app
 from flask_login import current_user
-import sqlalchemy
-from wtforms import SubmitField, SelectField, IntegerField, HiddenField, Field
-from wtforms import FieldList, BooleanField, FormField, RadioField, SelectMultipleField
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import (
+    BooleanField,
+    Field,
+    FieldList,
+    FormField,
+    HiddenField,
+    IntegerField,
+    RadioField,
+    SelectField,
+    SelectMultipleField,
+    SubmitField,
+)
 from wtforms.validators import DataRequired
 from wtforms_alchemy import ModelForm
 
-from collectives.models import Event, photos, Configuration, Registration
-from collectives.models import ActivityType, EventType, EventTag
-from collectives.models import EventStatus, User, db
-from collectives.models import ItemPrice, UserGroup
-from collectives.utils.time import current_time
-from collectives.utils.numbers import format_currency
-from collectives.utils.payment import generate_price_intervals, PriceDateInterval
-
 from collectives.forms.user_group import UserGroupForm
+from collectives.models import (
+    ActivityType,
+    Configuration,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    ItemPrice,
+    Registration,
+    User,
+    UserGroup,
+    db,
+    photos,
+)
+from collectives.utils.numbers import format_currency
+from collectives.utils.payment import PriceDateInterval, generate_price_intervals
+from collectives.utils.time import current_time
 
 
 def available_event_types(
@@ -49,7 +68,7 @@ def available_event_types(
     if all(l.is_leader() for l in leaders):
         return query.all()
 
-    query_filter = EventType.requires_activity == False
+    query_filter = sqlalchemy.not_(EventType.requires_activity)
     if source_event_type:
         query_filter = sqlalchemy.or_(
             query_filter, EventType.id == source_event_type.id
@@ -322,7 +341,7 @@ class EventForm(ModelForm, FlaskForm):
         with event description template
         """
         description = Configuration.DESCRIPTION_TEMPLATE
-        columns = {i: "" for i in current_app.config["CSV_COLUMNS"].keys()}
+        columns = dict.fromkeys(current_app.config["CSV_COLUMNS"].keys(), "")
 
         # Remove placeholders
         self.description.data = description.format(**columns)

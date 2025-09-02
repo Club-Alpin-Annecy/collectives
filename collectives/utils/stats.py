@@ -3,18 +3,26 @@ Module to calculate statistics of the event database.
 
 """
 
+from datetime import datetime, timedelta
 from functools import lru_cache
 from io import BytesIO
 from math import floor
-from datetime import datetime, timedelta
 
-from sqlalchemy import func, distinct
 from openpyxl import Workbook
 from openpyxl.styles import Font
+from sqlalchemy import distinct, func
 
-from collectives.models import db, Registration, Event, EventType
-from collectives.models import RegistrationStatus, EventStatus, ActivityType
-from collectives.models import User, EventTag
+from collectives.models import (
+    ActivityType,
+    Event,
+    EventStatus,
+    EventTag,
+    EventType,
+    Registration,
+    RegistrationStatus,
+    User,
+    db,
+)
 from collectives.utils.openpyxl import columns_best_fit
 from collectives.utils.time import current_time
 
@@ -274,7 +282,7 @@ class StatisticsEngine:
             query = query.filter(condition)
 
         if requires_activity:
-            query.filter(Event.event_type.has(EventType.requires_activity == True))
+            query.filter(Event.event_type.has(EventType.requires_activity))
 
         return query
 
@@ -522,7 +530,7 @@ class StatisticsEngine:
         functions = [getattr(self, fnc) for fnc in functions]
 
         for fnc in functions:
-            if fnc.__annotations__["return"] == dict:
+            if issubclass(fnc.__annotations__["return"], dict):
                 worksheet = workbook.create_sheet()
                 worksheet.title = self.INDEX[fnc.__name__]["name"]
                 worksheet.append([worksheet.title])

@@ -3,26 +3,42 @@
 Restricted to activity supervisor, adminstrators, and President.
 """
 
-from flask import flash, render_template, redirect, url_for
-from flask import Blueprint, send_file, abort, request
+from flask import (
+    Blueprint,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
 from flask_uploads import UploadNotAllowed
-from werkzeug.datastructures import CombinedMultiDict
 from sqlalchemy.orm import joinedload
+from werkzeug.datastructures import CombinedMultiDict
 
-from collectives.forms.csv import CSVForm
-from collectives.forms.user import AddLeaderForm
 from collectives.forms.activity_type import (
+    ActivityTypeCreationForm,
     ActivityTypeEditForm,
     ActivityTypeSelectionForm,
-    ActivityTypeCreationForm,
 )
-from collectives.models import User, Role, RoleIds, ActivityType, ActivityKind, db
-from collectives.models import Configuration, UploadedFile
+from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
+from collectives.forms.user import AddLeaderForm
+from collectives.models import (
+    ActivityKind,
+    ActivityType,
+    Configuration,
+    Role,
+    RoleIds,
+    UploadedFile,
+    User,
+    db,
+)
 from collectives.models.badge import BadgeIds
-from collectives.utils import export, badges
-from collectives.utils.access import confidentiality_agreement, valid_user, user_is
+from collectives.utils import badges, export
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
@@ -240,7 +256,7 @@ def csv_import():
         )
 
         flash(
-            f"Importation de {processed-len(failed)} éléments sur {processed}",
+            f"Importation de {processed - len(failed)} éléments sur {processed}",
             "message",
         )
 
@@ -335,7 +351,6 @@ def configuration_form(activity_type_id: int = None):
         form = ActivityTypeEditForm(obj=activity)
 
     if form.validate_on_submit():
-
         if activity is None:
             # May only create services, not regular activities
             # Generate short name from full name

@@ -1,18 +1,20 @@
 """Module defining payment-related models"""
 
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
 
 from sqlalchemy.orm import make_transient
-
 from wtforms.validators import NumberRange
 
-from collectives.models.globals import db
-from collectives.models.utils import ChoiceEnum
 from collectives.models.event import Event
+from collectives.models.globals import db
+from collectives.models.user_group import (
+    GroupEventCondition,
+    GroupLicenseCondition,
+    UserGroup,
+)
+from collectives.models.utils import ChoiceEnum
 from collectives.utils.time import current_time
-from collectives.models.user_group import UserGroup, GroupEventCondition
-from collectives.models.user_group import GroupLicenseCondition
 
 
 class PaymentItem(db.Model):
@@ -729,7 +731,7 @@ class Payment(db.Model):
             self.item_price_id = item_price.id
             self.payment_item_id = item_price.item.id
             self.amount_charged = item_price.amount
-            self.amount_paid = Decimal(0)
+            self.amount_paid = Decimal()
             self.payment_type = PaymentType.Online
             self.status = PaymentStatus.Initiated
             self.processor_token = ""

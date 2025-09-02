@@ -3,22 +3,22 @@
 import datetime
 from urllib.parse import urlparse
 
-from flask import flash, render_template, redirect, url_for, request
-from flask_login import current_user, login_user, login_required, logout_user
+from flask import flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
 from markupsafe import Markup
 
 from collectives.forms.auth import LoginForm
+from collectives.models import Configuration, User, UserType, db
 from collectives.routes.auth.globals import blueprint
 from collectives.routes.auth.utils import (
-    sync_user,
+    EmailChangedError,
+    InvalidLicenseError,
     get_bad_phone_message,
     get_changed_email_message,
-    InvalidLicenseError,
-    EmailChangedError,
+    sync_user,
 )
-from collectives.models import db, Configuration, User, UserType
-from collectives.utils.time import current_time
 from collectives.utils import extranet
+from collectives.utils.time import current_time
 
 
 @blueprint.route("/login", methods=["GET", "POST"])
@@ -76,7 +76,7 @@ def login():
         flash(
             Markup(
                 f"""Compte non validé par mail. Si vous n'avez pas reçu le mail de validation,
-                     vous pouvez en redemander un en utilisant le 
+                     vous pouvez en redemander un en utilisant le
                      <a href='{url_for("auth.recover")}'>formulaire de récupération de compte</a>"""
             ),
             "error",

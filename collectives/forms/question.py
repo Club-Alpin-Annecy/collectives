@@ -1,18 +1,26 @@
 """Module containing forms related to questions"""
 
-from typing import List, Any
+from typing import Any, List
 
 from flask import request
 from flask_wtf import FlaskForm
+from wtforms import (
+    BooleanField,
+    Field,
+    FieldList,
+    FormField,
+    HiddenField,
+    IntegerField,
+    SelectField,
+    SelectMultipleField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
+from wtforms.validators import InputRequired, Optional, ValidationError
 from wtforms_alchemy import ModelForm
-from wtforms import Field, SubmitField, HiddenField, FieldList, FormField, BooleanField
-from wtforms import TextAreaField, SelectField, SelectMultipleField, IntegerField
-from wtforms import StringField
 
-from wtforms.validators import Optional, ValidationError, InputRequired
-
-from collectives.models import db, Question, QuestionType, QuestionAnswer
-from collectives.models import Event, User
+from collectives.models import Event, Question, QuestionAnswer, QuestionType, User, db
 
 
 class QuestionForm(ModelForm):

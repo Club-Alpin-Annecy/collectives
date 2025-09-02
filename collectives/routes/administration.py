@@ -6,29 +6,33 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
 
 from datetime import date
 
-from flask import flash, render_template, redirect, url_for, send_file
-from flask import Blueprint
+from flask import Blueprint, flash, redirect, render_template, send_file, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from collectives.email_templates import send_confirmation_email
-from collectives.forms.user import AdminUserForm, AdminTestUserForm, BadgeForm
-from collectives.forms.user import RoleForm, RenewBadgeForm
 from collectives.forms.auth import AdminTokenCreationForm
+from collectives.forms.user import (
+    AdminTestUserForm,
+    AdminUserForm,
+    BadgeForm,
+    RenewBadgeForm,
+    RoleForm,
+)
 from collectives.models import (
-    User,
-    UserType,
-    Configuration,
     ActivityType,
+    Badge,
+    Configuration,
     Role,
     RoleIds,
-    Badge,
+    User,
+    UserType,
     db,
 )
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
-from collectives.utils import extranet, export, badges, time
+from collectives.utils import badges, export, extranet, time
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import sanitize_file_name
 
@@ -82,7 +86,7 @@ def administration():
 
     count = {}
     count["total"] = User.query.count()
-    count["enable"] = User.query.filter(User.enabled == True).count()
+    count["enable"] = User.query.filter(User.enabled).count()
 
     return render_template(
         "administration/user_list.html",
@@ -111,7 +115,7 @@ def manage_user(user_id=None):
     FormClass = AdminUserForm
     if (
         user.type in [UserType.Test, UserType.Local, UserType.UnverifiedLocal]
-        or user_id == None
+        or user_id is None
     ):
         FormClass = AdminTestUserForm
 
@@ -132,7 +136,7 @@ def manage_user(user_id=None):
     form.populate_obj(user)
     # Commit this object will create the id if it
     # is a user creation
-    if user_id == None:
+    if user_id is None:
         db.session.add(user)
         db.session.commit()
 
@@ -506,7 +510,7 @@ def generate_token():
 
         # Check that the license number has an email associated to it
         user_info = extranet.api.fetch_user_info(license_number)
-        if user_info.email == None:
+        if user_info.email is None:
             flash(
                 "L'adhérent n'a pas d'email enregistré auprès de la FFCAM. Il est impossible de "
                 "créer un compte",

@@ -3,14 +3,20 @@
 import datetime
 
 # pylint: disable=C0301
-from collectives.models import db, ActivityType, Event, User, RoleIds, ItemPrice
-from collectives.models import Registration, RegistrationLevels, RegistrationStatus
-
-from collectives.models.user_group import UserGroup, GroupRoleCondition
-
+from collectives.models import (
+    ActivityType,
+    Event,
+    ItemPrice,
+    Registration,
+    RegistrationLevels,
+    RegistrationStatus,
+    RoleIds,
+    User,
+    db,
+)
+from collectives.models.user_group import GroupRoleCondition, UserGroup
 from collectives.routes.event import update_waiting_list
 from collectives.utils.time import current_time
-
 from tests.fixtures.user import promote_to_leader
 
 

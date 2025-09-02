@@ -2,16 +2,16 @@
 
 import os
 from typing import List
-from flask_uploads import UploadSet, IMAGES
+
+from flask_uploads import IMAGES, UploadSet
 from werkzeug.datastructures import FileStorage
 
-from collectives.models import db
 from collectives.models.event.enum import EventStatus, EventVisibility
+from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
 from collectives.utils import render_markdown
 from collectives.utils.misc import is_valid_image
-
 
 photos = UploadSet("photos", IMAGES)
 """Upload instance for events photos
@@ -155,7 +155,7 @@ class EventMiscMixin:
     def _migrate_parent_event_id(self):
         """Helper for migrating from parent_event_id to user groups"""
 
-        from collectives.models.user_group import UserGroup, GroupEventCondition
+        from collectives.models.user_group import GroupEventCondition, UserGroup
 
         if self._deprecated_parent_event_id is None:
             return

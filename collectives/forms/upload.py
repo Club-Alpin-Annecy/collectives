@@ -1,11 +1,11 @@
 """Module containing forms for uploading documents"""
 
-from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired
 from flask_login import current_user
+from flask_wtf.file import FileAllowed, FileField
+from wtforms.validators import DataRequired
 
-from .activity_type import ActivityTypeSelectionForm
 from ..models.upload import documents
+from .activity_type import ActivityTypeSelectionForm
 
 
 class AddActivityDocumentForm(ActivityTypeSelectionForm):

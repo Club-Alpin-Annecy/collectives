@@ -1,7 +1,7 @@
 """Unit tests for CSV import"""
 
-from io import StringIO
 import datetime
+from io import StringIO
 
 from collectives.utils.csv import csv_to_events
 

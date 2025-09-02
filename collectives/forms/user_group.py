@@ -1,23 +1,30 @@
 """Module containing form widgets for editing user groups"""
 
 import json
-from typing import Callable, TypeVar, Optional, Union
+from typing import Callable, Optional, TypeVar, Union
 
-from wtforms_alchemy import ModelForm
-from wtforms import SelectField, FieldList, FormField, BooleanField
-from wtforms import HiddenField, IntegerField, SelectMultipleField
-from wtforms.validators import ValidationError
-
-from markupsafe import Markup
 from flask import url_for
-
-from collectives.models import db, ActivityType, RoleIds, Configuration, Event, BadgeIds
-from collectives.models.user_group import (
-    UserGroup,
-    GroupRoleCondition,
-    GroupBadgeCondition,
+from markupsafe import Markup
+from wtforms import (
+    BooleanField,
+    FieldList,
+    FormField,
+    HiddenField,
+    IntegerField,
+    SelectField,
+    SelectMultipleField,
 )
-from collectives.models.user_group import GroupEventCondition, GroupLicenseCondition
+from wtforms.validators import ValidationError
+from wtforms_alchemy import ModelForm
+
+from collectives.models import ActivityType, BadgeIds, Configuration, Event, RoleIds, db
+from collectives.models.user_group import (
+    GroupBadgeCondition,
+    GroupEventCondition,
+    GroupLicenseCondition,
+    GroupRoleCondition,
+    UserGroup,
+)
 
 T = TypeVar("T")
 """ Type variable for typing annotations """
@@ -67,7 +74,7 @@ class GroupRoleConditionForm(ModelForm):
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
-        self.role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
+        self.role_id.choices = [("", "N'importe quel rôle"), *RoleIds.choices()]
 
     def activity(self) -> Optional[ActivityType]:
         """:returns: the activity corresponding to the current activity_id"""
@@ -120,7 +127,7 @@ class GroupBadgeConditionForm(ModelForm):
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
-        self.badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+        self.badge_id.choices = [("", "N'importe quel badge"), *BadgeIds.choices()]
 
     def activity(self) -> Optional[ActivityType]:
         """:returns: the activity corresponding to the current activity_id"""
@@ -232,12 +239,12 @@ class UserGroupForm(ModelForm):
             for cat, descr in Configuration.LICENSE_CATEGORIES.items()
         ]
 
-        self.new_role_id.choices = [("", "N'importe quel rôle")] + RoleIds.choices()
+        self.new_role_id.choices = [("", "N'importe quel rôle"), *RoleIds.choices()]
         self.new_role_activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]
 
-        self.new_badge_id.choices = [("", "N'importe quel badge")] + BadgeIds.choices()
+        self.new_badge_id.choices = [("", "N'importe quel badge"), *BadgeIds.choices()]
         self.new_badge_activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in ActivityType.get_all_types()
         ]

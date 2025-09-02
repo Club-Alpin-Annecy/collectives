@@ -4,14 +4,14 @@ import os
 from datetime import timedelta
 
 from flask import url_for
-from flask_uploads import UploadSet, DOCUMENTS, IMAGES
-from werkzeug.utils import secure_filename
+from flask_uploads import DOCUMENTS, IMAGES, UploadSet
 from sqlalchemy.orm import validates
+from werkzeug.utils import secure_filename
 
 from collectives.models.globals import db
 from collectives.models.user import User
-from collectives.utils.time import current_time
 from collectives.utils.misc import is_valid_image
+from collectives.utils.time import current_time
 
 documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
 """Upload instance for documents
@@ -218,8 +218,8 @@ class UploadedFile(db.Model):
         :param days: Number of days since upload to consider purging the file
         :type days: int
         """
-        to_delete = UploadedFile.query.filter(UploadedFile.event_id == None)
-        to_delete = to_delete.filter(UploadedFile.activity_id == None)
+        to_delete = UploadedFile.query.filter(UploadedFile.event_id.is_(None))
+        to_delete = to_delete.filter(UploadedFile.activity_id.is_(None))
         to_delete = to_delete.filter(UploadedFile.session_id != current_session_id)
         to_delete = to_delete.filter(
             UploadedFile.date <= current_time() - timedelta(days=days)

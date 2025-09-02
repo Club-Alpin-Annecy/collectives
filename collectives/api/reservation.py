@@ -1,17 +1,24 @@
 """API for reservation."""
 
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 
+from flask import abort, request, url_for
 from flask_login import current_user
-from flask import url_for, request, abort
 from marshmallow import fields
 from sqlalchemy.sql import text
 
 from collectives.api.common import blueprint, marshmallow
 from collectives.api.equipment import EquipmentSchema
-from collectives.models import db, Equipment, EquipmentStatus, Reservation
-from collectives.models import ReservationLine, ReservationStatus, User
+from collectives.models import (
+    Equipment,
+    EquipmentStatus,
+    Reservation,
+    ReservationLine,
+    ReservationStatus,
+    User,
+    db,
+)
 
 
 class ReservationSchema(marshmallow.SQLAlchemyAutoSchema):

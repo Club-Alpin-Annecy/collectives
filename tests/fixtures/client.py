@@ -19,7 +19,9 @@ Those client are based on :meth:`client`.
 """
 
 from datetime import datetime
+
 import pytest
+
 from tests.fixtures import user
 
 # pylint: disable=redefined-outer-name

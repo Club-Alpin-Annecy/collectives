@@ -1,10 +1,10 @@
 """Miscellaneous utils functions"""
 
-from typing import Union, IO
-import io
 import functools
+import io
 import re
 import unicodedata
+from typing import IO, Union
 
 from flask import request
 from PIL import Image
@@ -81,9 +81,6 @@ def sanitize_file_name(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9_ .,àâäçéèêëîïôöùûüÿÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒæœ-]", "_", name)
 
 
-# pylint: disable=bare-except
-
-
 def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
     """Uses PIL to check whether a file is a valid image
 
@@ -92,7 +89,7 @@ def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
     try:
         with Image.open(file) as im:
             im.verify()
-    except:
+    except Exception:
         return False
 
     # If passed an IO stream need to seek back to start of file
@@ -103,9 +100,6 @@ def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
         pass
 
     return True
-
-
-# pylint: enable=bare-except
 
 
 def truncate(value: str, max_len: int, append_ellipsis: bool = True) -> str:

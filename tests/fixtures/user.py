@@ -1,19 +1,26 @@
 """Module to create fixture users."""
 
-from functools import wraps
 from datetime import date, timedelta
+from functools import wraps
 
 import pytest
 
-from collectives.models import User, Gender, db, Role, RoleIds, ActivityType
-from collectives.models import Badge, BadgeIds, UserType
+from collectives.models import (
+    ActivityType,
+    Badge,
+    BadgeIds,
+    Gender,
+    Role,
+    RoleIds,
+    User,
+    UserType,
+    db,
+)
 from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument,redefined-outer-name, unused-import
-
 from tests.fixtures.app import enable_sanctions
 from tests.mock.extranet import VALID_LICENSE, VALID_USER_DOB, VALID_USER_EMAIL
-
 
 PASSWORD = "fooBar2+!"
 """ Default test password for non admin users.
@@ -102,7 +109,7 @@ USER_NAMES = [
 
 :type: list()"""
 for i, user_name in enumerate(USER_NAMES):
-    inject_fixture(f"user{i+1}", user_name)
+    inject_fixture(f"user{i + 1}", user_name)
 
 
 @pytest.fixture

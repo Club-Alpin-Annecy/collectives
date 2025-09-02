@@ -1,18 +1,17 @@
 """Handle dynamic user groups, for restricting or payment options"""
 
-from typing import List
 from datetime import datetime
+from typing import List
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query
 
-from collectives.models.globals import db
-
-from collectives.models.role import RoleIds, Role
-from collectives.models.badge import BadgeIds, Badge
-from collectives.models.user import User
-from collectives.models.registration import Registration, RegistrationStatus
+from collectives.models.badge import Badge, BadgeIds
 from collectives.models.event import Event
+from collectives.models.globals import db
+from collectives.models.registration import Registration, RegistrationStatus
+from collectives.models.role import Role, RoleIds
+from collectives.models.user import User
 
 
 class GroupConditionBase:

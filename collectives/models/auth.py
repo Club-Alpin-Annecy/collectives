@@ -4,12 +4,12 @@ Example: Account creation tokens. However, User is in module
 ``collectives.model.user``.
 """
 
-from datetime import timedelta
 import enum
 import uuid
+from datetime import timedelta
 
-from collectives.models.globals import db
 from collectives.models.configuration import Configuration
+from collectives.models.globals import db
 from collectives.models.user import UserType
 from collectives.utils.time import current_time
 

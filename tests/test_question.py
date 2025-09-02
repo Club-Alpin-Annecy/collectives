@@ -4,7 +4,7 @@
 
 import json
 
-from collectives.models import db, QuestionType
+from collectives.models import QuestionType, db
 from tests import utils
 
 

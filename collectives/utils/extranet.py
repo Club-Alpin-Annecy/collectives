@@ -1,15 +1,15 @@
 """Module to handle connexions to FFCAM extranet."""
 
 import traceback
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Dict
-from flask import current_app, Flask
 
+from flask import Flask, current_app
 from zeep import Client
-from zeep.proxy import ServiceProxy
 from zeep.exceptions import Error as ZeepError
+from zeep.proxy import ServiceProxy
 
-from collectives.models import Gender, Configuration, User, UserType
+from collectives.models import Configuration, Gender, User, UserType
 from collectives.utils.time import current_time
 
 _OTHER_CLUB_LICENSE_MESSAGE = "Les donnees demandees ne vous sont pas accessibles"

@@ -10,9 +10,9 @@ from marshmallow import fields
 from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.api.schemas import EventSchema
 from collectives.api.event import filter_hidden_events
-from collectives.models import db, User, Event, Registration
+from collectives.api.schemas import EventSchema
+from collectives.models import Event, Registration, User, db
 from collectives.utils.access import valid_user
 
 
@@ -42,7 +42,7 @@ class RegistrationEventSchema(EventSchema):
     class Meta:
         """Fields to expose"""
 
-        fields = EventSchema.Meta.fields + tuple(["registration"])
+        fields = (*EventSchema.Meta.fields, "registration")
 
 
 @blueprint.route("/user/<user_id>/events")

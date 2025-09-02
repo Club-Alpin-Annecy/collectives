@@ -2,14 +2,16 @@
 
 import os
 from genericpath import isfile
-from flask_uploads import UploadSet, IMAGES, extension
 
-from collectives.models.reservation import Reservation, ReservationLineEquipment
-from collectives.models.reservation import ReservationStatus
+from flask_uploads import IMAGES, UploadSet, extension
 
 from collectives.models.globals import db
+from collectives.models.reservation import (
+    Reservation,
+    ReservationLineEquipment,
+    ReservationStatus,
+)
 from collectives.models.utils import ChoiceEnum
-
 
 image_equipment_type = UploadSet("imgtypeequip", IMAGES)
 
@@ -195,7 +197,7 @@ class EquipmentType(db.Model):
         :return: The automatic reference for the creation of a new equipment of this type
         :rtype: string
         """
-        return f"{self.reference_prefix} {self.last_reference+1}"
+        return f"{self.reference_prefix} {self.last_reference + 1}"
 
     def increment_last_reference(self):
         """

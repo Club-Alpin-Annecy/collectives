@@ -2,17 +2,16 @@
 
 import os
 
-from flask_uploads import UploadSet, IMAGES
 import flask_login
-
+from flask_uploads import IMAGES, UploadSet
 
 from collectives.models.globals import db
-from collectives.models.role import RoleIds, Role
-from collectives.models.user.enum import Gender, UserType
-from collectives.models.user.model import UserModelMixin
-from collectives.models.user.misc import UserMiscMixin, avatars
-from collectives.models.user.role import UserRoleMixin
+from collectives.models.role import Role, RoleIds
 from collectives.models.user.badge import UserBadgeMixin
+from collectives.models.user.enum import Gender, UserType
+from collectives.models.user.misc import UserMiscMixin, avatars
+from collectives.models.user.model import UserModelMixin
+from collectives.models.user.role import UserRoleMixin
 
 
 class User(

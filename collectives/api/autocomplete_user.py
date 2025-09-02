@@ -6,14 +6,14 @@ Especially used for user registration by leader in events.
 
 import json
 
-from flask import request, abort
+from flask import abort, request
 from flask_login import current_user
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Query
-from sqlalchemy import func, and_
 
 from collectives.api.common import blueprint
 from collectives.api.schemas import UserSchema
-from collectives.models import db, User, Role, RoleIds, EventType
+from collectives.models import EventType, Role, RoleIds, User, db
 from collectives.utils.access import confidentiality_agreement, valid_user
 
 
