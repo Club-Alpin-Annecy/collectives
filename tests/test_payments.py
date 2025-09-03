@@ -112,6 +112,18 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
     assert paying_event.registrations[0].user == user1_client.user
     assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
 
+    # Check my_payments API for initiated payments
+    response = user1_client.get("/api/payments/my/Initiated")
+    assert response.status_code == 200
+    api_data = response.json
+    assert len(api_data) == 1
+    assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+    # Check my_payments API for completed payments (should be empty)
+    response = user1_client.get("/api/payments/my/Approved")
+    assert response.status_code == 200
+    assert len(response.json) == 0
+
     # payline validation
     response = user1_client.post(
         "/payment/process?paylinetoken=1jom6TVNaLuHygEB62681665928911817", data=data
@@ -120,3 +132,15 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
     assert response.location == f"/collectives/{paying_event.id}-"
     assert paying_event.registrations[0].user == user1_client.user
     assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+    # Check my_payments API for initiated payments (should be empty now)
+    response = user1_client.get("/api/payments/my/Initiated")
+    assert response.status_code == 200
+    assert len(response.json) == 0
+
+    # Check my_payments API for completed payments
+    response = user1_client.get("/api/payments/my/Approved")
+    assert response.status_code == 200
+    api_data = response.json
+    assert len(api_data) == 1
+    assert api_data[0]["item"]["event"]["title"] == paying_event.title
