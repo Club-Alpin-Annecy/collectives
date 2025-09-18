@@ -58,8 +58,6 @@ def check_phone(number: str) -> bool:
         number = phonenumbers.parse(number, "FR")
         if not phonenumbers.is_possible_number(number):
             return False
-        if not phonenumbers.is_valid_number(number):
-            return False
 
         return True
 
