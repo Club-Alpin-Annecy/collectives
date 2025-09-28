@@ -11,7 +11,10 @@ from collectives.utils.extranet import _OTHER_CLUB_LICENSE_MESSAGE
 
 # pylint: disable=unused-argument,redefined-builtin
 
-VALID_LICENSE = "740020780001"
+VALID_LICENSES = ["740020780001", "740020780999", "740020780998", "740020780997"]
+""" A list of license numbers linked to valid extranet accounts """
+
+VALID_LICENSE = VALID_LICENSES[0]
 """ A license number linked to a valid extranet account """
 
 EXPIRED_LICENSE = "740020780002"
@@ -138,7 +141,7 @@ class FakeSoapClient:
         license = kwargs["id"]
         if license == OTHER_CLUB_LICENSE:
             raise ZeepError(_OTHER_CLUB_LICENSE_MESSAGE)
-        if license in (VALID_LICENSE, VALID_LICENSE_WITH_NO_EMAIL):
+        if license in [*VALID_LICENSES, VALID_LICENSE_WITH_NO_EMAIL]:
             # Registered 15 days ago
             reg_date = date.today() - timedelta(days=15)
             return {

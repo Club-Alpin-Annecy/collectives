@@ -3,6 +3,10 @@
 
 {% import 'partials/form-fields.html' as generator  %}
 
+{% block additionalhead %}   
+    <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>

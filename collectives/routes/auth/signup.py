@@ -3,7 +3,7 @@
 from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from markupsafe import Markup
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 
 from collectives import email_templates
 from collectives.forms.auth import (
@@ -208,37 +208,76 @@ def signup():
     user = User()
     form.populate_obj(user)
 
-    # In recover mode, check for any user that is already registered with this
-    # email or license
+    # In recover mode, check for any user that is already registered with this license
     existing_user = None
     if is_recover:
-        existing_user = get_existing_user(form)
+        existing_user = get_existing_user(
+            license=form.license.data,
+            mail=form.mail.data,
+            date_of_birth=form.date_of_birth.data,
+            form=form,
+        )
         if not existing_user:
             return render_signup_form(form, is_recover)
 
-    if local and not is_recover:
-        user.type = UserType.UnverifiedLocal
-
-        db.session.add(user)
-        db.session.commit()
-
-        existing_user = user
-
-    if not local:
-        if not check_user_validity(form):
-            return render_signup_form(form, is_recover)
-
-    if local and is_recover:
-        if (
-            user.mail != form.mail.data
-            or user.date_of_birth != form.date_of_birth.data
-            or user.license != form.license.data
-        ):
-            form.generic_error = (
-                "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
-                "de licence."
+    if local:
+        # Local account creation
+        if not is_recover:
+            # Check duplicates
+            existing_user = get_existing_user(
+                license=form.license.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                date_of_birth=form.date_of_birth.data,
+                form=form,
             )
+            if existing_user:
+                form.generic_error = (
+                    "Un compte existe déjà avec ce numéro de licence ou cette identité. "
+                    "Utilisez le formulaire de récupération de compte."
+                )
+                return render_signup_form(form, is_recover)
+
+            user.type = UserType.UnverifiedLocal
+
+            db.session.add(user)
+            db.session.commit()
+
+            existing_user = user
+
+        # Local account recovery
+        else:
+            if (
+                user.mail != form.mail.data
+                or user.date_of_birth != form.date_of_birth.data
+                or user.license != form.license.data
+            ):
+                form.generic_error = (
+                    "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
+                    "de licence."
+                )
+                return render_signup_form(form, is_recover)
+    else:  # Extranet account management
+        # For Extranet account, check user existence
+        existence, user_info = check_user_validity(form)
+        if not existence:
             return render_signup_form(form, is_recover)
+
+        if not is_recover:
+            # New extranet account creation
+            existing_user = get_existing_user(
+                license=form.license.data,
+                first_name=user_info.first_name,
+                last_name=user_info.last_name,
+                date_of_birth=user_info.date_of_birth,
+                form=form,
+            )
+            if existing_user:
+                form.generic_error = (
+                    "Un compte existe déjà avec ce numéro de licence ou cette adresse e-mail. "
+                    "Utilisez le formulaire de récupération de compte."
+                )
+                return render_signup_form(form, is_recover)
 
     # If self-provided info is correct, generate confirmation token
     token = create_confirmation_token(user.license, existing_user)
@@ -249,23 +288,46 @@ def signup():
     return redirect(url_for(".check_token", license_number=user.license))
 
 
-def get_existing_user(form: ExtranetAccountCreationForm):
-    """Look for en existing user equivalent to the one described in form.
+def get_existing_user(
+    form,
+    license=None,
+    first_name=None,
+    last_name=None,
+    date_of_birth=None,
+    mail=None,
+):
+    """Look for en existing user equivalent to the given parameters.
 
     If an error occurs, the form is loaded with the appropriate error message.
 
-    :param form: the form with the user info.
     :returns: Either the User or None if an error has occured."""
-    existing_users = User.query.filter(
-        or_(User.license == form.license.data, User.mail == form.mail.data)
-    ).all()
+    filters = or_(1 == 0)
+    if license:
+        filters = or_(filters, User.license == license)
+
+    if first_name and last_name and date_of_birth:
+        filters = or_(
+            filters,
+            and_(
+                User.first_name == first_name,
+                User.last_name == last_name,
+                User.date_of_birth == date_of_birth,
+            ),
+        )
+
+    if mail and date_of_birth:
+        filters = or_(
+            filters, and_(User.mail == mail, User.date_of_birth == date_of_birth)
+        )
+
+    existing_users = User.query.filter(filters).all()
     num_existing_users = len(existing_users)
 
     # Check that a single existing account is matching the
     # provided identifiers
     if num_existing_users > 1:
         form.generic_error = (
-            "Identifiant ambigus: plusieurs comptes peuvent correspondre. "
+            "Identifiants ambigus: plusieurs comptes peuvent correspondre. "
             "Veuillez contacter le support."
         )
         return None
@@ -282,7 +344,9 @@ def check_user_validity(form):
     If an error occurs, the form is loaded with the appropriate error message.
 
     :param form: the form with the user info.
-    :returns: True if license is valid, False if not, None if there is an error"""
+    :returns: two values.
+            First is validity: True if license is valid, False if not, None if there is an error
+            Second is user_info: None for errors"""
     license_number = form.license.data
     try:
         license_info = extranet.api.check_license(license_number)
@@ -291,26 +355,26 @@ def check_user_validity(form):
                 "Numéro de licence inactif. Merci de renouveler votre adhésion afin "
                 "de pouvoir créer ou récupérer votre compte."
             )
-            return False
+            return False, None
 
         user_info = extranet.api.fetch_user_info(license_number)
     except extranet.LicenseBelongsToOtherClubError:
         # should not happen due to form's license validator. catch exception nonetheless
         form.generic_error = "Ce numéro de licence appartient à un autre club"
-        return False
+        return False, None
     except extranet.ExtranetError:
         flash(
             "Impossible de se connecter à l'extranet, veuillez réessayer ultérieurement",
             "error",
         )
-        return None
+        return None, None
 
     if user_info.email is None:
         form.generic_error = f"""Vous n'avez pas saisi d'adresse mail lors de votre adhésion au
             club. Envoyez un mail à {Configuration.SECRETARIAT_EMAIL} afin de demander que votre
             compte sur la FFCAM soit mis à jour avec votre adresse mail. Une fois
             fait, vous pourrez alors activer votre compte"""
-        return False
+        return False, user_info
 
     if (
         form.date_of_birth.data != user_info.date_of_birth
@@ -320,8 +384,8 @@ def check_user_validity(form):
             "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
             "de licence."
         )
-        return False
-    return True
+        return False, user_info
+    return True, user_info
 
 
 @blueprint.route("/check_token/<license_number>", methods=["GET"])

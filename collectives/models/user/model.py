@@ -48,7 +48,7 @@ class UserModelMixin:
     mail = db.Column(
         db.String(100),
         nullable=False,
-        unique=True,
+        unique=False,
         index=True,
         info={
             "validators": Email(message="Format d'adresse invalide"),

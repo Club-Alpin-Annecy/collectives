@@ -40,11 +40,37 @@ def login():
         )
 
     # Check if user exists
-    user = User.query.filter_by(mail=form.mail.data).first()
+    if "@" in form.login.data or form.login.data == "admin":
+        users = User.query.filter_by(mail=form.login.data).all()
+    else:
+        users = User.query.filter_by(license=form.login.data).all()
 
-    if user is None:
+    if len(users) > 1:
+        users_list = "".join(
+            f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{u.license}')\" >
+                        {u.full_name()}</span>"""
+            for u in users
+        )
+        flash(
+            Markup(
+                f"""Merci de sélectionner votre compte.
+                <div class="align-center buttons-bar" style="margin:1em">{users_list}</div>"""
+            ),
+            "",
+        )
+        form.password.widget.hide_value = False
+        return render_template(
+            "auth/login.html",
+            form=form,
+            contact_reason="vous connecter",
+            password=form.password.data,
+        )
+
+    if len(users) == 0:
         flash("Nom d'utilisateur ou mot de passe invalide.", "error")
         return redirect(url_for("auth.login"))
+
+    user = users[0]
 
     maxdelta = datetime.timedelta(seconds=Configuration.AUTH_FAILURE_WAIT)
     if current_time() - user.last_failed_login < maxdelta:
