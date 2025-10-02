@@ -22,6 +22,12 @@ class BadgeIds(ChoiceEnum):
     Suspended = 3
     """ User has been suspended. """
 
+    Practitioner = 4
+    """ Practitioner level for a given activity. """
+
+    Competency = 5
+    """ Particular competence. """
+
     @classmethod
     def display_names(cls):
         """Display name for all badges
@@ -33,6 +39,8 @@ class BadgeIds(ChoiceEnum):
             cls.Benevole: "Bénévole régulier",
             cls.UnjustifiedAbsenceWarning: "Absence injustifiée - avertissement",
             cls.Suspended: "Absence injustifiée - suspension",
+            cls.Practitioner: "Niveau de pratique",
+            cls.Competency: "Compétence",
         }
 
     def relates_to_activity(self) -> bool:
@@ -40,7 +48,27 @@ class BadgeIds(ChoiceEnum):
 
         :return: True if the badge requires an activity.
         """
-        return False
+        return self in {BadgeIds.Practitioner}
+
+    def has_ordered_levels(self) -> bool:
+        """Whether the levels for this badge are ordered.
+        I.e, whether having a badge of level N implies having all levels < N.
+        """
+        return self not in {BadgeIds.Competency}
+
+    def levels(self) -> dict[int, tuple[str, str]]:
+        """Returns the human-readable levels for this type of badge.
+
+        :return: list of levels names (long name, abbreviation/emoji)
+        """
+        if self == BadgeIds.Practitioner:
+            return {
+                1: ("Base", "🟢"),
+                2: ("Initié", "🔵"),
+                3: ("Perfectionné", "🔴"),
+                4: ("Expert", "⚫"),
+            }
+        return {}
 
 
 class Badge(db.Model):

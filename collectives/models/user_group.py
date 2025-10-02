@@ -104,6 +104,16 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
     :type: :py:class:`collectives.models.RoleId``
     """
 
+    level = db.Column(
+        db.Integer,
+        nullable=True,
+        info={"label": "Niveau du badge"},
+    )
+    """ Level of the badge that group members must have. If null, any level is allowed
+
+    :type: int
+    """
+
     activity_id = db.Column(
         db.Integer, db.ForeignKey("activity_types.id"), nullable=True
     )
@@ -120,26 +130,27 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
     def get_condition(self, time: datetime):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
         non_expired = ~(Badge.expiration_date < time.date())  # NULL means non-expired
-        if self.badge_id and self.activity_id:
-            return User.badges.any(
-                and_(
-                    Badge.badge_id == self.badge_id,
-                    Badge.activity_id == self.activity_id,
-                    non_expired,
-                )
-            )
+        conditions = [non_expired]
+
         if self.badge_id:
-            return User.badges.any(and_(Badge.badge_id == self.badge_id, non_expired))
+            conditions.append(Badge.badge_id == self.badge_id)
         if self.activity_id:
-            return User.badges.any(
-                and_(Badge.activity_id == self.activity_id, non_expired)
-            )
-        return User.badges.any(non_expired)
+            conditions.append(Badge.activity_id == self.activity_id)
+        if self.level:
+            badge_type = BadgeIds(self.badge_id)
+            if badge_type.has_ordered_levels():
+                conditions.append(Badge.level >= self.level)
+            else:
+                conditions.append(Badge.level == self.level)
+        return User.badges.any(and_(*conditions))
 
     def clone(self) -> "GroupBadgeCondition":
         """:return: a deep copy of this object"""
         return GroupBadgeCondition(
-            badge_id=self.badge_id, activity_id=self.activity_id, invert=self.invert
+            badge_id=self.badge_id,
+            activity_id=self.activity_id,
+            level=self.level,
+            invert=self.invert,
         )
 
 
