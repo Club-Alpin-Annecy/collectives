@@ -202,7 +202,6 @@ def client_with_valid_suspended_badge(client, user_with_valid_suspended_badge):
     yield client
     logout(client)
 
-
 @pytest.fixture
 def client_with_expired_suspended_badge(client, user_with_expired_suspended_badge):
     """Flask client authenticated as user with an expired suspended badge."""

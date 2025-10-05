@@ -24,8 +24,10 @@ from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
-from collectives.forms.user import DeleteUserForm
+from collectives.forms.user import DeleteUserForm, CompetencyBadgeForm
 from collectives.models import (
+    Badge,
+    BadgeIds,
     Configuration,
     Event,
     Gender,
@@ -70,6 +72,9 @@ def show_user(user_id: int, event_id: int = 0):
     if user is None:
         abort(404)
 
+    practitioner_badge_form = None
+    skill_badge_form = None
+
     if user.id != current_user.id:
         if not current_user.has_any_role():
             flash("Non autorisé", "error")
@@ -96,6 +101,21 @@ def show_user(user_id: int, event_id: int = 0):
                 "error",
             )
             return redirect(url_for("profile.confidentiality_agreement"))
+
+        if current_user.is_leader():
+            practitioner_badge_form = CompetencyBadgeForm(
+                badge_id=BadgeIds.Practitioner
+            )
+            skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
+
+        # Leaders can only see limited information about other users
+        return render_template(
+            "profile.html",
+            title="Profil adhérent",
+            user=user,
+            practitioner_badge_form=practitioner_badge_form,
+            skill_badge_form=skill_badge_form,
+        )
 
     return render_template("profile.html", title="Profil adhérent", user=user)
 
@@ -427,3 +447,7 @@ def delete_user(user_id: int):
         user=user,
         form=form,
     )
+
+@blueprint.route("/user/set_practice_level", methods=["GET", "POST"])
+def set_practice_level():
+    pass

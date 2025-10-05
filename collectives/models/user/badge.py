@@ -129,6 +129,13 @@ class UserBadgeMixin:
             badge.activity_type for badge in badges if badge.activity_type is not None
         }
 
+    def has_a_valid_competency_badge(self) -> bool:
+        """Check if user has a competency badge.
+
+        :return: True if user has a benevole badge.
+        """
+        return self.has_a_valid_badge([BadgeIds.Practitioner, BadgeIds.Skill])
+
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
     def assign_badge(
@@ -138,12 +145,16 @@ class UserBadgeMixin:
         activity_id: Optional[int] = None,
         level: Optional[int] = None,
         registration: Optional[Registration] = None,
+        grantor_id: Optional[int] = None,
     ):
         """Assign a badge to the user.
 
         :param badge_id: The ID of the badge to be assigned.
         :param expiration_date: The date when the badge will expire.
         :param activity_id: The ID of the activity onto which the badge should be applied.
+        :param level: The level of the badge (if applicable).
+        :param registration: The registration associated with this badge (if any).
+        :param grantor_id: The ID of the user who grants this badge (if any).
         """
         badge = Badge(
             user_id=self.id,
@@ -153,6 +164,7 @@ class UserBadgeMixin:
             level=level,
             registration=registration,
             creation_time=current_time(),
+            grantor_id=grantor_id,
         )
         try:
             db.session.add(badge)

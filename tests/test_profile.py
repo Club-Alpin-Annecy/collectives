@@ -4,6 +4,9 @@ from flask import url_for
 
 from tests import utils
 from tests.fixtures import client
+from tests.fixtures.user import add_badge_to_user
+
+from collectives.models import db, BadgeIds, Event, User
 
 # pylint: disable=unused-argument
 
@@ -17,6 +20,7 @@ def test_show_user_profile(user1_client):
     assert user.full_name() in response.text
     assert user.license in response.text
     assert user.mail in response.text
+    assert "Bénévolat régulier" not in response.text
 
 
 def test_show_user_profile_to_leader_with_event(leader_client, event1_with_reg, user1):
@@ -49,6 +53,11 @@ def test_generate_valid_benevole_cert(client_with_valid_benevole_badge, presiden
     """Test the volunteer cert generation.
 
     Does not check the content, just the absence of error."""
+
+    response = client_with_valid_benevole_badge.get(f"profile/user/{user.id}")
+    assert response.status_code == 200
+    assert "Bénévolat régulier" in response.text
+
     response = client_with_valid_benevole_badge.get("/profile/user/volunteer/cert")
     assert response.status_code == 200
     assert response.content_length > 200000
@@ -150,3 +159,22 @@ def test_delete_user(user1_client, user2):
     assert user1_client.user.first_name == "Compte"
     assert user1_client.user.license == str(user1_client.user.id)
     assert "localhost" in user1_client.user.mail
+
+
+def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: User):
+    """Test user access to its profile."""
+
+    badge = add_badge_to_user(
+        user1,
+        BadgeIds.Practitioner,
+        level=3,
+    )
+    db.session.commit()
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    assert badge.level_name() in response.text 
+    

@@ -197,6 +197,7 @@ def add_badge(
             "info",
         )
 
+    badge.grantor_id = current_user.id
     db.session.add(badge)
     db.session.commit()
 
@@ -217,6 +218,7 @@ def renew_badge(
         return None
 
     badge.expiration_date = compute_default_expiration_date()
+    badge.grantor_id = current_user.id
     db.session.add(badge)
     db.session.commit()
     return None

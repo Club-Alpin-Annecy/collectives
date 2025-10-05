@@ -306,6 +306,7 @@ def add_user_badge(user_id):
                 "Type de Badge déjà associé à l'utilisateur pour cette activité"
             )
 
+        badge.grantor_id = current_user.id
         user.badges.append(badge)
         db.session.commit()
     except BadgeValidationException as err:

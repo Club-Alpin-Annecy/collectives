@@ -11,7 +11,6 @@ from collectives.models.utils import ChoiceEnum
 class BadgeIds(ChoiceEnum):
     """Enum listing the type of a badge"""
 
-    # pylint: disable=invalid-name
     Benevole = 1
 
     UnjustifiedAbsenceWarning = 2
@@ -25,7 +24,7 @@ class BadgeIds(ChoiceEnum):
     Practitioner = 4
     """ Practitioner level for a given activity. """
 
-    Competency = 5
+    Skill = 5
     """ Particular competence. """
 
     @classmethod
@@ -40,7 +39,7 @@ class BadgeIds(ChoiceEnum):
             cls.UnjustifiedAbsenceWarning: "Absence injustifiée - avertissement",
             cls.Suspended: "Absence injustifiée - suspension",
             cls.Practitioner: "Niveau de pratique",
-            cls.Competency: "Compétence",
+            cls.Skill: "Compétence",
         }
 
     def relates_to_activity(self) -> bool:
@@ -54,7 +53,7 @@ class BadgeIds(ChoiceEnum):
         """Whether the levels for this badge are ordered.
         I.e, whether having a badge of level N implies having all levels < N.
         """
-        return self not in {BadgeIds.Competency}
+        return self not in {BadgeIds.Skill}
 
     def levels(self) -> dict[int, tuple[str, str]]:
         """Returns the human-readable levels for this type of badge.
@@ -144,7 +143,6 @@ class Badge(db.Model):
     :type: int
     """
 
-    # Relationships
     registration_id = db.Column(
         db.Integer, db.ForeignKey("registrations.id"), nullable=True
     )
@@ -153,6 +151,13 @@ class Badge(db.Model):
     :type: int
     """
 
+    grantor_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    """User id of person who granted this badge.
+
+    :type: int
+    """
+
+    # Relationships
     registration = db.relationship("Registration", back_populates="badges", lazy=True)
     """ Resgitration associated to this badge.
 
@@ -168,6 +173,17 @@ class Badge(db.Model):
         """
 
         return self.badge_id.display_name()
+
+    def level_name(self) -> str:
+        """Returns the name of the badge level.
+
+        :return: name of the badge.
+        :rtype: string
+        """
+        level_name = self.badge_id.levels().get(self.level)
+        if level_name:
+            return f"{level_name[0]} ({level_name[1]})"
+        return ""
 
     @property
     def activity_name(self):

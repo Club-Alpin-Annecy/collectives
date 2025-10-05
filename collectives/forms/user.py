@@ -343,3 +343,38 @@ class DeleteUserForm(FlaskForm):
 
         if field.data.strip() != self._user.license:
             raise ValidationError("Le numéro de license ne correspond pas")
+
+
+class CompetencyBadgeForm(FlaskForm):
+    """Form for administrators to add practitioner badges to users"""
+
+    submit = SubmitField("Attribuer")
+
+    level = SelectField(
+        "Niveau",
+        coerce=int,
+        validators=[DataRequired()],
+        choices=[],
+    )
+
+    activity_id = SelectField(
+        "Activité",
+        coerce=int,
+        validators=[DataRequired()],
+        choices=[],
+    )
+
+    def __init__(self, badge_id: BadgeIds, *args, **kwargs):
+        """Overloaded constructor populating activity list"""
+
+        super().__init__(*args, no_enabled=True, **kwargs)
+
+        self.submit.name = str(badge_id)
+
+        self.level.choices = [
+            (k, f"{name[0]} ({name[1]})") for k, name in badge_id.levels().items()
+        ]
+        self.activity_id.choices = [
+            (activity.id, activity.name)
+            for activity in current_user.get_organizable_activities(need_leader=True)
+        ]

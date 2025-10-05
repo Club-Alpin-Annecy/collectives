@@ -311,18 +311,20 @@ def add_benevole_badge_to_user(
 
 # Users with badges related to late unregistration
 def add_badge_to_user(
-    user,
-    badge_id,
-    level=1,
-    expiration_date=(date.today() + timedelta(days=365)),
-    activity_name="Alpinisme",
-):
-    """Manage to add a badge to a user
+    user: User,
+    badge_id: int,
+    level: int = 1,
+    expiration_date: date | None = (date.today() + timedelta(days=365)),
+    activity_name: str | None = "Alpinisme",
+    grantor: User | None = None,
+) -> Badge:
+    """Adds a badge to a user and returns it
 
-    :param User user: the user to add a badge to
-    :expiration_date: the expiration date of the badge (Default is today + 1 year, so a valid one)
-    :param badgeIds badge_id: the type of badge to add
-    :param string activity_name: The activity name for the role. Default Alpinisme
+    :param user: the user to add a badge to
+    :param expiration_date: the expiration date of the badge (Default is today + 1 year, so a valid one)
+    :param badge_id: the type of badge to add
+    :param activity_name: The activity name for the role. Default Alpinisme
+    :param grantor: The user who granted this badge
     """
     badge = Badge()
     badge.user_id = user.id
@@ -332,7 +334,11 @@ def add_badge_to_user(
     if activity_name:
         activity_type = ActivityType.query.filter_by(name=activity_name).first()
         badge.activity_id = activity_type.id
+    if grantor:
+        badge.grantor_id = grantor.id
     db.session.add(badge)
+
+    return badge
 
 
 inject_fixture("prototype_user_with_valid_first_warning_badge", ("Anakin", "Skywalker"))
@@ -462,3 +468,22 @@ def user_with_expired_suspended_badge(
 
 
 inject_fixture("user_with_no_warning_badge", ("Jabba", "The Hutt"))
+
+inject_fixture("prototype_user_with_practitioner_badge", ("Niveau", "Perfectionné"))
+
+
+@pytest.fixture
+def user_with_practitioner_badge(
+    prototype_user_with_practitioner_badge: User, leader_user: User
+):
+    """:returns: A user with a practitioner Badge."""
+    add_badge_to_user(
+        prototype_user_with_practitioner_badge,
+        BadgeIds.Practitioner,
+        level=3,
+        expiration_date=date.today() + timedelta(days=30),
+        grantor=leader_user,
+    )
+    db.session.add(prototype_user_with_practitioner_badge)
+    db.session.commit()
+    return prototype_user_with_practitioner_badge
