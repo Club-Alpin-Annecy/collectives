@@ -2,11 +2,10 @@
 
 from flask import url_for
 
+from collectives.models import BadgeIds, Event, User, db
 from tests import utils
 from tests.fixtures import client
 from tests.fixtures.user import add_badge_to_user
-
-from collectives.models import db, BadgeIds, Event, User
 
 # pylint: disable=unused-argument
 

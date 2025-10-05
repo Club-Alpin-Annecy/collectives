@@ -193,16 +193,18 @@
             </tr>
             {% endif %}
             <tr>
-                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/>Compétences validées :</td>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/checkmark-outline.svg') }}" alt=""/>Compétences validées :</td>
                 <td>
                     {% if user.has_a_valid_competency_badge() %}
+                        <ul style="margin-top: 0">
                         {% for badge in user.matching_badges((models.BadgeIds.Practitioner, models.BadgeIds.Skill)) %}
-                            {% if loop.index != 1 %} & {% endif %}
-                            {{badge.name}} {{badge.level_name()}}
+                            <li>{{badge.name}} {{badge.level_name()}}
                             {% if badge.activity_type %}
                                 pour l'activité <em>{{badge.activity_type.name}}</em>
                             {% endif %}
+                            </li>
                         {% endfor %}
+                        </ul>
                     {% else %}
                         Aucune
                     {% endif %}
@@ -210,16 +212,16 @@
             </tr>
             {% if practitioner_badge_form %}
             <tr>
-                <td>
-                    Attributer un niveau de pratique:
+                <td class="head">
+                    Attributer un niveau de pratique :
                 </td>
                 <td>
                     <form class="form" id="practitioner_badge_form" action="{{url_for('.set_practice_level', user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
                         {{practitioner_badge_form.hidden_tag()}}
                         {{practitioner_badge_form.level()}}
-                        pour l'activité
+                        en
                         {{practitioner_badge_form.activity_id()}}
-                        {{practitioner_badge_form.submit(class_="button button-small")}}
+                        {{practitioner_badge_form.submit(class_="button button-secondary button-small")}}
                     </form>
                 </td>
             </tr>

@@ -174,15 +174,15 @@ class Badge(db.Model):
 
         return self.badge_id.display_name()
 
-    def level_name(self) -> str:
+    def level_name(self, short: bool = False) -> str:
         """Returns the name of the badge level.
 
+        :param short: if True, returns the short name (abbreviation/emoji)
         :return: name of the badge.
-        :rtype: string
         """
         level_name = self.badge_id.levels().get(self.level)
         if level_name:
-            return f"{level_name[0]} ({level_name[1]})"
+            return level_name[1] if short else f"{level_name[0]} ({level_name[1]})"
         return ""
 
     @property

@@ -19,9 +19,9 @@ from wtforms.fields import DateField
 from wtforms.validators import (
     DataRequired,
     EqualTo,
+    InputRequired,
     Optional,
     ValidationError,
-    InputRequired,
 )
 from wtforms_alchemy import ModelForm
 

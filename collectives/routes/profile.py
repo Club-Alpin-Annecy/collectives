@@ -24,7 +24,7 @@ from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
-from collectives.forms.user import DeleteUserForm, CompetencyBadgeForm
+from collectives.forms.user import CompetencyBadgeForm, DeleteUserForm
 from collectives.models import (
     ActivityType,
     Badge,
