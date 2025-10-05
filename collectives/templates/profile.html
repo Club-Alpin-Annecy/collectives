@@ -214,7 +214,7 @@
                     Attributer un niveau de pratique:
                 </td>
                 <td>
-                    <form class="form" action="{{url_for('.set_practice_level', user_id=user.id)}}" method="post" style="display: inline;">
+                    <form class="form" id="practitioner_badge_form" action="{{url_for('.set_practice_level', user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
                         {{practitioner_badge_form.hidden_tag()}}
                         {{practitioner_badge_form.level()}}
                         pour l'activité

@@ -200,4 +200,4 @@ class Badge(db.Model):
 
     def is_expired(self) -> bool:
         """Returns True if badge is no longer valid now."""
-        return date.today() > self.expiration_date
+        return self.expiration_date is not None and date.today() > self.expiration_date

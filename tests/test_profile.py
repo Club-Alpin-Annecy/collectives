@@ -176,5 +176,63 @@ def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: 
     )
     assert response.status_code == 200
 
-    assert badge.level_name() in response.text 
-    
+    assert badge.level_name() in response.text
+
+
+def test_update_user_practitioner_badge(
+    leader_client, event1_with_reg: Event, user1: User
+):
+    """Test user access to its profile."""
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    # post badge update
+    data = utils.load_data_from_form(response.text, "practitioner_badge_form")
+
+    data["level"] = 4
+    data["activity_id"] = event1_with_reg.activity_types[0].id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_practice_level", user_id=user1.id, event_id=event1_with_reg.id
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = event1_with_reg.activity_types[0].id
+    badge = user1.get_practitioner_badge(activity_id=activity_id)
+    assert badge is not None
+    assert badge.level == 4
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Niveau de pratique" in response.text
+    assert badge.level_name() in response.text
+    assert badge.activity_id == activity_id
+
+    # post badge deletion
+
+    data = utils.load_data_from_form(response.text, "practitioner_badge_form")
+    data["level"] = 0
+    data["activity_id"] = activity_id
+
+    response = leader_client.post(
+        url_for("profile.set_practice_level", user_id=user1.id, event_id=event1_with_reg.id), data=data
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    badge = user1.get_practitioner_badge(activity_id=activity_id)
+    assert badge is None

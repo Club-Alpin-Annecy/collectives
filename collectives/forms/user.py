@@ -16,7 +16,13 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.fields import DateField
-from wtforms.validators import DataRequired, EqualTo, Optional, ValidationError
+from wtforms.validators import (
+    DataRequired,
+    EqualTo,
+    Optional,
+    ValidationError,
+    InputRequired,
+)
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
@@ -353,7 +359,7 @@ class CompetencyBadgeForm(FlaskForm):
     level = SelectField(
         "Niveau",
         coerce=int,
-        validators=[DataRequired()],
+        validators=[InputRequired()],
         choices=[],
     )
 
@@ -371,7 +377,7 @@ class CompetencyBadgeForm(FlaskForm):
 
         self.submit.name = str(badge_id)
 
-        self.level.choices = [
+        self.level.choices = [(0, "Aucun")] + [
             (k, f"{name[0]} ({name[1]})") for k, name in badge_id.levels().items()
         ]
         self.activity_id.choices = [

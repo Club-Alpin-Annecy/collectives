@@ -17,15 +17,22 @@ class UserBadgeMixin:
     Not meant to be used alone."""
 
     def matching_badges(
-        self, badge_ids: List[BadgeIds], valid_only=False
+        self,
+        badge_ids: List[BadgeIds],
+        activity_id: int | None = None,
+        valid_only=False,
     ) -> List[Badge]:
         """Returns filtered user badges against a badge types list.
 
         :param badge_ids: Role types that will be extracted.
         :param valid_only: If True, return valid badges only
+        :param activity_id: If provided, filter badges by activity
         :return: Filtered User badges.
         """
         badges = (badge for badge in self.badges if badge.badge_id in badge_ids)
+
+        if activity_id is not None:
+            badges = (badge for badge in badges if badge.activity_id == activity_id)
 
         if not valid_only:
             return list(badges)
@@ -72,7 +79,7 @@ class UserBadgeMixin:
         """
         return self.has_a_valid_suspended_badge()
 
-    def suspension_end_date(self) -> date:
+    def suspension_end_date(self) -> date | None:
         """Returns the expiration date if the user is currently suspended,
         ``None`` otherwise
         """
@@ -100,8 +107,8 @@ class UserBadgeMixin:
         :param activity_id: Activity onto which role should applied.
         :return: True if user has at least one of the listed roles type for the activity.
         """
-        badges = self.matching_badges(badge_ids)
-        return any(badge.activity_id == activity_id for badge in badges)
+        badges = self.matching_badges(badge_ids, activity_id=activity_id)
+        return any(badges)
 
     def has_this_badge_for_activity(
         self, badge_id: BadgeIds, activity_id: Optional[int]
@@ -112,8 +119,8 @@ class UserBadgeMixin:
         :param activity_id: Activity onto which role should applied.
         :return: True if user has the corresponding badge type for the activity.
         """
-        badges = self.matching_badges([badge_id])
-        return any(badge.activity_id == activity_id for badge in badges)
+        badges = self.matching_badges([badge_id], activity_id=activity_id)
+        return any(badges)
 
     def activities_with_valid_badge(
         self, badge_ids: List[BadgeIds]
@@ -275,3 +282,14 @@ class UserBadgeMixin:
 
         for badge in registration_badges:
             db.session.delete(badge)
+
+    def get_practitioner_badge(self, activity_id: int) -> Badge | None:
+        """
+        Get the practitioner's badge for a specific activity, if it exists.
+        """
+        badges = self.matching_badges(
+            [BadgeIds.Practitioner], activity_id=activity_id, valid_only=True
+        )
+        badges = sorted(badges, key=lambda b: b.level, reverse=True)
+
+        return badges[0] if badges else None
