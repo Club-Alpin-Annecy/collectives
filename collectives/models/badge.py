@@ -139,7 +139,7 @@ class BadgeCustomLevel(db.Model):
 
     :type: str"""
 
-    default_validity = db.Column(db.Integer, nullable=True)
+    default_validity = db.Column(db.Integer, nullable=False)
     """ Default period of validty (in months) for this badge level.
     """
 

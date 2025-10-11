@@ -168,17 +168,25 @@ class GroupBadgeConditionForm(ModelForm):
             field.data = None
             return
 
-        if badge_id.requires_level() and not field.data:
-            raise ValidationError(
-                f"Le badge {BadgeIds(badge_id).display_name()} doit être précisé"
-            )
+        if not field.data:
+            if badge_id.requires_level():
+                raise ValidationError(
+                    f"Le badge {BadgeIds(badge_id).display_name()} doit être précisé"
+                )
+            field.data = None
+            return
 
-        if field.data not in levels:
+        level = int(field.data)
+        if level not in levels:
             raise ValidationError(
                 f"Niveau ou sous-type invalide pour le badge {BadgeIds(badge_id).display_name()}"
             )
-        
-        if 
+
+        level = levels[level]
+        if level.activity_id is not None and self.activity_id.data and level.activity_id != self.activity_id.data:
+            raise ValidationError(
+                f"Niveau ou sous-type pour le badge {BadgeIds(badge_id).display_name()} incompatible avec l'activité sélectionnée"
+            )
 
 class GroupEventConditionForm(ModelForm):
     """Form for creating event conditions in user group forms"""
