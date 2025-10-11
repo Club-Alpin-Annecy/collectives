@@ -25,10 +25,12 @@ from collectives.forms.activity_type import (
 )
 from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.forms.user import AddLeaderForm
+from collectives.forms.user import AddLeaderForm, BadgeCustomLevelForm
 from collectives.models import (
     ActivityKind,
     ActivityType,
+    BadgeCustomLevel,
+    BadgeIds,
     Configuration,
     Role,
     RoleIds,
@@ -376,4 +378,50 @@ def configuration_form(activity_type_id: int = None):
         title=f"Configuration {activity.name}" if activity else "Nouveau service",
         form=form,
         extends="activity_supervision/activity_supervision.html",
+    )
+
+
+@blueprint.route("/competency_badges", methods=["GET", "POST"])
+@blueprint.route("/competency_badge/<int:custom_level_id>", methods=["GET", "POST"])
+def competency_badges(custom_level_id: int | None = None):
+    """Route for managing competency badges"""
+
+    activities = {act.id for act in current_user.get_supervised_activities()}
+
+    def is_supervisable_level(level: BadgeCustomLevel) -> bool:
+        return level.badge_id == BadgeIds.Skill and (
+            level.descriptor.activity_id is None
+            or level.descriptor.activity_id in activities
+        )
+
+    custom_level = None
+    if custom_level_id is not None:
+        custom_level = db.session.get(BadgeCustomLevel, custom_level_id)
+        if custom_level is None or not is_supervisable_level(custom_level):
+            flash("Non autorisé", "error")
+            return redirect(url_for(".competency_badges"))
+
+    form = BadgeCustomLevelForm(obj=custom_level)
+
+    if form.validate_on_submit():
+        if custom_level is None:
+            custom_level = BadgeCustomLevel(badge_id=BadgeIds.Skill)
+        form.populate_obj(custom_level)
+        db.session.add(custom_level)
+        db.session.commit()
+        return redirect(url_for(".competency_badges"))
+
+    levels = BadgeCustomLevel.get_all(include_deprecated=True)
+    levels = {
+        level.id: level
+        for level in levels
+        if is_supervisable_level(level)
+    }
+
+    return render_template(
+        "activity_supervision/competency_badges.html",
+        title="Gestion des badges de compétence",
+        levels=levels,
+        custom_level=custom_level,
+        form=form,
     )

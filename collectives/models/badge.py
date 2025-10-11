@@ -7,6 +7,7 @@ from typing import NamedTuple
 from sqlalchemy.sql import func
 
 from collectives.models.globals import db
+from collectives.models.activity_type import ActivityType
 from collectives.models.utils import ChoiceEnum
 
 
@@ -33,7 +34,6 @@ class BadgeLevelDescriptor(NamedTuple):
             or activity_id is None
             or self.activity_id == activity_id
         )
-
 
 class BadgeIds(ChoiceEnum):
     """Enum listing the type of a badge"""
@@ -97,7 +97,7 @@ class BadgeIds(ChoiceEnum):
         """
         if self == BadgeIds.Practitioner:
             return {
-                1: BadgeLevelDescriptor("Base", "🟢"),
+                1: BadgeLevelDescriptor("Débutant", "🟢"),
                 2: BadgeLevelDescriptor("Initié", "🔵"),
                 3: BadgeLevelDescriptor("Perfectionné", "🔴"),
                 4: BadgeLevelDescriptor("Expert", "⚫"),
@@ -154,21 +154,23 @@ class BadgeCustomLevel(db.Model):
 
     :type: int"""
 
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False, info={"label": "Nom"})
     """ Description of the badge level.
 
     :type: str"""
 
-    abbrev = db.Column(db.String, nullable=False)
+    abbrev = db.Column(
+        db.String, nullable=False, info={"label": "Abréviation (ou emoji)"}
+    )
     """ Abbreviation for the badge level.
 
     :type: str"""
 
-    default_validity = db.Column(db.Integer, nullable=False)
-    """ Default period of validty (in months) for this badge level.
+    default_validity = db.Column(db.Integer, nullable=False, info={"label": "Validité par défaut (en mois)"})
+    """ Default period of validity (in months) for this badge level.
     """
 
-    deprecated = db.Column(db.Boolean, nullable=False, default=False)
+    deprecated = db.Column(db.Boolean, nullable=False, default=False, info={"label": "Obsolète"})
     """ Whether this custom level is deprecated."""
 
     @property
@@ -187,6 +189,18 @@ class BadgeCustomLevel(db.Model):
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()
+    
+    def activity_name(self) -> str:
+        """Returns the name of the corresponding activity
+
+        :return: name of the corresponding activity
+        """
+
+        if self.activity_type is not None:
+            return self.activity_type.name
+
+        return "N'importe quelle activité"
+
 
 
 class Badge(db.Model):

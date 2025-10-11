@@ -32,9 +32,11 @@ from collectives.forms.validators import (
     PasswordValidator,
     UniqueValidator,
 )
+from collectives.forms.utils import coerce_optional
 from collectives.models import (
     ActivityType,
     Badge,
+    BadgeCustomLevel,
     BadgeIds,
     Role,
     RoleIds,
@@ -393,6 +395,10 @@ class CompetencyBadgeForm(FlaskForm):
             (activity.id, activity.name) for activity in led_activities.values()
         ]
 
+    def empty(self) -> bool:
+        """Returns True if the form has no selectable level or activity"""
+        return len(self.level.choices) == 0 or len(self.activity_id.choices) == 0
+
     def validate_level(self, field):
         """WTFForms validator function that make sure the level field is not set
         if the selected badge has not meaningful levels"""
@@ -409,3 +415,36 @@ class CompetencyBadgeForm(FlaskForm):
             raise ValidationError(
                 f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
             )
+
+
+class BadgeCustomLevelForm(OrderedModelForm):
+    """Form for activity supervisors to add or edit custom badge levels"""
+
+    class Meta:
+        """Fields to expose"""
+
+        model = BadgeCustomLevel
+        exclude = ["badge_id"]
+
+    activity_id = SelectField(
+        "Activité",
+        choices=[],
+        coerce=coerce_optional(int)
+    )
+
+    submit = SubmitField("Enregistrer")
+
+    field_order = [
+        "name",
+        "abbrev",
+        "activity_id",
+        "*",
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+       
+        supervised_activities = current_user.get_supervised_activities()
+        self.activity_id.choices = [("", "N'importe quelle activité")] + [
+            (activity.id, activity.name) for activity in supervised_activities
+        ]

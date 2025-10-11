@@ -25,18 +25,10 @@ from collectives.models.user_group import (
     GroupRoleCondition,
     UserGroup,
 )
+from collectives.forms.utils import coerce_optional
 
 T = TypeVar("T")
 """ Type variable for typing annotations """
-
-
-def _coerce_optional(coerce: Callable[..., T]) -> Callable[..., T]:
-    """Tranforms a coerce function such that it returns None for None or empty string inputs
-    :param coerce: the original coercing function
-    :return: the modified coercing function
-    """
-    return lambda item: None if item is None or item == "" else coerce(item)
-
 
 def _empty_string_if_none(value: Optional[T]) -> Union[T, str]:
     """
@@ -59,8 +51,8 @@ class GroupRoleConditionForm(ModelForm):
 
     condition_id = HiddenField()
 
-    role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
-    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    role_id = SelectField("Rôle", coerce=coerce_optional(RoleIds.coerce))
+    activity_id = SelectField("Activité", coerce=coerce_optional(int))
 
     delete = BooleanField("Supprimer")
 
@@ -112,8 +104,8 @@ class GroupBadgeConditionForm(ModelForm):
 
     condition_id = HiddenField()
 
-    badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
-    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    badge_id = SelectField("Badge", coerce=coerce_optional(BadgeIds.coerce))
+    activity_id = SelectField("Activité", coerce=coerce_optional(int))
     level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     delete = BooleanField("Supprimer")
@@ -209,7 +201,7 @@ class GroupEventConditionForm(ModelForm):
     condition_id = HiddenField()
 
     event_id = IntegerField("Événement")
-    is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
+    is_leader = SelectField("Rôle", coerce=coerce_optional(int))
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -250,16 +242,16 @@ class UserGroupForm(ModelForm):
         FormField(GroupEventConditionForm, default=GroupEventCondition)
     )
 
-    new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
+    new_event_is_leader = SelectField("Rôle", coerce=coerce_optional(int))
 
     license_conditions = SelectMultipleField("Types de licence")
     license_invert = SelectField("Négation", coerce=int, default=0)
 
-    new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
-    new_role_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    new_role_id = SelectField("Rôle", coerce=coerce_optional(RoleIds.coerce))
+    new_role_activity_id = SelectField("Activité", coerce=coerce_optional(int))
 
-    new_badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
-    new_badge_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    new_badge_id = SelectField("Badge", coerce=coerce_optional(BadgeIds.coerce))
+    new_badge_activity_id = SelectField("Activité", coerce=coerce_optional(int))
     new_badge_level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     def __init__(self, *args, **kwargs):

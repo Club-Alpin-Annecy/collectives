@@ -1,0 +1,39 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}
+
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">Compétences validables</h2>
+  <p>Les compétences validables permettent de reconnaître les compétences acquises par les participants. Elles peuvent être utilisées pour valider des formations, des qualifications, ou des rôles spécifiques au sein de l'activité.</p>
+
+  {% if custom_level %}
+    <h4 class="heading-4">Modification d'une compétence</h4>
+  {% else %}
+    <h4 class="heading-4">Ajout d'une compétence</h4>
+  {% endif %}
+  
+  
+  {{ generator.form_generator(form, action=url_for('activity_supervision.competency_badges', custom_level_id=custom_level.id if custom_level.id else None)) }}
+
+  <h4 class="heading-4">Compétences existantes</h4>
+  <div>
+
+    {% for id, level in levels.items() %}
+      <div style="border: 1px solid grey; padding: 10px; margin-bottom: 10px;">
+        <strong>{{ level.descriptor.name }}</strong> ({{ level.activity_name() }}) {% if level.deprecated %}<span style="color: red;">(obsolète)</span>{% endif %}
+        [<a href="{{ url_for('activity_supervision.competency_badges', custom_level_id=level.id) }}">Modifier</a>]
+      </div>
+    {% else %}
+      <p>Aucune compétence définie.</p>
+    {% endfor %}
+
+  </div>
+
+  
+</div>
+{% endblock %}
