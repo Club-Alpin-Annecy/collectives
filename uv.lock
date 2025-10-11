@@ -1835,7 +1835,7 @@ wheels = [
 
 [[package]]
 name = "wtforms-alchemy"
-version = "0.19.0"
+version = "0.19.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sqlalchemy" },
@@ -1843,9 +1843,9 @@ dependencies = [
     { name = "wtforms" },
     { name = "wtforms-components" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/d2/fab68b86570f7c20399d51ab936a8e5999fbaadd85f7b6559e1964f424ca/wtforms_alchemy-0.19.0.tar.gz", hash = "sha256:98412e8c50aa21065a4806027252fe73b8b97637a229d5b0431f759d023c5434", size = 52451, upload-time = "2024-11-18T10:06:08.849Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/b6/b9c2992736f9509205a5b8362c554f3dc2739da021d99048bf48352daa00/wtforms_alchemy-0.19.1.tar.gz", hash = "sha256:2826fc18052991033d3a9cf92fc18d9cdb1fd73ce1ef724c3e76455277bd4434", size = 52422, upload-time = "2025-08-11T10:40:19.077Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/72/a15bc637f500a246e365f6a5e1b1fb19189d2efcc34469064650e18027bf/WTForms_Alchemy-0.19.0-py3-none-any.whl", hash = "sha256:561beb2e6e4982f1c95c62e06aef01d6c7ed4e7bfacc42a5d99d43ebe2f4e60f", size = 18167, upload-time = "2024-11-18T10:06:06.982Z" },
+    { url = "https://files.pythonhosted.org/packages/47/91/0bb83a1920653035433284051b57a43223817537099f54dccd476dfb274f/wtforms_alchemy-0.19.1-py3-none-any.whl", hash = "sha256:8fc08882eba8e152d5062eaefc906d741a2202c206c05f16137430a4aee58618", size = 18182, upload-time = "2025-08-11T10:40:17.853Z" },
 ]
 
 [[package]]
