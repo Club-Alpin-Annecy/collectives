@@ -153,6 +153,17 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
             invert=self.invert,
         )
 
+    def level_name(self) -> str:
+        """Returns the name of the badge level.
+        """
+        if self.badge_id and self.level:
+            level_desc = self.badge_id.levels().get(self.level)
+            if level_desc:
+                return (
+                    level_desc.name
+                )
+            return f"niveau {self.level}"
+        return ""
 
 class GroupEventCondition(db.Model, GroupConditionBase):
     """Relationship indicating that group members must participate (or lead) a given event."""

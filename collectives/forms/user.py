@@ -370,17 +370,42 @@ class CompetencyBadgeForm(FlaskForm):
         choices=[],
     )
 
-    def __init__(self, badge_id: BadgeIds, *args, **kwargs):
+    def __init__(
+        self, badge_id: BadgeIds, *args, allow_null_level: bool = False, **kwargs
+    ):
         """Overloaded constructor populating activity list"""
 
-        super().__init__(*args, no_enabled=True, **kwargs)
+        super().__init__(*args, **kwargs)
 
+        self._badge_id = badge_id
         self.submit.name = str(badge_id)
 
-        self.level.choices = [(0, "Aucun")] + [
-            (k, f"{name[0]} ({name[1]})") for k, name in badge_id.levels().items()
+        led_activities = {
+            a.id: a for a in current_user.get_organizable_activities(need_leader=True)
+        }
+
+        self.level.choices = ([(0, "Aucun")] if allow_null_level else []) + [
+            (k, f"{desc.name} ({desc.abbrev})")
+            for k, desc in badge_id.levels().items()
+            if desc.activity_id is None or desc.activity_id in led_activities
         ]
         self.activity_id.choices = [
-            (activity.id, activity.name)
-            for activity in current_user.get_organizable_activities(need_leader=True)
+            (activity.id, activity.name) for activity in led_activities.values()
         ]
+
+    def validate_level(self, field):
+        """WTFForms validator function that make sure the level field is not set
+        if the selected badge has not meaningful levels"""
+        badge_id = self._badge_id
+        levels = badge_id.levels()
+
+        if not field.data:
+            field.data = None
+            return
+
+        level = int(field.data)
+        level_desc = levels[level]
+        if not level_desc.is_compatible_with_activity(self.activity_id.data):
+            raise ValidationError(
+                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
+            )

@@ -24,13 +24,14 @@ l'événement <a
 
 {# Event conditions (-) #}
 
+{% if user_group.negative_event_conditions | length %}
+
 {% if not first_condition %}
 , mais
 {% else %}
 personnes
 {% endif %}
 
-{% if user_group.negative_event_conditions | length %}
 {% set first_condition = false %}
 {% for event_condition in user_group.negative_event_conditions %}
 {% if event_condition.is_leader == none %}
@@ -119,9 +120,14 @@ d'un badge
 du badge <em>{{badge_condition.badge_id.display_name()}}</em>
 {% endif %}
 
+{% if not badge_condition.level == none %}
+ '{{badge_condition.level_name()}}'
+{% endif %}
+
 {% if not badge_condition.activity_id == none %}
 pour l'activité {{badge_condition.activity.name}}
 {% endif %}
+
 
 {% if not loop.last %}
 , ou
@@ -143,6 +149,10 @@ non-détenteurs
 d'un badge
 {% else %}
 du badge <em>{{badge_condition.badge_id.display_name()}}</em>
+{% endif %}
+
+{% if not badge_condition.level == none %}
+ '{{badge_condition.level_name()}}'
 {% endif %}
 
 {% if not badge_condition.activity_id == none %}

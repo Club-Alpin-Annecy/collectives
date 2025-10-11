@@ -1,5 +1,7 @@
 """Module for user badges related classes"""
 
+import json
+
 from datetime import date
 from typing import NamedTuple
 from sqlalchemy.sql import func
@@ -19,6 +21,18 @@ class BadgeLevelDescriptor(NamedTuple):
 
     activity_id: int | None = None
     """If not None, the level is only valid for this activity"""
+
+    def is_compatible_with_activity(self, activity_id: int | None) -> bool:
+        """Check if this level is compatible with the given activity.
+
+        :param activity_id: activity to check compatibility with (or None)
+        :return: True if the level is compatible with the activity
+        """
+        return (
+            self.activity_id is None
+            or activity_id is None
+            or self.activity_id == activity_id
+        )
 
 
 class BadgeIds(ChoiceEnum):
@@ -74,7 +88,7 @@ class BadgeIds(ChoiceEnum):
 
     def requires_level(self) -> bool:
         """Whether this badge requires specifying a level."""
-        return self.has_custom_levels()
+        return self.has_custom_levels() or self == BadgeIds.Practitioner
 
     def levels(self) -> dict[int, BadgeLevelDescriptor]:
         """Returns the human-readable levels for this type of badge.
@@ -95,6 +109,17 @@ class BadgeIds(ChoiceEnum):
                 if level.badge_id == self
             }
         return {}
+
+    @classmethod
+    def js_levels(cls) -> str:
+        """Class method to cast Enum levels as js dict
+
+        :return: enum levels as js Dictionnary
+        :rtype: String
+        """
+        return json.dumps(
+            {badge.value: badge.levels() for badge in cls}, ensure_ascii=False
+        )
 
 
 class BadgeCustomLevel(db.Model):
@@ -152,26 +177,16 @@ class BadgeCustomLevel(db.Model):
         return BadgeLevelDescriptor(self.name, self.abbrev, self.activity_id)
 
     @classmethod
-    def get_all(
-        cls, include_deprecated: bool = False, activity_id: int | None = None
-    ) -> list["BadgeCustomLevel"]:
+    def get_all(cls, include_deprecated: bool = False) -> list["BadgeCustomLevel"]:
         """Returns all custom badge levels, possibly filtering out deprecated ones.
 
         :param include_deprecated: if True, includes deprecated custom badge levels
-        :param activity_id: if set, only returns levels for this (or no) activity
         :return: list of custom badge levels
         """
         query = cls.query
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
-        levels = query.all()
-        return [
-            level
-            for level in levels
-            if activity_id is None
-            or level.activity_id is None
-            or level.activity_id == activity_id
-        ]
+        return query.all()
 
 
 class Badge(db.Model):
@@ -285,9 +300,13 @@ class Badge(db.Model):
         :param short: if True, returns the short name (abbreviation/emoji)
         :return: name of the badge.
         """
-        level_name = self.badge_id.levels().get(self.level)
-        if level_name:
-            return level_name[1] if short else f"{level_name[0]} ({level_name[1]})"
+        level_desc = self.badge_id.levels().get(self.level)
+        if level_desc:
+            return (
+                level_desc.abbrev
+                if short
+                else f"{level_desc.name} ({level_desc.abbrev})"
+            )
         return ""
 
     @property

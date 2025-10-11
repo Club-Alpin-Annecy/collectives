@@ -14,7 +14,7 @@ from wtforms import (
     SelectField,
     SelectMultipleField,
 )
-from wtforms.validators import ValidationError
+from wtforms.validators import ValidationError, Optional as OptionalValidator
 from wtforms_alchemy import ModelForm
 
 from collectives.models import ActivityType, BadgeIds, Configuration, Event, RoleIds, db
@@ -114,7 +114,7 @@ class GroupBadgeConditionForm(ModelForm):
 
     badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
     activity_id = SelectField("Activité", coerce=_coerce_optional(int))
-    level = IntegerField("Niveau")
+    level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     delete = BooleanField("Supprimer")
 
@@ -146,6 +146,15 @@ class GroupBadgeConditionForm(ModelForm):
         if self.badge_id.data:
             return BadgeIds.display_name(BadgeIds(self.badge_id.data))
         return "N'importe quel rôle"
+    
+    def level_name(self) -> str:
+        """:returns: the name of the level if it is not None, a default text otherwise"""
+        if self.badge_id.data and self.level.data:
+            try:
+                return BadgeIds(self.badge_id.data).levels()[int(self.level.data)].name
+            except (ValueError, IndexError):
+                pass
+        return "Tous niveaux"
 
     def validate_activity_id(self, field):
         """WTFForms validator function that make sure the activity_id field is not set
@@ -157,12 +166,12 @@ class GroupBadgeConditionForm(ModelForm):
     def validate_level(self, field):
         """WTFForms validator function that make sure the level field is not set
         if the selected badge has not meaningful levels"""
-        badge_id = self.badge_id.coerce(self.badge_id.data)
+        badge_id: BadgeIds = self.badge_id.coerce(self.badge_id.data)
         if badge_id is None:
             # No level restriction is possible
             field.data = None
             return
-        levels = BadgeIds(badge_id).levels()
+        levels = badge_id.levels()
         if not levels:
             # No meaningful levels for this badge, ignore
             field.data = None
@@ -171,7 +180,7 @@ class GroupBadgeConditionForm(ModelForm):
         if not field.data:
             if badge_id.requires_level():
                 raise ValidationError(
-                    f"Le badge {BadgeIds(badge_id).display_name()} doit être précisé"
+                    f"Le badge {badge_id.display_name()} doit être précisé"
                 )
             field.data = None
             return
@@ -179,13 +188,13 @@ class GroupBadgeConditionForm(ModelForm):
         level = int(field.data)
         if level not in levels:
             raise ValidationError(
-                f"Niveau ou sous-type invalide pour le badge {BadgeIds(badge_id).display_name()}"
+                f"Niveau invalide pour le badge {badge_id.display_name()}"
             )
 
-        level = levels[level]
-        if level.activity_id is not None and self.activity_id.data and level.activity_id != self.activity_id.data:
+        level_desc = levels[level]
+        if not level_desc.is_compatible_with_activity(self.activity_id.data):
             raise ValidationError(
-                f"Niveau ou sous-type pour le badge {BadgeIds(badge_id).display_name()} incompatible avec l'activité sélectionnée"
+                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
             )
 
 class GroupEventConditionForm(ModelForm):
@@ -251,6 +260,7 @@ class UserGroupForm(ModelForm):
 
     new_badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
     new_badge_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    new_badge_level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -363,6 +373,8 @@ class UserGroupForm(ModelForm):
                 "badge_name": Markup(condition_form.badge_name()),
                 "activity_id": _empty_string_if_none(condition_form.activity_id.data),
                 "activity_name": Markup(condition_form.activity_name()),
+                "level": _empty_string_if_none(condition_form.level.data),
+                "level_name": Markup(condition_form.level_name()),
                 "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.badge_conditions)

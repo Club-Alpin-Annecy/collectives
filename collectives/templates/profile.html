@@ -210,7 +210,7 @@
                     {% endif %}
                 </td>
             </tr>
-            {% if practitioner_badge_form %}
+            {% if practitioner_badge_form and not practitioner_badge_form.empty() %}
             <tr>
                 <td class="head">
                     Attributer un niveau de pratique :
@@ -222,6 +222,22 @@
                         en
                         {{practitioner_badge_form.activity_id()}}
                         {{practitioner_badge_form.submit(class_="button button-secondary button-small")}}
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+            {% if skill_badge_form and not skill_badge_form.empty() %}
+            <tr>
+                <td class="head">
+                    Attributer une compétence :
+                </td>
+                <td>
+                    <form class="form" id="skill_badge_form" action="{{url_for('.add_skill', user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
+                        {{skill_badge_form.hidden_tag()}}
+                        {{skill_badge_form.level()}}
+                        en
+                        {{skill_badge_form.activity_id()}}
+                        {{skill_badge_form.submit(class_="button button-secondary button-small")}}
                     </form>
                 </td>
             </tr>
