@@ -114,6 +114,7 @@ class GroupBadgeConditionForm(ModelForm):
 
     badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
     activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    level = IntegerField("Niveau")
 
     delete = BooleanField("Supprimer")
 
@@ -153,6 +154,31 @@ class GroupBadgeConditionForm(ModelForm):
         if badge_id is not None and not badge_id.relates_to_activity():
             field.data = None
 
+    def validate_level(self, field):
+        """WTFForms validator function that make sure the level field is not set
+        if the selected badge has not meaningful levels"""
+        badge_id = self.badge_id.coerce(self.badge_id.data)
+        if badge_id is None:
+            # No level restriction is possible
+            field.data = None
+            return
+        levels = BadgeIds(badge_id).levels()
+        if not levels:
+            # No meaningful levels for this badge, ignore
+            field.data = None
+            return
+
+        if badge_id.requires_level() and not field.data:
+            raise ValidationError(
+                f"Le badge {BadgeIds(badge_id).display_name()} doit être précisé"
+            )
+
+        if field.data not in levels:
+            raise ValidationError(
+                f"Niveau ou sous-type invalide pour le badge {BadgeIds(badge_id).display_name()}"
+            )
+        
+        if 
 
 class GroupEventConditionForm(ModelForm):
     """Form for creating event conditions in user group forms"""

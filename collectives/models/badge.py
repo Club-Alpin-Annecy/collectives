@@ -1,11 +1,24 @@
 """Module for user badges related classes"""
 
 from datetime import date
-
+from typing import NamedTuple
 from sqlalchemy.sql import func
 
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+
+
+class BadgeLevelDescriptor(NamedTuple):
+    """Descriptor for a badge level"""
+
+    name: str
+    """Full name of the level"""
+
+    abbrev: str
+    """Abbreviation for the level (or emoji)"""
+
+    activity_id: int | None = None
+    """If not None, the level is only valid for this activity"""
 
 
 class BadgeIds(ChoiceEnum):
@@ -47,27 +60,118 @@ class BadgeIds(ChoiceEnum):
 
         :return: True if the badge requires an activity.
         """
-        return self in {BadgeIds.Practitioner}
+        return self in {BadgeIds.Practitioner} or self.has_custom_levels()
+
+    def has_custom_levels(self) -> bool:
+        """Whether the levels for this badge are user-defined"""
+        return self in {BadgeIds.Skill}
 
     def has_ordered_levels(self) -> bool:
         """Whether the levels for this badge are ordered.
         I.e, whether having a badge of level N implies having all levels < N.
         """
-        return self not in {BadgeIds.Skill}
+        return not self.has_custom_levels()
 
-    def levels(self) -> dict[int, tuple[str, str]]:
+    def requires_level(self) -> bool:
+        """Whether this badge requires specifying a level."""
+        return self.has_custom_levels()
+
+    def levels(self) -> dict[int, BadgeLevelDescriptor]:
         """Returns the human-readable levels for this type of badge.
 
-        :return: list of levels names (long name, abbreviation/emoji)
+        :return: dict of levels descriptors
         """
         if self == BadgeIds.Practitioner:
             return {
-                1: ("Base", "🟢"),
-                2: ("Initié", "🔵"),
-                3: ("Perfectionné", "🔴"),
-                4: ("Expert", "⚫"),
+                1: BadgeLevelDescriptor("Base", "🟢"),
+                2: BadgeLevelDescriptor("Initié", "🔵"),
+                3: BadgeLevelDescriptor("Perfectionné", "🔴"),
+                4: BadgeLevelDescriptor("Expert", "⚫"),
+            }
+        if self.has_custom_levels():
+            return {
+                level.id: level.descriptor
+                for level in BadgeCustomLevel.get_all()
+                if level.badge_id == self
             }
         return {}
+
+
+class BadgeCustomLevel(db.Model):
+    """Model representing a custom badge level."""
+
+    __tablename__ = "badge_custom_levels"
+
+    id = db.Column(db.Integer, primary_key=True)
+    """ Database primary key
+
+    :type: int"""
+
+    badge_id = db.Column(
+        db.Enum(BadgeIds),
+        nullable=False,
+        info={
+            "choices": BadgeIds.choices(),
+            "coerce": BadgeIds.coerce,
+            "label": "Badge",
+        },
+        index=True,
+    )
+    """ Type of the badge.
+
+    :type: :py:class:`BadgeIds`
+    """
+
+    activity_id = db.Column(
+        db.Integer, db.ForeignKey("activity_types.id"), nullable=True, index=True
+    )
+    """ ID of the activity to which the level is applicable.
+
+    :type: int"""
+
+    name = db.Column(db.String, nullable=False)
+    """ Description of the badge level.
+
+    :type: str"""
+
+    abbrev = db.Column(db.String, nullable=False)
+    """ Abbreviation for the badge level.
+
+    :type: str"""
+
+    default_validity = db.Column(db.Integer, nullable=True)
+    """ Default period of validty (in months) for this badge level.
+    """
+
+    deprecated = db.Column(db.Boolean, nullable=False, default=False)
+    """ Whether this custom level is deprecated."""
+
+    @property
+    def descriptor(self) -> BadgeLevelDescriptor:
+        """Returns the descriptor for this custom level."""
+        return BadgeLevelDescriptor(self.name, self.abbrev, self.activity_id)
+
+    @classmethod
+    def get_all(
+        cls, include_deprecated: bool = False, activity_id: int | None = None
+    ) -> list["BadgeCustomLevel"]:
+        """Returns all custom badge levels, possibly filtering out deprecated ones.
+
+        :param include_deprecated: if True, includes deprecated custom badge levels
+        :param activity_id: if set, only returns levels for this (or no) activity
+        :return: list of custom badge levels
+        """
+        query = cls.query
+        if not include_deprecated:
+            query = query.filter_by(deprecated=False)
+        levels = query.all()
+        return [
+            level
+            for level in levels
+            if activity_id is None
+            or level.activity_id is None
+            or level.activity_id == activity_id
+        ]
 
 
 class Badge(db.Model):
@@ -109,6 +213,7 @@ class Badge(db.Model):
             "coerce": BadgeIds.coerce,
             "label": "Badge",
         },
+        index=True,
     )
     """ Type of the badge.
 
@@ -134,7 +239,7 @@ class Badge(db.Model):
 
     :type: :py:class:`datetime.date`"""
 
-    level = db.Column(db.Integer, info={"label": "niveau du badge"})
+    level = db.Column(db.Integer, info={"label": "Niveau du badge"}, index=True)
 
     """
     Level of the badge. Depending of the type of badge, might be:
@@ -144,7 +249,7 @@ class Badge(db.Model):
     """
 
     registration_id = db.Column(
-        db.Integer, db.ForeignKey("registrations.id"), nullable=True
+        db.Integer, db.ForeignKey("registrations.id"), nullable=True, index=True
     )
     """Registration id associated to this badge.
 
