@@ -372,37 +372,43 @@ class CompetencyBadgeForm(FlaskForm):
         choices=[],
     )
 
-    def __init__(
-        self, badge_id: BadgeIds, *args, allow_null_level: bool = False, **kwargs
-    ):
+    def __init__(self, badge_id: BadgeIds, *args, **kwargs):
         """Overloaded constructor populating activity list"""
 
         super().__init__(*args, **kwargs)
 
-        self._badge_id = badge_id
+        self.badge_id = badge_id
         self.submit.name = str(badge_id)
 
         led_activities = {
             a.id: a for a in current_user.get_organizable_activities(need_leader=True)
         }
 
-        self.level.choices = ([(0, "Aucun")] if allow_null_level else []) + [
-            (k, f"{desc.name} ({desc.abbrev})")
-            for k, desc in badge_id.levels().items()
-            if desc.activity_id is None or desc.activity_id in led_activities
-        ]
-        self.activity_id.choices = [
-            (activity.id, activity.name) for activity in led_activities.values()
-        ]
+        if badge_id == BadgeIds.Practitioner:
+            self.level.choices = [(0, "Aucun")] + [
+                (k, f"{desc.name} ({desc.abbrev})")
+                for k, desc in badge_id.levels().items()
+                if desc.activity_id is None or desc.activity_id in led_activities
+            ]
+            self.activity_id.choices = [
+                (activity.id, activity.name) for activity in led_activities.values()
+            ]
+        else:
+            self.level.choices = [
+                (k, f"{desc.name} ({desc.activity_name()})")
+                for k, desc in badge_id.levels().items()
+                if desc.activity_id is None or desc.activity_id in led_activities
+            ]
+            del self.activity_id
 
     def empty(self) -> bool:
-        """Returns True if the form has no selectable level or activity"""
-        return len(self.level.choices) == 0 or len(self.activity_id.choices) == 0
+        """Returns True if the form has no selectable level"""
+        return len(self.level.choices) == 0
 
     def validate_level(self, field):
         """WTFForms validator function that make sure the level field is not set
         if the selected badge has not meaningful levels"""
-        badge_id = self._badge_id
+        badge_id = self.badge_id
         levels = badge_id.levels()
 
         if not field.data:
@@ -410,11 +416,15 @@ class CompetencyBadgeForm(FlaskForm):
             return
 
         level = int(field.data)
-        level_desc = levels[level]
-        if not level_desc.is_compatible_with_activity(self.activity_id.data):
-            raise ValidationError(
-                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
-            )
+        if level not in levels:
+            raise ValidationError("Niveau invalide")
+
+        if self.activity_id is not None:
+            level_desc = levels[level]
+            if not level_desc.is_compatible_with_activity(self.activity_id.data):
+                raise ValidationError(
+                    f"Le choix '{level_desc.name}' est spécifique à l'activité '{level_desc.activity_name()}'"
+                )
 
 
 class BadgeCustomLevelForm(OrderedModelForm):
@@ -426,11 +436,7 @@ class BadgeCustomLevelForm(OrderedModelForm):
         model = BadgeCustomLevel
         exclude = ["badge_id"]
 
-    activity_id = SelectField(
-        "Activité",
-        choices=[],
-        coerce=coerce_optional(int)
-    )
+    activity_id = SelectField("Activité", choices=[], coerce=coerce_optional(int))
 
     submit = SubmitField("Enregistrer")
 
@@ -443,7 +449,7 @@ class BadgeCustomLevelForm(OrderedModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-       
+
         supervised_activities = current_user.get_supervised_activities()
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in supervised_activities

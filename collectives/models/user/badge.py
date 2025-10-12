@@ -18,8 +18,9 @@ class UserBadgeMixin:
 
     def matching_badges(
         self,
-        badge_ids: List[BadgeIds],
+        badge_ids: Set[BadgeIds],
         activity_id: int | None = None,
+        level: int | None = 0,
         valid_only=False,
     ) -> List[Badge]:
         """Returns filtered user badges against a badge types list.
@@ -34,12 +35,20 @@ class UserBadgeMixin:
         if activity_id is not None:
             badges = (badge for badge in badges if badge.activity_id == activity_id)
 
+        if level:
+            badges = [
+                badge
+                for badge in badges
+                if badge.level >= level
+                and (badge.level == level or badge.badge_id.has_ordered_levels())
+            ]
+
         if not valid_only:
             return list(badges)
 
         return [badge for badge in badges if not badge.is_expired()]
 
-    def has_badge(self, badge_ids: List[BadgeIds]) -> bool:
+    def has_badge(self, badge_ids: Set[BadgeIds]) -> bool:
         """Check if user has at least one of the badges types.
 
         :param badge_ids: badges that will be tested.
@@ -47,7 +56,7 @@ class UserBadgeMixin:
         """
         return len(self.matching_badges(badge_ids)) > 0
 
-    def has_a_valid_badge(self, badge_ids: List[BadgeIds]) -> bool:
+    def has_a_valid_badge(self, badge_ids: Set[BadgeIds]) -> bool:
         """Check if user has at least one of the badges types
         with a valid expiration date.
 
@@ -63,14 +72,14 @@ class UserBadgeMixin:
 
         :return: True if user has a benevole badge.
         """
-        return self.has_a_valid_badge([BadgeIds.Benevole])
+        return self.has_a_valid_badge({BadgeIds.Benevole})
 
     def has_a_valid_suspended_badge(self) -> bool:
         """Check if user has a Suspended badge.
 
         :return: True if user has a non-expired suspended badge.
         """
-        return self.has_a_valid_badge([BadgeIds.Suspended])
+        return self.has_a_valid_badge({BadgeIds.Suspended})
 
     def is_suspended(self) -> bool:
         """Check if a user is suspended.
@@ -83,7 +92,7 @@ class UserBadgeMixin:
         """Returns the expiration date if the user is currently suspended,
         ``None`` otherwise
         """
-        suspended_badges = self.matching_badges([BadgeIds.Suspended], valid_only=True)
+        suspended_badges = self.matching_badges({BadgeIds.Suspended}, valid_only=True)
         if not suspended_badges:
             return None
         return max(badge.expiration_date for badge in suspended_badges)
@@ -95,11 +104,11 @@ class UserBadgeMixin:
         :return: Number of valid warning badges.
         """
         return len(
-            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
+            self.matching_badges({BadgeIds.UnjustifiedAbsenceWarning}, valid_only=True)
         )
 
     def has_badge_for_activity(
-        self, badge_ids: List[BadgeIds], activity_id: Optional[int]
+        self, badge_ids: Set[BadgeIds], activity_id: Optional[int]
     ) -> bool:
         """Check if user has at least one of the badge types for an activity.
 
@@ -119,11 +128,11 @@ class UserBadgeMixin:
         :param activity_id: Activity onto which role should applied.
         :return: True if user has the corresponding badge type for the activity.
         """
-        badges = self.matching_badges([badge_id], activity_id=activity_id)
+        badges = self.matching_badges({badge_id}, activity_id=activity_id)
         return any(badges)
 
     def activities_with_valid_badge(
-        self, badge_ids: List[BadgeIds]
+        self, badge_ids: Set[BadgeIds]
     ) -> Set[ActivityType]:
         """
         Returns the set of activities for which the user has one of the given badges
@@ -141,7 +150,7 @@ class UserBadgeMixin:
 
         :return: True if user has a benevole badge.
         """
-        return self.has_a_valid_badge([BadgeIds.Practitioner, BadgeIds.Skill])
+        return self.has_a_valid_badge({BadgeIds.Practitioner, BadgeIds.Skill})
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
@@ -201,13 +210,13 @@ class UserBadgeMixin:
 
         # Fetch the number of warning & suspended badges, whether valid or not
         num_valid_warning_badges = len(
-            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=True)
+            self.matching_badges({BadgeIds.UnjustifiedAbsenceWarning}, valid_only=True)
         )
         num_warning_badges = len(
-            self.matching_badges([BadgeIds.UnjustifiedAbsenceWarning], valid_only=False)
+            self.matching_badges({BadgeIds.UnjustifiedAbsenceWarning}, valid_only=False)
         )
         num_suspended_badges = len(
-            self.matching_badges([BadgeIds.Suspended], valid_only=False)
+            self.matching_badges({BadgeIds.Suspended}, valid_only=False)
         )
         # Update badges and expiration dates based on conditions, or continue if nothing to do
         try:
@@ -271,7 +280,7 @@ class UserBadgeMixin:
 
             later_suspended_badges = [
                 badge
-                for badge in self.matching_badges([BadgeIds.Suspended], valid_only=True)
+                for badge in self.matching_badges({BadgeIds.Suspended}, valid_only=True)
                 if badge.id > max_id
             ]
             if later_suspended_badges:
@@ -283,13 +292,44 @@ class UserBadgeMixin:
         for badge in registration_badges:
             db.session.delete(badge)
 
-    def get_practitioner_badge(self, activity_id: int) -> Badge | None:
+    def get_competency_badges(
+        self,
+        activity_id: int | None = None,
+        valid_only: bool = True,
+    ) -> list[Badge]:
         """
-        Get the practitioner's badge for a specific activity, if it exists.
+        Get the users' corresponding competency badges, if any.
+        """
+        return self.matching_badges(
+            {BadgeIds.Practitioner, BadgeIds.Skill},
+            activity_id=activity_id,
+            valid_only=valid_only,
+        )
+
+    def get_most_relevant_competency_badge(
+        self,
+        badge_id: BadgeIds,
+        activity_id: int | None,
+        level: int | None = 0,
+        valid_only: bool = True,
+    ) -> Badge | None:
+        """
+        Get the users' corresponding competency badge, if any.
         """
         badges = self.matching_badges(
-            [BadgeIds.Practitioner], activity_id=activity_id, valid_only=True
+            {badge_id},
+            activity_id=activity_id,
+            valid_only=valid_only,
+            level=None if badge_id.has_ordered_levels() else level,
         )
-        badges = sorted(badges, key=lambda b: b.level, reverse=True)
 
-        return badges[0] if badges else None
+        if not badges:
+            return None
+
+        return max(
+            badges,
+            key=lambda b: (
+                b.level,
+                b.expiration_date or date(year=9999, month=12, day=31),
+            ),
+        )

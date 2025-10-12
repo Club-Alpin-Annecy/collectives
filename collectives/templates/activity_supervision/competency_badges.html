@@ -8,19 +8,21 @@
 
 {% block page_content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">Compétences validables</h2>
-  <p>Les compétences validables permettent de reconnaître les compétences acquises par les participants. Elles peuvent être utilisées pour valider des formations, des qualifications, ou des rôles spécifiques au sein de l'activité.</p>
+  <h2 class="heading-2">Badges de spécialisation</h2>
+  <p>Les badges de spécialisation permettent de reconnaître les compétences acquises par les participants. Ils peuvent être utilisés pour valider des formations, des qualifications, ou des rôles spécifiques au sein de l'activité.
+    Ils peuvent être liés ou non à une activité spécifique, et requérir ou non un recyclage régulier.
+  </p>
 
   {% if custom_level %}
-    <h4 class="heading-4">Modification d'une compétence</h4>
+    <h4 class="heading-4">Modification d'une spécialisation</h4>
   {% else %}
-    <h4 class="heading-4">Ajout d'une compétence</h4>
+    <h4 class="heading-4">Ajout d'une spécialisation</h4>
   {% endif %}
   
   
   {{ generator.form_generator(form, action=url_for('activity_supervision.competency_badges', custom_level_id=custom_level.id if custom_level.id else None)) }}
 
-  <h4 class="heading-4">Compétences existantes</h4>
+  <h4 class="heading-4">Spécialisations existantes</h4>
   <div>
 
     {% for id, level in levels.items() %}
@@ -29,7 +31,7 @@
         [<a href="{{ url_for('activity_supervision.competency_badges', custom_level_id=level.id) }}">Modifier</a>]
       </div>
     {% else %}
-      <p>Aucune compétence définie.</p>
+      <p>Aucune spécialisation définie.</p>
     {% endfor %}
 
   </div>

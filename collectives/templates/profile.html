@@ -197,10 +197,13 @@
                 <td>
                     {% if user.has_a_valid_competency_badge() %}
                         <ul style="margin-top: 0">
-                        {% for badge in user.matching_badges((models.BadgeIds.Practitioner, models.BadgeIds.Skill)) %}
+                        {% for badge in user.get_competency_badges() %}
                             <li>{{badge.name}} {{badge.level_name()}}
                             {% if badge.activity_type %}
                                 pour l'activité <em>{{badge.activity_type.name}}</em>
+                            {% endif %}
+                            {% if badge.expiration_date %}
+                                jusqu'au {{format_date(badge.expiration_date)}}
                             {% endif %}
                             </li>
                         {% endfor %}
@@ -216,7 +219,7 @@
                     Attributer un niveau de pratique :
                 </td>
                 <td>
-                    <form class="form" id="practitioner_badge_form" action="{{url_for('.set_practice_level', user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
+                    <form class="form" id="practitioner_badge_form" action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
                         {{practitioner_badge_form.hidden_tag()}}
                         {{practitioner_badge_form.level()}}
                         en
@@ -229,14 +232,12 @@
             {% if skill_badge_form and not skill_badge_form.empty() %}
             <tr>
                 <td class="head">
-                    Attributer une compétence :
+                    Attributer une spécialisation :
                 </td>
                 <td>
-                    <form class="form" id="skill_badge_form" action="{{url_for('.add_skill', user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
+                    <form class="form" id="skill_badge_form" action="{{url_for('.set_competency_badge', badge_id=skill_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
                         {{skill_badge_form.hidden_tag()}}
                         {{skill_badge_form.level()}}
-                        en
-                        {{skill_badge_form.activity_id()}}
                         {{skill_badge_form.submit(class_="button button-secondary button-small")}}
                     </form>
                 </td>

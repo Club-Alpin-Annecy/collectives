@@ -119,7 +119,6 @@ def show_user(user_id: int, event_id: int = 0):
     )
 
 
-
 @blueprint.route("/organizer/<leader_id>", methods=["GET"])
 def show_leader(leader_id):
     """Route to show leader details of a user.
@@ -449,8 +448,11 @@ def delete_user(user_id: int):
     )
 
 
-@blueprint.route("/user/set_practice_level/<int:user_id>/from_event/<int:event_id>", methods=["GET", "POST"])
-def set_practice_level(user_id: int, event_id: int):
+@blueprint.route(
+    "/user/<int:user_id>/set_competency_badge/<int:badge_id>/from_event/<int:event_id>",
+    methods=["POST"],
+)
+def set_competency_badge(user_id: int, badge_id: int, event_id: int):
     user = db.session.get(User, user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
@@ -460,11 +462,23 @@ def set_practice_level(user_id: int, event_id: int):
         flash("Non autorisé", "error")
         return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
 
-    form = CompetencyBadgeForm(badge_id=BadgeIds.Practitioner)
+    badge_id = BadgeIds(badge_id)
+
+    form = CompetencyBadgeForm(badge_id=badge_id)
 
     if form.validate_on_submit():
-        activity_id = form.activity_id.data
-        if not current_user.can_lead_activity(ActivityType.get(activity_id)):
+        level = form.level.data
+        if level:
+            level_desc = badge_id.levels()[level]
+
+        if badge_id == BadgeIds.Practitioner:
+            activity_id = form.activity_id.data
+        else:
+            activity_id = level_desc.activity_id
+
+        if activity_id is not None and not current_user.can_lead_activity(
+            ActivityType.get(activity_id)
+        ):
             flash(
                 "Vous ne pouvez pas définir un niveau de pratique pour une activité "
                 "dont vous n'êtes pas encadrant(e)",
@@ -472,27 +486,29 @@ def set_practice_level(user_id: int, event_id: int):
             )
             return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
 
-        badge = user.get_practitioner_badge(activity_id=activity_id)
-        level = form.level.data
-        print(level, badge, activity_id)
+        badge = user.get_most_relevant_competency_badge(
+            badge_id=badge_id, activity_id=activity_id, 
+            level=level, 
+            valid_only=False
+        )
 
-        if level == 0:
+        if not level:
             # Remove badge if level is 0
             if badge is not None:
                 db.session.delete(badge)
         else:
             if badge is None:
                 badge = Badge(
-                    badge_id=BadgeIds.Practitioner,
+                    badge_id=badge_id,
                     user_id=user.id,
                     activity_id=activity_id,
                 )
 
             badge.level = form.level.data
+            badge.expiration_date = level_desc.expiry_date()
             db.session.add(badge)
 
         db.session.commit()
-        flash("Niveau de pratique mis à jour", "success")
+        flash(f"Badge {badge_id.display_name()} mis à jour", "success")
 
-    print(form.errors)
     return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))

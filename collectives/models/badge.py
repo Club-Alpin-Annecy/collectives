@@ -9,6 +9,7 @@ from sqlalchemy.sql import func
 from collectives.models.globals import db
 from collectives.models.activity_type import ActivityType
 from collectives.models.utils import ChoiceEnum
+from collectives.utils.time import add_months
 
 
 class BadgeLevelDescriptor(NamedTuple):
@@ -23,6 +24,9 @@ class BadgeLevelDescriptor(NamedTuple):
     activity_id: int | None = None
     """If not None, the level is only valid for this activity"""
 
+    months_of_validity: int = 0
+    """Number of months this level is valid for, 0 if unlimited"""
+
     def is_compatible_with_activity(self, activity_id: int | None) -> bool:
         """Check if this level is compatible with the given activity.
 
@@ -34,6 +38,30 @@ class BadgeLevelDescriptor(NamedTuple):
             or activity_id is None
             or self.activity_id == activity_id
         )
+
+    def activity_name(self) -> str:
+        """Returns the name of the corresponding activity
+
+        :return: name of the corresponding activity
+        """
+
+        if self.activity_id is not None:
+            activity_type = ActivityType.query.get(self.activity_id)
+            if activity_type is not None:
+                return activity_type.name
+
+        return "Toutes activités"
+
+    def expiry_date(self, from_date: date | None = None) -> date | None:
+        """Computes the expiry date of this level, if it has a limited validity.
+
+        :param from_date: date from which the validity should be computed (default: today)
+        :return: expiry date, or None if the level has unlimited validity
+        """
+        if self.months_of_validity <= 0:
+            return None
+        return add_months(self.months_of_validity, from_date)
+
 
 class BadgeIds(ChoiceEnum):
     """Enum listing the type of a badge"""
@@ -66,7 +94,7 @@ class BadgeIds(ChoiceEnum):
             cls.UnjustifiedAbsenceWarning: "Absence injustifiée - avertissement",
             cls.Suspended: "Absence injustifiée - suspension",
             cls.Practitioner: "Niveau de pratique",
-            cls.Skill: "Compétence",
+            cls.Skill: "Spécialisation",
         }
 
     def relates_to_activity(self) -> bool:
@@ -160,23 +188,44 @@ class BadgeCustomLevel(db.Model):
     :type: str"""
 
     abbrev = db.Column(
-        db.String, nullable=False, info={"label": "Abréviation (ou emoji)"}
+        db.String,
+        nullable=False,
+        info={"label": "Abréviation", "description": "Par exemple, un emoji."},
     )
     """ Abbreviation for the badge level.
 
     :type: str"""
 
-    default_validity = db.Column(db.Integer, nullable=False, info={"label": "Validité par défaut (en mois)"})
+    default_validity = db.Column(
+        db.Integer,
+        nullable=False,
+        info={
+            "label": "Durée de validité",
+            "description": "En mois. 0 pour illimité.",
+            "default": 0,
+        },
+        default=0,
+    )
     """ Default period of validity (in months) for this badge level.
     """
 
-    deprecated = db.Column(db.Boolean, nullable=False, default=False, info={"label": "Obsolète"})
+    deprecated = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        info={
+            "label": "Obsolète",
+            "description": "N'est plus attribuable, mais reste visible dans l'historique.",
+        },
+    )
     """ Whether this custom level is deprecated."""
 
     @property
     def descriptor(self) -> BadgeLevelDescriptor:
         """Returns the descriptor for this custom level."""
-        return BadgeLevelDescriptor(self.name, self.abbrev, self.activity_id)
+        return BadgeLevelDescriptor(
+            self.name, self.abbrev, self.activity_id, self.default_validity
+        )
 
     @classmethod
     def get_all(cls, include_deprecated: bool = False) -> list["BadgeCustomLevel"]:
@@ -189,7 +238,7 @@ class BadgeCustomLevel(db.Model):
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()
-    
+
     def activity_name(self) -> str:
         """Returns the name of the corresponding activity
 
@@ -199,8 +248,7 @@ class BadgeCustomLevel(db.Model):
         if self.activity_type is not None:
             return self.activity_type.name
 
-        return "N'importe quelle activité"
-
+        return "Toutes activités"
 
 
 class Badge(db.Model):
