@@ -21,7 +21,7 @@
       window.onload = function () {
         const show_type = {{ 'false' if badge_ids|length==1 else 'true' }};
         const show_level = {{ 'true' if level else 'false' }};
-        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, badgeLevels);
+        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)|safe}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, badgeLevels);
 
         const searchInput = document.getElementById('user_search');
         setupAutoComplete(
@@ -50,11 +50,11 @@
   {% endif %}
   
   {{ generator.form_generator(add_badge_form, url_for(routes['add'])) }}
-
-  <h4 class="heading-4">Export de la liste</h4>
-
-  {{ generator.form_generator(export_form, url_for(routes['export'])) }}
 {% endif %}
+
+<h4 class="heading-4">Export de la liste</h4>
+
+{{ generator.form_generator(export_form, url_for(routes['export'])) }}
 
 </div>
 {% endblock %}

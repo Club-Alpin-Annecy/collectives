@@ -5,6 +5,7 @@ from io import BytesIO
 from openpyxl import Workbook
 
 from collectives.utils.misc import deepgetattr
+from collectives.models.badge import Badge
 
 
 def export_roles(roles):
@@ -42,13 +43,11 @@ def export_roles(roles):
     return out
 
 
-def export_badges(badges):
+def export_badges(badges: list[Badge]) -> BytesIO:
     """Create an excel with the input badge and related user.
 
-    :param badges:
-    :type badges: array of :py:class:`collectives.models.badge.Badge`
+    :param badges: List of badges to export
     :returns: The excel with all info
-    :rtype: :py:class:`io.BytesIO`
     """
     workbook = Workbook()
     worksheet = workbook.active
@@ -60,13 +59,15 @@ def export_badges(badges):
         "user.phone": "Téléphone",
         "activity_type.name": "Activité",
         "name": "Badge",
-        "level": "Niveau",
+        "level_name": "Niveau",
         "expiration_date": "Date Expiration",
     }
     worksheet.append(list(fields.values()))
 
     for badge in badges:
-        worksheet.append([deepgetattr(badge, field, "-") for field in fields])
+        worksheet.append(
+            [deepgetattr(badge, field, "-", resolve_method=True) for field in fields]
+        )
 
     # set column width
     for i in range(ord("A"), ord("A") + len(fields)):

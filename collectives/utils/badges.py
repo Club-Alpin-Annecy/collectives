@@ -1,6 +1,6 @@
 """Module for base functions of badge management"""
 
-from typing import List, Union
+from typing import List, Union, Sequence
 
 from flask import flash, render_template, send_file
 from flask_login import current_user
@@ -12,7 +12,7 @@ from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
 
 
-def export_badge(badge_type: BadgeIds = None):
+def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     """Create an Excel document with the contact information of users with badge.
 
     :param type: The type of badge to export
@@ -45,8 +45,8 @@ def export_badge(badge_type: BadgeIds = None):
         else:
             query = query.filter(Badge.activity_id == activity_type.id)
 
-    if badge_type is not None:
-        query = query.filter(Badge.badge_id == badge_type)
+    if badge_types is not None:
+        query = query.filter(Badge.badge_id.in_(badge_types))
 
     badges = query.all()
 
@@ -62,7 +62,7 @@ def export_badge(badge_type: BadgeIds = None):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"{club_name} - Export {type_title(badge_type)} {filename}.xlsx",
+        download_name=f"{club_name} - Export {type_title(badge_types)} {filename}.xlsx",
         as_attachment=True,
     )
 
@@ -76,6 +76,7 @@ def list_page(
     level: bool = False,
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
+    title: str|None = None,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -87,6 +88,7 @@ def list_page(
     :param routes: Lists of urls of others endpoint. This dict should have these keys:
                 ``add``, ``export``, ``delete``, ``renew``,.
     :param allow_add: Whether to allow adding new badges
+    :param title: Title of the page. If None, computed from badge_types
     """
 
     # convert to list
@@ -119,7 +121,7 @@ def list_page(
         "activity_supervision/badges_list.html",
         add_badge_form=add_badge_form,
         export_form=export_form,
-        title=type_title(badge_types),
+        title=title or type_title(badge_types),
         badge_ids=[badge_id.value for badge_id in badge_types],
         auto_date=auto_date,
         level=level,
@@ -253,8 +255,8 @@ def type_title(badge_type: Union[BadgeIds, List[BadgeIds]]) -> str:
     """
     if isinstance(badge_type, BadgeIds):
         return badge_type.display_name()
-    if badge_type and len(badge_type) == 1:
-        return badge_type[0].display_name()
+    if badge_type and len(badge_type) <= 3:
+        return ", ".join([bdg.display_name() for bdg in badge_type])
     return "Badge"
 
 

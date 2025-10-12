@@ -179,7 +179,7 @@ def export_volunteer():
 
     :return: The Excel file with the roles.
     """
-    response = badges.export_badge(badge_type=BadgeIds.Benevole)
+    response = badges.export_badge(badge_types=(BadgeIds.Benevole,))
     if response:
         return response
     flash("Impossible de générer le fichier: droit insuffisants", "error")
@@ -412,11 +412,7 @@ def competency_badges(custom_level_id: int | None = None):
         return redirect(url_for(".competency_badges"))
 
     levels = BadgeCustomLevel.get_all(include_deprecated=True)
-    levels = {
-        level.id: level
-        for level in levels
-        if is_supervisable_level(level)
-    }
+    levels = {level.id: level for level in levels if is_supervisable_level(level)}
 
     return render_template(
         "activity_supervision/competency_badges.html",
@@ -425,3 +421,57 @@ def competency_badges(custom_level_id: int | None = None):
         custom_level=custom_level,
         form=form,
     )
+
+
+@blueprint.route("/competency_badge_holders/", methods=["GET"])
+def competency_badge_holders():
+    """Route for activity supervisors to list user with competency badge"""
+    routes = {
+        "export": "activity_supervision.export_competency_badge_holders",
+        "delete": "activity_supervision.delete_competency_badge",
+        "renew": "activity_supervision.renew_competency_badge",
+    }
+
+    return badges.list_page(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill),
+        auto_date=True,
+        routes=routes,
+        level=True,
+        allow_add=False,
+        title="Pratiquants validés",
+    )
+
+
+@blueprint.route("/competency_badge_holders/export", methods=["POST"])
+def export_competency_badge_holders():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    response = badges.export_badge(badge_types=(BadgeIds.Practitioner, BadgeIds.Skill))
+    if response:
+        return response
+    flash("Impossible de générer le fichier: droit insuffisants", "error")
+    return redirect(url_for(".competency_badge_holders"))
+
+
+@blueprint.route("/competency_badge_holders/delete/<int:badge_id>", methods=["POST"])
+def delete_competency_badge(badge_id: int):
+    """Route for an activity supervisor to remove a user competency badge
+
+    :param badge_id: Id of badge to delete
+    """
+
+    badges.delete_badge(badge_id)
+    return redirect(url_for(".competency_badge_holders"))
+
+
+@blueprint.route("/competency_badge_holders/renew/<int:badge_id>", methods=["POST"])
+def renew_competency_badge(badge_id: int):
+    """Route for an activity supervisor to remove a user competency badge
+
+    :param badge_id: Id of badge to delete
+    """
+
+    badges.renew_badge(badge_id)
+    return redirect(url_for(".competency_badge_holders"))
