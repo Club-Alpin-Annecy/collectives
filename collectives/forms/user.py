@@ -190,12 +190,19 @@ class RoleForm(ModelForm, FlaskForm):
         ]
 
 
-def compute_default_expiration_date():
+def compute_default_expiration_date(
+    badge_id: BadgeIds | None = None, level: int | None = None
+) -> date | None:
     """Compute the default expiration date for a badge"""
     # For now, the default expiration date is hard-coded.
     # It could be managable in the admin panel in a next version
     # NB: when we are after the default hard-coded date, but still in the same year,
     # then increment the year
+
+    if badge_id and level in badge_id.levels():
+        level_desc = badge_id.levels()[level]
+        return level_desc.expiry_date()
+
     default_date = date(date.today().year, 9, 30)
     default_year = default_date.year
     if (date.today() >= default_date) and (date.today().year == default_year):
@@ -217,10 +224,37 @@ class BadgeForm(ModelForm, ActivityTypeSelectionForm):
     def __init__(self, *args, **kwargs):
         """Overloaded constructor populating activity list"""
 
-        super().__init__(*args, no_enabled=True, **kwargs)
+        if "no_enabled" not in kwargs:
+            kwargs["no_enabled"] = True
+
+        super().__init__(*args, **kwargs)
 
         if "expiration_date" not in request.form:
-            self.expiration_date.data = compute_default_expiration_date()
+            badge = kwargs.get("obj", None)
+            if badge:
+                self.expiration_date.data = compute_default_expiration_date(
+                    badge.badge_id, badge.level
+                )
+            else:
+                self.expiration_date.data = compute_default_expiration_date()
+
+    def validate_level(self, field):
+        """WTFForms validator function that make sure the level is consistent"""
+        badge_id = BadgeIds(int(self.badge_id.data))
+        levels = badge_id.levels()
+
+        if not badge_id.requires_level():
+            return
+
+        level = int(field.data)
+        if level not in levels:
+            raise ValidationError("Niveau invalide")
+
+        level_desc = levels[level]
+        if not level_desc.is_compatible_with_activity(self.activity_id.data):
+            raise ValidationError(
+                f"Le choix '{level_desc.name}' est spécifique à l'activité '{level_desc.activity_name()}'"
+            )
 
 
 class RenewBadgeForm(BadgeForm):
@@ -236,7 +270,11 @@ class RenewBadgeForm(BadgeForm):
 
     def __init__(self, *args, badge: Badge, **kwargs):
         """Overloaded constructor populating activity list"""
-        super().__init__(*args, obj=badge, **kwargs)
+        super().__init__(
+            *args,
+            obj=badge,
+            **kwargs,
+        )
 
         # In case this is a RENEWAL
         if badge.activity_id:
@@ -276,7 +314,7 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         )
 
 
-class AddBadgeForm(ActivityTypeSelectionForm):
+class AddBadgeForm(BadgeForm):
     """Form for supervisors to add badges to Users"""
 
     user_id = HiddenField(id="user-search-resultid")
@@ -287,17 +325,6 @@ class AddBadgeForm(ActivityTypeSelectionForm):
             "class": "search-input",
             "placeholder": "Nom...",
         },
-    )
-    badge_id = SelectField(
-        "Badge",
-        coerce=int,
-        validators=[DataRequired()],
-        choices=BadgeIds.choices(),
-    )
-    expiration_date = DateField("Date d'expiration", format="%Y-%m-%d")
-    level = IntegerField(
-        "Niveau du badge",
-        validators=[Optional()],
     )
 
     def __init__(self, *args, badge_type: str = "badge", **kwargs):

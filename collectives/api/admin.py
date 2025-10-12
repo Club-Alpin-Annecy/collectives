@@ -209,6 +209,7 @@ class UserBadgeSchema(BadgeSchema):
         fields = (
             "user",
             "activity_type",
+            "badge_id",
             "name",
             "expiration_date",
             "level",

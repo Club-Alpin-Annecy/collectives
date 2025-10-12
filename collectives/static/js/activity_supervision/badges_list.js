@@ -14,6 +14,17 @@ function actionFormatter(csrfToken) {
     };
 }
 
+function levelFormatter(badgeLevels) {
+    return function (cell, formatterParams, onRendered) {
+        const level = cell.getValue();
+        const badgeId = EnumBadgeIdsKeys[cell.getData().badge_id];
+        if (badgeId in badgeLevels && level in badgeLevels[badgeId]) {
+            return badgeLevels[badgeId][level][0];
+        }
+        return level;
+    };
+}
+
 function onclickTriggerInsideForm(e, cell) {
     cell._cell.element.querySelector('form').submit();
 }
@@ -22,7 +33,7 @@ function profileUrl(cell) {
     return cell.getData().user.profile_uri;
 }
 
-function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel) {
+function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, badgeLevels) {
     var table = new Tabulator("#badges-table",
         {
             ajaxURL: ajaxUrl,
@@ -37,7 +48,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel) {
                 { title: "Activité", field: "activity_type.name",  headerFilter: "select", headerFilterParams:{values: makeOptions(EnumActivityType)}, widthGrow: 3 },
                 { title: "Badge", field: "name", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumBadgeIds)}, widthGrow: 3, visible: showType },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
-                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel},
+                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel,formatter: levelFormatter(badgeLevels)},
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
                 { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
             ],

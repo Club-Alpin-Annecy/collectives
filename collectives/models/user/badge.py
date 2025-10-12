@@ -108,15 +108,16 @@ class UserBadgeMixin:
         )
 
     def has_badge_for_activity(
-        self, badge_ids: Set[BadgeIds], activity_id: Optional[int]
+        self, badge_ids: Set[BadgeIds], activity_id: Optional[int], level: int = 0
     ) -> bool:
         """Check if user has at least one of the badge types for an activity.
 
         :param badge_ids: Badges that will be tested.
         :param activity_id: Activity onto which role should applied.
+        :param level: Minimum level of the badge (if applicable)
         :return: True if user has at least one of the listed roles type for the activity.
         """
-        badges = self.matching_badges(badge_ids, activity_id=activity_id)
+        badges = self.matching_badges(badge_ids, activity_id=activity_id, level=level)
         return any(badges)
 
     def has_this_badge_for_activity(

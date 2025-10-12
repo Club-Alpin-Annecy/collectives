@@ -153,7 +153,7 @@ def add_badge(
     if badge_type:
         badge.badge_id = badge_type
     if auto_date:
-        badge.expiration_date = compute_default_expiration_date()
+        badge.expiration_date = compute_default_expiration_date(badge_id=badge.badge_id, level=badge.level)
 
     user: User = db.session.get(User, badge.user_id)
     if user is None:
@@ -211,13 +211,17 @@ def renew_badge(
     """Route for an activity supervisor to add or renew a Badge to a user.
 
     :param type: The type of badge to renew"""
-    badge = db.session.get(Badge, badge_id)
+    badge: Badge = db.session.get(Badge, badge_id)
 
     if not has_rights_to_modify_badge(badge, badge_type):
         flash("Badge invalide", "error")
         return None
+    
+    if badge.expiration_date is None:
+        flash("Badge non renouvelable", "warning")
+        return None
 
-    badge.expiration_date = compute_default_expiration_date()
+    badge.expiration_date = compute_default_expiration_date(badge.badge_id, badge.level)
     badge.grantor_id = current_user.id
     db.session.add(badge)
     db.session.commit()

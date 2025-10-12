@@ -102,7 +102,7 @@ class BadgeIds(ChoiceEnum):
 
         :return: True if the badge requires an activity.
         """
-        return self in {BadgeIds.Practitioner} or self.has_custom_levels()
+        return self in {BadgeIds.Practitioner, BadgeIds.Benevole}
 
     def has_custom_levels(self) -> bool:
         """Whether the levels for this badge are user-defined"""
@@ -309,7 +309,7 @@ class Badge(db.Model):
     expiration_date = db.Column(
         db.Date(),
         info={
-            "label": "Date d'expiration du badge (par défaut: le 30/09 de l'année en cours)"
+            "label": "Date d'expiration du badge"
         },
     )
     """ Date at which this badge will expire
@@ -369,7 +369,7 @@ class Badge(db.Model):
                 if short
                 else f"{level_desc.name} ({level_desc.abbrev})"
             )
-        return ""
+        return self.level
 
     @property
     def activity_name(self):

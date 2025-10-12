@@ -506,6 +506,7 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
 
             badge.level = form.level.data
             badge.expiration_date = level_desc.expiry_date()
+            badge.grantor_id = current_user.id
             db.session.add(badge)
 
         db.session.commit()

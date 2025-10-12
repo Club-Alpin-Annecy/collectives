@@ -40,7 +40,7 @@ Détenteurs du badge :
 
 <script>
 
-const BadgeLevels = {{models.BadgeIds.js_levels() | safe}};
+const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
 
 document.addEventListener('DOMContentLoaded', ()=> {
     var license_multiselect = document.getElementById("{{user_group_form.license_conditions.id}}");
@@ -91,9 +91,9 @@ function updateBadgeLevels(badgeSelect) {
         levelSelect.remove(0);
     }        
     hidden = true;
-    if(badgeId in BadgeLevels) {
+    if(badgeId in badgeLevels) {
 
-        levels = Object.entries(BadgeLevels[badgeId])
+        levels = Object.entries(badgeLevels[badgeId])
         for(const [key, level] of levels) {
             const option = document.createElement("option");
             option.value = key;

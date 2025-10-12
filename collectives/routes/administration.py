@@ -270,7 +270,8 @@ def add_user_badge(user_id):
         return redirect(url_for("administration.administration"))
 
     form = BadgeForm()
-    if not form.is_submitted():
+    if not form.validate_on_submit():
+
         return render_template(
             "user_badges.html",
             user=user,
@@ -295,12 +296,12 @@ def add_user_badge(user_id):
                 )
 
             badge.activity_id = badge.activity_type.id
-            badge_exists = user.has_badge_for_activity(
-                [badge_id], badge.activity_type.id
-            )
-        else:
-            badge_exists = user.has_badge_for_activity([badge_id], None)
 
+        badge_exists = user.has_badge_for_activity(
+            [badge_id],
+            badge.activity_id,
+            level=badge.level if badge_id.requires_level() else None,
+        )
         if badge_exists:
             raise BadgeValidationException(
                 "Type de Badge déjà associé à l'utilisateur pour cette activité"

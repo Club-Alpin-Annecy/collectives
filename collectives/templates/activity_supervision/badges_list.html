@@ -17,10 +17,11 @@
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script src="{{ url_for('api.models_to_js') }}"></script>
   <script>
+      const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
       window.onload = function () {
         const show_type = {{ 'false' if badge_ids|length==1 else 'true' }};
         const show_level = {{ 'true' if level else 'false' }};
-        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level);
+        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, badgeLevels);
 
         const searchInput = document.getElementById('user_search');
         setupAutoComplete(
