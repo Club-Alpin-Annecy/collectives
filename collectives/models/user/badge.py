@@ -310,7 +310,7 @@ class UserBadgeMixin:
     def get_most_relevant_competency_badge(
         self,
         badge_id: BadgeIds,
-        activity_id: int | None,
+        activity_id: int | None = None,
         level: int | None = 0,
         valid_only: bool = True,
     ) -> Badge | None:

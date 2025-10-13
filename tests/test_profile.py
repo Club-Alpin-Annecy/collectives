@@ -1,12 +1,15 @@
 """Module to test user profile pages."""
 
+from datetime import date, timedelta
+
 from flask import url_for
 
 from tests import utils
 from tests.fixtures import client
 from tests.fixtures.user import add_badge_to_user
+from tests.fixtures.misc import custom_skill_with_expiry, custom_skill_with_activity_type
 
-from collectives.models import db, BadgeIds, Event, User
+from collectives.models import db, BadgeIds, Event, User, BadgeCustomLevel
 
 # pylint: disable=unused-argument
 
@@ -182,7 +185,7 @@ def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: 
 def test_update_user_practitioner_badge(
     leader_client, event1_with_reg: Event, user1: User
 ):
-    """Test user access to its profile."""
+    """Test setting practice level badge for user."""
 
     response = leader_client.get(
         url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
@@ -197,7 +200,10 @@ def test_update_user_practitioner_badge(
 
     response = leader_client.post(
         url_for(
-            "profile.set_practice_level", user_id=user1.id, event_id=event1_with_reg.id
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Practitioner,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
         ),
         data=data,
     )
@@ -207,7 +213,9 @@ def test_update_user_practitioner_badge(
     )
 
     activity_id = event1_with_reg.activity_types[0].id
-    badge = user1.get_practitioner_badge(activity_id=activity_id)
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Practitioner, activity_id=activity_id
+    )
     assert badge is not None
     assert badge.level == 4
 
@@ -227,12 +235,136 @@ def test_update_user_practitioner_badge(
     data["activity_id"] = activity_id
 
     response = leader_client.post(
-        url_for("profile.set_practice_level", user_id=user1.id, event_id=event1_with_reg.id), data=data
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Practitioner,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
     )
     assert response.status_code == 302
     assert response.location in url_for(
         "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
     )
 
-    badge = user1.get_practitioner_badge(activity_id=activity_id)
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Practitioner, activity_id=activity_id
+    )
     assert badge is None
+
+
+def test_set_user_skill_badge(
+    leader_client,
+    event1_with_reg: Event,
+    user1: User,
+    custom_skill_with_activity_type: BadgeCustomLevel,
+    custom_skill_with_expiry: BadgeCustomLevel,
+):
+    """Test setting skill badge for user."""
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    # post badge update
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+
+    data["level"] = custom_skill_with_expiry.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = event1_with_reg.activity_types[0].id
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Skill,
+        level=custom_skill_with_expiry.id,
+    )
+    assert badge is not None
+    assert badge.level == custom_skill_with_expiry.id
+    assert badge.expiration_date is not None
+    assert badge.activity_id is None
+    assert badge.grantor_id == leader_client.user.id
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Spécialisation" in response.text
+    assert badge.level_name() in response.text
+
+    # badge with activity
+
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+    data["level"] = custom_skill_with_activity_type.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = custom_skill_with_activity_type.activity_type.id
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Skill,
+        activity_id=activity_id,
+    )
+    assert badge is not None
+    assert badge.level == custom_skill_with_activity_type.id
+    assert badge.expiration_date is None
+    assert badge.activity_id is activity_id
+    assert badge.grantor_id == leader_client.user.id
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Spécialisation" in response.text
+    assert badge.level_name() in response.text
+    assert len(user1.get_competency_badges()) == 2
+
+    badge.expiration_date = date.today()
+    db.session.commit()
+    # Re-add the same badge, should renew the expiration date
+
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+    data["level"] = custom_skill_with_activity_type.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    assert len(user1.get_competency_badges()) == 2
+    assert badge.expiration_date is None

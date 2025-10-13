@@ -1,6 +1,6 @@
 """Unit tests for UserGroup class"""
 
-from collectives.models import BadgeIds, RegistrationStatus, RoleIds, db
+from collectives.models import User, BadgeIds, RegistrationStatus, RoleIds, db
 from collectives.models.user_group import (
     GroupBadgeCondition,
     GroupEventCondition,
@@ -192,6 +192,49 @@ def test_badge_user_group_members(
     assert user_with_valid_benevole_badge in group0_members
     assert user_with_valid_suspended_badge in group0_members
     assert user_with_expired_benevole_badge not in group0_members
+
+
+def test_badge_level_user_group_members(
+    user1: User,
+    user_with_practitioner_badge: User,
+    user_with_skill_badge: User,
+):
+    """Test listing user group members with bagde conditions and levels"""
+
+    group0 = UserGroup()
+
+    # Test event conditions
+    user_level  = user_with_practitioner_badge.get_most_relevant_competency_badge(
+        BadgeIds.Practitioner
+    ).level
+    grc = GroupBadgeCondition(badge_id=BadgeIds.Practitioner, level=user_level)
+    db.session.add(grc)
+
+    group0.badge_conditions.append(grc)
+    db.session.add(group0)
+    db.session.commit()
+
+    group0_members = group0.get_members()
+    assert len(group0_members) == 1
+    assert user_with_practitioner_badge in group0_members
+
+
+    grc.level += 1
+    db.session.add(grc)
+    db.session.commit() 
+    group0_members = group0.get_members()
+    assert len(group0_members) == 0
+
+
+    grc.level = user_with_skill_badge.get_most_relevant_competency_badge(
+        BadgeIds.Skill
+    ).level
+    grc.badge_id = BadgeIds.Skill
+    db.session.commit()
+
+    group0_members = group0.get_members()
+    assert len(group0_members) == 1
+    assert user_with_skill_badge in group0_members
 
 
 def test_any_role_condition(user1, president_user, leader_user):

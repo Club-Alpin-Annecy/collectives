@@ -12,7 +12,7 @@ from collectives.models.globals import db
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.role import Role, RoleIds
 from collectives.models.user import User
-
+from collectives.utils.time import current_time
 
 class GroupConditionBase:
     """Base class with common fields for all group conditions."""
@@ -154,16 +154,14 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
         )
 
     def level_name(self) -> str:
-        """Returns the name of the badge level.
-        """
+        """Returns the name of the badge level."""
         if self.badge_id and self.level:
             level_desc = self.badge_id.levels().get(self.level)
             if level_desc:
-                return (
-                    level_desc.name
-                )
+                return level_desc.name
             return f"niveau {self.level}"
         return ""
+
 
 class GroupEventCondition(db.Model, GroupConditionBase):
     """Relationship indicating that group members must participate (or lead) a given event."""
@@ -356,8 +354,10 @@ class UserGroup(db.Model):
         """:return: the list of negative license conditions"""
         return [condition for condition in self.license_conditions if condition.invert]
 
-    def get_members(self, time: datetime = None) -> List[User]:
+    def get_members(self, time: datetime | None = None) -> List[User]:
         """:return: the list of group members"""
+        if time is None:
+            time = current_time()
         return self._build_query(time).all()
 
     def contains(self, user: User, time: datetime) -> bool:

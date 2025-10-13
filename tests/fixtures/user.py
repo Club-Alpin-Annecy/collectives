@@ -8,6 +8,7 @@ import pytest
 from collectives.models import (
     ActivityType,
     Badge,
+    BadgeCustomLevel,
     BadgeIds,
     Gender,
     Role,
@@ -20,6 +21,7 @@ from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument,redefined-outer-name, unused-import
 from tests.fixtures.app import enable_sanctions
+from tests.fixtures.misc import custom_skill
 from tests.mock.extranet import VALID_LICENSE, VALID_USER_DOB, VALID_USER_EMAIL
 
 PASSWORD = "fooBar2+!"
@@ -487,3 +489,25 @@ def user_with_practitioner_badge(
     db.session.add(prototype_user_with_practitioner_badge)
     db.session.commit()
     return prototype_user_with_practitioner_badge
+
+
+inject_fixture("prototype_user_with_skill_badge", ("Custom", "Skilled"))
+
+
+@pytest.fixture
+def user_with_skill_badge(
+    prototype_user_with_skill_badge: User,
+    leader_user: User,
+    custom_skill: BadgeCustomLevel,
+):
+    """:returns: A user with a skill Badge."""
+    add_badge_to_user(
+        prototype_user_with_skill_badge,
+        BadgeIds.Skill,
+        level=custom_skill.id,
+        expiration_date=date.today() + timedelta(days=30),
+        grantor=leader_user,
+    )
+    db.session.add(prototype_user_with_skill_badge)
+    db.session.commit()
+    return prototype_user_with_skill_badge

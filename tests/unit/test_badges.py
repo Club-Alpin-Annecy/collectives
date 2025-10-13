@@ -10,8 +10,15 @@ from collectives.models import (
     db,
 )
 from collectives.models.activity_type import ActivityType
-from collectives.models.badge import Badge, BadgeIds
+from collectives.models.badge import Badge, BadgeCustomLevel, BadgeIds
 from collectives.models.user import User
+
+from tests.fixtures.misc import (
+    custom_skill,
+    custom_skill_with_expiry,
+    custom_skill_with_activity_type,
+)
+from tests.fixtures.app import app
 
 
 def test_add_a_valid_badge(user1):
@@ -245,3 +252,30 @@ def test_remove_sanction_badge(user1: User, event: Event):
     user1.remove_warning_badges(reg2)
     assert not user1.has_a_valid_suspended_badge()
     assert user1.number_of_valid_warning_badges() == 1
+
+
+def test_custom_skill(
+    app,
+    custom_skill: BadgeCustomLevel,
+    custom_skill_with_expiry: BadgeCustomLevel,
+    custom_skill_with_activity_type: BadgeCustomLevel,
+):
+    """Test that custom skill badges have the right properties"""
+    assert "Toute" in custom_skill.descriptor.activity_name()
+    assert "Alpinisme" == custom_skill_with_activity_type.descriptor.activity_name()
+
+    assert custom_skill.descriptor.expiry_date() is None
+    assert custom_skill_with_expiry.descriptor.expiry_date(
+        date.today()
+    ) >= date.today() + timedelta(days=4 * 365)
+    assert custom_skill_with_expiry.descriptor.expiry_date(
+        date.today()
+    ) <= date.today() + timedelta(days=4 * 366)
+
+
+    activity_id = custom_skill_with_activity_type.activity_type.id
+    assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(activity_id)
+    assert custom_skill.descriptor.is_compatible_with_activity(activity_id)
+    assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(None)
+    assert custom_skill.descriptor.is_compatible_with_activity(None)
+    assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(9999)
