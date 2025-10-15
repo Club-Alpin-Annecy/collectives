@@ -381,10 +381,10 @@ def configuration_form(activity_type_id: int = None):
     )
 
 
-@blueprint.route("/competency_badges", methods=["GET", "POST"])
-@blueprint.route("/competency_badge/<int:custom_level_id>", methods=["GET", "POST"])
-def competency_badges(custom_level_id: int | None = None):
-    """Route for managing competency badges"""
+@blueprint.route("/custom_skills", methods=["GET", "POST"])
+@blueprint.route("/custom_skill/<int:custom_level_id>", methods=["GET", "POST"])
+def manage_custom_skills(custom_level_id: int | None = None):
+    """Route for managing custom skill badges"""
 
     activities = {act.id for act in current_user.get_supervised_activities()}
 
@@ -399,7 +399,7 @@ def competency_badges(custom_level_id: int | None = None):
         custom_level = db.session.get(BadgeCustomLevel, custom_level_id)
         if custom_level is None or not is_supervisable_level(custom_level):
             flash("Non autorisé", "error")
-            return redirect(url_for(".competency_badges"))
+            return redirect(url_for(".manage_custom_skills"))
 
     form = BadgeCustomLevelForm(obj=custom_level)
 
@@ -409,13 +409,13 @@ def competency_badges(custom_level_id: int | None = None):
         form.populate_obj(custom_level)
         db.session.add(custom_level)
         db.session.commit()
-        return redirect(url_for(".competency_badges"))
+        return redirect(url_for(".manage_custom_skills"))
 
     levels = BadgeCustomLevel.get_all(include_deprecated=True)
     levels = {level.id: level for level in levels if is_supervisable_level(level)}
 
     return render_template(
-        "activity_supervision/competency_badges.html",
+        "activity_supervision/custom_skills.html",
         title="Gestion des badges de compétence",
         levels=levels,
         custom_level=custom_level,
