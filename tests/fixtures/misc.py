@@ -1,6 +1,6 @@
 import pytest
 
-from collectives.models import db, ActivityType, BadgeCustomLevel, BadgeIds
+from collectives.models import ActivityType, BadgeCustomLevel, BadgeIds, db
 
 
 @pytest.fixture

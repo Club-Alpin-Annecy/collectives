@@ -4,8 +4,8 @@ from io import BytesIO
 
 from openpyxl import Workbook
 
-from collectives.utils.misc import deepgetattr
 from collectives.models.badge import Badge
+from collectives.utils.misc import deepgetattr
 
 
 def export_roles(roles):

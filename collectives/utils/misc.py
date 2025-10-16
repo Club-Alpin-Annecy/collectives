@@ -3,9 +3,9 @@
 import functools
 import io
 import re
-import unicodedata
 import types
-from typing import IO, Union, Any
+import unicodedata
+from typing import IO, Any, Union
 
 from flask import request
 from PIL import Image

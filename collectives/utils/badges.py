@@ -1,6 +1,6 @@
 """Module for base functions of badge management"""
 
-from typing import List, Union, Sequence
+from typing import List, Sequence, Union
 
 from flask import flash, render_template, send_file
 from flask_login import current_user

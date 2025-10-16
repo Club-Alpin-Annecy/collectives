@@ -1,6 +1,6 @@
 """Unit tests for UserGroup class"""
 
-from collectives.models import User, BadgeIds, RegistrationStatus, RoleIds, db
+from collectives.models import BadgeIds, RegistrationStatus, RoleIds, User, db
 from collectives.models.user_group import (
     GroupBadgeCondition,
     GroupEventCondition,

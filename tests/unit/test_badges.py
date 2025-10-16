@@ -12,13 +12,12 @@ from collectives.models import (
 from collectives.models.activity_type import ActivityType
 from collectives.models.badge import Badge, BadgeCustomLevel, BadgeIds
 from collectives.models.user import User
-
+from tests.fixtures.app import app
 from tests.fixtures.misc import (
     custom_skill,
-    custom_skill_with_expiry,
     custom_skill_with_activity_type,
+    custom_skill_with_expiry,
 )
-from tests.fixtures.app import app
 
 
 def test_add_a_valid_badge(user1):

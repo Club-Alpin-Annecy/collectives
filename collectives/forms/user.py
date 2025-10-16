@@ -27,12 +27,12 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.order import OrderedModelForm
+from collectives.forms.utils import coerce_optional
 from collectives.forms.validators import (
     LicenseValidator,
     PasswordValidator,
     UniqueValidator,
 )
-from collectives.forms.utils import coerce_optional
 from collectives.models import (
     ActivityType,
     Badge,

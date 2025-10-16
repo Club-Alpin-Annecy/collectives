@@ -4,15 +4,14 @@ from datetime import date, timedelta
 
 from flask import url_for
 
+from collectives.models import BadgeCustomLevel, BadgeIds, Event, User, db
 from tests import utils
 from tests.fixtures import client
-from tests.fixtures.user import add_badge_to_user
 from tests.fixtures.misc import (
-    custom_skill_with_expiry,
     custom_skill_with_activity_type,
+    custom_skill_with_expiry,
 )
-
-from collectives.models import db, BadgeIds, Event, User, BadgeCustomLevel
+from tests.fixtures.user import add_badge_to_user
 
 # pylint: disable=unused-argument
 

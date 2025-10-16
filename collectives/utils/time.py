@@ -1,6 +1,6 @@
 """Module for time management and display."""
 
-from datetime import datetime, time, date
+from datetime import date, datetime, time
 
 from dateutil import parser, tz
 

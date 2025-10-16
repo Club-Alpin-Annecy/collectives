@@ -14,9 +14,11 @@ from wtforms import (
     SelectField,
     SelectMultipleField,
 )
-from wtforms.validators import ValidationError, Optional as OptionalValidator
+from wtforms.validators import Optional as OptionalValidator
+from wtforms.validators import ValidationError
 from wtforms_alchemy import ModelForm
 
+from collectives.forms.utils import coerce_optional
 from collectives.models import ActivityType, BadgeIds, Configuration, Event, RoleIds, db
 from collectives.models.user_group import (
     GroupBadgeCondition,
@@ -25,7 +27,6 @@ from collectives.models.user_group import (
     GroupRoleCondition,
     UserGroup,
 )
-from collectives.forms.utils import coerce_optional
 
 T = TypeVar("T")
 """ Type variable for typing annotations """

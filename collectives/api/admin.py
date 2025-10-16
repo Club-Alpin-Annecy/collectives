@@ -12,8 +12,8 @@ from collectives.api.common import blueprint
 from collectives.api.schemas import (
     BadgeSchema,
     RoleSchema,
-    UserSchema,
     UserIdentitySchema,
+    UserSchema,
 )
 from collectives.models import Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeIds
