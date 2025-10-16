@@ -453,6 +453,7 @@ def delete_user(user_id: int):
     methods=["POST"],
 )
 def set_competency_badge(user_id: int, badge_id: int, event_id: int):
+    """Route for leaders to add/update a competency badge to a user."""
     user = db.session.get(User, user_id)
     if user is None:
         flash("Utilisateur invalide", "error")

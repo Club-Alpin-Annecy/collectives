@@ -62,8 +62,8 @@ jobs:
           FLASK_APP: collectives:create_app
           SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
         run: |
-          EXPECTED="$(flask db heads)"
-          CURRENT="$(flask db current)"
+          EXPECTED="$(uv run flask db heads)"
+          CURRENT="$(uv run flask db current)"
           echo Expected : $EXPECTED
           echo Current : $CURRENT
           [[ "$EXPECTED" == "$CURRENT"* ]]

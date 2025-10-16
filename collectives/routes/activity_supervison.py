@@ -389,6 +389,7 @@ def manage_custom_skills(custom_level_id: int | None = None):
     activities = {act.id for act in current_user.get_supervised_activities()}
 
     def is_supervisable_level(level: BadgeCustomLevel) -> bool:
+        """Check if the given badge custom level is editable by the current user."""
         return level.badge_id == BadgeIds.Skill and (
             level.descriptor.activity_id is None
             or level.descriptor.activity_id in activities
