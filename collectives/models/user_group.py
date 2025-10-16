@@ -14,6 +14,7 @@ from collectives.models.role import Role, RoleIds
 from collectives.models.user import User
 from collectives.utils.time import current_time
 
+
 class GroupConditionBase:
     """Base class with common fields for all group conditions."""
 

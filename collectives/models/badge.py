@@ -308,9 +308,7 @@ class Badge(db.Model):
 
     expiration_date = db.Column(
         db.Date(),
-        info={
-            "label": "Date d'expiration du badge"
-        },
+        info={"label": "Date d'expiration du badge"},
     )
     """ Date at which this badge will expire
 

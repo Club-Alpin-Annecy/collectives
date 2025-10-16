@@ -272,10 +272,13 @@ def test_custom_skill(
         date.today()
     ) <= date.today() + timedelta(days=4 * 366)
 
-
     activity_id = custom_skill_with_activity_type.activity_type.id
-    assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(activity_id)
+    assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
+        activity_id
+    )
     assert custom_skill.descriptor.is_compatible_with_activity(activity_id)
     assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(None)
     assert custom_skill.descriptor.is_compatible_with_activity(None)
-    assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(9999)
+    assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
+        9999
+    )

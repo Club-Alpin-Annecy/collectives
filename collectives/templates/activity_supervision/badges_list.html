@@ -21,7 +21,8 @@
       window.onload = function () {
         const show_type = {{ 'false' if badge_ids|length==1 else 'true' }};
         const show_level = {{ 'true' if level else 'false' }};
-        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)|safe}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, badgeLevels);
+        const show_grantor = {{ 'true' if show_grantor else 'false' }};
+        loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)|safe}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, show_grantor, badgeLevels);
 
         const searchInput = document.getElementById('user_search');
         setupAutoComplete(

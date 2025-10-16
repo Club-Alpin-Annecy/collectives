@@ -156,7 +156,9 @@ class ActivityType(db.Model):
     """
 
     badge_custom_levels = db.relationship(
-        "BadgeCustomLevel", backref=db.backref("activity_type", lazy="selectin"), lazy=True
+        "BadgeCustomLevel",
+        backref=db.backref("activity_type", lazy="selectin"),
+        lazy=True,
     )
     """Custom badge levels for this activity
 

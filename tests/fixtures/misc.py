@@ -24,6 +24,7 @@ def custom_skill_with_expiry() -> BadgeCustomLevel:
     db.session.commit()
     return custom_level
 
+
 @pytest.fixture
 def custom_skill_with_activity_type(
     activity_name: str = "Alpinisme",

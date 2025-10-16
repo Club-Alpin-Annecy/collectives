@@ -487,9 +487,7 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
             return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
 
         badge = user.get_most_relevant_competency_badge(
-            badge_id=badge_id, activity_id=activity_id, 
-            level=level, 
-            valid_only=False
+            badge_id=badge_id, activity_id=activity_id, level=level, valid_only=False
         )
 
         if not level:

@@ -30,6 +30,7 @@ from collectives.forms.utils import coerce_optional
 T = TypeVar("T")
 """ Type variable for typing annotations """
 
+
 def _empty_string_if_none(value: Optional[T]) -> Union[T, str]:
     """
     :param value: input value
@@ -138,7 +139,7 @@ class GroupBadgeConditionForm(ModelForm):
         if self.badge_id.data:
             return BadgeIds.display_name(BadgeIds(self.badge_id.data))
         return "N'importe quel rôle"
-    
+
     def level_name(self) -> str:
         """:returns: the name of the level if it is not None, a default text otherwise"""
         if self.badge_id.data and self.level.data:
@@ -188,6 +189,7 @@ class GroupBadgeConditionForm(ModelForm):
             raise ValidationError(
                 f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
             )
+
 
 class GroupEventConditionForm(ModelForm):
     """Form for creating event conditions in user group forms"""

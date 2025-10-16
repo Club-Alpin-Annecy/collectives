@@ -204,7 +204,7 @@ def test_badge_level_user_group_members(
     group0 = UserGroup()
 
     # Test event conditions
-    user_level  = user_with_practitioner_badge.get_most_relevant_competency_badge(
+    user_level = user_with_practitioner_badge.get_most_relevant_competency_badge(
         BadgeIds.Practitioner
     ).level
     grc = GroupBadgeCondition(badge_id=BadgeIds.Practitioner, level=user_level)
@@ -218,13 +218,11 @@ def test_badge_level_user_group_members(
     assert len(group0_members) == 1
     assert user_with_practitioner_badge in group0_members
 
-
     grc.level += 1
     db.session.add(grc)
-    db.session.commit() 
+    db.session.commit()
     group0_members = group0.get_members()
     assert len(group0_members) == 0
-
 
     grc.level = user_with_skill_badge.get_most_relevant_competency_badge(
         BadgeIds.Skill

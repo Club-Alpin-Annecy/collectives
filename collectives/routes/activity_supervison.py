@@ -438,6 +438,7 @@ def competency_badge_holders():
         routes=routes,
         level=True,
         allow_add=False,
+        show_grantor=True,
         title="Pratiquants validés",
     )
 

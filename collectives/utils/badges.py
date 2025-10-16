@@ -74,9 +74,10 @@ def list_page(
     badge_types: Union[BadgeIds, List[BadgeIds]] = None,
     auto_date: bool = False,
     level: bool = False,
+    show_grantor: bool = False,
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
-    title: str|None = None,
+    title: str | None = None,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -125,6 +126,7 @@ def list_page(
         badge_ids=[badge_id.value for badge_id in badge_types],
         auto_date=auto_date,
         level=level,
+        show_grantor=show_grantor,
         extends=extends,
         routes=routes,
     )
@@ -155,7 +157,9 @@ def add_badge(
     if badge_type:
         badge.badge_id = badge_type
     if auto_date:
-        badge.expiration_date = compute_default_expiration_date(badge_id=badge.badge_id, level=badge.level)
+        badge.expiration_date = compute_default_expiration_date(
+            badge_id=badge.badge_id, level=badge.level
+        )
 
     user: User = db.session.get(User, badge.user_id)
     if user is None:
@@ -218,7 +222,7 @@ def renew_badge(
     if not has_rights_to_modify_badge(badge, badge_type):
         flash("Badge invalide", "error")
         return None
-    
+
     if badge.expiration_date is None:
         flash("Badge non renouvelable", "warning")
         return None

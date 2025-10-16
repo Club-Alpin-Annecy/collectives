@@ -1,6 +1,7 @@
 """
 Miscellaneous functions for forms
 """
+
 from typing import Callable
 
 from wtforms import StringField, widgets

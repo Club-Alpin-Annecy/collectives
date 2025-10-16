@@ -271,7 +271,6 @@ def add_user_badge(user_id):
 
     form = BadgeForm()
     if not form.validate_on_submit():
-
         return render_template(
             "user_badges.html",
             user=user,
@@ -583,7 +582,10 @@ def badges_list():
         "renew": "administration.renew_badge",
     }
     return badges.list_page(
-        routes=routes, extends="administration/index.html", level=True
+        routes=routes,
+        extends="administration/index.html",
+        level=True,
+        show_grantor=True,
     )
 
 

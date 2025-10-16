@@ -32,8 +32,11 @@ function onclickTriggerInsideForm(e, cell) {
 function profileUrl(cell) {
     return cell.getData().user.profile_uri;
 }
+function grantorUrl(cell) {
+    return cell.getData().grantor.leader_profile_uri;
+}
 
-function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, badgeLevels) {
+function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, showGrantor, badgeLevels) {
     var table = new Tabulator("#badges-table",
         {
             ajaxURL: ajaxUrl,
@@ -49,6 +52,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, ba
                 { title: "Badge", field: "name", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumBadgeIds)}, widthGrow: 3, visible: showType },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
                 { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel,formatter: levelFormatter(badgeLevels)},
+                { title: "Attribué par", field: "grantor.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: grantorUrl }, visible: showGrantor },
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
                 { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
             ],
