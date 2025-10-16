@@ -60,6 +60,7 @@ def test_generate_valid_benevole_cert(client_with_valid_benevole_badge, presiden
 
     Does not check the content, just the absence of error."""
 
+    user = client_with_valid_benevole_badge.user
     response = client_with_valid_benevole_badge.get(f"profile/user/{user.id}")
     assert response.status_code == 200
     assert "Bénévolat régulier" in response.text
