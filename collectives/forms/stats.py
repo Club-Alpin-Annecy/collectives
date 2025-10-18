@@ -5,6 +5,7 @@ from datetime import date
 from wtforms import SelectField, SubmitField
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
+from collectives.models import Event
 
 
 class StatisticsParametersForm(ActivityTypeSelectionForm):
@@ -34,9 +35,14 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
             *self.activity_id.choices,
         ]
         current_year = date.today().year - 2000
+        if date.today().month >= 9:
+            current_year = current_year + 1
+
+        first_year = Event.query.order_by(Event.start).first().start.year - 2000
+
         self.year.choices = [
             (2000 + year, f"Année 20{year}/{year + 1}")
-            for year in range(20, current_year)
+            for year in range(current_year, first_year, -1)
         ]
 
     class Meta:

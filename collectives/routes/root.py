@@ -10,6 +10,7 @@ from collectives.forms import csrf
 from collectives.forms.auth import LegalAcceptation
 from collectives.forms.stats import StatisticsParametersForm
 from collectives.models import Configuration, db
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.stats import StatisticsEngine
 from collectives.utils.time import current_time
 
@@ -47,8 +48,11 @@ def legal_accept():
 
 
 @blueprint.route("/stats")
+@blueprint.route("/stats/")
 @csrf.exempt
-@login_required
+@valid_user()
+@user_is("has_any_role")
+@confidentiality_agreement()
 def statistics():
     """Displays site event statistics."""
     form = StatisticsParametersForm(formdata=request.args)
