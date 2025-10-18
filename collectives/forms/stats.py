@@ -6,6 +6,7 @@ from wtforms import SelectField, SubmitField
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import Event
+from collectives.utils.time import get_ffcam_year
 
 
 class StatisticsParametersForm(ActivityTypeSelectionForm):
@@ -25,24 +26,20 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
 
     def __init__(self, *args, **kwargs):
         """Creates a new form"""
-        current_year = date.today().year - 2000
-        if date.today().month < 9:
-            current_year = current_year - 1
+        current_year = get_ffcam_year(date.today())
 
-        super().__init__(*args, all_enabled=True, year=2000 + current_year, **kwargs)
+        super().__init__(*args, all_enabled=True, year=current_year, **kwargs)
         self.activity_id.choices = [
-            (self.ALL_ACTIVITIES, "Toute activité"),
+            (self.ALL_ACTIVITIES, "Toutes activités"),
             *self.activity_id.choices,
         ]
-        current_year = date.today().year - 2000
-        if date.today().month >= 9:
-            current_year = current_year + 1
 
-        first_year = Event.query.order_by(Event.start).first().start.year - 2000
+        first_event = Event.query.order_by(Event.start).first()
+        first_year = get_ffcam_year(first_event.start)
 
         self.year.choices = [
-            (2000 + year, f"Année 20{year}/{year + 1}")
-            for year in range(current_year, first_year, -1)
+            (year, f"Année {year}/{year + 1}")
+            for year in range(current_year, first_year - 1, -1)
         ]
 
     class Meta:

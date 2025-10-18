@@ -1,6 +1,6 @@
 """Module for time management and display."""
 
-from datetime import datetime, time
+from datetime import date, datetime, time
 
 from dateutil import parser, tz
 
@@ -197,3 +197,14 @@ def format_date_range(start, end, short=True):
 def server_local_time():
     """Alias of :py:func:`current_time`"""
     return current_time()
+
+
+def get_ffcam_year(year: date) -> int:
+    """:return: the FFCAM year (four digits) for a given date.
+
+    EG: 5th of May 2023 -> 2022
+    15th of September 2023 -> 2023"""
+    ffcam_year = year.year
+    if year.month < 9:
+        ffcam_year -= 1
+    return ffcam_year
