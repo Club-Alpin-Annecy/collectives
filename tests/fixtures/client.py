@@ -42,7 +42,7 @@ def login(client, user, password=user.PASSWORD, deactivate_spam_protection=True)
     if client.user:
         logout(client)
     response = client.post(
-        "/auth/login", data={"mail": user.mail, "password": password}
+        "/auth/login", data={"login": user.mail, "password": password}
     )
 
     if deactivate_spam_protection:

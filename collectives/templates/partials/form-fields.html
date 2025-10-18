@@ -40,6 +40,9 @@
     {% if form.submit %}
         {{ form.submit(class="button button-primary input-100") }}
     {% endif %}
+    {% if form.submit_button %}
+        {{ form.submit_button(class="button button-primary input-100") }}
+    {% endif %}
     </div>
     {{ form.csrf_token }}
   </form>

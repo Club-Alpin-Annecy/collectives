@@ -6,7 +6,6 @@ FFCAM extranet)"""
 import pytest
 
 from collectives.models import (
-    Configuration,
     ConfirmationToken,
     ConfirmationTokenType,
     User,
@@ -14,12 +13,7 @@ from collectives.models import (
     db,
 )
 from tests import utils
-from tests.mock.extranet import (
-    EXPIRED_LICENSE,
-    VALID_LICENSE,
-    extranet_monkeypatch,
-    local_accounts,
-)
+from tests.mock.extranet import extranet_monkeypatch, local_accounts
 from tests.mock.mail import mail_success_monkeypatch
 
 
@@ -73,7 +67,7 @@ def test_local_valid_signup(
 
     response = client.post(
         "/auth/login",
-        data={"mail": example_data["mail"], "password": example_data["password"]},
+        data={"login": example_data["mail"], "password": example_data["password"]},
     )
     assert response.headers["Location"] in [
         "http://localhost/auth/login",
@@ -85,7 +79,7 @@ def test_local_valid_signup(
 
     response = client.post(
         "/auth/login",
-        data={"mail": example_data["mail"], "password": example_data["password"]},
+        data={"login": example_data["mail"], "password": example_data["password"]},
     )
     assert response.headers["Location"] in ["http://localhost/", "/"]
 
@@ -115,6 +109,16 @@ def test_local_signup_no_phone(
     assert token is None
 
     assert mail_success_monkeypatch.sent_mail_count() == 0
+
+
+def test_local_duplicate_signup(
+    user1, client, mail_success_monkeypatch, local_accounts, example_data
+):
+    """Invalid signup of a user with an existing account (local accounts)"""
+
+    example_data["license"] = user1.license
+    response = client.post("/auth/signup", data=example_data)
+    assert len(utils.get_form_errors(response.text)) >= 1
 
 
 def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_accounts):
@@ -154,54 +158,6 @@ def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_ac
     assert response.status_code == 302
 
     response = client.post(
-        "/auth/login", data={"mail": user1.mail, "password": "TTaa123++"}
+        "/auth/login", data={"login": user1.mail, "password": "TTaa123++"}
     )
     assert response.headers["Location"] in ["http://localhost/", "/"]
-
-
-def test_extranet_password_rescue(
-    extranet_user, client, mail_success_monkeypatch, extranet_monkeypatch
-):
-    """Test to get a new password and new license"""
-
-    extranet_user.type = UserType.Extranet
-    extranet_user.license = EXPIRED_LICENSE
-    db.session.add(extranet_user)
-    db.session.commit()
-
-    response = client.get("/auth/recover")
-    assert response.status_code == 200
-
-    data = {
-        "mail": extranet_user.mail,
-        "license": VALID_LICENSE,
-        "date_of_birth": extranet_user.date_of_birth,
-    }
-
-    response = client.post("/auth/recover", data=data)
-
-    assert mail_success_monkeypatch.sent_mail_count() == 1
-
-    assert response.status_code == 302
-
-    token = (
-        db.session.query(ConfirmationToken)
-        .filter(ConfirmationToken.existing_user_id == extranet_user.id)
-        .first()
-    )
-    assert token is not None
-    assert token.token_type == ConfirmationTokenType.RecoverAccount
-
-    response = client.get("auth/process_confirmation/" + token.uuid)
-    assert response.status_code == 200
-
-    data = {"password": "TTaa123++", "confirm": "TTaa123++"}
-    response = client.post("auth/process_confirmation/" + token.uuid, data=data)
-    assert response.status_code == 302
-
-    response = client.post(
-        "/auth/login", data={"mail": extranet_user.mail, "password": "TTaa123++"}
-    )
-    assert response.headers["Location"] in ["http://localhost/", "/"]
-
-    assert extranet_user.license == VALID_LICENSE

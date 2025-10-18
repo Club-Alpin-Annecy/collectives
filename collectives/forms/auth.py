@@ -26,14 +26,16 @@ from collectives.models import Configuration, User
 class LoginForm(FlaskForm):
     """Form to log a user ."""
 
-    mail = StringField("Email", validators=[DataRequired()], filters=[strip_string])
+    login = StringField(
+        "Email ou Licence", validators=[DataRequired()], filters=[strip_string]
+    )
     password = PasswordField(
         "Mot de passe",
         validators=[DataRequired()],
         render_kw={"passsword-reveal": "true"},
     )
     remember_me = BooleanField("Se souvenir de la connexion")
-    submit = SubmitField("Login")
+    submit_button = SubmitField("Login")
 
 
 class ExtranetAccountCreationForm(ModelForm, OrderedForm):

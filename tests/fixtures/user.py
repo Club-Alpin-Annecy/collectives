@@ -255,6 +255,20 @@ def extranet_user(prototype_extranet_user):
     return prototype_extranet_user
 
 
+inject_fixture("prototype_user101", ("Lena", "Johnston"))
+
+
+@pytest.fixture
+def user101_same_email(prototype_user101, user1):
+    """:returns: Another user with the same email as user1"""
+
+    prototype_user101.mail = user1.mail
+
+    db.session.add(prototype_user101)
+    db.session.commit()
+    return prototype_user101
+
+
 def promote_to_leader(user, activity="Alpinisme"):
     """Add a leader role to a user.
 
