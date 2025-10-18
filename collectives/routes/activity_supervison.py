@@ -25,10 +25,12 @@ from collectives.forms.activity_type import (
 )
 from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.forms.user import AddLeaderForm
+from collectives.forms.user import AddLeaderForm, BadgeCustomLevelForm
 from collectives.models import (
     ActivityKind,
     ActivityType,
+    BadgeCustomLevel,
+    BadgeIds,
     Configuration,
     Role,
     RoleIds,
@@ -177,7 +179,7 @@ def export_volunteer():
 
     :return: The Excel file with the roles.
     """
-    response = badges.export_badge(badge_type=BadgeIds.Benevole)
+    response = badges.export_badge(badge_types=(BadgeIds.Benevole,))
     if response:
         return response
     flash("Impossible de générer le fichier: droit insuffisants", "error")
@@ -377,3 +379,101 @@ def configuration_form(activity_type_id: int = None):
         form=form,
         extends="activity_supervision/activity_supervision.html",
     )
+
+
+@blueprint.route("/custom_skills", methods=["GET", "POST"])
+@blueprint.route("/custom_skill/<int:custom_level_id>", methods=["GET", "POST"])
+def manage_custom_skills(custom_level_id: int | None = None):
+    """Route for managing custom skill badges"""
+
+    activities = {act.id for act in current_user.get_supervised_activities()}
+
+    def is_supervisable_level(level: BadgeCustomLevel) -> bool:
+        """Check if the given badge custom level is editable by the current user."""
+        return level.badge_id == BadgeIds.Skill and (
+            level.descriptor.activity_id is None
+            or level.descriptor.activity_id in activities
+        )
+
+    custom_level = None
+    if custom_level_id is not None:
+        custom_level = db.session.get(BadgeCustomLevel, custom_level_id)
+        if custom_level is None or not is_supervisable_level(custom_level):
+            flash("Non autorisé", "error")
+            return redirect(url_for(".manage_custom_skills"))
+
+    form = BadgeCustomLevelForm(obj=custom_level)
+
+    if form.validate_on_submit():
+        if custom_level is None:
+            custom_level = BadgeCustomLevel(badge_id=BadgeIds.Skill)
+        form.populate_obj(custom_level)
+        db.session.add(custom_level)
+        db.session.commit()
+        return redirect(url_for(".manage_custom_skills"))
+
+    levels = BadgeCustomLevel.get_all(include_deprecated=True)
+    levels = {level.id: level for level in levels if is_supervisable_level(level)}
+
+    return render_template(
+        "activity_supervision/custom_skills.html",
+        title="Gestion des badges de compétence",
+        levels=levels,
+        custom_level=custom_level,
+        form=form,
+    )
+
+
+@blueprint.route("/competency_badge_holders/", methods=["GET"])
+def competency_badge_holders():
+    """Route for activity supervisors to list user with competency badge"""
+    routes = {
+        "export": "activity_supervision.export_competency_badge_holders",
+        "delete": "activity_supervision.delete_competency_badge",
+        "renew": "activity_supervision.renew_competency_badge",
+    }
+
+    return badges.list_page(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill),
+        auto_date=True,
+        routes=routes,
+        level=True,
+        allow_add=False,
+        show_grantor=True,
+        title="Pratiquants validés",
+    )
+
+
+@blueprint.route("/competency_badge_holders/export", methods=["POST"])
+def export_competency_badge_holders():
+    """Create an Excel document with the contact information of users with badge.
+
+    :return: The Excel file with the roles.
+    """
+    response = badges.export_badge(badge_types=(BadgeIds.Practitioner, BadgeIds.Skill))
+    if response:
+        return response
+    flash("Impossible de générer le fichier: droit insuffisants", "error")
+    return redirect(url_for(".competency_badge_holders"))
+
+
+@blueprint.route("/competency_badge_holders/delete/<int:badge_id>", methods=["POST"])
+def delete_competency_badge(badge_id: int):
+    """Route for an activity supervisor to remove a user competency badge
+
+    :param badge_id: Id of badge to delete
+    """
+
+    badges.delete_badge(badge_id)
+    return redirect(url_for(".competency_badge_holders"))
+
+
+@blueprint.route("/competency_badge_holders/renew/<int:badge_id>", methods=["POST"])
+def renew_competency_badge(badge_id: int):
+    """Route for an activity supervisor to remove a user competency badge
+
+    :param badge_id: Id of badge to delete
+    """
+
+    badges.renew_badge(badge_id)
+    return redirect(url_for(".competency_badge_holders"))

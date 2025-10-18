@@ -1,6 +1,6 @@
 """Module for base functions of badge management"""
 
-from typing import List, Union
+from typing import List, Sequence, Union
 
 from flask import flash, render_template, send_file
 from flask_login import current_user
@@ -12,7 +12,7 @@ from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
 
 
-def export_badge(badge_type: BadgeIds = None):
+def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     """Create an Excel document with the contact information of users with badge.
 
     :param type: The type of badge to export
@@ -45,8 +45,8 @@ def export_badge(badge_type: BadgeIds = None):
         else:
             query = query.filter(Badge.activity_id == activity_type.id)
 
-    if badge_type is not None:
-        query = query.filter(Badge.badge_id == badge_type)
+    if badge_types is not None:
+        query = query.filter(Badge.badge_id.in_(badge_types))
 
     badges = query.all()
 
@@ -62,7 +62,7 @@ def export_badge(badge_type: BadgeIds = None):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"{club_name} - Export {type_title(badge_type)} {filename}.xlsx",
+        download_name=f"{club_name} - Export {type_title(badge_types)} {filename}.xlsx",
         as_attachment=True,
     )
 
@@ -74,8 +74,10 @@ def list_page(
     badge_types: Union[BadgeIds, List[BadgeIds]] = None,
     auto_date: bool = False,
     level: bool = False,
+    show_grantor: bool = False,
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
+    title: str | None = None,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -87,6 +89,7 @@ def list_page(
     :param routes: Lists of urls of others endpoint. This dict should have these keys:
                 ``add``, ``export``, ``delete``, ``renew``,.
     :param allow_add: Whether to allow adding new badges
+    :param title: Title of the page. If None, computed from badge_types
     """
 
     # convert to list
@@ -119,10 +122,11 @@ def list_page(
         "activity_supervision/badges_list.html",
         add_badge_form=add_badge_form,
         export_form=export_form,
-        title=type_title(badge_types),
+        title=title or type_title(badge_types),
         badge_ids=[badge_id.value for badge_id in badge_types],
         auto_date=auto_date,
         level=level,
+        show_grantor=show_grantor,
         extends=extends,
         routes=routes,
     )
@@ -153,7 +157,9 @@ def add_badge(
     if badge_type:
         badge.badge_id = badge_type
     if auto_date:
-        badge.expiration_date = compute_default_expiration_date()
+        badge.expiration_date = compute_default_expiration_date(
+            badge_id=badge.badge_id, level=badge.level
+        )
 
     user: User = db.session.get(User, badge.user_id)
     if user is None:
@@ -197,6 +203,7 @@ def add_badge(
             "info",
         )
 
+    badge.grantor_id = current_user.id
     db.session.add(badge)
     db.session.commit()
 
@@ -210,13 +217,18 @@ def renew_badge(
     """Route for an activity supervisor to add or renew a Badge to a user.
 
     :param type: The type of badge to renew"""
-    badge = db.session.get(Badge, badge_id)
+    badge: Badge = db.session.get(Badge, badge_id)
 
     if not has_rights_to_modify_badge(badge, badge_type):
         flash("Badge invalide", "error")
         return None
 
-    badge.expiration_date = compute_default_expiration_date()
+    if badge.expiration_date is None:
+        flash("Badge non renouvelable", "warning")
+        return None
+
+    badge.expiration_date = compute_default_expiration_date(badge.badge_id, badge.level)
+    badge.grantor_id = current_user.id
     db.session.add(badge)
     db.session.commit()
     return None
@@ -247,8 +259,8 @@ def type_title(badge_type: Union[BadgeIds, List[BadgeIds]]) -> str:
     """
     if isinstance(badge_type, BadgeIds):
         return badge_type.display_name()
-    if badge_type and len(badge_type) == 1:
-        return badge_type[0].display_name()
+    if badge_type and len(badge_type) <= 3:
+        return ", ".join([bdg.display_name() for bdg in badge_type])
     return "Badge"
 
 

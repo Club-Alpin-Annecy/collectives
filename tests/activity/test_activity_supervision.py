@@ -1,6 +1,8 @@
 """Module to test activity supervision functions."""
 
+from collectives.models import db
 from collectives.models.activity_type import ActivityKind, ActivityType
+from collectives.models.badge import BadgeCustomLevel
 
 
 def test_index(supervisor_client):
@@ -107,3 +109,47 @@ def test_add_service(admin_client):
     activity = ActivityType.query.filter_by(trigram="TS2").first()
     assert activity is not None
     assert activity.short == f"test-service-{activity.id}"
+
+
+def test_manage_custom_skills(supervisor_client):
+    """Test access to custom skill management page"""
+    response = supervisor_client.get("/activity_supervision/custom_skills")
+    assert response.status_code == 200
+    assert "Spécialisations" in response.text
+
+    response = supervisor_client.get("/activity_supervision/custom_skill/999999")
+    assert response.status_code == 302  # Redirect due to non-existing skill
+    assert response.location.endswith("/activity_supervision/custom_skills")
+
+    # Test adding a new custom skill level
+    data = {
+        "name": "Test Skill",
+        "abbrev": "TS",
+        "activity_id": "",  # No activity
+        "default_validity": "0",
+    }
+    response = supervisor_client.post(
+        "/activity_supervision/custom_skills", data=data, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "Spécialisations" in response.text
+
+    skill = BadgeCustomLevel.query.filter_by(name="Test Skill").first()
+    assert skill is not None
+    assert skill.abbrev == "TS"
+    assert skill.activity_id is None
+    assert skill.default_validity == 0
+
+    # Test editing the custom skill level
+    edit_url = f"/activity_supervision/custom_skill/{skill.id}"
+    data["name"] = "Updated Test Skill"
+    data["abbrev"] = "UTS"
+    data["default_validity"] = "12"
+    response = supervisor_client.post(edit_url, data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert "Spécialisations" in response.text
+
+    updated_skill = db.session.get(BadgeCustomLevel, skill.id)
+    assert updated_skill.name == "Updated Test Skill"
+    assert updated_skill.abbrev == "UTS"
+    assert updated_skill.default_validity == 12

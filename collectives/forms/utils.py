@@ -2,6 +2,8 @@
 Miscellaneous functions for forms
 """
 
+from typing import Callable
+
 from wtforms import StringField, widgets
 from wtforms.fields import SelectMultipleField
 
@@ -60,3 +62,11 @@ class PhoneField(StringField):
             ],
             **kwargs,
         )
+
+
+def coerce_optional(coerce: Callable) -> Callable:
+    """Tranforms a coerce function such that it returns None for None or empty string inputs
+    :param coerce: the original coercing function
+    :return: the modified coercing function
+    """
+    return lambda item: None if item is None or item == "" else coerce(item)

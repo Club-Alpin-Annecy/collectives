@@ -12,7 +12,16 @@
 
   <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField", "HiddenField" ]) %}
+        {% if field.type == "HiddenField"%}
+            {{ field }}
+        {% elif field.type == "BooleanField"%}
+            <div class="controls">
+                <div style="display: inline-block;">{{ field }} {{ field.label }}</div><br />
+                <div class="label-help">
+                    {{ field.description }}
+                </div>
+            </div>
+        {% elif not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
             <div class="controls">
                 {{ field.label(class="label-top") }}
                 <div class="label-help">{{ field.description }}</div>
@@ -28,8 +37,6 @@
                     {{ field(title=field.description, class="input-100") }}
                 {% endif %}
             </div>
-        {% elif field.type == "HiddenField"%}
-            {{ field }}
         {% endif %}
     {% endfor %}
     {% if form.hidden_tag %}

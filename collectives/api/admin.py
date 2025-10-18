@@ -6,10 +6,15 @@ from flask import request, url_for
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import and_, desc
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from collectives.api.common import blueprint
-from collectives.api.schemas import BadgeSchema, RoleSchema, UserSchema
+from collectives.api.schemas import (
+    BadgeSchema,
+    RoleSchema,
+    UserIdentitySchema,
+    UserSchema,
+)
 from collectives.models import Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeIds
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
@@ -169,7 +174,7 @@ class LeaderRoleSchema(RoleSchema):
         )
     )
 
-    user = fields.Nested(UserSchema)
+    user = fields.Nested(UserIdentitySchema)
 
     class Meta(RoleSchema.Meta):
         """Fields to expose"""
@@ -201,14 +206,18 @@ class UserBadgeSchema(BadgeSchema):
         )
     )
 
-    user = fields.Nested(UserSchema)
+    user = fields.Nested(UserIdentitySchema)
+
+    grantor = fields.Nested(UserIdentitySchema)
 
     class Meta(BadgeSchema.Meta):
         """Fields to expose"""
 
         fields = (
             "user",
+            "grantor",
             "activity_type",
+            "badge_id",
             "name",
             "expiration_date",
             "level",
@@ -237,10 +246,6 @@ def leaders():
     supervised_activities = current_user.get_supervised_activities()
 
     query = db.session.query(Role)
-    query = query.options(
-        joinedload(Role.user).selectinload(User.roles),
-        joinedload(Role.user).selectinload(User.badges),
-    )
     query = query.filter(Role.role_id.in_(RoleIds.all_relates_to_activity()))
     query = query.filter(Role.activity_id.in_(a.id for a in supervised_activities))
     query = query.join(Role.user)
@@ -276,18 +281,17 @@ def badges():
     badge_ids = [BadgeIds(badge_id) for badge_id in badge_ids]
 
     query = db.session.query(Badge)
-    query = query.options(
-        joinedload(Badge.user).selectinload(User.roles),
-        joinedload(Badge.user).selectinload(User.badges),
-    )
     if badge_ids:
         query = query.filter(Badge.badge_id.in_(badge_ids))
     if supervised_activities:
         query = query.filter(
             Badge.activity_id.in_(a.id for a in supervised_activities),
         )
-    query = query.join(Badge.user)
-    query = query.order_by(User.last_name, User.first_name, User.id)
+
+    Recipient = aliased(User)
+    query = query.join(Recipient, Badge.user)
+    query = query.join(Badge.grantor, isouter=True)
+    query = query.order_by(Recipient.last_name, Recipient.first_name, Recipient.id)
 
     badges_list = query.all()
 

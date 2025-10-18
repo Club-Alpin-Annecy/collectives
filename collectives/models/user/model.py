@@ -265,7 +265,25 @@ class UserModelMixin:
         :type: list(:py:class:`collectives.models.badge.Badge`)
         """
         return db.relationship(
-            "Badge", backref="user", lazy=True, cascade="all, delete-orphan"
+            "Badge",
+            backref="user",
+            foreign_keys="[Badge.user_id]",
+            lazy=True,
+            cascade="all, delete-orphan",
+        )
+
+    @declared_attr
+    def granted_badges(self):
+        """List all badged granted by this user
+
+        :type: list(:py:class:`collectives.models.badge.Badge`)
+        """
+        return db.relationship(
+            "Badge",
+            backref="grantor",
+            foreign_keys="[Badge.grantor_id]",
+            lazy=True,
+            cascade="all, delete-orphan",
         )
 
     @declared_attr

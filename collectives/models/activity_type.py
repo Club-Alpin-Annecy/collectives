@@ -147,13 +147,22 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.user.User`
     """
 
-    # Relationships
     badges = db.relationship(
         "Badge", backref=db.backref("activity_type", lazy="selectin"), lazy=True
     )
     """Person with a badge with this activity
 
     :type: :py:class:`collectives.models.user.User`
+    """
+
+    badge_custom_levels = db.relationship(
+        "BadgeCustomLevel",
+        backref=db.backref("activity_type", lazy="selectin"),
+        lazy=True,
+    )
+    """Custom badge levels for this activity
+
+    :type: :py:class:`collectives.models.badge.BadgeCustomLevel`
     """
 
     def __str__(self) -> str:

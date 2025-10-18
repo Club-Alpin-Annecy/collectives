@@ -1,9 +1,17 @@
 """Module to test user profile pages."""
 
+from datetime import date, timedelta
+
 from flask import url_for
 
+from collectives.models import BadgeCustomLevel, BadgeIds, Event, User, db
 from tests import utils
 from tests.fixtures import client
+from tests.fixtures.misc import (
+    custom_skill_with_activity_type,
+    custom_skill_with_expiry,
+)
+from tests.fixtures.user import add_badge_to_user
 
 # pylint: disable=unused-argument
 
@@ -17,6 +25,7 @@ def test_show_user_profile(user1_client):
     assert user.full_name() in response.text
     assert user.license in response.text
     assert user.mail in response.text
+    assert "Bénévolat régulier" not in response.text
 
 
 def test_show_user_profile_to_leader_with_event(leader_client, event1_with_reg, user1):
@@ -49,6 +58,12 @@ def test_generate_valid_benevole_cert(client_with_valid_benevole_badge, presiden
     """Test the volunteer cert generation.
 
     Does not check the content, just the absence of error."""
+
+    user = client_with_valid_benevole_badge.user
+    response = client_with_valid_benevole_badge.get(f"profile/user/{user.id}")
+    assert response.status_code == 200
+    assert "Bénévolat régulier" in response.text
+
     response = client_with_valid_benevole_badge.get("/profile/user/volunteer/cert")
     assert response.status_code == 200
     assert response.content_length > 200000
@@ -150,3 +165,209 @@ def test_delete_user(user1_client, user2):
     assert user1_client.user.first_name == "Compte"
     assert user1_client.user.license == str(user1_client.user.id)
     assert "localhost" in user1_client.user.mail
+
+
+def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: User):
+    """Test user access to its profile."""
+
+    badge = add_badge_to_user(
+        user1,
+        BadgeIds.Practitioner,
+        level=3,
+    )
+    db.session.commit()
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    assert badge.level_name() in response.text
+
+
+def test_update_user_practitioner_badge(
+    leader_client, event1_with_reg: Event, user1: User
+):
+    """Test setting practice level badge for user."""
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    # post badge update
+    data = utils.load_data_from_form(response.text, "practitioner_badge_form")
+
+    data["level"] = 4
+    data["activity_id"] = event1_with_reg.activity_types[0].id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Practitioner,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = event1_with_reg.activity_types[0].id
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Practitioner, activity_id=activity_id
+    )
+    assert badge is not None
+    assert badge.level == 4
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Niveau de pratique" in response.text
+    assert badge.level_name() in response.text
+    assert badge.activity_id == activity_id
+
+    # post badge deletion
+
+    data = utils.load_data_from_form(response.text, "practitioner_badge_form")
+    data["level"] = 0
+    data["activity_id"] = activity_id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Practitioner,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Practitioner, activity_id=activity_id
+    )
+    assert badge is None
+
+
+def test_set_user_skill_badge(
+    leader_client,
+    event1_with_reg: Event,
+    user1: User,
+    custom_skill_with_activity_type: BadgeCustomLevel,
+    custom_skill_with_expiry: BadgeCustomLevel,
+):
+    """Test setting skill badge for user."""
+
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+
+    # post badge update
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+
+    data["level"] = custom_skill_with_expiry.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = event1_with_reg.activity_types[0].id
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Skill,
+        level=custom_skill_with_expiry.id,
+    )
+    assert badge is not None
+    assert badge.level == custom_skill_with_expiry.id
+    assert badge.expiration_date is not None
+    assert badge.activity_id is None
+    assert badge.grantor_id == leader_client.user.id
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Spécialisation" in response.text
+    assert badge.level_name() in response.text
+
+    # badge with activity
+
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+    data["level"] = custom_skill_with_activity_type.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    activity_id = custom_skill_with_activity_type.activity_type.id
+    badge = user1.get_most_relevant_competency_badge(
+        badge_id=BadgeIds.Skill,
+        activity_id=activity_id,
+    )
+    assert badge is not None
+    assert badge.level == custom_skill_with_activity_type.id
+    assert badge.expiration_date is None
+    assert badge.activity_id is activity_id
+    assert badge.grantor_id == leader_client.user.id
+
+    # check badge is showing up
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert response.status_code == 200
+    assert "Spécialisation" in response.text
+    assert badge.level_name() in response.text
+    assert len(user1.get_competency_badges()) == 2
+
+    badge.expiration_date = date.today()
+    db.session.commit()
+    # Re-add the same badge, should renew the expiration date
+
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+    data["level"] = custom_skill_with_activity_type.id
+
+    response = leader_client.post(
+        url_for(
+            "profile.set_competency_badge",
+            badge_id=BadgeIds.Skill,
+            user_id=user1.id,
+            event_id=event1_with_reg.id,
+        ),
+        data=data,
+    )
+    assert response.status_code == 302
+    assert response.location in url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+
+    assert len(user1.get_competency_badges()) == 2
+    assert badge.expiration_date is None

@@ -1,5 +1,6 @@
 
 {% extends 'base.html' %}
+{% import 'partials/form-fields.html' as generator  %}
 
 {% block content %}
 <div class="page-content" id="administration">
@@ -9,6 +10,9 @@
   <ul>
   {% for badge in user.badges %}
   <li>{{badge.name}}
+  {% if badge.level %}
+   <em>{{badge.level_name()}}</em>
+  {% endif %}
   {% if badge.registration %}
    pour l'événement <a href="{{url_for('event.view_event', event_id=badge.registration.event.id)}}">{{badge.registration.event.title}}</a>
   {% endif %}
@@ -18,8 +22,8 @@
   {% if badge.expiration_date %}
    expirant le <em>{{format_date(badge.expiration_date)}}</em>
   {% endif %}
-  {% if badge.level %}
-   avec le niveau <em>{{badge.level}}</em>
+  {% if badge.grantor %}
+    (attribué par {{badge.grantor.full_name()}})
   {% endif %}
     <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -34,15 +38,6 @@
   </ul>
 
   <h4 class="heading-4">Nouveau badge</h4>
-  <form action="{{url_for('administration.add_user_badge', user_id=user.id)}}" method="POST" >
-    {% for field in form %}
-        {% if not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
-          {{ field.label }}
-          {{ field }}<br/>
-        {% endif %}
-    {% endfor %}
-    {{ form.hidden_tag() }}
-     <br/>{{ form.submit(class="button button-primary") }}
-  </form>
+  {{ generator.form_generator(form, action=url_for('administration.add_user_badge', user_id=user.id)) }}
 </div>
 {% endblock %}

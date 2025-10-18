@@ -12,15 +12,15 @@ from sqlalchemy import and_, func
 from sqlalchemy.orm import Query
 
 from collectives.api.common import blueprint
-from collectives.api.schemas import UserSchema
+from collectives.api.schemas import UserIdentitySchema
 from collectives.models import EventType, Role, RoleIds, User, db
 from collectives.utils.access import confidentiality_agreement, valid_user
 
 
-class AutocompleteUserSchema(UserSchema):
+class AutocompleteUserSchema(UserIdentitySchema):
     """Schema under which autocomplete suggestions are returned"""
 
-    class Meta(UserSchema.Meta):
+    class Meta(UserIdentitySchema.Meta):
         """Fields to expose"""
 
         fields = (

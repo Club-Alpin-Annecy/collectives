@@ -241,6 +241,7 @@ function createBadgeConditionsTable(id) {
         const eventId = cell.getRow().getData().event_id
         return hiddenField(rowIndex, "badge_id", row.getData().badge_id)
             + hiddenField(rowIndex, "activity_id", row.getData().activity_id)
+            + hiddenField(rowIndex, "level", row.getData().level)
             + hiddenField(rowIndex, "condition_id", row.getData().condition_id);
     }
 
@@ -251,6 +252,7 @@ function createBadgeConditionsTable(id) {
             columns: [
                 {title: "Badge", field: "badge_name", formatter: "text"},
                 {title: "Activité", field: "activity_name", formatter: "text"},
+                {title: "Niveau", field: "level_name", formatter: "text"},
                 {title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id)},
                 { field: "delete", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteRow, headerSort: false },
                 { field: "badge_id",  formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
@@ -270,15 +272,19 @@ function setupBadgeConditionsEditor(fieldId, existing) {
     return table;
 }
 
-function addBadgeCondition(fieldId, badgeSelectId, activitySelectId) {
+function addBadgeCondition(fieldId, badgeSelectId, activitySelectId, levelSelectId) {
     var badgeSelect = document.getElementById(badgeSelectId);
     var activitySelect = document.getElementById(activitySelectId);
-    
+    var levelSelect = document.getElementById(levelSelectId);
+
     var badge_id = badgeSelect.value;
     var badge_name = badgeSelect.options[badgeSelect.selectedIndex].text;
     
     var activity_id = activitySelect.value;
     var activity_name = activitySelect.options[activitySelect.selectedIndex].text;
+
+    var level = levelSelect.value;
+    var level_name = levelSelect.options[levelSelect.selectedIndex]?.text || "";
     
     var table = Tabulator.prototype.findTable("#"+fieldId)[0];
     var rowCount = table.getRows().length;
@@ -293,7 +299,9 @@ function addBadgeCondition(fieldId, badgeSelectId, activitySelectId) {
                 "badge_name": badge_name,
                 "activity_id": activity_id,
                 "activity_name": activity_name,
-                "invert": false, 
+                "level": level,
+                "level_name": level_name,
+                "invert": false,
             }
         ]
     );

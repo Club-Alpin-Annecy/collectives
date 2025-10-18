@@ -6,6 +6,7 @@ from typing import List
 from flask_uploads import IMAGES, UploadSet
 from werkzeug.datastructures import FileStorage
 
+from collectives.models.activity_type import ActivityType
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
@@ -178,3 +179,9 @@ class EventMiscMixin:
         if not user.is_active:
             return []
         return QuestionAnswer.user_answers(self.id, user.id)
+
+    def single_activity_type(self) -> ActivityType | None:
+        """If the event has a single activity type, returns it, else None."""
+        if len(self.activity_types) == 1:
+            return self.activity_types[0]
+        return None

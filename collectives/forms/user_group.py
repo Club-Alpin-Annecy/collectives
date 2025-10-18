@@ -14,9 +14,11 @@ from wtforms import (
     SelectField,
     SelectMultipleField,
 )
+from wtforms.validators import Optional as OptionalValidator
 from wtforms.validators import ValidationError
 from wtforms_alchemy import ModelForm
 
+from collectives.forms.utils import coerce_optional
 from collectives.models import ActivityType, BadgeIds, Configuration, Event, RoleIds, db
 from collectives.models.user_group import (
     GroupBadgeCondition,
@@ -28,14 +30,6 @@ from collectives.models.user_group import (
 
 T = TypeVar("T")
 """ Type variable for typing annotations """
-
-
-def _coerce_optional(coerce: Callable[..., T]) -> Callable[..., T]:
-    """Tranforms a coerce function such that it returns None for None or empty string inputs
-    :param coerce: the original coercing function
-    :return: the modified coercing function
-    """
-    return lambda item: None if item is None or item == "" else coerce(item)
 
 
 def _empty_string_if_none(value: Optional[T]) -> Union[T, str]:
@@ -59,8 +53,8 @@ class GroupRoleConditionForm(ModelForm):
 
     condition_id = HiddenField()
 
-    role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
-    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    role_id = SelectField("Rôle", coerce=coerce_optional(RoleIds.coerce))
+    activity_id = SelectField("Activité", coerce=coerce_optional(int))
 
     delete = BooleanField("Supprimer")
 
@@ -112,8 +106,9 @@ class GroupBadgeConditionForm(ModelForm):
 
     condition_id = HiddenField()
 
-    badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
-    activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    badge_id = SelectField("Badge", coerce=coerce_optional(BadgeIds.coerce))
+    activity_id = SelectField("Activité", coerce=coerce_optional(int))
+    level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     delete = BooleanField("Supprimer")
 
@@ -146,12 +141,55 @@ class GroupBadgeConditionForm(ModelForm):
             return BadgeIds.display_name(BadgeIds(self.badge_id.data))
         return "N'importe quel rôle"
 
+    def level_name(self) -> str:
+        """:returns: the name of the level if it is not None, a default text otherwise"""
+        if self.badge_id.data and self.level.data:
+            try:
+                return BadgeIds(self.badge_id.data).levels()[int(self.level.data)].name
+            except (ValueError, IndexError):
+                pass
+        return "Tous niveaux"
+
     def validate_activity_id(self, field):
         """WTFForms validator function that make sure the activity_id field is not set
         if the selected badge is not related to an activity"""
         badge_id = self.badge_id.coerce(self.badge_id.data)
         if badge_id is not None and not badge_id.relates_to_activity():
             field.data = None
+
+    def validate_level(self, field):
+        """WTFForms validator function that make sure the level field is not set
+        if the selected badge has not meaningful levels"""
+        badge_id: BadgeIds = self.badge_id.coerce(self.badge_id.data)
+        if badge_id is None:
+            # No level restriction is possible
+            field.data = None
+            return
+        levels = badge_id.levels()
+        if not levels:
+            # No meaningful levels for this badge, ignore
+            field.data = None
+            return
+
+        if not field.data:
+            if badge_id.requires_level():
+                raise ValidationError(
+                    f"Le badge {badge_id.display_name()} doit être précisé"
+                )
+            field.data = None
+            return
+
+        level = int(field.data)
+        if level not in levels:
+            raise ValidationError(
+                f"Niveau invalide pour le badge {badge_id.display_name()}"
+            )
+
+        level_desc = levels[level]
+        if not level_desc.is_compatible_with_activity(self.activity_id.data):
+            raise ValidationError(
+                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
+            )
 
 
 class GroupEventConditionForm(ModelForm):
@@ -166,7 +204,7 @@ class GroupEventConditionForm(ModelForm):
     condition_id = HiddenField()
 
     event_id = IntegerField("Événement")
-    is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
+    is_leader = SelectField("Rôle", coerce=coerce_optional(int))
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -207,16 +245,17 @@ class UserGroupForm(ModelForm):
         FormField(GroupEventConditionForm, default=GroupEventCondition)
     )
 
-    new_event_is_leader = SelectField("Rôle", coerce=_coerce_optional(int))
+    new_event_is_leader = SelectField("Rôle", coerce=coerce_optional(int))
 
     license_conditions = SelectMultipleField("Types de licence")
     license_invert = SelectField("Négation", coerce=int, default=0)
 
-    new_role_id = SelectField("Rôle", coerce=_coerce_optional(RoleIds.coerce))
-    new_role_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    new_role_id = SelectField("Rôle", coerce=coerce_optional(RoleIds.coerce))
+    new_role_activity_id = SelectField("Activité", coerce=coerce_optional(int))
 
-    new_badge_id = SelectField("Badge", coerce=_coerce_optional(BadgeIds.coerce))
-    new_badge_activity_id = SelectField("Activité", coerce=_coerce_optional(int))
+    new_badge_id = SelectField("Badge", coerce=coerce_optional(BadgeIds.coerce))
+    new_badge_activity_id = SelectField("Activité", coerce=coerce_optional(int))
+    new_badge_level = IntegerField("Niveau", validators=[OptionalValidator()])
 
     def __init__(self, *args, **kwargs):
         """Overloaded  constructor"""
@@ -329,6 +368,8 @@ class UserGroupForm(ModelForm):
                 "badge_name": Markup(condition_form.badge_name()),
                 "activity_id": _empty_string_if_none(condition_form.activity_id.data),
                 "activity_name": Markup(condition_form.activity_name()),
+                "level": _empty_string_if_none(condition_form.level.data),
+                "level_name": Markup(condition_form.level_name()),
                 "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.badge_conditions)

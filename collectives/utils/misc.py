@@ -3,8 +3,9 @@
 import functools
 import io
 import re
+import types
 import unicodedata
-from typing import IO, Union
+from typing import IO, Any, Union
 
 from flask import request
 from PIL import Image
@@ -16,23 +17,24 @@ class NoDefault:
     pass
 
 
-def deepgetattr(obj, attr, default=NoDefault()):
+def deepgetattr(
+    obj: object, attr: str, default: Any = NoDefault(), resolve_method: bool = False
+) -> Any:
     """Recurses through an attribute chain to get the ultimate value.
 
     Example: `deepgetattr(role, 'user.first_name')`
 
     :param obj: The Object to get attribute from
-    :type param: Object
     :param attr: The attribute to get. Use dots to get attribute  of an attribute
-    :type attr: String
     :param default: Optionnal. If no attribute is found, return this value. If default
                     is not defined, throw an exception
-    :type default: Object
-    :return: the selected attribute
-    :rtype: Object"""
+    :param resolve_method: Whether to call the attribute if it is a method
+    :return: the selected attribute"""
 
     try:
-        return functools.reduce(getattr, attr.split("."), obj)
+        res = functools.reduce(getattr, attr.split("."), obj)
+        return res() if type(res) is types.MethodType else res
+
     except AttributeError as exception:
         if not isinstance(default, NoDefault):
             return default
