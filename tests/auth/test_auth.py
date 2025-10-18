@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from collectives.models import db
 from tests.fixtures import user
 
 
@@ -46,7 +47,22 @@ def test_spam_protection(client, user1):
     assert response.location == "/"
 
 
-def test_login_same_email(client, app, user1, user101_same_email):
+def test_login_same_email_different_pwd(client, app, user1, user101_same_email):
+    """Tests login with non-unique email addresses"""
+
+    user1.password = "test123+!"
+    db.session.add(user1)
+    db.session.commit()
+
+    # Connection with user101_same_email
+    response = client.post(
+        "/auth/login",
+        data={"login": user101_same_email.mail, "password": user.PASSWORD},
+    )
+    assert response.location == "/"
+
+
+def test_login_same_email_same_pwd(client, app, user1, user101_same_email):
     """Tests login with non-unique email addresses"""
     # Connection with user1
     response = client.post(

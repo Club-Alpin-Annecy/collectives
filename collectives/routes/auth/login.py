@@ -46,6 +46,8 @@ def login():
         users = User.query.filter_by(license=form.login.data).all()
 
     if len(users) > 1:
+        users = [u for u in users if u.password == form.password.data]
+
         users_list = "".join(
             f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{u.license}')\" >
                         {u.full_name()}</span>"""

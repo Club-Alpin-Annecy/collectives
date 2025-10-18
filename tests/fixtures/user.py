@@ -260,8 +260,7 @@ inject_fixture("prototype_user101", ("Lena", "Johnston"))
 
 @pytest.fixture
 def user101_same_email(prototype_user101, user1):
-    """:returns: An user with the same email as user1, ie they are using the
-    same email account. Eg a family sharing an email address."""
+    """:returns: Another user with the same email as user1"""
 
     prototype_user101.mail = user1.mail
 

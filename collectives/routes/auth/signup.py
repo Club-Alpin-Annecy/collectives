@@ -248,9 +248,9 @@ def signup():
         # Local account recovery
         else:
             if (
-                user.mail != form.mail.data
-                or user.date_of_birth != form.date_of_birth.data
-                or user.license != form.license.data
+                existing_user.mail != form.mail.data
+                or existing_user.date_of_birth != form.date_of_birth.data
+                or existing_user.license != form.license.data
             ):
                 form.generic_error = (
                     "L'e-mail et/ou la date de naissance ne correspondent pas au numéro "
