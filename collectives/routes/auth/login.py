@@ -45,9 +45,12 @@ def login():
     else:
         users = User.query.filter_by(license=form.login.data).all()
 
+    # If multiple users with same email, filter by password
     if len(users) > 1:
         users = [u for u in users if u.password == form.password.data]
 
+    # If even after password filtering there are multiple users, ask user to select
+    if len(users) > 1:
         users_list = "".join(
             f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{u.license}')\" >
                         {u.full_name()}</span>"""
