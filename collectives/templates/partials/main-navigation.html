@@ -108,6 +108,14 @@
                             </li>
                             {% endif %}
 
+                            {%  if current_user.has_any_role() %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('root.statistics')}}" class="menu-dropdown-item-link"><img
+                                        src="{{ url_for('static', filename='img/icon/ionicon/stats-chart.svg') }}" class="legacy-icon" />
+                                    Statistiques</a>
+                            </li>
+                            {% endif %}
+
                             {% if Configuration.MAIN_MENU_LINKS is not none and Configuration.MAIN_MENU_LINKS is mapping %}
                                 {% for menu_item in Configuration.MAIN_MENU_LINKS.items() %}
                                         <li class="menu-dropdown-item">
