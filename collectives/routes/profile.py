@@ -24,8 +24,11 @@ from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
-from collectives.forms.user import DeleteUserForm
+from collectives.forms.user import CompetencyBadgeForm, DeleteUserForm
 from collectives.models import (
+    ActivityType,
+    Badge,
+    BadgeIds,
     Configuration,
     Event,
     Gender,
@@ -70,6 +73,9 @@ def show_user(user_id: int, event_id: int = 0):
     if user is None:
         abort(404)
 
+    practitioner_badge_form = None
+    skill_badge_form = None
+
     if user.id != current_user.id:
         if not current_user.has_any_role():
             flash("Non autorisé", "error")
@@ -97,7 +103,20 @@ def show_user(user_id: int, event_id: int = 0):
             )
             return redirect(url_for("profile.confidentiality_agreement"))
 
-    return render_template("profile.html", title="Profil adhérent", user=user)
+        if current_user.is_leader():
+            practitioner_badge_form = CompetencyBadgeForm(
+                badge_id=BadgeIds.Practitioner
+            )
+            skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
+
+    return render_template(
+        "profile.html",
+        title="Profil adhérent",
+        user=user,
+        practitioner_badge_form=practitioner_badge_form,
+        skill_badge_form=skill_badge_form,
+        event_id=event_id,
+    )
 
 
 @blueprint.route("/organizer/<leader_id>", methods=["GET"])
@@ -427,3 +446,69 @@ def delete_user(user_id: int):
         user=user,
         form=form,
     )
+
+
+@blueprint.route(
+    "/user/<int:user_id>/set_competency_badge/<int:badge_id>/from_event/<int:event_id>",
+    methods=["POST"],
+)
+def set_competency_badge(user_id: int, badge_id: int, event_id: int):
+    """Route for leaders to add/update a competency badge to a user."""
+    user = db.session.get(User, user_id)
+    if user is None:
+        flash("Utilisateur invalide", "error")
+        return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
+
+    if not current_user.is_leader():
+        flash("Non autorisé", "error")
+        return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
+
+    badge_id = BadgeIds(badge_id)
+
+    form = CompetencyBadgeForm(badge_id=badge_id)
+
+    if form.validate_on_submit():
+        level = form.level.data
+        if level:
+            level_desc = badge_id.levels()[level]
+
+        if badge_id == BadgeIds.Practitioner:
+            activity_id = form.activity_id.data
+        else:
+            activity_id = level_desc.activity_id
+
+        if activity_id is not None and not current_user.can_lead_activity(
+            ActivityType.get(activity_id)
+        ):
+            flash(
+                "Vous ne pouvez pas définir un niveau de pratique pour une activité "
+                "dont vous n'êtes pas encadrant(e)",
+                "error",
+            )
+            return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
+
+        badge = user.get_most_relevant_competency_badge(
+            badge_id=badge_id, activity_id=activity_id, level=level, valid_only=False
+        )
+
+        if not level:
+            # Remove badge if level is 0
+            if badge is not None:
+                db.session.delete(badge)
+        else:
+            if badge is None:
+                badge = Badge(
+                    badge_id=badge_id,
+                    user_id=user.id,
+                    activity_id=activity_id,
+                )
+
+            badge.level = form.level.data
+            badge.expiration_date = level_desc.expiry_date()
+            badge.grantor_id = current_user.id
+            db.session.add(badge)
+
+        db.session.commit()
+        flash(f"Badge {badge_id.display_name()} mis à jour", "success")
+
+    return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))

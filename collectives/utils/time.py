@@ -69,6 +69,40 @@ def current_time() -> datetime:
     return now.replace(tzinfo=None)
 
 
+def add_months(months: int, from_date: date | None = None) -> date:
+    """
+    Add months to a date.
+
+    :param from_date: date from which to add months (default: today)
+    :param months: number of months to add (may be negative)
+    :return: new date with months added
+    """
+    if from_date is None:
+        from_date = current_time().date()
+
+    month = from_date.month - 1 + months
+    year = from_date.year + month // 12
+    month = month % 12 + 1
+    day = min(
+        from_date.day,
+        [
+            31,
+            29 if year % 4 == 0 and not year % 100 == 0 else 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ][month - 1],
+    )
+    return date(year, month, day)
+
+
 def parse_api_date(date_str: str, day_only: bool = True) -> datetime:
     """
     Parse a date from client API calls

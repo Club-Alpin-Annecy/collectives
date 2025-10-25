@@ -10,7 +10,7 @@ from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.api.common import blueprint, marshmallow
-from collectives.api.schemas import EventSchema, UserSchema
+from collectives.api.schemas import EventSchema, UserIdentitySchema
 from collectives.models import (
     ActivityKind,
     ActivityType,
@@ -323,7 +323,7 @@ class QuestionAnswerSchema(marshmallow.SQLAlchemyAutoSchema):
 
     :type: :py:class:`marshmallow.fields.Function`"""
 
-    user = fields.Nested(UserSchema, only=("full_name",))
+    user = fields.Nested(UserIdentitySchema, only=("full_name",))
     question = fields.Nested(QuestionSchema, only=("title",))
 
     registration_status = fields.Function(_get_answer_registration_status)

@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
-      matrix:
-        python-version: ['3.9']
     env:
       DB_DATABASE: testdb2
       DB_USER: root
@@ -23,9 +21,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
-
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Install the project
         run: uv sync --locked --no-dev
@@ -67,8 +62,8 @@ jobs:
           FLASK_APP: collectives:create_app
           SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
         run: |
-          EXPECTED="$(flask db heads)"
-          CURRENT="$(flask db current)"
+          EXPECTED="$(uv run flask db heads)"
+          CURRENT="$(uv run flask db current)"
           echo Expected : $EXPECTED
           echo Current : $CURRENT
           [[ "$EXPECTED" == "$CURRENT"* ]]

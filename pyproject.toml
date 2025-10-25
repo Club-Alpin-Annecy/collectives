@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Event management system for outdoor activities"
 authors = [{name = "Caf Annecy", email = "support-collectives@cafannecy.fr"}]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "cssmin",
     "itsdangerous",

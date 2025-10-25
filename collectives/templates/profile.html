@@ -167,23 +167,21 @@
                 </td>
             </tr>
             {% endif %}
+            {% if user.has_a_valid_benevole_badge() %}
             <tr>
                 <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/> Bénévolat régulier :</td>
                 <td>
-                    {% if user.has_a_valid_benevole_badge() %}
                         {% for activity in user.activities_with_valid_badge([models.BadgeIds.Benevole])  %}
                             {% if loop.index != 1 %} & {% endif %}
                             {{activity.name}} 
                         {% endfor %}
-                    {% else %}
-                        Non
-                    {% endif %}
                 </td>
             </tr>
+            {% endif %}
+            {% if user.roles %}
             <tr>
                 <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Rôle(s) sur le site :</td>
                 <td>
-                    {% if user.roles %}
                         {% for role in user.roles %}
                             {% if loop.index != 1 %} & {% endif %}
                             {{role.name}}
@@ -191,11 +189,60 @@
                                 pour l'activité <em>{{role.activity_type.name}}</em>
                             {% endif %}
                         {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="head"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/checkmark-outline.svg') }}" alt=""/>Compétences validées :</td>
+                <td>
+                    {% if user.has_a_valid_competency_badge() %}
+                        <ul style="margin-top: 0">
+                        {% for badge in user.get_competency_badges() %}
+                            <li>{{badge.name}} {{badge.level_name()}}
+                            {% if badge.activity_type %}
+                                pour l'activité <em>{{badge.activity_type.name}}</em>
+                            {% endif %}
+                            {% if badge.expiration_date %}
+                                jusqu'au {{format_date(badge.expiration_date)}}
+                            {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
                     {% else %}
-                        Aucun
+                        Aucune
                     {% endif %}
                 </td>
             </tr>
+            {% if practitioner_badge_form and not practitioner_badge_form.empty() %}
+            <tr>
+                <td class="head">
+                    Attributer un niveau de pratique :
+                </td>
+                <td>
+                    <form class="form" id="practitioner_badge_form" action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
+                        {{practitioner_badge_form.hidden_tag()}}
+                        {{practitioner_badge_form.level()}}
+                        en
+                        {{practitioner_badge_form.activity_id()}}
+                        {{practitioner_badge_form.submit(class_="button button-secondary button-small")}}
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+            {% if skill_badge_form and not skill_badge_form.empty() %}
+            <tr>
+                <td class="head">
+                    Attributer une spécialisation :
+                </td>
+                <td>
+                    <form class="form" id="skill_badge_form" action="{{url_for('.set_competency_badge', badge_id=skill_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
+                        {{skill_badge_form.hidden_tag()}}
+                        {{skill_badge_form.level()}}
+                        {{skill_badge_form.submit(class_="button button-secondary button-small")}}
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
         </table>
 
     <h4 class="heading-4">Sorties à venir</h4>

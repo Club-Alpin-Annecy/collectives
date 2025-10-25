@@ -27,6 +27,14 @@
       <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"/>
       Documents
     </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.manage_custom_skills')}}">
+        <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/library-outline.svg') }}"/>
+        Spécialisations
+    </a>
+    <a class="button button-primary" href="{{ url_for('activity_supervision.competency_badge_holders')}}">
+        <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/checkmark-circle-outline.svg') }}"/>
+        Pratiquants validés
+    </a>
   </div>
 
   {% block page_content %}{% endblock %}

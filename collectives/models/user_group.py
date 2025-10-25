@@ -12,6 +12,7 @@ from collectives.models.globals import db
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.role import Role, RoleIds
 from collectives.models.user import User
+from collectives.utils.time import current_time
 
 
 class GroupConditionBase:
@@ -104,6 +105,16 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
     :type: :py:class:`collectives.models.RoleId``
     """
 
+    level = db.Column(
+        db.Integer,
+        nullable=True,
+        info={"label": "Niveau du badge"},
+    )
+    """ Level of the badge that group members must have. If null, any level is allowed
+
+    :type: int
+    """
+
     activity_id = db.Column(
         db.Integer, db.ForeignKey("activity_types.id"), nullable=True
     )
@@ -120,27 +131,37 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
     def get_condition(self, time: datetime):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
         non_expired = ~(Badge.expiration_date < time.date())  # NULL means non-expired
-        if self.badge_id and self.activity_id:
-            return User.badges.any(
-                and_(
-                    Badge.badge_id == self.badge_id,
-                    Badge.activity_id == self.activity_id,
-                    non_expired,
-                )
-            )
+        conditions = [non_expired]
+
         if self.badge_id:
-            return User.badges.any(and_(Badge.badge_id == self.badge_id, non_expired))
+            conditions.append(Badge.badge_id == self.badge_id)
         if self.activity_id:
-            return User.badges.any(
-                and_(Badge.activity_id == self.activity_id, non_expired)
-            )
-        return User.badges.any(non_expired)
+            conditions.append(Badge.activity_id == self.activity_id)
+        if self.level:
+            badge_type = BadgeIds(self.badge_id)
+            if badge_type.has_ordered_levels():
+                conditions.append(Badge.level >= self.level)
+            else:
+                conditions.append(Badge.level == self.level)
+        return User.badges.any(and_(*conditions))
 
     def clone(self) -> "GroupBadgeCondition":
         """:return: a deep copy of this object"""
         return GroupBadgeCondition(
-            badge_id=self.badge_id, activity_id=self.activity_id, invert=self.invert
+            badge_id=self.badge_id,
+            activity_id=self.activity_id,
+            level=self.level,
+            invert=self.invert,
         )
+
+    def level_name(self) -> str:
+        """Returns the name of the badge level."""
+        if self.badge_id and self.level:
+            level_desc = self.badge_id.levels().get(self.level)
+            if level_desc:
+                return level_desc.name
+            return f"niveau {self.level}"
+        return ""
 
 
 class GroupEventCondition(db.Model, GroupConditionBase):
@@ -334,8 +355,10 @@ class UserGroup(db.Model):
         """:return: the list of negative license conditions"""
         return [condition for condition in self.license_conditions if condition.invert]
 
-    def get_members(self, time: datetime = None) -> List[User]:
+    def get_members(self, time: datetime | None = None) -> List[User]:
         """:return: the list of group members"""
+        if time is None:
+            time = current_time()
         return self._build_query(time).all()
 
     def contains(self, user: User, time: datetime) -> bool:

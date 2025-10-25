@@ -49,37 +49,8 @@ class RoleSchema(marshmallow.SQLAlchemyAutoSchema):
         )
 
 
-class BadgeSchema(marshmallow.SQLAlchemyAutoSchema):
-    """Schema for the badges of a user.
-
-    Mainly used in :py:attr:`UserSchema.badges`
-    """
-
-    name = fields.Str()
-
-    activity_type = fields.Nested(ActivityTypeSchema, only=["name"])
-
-    class Meta:
-        """Fields to expose"""
-
-        model = Badge
-        include_relationships = True
-        fields = (
-            "name",
-            "badge_id",
-            "activity_type",
-            "expiration_date",
-            "level",
-        )
-
-
-class UserSchema(marshmallow.SQLAlchemyAutoSchema):
-    """Schema of a user to be used to extract API information.
-
-    This class is a ``marshmallow`` schema which automatically gets its
-    structure from the ``User`` class. Plus, we add some useful information
-    or link. This schema is only used for administration listing.
-    """
+class UserIdentitySchema(marshmallow.SQLAlchemyAutoSchema):
+    """Minimalistic user schema, without relationships"""
 
     profile_uri = fields.Function(
         lambda user: url_for("profile.show_user", user_id=user.id)
@@ -110,6 +81,56 @@ class UserSchema(marshmallow.SQLAlchemyAutoSchema):
 
     :type: string"""
 
+    is_active = fields.Boolean()
+
+    class Meta:
+        """Fields to expose"""
+
+        model = User
+        include_relationships = False
+        fields = (
+            "id",
+            "mail",
+            "is_active",
+            "enabled",
+            "avatar_uri",
+            "first_name",
+            "last_name",
+            "profile_uri",
+            "leader_profile_uri",
+            "full_name",
+        )
+
+
+class BadgeSchema(marshmallow.SQLAlchemyAutoSchema):
+    """Schema for the badges of a user.
+
+    Mainly used in :py:attr:`UserSchema.badges`
+    """
+
+    name = fields.Str()
+
+    activity_type = fields.Nested(ActivityTypeSchema, only=["name"])
+
+    class Meta:
+        """Fields to expose"""
+
+        model = Badge
+        include_relationships = True
+        fields = (
+            "name",
+            "badge_id",
+            "activity_type",
+            "expiration_date",
+            "level",
+        )
+
+
+class UserSchema(UserIdentitySchema):
+    """
+    More complete user schema, with role and badge relationships
+    """
+
     roles = fields.Nested(RoleSchema, many=True)
     """ List of roles of the User.
 
@@ -120,26 +141,15 @@ class UserSchema(marshmallow.SQLAlchemyAutoSchema):
 
     :type: list(dict())"""
 
-    is_active = fields.Boolean()
-
     class Meta:
         """Fields to expose"""
 
         model = User
         include_relationships = True
         fields = (
-            "id",
-            "mail",
-            "is_active",
-            "enabled",
-            "avatar_uri",
-            "first_name",
-            "last_name",
+            *UserIdentitySchema.Meta.fields,
             "roles",
             "badges",
-            "profile_uri",
-            "leader_profile_uri",
-            "full_name",
         )
 
 
