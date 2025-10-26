@@ -5,11 +5,13 @@ from datetime import date
 from typing import NamedTuple
 
 from sqlalchemy.sql import func
+from sqlalchemy.orm import validates
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 from collectives.utils.time import add_months
+from collectives.utils.misc import truncate
 
 
 class BadgeLevelDescriptor(NamedTuple):
@@ -182,13 +184,13 @@ class BadgeCustomLevel(db.Model):
 
     :type: int"""
 
-    name = db.Column(db.String, nullable=False, info={"label": "Nom"})
+    name = db.Column(db.String(255), nullable=False, info={"label": "Nom"})
     """ Description of the badge level.
 
     :type: str"""
 
     abbrev = db.Column(
-        db.String,
+        db.String(10),
         nullable=False,
         info={"label": "Abréviation", "description": "Par exemple, un emoji."},
     )
@@ -249,6 +251,16 @@ class BadgeCustomLevel(db.Model):
             return self.activity_type.name
 
         return "Toutes activités"
+
+    @validates("name", "abbrev")
+    def truncate_string(self, key: str, value: str) -> str:
+        """Truncates a string to the max SQL field length
+        :param key: name of field to validate
+        :param value: tentative value
+        :return: Truncated string.
+        """
+        max_len = getattr(self.__class__, key).prop.columns[0].type.length
+        return truncate(value, max_len)
 
 
 class Badge(db.Model):
