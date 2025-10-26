@@ -49,7 +49,7 @@ class GroupRoleConditionForm(ModelForm):
         """Fields to expose"""
 
         model = GroupRoleCondition
-        only = []
+        only = ["invert"]
 
     condition_id = HiddenField()
 
@@ -102,7 +102,7 @@ class GroupBadgeConditionForm(ModelForm):
         """Fields to expose"""
 
         model = GroupBadgeCondition
-        only = []
+        only = ["invert"]
 
     condition_id = HiddenField()
 
@@ -199,7 +199,7 @@ class GroupEventConditionForm(ModelForm):
         """Fields to expose"""
 
         model = GroupEventCondition
-        only = []
+        only = ["invert"]
 
     condition_id = HiddenField()
 
