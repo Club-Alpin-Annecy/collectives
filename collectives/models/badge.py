@@ -4,14 +4,14 @@ import json
 from datetime import date
 from typing import NamedTuple
 
-from sqlalchemy.sql import func
 from sqlalchemy.orm import validates
+from sqlalchemy.sql import func
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
-from collectives.utils.time import add_months
 from collectives.utils.misc import truncate
+from collectives.utils.time import add_months
 
 
 class BadgeLevelDescriptor(NamedTuple):
