@@ -171,7 +171,7 @@ class BadgeCustomLevel(db.Model):
 
     :type: int"""
 
-    level = db.Column(db.Integer, index=True)
+    level = db.Column(db.Integer, nullable=False, index=True)
     """ Database primary key
 
     :type: int"""
