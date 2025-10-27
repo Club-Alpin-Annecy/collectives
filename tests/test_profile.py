@@ -274,7 +274,7 @@ def test_set_user_skill_badge(
     # post badge update
     data = utils.load_data_from_form(response.text, "skill_badge_form")
 
-    data["level"] = custom_skill_with_expiry.id
+    data["level"] = custom_skill_with_expiry.level
 
     response = leader_client.post(
         url_for(
@@ -293,10 +293,10 @@ def test_set_user_skill_badge(
     activity_id = event1_with_reg.activity_types[0].id
     badge = user1.get_most_relevant_competency_badge(
         badge_id=BadgeIds.Skill,
-        level=custom_skill_with_expiry.id,
+        level=custom_skill_with_expiry.level,
     )
     assert badge is not None
-    assert badge.level == custom_skill_with_expiry.id
+    assert badge.level == custom_skill_with_expiry.level
     assert badge.expiration_date is not None
     assert badge.activity_id is None
     assert badge.grantor_id == leader_client.user.id
@@ -312,7 +312,7 @@ def test_set_user_skill_badge(
     # badge with activity
 
     data = utils.load_data_from_form(response.text, "skill_badge_form")
-    data["level"] = custom_skill_with_activity_type.id
+    data["level"] = custom_skill_with_activity_type.level
 
     response = leader_client.post(
         url_for(
@@ -334,7 +334,7 @@ def test_set_user_skill_badge(
         activity_id=activity_id,
     )
     assert badge is not None
-    assert badge.level == custom_skill_with_activity_type.id
+    assert badge.level == custom_skill_with_activity_type.level
     assert badge.expiration_date is None
     assert badge.activity_id is activity_id
     assert badge.grantor_id == leader_client.user.id
@@ -353,7 +353,7 @@ def test_set_user_skill_badge(
     # Re-add the same badge, should renew the expiration date
 
     data = utils.load_data_from_form(response.text, "skill_badge_form")
-    data["level"] = custom_skill_with_activity_type.id
+    data["level"] = custom_skill_with_activity_type.level
 
     response = leader_client.post(
         url_for(

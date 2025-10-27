@@ -407,13 +407,19 @@ def manage_custom_skills(custom_level_id: int | None = None):
     if form.validate_on_submit():
         if custom_level is None:
             custom_level = BadgeCustomLevel(badge_id=BadgeIds.Skill)
+            custom_level.level = (
+                db.session.query(db.func.max(BadgeCustomLevel.level))
+                .filter(BadgeCustomLevel.badge_id == BadgeIds.Skill)
+                .scalar()
+                or 0
+            ) + 1
         form.populate_obj(custom_level)
         db.session.add(custom_level)
         db.session.commit()
         return redirect(url_for(".manage_custom_skills"))
 
-    levels = BadgeCustomLevel.get_all(include_deprecated=True)
-    levels = {level.id: level for level in levels if is_supervisable_level(level)}
+    levels = BadgeCustomLevel.get_all(badge_id=BadgeIds.Skill, include_deprecated=True)
+    levels = {level.level: level for level in levels if is_supervisable_level(level)}
 
     return render_template(
         "activity_supervision/custom_skills.html",

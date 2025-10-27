@@ -4,6 +4,7 @@ import json
 from datetime import date
 from typing import NamedTuple
 
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import validates
 from sqlalchemy.sql import func
 
@@ -29,17 +30,19 @@ class BadgeLevelDescriptor(NamedTuple):
     months_of_validity: int = 0
     """Number of months this level is valid for, 0 if unlimited"""
 
+    accepts_activity: bool = True
+    """Whether this level accepts being associated with an activity"""
+
     def is_compatible_with_activity(self, activity_id: int | None) -> bool:
         """Check if this level is compatible with the given activity.
 
         :param activity_id: activity to check compatibility with (or None)
         :return: True if the level is compatible with the activity
         """
-        return (
-            self.activity_id is None
-            or activity_id is None
-            or self.activity_id == activity_id
-        )
+        if not self.accepts_activity:
+            return activity_id is None
+
+        return self.activity_id is None or self.activity_id == activity_id
 
     def activity_name(self) -> str:
         """Returns the name of the corresponding activity
@@ -99,12 +102,19 @@ class BadgeIds(ChoiceEnum):
             cls.Skill: "Spécialisation",
         }
 
-    def relates_to_activity(self) -> bool:
+    def requires_activity(self) -> bool:
         """Check if this badge needs an activity.
 
         :return: True if the badge requires an activity.
         """
         return self in {BadgeIds.Practitioner, BadgeIds.Benevole}
+
+    def accepts_activity(self) -> bool:
+        """Check if this badge may be associated with an activity.
+
+        :return: True if the badge may be associated with an activity.
+        """
+        return self in {BadgeIds.Practitioner, BadgeIds.Benevole, BadgeIds.Skill}
 
     def has_custom_levels(self) -> bool:
         """Whether the levels for this badge are user-defined"""
@@ -134,9 +144,8 @@ class BadgeIds(ChoiceEnum):
             }
         if self.has_custom_levels():
             return {
-                level.id: level.descriptor
-                for level in BadgeCustomLevel.get_all()
-                if level.badge_id == self
+                level.level: level.descriptor
+                for level in BadgeCustomLevel.get_all(self)
             }
         return {}
 
@@ -158,6 +167,11 @@ class BadgeCustomLevel(db.Model):
     __tablename__ = "badge_custom_levels"
 
     id = db.Column(db.Integer, primary_key=True)
+    """ Database primary key
+
+    :type: int"""
+
+    level = db.Column(db.Integer, nullable=False, index=True)
     """ Database primary key
 
     :type: int"""
@@ -222,21 +236,32 @@ class BadgeCustomLevel(db.Model):
     )
     """ Whether this custom level is deprecated."""
 
+    __table_args__ = (
+        UniqueConstraint(level, badge_id, activity_id, name="_custom_level_uc"),
+    )
+
     @property
     def descriptor(self) -> BadgeLevelDescriptor:
         """Returns the descriptor for this custom level."""
         return BadgeLevelDescriptor(
-            self.name, self.abbrev, self.activity_id, self.default_validity
+            self.name,
+            self.abbrev,
+            self.activity_id,
+            self.default_validity,
+            accepts_activity=self.activity_id is not None,
         )
 
     @classmethod
-    def get_all(cls, include_deprecated: bool = False) -> list["BadgeCustomLevel"]:
-        """Returns all custom badge levels, possibly filtering out deprecated ones.
+    def get_all(
+        cls, badge_id: BadgeIds, include_deprecated: bool = False
+    ) -> list["BadgeCustomLevel"]:
+        """Returns all custom badge level, possibly filtering out deprecated ones.
 
+        :param badge_id: badge type to get custom levels for
         :param include_deprecated: if True, includes deprecated custom badge levels
         :return: list of custom badge levels
         """
-        query = cls.query
+        query = cls.query.filter_by(badge_id=badge_id)
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()

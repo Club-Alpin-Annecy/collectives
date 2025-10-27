@@ -288,7 +288,7 @@ def add_user_badge(user_id):
         # Check that the badge does not already exist
         badge.activity_type = db.session.get(ActivityType, form.activity_id.data)
 
-        if badge_id.relates_to_activity():
+        if badge_id.requires_activity():
             if badge.activity_type is None:
                 raise BadgeValidationException(
                     "Ce badge doit être associé à une activité"

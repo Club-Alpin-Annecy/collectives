@@ -154,7 +154,7 @@ class GroupBadgeConditionForm(ModelForm):
         """WTFForms validator function that make sure the activity_id field is not set
         if the selected badge is not related to an activity"""
         badge_id = self.badge_id.coerce(self.badge_id.data)
-        if badge_id is not None and not badge_id.relates_to_activity():
+        if badge_id is not None and not badge_id.accepts_activity():
             field.data = None
 
     def validate_level(self, field):
@@ -186,9 +186,13 @@ class GroupBadgeConditionForm(ModelForm):
             )
 
         level_desc = levels[level]
+
+        if level_desc.activity_id is not None and not self.activity_id.data:
+            self.activity_id.data = level_desc.activity_id
+
         if not level_desc.is_compatible_with_activity(self.activity_id.data):
             raise ValidationError(
-                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée"
+                f"Le choix '{level_desc.name}' est incompatible avec l'activité sélectionnée '{self.activity_name()}'"
             )
 
 
@@ -236,13 +240,16 @@ class UserGroupForm(ModelForm):
         only = []
 
     role_conditions = FieldList(
-        FormField(GroupRoleConditionForm, default=GroupRoleCondition)
+        label="Restrictions par rôle",
+        unbound_field=FormField(GroupRoleConditionForm, default=GroupRoleCondition),
     )
     badge_conditions = FieldList(
-        FormField(GroupBadgeConditionForm, default=GroupBadgeCondition)
+        label="Restrictions par badge",
+        unbound_field=FormField(GroupBadgeConditionForm, default=GroupBadgeCondition),
     )
     event_conditions = FieldList(
-        FormField(GroupEventConditionForm, default=GroupEventCondition)
+        label="Restrictions par événement",
+        unbound_field=FormField(GroupEventConditionForm, default=GroupEventCondition),
     )
 
     new_event_is_leader = SelectField("Rôle", coerce=coerce_optional(int))

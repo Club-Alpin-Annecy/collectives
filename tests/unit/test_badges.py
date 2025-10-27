@@ -275,8 +275,10 @@ def test_custom_skill(
     assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
         activity_id
     )
-    assert custom_skill.descriptor.is_compatible_with_activity(activity_id)
-    assert custom_skill_with_activity_type.descriptor.is_compatible_with_activity(None)
+    assert not custom_skill.descriptor.is_compatible_with_activity(activity_id)
+    assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
+        None
+    )
     assert custom_skill.descriptor.is_compatible_with_activity(None)
     assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
         9999
