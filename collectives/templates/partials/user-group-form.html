@@ -1,6 +1,18 @@
 
+{% macro user_group_form_errors(conditions) -%}
+{% for errors in conditions.errors if errors %}
+<div class="flash flash-error">
+    {% for field_name, field_errors in errors.items() %}
+    {% for error in field_errors %}
+        <strong>Erreur :</strong> {{error}}
+    {% endfor %}
+    {% endfor %}
+</div>
+{% endfor %}
+{%- endmacro %}
 
 <h5 class="heading-5">Participation à un événement</h4>
+{{ user_group_form_errors(user_group_form.event_conditions) }}
 <div id="{{user_group_form.event_conditions.id}}" class="user_group_condition_table">
 </div>
 
@@ -9,6 +21,7 @@
 <input type="text" id="{{user_group_form.prefix}}event-search" placeholder="Titre ou ID…">
 
 <h5 class="heading-5">Détention d'un rôle</h4>
+{{ user_group_form_errors(user_group_form.role_conditions) }}
 <div id="{{user_group_form.role_conditions.id}}" class="user_group_condition_table">
 </div>
 
@@ -21,6 +34,7 @@ Détenteurs du rôle :
 ></div>
 
 <h5 class="heading-5">Détention d'un badge</h4>
+{{ user_group_form_errors(user_group_form.badge_conditions) }}
 <div id="{{user_group_form.badge_conditions.id}}" class="user_group_condition_table">
 </div>
 

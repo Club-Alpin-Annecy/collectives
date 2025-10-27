@@ -85,7 +85,12 @@
     {% for field in form%}
     {% for error in form.errors[field.name] %}
     <div class="flash flash-error">
-      <strong>Erreur : {{field.label}} :</strong> {{error}}
+      <strong>Erreur : {{field.label}} :</strong> 
+      {% if field.type == "FormField" %}
+        {{ field[error].label }}
+      {% else %}
+        {{error}}
+      {% endif %}
     </div>
     {% endfor %}
     {% endfor %}

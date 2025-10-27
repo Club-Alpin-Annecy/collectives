@@ -184,7 +184,9 @@ class EventForm(ModelForm, FlaskForm):
 
     edit_session_id = HiddenField()
 
-    user_group = FormField(UserGroupForm, default=UserGroup)
+    user_group = FormField(
+        UserGroupForm, label="Restrictions d'inscription", default=UserGroup
+    )
 
     def __init__(self, *args, **kwargs):
         """

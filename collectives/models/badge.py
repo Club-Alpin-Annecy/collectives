@@ -29,15 +29,20 @@ class BadgeLevelDescriptor(NamedTuple):
     months_of_validity: int = 0
     """Number of months this level is valid for, 0 if unlimited"""
 
+    accepts_activity: bool = True
+    """Whether this level accepts being associated with an activity"""
+
     def is_compatible_with_activity(self, activity_id: int | None) -> bool:
         """Check if this level is compatible with the given activity.
 
         :param activity_id: activity to check compatibility with (or None)
         :return: True if the level is compatible with the activity
         """
+        if not self.accepts_activity:
+            return activity_id is None
+
         return (
             self.activity_id is None
-            or activity_id is None
             or self.activity_id == activity_id
         )
 
@@ -99,12 +104,19 @@ class BadgeIds(ChoiceEnum):
             cls.Skill: "Spécialisation",
         }
 
-    def relates_to_activity(self) -> bool:
+    def requires_activity(self) -> bool:
         """Check if this badge needs an activity.
 
         :return: True if the badge requires an activity.
         """
         return self in {BadgeIds.Practitioner, BadgeIds.Benevole}
+
+    def accepts_activity(self) -> bool:
+        """Check if this badge may be associated with an activity.
+
+        :return: True if the badge may be associated with an activity.
+        """
+        return self in {BadgeIds.Practitioner, BadgeIds.Benevole, BadgeIds.Skill}
 
     def has_custom_levels(self) -> bool:
         """Whether the levels for this badge are user-defined"""
@@ -226,7 +238,11 @@ class BadgeCustomLevel(db.Model):
     def descriptor(self) -> BadgeLevelDescriptor:
         """Returns the descriptor for this custom level."""
         return BadgeLevelDescriptor(
-            self.name, self.abbrev, self.activity_id, self.default_validity
+            self.name,
+            self.abbrev,
+            self.activity_id,
+            self.default_validity,
+            accepts_activity=self.activity_id is not None,
         )
 
     @classmethod
