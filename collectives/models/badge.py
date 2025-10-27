@@ -4,6 +4,7 @@ import json
 from datetime import date
 from typing import NamedTuple
 
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import validates
 from sqlalchemy.sql import func
 
@@ -41,10 +42,7 @@ class BadgeLevelDescriptor(NamedTuple):
         if not self.accepts_activity:
             return activity_id is None
 
-        return (
-            self.activity_id is None
-            or self.activity_id == activity_id
-        )
+        return self.activity_id is None or self.activity_id == activity_id
 
     def activity_name(self) -> str:
         """Returns the name of the corresponding activity
@@ -146,9 +144,8 @@ class BadgeIds(ChoiceEnum):
             }
         if self.has_custom_levels():
             return {
-                level.id: level.descriptor
-                for level in BadgeCustomLevel.get_all()
-                if level.badge_id == self
+                level.level: level.descriptor
+                for level in BadgeCustomLevel.get_all(self)
             }
         return {}
 
@@ -170,6 +167,11 @@ class BadgeCustomLevel(db.Model):
     __tablename__ = "badge_custom_levels"
 
     id = db.Column(db.Integer, primary_key=True)
+    """ Database primary key
+
+    :type: int"""
+
+    level = db.Column(db.Integer, index=True)
     """ Database primary key
 
     :type: int"""
@@ -234,6 +236,10 @@ class BadgeCustomLevel(db.Model):
     )
     """ Whether this custom level is deprecated."""
 
+    __table_args__ = (
+        UniqueConstraint(level, badge_id, activity_id, name="_custom_level_uc"),
+    )
+
     @property
     def descriptor(self) -> BadgeLevelDescriptor:
         """Returns the descriptor for this custom level."""
@@ -246,13 +252,16 @@ class BadgeCustomLevel(db.Model):
         )
 
     @classmethod
-    def get_all(cls, include_deprecated: bool = False) -> list["BadgeCustomLevel"]:
-        """Returns all custom badge levels, possibly filtering out deprecated ones.
+    def get_all(
+        cls, badge_id: BadgeIds, include_deprecated: bool = False
+    ) -> list["BadgeCustomLevel"]:
+        """Returns all custom badge level, possibly filtering out deprecated ones.
 
+        :param badge_id: badge type to get custom levels for
         :param include_deprecated: if True, includes deprecated custom badge levels
         :return: list of custom badge levels
         """
-        query = cls.query
+        query = cls.query.filter_by(badge_id=badge_id)
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
         return query.all()

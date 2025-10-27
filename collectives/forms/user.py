@@ -461,7 +461,7 @@ class BadgeCustomLevelForm(OrderedModelForm):
         """Fields to expose"""
 
         model = BadgeCustomLevel
-        exclude = ["badge_id"]
+        exclude = ["badge_id", "level"]
 
     activity_id = SelectField("Activité", choices=[], coerce=coerce_optional(int))
 
