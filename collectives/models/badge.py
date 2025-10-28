@@ -130,9 +130,12 @@ class BadgeIds(ChoiceEnum):
         """Whether this badge requires specifying a level."""
         return self.has_custom_levels() or self == BadgeIds.Practitioner
 
-    def levels(self) -> dict[int, BadgeLevelDescriptor]:
+    def levels(
+        self, include_deprecated: bool = False
+    ) -> dict[int, BadgeLevelDescriptor]:
         """Returns the human-readable levels for this type of badge.
 
+        :param include_deprecated: if True, includes deprecated custom badge levels
         :return: dict of levels descriptors
         """
         if self == BadgeIds.Practitioner:
@@ -145,9 +148,17 @@ class BadgeIds(ChoiceEnum):
         if self.has_custom_levels():
             return {
                 level.level: level.descriptor
-                for level in BadgeCustomLevel.get_all(self)
+                for level in BadgeCustomLevel.get_all(self, include_deprecated)
             }
         return {}
+
+    def level(self, level: int) -> BadgeLevelDescriptor | None:
+        """Returns the descriptor for a given level of this badge.
+
+        :param level: level to get the descriptor for
+        :return: level descriptor, or None if the level does not exist
+        """
+        return self.levels(include_deprecated=True).get(level)
 
     @classmethod
     def js_levels(cls) -> str:
@@ -397,14 +408,13 @@ class Badge(db.Model):
         :param short: if True, returns the short name (abbreviation/emoji)
         :return: name of the badge.
         """
-        level_desc = self.badge_id.levels().get(self.level)
-        if level_desc:
-            return (
-                level_desc.abbrev
-                if short
-                else f"{level_desc.name} ({level_desc.abbrev})"
-            )
-        return self.level
+        level_desc = self.badge_id.level(self.level)
+        if level_desc is None:
+            return self.level
+
+        return (
+            level_desc.abbrev if short else f"{level_desc.name} ({level_desc.abbrev})"
+        )
 
     @property
     def activity_name(self):
