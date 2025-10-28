@@ -172,7 +172,7 @@ class StatisticsEngine:
             "name": "Durée d'encadrements totale",
             "description": "Nombre de journée d'encadrement."
             "Les événements annulés sont exclus. "
-            "Un evènement de deux heures ou moins compte pour 1/4. "
+            "Un evènement de deux heures et demi ou moins compte pour 1/4. "
             "Un evènement de quatre heures ou moins compte pour 1/2. "
             "Un evènement de plus de quatre heures compte pour 1. "
             "Un evènement de plus d'une journée se voit arrondi au nombre de "
@@ -187,13 +187,46 @@ class StatisticsEngine:
             "La somme peut être supérieure au nombre total d'événements "
             "car un événement encadré par deux personnes compte pour chaque "
             "encadrant. "
-            "Un evènement de deux heures ou moins compte pour 1/4. "
+            "Un evènement de deux heures et demi ou moins compte pour 1/4. "
             "Un evènement de quatre heures ou moins compte pour 1/2. "
             "Un evènement de plus de quatre heures compte pour 1. "
             "Un evènement de plus d'une journée se voit arrondi au nombre de "
             "jour supérieur. "
             "Un événement avec plusieurs encadrants compte autant qu'il y a "
             "d'encadrants. ",
+        },
+        "attendee_time_by_gender": {
+            "name": "Journées de participation par genre",
+            "description": "Nombre de journées FFCAM, par genre"
+            "Les événements annulés sont exclus. "
+            "Un evènement de deux heures et demi ou moins compte pour 1/4. "
+            "Un evènement de quatre heures ou moins compte pour 1/2. "
+            "Un evènement de plus de quatre heures compte pour 1. "
+            "Un evènement de plus d'une journée se voit arrondi au nombre de "
+            "jour supérieur. "
+            "Un événement avec compte autant qu'il y avde participants du même genre. ",
+        },
+        "attendee_time_by_license_type": {
+            "name": "Journées de participation par type de licence",
+            "description": "Nombre de journées FFCAM, par type de licence."
+            "Les événements annulés sont exclus. "
+            "Un evènement de deux heures et demi ou moins compte pour 1/4. "
+            "Un evènement de quatre heures ou moins compte pour 1/2. "
+            "Un evènement de plus de quatre heures compte pour 1. "
+            "Un evènement de plus d'une journée se voit arrondi au nombre de "
+            "jour supérieur. "
+            "Un événement compte autant qu'il y a de participants avec le type de licence. ",
+        },
+        "minor_attendee_time": {
+            "name": "Journées de participation des mineurs",
+            "description": "Nombre de journées FFCAM avec participanrts mineurs (licences E1 et E2)."
+            "Les événements annulés sont exclus. "
+            "Un evènement de deux heures et demi ou moins compte pour 1/4. "
+            "Un evènement de quatre heures ou moins compte pour 1/2. "
+            "Un evènement de plus de quatre heures compte pour 1. "
+            "Un evènement de plus d'une journée se voit arrondi au nombre de "
+            "jour supérieur. "
+            "Un événement compte autant qu'il y a de participants avec le type de licence. ",
         },
         "population_registration_number": {
             "name": "Population par nombre d'inscription",
@@ -402,10 +435,60 @@ class StatisticsEngine:
         return counts
 
     @lru_cache()
-    def volunteer_time(self) -> int:
+    def attendee_time_by_gender(self) -> dict:
+        """Returns the total number of attendee days per gender."""
+        query = (
+            db.session.query(Registration, func.count(Registration.id))
+            .join(User)
+            .join(Event)
+        )
+        query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
+        event_gender_pairs = (
+            self.global_filters(query).group_by(Event.id, User.gender).all()
+        )
+
+        durations = {}
+        for reg, count in event_gender_pairs:
+            time = reg.event.duration_in_ffcam_days() * count
+            gender_name = reg.user.gender.display_name()
+            durations[gender_name] = durations.get(gender_name, 0) + time
+
+        return durations
+
+    @lru_cache()
+    def attendee_time_by_license_type(self) -> dict:
+        """Returns the total number of attendee days per license type."""
+        query = (
+            db.session.query(Registration, func.count(Registration.id))
+            .join(User)
+            .join(Event)
+        )
+        query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
+        event_license_pairs = (
+            self.global_filters(query).group_by(Event.id, User.license_category).all()
+        )
+
+        durations = {}
+        for reg, count in event_license_pairs:
+            time = reg.event.duration_in_ffcam_days() * count
+            license_name = reg.user.license_category
+            durations[license_name] = durations.get(license_name, 0) + time
+
+        return durations
+
+    @lru_cache()
+    def minor_attendee_time(self) -> float:
+        """Returns the total number of attendee hours for minors."""
+        durations = self.attendee_time_by_license_type()
+        return durations.get("E1", 0.0) + durations.get("E2", 0.0)
+
+    @lru_cache()
+    def volunteer_time(self) -> float:
         """Returns the total number of volunteer hours."""
         events = self.valid_activity_events()
-        return sum(event.volunteer_duration() * len(event.leaders) for event in events)
+        return sum(
+            event.duration_in_ffcam_days() * len(event.leaders) for event in events
+        )
 
     @lru_cache()
     def volunteer_time_by_activity_type(self) -> dict:
@@ -414,7 +497,7 @@ class StatisticsEngine:
         for event in self.valid_activity_events():
             for activity_type in event.activity_types:
                 activity_name = activity_type.name
-                duration = event.volunteer_duration() * len(event.leaders)
+                duration = event.duration_in_ffcam_days() * len(event.leaders)
                 durations[activity_name] = durations.get(activity_name, 0) + duration
         return durations
 
