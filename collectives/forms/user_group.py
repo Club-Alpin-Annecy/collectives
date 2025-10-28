@@ -165,8 +165,9 @@ class GroupBadgeConditionForm(ModelForm):
             # No level restriction is possible
             field.data = None
             return
+
         levels = badge_id.levels()
-        if not levels:
+        if not levels and not badge_id.requires_level():
             # No meaningful levels for this badge, ignore
             field.data = None
             return
