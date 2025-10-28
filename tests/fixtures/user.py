@@ -212,6 +212,18 @@ def youth_user(prototype_youth_user: User):
     return prototype_youth_user
 
 
+inject_fixture("prototype_minor_user", ("Minor", "Climber"))
+
+
+@pytest.fixture
+def minor_user(prototype_minor_user: User):
+    """:returns: A user with a minor license."""
+    prototype_minor_user.license_category = "E2"
+    db.session.add(prototype_minor_user)
+    db.session.commit()
+    return prototype_minor_user
+
+
 inject_fixture("prototype_user_with_valid_benevole_badge", ("Good", "Girl"))
 
 

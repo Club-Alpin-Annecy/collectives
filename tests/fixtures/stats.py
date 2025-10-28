@@ -29,6 +29,7 @@ def stats_env(
     paying_event,
     event3,
     leader2_user_with_event,
+    minor_user,
 ):
     """Fixture with several event to test statistics engine."""
     canyon = ActivityType.query.filter_by(name="Canyon").first()
@@ -37,6 +38,14 @@ def stats_env(
     event2.registrations.append(
         Registration(
             user_id=user1.id,
+            status=RegistrationStatus.Active,
+            level=RegistrationLevels.Normal,
+            is_self=True,
+        ),
+    )
+    event2.registrations.append(
+        Registration(
+            user_id=minor_user.id,
             status=RegistrationStatus.Active,
             level=RegistrationLevels.Normal,
             is_self=True,
