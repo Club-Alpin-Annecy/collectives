@@ -14,9 +14,9 @@ from collectives.utils.time import current_time
 def test_statistics_engine_all(stats_env, leader2_user):
     """Tests statistics engine without filter."""
     engine = StatisticsEngine()
-    assert engine.nb_registrations() == 7
+    assert engine.nb_registrations() == 8
     assert engine.nb_events() == 6
-    assert engine.mean_registrations_per_event() == 7 / 6
+    assert engine.mean_registrations_per_event() == 8 / 6
     assert engine.nb_events_by_event_type()["Soirée"] == 1
     assert engine.nb_events_by_activity_type()["Canyon"] == 2
     assert engine.nb_events_by_activity_type()["Alpinisme"] == 4
@@ -24,17 +24,21 @@ def test_statistics_engine_all(stats_env, leader2_user):
     assert engine.nb_collectives_by_activity_type()["Alpinisme"] == 4
     assert len(engine.nb_events_by_leaders()) == 2
     assert engine.nb_events_by_leaders()[leader2_user.full_name()] == 1
-    assert engine.nb_registrations_by_gender() == {"Femme": 2, "Homme": 5}
+    assert engine.nb_registrations_by_gender() == {"Femme": 2, "Homme": 6}
     assert engine.nb_events_by_event_tag() == {
         "Handicaf": 3,
         "Rando Cool": 1,
         "Achat": 1,
     }
-    assert engine.population_registration_number() == {1: 2, 2: 1, 3: 1}
+    assert engine.population_registration_number() == {1: 3, 2: 1, 3: 1}
     assert engine.volunteer_time() == 7
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 4
     assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
+
+    assert engine.attendee_time_by_gender() == {"Femme": 2, "Homme": 6}
+    assert engine.attendee_time_by_license_type() == {"E2": 1, "XX": 7}
+    assert engine.minor_attendee_time() == 1.0
 
     assert engine.nb_days() is None
     assert engine.mean_events_per_day() is None

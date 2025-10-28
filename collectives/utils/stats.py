@@ -439,8 +439,8 @@ class StatisticsEngine:
         """Returns the total number of attendee days per gender."""
         query = (
             db.session.query(Registration, func.count(Registration.id))
-            .join(User)
-            .join(Event)
+            .join(User, Registration.user_id == User.id)
+            .join(Event, Registration.event_id == Event.id)
         )
         query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
         event_gender_pairs = (
@@ -460,8 +460,8 @@ class StatisticsEngine:
         """Returns the total number of attendee days per license type."""
         query = (
             db.session.query(Registration, func.count(Registration.id))
-            .join(User)
-            .join(Event)
+            .join(User, Registration.user_id == User.id)
+            .join(Event, Registration.event_id == Event.id)
         )
         query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
         event_license_pairs = (
