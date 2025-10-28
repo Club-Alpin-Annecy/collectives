@@ -150,30 +150,30 @@ def test_event_include_leaders_in_counts(event, user1):
     assert not event.can_self_register(user1, now)
 
 
-def test_event_volunteer_duration(event):
+def test_event_duration_in_ffcam_days(event):
     """Test volunteer duration calculation"""
-    assert event.volunteer_duration() == 1
+    assert event.duration_in_ffcam_days() == 1
 
     event.end = event.start + datetime.timedelta(hours=1)
-    assert event.volunteer_duration() == 0.25
+    assert event.duration_in_ffcam_days() == 0.25
 
     event.end = event.start + datetime.timedelta(hours=2)
-    assert event.volunteer_duration() == 0.25
+    assert event.duration_in_ffcam_days() == 0.25
 
     event.end = event.start + datetime.timedelta(hours=3)
-    assert event.volunteer_duration() == 0.5
+    assert event.duration_in_ffcam_days() == 0.5
 
     event.end = event.start + datetime.timedelta(hours=4)
-    assert event.volunteer_duration() == 0.5
+    assert event.duration_in_ffcam_days() == 0.5
 
     event.end = event.start + datetime.timedelta(hours=6)
-    assert event.volunteer_duration() == 1
+    assert event.duration_in_ffcam_days() == 1
 
     event.end = event.start + datetime.timedelta(days=1)
-    assert event.volunteer_duration() == 1
+    assert event.duration_in_ffcam_days() == 1
 
     event.end = event.start + datetime.timedelta(days=1, hours=6)
-    assert event.volunteer_duration() == 2
+    assert event.duration_in_ffcam_days() == 2
 
 
 def test_waiting_list_update(event1: Event, event2: Event, user1: User, user2: User):

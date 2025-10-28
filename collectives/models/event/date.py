@@ -76,11 +76,15 @@ class EventDateMixin:
             and (start <= end)
         )
 
-    def volunteer_duration(self) -> int:
-        """Estimate event duration for volunteering purposes.
+    def duration_in_ffcam_days(self) -> float:
+        """Estimate event duration for ffcam statistics purposes.
 
-        If start and end are the same, it means the event has no hours. Thus, it is considered as a
-        day long. If not, 2h is a quarter of a day, and math is round up.
+        Duration is expressed in "ffcam days" units, where:
+         - a full day event counts as 1
+         - a half-day event (more than 2.5 hours and up to 4 hours) counts as 0.5
+         - a short event (up to 2.5 hours) counts as 0.25
+
+         If the event start and end times are equal, we assume 1 day.
 
         :param event: the event to get the duration of.
         :returns: number of day of the event
@@ -92,7 +96,7 @@ class EventDateMixin:
         if duration > timedelta(hours=4):
             return ceil(duration / timedelta(days=1))
 
-        if duration > timedelta(hours=2):
+        if duration > timedelta(hours=2, minutes=30):
             return 0.5
 
         return 0.25
