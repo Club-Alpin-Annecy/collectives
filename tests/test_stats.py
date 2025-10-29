@@ -36,9 +36,11 @@ def test_statistics_engine_all(stats_env, leader2_user):
     assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
 
-    assert engine.attendee_time_by_gender() == {"Femme": 2, "Homme": 6}
-    assert engine.attendee_time_by_license_type() == {"E2": 1, "XX": 7}
-    assert engine.minor_attendee_time() == 1.0
+    assert engine.attendee_time_by_gender_and_license_type() == {
+        ("XX", "Femme"): 2,
+        ("XX", "Homme"): 5,
+        ("E2", "Homme"): 1,
+    }
 
     assert engine.nb_days() is None
     assert engine.mean_events_per_day() is None
@@ -75,9 +77,11 @@ def test_statistics_engine_from_now(stats_env, leader2_user):
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 3
     assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
-    assert engine.attendee_time_by_gender() == {"Femme": 2, "Homme": 4}
-    assert engine.attendee_time_by_license_type() == {"E2": 1, "XX": 5}
-    assert engine.minor_attendee_time() == 1.0
+    assert engine.attendee_time_by_gender_and_license_type() == {
+        ("XX", "Femme"): 2,
+        ("XX", "Homme"): 3,
+        ("E2", "Homme"): 1,
+    }
     assert engine.mean_events_per_day() == 0.0136986301369863
     assert engine.mean_registrations_per_day() == 0.01643835616438356
 
@@ -105,7 +109,10 @@ def test_statistics_engine_only_alpi(stats_env, leader2_user):
     assert engine.volunteer_time() == 4
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 4
     assert "Canyon" not in engine.volunteer_time_by_activity_type()
-    assert engine.minor_attendee_time() == 0.0
+    assert engine.attendee_time_by_gender_and_license_type() == {
+        ("XX", "Femme"): 2,
+        ("XX", "Homme"): 4,
+    }
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
     assert engine.nb_days() is None
     assert engine.mean_events_per_day() is None
