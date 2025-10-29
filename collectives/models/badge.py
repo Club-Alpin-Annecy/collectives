@@ -140,10 +140,10 @@ class BadgeIds(ChoiceEnum):
         """
         if self == BadgeIds.Practitioner:
             return {
-                1: BadgeLevelDescriptor("Débutant", "🟢"),
-                2: BadgeLevelDescriptor("Initié", "🔵"),
-                3: BadgeLevelDescriptor("Perfectionné", "🔴"),
-                4: BadgeLevelDescriptor("Expert", "⚫"),
+                1: BadgeLevelDescriptor("Niveau 🟢", "🟢"),
+                2: BadgeLevelDescriptor("Niveau 🔵", "🔵"),
+                3: BadgeLevelDescriptor("Niveau 🔴", "🔴"),
+                4: BadgeLevelDescriptor("Niveau ⚫", "⚫"),
             }
         if self.has_custom_levels():
             return {
