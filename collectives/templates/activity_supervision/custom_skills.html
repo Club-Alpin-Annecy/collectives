@@ -4,6 +4,30 @@
 
 {% block additionalhead %}
 
+  <script>
+      const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=activity_ids) | safe}}[{{models.BadgeIds.Practitioner.value}}];
+      window.addEventListener('DOMContentLoaded', function () {
+        const activitySelect = document.getElementById("practitioner_level-activity_id");
+        activitySelect.addEventListener("change", activityChanged);
+        activityChanged();
+      });
+
+      function activityChanged() {
+        const activitySelect = document.getElementById("practitioner_level-activity_id");
+        const activityId = activitySelect.value;
+        const defaultLevels = practitionerBadgeLevels[null];
+        const activityLevels = practitionerBadgeLevels[activityId];
+
+        for( [key, level] of Object.entries(defaultLevels)) {
+          const levelInput = document.getElementById(`practitioner_level-level_names-${key}`);
+          if (key in activityLevels) {
+            levelInput.value = activityLevels[key].name;
+          } else {
+            levelInput.value = level.name;
+          }
+        }
+      }
+  </script>
 {% endblock %}
 
 {% block page_content %}
@@ -20,7 +44,7 @@
   {% endif %}
   
   
-  {{ generator.form_generator(form, action=url_for('.manage_custom_skills', custom_level_id=custom_level.id if custom_level.id else None)) }}
+  {{ generator.form_generator(custom_level_form, action=url_for('.manage_custom_skills', custom_level_id=custom_level.id if custom_level else None)) }}
 
   <h4 class="heading-4">Spécialisations existantes</h4>
   <div>
@@ -37,5 +61,16 @@
   </div>
 
   
+  <h4 class="heading-4">Intitulés des niveaux de pratiques</h4>
+
+  {{ generator.form_generator(practitioner_level_form, action=url_for('.set_custom_practitioner_levels')) }}
+
+  <form>
+
+
+
+  </form>
+
+
 </div>
 {% endblock %}

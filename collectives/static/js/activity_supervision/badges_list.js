@@ -21,7 +21,7 @@ function levelFormatter(badgeLevels) {
         if (badgeId in badgeLevels) {
             var thisBadgeLevels = badgeLevels[badgeId]
 
-            for (const activityId of [cell.getData().activity_type?.id, "null"]) {
+            for (const activityId of [cell.getData().activity_type?.id, null]) {
                 if (activityId in thisBadgeLevels && level in thisBadgeLevels[activityId]) {
                     return thisBadgeLevels[activityId][level].name;
                 }

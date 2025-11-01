@@ -16,6 +16,7 @@ from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
 from collectives.utils.time import add_months, ttl_cache
 
+
 @dataclass
 class BadgeLevelDescriptor:
     """Descriptor for a badge level"""
@@ -118,9 +119,13 @@ class BadgeIds(ChoiceEnum):
         """
         return self in {BadgeIds.Practitioner, BadgeIds.Benevole, BadgeIds.Skill}
 
-    def has_custom_levels(self) -> bool:
+    def has_custom_levels(self, activity_id: int | None = None) -> bool:
         """Whether the levels for this badge are user-defined"""
-        return self in {BadgeIds.Practitioner, BadgeIds.Skill}
+        if self == BadgeIds.Skill:
+            return True
+        if self == BadgeIds.Practitioner:
+            return activity_id is not None
+        return False
 
     def has_ordered_levels(self) -> bool:
         """Whether the levels for this badge are ordered.
@@ -130,7 +135,7 @@ class BadgeIds(ChoiceEnum):
 
     def requires_level(self) -> bool:
         """Whether this badge requires specifying a level."""
-        return self.has_custom_levels()
+        return self in {BadgeIds.Practitioner, BadgeIds.Skill}
 
     @ttl_cache()
     def levels(
@@ -155,7 +160,7 @@ class BadgeIds(ChoiceEnum):
                 4: BadgeLevelDescriptor("Niveau ⚫", "⚫"),
             }
 
-        if self.has_custom_levels():
+        if self.has_custom_levels(activity_id):
             levels.update(
                 {
                     level.level: level.descriptor
@@ -205,10 +210,7 @@ class BadgeIds(ChoiceEnum):
                 include_deprecated=include_deprecated,
                 include_defaults=False,
             )
-            return {
-                key: level.__dict__ for key, level in levels.items()
-            }
-            
+            return {key: level.__dict__ for key, level in levels.items()}
 
         return json.dumps(
             {
