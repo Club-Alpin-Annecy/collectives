@@ -17,7 +17,7 @@
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
   <script src="{{ url_for('api.models_to_js') }}"></script>
   <script>
-      const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
+      const badgeLevels = {{models.BadgeIds.js_levels(badge_ids=badge_ids, activity_ids=activity_ids, include_deprecated=true) | safe}};
       window.onload = function () {
         const show_type = {{ 'false' if badge_ids|length==1 else 'true' }};
         const show_level = {{ 'true' if level else 'false' }};

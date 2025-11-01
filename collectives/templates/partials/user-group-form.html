@@ -40,8 +40,8 @@ Détenteurs du rôle :
 
 <div class="inline_field">
 Détenteurs du badge :
-{{user_group_form.new_badge_id(style="width:auto; margin:auto", onchange="updateBadgeLevels(this);", data_level_target=user_group_form.new_badge_level.id)}}
-{{user_group_form.new_badge_activity_id(style="width:auto; margin:auto")}}
+{{user_group_form.new_badge_id(style="width:auto; margin:auto", onchange="updateBadgeLevels();", data_level_target=user_group_form.new_badge_level.id)}}
+{{user_group_form.new_badge_activity_id(style="width:auto; margin:auto", onchange="updateBadgeLevels();")}}
 <select id="{{user_group_form.new_badge_level.id}}" name="{{user_group_form.new_badge_level.name}}" style="width:auto; margin:auto; display:none">
 </select>
 <input type="button" id="{{user_group_form.prefix}}badge-add" value="Ajouter" 
@@ -94,29 +94,56 @@ document.addEventListener('DOMContentLoaded', ()=> {
     current_badge_conditions = {{ user_group_form.badge_conditions_as_json()  | safe}};
     var badgeConditionsTable = setupBadgeConditionsEditor("{{user_group_form.badge_conditions.id}}", current_badge_conditions);
 
-
-    updateBadgeLevels(document.getElementById("{{user_group_form.new_badge_id.id}}"));
+    badgeSelect = document.getElementById("{{user_group_form.new_badge_id.id}}")
+    badgeActivityIdSelect = document.getElementById("{{user_group_form.new_badge_activity_id.id}}")
+    updateBadgeLevels();
 });
 
-function updateBadgeLevels(badgeSelect) {
+function updateBadgeLevels() {
     const levelSelect = document.getElementById(badgeSelect.dataset.levelTarget);
-    const badgeId = badgeSelect.value;
     while (levelSelect.options.length > 0) {                
         levelSelect.remove(0);
     }        
+    const badgeId = badgeSelect.value;
+    const activityId = badgeActivityIdSelect.value;
     hidden = true;
+
+    var levels = {};
     if(badgeId in badgeLevels) {
-
-        levels = Object.entries(badgeLevels[badgeId])
-        for(const [key, level] of levels) {
-            const option = document.createElement("option");
-            option.value = key;
-            option.text = level[0];
-            levelSelect.add(option);
-
-            hidden = false;
+        var thisBadgeLevels = badgeLevels[badgeId]
+        if (activityId in thisBadgeLevels) {
+    
+            for(const [key, level] of Object.entries(thisBadgeLevels[null])) {
+                // Default levels
+                // Only add if it is not activity-specific but accepts acitvities
+                if (level.activity_id == null && level.accepts_activity) {
+                    levels[key] = level
+                }
+            }
+        
+            Object.assign(levels, thisBadgeLevels[activityId])
+        
+        } else {
+            for(const [key, level] of Object.entries(thisBadgeLevels[null])) {
+                // Default levels
+                // Only add if it is not activity-specific
+                if (level.activity_id == null) {
+                    levels[key] = level
+                }
+            }
         }
+        
     }
+
+    for(const [key, level] of Object.entries(levels)) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.text = level.name;
+        levelSelect.add(option);
+
+        hidden = false;
+    }
+    
     levelSelect.style.display = hidden ? "none" : "inline-block";
 }
 

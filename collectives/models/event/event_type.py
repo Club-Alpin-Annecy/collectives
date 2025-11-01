@@ -1,6 +1,7 @@
 """Module to describe the type of event."""
 
 import json
+from functools import cache
 
 from collectives.models import Configuration
 from collectives.models.globals import db
@@ -100,6 +101,7 @@ class EventType(db.Model):
         return len(license_types) == 0 or user.license_category in license_types
 
     @classmethod
+    @cache
     def get_all_types(cls):
         """List all event_types in database
 

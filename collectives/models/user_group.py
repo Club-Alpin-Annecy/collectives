@@ -157,7 +157,7 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
     def level_name(self) -> str:
         """Returns the name of the badge level."""
         if self.badge_id and self.level:
-            level_desc = self.badge_id.levels().get(self.level)
+            level_desc = self.badge_id.level(self.level, activity_id=self.activity_id)
             if level_desc:
                 return level_desc.name
             return f"niveau {self.level}"

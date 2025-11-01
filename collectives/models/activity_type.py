@@ -9,6 +9,8 @@ from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
 
+from collectives.utils.time import ttl_cache
+
 
 class ActivityKind(ChoiceEnum):
     """Enum listing kinds of activities."""
@@ -185,6 +187,7 @@ class ActivityType(db.Model):
         return truncate(value, max_len)
 
     @classmethod
+    @ttl_cache()
     def get_all_types(
         cls, include_deprecated: bool = False, include_services: bool = True
     ) -> list["ActivityType"]:

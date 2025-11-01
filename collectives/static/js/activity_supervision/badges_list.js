@@ -6,7 +6,7 @@ const onSelectAutocomplete = function (id, value) {
 
 function actionFormatter(csrfToken) {
     return function (cell, formatterParams, onRendered) {
-        if(cell.getValue() == "") return '';
+        if (cell.getValue() == "") return '';
         return `<form style="display:inline; padding:0" action="${cell.getValue()}" method="${formatterParams['method']}" >` +
             `<input style="display:none" name="csrf_token" type+"hidden" value="${csrfToken}">` +
             '</form>' +
@@ -18,9 +18,16 @@ function levelFormatter(badgeLevels) {
     return function (cell, formatterParams, onRendered) {
         const level = cell.getValue();
         const badgeId = EnumBadgeIdsKeys[cell.getData().badge_id];
-        if (badgeId in badgeLevels && level in badgeLevels[badgeId]) {
-            return badgeLevels[badgeId][level][0];
+        if (badgeId in badgeLevels) {
+            var thisBadgeLevels = badgeLevels[badgeId]
+
+            for (const activityId of [cell.getData().activity_type?.id, "null"]) {
+                if (activityId in thisBadgeLevels && level in thisBadgeLevels[activityId]) {
+                    return thisBadgeLevels[activityId][level].name;
+                }
+            }
         }
+
         return level;
     };
 }
@@ -42,19 +49,19 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
             ajaxURL: ajaxUrl,
             ajaxParams: ajaxParams,
             layout: "fitColumns",
-            pagination:"local",
+            pagination: "local",
             paginationSize: 50,
 
             columns: [
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
-                { title: "Activité", field: "activity_type.name",  headerFilter: "select", headerFilterParams:{values: makeOptions(EnumActivityType)}, widthGrow: 3 },
-                { title: "Badge", field: "name", headerFilter: "select", headerFilterParams:{values: makeOptions(EnumBadgeIds)}, widthGrow: 3, visible: showType },
-                { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3},
-                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel,formatter: levelFormatter(badgeLevels)},
+                { title: "Activité", field: "activity_type.name", headerFilter: "select", headerFilterParams: { values: makeOptions(EnumActivityType) }, widthGrow: 3 },
+                { title: "Badge", field: "name", headerFilter: "select", headerFilterParams: { values: makeOptions(EnumBadgeIds) }, widthGrow: 3, visible: showType },
+                { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3 },
+                { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel, formatter: levelFormatter(badgeLevels) },
                 { title: "Attribué par", field: "grantor.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: grantorUrl }, visible: showGrantor },
                 { field: "delete_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'md-trash', 'method': 'POST', 'alt': 'Delete' }, cellClick: onclickTriggerInsideForm, headerSort: false },
-                { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },            
+                { field: "renew_uri", formatter: actionFormatter(csrfToken), formatterParams: { 'icon': 'refresh', 'method': 'POST', 'alt': 'Renouveler' }, cellClick: onclickTriggerInsideForm, headerSort: false },
             ],
 
             langs: {
@@ -65,9 +72,9 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
                     },
                 }
             },
-        }); 
+        });
 }
 
-function makeOptions(dict){
+function makeOptions(dict) {
     return [""].concat(Object.values(dict).sort());
 }

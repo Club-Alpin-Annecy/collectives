@@ -1,5 +1,8 @@
 """Module for time management and display."""
 
+from functools import wraps
+
+from time import time as current_timestamp
 from datetime import date, datetime, time
 
 from dateutil import parser, tz
@@ -242,3 +245,34 @@ def get_ffcam_year(year: date) -> int:
     if year.month < 9:
         ffcam_year -= 1
     return ffcam_year
+
+
+def ttl_cache(ttl: int = 5):
+    """Decorator to cache function results for a given time-to-live (TTL) in seconds.
+
+    :param ttl: Time-to-live in seconds
+    :return: Decorated function with caching
+    """
+
+    def decorator(func):
+        cache = {}
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = (args, frozenset(kwargs.items()))
+            now = current_timestamp()
+
+            if key in cache:
+                result, timestamp = cache[key]
+                if now - timestamp < ttl:
+                    return result
+
+            result = func(*args, **kwargs)
+            cache[key] = (result, now)
+            return result
+
+        wrapper.expire_all = lambda: cache.clear()
+
+        return wrapper
+
+    return decorator

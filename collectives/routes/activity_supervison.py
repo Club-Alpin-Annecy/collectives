@@ -369,6 +369,8 @@ def configuration_form(activity_type_id: int = None):
             activity.short = f"{activity.short}-{activity.id}"
             db.session.commit()
 
+        ActivityType.get_all_types.expire_all()
+
         flash(f"Activité {activity.name} modifiée avec succès.", "success")
 
         return redirect(url_for(".configuration"))
@@ -416,6 +418,7 @@ def manage_custom_skills(custom_level_id: int | None = None):
         form.populate_obj(custom_level)
         db.session.add(custom_level)
         db.session.commit()
+        BadgeIds.levels.expire_all()
         return redirect(url_for(".manage_custom_skills"))
 
     levels = BadgeCustomLevel.get_all(badge_id=BadgeIds.Skill, include_deprecated=True)
