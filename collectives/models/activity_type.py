@@ -8,7 +8,6 @@ from wtforms_alchemy.validators import Unique
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
-from collectives.utils.time import ttl_cache
 
 
 class ActivityKind(ChoiceEnum):
@@ -186,7 +185,6 @@ class ActivityType(db.Model):
         return truncate(value, max_len)
 
     @classmethod
-    @ttl_cache()
     def get_all_types(
         cls, include_deprecated: bool = False, include_services: bool = True
     ) -> list["ActivityType"]:
@@ -202,11 +200,7 @@ class ActivityType(db.Model):
         if not include_services:
             query = query.filter_by(kind=ActivityKind.Regular)
 
-        # expunge from the session to decouple caching from session life
-        activities = list(query.all())
-        for activity in activities:
-            db.session.expunge(activity)
-        return activities
+        return query.all()
 
     @classmethod
     def get(cls, required_id):
