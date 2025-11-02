@@ -53,7 +53,7 @@ class BadgeLevelDescriptor:
         """
 
         if self.activity_id is not None:
-            activity_type = ActivityType.query.get(self.activity_id)
+            activity_type = ActivityType.get(self.activity_id)
             if activity_type is not None:
                 return activity_type.name
 

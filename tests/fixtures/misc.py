@@ -11,6 +11,7 @@ def custom_skill() -> BadgeCustomLevel:
     )
     db.session.add(custom_level)
     db.session.commit()
+    BadgeIds.levels.expire_all()
     return custom_level
 
 
@@ -26,6 +27,7 @@ def custom_skill_with_expiry() -> BadgeCustomLevel:
     )
     db.session.add(custom_level)
     db.session.commit()
+    BadgeIds.levels.expire_all()
     return custom_level
 
 
@@ -42,4 +44,5 @@ def custom_skill_with_activity_type(
 
     db.session.add(custom_level)
     db.session.commit()
+    BadgeIds.levels.expire_all()
     return custom_level
