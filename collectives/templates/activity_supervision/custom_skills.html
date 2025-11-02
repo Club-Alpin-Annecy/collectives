@@ -32,7 +32,7 @@
 
 {% block page_content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">Badges de spécialisation</h2>
+  <h2 class="heading-2">Badges de spécialisation et niveaux</h2>
   <p>Les badges de spécialisation permettent de reconnaître les compétences acquises par les participants. Ils peuvent être utilisés pour valider des formations, des qualifications, ou des rôles spécifiques au sein de l'activité.
     Ils peuvent être liés ou non à une activité spécifique, et requérir ou non un recyclage régulier.
   </p>
@@ -64,13 +64,6 @@
   <h4 class="heading-4">Intitulés des niveaux de pratiques</h4>
 
   {{ generator.form_generator(practitioner_level_form, action=url_for('.set_custom_practitioner_levels')) }}
-
-  <form>
-
-
-
-  </form>
-
 
 </div>
 {% endblock %}
