@@ -1,7 +1,6 @@
 """Module to describe the type of event."""
 
 import json
-from functools import cache
 
 from collectives.models import Configuration
 from collectives.models.globals import db
@@ -101,18 +100,12 @@ class EventType(db.Model):
         return len(license_types) == 0 or user.license_category in license_types
 
     @classmethod
-    @cache
     def get_all_types(cls):
         """List all event_types in database
 
         :return: list of types
         :rtype: list(:py:class:`EventType`)"""
-        event_types = list(cls.query.order_by("id", "name").all())
-
-        # expunge from the session to decouple caching from session life
-        for event_type in event_types:
-            db.session.expunge(event_type)
-        return event_types
+        return cls.query.order_by("id", "name").all()
 
     @classmethod
     def js_values(cls):
