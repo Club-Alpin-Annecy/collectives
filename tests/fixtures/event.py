@@ -39,8 +39,6 @@ def service():
     db.session.add(service)
     db.session.commit()
 
-    ActivityType.get_all_types.expire_all()
-
     return service
 
 
