@@ -6,11 +6,11 @@ from flask import request
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import (
+    FieldList,
     HiddenField,
     SelectField,
     StringField,
     SubmitField,
-    FieldList,
 )
 from wtforms.validators import (
     DataRequired,
@@ -161,10 +161,8 @@ class AddBadgeForm(BadgeForm):
         )
 
 
-class CompetencyBadgeForm(FlaskForm):
+class CompetencyBadgeForm(ActivityTypeSelectionForm):
     """Form for administrators to add practitioner badges to users"""
-
-    submit = SubmitField("Attribuer")
 
     level = SelectField(
         "Niveau",
@@ -173,33 +171,28 @@ class CompetencyBadgeForm(FlaskForm):
         choices=[],
     )
 
-    activity_id = SelectField(
-        "Activité",
-        coerce=int,
-        validators=[DataRequired()],
-        choices=[],
-    )
-
     def __init__(self, badge_id: BadgeIds, *args, **kwargs):
         """Overloaded constructor populating activity list"""
-
-        super().__init__(*args, **kwargs)
-
-        self.badge_id = badge_id
-        self.submit.name = str(badge_id)
 
         led_activities = {
             a.id: a for a in current_user.get_organizable_activities(need_leader=True)
         }
+
+        super().__init__(
+            activity_list=led_activities.values(),
+            submit_label="Attribuer",
+            *args,
+            **kwargs,
+        )
+
+        self.badge_id = badge_id
+        self.submit.name = str(badge_id)
 
         if badge_id == BadgeIds.Practitioner:
             self.level.choices = [(0, "Aucun")] + [
                 (k, f"{desc.name} ({desc.abbrev})")
                 for k, desc in badge_id.levels().items()
                 if desc.activity_id is None or desc.activity_id in led_activities
-            ]
-            self.activity_id.choices = [
-                (activity.id, activity.name) for activity in led_activities.values()
             ]
         else:
             self.level.choices = [
@@ -282,7 +275,9 @@ class BadgeCustomPractitionerLevelForm(ActivityTypeSelectionForm):
         )
 
         default_levels = BadgeIds.Practitioner.levels()
-        for level_name, (level, level_desc) in zip(self.level_names, default_levels.items()):
+        for level_name, (level, level_desc) in zip(
+            self.level_names, default_levels.items()
+        ):
             level_name.label = level_desc.name
             level_name.id = f"{self.level_names.id}-{level}"
             level_name.name = f"{self.level_names.id}-{level}"

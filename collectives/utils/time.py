@@ -1,9 +1,8 @@
 """Module for time management and display."""
 
-from functools import wraps
-
-from time import time as current_timestamp
 from datetime import date, datetime, time
+from functools import wraps
+from time import time as current_timestamp
 
 from dateutil import parser, tz
 
@@ -247,7 +246,7 @@ def get_ffcam_year(year: date) -> int:
     return ffcam_year
 
 
-def ttl_cache(ttl: int = 5):
+def ttl_cache(ttl: int = 10):
     """Decorator to cache function results for a given time-to-live (TTL) in seconds.
 
     :param ttl: Time-to-live in seconds

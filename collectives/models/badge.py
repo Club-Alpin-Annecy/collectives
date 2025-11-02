@@ -1,10 +1,9 @@
 """Module for user badges related classes"""
 
 import json
-from datetime import date
-from typing import NamedTuple, Iterable
 from dataclasses import dataclass
-
+from datetime import date
+from typing import Iterable, NamedTuple
 
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import validates

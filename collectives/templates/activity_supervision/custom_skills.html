@@ -5,21 +5,21 @@
 {% block additionalhead %}
 
   <script>
-      const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=activity_ids) | safe}}[{{models.BadgeIds.Practitioner.value}}];
+      const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=practitioner_level_form.activity_ids()) | safe}}[{{models.BadgeIds.Practitioner.value}}];
       window.addEventListener('DOMContentLoaded', function () {
-        const activitySelect = document.getElementById("practitioner_level-activity_id");
+        const activitySelect = document.getElementById("{{practitioner_level_form.activity_id.id}}");
         activitySelect.addEventListener("change", activityChanged);
         activityChanged();
       });
 
       function activityChanged() {
-        const activitySelect = document.getElementById("practitioner_level-activity_id");
+        const activitySelect = document.getElementById("{{practitioner_level_form.activity_id.id}}");
         const activityId = activitySelect.value;
         const defaultLevels = practitionerBadgeLevels[null];
         const activityLevels = practitionerBadgeLevels[activityId];
 
         for( [key, level] of Object.entries(defaultLevels)) {
-          const levelInput = document.getElementById(`practitioner_level-level_names-${key}`);
+          const levelInput = document.getElementById(`{{practitioner_level_form.level_names.id}}-${key}`);
           if (key in activityLevels) {
             levelInput.value = activityLevels[key].name;
           } else {

@@ -107,7 +107,12 @@ class EventType(db.Model):
 
         :return: list of types
         :rtype: list(:py:class:`EventType`)"""
-        return cls.query.order_by("id", "name").all()
+        event_types = list(cls.query.order_by("id", "name").all())
+
+        # expunge from the session to decouple caching from session life
+        for event_type in event_types:
+            db.session.expunge(event_type)
+        return event_types
 
     @classmethod
     def js_values(cls):

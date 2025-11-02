@@ -3,6 +3,7 @@
 Restricted to activity supervisor, adminstrators, and President.
 """
 
+import sqlalchemy as sa
 from flask import (
     Blueprint,
     abort,
@@ -16,7 +17,6 @@ from flask import (
 from flask_login import current_user
 from flask_uploads import UploadNotAllowed
 from sqlalchemy.orm import joinedload
-import sqlalchemy as sa
 from werkzeug.datastructures import CombinedMultiDict
 
 from collectives.forms.activity_type import (
@@ -24,13 +24,13 @@ from collectives.forms.activity_type import (
     ActivityTypeEditForm,
     ActivityTypeSelectionForm,
 )
-from collectives.forms.csv import CSVForm
-from collectives.forms.upload import AddActivityDocumentForm
-from collectives.forms.user import AddLeaderForm
 from collectives.forms.badge import (
     BadgeCustomLevelForm,
     BadgeCustomPractitionerLevelForm,
 )
+from collectives.forms.csv import CSVForm
+from collectives.forms.upload import AddActivityDocumentForm
+from collectives.forms.user import AddLeaderForm
 from collectives.models import (
     ActivityKind,
     ActivityType,
@@ -375,7 +375,6 @@ def configuration_form(activity_type_id: int = None):
             db.session.commit()
 
         ActivityType.get_all_types.expire_all()
-
         flash(f"Activité {activity.name} modifiée avec succès.", "success")
 
         return redirect(url_for(".configuration"))
@@ -442,7 +441,6 @@ def manage_custom_skills(custom_level_id: int | None = None):
         "activity_supervision/custom_skills.html",
         title="Gestion des badges de compétence",
         levels=skill_levels,
-        activity_ids=activity_ids,
         custom_level=custom_level,
         custom_level_form=custom_level_form,
         practitioner_level_form=practitioner_level_form,
@@ -451,8 +449,7 @@ def manage_custom_skills(custom_level_id: int | None = None):
 
 @blueprint.route("/set_custom_practitioner_levels", methods=["POST"])
 def set_custom_practitioner_levels():
-    """Route to define custom practioner badge level names
-    """
+    """Route to define custom practioner badge level names"""
 
     activities = current_user.get_supervised_activities()
 
@@ -492,7 +489,10 @@ def set_custom_practitioner_levels():
         db.session.commit()
         BadgeIds.levels.expire_all()
 
-        flash(f"Intitulés des niveaux de pratique mis à jour pour l'activité {ActivityType.get(activity_id).name}", "info")
+        flash(
+            f"Intitulés des niveaux de pratique mis à jour pour l'activité {ActivityType.get(activity_id).name}",
+            "info",
+        )
 
     return redirect(url_for(".manage_custom_skills"))
 
