@@ -204,6 +204,7 @@ class BadgeIds(ChoiceEnum):
             activity_ids = [activity.id for activity in ActivityType.get_all_types()]
 
         def get_level_dict(badge: BadgeIds, activity_id: int | None = None) -> dict:
+            """Returns a level descriptors as a nested dictionary"""
             levels = badge.levels(
                 activity_id=activity_id,
                 include_deprecated=include_deprecated,

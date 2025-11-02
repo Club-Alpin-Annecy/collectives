@@ -3,6 +3,7 @@
 from datetime import date, datetime, time
 from functools import wraps
 from time import time as current_timestamp
+from typing import Callable
 
 from dateutil import parser, tz
 
@@ -253,11 +254,15 @@ def ttl_cache(ttl: int = 10):
     :return: Decorated function with caching
     """
 
-    def decorator(func):
+    def decorator(func: Callable):
+        """TTL cache decorator"""
+
         cache = {}
 
         @wraps(func)
         def wrapper(*args, **kwargs):
+            """Wrapper that checks existence of recent enough result in cache"""
+
             key = (args, frozenset(kwargs.items()))
             now = current_timestamp()
 
