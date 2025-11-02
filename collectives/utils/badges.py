@@ -6,7 +6,7 @@ from flask import flash, render_template, send_file
 from flask_login import current_user
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.user import AddBadgeForm, compute_default_expiration_date
+from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
 from collectives.models import ActivityType, Badge, BadgeIds, Configuration, User, db
 from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
@@ -118,6 +118,8 @@ def list_page(
         all_enabled=True,
     )
 
+    activity_ids = [activity.id for activity in ActivityType.get_all_types()]
+
     return render_template(
         "activity_supervision/badges_list.html",
         add_badge_form=add_badge_form,
@@ -129,6 +131,7 @@ def list_page(
         show_grantor=show_grantor,
         extends=extends,
         routes=routes,
+        activity_ids=activity_ids,
     )
 
 

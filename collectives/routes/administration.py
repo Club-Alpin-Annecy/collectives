@@ -13,13 +13,8 @@ from sqlalchemy.orm import joinedload
 
 from collectives.email_templates import send_confirmation_email
 from collectives.forms.auth import AdminTokenCreationForm
-from collectives.forms.user import (
-    AdminTestUserForm,
-    AdminUserForm,
-    BadgeForm,
-    RenewBadgeForm,
-    RoleForm,
-)
+from collectives.forms.badge import BadgeForm, RenewBadgeForm
+from collectives.forms.user import AdminTestUserForm, AdminUserForm, RoleForm
 from collectives.models import (
     ActivityType,
     Badge,

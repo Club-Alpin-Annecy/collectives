@@ -145,8 +145,14 @@ class GroupBadgeConditionForm(ModelForm):
         """:returns: the name of the level if it is not None, a default text otherwise"""
         if self.badge_id.data and self.level.data:
             try:
-                return BadgeIds(self.badge_id.data).levels()[int(self.level.data)].name
-            except (ValueError, IndexError):
+                return (
+                    BadgeIds(self.badge_id.data)
+                    .level(
+                        level=int(self.level.data), activity_id=self.activity_id.data
+                    )
+                    .name
+                )
+            except (ValueError, IndexError, AttributeError):
                 pass
         return "Tous niveaux"
 

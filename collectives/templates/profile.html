@@ -11,6 +11,34 @@
       var ajaxURL= '/api/user/{{user.id}}/events';
   </script>
   <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+
+{% if practitioner_badge_form %}
+  <script>
+      const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=practitioner_badge_form.activity_ids()) | safe}}[{{models.BadgeIds.Practitioner.value}}];
+      window.addEventListener('DOMContentLoaded', function () {
+        const activitySelect = document.getElementById("{{practitioner_badge_form.activity_id.id}}");
+        if (activitySelect) {
+            activitySelect.addEventListener("change", activityChanged);
+            activityChanged();
+        }
+      });
+
+      function activityChanged() {
+        const activitySelect = document.getElementById("{{practitioner_badge_form.activity_id.id}}");
+        const levelSelect = document.getElementById("{{practitioner_badge_form.level.id}}");
+        const activityId = activitySelect.value;
+        const defaultLevels = practitionerBadgeLevels[null];
+        const activityLevels = practitionerBadgeLevels[activityId];
+
+        for( var option of levelSelect.options) {
+            const key = Number(option.value);
+            if(key) {
+                option.text = key in activityLevels ? activityLevels[key].name : defaultLevels[key].name;
+            }
+        }
+      }
+  </script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
