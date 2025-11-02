@@ -639,11 +639,14 @@ def manage_event(event_id=None):
 
         db.session.add(event)
         db.session.commit()
-    elif form.duplicate_event.data != "":
+
+    if form.duplicate_event.data:
         duplicated_event = db.session.get(Event, form.duplicate_event.data)
         if duplicated_event is not None:
-            event.photo = duplicated_event.photo
-            event.copy_payment_items(duplicated_event)
+            if form.photo_file.data is None:
+                event.photo = duplicated_event.photo
+            time_shift = event.start - duplicated_event.start
+            event.copy_payment_items(duplicated_event, time_shift=time_shift)
             event.copy_questions(duplicated_event)
 
             db.session.add(event)

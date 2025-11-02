@@ -4,7 +4,7 @@ function genFieldId(id, rowIndex, fieldName) {
 }
 
 function makeInvertFormatter(id) {
-    return function(cell, formatterParams, onRendered) {
+    return function (cell, formatterParams, onRendered) {
         const row = cell.getRow();
         const rowIndex = row.getIndex();
 
@@ -20,7 +20,7 @@ function makeInvertFormatter(id) {
             selectStr += `<option value="${option[0]}" ${selected}>${option[1]}</option>`;
         });
         selectStr += `</select>`;
-        
+
         return selectStr;
     };
 }
@@ -49,7 +49,7 @@ function createEventConditionsTable(id) {
         return hiddenField(rowIndex, "event_id", row.getData().event_id)
             + hiddenField(rowIndex, "condition_id", row.getData().condition_id);
     }
-    
+
     function isLeaderFormatter(cell, formatterParams, onRendered) {
         const row = cell.getRow();
         const rowIndex = row.getIndex();
@@ -80,9 +80,9 @@ function createEventConditionsTable(id) {
                     title: "Evénement", field: "event_name", formatter: "link", formatterParams: { urlField: "event_url" }
                 },
                 { title: "En tant que", field: "is_leader", align: "center", formatter: isLeaderFormatter, headerSort: false },
-                { title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id)},
+                { title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id) },
                 { field: "delete", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteRow, headerSort: false },
-                { field: "event_id",  formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
+                { field: "event_id", formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
             ],
         });
 
@@ -97,7 +97,7 @@ function setupEventConditionsEditor(fieldId, existing) {
     var table = createEventConditionsTable(fieldId);
     table.setData(existing);
 
-    
+
     return table;
 }
 
@@ -107,7 +107,7 @@ function addEventCondition(table, fieldId, val, isLeaderSelectId) {
     var isLeaderSelect = document.getElementById(isLeaderSelectId);
 
     var rowCount = table.getRows().length;
-    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount-1].getIndex() + 1);
+    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount - 1].getIndex() + 1);
 
     table.addData(
         [
@@ -118,14 +118,14 @@ function addEventCondition(table, fieldId, val, isLeaderSelectId) {
                 "event_name": val.title,
                 "event_url": val.view_uri,
                 "is_leader": isLeaderSelect.value === "" ? "" : parseInt(isLeaderSelect.value),
-                "invert": false, 
+                "invert": false,
             }
         ]
     );
 
-    if(index == 0) {
-       var field = document.getElementById(fieldId);
-      field.classList.remove('display-none');
+    if (index == 0) {
+        var field = document.getElementById(fieldId);
+        field.classList.remove('display-none');
     }
 }
 
@@ -160,11 +160,11 @@ function createRoleConditionsTable(id) {
             layout: "fitColumns",
 
             columns: [
-                {title: "Rôle", field: "role_name", formatter: "text"},
-                {title: "Activité", field: "activity_name", formatter: "text"},
-                {title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id)},
+                { title: "Rôle", field: "role_name", formatter: "text" },
+                { title: "Activité", field: "activity_name", formatter: "text" },
+                { title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id) },
                 { field: "delete", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteRow, headerSort: false },
-                { field: "role_id",  formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
+                { field: "role_id", formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
             ],
         });
 
@@ -184,16 +184,16 @@ function setupRoleConditionsEditor(fieldId, existing) {
 function addRoleCondition(fieldId, roleSelectId, activitySelectId) {
     var roleSelect = document.getElementById(roleSelectId);
     var activitySelect = document.getElementById(activitySelectId);
-    
+
     var role_id = roleSelect.value;
     var role_name = roleSelect.options[roleSelect.selectedIndex].text;
-    
+
     var activity_id = activitySelect.value;
     var activity_name = activitySelect.options[activitySelect.selectedIndex].text;
-    
-    var table = Tabulator.prototype.findTable("#"+fieldId)[0];
+
+    var table = Tabulator.prototype.findTable("#" + fieldId)[0];
     var rowCount = table.getRows().length;
-    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount-1].getIndex() + 1);
+    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount - 1].getIndex() + 1);
 
     table.addData(
         [
@@ -204,14 +204,14 @@ function addRoleCondition(fieldId, roleSelectId, activitySelectId) {
                 "role_name": role_name,
                 "activity_id": activity_id,
                 "activity_name": activity_name,
-                "invert": false, 
+                "invert": false,
             }
         ]
     );
 
-    if(index == 0) {
-       var field = document.getElementById(fieldId);
-       field.classList.remove('display-none');
+    if (index == 0) {
+        var field = document.getElementById(fieldId);
+        field.classList.remove('display-none');
     }
 }
 
@@ -250,12 +250,12 @@ function createBadgeConditionsTable(id) {
             layout: "fitColumns",
 
             columns: [
-                {title: "Badge", field: "badge_name", formatter: "text"},
-                {title: "Activité", field: "activity_name", formatter: "text"},
-                {title: "Niveau", field: "level_name", formatter: "text"},
-                {title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id)},
+                { title: "Badge", field: "badge_name", formatter: "text" },
+                { title: "Activité", field: "activity_name", formatter: "text" },
+                { title: "Niveau", field: "level_name", formatter: "text" },
+                { title: "", width: "192", field: "invert", formatter: makeInvertFormatter(id) },
                 { field: "delete", width: "24", align: "center", formatter: "buttonCross", cellClick: deleteRow, headerSort: false },
-                { field: "badge_id",  formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
+                { field: "badge_id", formatter: hiddenFieldsFormatter, visible: false, headerSort: false }
             ],
         });
 
@@ -279,16 +279,16 @@ function addBadgeCondition(fieldId, badgeSelectId, activitySelectId, levelSelect
 
     var badge_id = badgeSelect.value;
     var badge_name = badgeSelect.options[badgeSelect.selectedIndex].text;
-    
+
     var activity_id = activitySelect.value;
     var activity_name = activitySelect.options[activitySelect.selectedIndex].text;
 
     var level = levelSelect.value;
     var level_name = levelSelect.options[levelSelect.selectedIndex]?.text || "";
-    
-    var table = Tabulator.prototype.findTable("#"+fieldId)[0];
+
+    var table = Tabulator.prototype.findTable("#" + fieldId)[0];
     var rowCount = table.getRows().length;
-    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount-1].getIndex() + 1);
+    var index = rowCount == 0 ? 0 : (table.getRows()[rowCount - 1].getIndex() + 1);
 
     table.addData(
         [
@@ -306,8 +306,60 @@ function addBadgeCondition(fieldId, badgeSelectId, activitySelectId, levelSelect
         ]
     );
 
-    if(index == 0) {
-       var field = document.getElementById(fieldId);
-       field.classList.remove('display-none');
+    if (index == 0) {
+        var field = document.getElementById(fieldId);
+        field.classList.remove('display-none');
     }
+}
+
+function updateBadgeLevels(
+    badgeLevels,
+    badgeSelect,
+    badgeActivityIdSelect,
+) {
+    const levelSelect = document.getElementById(badgeSelect.dataset.levelTarget);
+    while (levelSelect.options.length > 0) {
+        levelSelect.remove(0);
+    }
+    const badgeId = badgeSelect.value;
+    const activityId = badgeActivityIdSelect.value;
+    hidden = true;
+
+    var levels = {};
+    if (badgeId in badgeLevels) {
+        var thisBadgeLevels = badgeLevels[badgeId]
+        if (activityId in thisBadgeLevels) {
+
+            for (const [key, level] of Object.entries(thisBadgeLevels[null])) {
+                // Default levels
+                // Only add if it is not activity-specific but accepts acitvities
+                if (level.activity_id == null && level.accepts_activity) {
+                    levels[key] = level
+                }
+            }
+
+            Object.assign(levels, thisBadgeLevels[activityId])
+
+        } else {
+            for (const [key, level] of Object.entries(thisBadgeLevels[null])) {
+                // Default levels
+                // Only add if it is not activity-specific
+                if (level.activity_id == null) {
+                    levels[key] = level
+                }
+            }
+        }
+
+    }
+
+    for (const [key, level] of Object.entries(levels)) {
+        const option = document.createElement("option");
+        option.value = key;
+        option.text = level.name;
+        levelSelect.add(option);
+
+        hidden = false;
+    }
+
+    levelSelect.style.display = hidden ? "none" : "inline-block";
 }

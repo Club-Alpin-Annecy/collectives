@@ -40,7 +40,7 @@ Détenteurs du rôle :
 
 <div class="inline_field">
 Détenteurs du badge :
-{{user_group_form.new_badge_id(style="width:auto; margin:auto", onchange="updateBadgeLevels(this);", data_level_target=user_group_form.new_badge_level.id)}}
+{{user_group_form.new_badge_id(style="width:auto; margin:auto", data_level_target=user_group_form.new_badge_level.id)}}
 {{user_group_form.new_badge_activity_id(style="width:auto; margin:auto")}}
 <select id="{{user_group_form.new_badge_level.id}}" name="{{user_group_form.new_badge_level.name}}" style="width:auto; margin:auto; display:none">
 </select>
@@ -53,8 +53,6 @@ Détenteurs du badge :
 {{user_group_form.license_conditions(class="choices")}}
 
 <script>
-
-const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
 
 document.addEventListener('DOMContentLoaded', ()=> {
     var license_multiselect = document.getElementById("{{user_group_form.license_conditions.id}}");
@@ -95,29 +93,16 @@ document.addEventListener('DOMContentLoaded', ()=> {
     var badgeConditionsTable = setupBadgeConditionsEditor("{{user_group_form.badge_conditions.id}}", current_badge_conditions);
 
 
-    updateBadgeLevels(document.getElementById("{{user_group_form.new_badge_id.id}}"));
+    const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
+    const badgeSelect = document.getElementById("{{user_group_form.new_badge_id.id}}")
+    const badgeActivityIdSelect = document.getElementById("{{user_group_form.new_badge_activity_id.id}}")
+    
+    const updateLevels = () => {
+        updateBadgeLevels(badgeLevels, badgeSelect, badgeActivityIdSelect);
+    };
+    badgeSelect.addEventListener("change", updateLevels);
+    badgeActivityIdSelect.addEventListener("change", updateLevels);
 });
 
-function updateBadgeLevels(badgeSelect) {
-    const levelSelect = document.getElementById(badgeSelect.dataset.levelTarget);
-    const badgeId = badgeSelect.value;
-    while (levelSelect.options.length > 0) {                
-        levelSelect.remove(0);
-    }        
-    hidden = true;
-    if(badgeId in badgeLevels) {
-
-        levels = Object.entries(badgeLevels[badgeId])
-        for(const [key, level] of levels) {
-            const option = document.createElement("option");
-            option.value = key;
-            option.text = level[0];
-            levelSelect.add(option);
-
-            hidden = false;
-        }
-    }
-    levelSelect.style.display = hidden ? "none" : "inline-block";
-}
 
 </script>

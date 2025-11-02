@@ -60,6 +60,10 @@ class ActivityTypeSelectionForm(FlaskForm):
         if submit_label:
             self.submit.label = Label(self.submit.id, submit_label)
 
+    def activity_ids(self) -> list[int]:
+        """Returns the list of activity ids that can be selected"""
+        return [int(choice[0]) for choice in self.activity_id.choices]
+
 
 class ActivityTypeEditForm(ModelForm, FlaskForm):
     """Form to modify an activity type."""

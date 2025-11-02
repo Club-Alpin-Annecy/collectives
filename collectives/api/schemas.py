@@ -110,7 +110,7 @@ class BadgeSchema(marshmallow.SQLAlchemyAutoSchema):
 
     name = fields.Str()
 
-    activity_type = fields.Nested(ActivityTypeSchema, only=["name"])
+    activity_type = fields.Nested(ActivityTypeSchema, only=["id", "name"])
 
     class Meta:
         """Fields to expose"""

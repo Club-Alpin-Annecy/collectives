@@ -3,6 +3,7 @@
 Restricted to activity supervisor, adminstrators, and President.
 """
 
+import sqlalchemy as sa
 from flask import (
     Blueprint,
     abort,
@@ -23,9 +24,13 @@ from collectives.forms.activity_type import (
     ActivityTypeEditForm,
     ActivityTypeSelectionForm,
 )
+from collectives.forms.badge import (
+    BadgeCustomLevelForm,
+    BadgeCustomPractitionerLevelForm,
+)
 from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
-from collectives.forms.user import AddLeaderForm, BadgeCustomLevelForm
+from collectives.forms.user import AddLeaderForm
 from collectives.models import (
     ActivityKind,
     ActivityType,
@@ -369,6 +374,7 @@ def configuration_form(activity_type_id: int = None):
             activity.short = f"{activity.short}-{activity.id}"
             db.session.commit()
 
+        ActivityType.get_all_types.expire_all()
         flash(f"Activité {activity.name} modifiée avec succès.", "success")
 
         return redirect(url_for(".configuration"))
@@ -386,13 +392,14 @@ def configuration_form(activity_type_id: int = None):
 def manage_custom_skills(custom_level_id: int | None = None):
     """Route for managing custom skill badges"""
 
-    activities = {act.id for act in current_user.get_supervised_activities()}
+    activities = current_user.get_supervised_activities()
+    activity_ids = {act.id for act in activities}
 
     def is_supervisable_level(level: BadgeCustomLevel) -> bool:
         """Check if the given badge custom level is editable by the current user."""
         return level.badge_id == BadgeIds.Skill and (
             level.descriptor.activity_id is None
-            or level.descriptor.activity_id in activities
+            or level.descriptor.activity_id in activity_ids
         )
 
     custom_level = None
@@ -402,9 +409,9 @@ def manage_custom_skills(custom_level_id: int | None = None):
             flash("Non autorisé", "error")
             return redirect(url_for(".manage_custom_skills"))
 
-    form = BadgeCustomLevelForm(obj=custom_level)
+    custom_level_form = BadgeCustomLevelForm(obj=custom_level)
 
-    if form.validate_on_submit():
+    if custom_level_form.validate_on_submit():
         if custom_level is None:
             custom_level = BadgeCustomLevel(badge_id=BadgeIds.Skill)
             custom_level.level = (
@@ -413,21 +420,81 @@ def manage_custom_skills(custom_level_id: int | None = None):
                 .scalar()
                 or 0
             ) + 1
-        form.populate_obj(custom_level)
+        custom_level_form.populate_obj(custom_level)
         db.session.add(custom_level)
         db.session.commit()
+        BadgeIds.levels.expire_all()
         return redirect(url_for(".manage_custom_skills"))
 
-    levels = BadgeCustomLevel.get_all(badge_id=BadgeIds.Skill, include_deprecated=True)
-    levels = {level.level: level for level in levels if is_supervisable_level(level)}
+    skill_levels = BadgeCustomLevel.get_all(
+        badge_id=BadgeIds.Skill, include_deprecated=True
+    )
+    skill_levels = {
+        level.level: level for level in skill_levels if is_supervisable_level(level)
+    }
+
+    practitioner_level_form = BadgeCustomPractitionerLevelForm(
+        activity_list=activities, prefix="practitioner_level"
+    )
 
     return render_template(
         "activity_supervision/custom_skills.html",
         title="Gestion des badges de compétence",
-        levels=levels,
+        levels=skill_levels,
         custom_level=custom_level,
-        form=form,
+        custom_level_form=custom_level_form,
+        practitioner_level_form=practitioner_level_form,
     )
+
+
+@blueprint.route("/set_custom_practitioner_levels", methods=["POST"])
+def set_custom_practitioner_levels():
+    """Route to define custom practioner badge level names"""
+
+    activities = current_user.get_supervised_activities()
+
+    practitioner_level_form = BadgeCustomPractitionerLevelForm(
+        activity_list=activities, prefix="practitioner_level"
+    )
+
+    if practitioner_level_form.validate_on_submit():
+        default_levels = BadgeIds.Practitioner.levels()
+
+        activity_id = int(practitioner_level_form.activity_id.data)
+
+        # remove all existing custom levels
+        db.session.execute(
+            sa.delete(BadgeCustomLevel).where(
+                sa.and_(
+                    BadgeCustomLevel.badge_id == BadgeIds.Practitioner,
+                    BadgeCustomLevel.activity_id == activity_id,
+                )
+            )
+        )
+
+        for field, (level, level_desc) in zip(
+            practitioner_level_form.level_names, default_levels.items()
+        ):
+            level_name = field.data.strip()
+            if level_name and level_name != level_desc.name:
+                new_level = BadgeCustomLevel(
+                    name=level_name,
+                    badge_id=BadgeIds.Practitioner,
+                    activity_id=activity_id,
+                    level=level,
+                    abbrev=level_desc.abbrev,
+                )
+                db.session.add(new_level)
+
+        db.session.commit()
+        BadgeIds.levels.expire_all()
+
+        flash(
+            f"Intitulés des niveaux de pratique mis à jour pour l'activité {ActivityType.get(activity_id).name}",
+            "info",
+        )
+
+    return redirect(url_for(".manage_custom_skills"))
 
 
 @blueprint.route("/competency_badge_holders/", methods=["GET"])
