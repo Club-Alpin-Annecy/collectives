@@ -144,14 +144,16 @@ def parse(row, column_name):
             "bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
         )
     elif column_type == "int":
-        if value_str:
-            try:
-                return int(value_str)
-            except ValueError as err:
-                raise RuntimeError(
-                    f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
-                    "nombre entier"
-                ) from err
+        if not value_str:
+            return 0
+
+        try:
+            return int(value_str)
+        except ValueError as err:
+            raise RuntimeError(
+                f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
+                "nombre entier"
+            ) from err
 
     return value_str
 
