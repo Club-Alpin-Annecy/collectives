@@ -546,7 +546,7 @@ CSV_COLUMNS = {
     "altitude": {
         "short_desc": "Altitude (en m)",
         "description": "Altitude du sommet (en m)",
-        "type": "int",
+        "type": "string",
         "optional": 1,
     },
     "denivele": {
