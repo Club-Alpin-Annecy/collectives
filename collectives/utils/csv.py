@@ -31,7 +31,7 @@ def fill_from_csv(event, row, template):
     event.num_slots = parse(row, "places")
 
     parent_event_id = parse(row, "parent")
-    if parent_event_id != "":
+    if parent_event_id:
         if db.session.get(Event, parent_event_id) is None:
             raise RuntimeError(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
