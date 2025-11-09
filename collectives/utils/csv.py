@@ -1,6 +1,5 @@
 """Module to handle csv import"""
 
-import builtins
 import codecs
 import csv
 from datetime import datetime, timedelta
@@ -34,7 +33,7 @@ def fill_from_csv(event, row, template):
     parent_event_id = parse(row, "parent")
     if parent_event_id != "":
         if db.session.get(Event, parent_event_id) is None:
-            raise builtins.Exception(f"La collective {parent_event_id} n'existe pas")
+            raise RuntimeError(f"La collective {parent_event_id} n'existe pas")
         event.user_group = UserGroup()
         event.user_group.event_conditions.add(
             GroupEventCondition(event_id=parent_event_id, is_leader=False)
@@ -44,7 +43,7 @@ def fill_from_csv(event, row, template):
     if row["places_internet"].strip():
         event.num_online_slots = parse(row, "places_internet")
         if event.num_online_slots > event.num_slots:
-            raise builtins.Exception(
+            raise RuntimeError(
                 "Le nombre de places par internet doit être inférieur au nombre de places de "
                 "la collective"
             )
@@ -87,7 +86,7 @@ def fill_from_csv(event, row, template):
     # Leader
     leader = User.query.filter_by(license=row["id_encadrant"]).first()
     if leader is None:
-        raise builtins.Exception(
+        raise RuntimeError(
             f"L'encadrant {row['nom_encadrant']} (numéro de licence {row['id_encadrant']}) n'a "
             "pas encore créé de compte"
         )
@@ -96,7 +95,7 @@ def fill_from_csv(event, row, template):
     if Event.query.filter_by(
         main_leader_id=leader.id, title=event.title, start=event.start
     ).first():
-        raise builtins.Exception(
+        raise RuntimeError(
             f"La collective {event.title} démarrant le {format_date(event.start)} et encadrée "
             f"par {row['nom_encadrant']} existe déjà."
         )
@@ -118,7 +117,7 @@ def parse(row, column_name):
     column_short_desc = csv_columns[column_name]["short_desc"]
 
     if row[column_name] is None:
-        raise builtins.Exception(
+        raise RuntimeError(
             f"La colonne '{column_short_desc}' n'existe pas dans le fichier"
         )
 
@@ -126,25 +125,30 @@ def parse(row, column_name):
 
     # Check if mandatory column is well set
     if not value_str and not csv_columns[column_name].get("optional", 0):
-        raise builtins.Exception(
+        raise RuntimeError(
             f"La colonne '{column_short_desc}' est obligatoire et n'est pas renseignée"
         )
 
     column_type = csv_columns[column_name]["type"]
     if column_type == "datetime":
-        try:
-            return datetime.strptime(value_str, "%d/%m/%Y %H:%M")
-        except ValueError as err:
-            raise builtins.Exception(
-                f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le "
-                "bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
-            ) from err
+        POSSIBLE_FORMATS = ["%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M", "%d/%m/%Y"]
+
+        for format in POSSIBLE_FORMATS:
+            try:
+                return datetime.strptime(value_str, format)
+            except ValueError:
+                pass
+
+        raise RuntimeError(
+            f"La date '{value_str}' de la colonne '{column_short_desc}' n'est pas dans le "
+            "bon format jj/mm/yyyy hh:mm (ex: 31/12/2020 14:45)"
+        )
     elif column_type == "int":
         if value_str:
             try:
                 return int(value_str)
             except ValueError as err:
-                raise builtins.Exception(
+                raise RuntimeError(
                     f"La valeur '{value_str}' de la colonne '{column_name}' doit être un "
                     "nombre entier"
                 ) from err
@@ -219,7 +223,7 @@ def csv_to_events(stream, description):
             fill_from_csv(event, row, description)
             events.append(event)
         # pylint: disable=broad-except
-        except builtins.Exception as ex:
+        except RuntimeError as ex:
             failed.append(
                 f"Impossible d'importer la ligne {processed + 1}: [{type(ex).__name__}] {ex!s}"
             )

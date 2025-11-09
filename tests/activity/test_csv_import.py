@@ -22,9 +22,9 @@ def test_csv_import(supervisor_client, user1):
     csv = (
         ",,,,,,,,,,,,,,,,,\n"
         "Jan Johnston,990000000001,26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,"
-        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,\n"
+        "Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00:30,,\n"
         "Jan Johnston,990000000001,26/11/2021 7:00,26/11/2021 7:00,Mont Sulens,Aravis,"
-        "d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,cycle decouverte,,"
+        "d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021,,cycle decouverte,,"
     )
     file = BytesIO(csv.encode("utf8"))
     activity = supervisor_client.user.get_supervised_activities()[0]
@@ -47,7 +47,7 @@ def test_csv_import(supervisor_client, user1):
     assert event.num_slots == 8
     assert event.num_online_slots == 4
     assert event.registration_open_time == datetime(2021, 11, 19, 7, 0, 0)
-    assert event.registration_close_time == datetime(2021, 11, 25, 12, 0, 0)
+    assert event.registration_close_time == datetime(2021, 11, 25, 12, 0, 30)
     assert "2322m-1200m-F" in event.rendered_description
     assert event.leaders[0].license == "990000000001"
     assert event.leaders[0] == user1
@@ -76,7 +76,7 @@ def test_csv_import_unknown_leader(supervisor_client, user1):
     assert response.status_code == 200
 
     assert (
-        "[Exception] L&#39;encadrant Evan Walsh (numéro de licence 990000000002)"
+        "[RuntimeError] L&#39;encadrant Evan Walsh (numéro de licence 990000000002)"
         " n&#39;a pas encore créé de compte" in response.text
     )
 
