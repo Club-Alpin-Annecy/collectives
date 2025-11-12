@@ -509,7 +509,11 @@ def request_payment(payment_id):
     try:
         # Lock the payment row to avoid concurrent modifications
         payment = (
-            db.session.query(Payment).filter_by(id=payment_id).with_for_update().first()
+            db.session.query(Payment)
+            .filter_by(id=payment_id)
+            .with_for_update()
+            .populate_existing()
+            .first()
         )
         if payment is None or payment.status != PaymentStatus.Initiated:
             abort(403)
