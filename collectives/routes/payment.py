@@ -505,62 +505,72 @@ def request_payment(payment_id):
     :param payment_id: The primary key of the payment being made
     :type payment_id: int
     """
-    payment = db.session.get(Payment, payment_id)
-    if payment is None or payment.status != PaymentStatus.Initiated:
-        abort(403)
 
-    if payment.buyer.id != current_user.id:
-        abort(403)
+    try:
+        # Lock the payment row to avoid concurrent modifications
+        payment = (
+            db.session.query(Payment).filter_by(id=payment_id).with_for_update().first()
+        )
+        if payment is None or payment.status != PaymentStatus.Initiated:
+            abort(403)
 
-    # If the item is free, approve the payment immediately
-    if payment.amount_charged == Decimal(0):
-        payment.payment_type = PaymentType.Cash
-        payment.status = PaymentStatus.Approved
-        payment.finalization_time = current_time()
-        payment.amount_paid = Decimal(0)
-        if payment.registration is not None:
-            flash("Votre inscription est désormais confirmée.")
-            payment.registration.status = RegistrationStatus.Active
-            db.session.add(payment.registration)
+        if payment.buyer.id != current_user.id:
+            abort(403)
 
-        db.session.add(payment)
-        db.session.commit()
+        # If the item is free, approve the payment immediately
+        if payment.amount_charged == Decimal(0):
+            payment.payment_type = PaymentType.Cash
+            payment.status = PaymentStatus.Approved
+            payment.finalization_time = current_time()
+            payment.amount_paid = Decimal(0)
+            if payment.registration is not None:
+                flash("Votre inscription est désormais confirmée.")
+                payment.registration.status = RegistrationStatus.Active
+                db.session.add(payment.registration)
 
-        return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+            db.session.add(payment)
+            db.session.commit()
 
-    if payment.processor_url:
-        # Payment has already been registered with the payment processor
-        # Si ply redirect to the processor url
-        return redirect(payment.processor_url)
-
-    # Redirect to the payment processor page
-    order_info = payline.OrderInfo(payment)
-    buyer_info = payline.BuyerInfo(current_user)
-
-    payment_request = payline.api.do_web_payment(order_info, buyer_info)
-
-    if payment_request is not None:
-        if not payment_request.result.is_accepted():
-            # Payment request has not been accepted, log error
-            current_app.logger.error(
-                "Payment request error: %s", payment_request.result.__dict__
-            )
-            flash(
-                "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
-            )
             return redirect(url_for("event.view_event", event_id=payment.item.event.id))
 
-        payment.processor_token = payment_request.token
-        payment.processor_order_ref = order_info.unique_ref()
-        payment.processor_url = payment_request.redirect_url
-        db.session.add(payment)
-        db.session.commit()
-        return redirect(payment.processor_url)
+        if payment.processor_url:
+            # Payment has already been registered with the payment processor
+            # Si ply redirect to the processor url
+            return redirect(payment.processor_url)
 
-    flash(
-        "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
-    )
-    return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+        # Redirect to the payment processor page
+        order_info = payline.OrderInfo(payment)
+        buyer_info = payline.BuyerInfo(current_user)
+
+        payment_request = payline.api.do_web_payment(order_info, buyer_info)
+
+        if payment_request is not None:
+            if not payment_request.result.is_accepted():
+                # Payment request has not been accepted, log error
+                current_app.logger.error(
+                    "Payment request error: %s", payment_request.result.__dict__
+                )
+                flash(
+                    "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+                )
+                return redirect(
+                    url_for("event.view_event", event_id=payment.item.event.id)
+                )
+
+            payment.processor_token = payment_request.token
+            payment.processor_order_ref = order_info.unique_ref()
+            payment.processor_url = payment_request.redirect_url
+            db.session.add(payment)
+            db.session.commit()
+            return redirect(payment.processor_url)
+
+        flash(
+            "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+        )
+        return redirect(url_for("event.view_event", event_id=payment.item.event.id))
+    finally:
+        # Make sure to unlock the payment row
+        db.session.rollback()
 
 
 @blueprint.route("/do_mock_payment/<token>", methods=["GET"])
