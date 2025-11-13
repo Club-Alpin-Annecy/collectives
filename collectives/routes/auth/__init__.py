@@ -13,3 +13,10 @@ from collectives.routes.auth.utils import (
     get_changed_email_message,
     sync_user,
 )
+
+# Import auth0 module if enabled
+try:
+    import collectives.routes.auth.auth0
+    from collectives.routes.auth.auth0 import init_oauth
+except ImportError:
+    init_oauth = None

@@ -12,6 +12,7 @@ This module is initialized by the application factory, and contains the
 
 import collectives.api.admin
 import collectives.api.autocomplete_user
+import collectives.api.auth0_webhooks
 import collectives.api.equipment
 import collectives.api.event
 import collectives.api.models

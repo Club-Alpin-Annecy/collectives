@@ -93,6 +93,76 @@ Can be set using environment variable.
 :type: string
 """
 
+# Auth0 SSO Configuration
+AUTH0_ENABLED = environ.get("AUTH0_ENABLED", "").lower() in ["true", "1", "yes"]
+"""Enable Auth0 SSO authentication
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
+AUTH0_DOMAIN = environ.get("AUTH0_DOMAIN") or ""
+"""Auth0 domain (e.g., your-tenant.auth0.com)
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+AUTH0_CLIENT_ID = environ.get("AUTH0_CLIENT_ID") or ""
+"""Auth0 Client ID
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+AUTH0_CLIENT_SECRET = environ.get("AUTH0_CLIENT_SECRET") or ""
+"""Auth0 Client Secret
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+AUTH0_FORCE_SSO = environ.get("AUTH0_FORCE_SSO", "").lower() in ["true", "1", "yes"]
+"""Force SSO mode - hides classic login/password form
+
+When enabled, only Auth0 login button is shown on login page.
+Classic login is still available via bypass admin route if enabled.
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
+AUTH0_BYPASS_ENABLED = environ.get("AUTH0_BYPASS_ENABLED", "").lower() in [
+    "true",
+    "1",
+    "yes",
+]
+"""Enable admin bypass for Auth0
+
+When enabled, allows administrators to access classic login via /auth/admin/login.
+Useful as a fallback if Auth0 is down or needs to be temporarily disabled.
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
+AUTH0_WEBHOOK_SECRET = environ.get("AUTH0_WEBHOOK_SECRET") or ""
+"""Auth0 webhook secret for signature verification
+
+Used to verify the authenticity of webhooks from Auth0.
+Should be set to a secure random string matching the one configured in Auth0 Dashboard.
+
+Can be set using environment variable.
+
+:type: string
+"""
+
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 
