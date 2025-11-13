@@ -222,6 +222,19 @@ class UserModelMixin:
 
     :type: :py:class:`datetime.datetime`"""
 
+    auth0_id = db.Column(
+        db.String(255),
+        nullable=True,
+        unique=True,
+        index=True,
+        info={"label": "Auth0 User ID"},
+    )
+    """ Auth0 unique user identifier.
+
+    Used for SSO authentication. If null, user has not connected via Auth0.
+
+    :type: string"""
+
     @validates(
         "first_name",
         "last_name",

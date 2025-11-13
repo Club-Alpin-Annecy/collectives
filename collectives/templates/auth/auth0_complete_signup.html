@@ -1,0 +1,54 @@
+
+{% extends 'base.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}   
+    <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Auth0 Complete Signup Windows -->
+<div id="cover"></div>
+<div class="login-form">
+    <div class="box">
+        <h1 class="heading-1 padding-default">Compléter votre inscription</h1>
+
+        <div class="padding-default">
+            <p>
+                Bienvenue ! Pour compléter votre inscription via Auth0, {% if is_local_mode %}veuillez remplir les informations ci-dessous{% else %}nous avons besoin de quelques informations supplémentaires{% endif %}.
+            </p>
+            <p>
+                <strong>Email Auth0 :</strong> {{ auth0_email }}
+            </p>
+            {% if is_local_mode %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Mode local :</strong> Votre compte sera créé localement. Vous n'avez pas besoin d'un numéro de licence FFCAM valide pour tester.
+            </div>
+            {% endif %}
+        </div>
+
+        {{ generator.form_generator(form) }}
+
+        <div class="padding-default">
+            <hr class="separator">
+
+            <p class="contact-link">
+                <a href="{{url_for('auth.login')}}">Retour à la connexion</a>
+            </p>
+
+            {% if is_local_mode %}
+            <div class="text-muted small">
+                <p>
+                    <i class="fas fa-lock"></i> Vos informations sont sécurisées et ne seront utilisées que dans le cadre de cette application.
+                </p>
+            </div>
+            {% endif %}
+
+            {% include 'partials/contact_link.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

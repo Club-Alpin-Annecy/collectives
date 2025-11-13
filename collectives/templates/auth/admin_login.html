@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}   
+    <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Login Window -->
+<div id="cover"></div>
+<div class="login-form">
+    <div class="box">
+        <h1 class="heading-1 padding-default">
+            <i class="fas fa-shield-alt"></i> Connexion Administrateur
+        </h1>
+        
+        <div class="padding-default">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Mode de connexion de secours</strong><br>
+                Cette page est réservée aux administrateurs en cas d'indisponibilité d'Auth0.
+                En temps normal, veuillez utiliser la <a href="{{url_for('auth.login')}}">connexion standard</a>.
+            </div>
+        </div>
+
+        {{ generator.form_generator(form) }}
+
+        <div class="padding-default">
+            <p class="contact-link">
+                <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+            </p>
+
+            <hr class="separator">
+
+            <div class="text-center">
+                <a href="{{url_for('auth.login')}}" class="button button-secondary input-100">
+                    <i class="fas fa-arrow-left"></i> Retour à la connexion normale
+                </a>
+            </div>
+
+            <hr class="separator">
+
+            {% include 'partials/contact_link.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
