@@ -146,6 +146,15 @@ class EventModelMixin:
 
     :type: :py:class:`collectives.models.event.EventVisibility`"""
 
+    show_all_badges = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=True,
+    )
+    """Whether to show all competency badges on registration icons
+
+    :type: bool"""
+
     # Non DB attributes
     @property
     def activity_type_names(self):

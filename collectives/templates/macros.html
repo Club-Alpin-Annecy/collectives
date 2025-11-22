@@ -1,4 +1,4 @@
-{% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, is_pending_renewal=False, competency_activity=None) -%}
+{% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, is_pending_renewal=False, competency_activities=None, show_all_competencies=False) -%}
 <div class="usericon">
       <a class="usericon-wrapper" href="{%if show_info%}{{info_url}}{%else%}#{%endif%}"
                   alt="Avatar de {{user.abbrev_name()}}">
@@ -23,11 +23,9 @@
                               {% endif %}
                         {% endif %}
                         {{user.full_name().title()}}
-                        {% if competency_activity %} 
-                              {% for badge in user.get_competency_badges(activity_id=competency_activity.id) %}
-                                    <span class="competency-badge"> {{ badge.level_name(short=True) }}</span>
-                              {% endfor %}
-                        {% endif %}
+                        {% for badge in user.get_icon_competency_badges(activity_types=competency_activities, show_all=show_all_competencies) %}
+                              <span class="competency-badge" title="{{ badge.level_name(with_activity=True) }}">{{ badge.level_name(short=True) }}</span>
+                        {% endfor %}
                   {% else %}
                         {{user.abbrev_name().title()}}
                   {% endif %}
@@ -47,7 +45,8 @@
             info_url=url_for("profile.show_user", user_id=registration.user.id, event_id=registration.event.id),
             with_license_tags=True,
             is_pending_renewal=registration.is_pending_renewal(),
-            competency_activity=registration.event.single_activity_type(),
+            competency_activities=registration.event.activity_types,
+            show_all_competencies=registration.event.show_all_badges,
       )}}
 {%- endmacro%}
 

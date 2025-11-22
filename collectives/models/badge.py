@@ -460,19 +460,23 @@ class Badge(db.Model):
 
         return self.badge_id.display_name()
 
-    def level_name(self, short: bool = False) -> str:
+    def level_name(self, short: bool = False, with_activity: bool = False) -> str:
         """Returns the name of the badge level.
 
         :param short: if True, returns the short name (abbreviation/emoji)
+        :param with_activity: if True, includes the activity name in the returned string
         :return: name of the badge.
         """
         level_desc = self.badge_id.level(self.level, activity_id=self.activity_id)
         if level_desc is None:
             return self.level
 
-        return (
+        name = (
             level_desc.abbrev if short else f"{level_desc.name} ({level_desc.abbrev})"
         )
+        if with_activity and self.activity_type is not None:
+            name += f" - {self.activity_name}"
+        return name
 
     @property
     def activity_name(self):

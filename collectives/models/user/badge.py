@@ -334,3 +334,55 @@ class UserBadgeMixin:
                 b.expiration_date or date(year=9999, month=12, day=31),
             ),
         )
+
+    def get_icon_competency_badges(
+        self,
+        activity_types: list[ActivityType],
+        show_all: bool = False,
+    ) -> list[Badge]:
+        """
+        Get the users' competency badges to be shown in event registration icons,
+        if any.
+
+         - If there is no activity type, return an empty list.
+         - If there is a single activity type, returns the corresponding practitioner badge
+           (if any) and all skill badges for that activity type (if any).
+         - If there are multiple activities, the practitioner badge is the one with the highest level,
+           but no skill badges are returned unless `show_all` is True.
+         - If show_all is True, returns all skill badges for all activity types, as
+           well as skill badges not linked to a specific activity.
+        """
+
+        if not activity_types:
+            return []
+
+        activity_ids = {activity.id for activity in activity_types}
+
+        practice_badge = max(
+            [
+                badge
+                for badge in self.matching_badges(
+                    {BadgeIds.Practitioner},
+                    valid_only=True,
+                )
+                if badge.activity_id in activity_ids
+            ],
+            key=lambda b: b.level,
+            default=None,
+        )
+        badges = [practice_badge] if practice_badge else []
+        if show_all or len(activity_ids) == 1:
+            if show_all:
+                activity_ids.add(None)
+
+            skill_badges = [
+                badge
+                for badge in self.matching_badges(
+                    {BadgeIds.Skill},
+                    valid_only=True,
+                )
+                if badge.activity_id in activity_ids
+            ]
+            badges.extend(skill_badges)
+
+        return badges
