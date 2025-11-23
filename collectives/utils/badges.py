@@ -153,7 +153,11 @@ def list_page(
 def validate_user_badge(
     user: User,
     badge: Badge,
-):
+) -> Badge:
+    """Validates that the badge can be assigned to the user, possibly updating an existing badge.
+
+    Returns the badge to add (which may be an existing badge updated), or raises RuntimeError.
+    """
     if badge.badge_id.requires_activity():
         if not badge.activity_id:
             raise RuntimeError("Ce badge doit être associé à une activité")
