@@ -42,9 +42,9 @@ class BadgeLevelDescriptor:
         :return: True if the level is compatible with the activity
         """
         if not self.accepts_activity:
-            return activity_id is None
+            return not activity_id 
 
-        return self.activity_id is None or self.activity_id == activity_id
+        return not self.activity_id or self.activity_id == activity_id
 
     def activity_name(self) -> str:
         """Returns the name of the corresponding activity

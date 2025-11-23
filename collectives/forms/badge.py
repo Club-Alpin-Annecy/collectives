@@ -11,6 +11,7 @@ from wtforms import (
     SelectField,
     StringField,
     SubmitField,
+    FileField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -50,7 +51,7 @@ def compute_default_expiration_date(
     return default_date
 
 
-class BadgeForm(ModelForm, ActivityTypeSelectionForm):
+class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
     """Form for administrators to add badges to users"""
 
     class Meta:
@@ -61,13 +62,23 @@ class BadgeForm(ModelForm, ActivityTypeSelectionForm):
 
     submit = SubmitField("Ajouter")
 
-    def __init__(self, *args, **kwargs):
+    level = SelectField("Niveau", choices=[], coerce=coerce_optional(int))
+
+    field_order = ["badge_id", "activity_id", "level", "*"]
+
+    def __init__(self, *args, badge_ids: list[BadgeIds] = None, **kwargs):
         """Overloaded constructor populating activity list"""
 
         if "no_enabled" not in kwargs:
             kwargs["no_enabled"] = True
 
         super().__init__(*args, **kwargs)
+
+        if not badge_ids:
+            badge_ids = list(BadgeIds)
+        self.badge_id.choices = [
+            (badge_id.value, badge_id.display_name()) for badge_id in badge_ids
+        ]
 
         if "expiration_date" not in request.form:
             badge = kwargs.get("obj", None)
@@ -78,6 +89,29 @@ class BadgeForm(ModelForm, ActivityTypeSelectionForm):
             else:
                 self.expiration_date.data = compute_default_expiration_date()
 
+        if self.badge_id.data:
+            if self.badge_id.data.requires_level():
+                levels = self.badge_id.data.levels()
+                self.level.choices = [(k, desc.name) for k, desc in levels.items()]
+            else:
+                if self.level.data:
+                    self.level.choices = [(self.level.data, self.level.data)]
+                else:
+                    self.level.choices = [("", "Aucun")]
+                self.level.validate_choice = False
+
+    def validate_activity_id(self, field):
+        """WTFForms validator function that make sure the activity_id field is not set
+        if the selected badge is not related to an activity"""
+        badge_id = self.badge_id.coerce(self.badge_id.data)
+        if badge_id is not None:
+            if not badge_id.accepts_activity():
+                field.data = None
+            if badge_id.requires_activity() and not field.data:
+                raise ValidationError(
+                    "Ce type de badge nécessite une activité associée."
+                )
+
     def validate_level(self, field):
         """WTFForms validator function that make sure the level is consistent"""
         badge_id = BadgeIds(int(self.badge_id.data))
@@ -86,9 +120,9 @@ class BadgeForm(ModelForm, ActivityTypeSelectionForm):
         if not badge_id.requires_level():
             return
 
-        level = int(field.data)
+        level = self.level.coerce(field.data)
         if level not in levels:
-            raise ValidationError("Niveau invalide")
+            raise ValidationError(f"Niveau invalide: {level}")
 
         level_desc = levels[level]
         if not level_desc.is_compatible_with_activity(self.activity_id.data):
@@ -97,31 +131,28 @@ class BadgeForm(ModelForm, ActivityTypeSelectionForm):
             )
 
 
-class RenewBadgeForm(BadgeForm):
+class RenewBadgeForm(ModelForm, FlaskForm):
     """Form for administrators to add badges to users"""
 
     class Meta:
         """Fields to expose"""
 
         model = Badge
-        exclude = ["creation_time"]
+        only = ["expiration_date"]
 
     submit = SubmitField("Renouveler")
 
-    def __init__(self, *args, badge: Badge, **kwargs):
-        """Overloaded constructor populating activity list"""
-        super().__init__(
-            *args,
-            obj=badge,
-            **kwargs,
-        )
-
-        # In case this is a RENEWAL
-        if badge.activity_id:
-            self.activity_id.choices = [
-                (badge.activity_id, ActivityType.get(badge.activity_id).name)
-            ]
-        self.badge_id.choices = [(int(badge.badge_id), str(badge.badge_id))]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        if "expiration_date" not in request.form:
+            badge = kwargs.get("obj", None)
+            if badge:
+                self.expiration_date.data = compute_default_expiration_date(
+                    badge.badge_id, badge.level
+                )
+            else:
+                self.expiration_date.data = compute_default_expiration_date()
 
 
 class AddBadgeForm(BadgeForm):
@@ -136,6 +167,8 @@ class AddBadgeForm(BadgeForm):
             "placeholder": "Nom...",
         },
     )
+
+    csv_file = FileField("ou fichier CSV")
 
     def __init__(self, *args, badge_type: str = "badge", **kwargs):
         """Overloaded constructor populating activity list.
@@ -162,7 +195,7 @@ class AddBadgeForm(BadgeForm):
 
 
 class CompetencyBadgeForm(ActivityTypeSelectionForm):
-    """Form for administrators to add practitioner badges to users"""
+    """Form for leaders to add practitioner badges to users"""
 
     level = SelectField(
         "Niveau",

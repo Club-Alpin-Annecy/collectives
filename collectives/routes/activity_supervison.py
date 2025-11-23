@@ -496,6 +496,17 @@ def set_custom_practitioner_levels():
     return redirect(url_for(".manage_custom_skills"))
 
 
+@blueprint.route("/add_competency_badge/", methods=["POST"])
+def add_competency_badge():
+    """Route for an activity supervisor to add or renew a Badge to a user" """
+
+    badges.add_badge(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill), level=True, auto_date=True
+    )
+
+    return redirect(url_for(".competency_badge_holders"))
+
+
 @blueprint.route("/competency_badge_holders/", methods=["GET"])
 def competency_badge_holders():
     """Route for activity supervisors to list user with competency badge"""
@@ -503,6 +514,7 @@ def competency_badge_holders():
         "export": "activity_supervision.export_competency_badge_holders",
         "delete": "activity_supervision.delete_competency_badge",
         "renew": "activity_supervision.renew_competency_badge",
+        "add": "activity_supervision.add_competency_badge",
     }
 
     return badges.list_page(
@@ -510,7 +522,7 @@ def competency_badge_holders():
         auto_date=True,
         routes=routes,
         level=True,
-        allow_add=False,
+        allow_add=True,
         show_grantor=True,
         title="Pratiquants validés",
     )
