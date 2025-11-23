@@ -1,32 +1,28 @@
 """Module for base functions of badge management"""
 
+import codecs
+import csv
+from datetime import datetime
 from typing import List, Sequence, Union
 
-from flask import flash, render_template, send_file, request
+from flask import flash, render_template, request, send_file
 from flask_login import current_user
+from markupsafe import Markup
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
 from collectives.models import (
     ActivityType,
     Badge,
+    BadgeCustomLevel,
     BadgeIds,
     Configuration,
     User,
     db,
-    BadgeCustomLevel,
 )
+from collectives.models.badge import BadgeIds
 from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
-from markupsafe import Markup
-
-import csv
-import codecs
-from datetime import datetime
-
-from collectives.models import User, db
-from collectives.models.badge import BadgeIds
-from collectives.forms.badge import compute_default_expiration_date
 
 
 def export_badge(badge_types: Sequence[BadgeIds] | None = None):
@@ -158,13 +154,9 @@ def validate_user_badge(
     user: User,
     badge: Badge,
 ):
-    
     if badge.badge_id.requires_activity():
         if not badge.activity_id:
-            raise RuntimeError(
-                "Ce badge doit être associé à une activité"
-            )
-    badge.activity_id = badge.activity_id or None
+            raise RuntimeError("Ce badge doit être associé à une activité")
 
     if badge.badge_id.requires_level():
         level_desc = badge.badge_id.levels().get(badge.level)
@@ -238,7 +230,7 @@ def add_badge(
 
     add_badge_form = AddBadgeForm(badge_ids=badge_types)
 
-    if len(badge_types) == 1:
+    if badge_types is not None and len(badge_types) == 1:
         add_badge_form.badge_id.data = badge_types[0]
 
     if auto_date:
@@ -262,12 +254,23 @@ def add_badge(
 
     badge = Badge(creation_time=time.current_time())
     add_badge_form.populate_obj(badge)
+    badge.activity_id = badge.activity_id or None
 
     if auto_date:
         badge.expiration_date = compute_default_expiration_date(
             badge_id=badge.badge_id, level=badge.level
         )
 
+    csv_file = add_badge_form.csv_file.data
+    if csv_file:
+        # Process the CSV file
+        try:
+            add_bulk(csv_file, badge_prototype=badge)
+        except RuntimeError as err:
+            flash(Markup(str(err)), "error")
+        return
+
+    # else add badge for a single user
     user: User = db.session.get(User, badge.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
@@ -282,15 +285,11 @@ def add_badge(
         flash(str(err), "error")
 
 
-def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = None):
+def add_bulk(file_storage, badge_prototype: Badge) -> None:
     """Process a CSV file containing lines (license, attribution_date) and assign badge.
 
     The CSV may have a header. Date formats accepted: YYYY-MM-DD or DD/MM/YYYY.
     """
-
-    file_storage = request.files.get("csv_file")
-    if file_storage is None or file_storage.filename == "":
-        raise RuntimeError("Aucun fichier fourni.")
 
     # Try to decode as utf-8, fallback to iso-8859-1
     try:
@@ -313,9 +312,9 @@ def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = 
     # detect header if first row contains 'license' text or non-numeric license
     start_index = 0
     first = rows[0]
-    if any(
-        h and h.lower() in ("license", "licence", "licence_number", "id") for h in first
-    ) or (first and not first[0].strip().isdigit()):
+    if any(h and h.lower() in ("license", "licence") for h in first) or (
+        first and not first[0].strip().isdigit()
+    ):
         start_index = 1
     header_map = None
     if start_index == 1:
@@ -329,23 +328,30 @@ def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = 
             for n in names:
                 if n in header_map:
                     return header_map[n]
+            return None
         return default_idx
 
-    # default badge type provided by the form (required to interpret rows)
-    default_badge_id = request.form.get("default_badge_id")
-    try:
-        default_badge = BadgeIds(int(default_badge_id)) if default_badge_id else None
-    except Exception:
-        default_badge = None
+    def _col_value(row, idx):
+        """Return the column value for the first matching name in names using header_map, or default_idx."""
+        if idx is not None and idx < len(row):
+            return row[idx].strip()
+        return None
+
+    activity_names = {a.name: a.id for a in current_user.get_supervised_activities()}
+
+    license_index = _col_index(["license", "licence"], 0)
+    date_index = _col_index(["attribution_date", "date"], 1)
+    activity_index = _col_index(["activity", "activite"], 2)
+    level_index = _col_index(["level", "niveau"], 3)
 
     for row in rows[start_index:]:
         if not row:
             continue
 
-        license_val = row[0].strip() if len(row) > 0 else ""
-        date_str = row[1].strip() if len(row) > 1 else ""
-        activity_name = row[2].strip() if len(row) > 2 else ""
-        level_name = row[3].strip() if len(row) > 3 else ""
+        license_val = _col_value(row, license_index)
+        date_str = _col_value(row, date_index)
+        activity_name = _col_value(row, activity_index)
+        level_name = _col_value(row, level_index)
 
         if not license_val:
             continue
@@ -355,8 +361,31 @@ def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = 
             failed.append(f"Utilisateur introuvable: {license_val}")
             continue
 
+        user_identifier = f"{user.full_name()} (licence {user.license})"
+
+        # resolve activity by name if provided
+        activity_id = badge_prototype.activity_id
+        if activity_name:
+            activity_id = activity_names.get(activity_name)
+            if activity_id is None:
+                failed.append(
+                    f"Activité introuvable pour {user_identifier}: {activity_name}"
+                )
+                continue
+
+        # resolve level name -> level id (practitioner default levels or custom skill levels)
+        level = badge_prototype.level
+        if level_name:
+            levels = badge_prototype.badge_id.levels(activity_id=activity_id)
+            level_names = {desc.name: lvl for lvl, desc in levels.items()}
+
+            level = level_names.get(level_name)
+            if level is None:
+                failed.append(f"Niveau invalide pour {user_identifier}: {level_name}")
+                continue
+
         # parse date
-        expiration_date = None
+        expiration_date = badge_prototype.expiration_date
         if date_str:
             parsed = None
             for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
@@ -366,103 +395,45 @@ def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = 
                 except Exception:
                     parsed = None
             if parsed is None:
-                failed.append(f"Date invalide pour {license_val}: {date_str}")
+                failed.append(f"Date invalide pour {user_identifier}: {date_str}")
                 continue
-            expiration_date = parsed
-        else:
-            expiration_date = compute_default_expiration_date()
+            expiration_date = compute_default_expiration_date(
+                badge_id=badge_prototype.badge_id,
+                level=level,
+                attribution_date=parsed,
+            )
+        elif expiration_date is None:
+            expiration_date = compute_default_expiration_date(
+                badge_id=badge_prototype.badge_id,
+                level=level,
+            )
 
-        # badge type comes from form default (required)
-        badge_type = default_badge or BadgeIds.Benevole
+        tentative_badge = Badge(
+            user_id=user.id,
+            badge_id=badge_prototype.badge_id,
+            activity_id=activity_id,
+            level=level,
+            expiration_date=expiration_date,
+            creation_time=time.current_time(),
+        )
 
-        # resolve activity by name if provided
-        activity_id = None
-        if activity_name:
-            activity = ActivityType.query.filter_by(name=activity_name).first()
-            if activity is None:
-                failed.append(
-                    f"Activité introuvable pour {license_val}: {activity_name}"
-                )
-                continue
-            activity_id = activity.id
+        try:
+            resolved_badge = validate_user_badge(user, tentative_badge)
+        except RuntimeError as err:
+            failed.append(f"{user_identifier}: {err}")
+            continue
 
-        # resolve level name -> level id (practitioner default levels or custom skill levels)
-        level = None
-        if level_name:
-            if badge_type == BadgeIds.Practitioner:
-                levels = badge_type.levels(activity_id=activity_id)
-                match = None
-                for lvl_key, desc in levels.items():
-                    if (
-                        desc.name == level_name
-                        or getattr(desc, "abbrev", None) == level_name
-                        or level_name in desc.name
-                    ):
-                        match = lvl_key
-                        break
-                if match is None:
-                    failed.append(f"Niveau invalide pour {license_val}: {level_name}")
-                    continue
-                level = match
-            elif badge_type == BadgeIds.Skill:
-                candidates = BadgeCustomLevel.get_all(
-                    badge_id=BadgeIds.Skill, include_deprecated=False
-                )
-                match = None
-                for cand in candidates:
-                    if (
-                        cand.name == level_name
-                        or cand.abbrev == level_name
-                        or level_name in cand.name
-                    ):
-                        match = cand.id
-                        break
-                if match is None:
-                    failed.append(
-                        f"Niveau de compétence introuvable pour {license_val}: {level_name}"
-                    )
-                    continue
-                level = match
-
-        # check for existing matching badges for this badge_type and activity
-        matching = [
-            b
-            for b in user.matching_badges({badge_type}, valid_only=False)
-            if b.activity_id == activity_id
-        ]
-        if matching:
-            existing = matching[0]
-            if expiration_date and (
-                existing.expiration_date is None
-                or existing.expiration_date > expiration_date
-            ):
-                failed.append(
-                    f"{license_val}: badge existant avec une date d'expiration ultérieure"
-                )
-                continue
-            existing.expiration_date = expiration_date
-            if level is not None:
-                existing.level = level
-            existing.grantor_id = current_user.id
-            db.session.add(existing)
-            try:
-                db.session.commit()
-                updated += 1
-            except Exception:
-                db.session.rollback()
-                failed.append(f"Erreur en mettant à jour {license_val}")
-        else:
-            try:
-                user.assign_badge(
-                    badge_type,
-                    expiration_date=expiration_date,
-                    activity_id=activity_id,
-                    level=level,
-                    grantor_id=current_user.id,
-                )
+        resolved_badge.grantor_id = current_user.id
+        db.session.add(resolved_badge)
+        try:
+            db.session.commit()
+            if resolved_badge.id == tentative_badge.id:
                 created += 1
-            except Exception:
-                failed.append(f"Erreur lors de l'ajout du badge pour {license_val}")
+            else:
+                updated += 1
+        except Exception:
+            db.session.rollback()
+            failed.append(f"Erreur en mettant à jour {license_val}")
 
     # summarize results
     if failed:
@@ -473,8 +444,6 @@ def add_bulk(badge_type: BadgeIds = None, auto_date: bool = False, level: int = 
         )
     else:
         flash(f"Import terminé: {created} créés, {updated} mis à jour.", "success")
-
-    # return redirect(url_for(".volunteers_list"))
 
 
 def renew_badge(

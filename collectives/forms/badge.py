@@ -7,11 +7,11 @@ from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import (
     FieldList,
+    FileField,
     HiddenField,
     SelectField,
     StringField,
     SubmitField,
-    FileField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -32,7 +32,9 @@ from collectives.models import (
 
 
 def compute_default_expiration_date(
-    badge_id: BadgeIds | None = None, level: int | None = None
+    badge_id: BadgeIds | None = None,
+    level: int | None = None,
+    attribution_date: date | None = None,
 ) -> date | None:
     """Compute the default expiration date for a badge"""
     # For now, the default expiration date is hard-coded.
@@ -40,14 +42,16 @@ def compute_default_expiration_date(
     # NB: when we are after the default hard-coded date, but still in the same year,
     # then increment the year
 
+    if attribution_date is None:
+        attribution_date = date.today()
+
     if badge_id and level in badge_id.levels():
         level_desc = badge_id.levels()[level]
-        return level_desc.expiry_date()
+        return level_desc.expiry_date(from_date=attribution_date)
 
-    default_date = date(date.today().year, 9, 30)
-    default_year = default_date.year
-    if (date.today() >= default_date) and (date.today().year == default_year):
-        default_date = date(date.today().year + 1, 9, 30)
+    default_date = date(attribution_date.year, 9, 30)
+    if attribution_date >= default_date:
+        default_date = date(default_date.year + 1, default_date.month, default_date.day)
     return default_date
 
 
@@ -69,13 +73,16 @@ class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
     def __init__(self, *args, badge_ids: list[BadgeIds] = None, **kwargs):
         """Overloaded constructor populating activity list"""
 
+        if not badge_ids:
+            badge_ids = list(BadgeIds)
+
         if "no_enabled" not in kwargs:
-            kwargs["no_enabled"] = True
+            kwargs["no_enabled"] = any(
+                not badge_id.requires_activity() for badge_id in badge_ids
+            )
 
         super().__init__(*args, **kwargs)
 
-        if not badge_ids:
-            badge_ids = list(BadgeIds)
         self.badge_id.choices = [
             (badge_id.value, badge_id.display_name()) for badge_id in badge_ids
         ]
@@ -144,7 +151,7 @@ class RenewBadgeForm(ModelForm, FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         if "expiration_date" not in request.form:
             badge = kwargs.get("obj", None)
             if badge:
@@ -168,7 +175,15 @@ class AddBadgeForm(BadgeForm):
         },
     )
 
-    csv_file = FileField("ou fichier CSV")
+    csv_file = FileField(
+        "ou fichier CSV",
+        description=(
+            "Fichier CSV avec une ligne par adhérent à qui attribuer le badge. "
+            "Chaque ligne doit au moins contenir le numéro de licence, et optionellement, "
+            "la date d'attribution, l'activité associée au badge, et le niveau du badge. "
+            "Si ceux-ci ne sont pas fournis, les valeurs du formulaire seront utilisées"
+        ),
+    )
 
     def __init__(self, *args, badge_type: str = "badge", **kwargs):
         """Overloaded constructor populating activity list.
@@ -177,10 +192,8 @@ class AddBadgeForm(BadgeForm):
 
         if current_user.is_hotline():
             activity_list = ActivityType.get_all_types()
-            no_enabled = True
         else:
             activity_list = current_user.get_supervised_activities()
-            no_enabled = False
 
         submit_label = f"Ajouter un {badge_type}"
         kwargs["expiration_date"] = compute_default_expiration_date()
@@ -188,7 +201,6 @@ class AddBadgeForm(BadgeForm):
         super().__init__(
             *args,
             activity_list=activity_list,
-            no_enabled=no_enabled,
             submit_label=submit_label,
             **kwargs,
         )

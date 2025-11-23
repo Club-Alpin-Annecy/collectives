@@ -210,7 +210,7 @@ def volunteers_list():
 def add_volunteer():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(badge_type=BadgeIds.Benevole)
+    badges.add_badge(badge_types=[BadgeIds.Benevole])
 
     return redirect(url_for(".volunteers_list"))
 
@@ -496,7 +496,7 @@ def set_custom_practitioner_levels():
     return redirect(url_for(".manage_custom_skills"))
 
 
-@blueprint.route("/add_competency_badge/", methods=["POST"])
+@blueprint.route("/competency_badge/add", methods=["POST"])
 def add_competency_badge():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 

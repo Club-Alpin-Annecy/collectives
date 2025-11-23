@@ -42,7 +42,7 @@ class BadgeLevelDescriptor:
         :return: True if the level is compatible with the activity
         """
         if not self.accepts_activity:
-            return not activity_id 
+            return not activity_id
 
         return not self.activity_id or self.activity_id == activity_id
 

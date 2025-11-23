@@ -73,6 +73,34 @@ def test_volunteers_add(supervisor_client, user3):
     assert user3.badges[0].badge_id == BadgeIds.Benevole
 
 
+def test_volunteers_bulk_add(supervisor_client, user1, user2, user3):
+    """Tests the ability for a supervisor to add a badge to a user"""
+    csv = f"license, date, activity\n{user1.license},\n{user2.license},{date.today().isoformat()}\n{user3.license},,Canyon\n"
+
+    response = supervisor_client.get("/activity_supervision/volunteers/")
+    data = utils.load_data_from_form(response.text, "user-search-form")
+    data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
+    data["csv_file"] = (BytesIO(csv.encode("utf8")), "import.csv")
+    data["badge_id"] = str(int(BadgeIds.Benevole))
+
+    response = supervisor_client.post("/activity_supervision/volunteers/add", data=data)
+
+    assert response.status_code == 302
+
+    assert len(user1.badges) == 1
+    assert user1.badges[0].expiration_date > date.today()
+    assert user1.badges[0].badge_id == BadgeIds.Benevole
+    assert user1.badges[0].activity_name == "Alpinisme"
+    assert len(user2.badges) == 1
+    assert user2.badges[0].expiration_date > date.today()
+    assert user2.badges[0].badge_id == BadgeIds.Benevole
+    assert user2.badges[0].activity_name == "Alpinisme"
+
+    # User3 should not have received a badge
+    # as supervisor_client is not supervising "Canyon"
+    assert len(user3.badges) == 0
+
+
 def test_volunteers_delete(supervisor_client, user_with_expired_benevole_badge):
     """Tests the ability for a supervisor to delete a user badge."""
     badge_id = user_with_expired_benevole_badge.badges[0].id
