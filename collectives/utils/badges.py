@@ -153,6 +153,7 @@ def list_page(
 def validate_user_badge(
     user: User,
     badge: Badge,
+    verbose: bool = True,
 ) -> Badge:
     """Validates that the badge can be assigned to the user, possibly updating an existing badge.
 
@@ -209,11 +210,12 @@ def validate_user_badge(
         # Renew existing badge
         existing.expiration_date = badge.expiration_date
         existing.level = badge.level
-        flash(
-            "L'utilisateur a déjà ce badge pour cette activité,"
-            " la date d'expiration et/ou le niveau ont été mise à jour.",
-            "info",
-        )
+        if verbose:
+            flash(
+                "L'utilisateur a déjà ce badge pour cette activité,"
+                " la date d'expiration et/ou le niveau ont été mise à jour.",
+                "info",
+            )
 
         return existing
 
@@ -295,14 +297,29 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
     The CSV may have a header. Date formats accepted: YYYY-MM-DD or DD/MM/YYYY.
     """
 
-    # Try to decode as utf-8, fallback to iso-8859-1
+    # Read a sample from the uploaded stream to detect encoding and delimiter.
+    file_storage.stream.seek(0)
+    sample = file_storage.stream.read(8192) or b""
+
+    # Try to decode sample as utf-8, fallback to iso-8859-1
+    encoding = "utf8"
     try:
-        stream = codecs.iterdecode(file_storage.stream, "utf8")
-        reader = csv.reader(stream)
+        sample_text = sample.decode(encoding)
     except Exception:
-        file_storage.stream.seek(0)
-        stream = codecs.iterdecode(file_storage.stream, "iso-8859-1")
-        reader = csv.reader(stream)
+        encoding = "iso-8859-1"
+        sample_text = sample.decode(encoding, errors="replace")
+
+    # Try to detect delimiter with csv.Sniffer (prefer ; or ,). Fallback to simple heuristic.
+    try:
+        dialect = csv.Sniffer().sniff(sample_text, delimiters=";,")
+        delimiter = dialect.delimiter
+    except Exception:
+        delimiter = ";" if sample_text.count(";") > sample_text.count(",") else ","
+
+    # Reset stream and create a text iterator with the chosen encoding, then csv reader with detected delimiter.
+    file_storage.stream.seek(0)
+    stream = codecs.iterdecode(file_storage.stream, encoding)
+    reader = csv.reader(stream, delimiter=delimiter)
 
     created = 0
     updated = 0
@@ -422,7 +439,7 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
         )
 
         try:
-            resolved_badge = validate_user_badge(user, tentative_badge)
+            resolved_badge = validate_user_badge(user, tentative_badge, verbose=False)
         except RuntimeError as err:
             failed.append(f"{user_identifier}: {err}")
             continue
