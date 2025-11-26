@@ -1,6 +1,7 @@
 """Module to test payment module."""
 
 # pylint: disable=unused-argument
+from flask import url_for
 
 from collectives.models import RegistrationStatus, db
 from tests import utils
@@ -127,6 +128,70 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
     # payline validation
     response = user1_client.post(
         "/payment/process?paylinetoken=1jom6TVNaLuHygEB62681665928911817", data=data
+    )
+    assert response.status_code == 302
+    assert response.location == f"/collectives/{paying_event.id}-"
+    assert paying_event.registrations[0].user == user1_client.user
+    assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+    # Check my_payments API for initiated payments (should be empty now)
+    response = user1_client.get("/api/payments/my/Initiated")
+    assert response.status_code == 200
+    assert len(response.json) == 0
+
+    # Check my_payments API for completed payments
+    response = user1_client.get("/api/payments/my/Approved")
+    assert response.status_code == 200
+    api_data = response.json
+    assert len(api_data) == 1
+    assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+
+def test_payline_registration_unfinalized(
+    user1_client, paying_event, payline_monkeypatch
+):
+    """Test a user registering to a paying event using payline, without receiving finalization callback"""
+    response = user1_client.get(
+        f"/collectives/{paying_event.id}", follow_redirects=True
+    )
+    assert response.status_code == 200
+
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item = paying_event.payment_items[0]
+    item_price = item.cheapest_price_for_user_now(user1_client.user)
+    data["item_price"] = item_price.id
+
+    assert item_price.amount > 0.0
+
+    response = user1_client.post(
+        f"/collectives/{paying_event.id}/self_register", data=data
+    )
+    assert response.status_code == 302
+    response = user1_client.get(response.location, data=data)
+    assert response.status_code == 302
+    assert len(paying_event.registrations) == 1
+    assert (
+        response.location
+        == "https://homologation-webpayment.payline.com/v2/?token=1jom6TVNaLuHygEB62681665928911817"
+    )
+    assert paying_event.registrations[0].user == user1_client.user
+    assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
+
+    # Check my_payments API for initiated payments
+    response = user1_client.get("/api/payments/my/Initiated")
+    assert response.status_code == 200
+    api_data = response.json
+    assert len(api_data) == 1
+    assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+    # Check my_payments API for completed payments (should be empty)
+    response = user1_client.get("/api/payments/my/Approved")
+    assert response.status_code == 200
+    assert len(response.json) == 0
+
+    # Re-access payment page. Should update status from payline API
+    response = user1_client.get(
+        url_for("payment.request_payment", payment_id=api_data[0]["id"])
     )
     assert response.status_code == 302
     assert response.location == f"/collectives/{paying_event.id}-"

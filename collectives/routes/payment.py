@@ -539,7 +539,17 @@ def request_payment(payment_id):
 
         if payment.processor_url:
             # Payment has already been registered with the payment processor
-            # Si ply redirect to the processor url
+            if payment.processor_token:
+                # Check that the payment has not already been finalized
+                details = payline.api.get_web_payment_details(payment.processor_token)
+                if details is not None:
+                    if details.result.payment_status() != PaymentStatus.Initiated:
+                        finalize_payment(payment, details)
+                        return redirect(
+                            url_for("event.view_event", event_id=payment.item.event_id)
+                        )
+
+            # Simply redirect to the processor url
             return redirect(payment.processor_url)
 
         # Redirect to the payment processor page
