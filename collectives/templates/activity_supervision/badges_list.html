@@ -15,6 +15,7 @@
   <script src="{{ url_for('static', filename='js/activity_supervision/badges_list.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
   <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/utils/badge.js') }}"></script>
   <script src="{{ url_for('api.models_to_js') }}"></script>
   <script>
       const badgeLevels = {{models.BadgeIds.js_levels(badge_ids=badge_ids, activity_ids=activity_ids, include_deprecated=true) | safe}};
@@ -31,6 +32,19 @@
           function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
+
+        {% if add_badge_form and add_badge_form.level %}
+        const badgeSelect = document.getElementById("{{add_badge_form.badge_id.id}}")
+        const badgeActivityIdSelect = document.getElementById("{{add_badge_form.activity_id.id}}")
+        const levelSelect = document.getElementById("{{add_badge_form.level.id}}")
+        
+        const updateLevels = () => {
+            updateBadgeLevels(badgeLevels, badgeSelect, badgeActivityIdSelect, levelSelect);
+        };
+        updateLevels();
+        badgeSelect.addEventListener("change", updateLevels);
+        badgeActivityIdSelect.addEventListener("change", updateLevels);
+        {% endif %}
       };
   </script>
 {% endblock %}
@@ -41,7 +55,7 @@
   <div id="badges-table"></div>
 
 {%if add_badge_form%}
-  <h4 class="heading-4">Ajout/renouvellement d'un {{title}}</h4>
+  <h4 class="heading-4">Ajout/renouvellement de {{title}}</h4>
 
   {%if models.BadgeIds.Benevole.value in badge_ids %}
   <p>Le badge <em>{{title}}</em> permet d'identifier les personnes ayant suffisamment contribué à l'activité pour bénéficier des avantages bénévole.

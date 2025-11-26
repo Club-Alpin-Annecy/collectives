@@ -172,19 +172,6 @@ class RoleValidationException(Exception):
         super().__init__(self)
 
 
-class BadgeValidationException(Exception):
-    """Exception class of new user badge validation"""
-
-    def __init__(self, message):
-        """Exception constructor
-
-        :param message: Message to be displayed to the user
-        :type message: string
-        """
-        self.message = message
-        super().__init__(self)
-
-
 @blueprint.route("/user/<user_id>/roles", methods=["GET", "POST"])
 @user_is("is_admin")
 def add_user_role(user_id):
@@ -277,35 +264,15 @@ def add_user_badge(user_id):
     badge = Badge(creation_time=time.current_time())
     form.populate_obj(badge)
 
-    badge_id = badge.badge_id
-
     try:
-        # Check that the badge does not already exist
-        badge.activity_type = db.session.get(ActivityType, form.activity_id.data)
-
-        if badge_id.requires_activity():
-            if badge.activity_type is None:
-                raise BadgeValidationException(
-                    "Ce badge doit être associé à une activité"
-                )
-
-            badge.activity_id = badge.activity_type.id
-
-        badge_exists = user.has_badge_for_activity(
-            [badge_id],
-            badge.activity_id,
-            level=badge.level if badge_id.requires_level() else None,
-        )
-        if badge_exists:
-            raise BadgeValidationException(
-                "Type de Badge déjà associé à l'utilisateur pour cette activité"
-            )
+        badge = badges.validate_user_badge(user, badge)
 
         badge.grantor_id = current_user.id
-        user.badges.append(badge)
+        badge.user_id = user.id
+        db.session.add(badge)
         db.session.commit()
-    except BadgeValidationException as err:
-        flash(err.message, "error")
+    except RuntimeError as err:
+        flash(str(err), "error")
 
     return render_template(
         "user_badges.html",
@@ -343,7 +310,7 @@ def delete_user_badge(badge_id):
     )
 
 
-@blueprint.route("/badges/<int:badge_id>/renew", methods=["POST"])
+@blueprint.route("/badges/<int:badge_id>/renew", methods=["GET", "POST"])
 @user_is("is_admin")
 def renew_user_badge(badge_id):
     """Route to renew a user badge.
@@ -357,7 +324,7 @@ def renew_user_badge(badge_id):
         flash("Badge inexistant", "error")
         return redirect(url_for("administration.administration"))
 
-    form = RenewBadgeForm(badge=badge)
+    form = RenewBadgeForm(obj=badge)
 
     if not form.validate_on_submit():
         return render_template(
@@ -370,7 +337,6 @@ def renew_user_badge(badge_id):
         )
 
     form.populate_obj(badge)
-
     db.session.add(badge)
     db.session.commit()
 

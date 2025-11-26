@@ -2,6 +2,25 @@
 {% extends 'base.html' %}
 {% import 'partials/form-fields.html' as generator  %}
 
+{% block additionalhead %}
+  <script src="{{ url_for('static', filename='js/utils/badge.js') }}"></script>
+  <script>
+      const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
+      window.onload = function () {
+        const badgeSelect = document.getElementById("{{form.badge_id.id}}")
+        const badgeActivityIdSelect = document.getElementById("{{form.activity_id.id}}")
+        const levelSelect = document.getElementById("{{form.level.id}}")
+        
+        const updateLevels = () => {
+            updateBadgeLevels(badgeLevels, badgeSelect, badgeActivityIdSelect, levelSelect);
+        };
+        updateLevels();
+        badgeSelect.addEventListener("change", updateLevels);
+        badgeActivityIdSelect.addEventListener("change", updateLevels);
+      };
+  </script>
+{% endblock %}
+
 {% block content %}
 <div class="page-content" id="administration">
   <h2 class="heading-2">{{user.full_name()}}</h2>
@@ -25,7 +44,7 @@
   {% if badge.grantor %}
     (attribué par {{badge.grantor.full_name()}})
   {% endif %}
-    <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="post">
+    <form class="inline" action="{{url_for('administration.renew_user_badge', badge_id=badge.id)}}" method="get">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="submit" class="button button-primary button-small" value="Renouveler" >
     </form>

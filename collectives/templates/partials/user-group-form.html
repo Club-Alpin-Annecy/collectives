@@ -96,9 +96,10 @@ document.addEventListener('DOMContentLoaded', ()=> {
     const badgeLevels = {{models.BadgeIds.js_levels() | safe}};
     const badgeSelect = document.getElementById("{{user_group_form.new_badge_id.id}}")
     const badgeActivityIdSelect = document.getElementById("{{user_group_form.new_badge_activity_id.id}}")
+    const levelSelect = document.getElementById(badgeSelect.dataset.levelTarget);
     
     const updateLevels = () => {
-        updateBadgeLevels(badgeLevels, badgeSelect, badgeActivityIdSelect);
+        updateBadgeLevels(badgeLevels, badgeSelect, badgeActivityIdSelect, levelSelect);
     };
     badgeSelect.addEventListener("change", updateLevels);
     badgeActivityIdSelect.addEventListener("change", updateLevels);
