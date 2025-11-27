@@ -42,6 +42,7 @@ dependencies = [
     "flask-uploads",
     "pysimplesoap",
     "flask-images",
+    "authlib>=1.6.5",
 ]
 
 [project.optional-dependencies]

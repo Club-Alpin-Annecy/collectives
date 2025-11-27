@@ -14,25 +14,56 @@
     <div class="box">
         <h1 class="heading-1 padding-default">Connexion</h1>
 
-        {{ generator.form_generator(form) }}
-
-        <div class="padding-default">
-            <p class="contact-link">
-                <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
-            </p>
-
-            <hr class="separator">
-
-            <div>
-                <h5>Pas encore de compte Collectives ?</h5>
-                <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
+        {% if config.AUTH0_ENABLED and config.AUTH0_FORCE_SSO %}
+            <!-- Force SSO Mode: Only show Auth0 login -->
+            <div class="padding-default">
+                <p class="text-center">Connectez-vous avec votre compte SSO</p>
+                <a href="{{url_for('auth.login_auth0', next=request.args.get('next', '/'))}}" class="button button-primary input-100">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter avec Auth0
+                </a>
             </div>
+        {% else %}
+            <!-- Classic Mode: Show password login form -->
+            {{ generator.form_generator(form) }}
 
-            <hr class="separator">
+            <div class="padding-default">
+                <p class="contact-link">
+                    <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+                </p>
 
-            {% include 'partials/contact_link.html' %}
+                {% if config.AUTH0_ENABLED %}
+                <hr class="separator">
 
+                <div>
+                    <h5>Ou connectez-vous avec SSO</h5>
+                    <a href="{{url_for('auth.login_auth0', next=request.args.get('next', '/'))}}" class="button button-primary input-100">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter avec Auth0
+                    </a>
+                </div>
+                {% endif %}
+
+                <hr class="separator">
+
+                <div>
+                    <h5>Pas encore de compte Collectives ?</h5>
+                    <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
+                </div>
+
+                <hr class="separator">
+
+                {% include 'partials/contact_link.html' %}
+            </div>
+        {% endif %}
+
+        {% if config.AUTH0_BYPASS_ENABLED and config.AUTH0_FORCE_SSO %}
+        <!-- Admin Bypass Link -->
+        <div class="padding-default text-center">
+            <small>
+                <a href="{{url_for('auth.admin_login')}}" class="text-muted">Connexion administrateur</a>
+            </small>
         </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}
