@@ -68,12 +68,12 @@ def test_skill_bulk_add(
 
     activity_name = ActivityType.get(custom_skill_with_activity_type.activity_id).name
     csv = (
-        "license, level, activite\n"
-        f"{user1.license},{custom_skill.name},\n"
-        f"{user1.license},{custom_skill.name},\n"
-        f"{user2.license},{custom_skill_with_expiry.name}\n"
-        f"{user3.license},{custom_skill_with_activity_type.name}, NonExisting\n"
-        f"{user3.license},{custom_skill_with_activity_type.name}, {activity_name}\n"
+        "license; level; activite\n"
+        f"{user1.license};{custom_skill.name};\n"
+        f"{user1.license};{custom_skill.name};\n"
+        f"{user2.license};{custom_skill_with_expiry.name}\n"
+        f"{user3.license};{custom_skill_with_activity_type.name}; NonExisting\n"
+        f"{user3.license};{custom_skill_with_activity_type.name}; {activity_name}\n"
     )
 
     response = supervisor_client.get("/activity_supervision/competency_badge_holders/")
