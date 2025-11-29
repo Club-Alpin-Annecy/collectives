@@ -57,6 +57,7 @@ from collectives.models.event import (
 )
 from collectives.models.payment import ItemPrice, Payment
 from collectives.models.question import QuestionAnswer
+from collectives.models.user_group import GroupEventCondition
 from collectives.routes.auth import get_bad_phone_message, login_manager
 from collectives.utils import export
 from collectives.utils.access import confidentiality_agreement, valid_user
@@ -1130,6 +1131,14 @@ def delete_event(event_id):
     if event.has_payments():
         flash(
             "Impossible de supprimer l'événement car des paiements y sont associés",
+            "error",
+        )
+        return redirect(url_for("event.index"))
+
+    # Check if there are restrictions that depend on this event
+    if GroupEventCondition.query.filter_by(event_id=event.id).first() is not None:
+        flash(
+            "Impossible de supprimer l'événement car des restrictions d'inscription y sont associées",
             "error",
         )
         return redirect(url_for("event.index"))
