@@ -249,9 +249,8 @@
                 <td>
                     <form class="form" id="practitioner_badge_form" action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" method="post" style="display: inline;">
                         {{practitioner_badge_form.hidden_tag()}}
-                        {{practitioner_badge_form.level()}}
-                        en
                         {{practitioner_badge_form.activity_id()}}
+                        {{practitioner_badge_form.level()}}
                         {{practitioner_badge_form.submit(class_="button button-secondary button-small")}}
                     </form>
                 </td>
