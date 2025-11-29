@@ -214,6 +214,7 @@ def csv_to_events(stream, description):
     if all(row[f] is None for f in fields[1:]):
         # Single non-None column, delimiter is likely wrong
         # Retry with semi-column
+        stream.seek(0)
         reader = csv.DictReader(stream, delimiter=";", fieldnames=fields)
         next(reader, None)  # skip the headers
 
