@@ -13,12 +13,14 @@ from collectives.models import (
     Event,
     EventStatus,
     EventVisibility,
+    Payment,
     Question,
     QuestionType,
     RegistrationStatus,
     RoleIds,
     db,
 )
+from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import current_time
 from tests import utils
 from tests.fixtures.user import promote_user
@@ -117,7 +119,9 @@ def test_event_deletion(leader_client, event, event1_with_reg):
     assert "error message" in response.text
 
 
-def test_supervisor_event_deletion(supervisor_client, event1_with_reg):
+def test_supervisor_event_deletion(
+    supervisor_client, event1_with_reg, event2, paying_event
+):
     """Test supervisor delete rights"""
 
     # Supervisor can delete events with registrations
@@ -127,6 +131,37 @@ def test_supervisor_event_deletion(supervisor_client, event1_with_reg):
     )
     assert response.status_code == 200
     assert "error message" not in response.text
+
+    # Cannot delete event with payments
+
+    payment = Payment(
+        buyer=supervisor_client.user, item_price=paying_event.payment_items[0].prices[0]
+    )
+    db.session.add(payment)
+    db.session.commit()
+    response = supervisor_client.post(
+        url_for("event.delete_event", event_id=paying_event.id),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
+    assert "car des paiements y sont associés" in response.text
+
+    # Cannot delete event with dependent conditions
+    group0 = UserGroup()
+    gec = GroupEventCondition(event_id=event2.id)
+    db.session.add(gec)
+    group0.event_conditions.append(gec)
+    db.session.add(group0)
+    db.session.commit()
+
+    response = supervisor_client.post(
+        url_for("event.delete_event", event_id=event2.id),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "error message" in response.text
+    assert "car des restrictions" in response.text
 
 
 def test_unauthenticated(client, event1_with_reg):
