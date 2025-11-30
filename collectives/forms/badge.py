@@ -68,6 +68,8 @@ class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
 
     level = SelectField("Niveau", choices=[], coerce=coerce_optional(int))
 
+    badge_id = SelectField("Badge", choices=BadgeIds.choices(), coerce=BadgeIds.coerce)
+
     field_order = ["badge_id", "activity_id", "level", "*"]
 
     def __init__(self, *args, badge_ids: list[BadgeIds] = None, **kwargs):
@@ -86,6 +88,9 @@ class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
         self.badge_id.choices = [
             (badge_id.value, badge_id.display_name()) for badge_id in badge_ids
         ]
+
+        if badge_ids is not None and len(badge_ids) == 1:
+            self.badge_id.data = badge_ids[0]
 
         if "expiration_date" not in request.form:
             badge = kwargs.get("obj", None)
