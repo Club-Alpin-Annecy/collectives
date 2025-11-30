@@ -236,9 +236,6 @@ def add_badge(
 
     add_badge_form = AddBadgeForm(badge_ids=badge_types)
 
-    if badge_types is not None and len(badge_types) == 1:
-        add_badge_form.badge_id.data = badge_types[0]
-
     if auto_date:
         del add_badge_form.expiration_date
     if not level:
