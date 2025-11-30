@@ -3,41 +3,44 @@ var eventstable;
 moment.locale(locale);
 
 window.onload = function(){
-    var common_options = {
-        layout:"fitColumns",
-        ajaxURL: ajaxURL, // URL is defined in template
-
-        paginationSize : 10,
-        initialSort: [ {column:"start", dir:"asc"}],
-        initialFilter: [
-            {field:"end", type:">", value:  getServerLocalTime()},
-        ],
-        responsiveLayout:true,
-        paginationSize: [50,100,200],
-        columns:[
-            {title: "Type",     field:"event_type", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumEventType)}, headerFilterFunc: multiEnumFilter, responsive: 3, minWidth: 35   },
-            {title: "Activité",     field:"activity_types", formatter: typesFormatter, maxWidth:100, variableHeight: true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumActivityType)}, headerFilterFunc: multiEnumFilter, responsive: 1, minWidth: 35   },
-            {title: "Tags",         field:"tags",           formatter: tagsFormatter,  maxWidth:100, variableHeight:true, headerFilter:"select",
-                    headerFilterParams:{values: addEmpty(EnumEventTag)},     headerFilterFunc: multiEnumFilter, responsive: 2, minWidth: 35   },
-            {title: "État",         field:"status",         sorter:"string",           headerFilter:"select",  formatterParams:{'enum': EnumEventStatus},
-                    headerFilterParams:{values: addEmpty(EnumEventStatus)}, formatter: enumFormatter, minWidth: 60},
-            { title:"Statut", field:"registration.status", headerFilter:"select", headerFilterParams:{values: addEmpty(EnumRegistrationStatus)},
-                formatter: enumFormatter, formatterParams:{'enum': EnumRegistrationStatus}, responsive:1, minWidth: 120 },
-            {title: "Titre",        field:"title",          sorter:"string",           headerFilter:"input", formatter:"textarea", widthGrow: 2.5, responsive:0, minWidth: 200},
-            {title: "Date",         field:"start",          sorter:"string",           formatter:"datetime",
-                    formatterParams:{   outputFormat:"D/M/YY", invalidPlaceholder:"(invalid date)"}, responsive:1, minWidth: 60},
-            {title: "Insc.", field:"occupied_slots", maxWidth:80, responsive:4, minWidth: 80},
-            {title: "Encadrant",    field:"leaders",        formatter: leadersFormatter, headerFilter:true, 
-                    headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2, responsive:3, minWidth: 60 },
-            
-        ],
-        rowClick: function(e, row){ document.location= row.getData().view_uri},
-    };
-
 
     var is_user_profile = ajaxURL.match(/^\/api\/user/);
+
+    var common_options = {
+        layout: "fitColumns",
+        ajaxURL: ajaxURL, // URL is defined in template
+        ajaxFiltering: true,
+        ajaxSorting: true,
+        pagination: true,
+        pagination: "remote",
+        paginationSize: 10,
+        // paginationSizeSelector: [10, 50, 100, 200],
+        // initialSort: [{ column: "start", dir: "asc" }],
+        // initialFilter: [
+        //     { field: "end", type: ">", value: getServerLocalTime() },
+        // ],
+        responsiveLayout: true,
+        columns: [
+            { title: "Type", field: "event_type", formatter: typesFormatter, maxWidth: 100, variableHeight: true, headerFilter: "select",
+                headerFilterParams: { values: addEmpty(EnumEventType) }, headerFilterFunc: multiEnumFilter, responsive: 3, minWidth: 35, headerSort:false },
+            { title: "Activité", field: "activity_types", formatter: typesFormatter, maxWidth: 100, variableHeight: true, headerFilter: "select",
+                headerFilterParams: { values: addEmpty(EnumActivityType) }, headerFilterFunc: multiEnumFilter, responsive: 1, minWidth: 35, headerSort: false },
+            { title: "Tags", field: "tags", formatter: tagsFormatter, maxWidth: 100, variableHeight: true, headerFilter: "select",
+                headerFilterParams: { values: addEmpty(EnumEventTag) }, headerFilterFunc: multiEnumFilter, responsive: 2, minWidth: 35, headerSort: false },
+            { title: "État", field: "status", sorter: "string", headerFilter: "select", formatterParams: { 'enum': EnumEventStatus },
+                headerFilterParams: { values: addEmpty(EnumEventStatus) }, formatter: enumFormatter, minWidth: 60 },
+            { title: "Statut", field: "registration.status", headerFilter: "select", headerFilterParams: { values: addEmpty(EnumRegistrationStatus)}, visible: is_user_profile,
+                formatter: enumFormatter, formatterParams: { 'enum': EnumRegistrationStatus }, responsive: 1, minWidth: 120 },
+            { title: "Titre", field: "title", sorter: "string", headerFilter: "input", formatter: "textarea", widthGrow: 2.5, responsive: 0, minWidth: 200 },
+            { title: "Date", field: "start", sorter: "string", formatter: "datetime",
+                formatterParams: { outputFormat: "D/M/YY", invalidPlaceholder: "(invalid date)" }, responsive: 1, minWidth: 60 },
+            { title: "Insc.", field: "occupied_slots", maxWidth: 80, responsive: 4, minWidth: 80, headerSort:false, visible: !is_user_profile },
+            { title: "Encadrant", field: "leaders", formatter: leadersFormatter, headerSort: false, headerFilter: true,
+                headerFilterFunc: leaderFilter, variableHeight: true, widthGrow: 2, responsive: 3, minWidth: 60 },
+        ],
+        rowClick: function (e, row) { document.location = row.getData().view_uri },
+    };
+
 
     if(is_user_profile) {
         common_options = Object.assign(common_options),
@@ -48,27 +51,35 @@ window.onload = function(){
             }}
         }
 
-    var eventstable= new Tabulator("#eventstable",
-                    Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:">", value:getServerLocalTime() },
-                            ]}));
-    var pasteventstable= new Tabulator("#pasteventstable",
-                    Object.assign(common_options, {   initialFilter: [
-                                {field:"end", type:"<", value:getServerLocalTime()  }],
-                                initialSort: [ {column:"start", dir:"desc"}],
-                            }));
+    var eventstable = new Tabulator("#eventstable",
+        Object.assign({}, common_options, {
+            initialFilter: [
+                { field: "end", type: ">", value: getServerLocalTime() },
+            ]
+        })
+    );
+    var pasteventstable = new Tabulator("#pasteventstable",
+        Object.assign({}, common_options, {
+            initialFilter: [
+                { field: "end", type: "<", value: getServerLocalTime() }
+            ],
+            initialSort: [{ column: "start", dir: "desc" }],
+        })
+    );
 
-    if(is_user_profile){
+    if (is_user_profile) {
+        var waitingtable = new Tabulator("#waitingtable",
+            Object.assign({}, common_options, {
+                initialFilter: [
+                    { field: "end", type: ">", value: getServerLocalTime() },
+                ]
+            })
+        );
 
-        var waitingtable= new Tabulator("#waitingtable",
-        Object.assign(common_options, {   initialFilter: [
-                    {field:"end", type:">", value:getServerLocalTime() },
-                ]}));
-
-        eventstable.hideColumn("registration.status")
+        eventstable.hideColumn("registration.status");
         eventstable.addFilter("registration.status", "=", EnumRegistrationStatusKeys["Active"]);
 
-        waitingtable.hideColumn("registration.status")
+        waitingtable.hideColumn("registration.status");
         waitingtable.addFilter("registration.status", "=", EnumRegistrationStatusKeys["Waiting"]);
 
         pasteventstable.addFilter("registration.status", "!=", EnumRegistrationStatusKeys["Waiting"]);

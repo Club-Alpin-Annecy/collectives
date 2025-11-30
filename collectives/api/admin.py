@@ -2,7 +2,7 @@
 
 import json
 
-from flask import request, url_for, abort
+from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import and_, desc, or_
@@ -15,8 +15,8 @@ from collectives.api.schemas import (
     UserIdentitySchema,
     UserSchema,
 )
-from collectives.models import Badge, Role, RoleIds, User, db, ActivityType
-from collectives.models.badge import BadgeIds, BadgeCustomLevel
+from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
+from collectives.models.badge import BadgeCustomLevel, BadgeIds
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 
@@ -276,14 +276,13 @@ def leaders():
             else:
                 continue
         elif field == "name":
-                try:
-                    role_id = int(value)
-                    query_filter = Role.role_id == RoleIds(role_id)
-                except ValueError:
-                    continue
+            try:
+                role_id = int(value)
+                query_filter = Role.role_id == RoleIds(role_id)
+            except ValueError:
+                continue
         else:
             continue
-
 
         query = query.filter(query_filter)
 
