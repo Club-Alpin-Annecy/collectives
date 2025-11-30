@@ -64,7 +64,6 @@ def test_volunteers_add(supervisor_client, user3):
     data["user_id"] = str(user3.id)
     data["user_search"] = user3.first_name
     data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
-    data["badge_id"] = str(int(BadgeIds.Benevole))
 
     response = supervisor_client.post("/activity_supervision/volunteers/add", data=data)
     assert response.status_code == 302
@@ -81,7 +80,6 @@ def test_volunteers_bulk_add(supervisor_client, user1, user2, user3):
     data = utils.load_data_from_form(response.text, "user-search-form")
     data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
     data["csv_file"] = (BytesIO(csv.encode("utf8")), "import.csv")
-    data["badge_id"] = str(int(BadgeIds.Benevole))
 
     response = supervisor_client.post("/activity_supervision/volunteers/add", data=data)
 

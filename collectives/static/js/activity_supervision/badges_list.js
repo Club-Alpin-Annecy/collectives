@@ -1,7 +1,6 @@
 
 const onSelectAutocomplete = function (id, value) {
     document.getElementById('user-search-resultid').value = id;
-    document.getElementById('user-search-form').submit();
 }
 
 function actionFormatter(csrfToken) {
