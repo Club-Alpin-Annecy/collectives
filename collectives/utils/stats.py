@@ -516,7 +516,7 @@ class StatisticsEngine:
         return {c[3].name: c[4] for c in counts}
 
     @lru_cache()
-    def nb_active_registrations_per_activity_type(self) -> int:
+    def nb_active_registrations_per_activity_type(self) -> dict:
         """Returns the number of active registrations per activity.
         Cf :py:meth:`collectives.models.registration.RegistrationStatus.is_valid()`
         """
