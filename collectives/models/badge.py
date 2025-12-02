@@ -142,6 +142,7 @@ class BadgeIds(ChoiceEnum):
         activity_id: int | None = None,
         include_deprecated: bool = False,
         include_defaults: bool = True,
+        only_defaults: bool = False,
     ) -> dict[int, BadgeLevelDescriptor]:
         """Returns the human-readable levels for this type of badge.
 
@@ -158,6 +159,9 @@ class BadgeIds(ChoiceEnum):
                 3: BadgeLevelDescriptor("Niveau 🔴", "🔴"),
                 4: BadgeLevelDescriptor("Niveau ⚫", "⚫"),
             }
+
+        if only_defaults:
+            return levels
 
         if self.has_custom_levels(activity_id):
             levels.update(

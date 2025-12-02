@@ -26,9 +26,11 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
     new Tabulator("#leaders-table",
         {
             ajaxURL: ajaxUrl,
+            ajaxFiltering: true,
+            ajaxSorting: true,
             layout: "fitColumns",
             groupBy:"user.full_name",
-            pagination:"local",
+            pagination:"remote",
             paginationSize: 50,
 
             columns: [
@@ -47,13 +49,23 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
                     },
                 }
             },
+            paginationDataSent: {"page": "page", "size": "size"},
+            paginationDataReceived: {"last_page": "last_page", "data": "data"},
         });
 }
 
 
 function makeOptions(dict, subset){
     if (subset) {
-        dict = subset.map(id => dict[id])
+        const subsetDict = {};
+        for (const key in subset) {
+            opt = subset[key];
+            if (opt in dict) {
+                subsetDict[opt] = dict[opt];
+            }
+        }
+        dict = subsetDict;
     }
-    return [""].concat(Object.values(dict).sort());
+    Object.assign(dict, {"":""});
+    return dict;
 }
