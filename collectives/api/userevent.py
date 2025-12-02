@@ -58,7 +58,7 @@ class RegistrationEventSchema(EventSchema):
 
 
 def _apply_ajax_filters_and_sorters(query):
-    # Process filters coming from Tabulator (filters[0]...)
+    """Process filters coming from Tabulator request args (filters[0]...)"""
     i = 0
     while f"filters[{i}][field]" in flask.request.args:
         value = flask.request.args.get(f"filters[{i}][value]")
