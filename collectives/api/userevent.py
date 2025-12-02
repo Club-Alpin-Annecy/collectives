@@ -71,6 +71,16 @@ def _apply_ajax_filters_and_sorters(query):
             continue
 
         if field == "registration.status":
+            if type_ == "in":
+                try:
+                    status_values = [
+                        RegistrationStatus(int(v)) for v in value.split(",")
+                    ]
+                except ValueError:
+                    continue
+                query = query.filter(Registration.status.in_(status_values))
+                continue
+
             try:
                 registration_status = RegistrationStatus(int(value))
             except ValueError:

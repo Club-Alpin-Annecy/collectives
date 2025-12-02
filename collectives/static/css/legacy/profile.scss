@@ -28,3 +28,13 @@
 #profile h4{
     margin-top: 3em;
 }
+
+.profile-event-list div
+{
+}
+
+.profile-event-list div.tabulator-col-content, .profile-event-list div.tabulator-cell, .profile-event-list div.tabulator-footer
+{
+    padding: 5px !important;
+    font-size: $font-size-xs;
+}
