@@ -47,8 +47,10 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
         {
             ajaxURL: ajaxUrl,
             ajaxParams: ajaxParams,
+            ajaxFiltering: true,
+            ajaxSorting: true,
             layout: "fitColumns",
-            pagination: "local",
+            pagination: "remote",
             paginationSize: 50,
 
             columns: [
@@ -71,9 +73,13 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
                     },
                 }
             },
+            // map Tabulator pagination params to what our server expects
+            paginationDataSent: {"page": "page", "size": "size"},
+            paginationDataReceived: {"last_page": "last_page", "data": "data"},
         });
 }
 
 function makeOptions(dict) {
-    return [""].concat(Object.values(dict).sort());
+    Object.assign(dict, {"":""});
+    return dict;
 }

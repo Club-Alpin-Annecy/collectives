@@ -2,10 +2,10 @@
 
 import json
 
-from flask import request, url_for
+from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import aliased, selectinload
 
 from collectives.api.common import blueprint
@@ -15,8 +15,8 @@ from collectives.api.schemas import (
     UserIdentitySchema,
     UserSchema,
 )
-from collectives.models import Badge, Role, RoleIds, User, db
-from collectives.models.badge import BadgeIds
+from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
+from collectives.models.badge import BadgeCustomLevel, BadgeIds
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 
@@ -248,12 +248,70 @@ def leaders():
     query = db.session.query(Role)
     query = query.filter(Role.role_id.in_(RoleIds.all_relates_to_activity()))
     query = query.filter(Role.activity_id.in_(a.id for a in supervised_activities))
-    query = query.join(Role.user)
-    query = query.order_by(User.last_name, User.first_name, User.id)
+    query = query.join(Role.user).join(Role.activity_type)
 
-    response = LeaderRoleSchema(many=True).dump(query.all())
+    # Process filters coming from Tabulator (filters[0]...)
+    i = 0
+    while f"filters[{i}][field]" in request.args:
+        value = request.args.get(f"filters[{i}][value]")
+        field = request.args.get(f"filters[{i}][field]")
+        i += 1
 
-    return json.dumps(response), 200, {"content-type": "application/json"}
+        if value is None:
+            continue
+
+        # support nested fields like 'user.full_name' or 'activity_type.name'
+        if "." in field:
+            prefix, sub = field.split(".", 1)
+            if prefix == "user":
+                if sub != "full_name":
+                    continue
+                query_filter = User.full_name().ilike(f"%{value}%")
+            elif prefix == "activity_type":
+                try:
+                    activity_id = int(value)
+                    query_filter = Role.activity_id == activity_id
+                except ValueError:
+                    continue
+            else:
+                continue
+        elif field == "name":
+            try:
+                role_id = int(value)
+                query_filter = Role.role_id == RoleIds(role_id)
+            except ValueError:
+                continue
+        else:
+            continue
+
+        query = query.filter(query_filter)
+
+    # Sorting
+    if "sorters[0][field]" in request.args:
+        sort_field = request.args.get("sorters[0][field]")
+        sort_dir = request.args.get("sorters[0][dir]")
+        if sort_field == "user.full_name":
+            sort_field = User.full_name()
+        elif sort_field == "activity_type.name":
+            sort_field = ActivityType.name
+        elif sort_field == "name":
+            sort_field = Role.role_id
+        order = desc(sort_field) if sort_dir == "desc" else sort_field
+        query = query.order_by(order)
+    else:
+        query = query.order_by(User.last_name, User.first_name, User.id)
+
+    # Pagination (Tabulator expects 'page' and 'size')
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 50))
+    paginated = query.paginate(page=page, per_page=size, error_out=False)
+
+    response = LeaderRoleSchema(many=True).dump(paginated.items)
+    return (
+        {"data": response, "last_page": paginated.pages},
+        200,
+        {"content-type": "application/json"},
+    )
 
 
 @blueprint.route("/badges/")
@@ -284,27 +342,105 @@ def badges():
     if badge_ids:
         query = query.filter(Badge.badge_id.in_(badge_ids))
     if supervised_activities:
-        query = query.filter(
-            Badge.activity_id.in_(a.id for a in supervised_activities),
-        )
+        query = query.filter(Badge.activity_id.in_(a.id for a in supervised_activities))
 
     Recipient = aliased(User)
     query = query.join(Recipient, Badge.user)
     query = query.join(Badge.grantor, isouter=True)
-    query = query.order_by(Recipient.last_name, Recipient.first_name, Recipient.id)
+    query = query.join(Badge.activity_type, isouter=True)
+    query = query.join(
+        BadgeCustomLevel,
+        and_(
+            BadgeCustomLevel.badge_id == Badge.badge_id,
+            BadgeCustomLevel.level == Badge.level,
+            BadgeCustomLevel.activity_id.isnot_distinct_from(Badge.activity_id),
+        ),
+        isouter=True,
+    )
 
-    badges_list = query.all()
+    # Process Tabulator filters
+    i = 0
+    while f"filters[{i}][field]" in request.args:
+        value = request.args.get(f"filters[{i}][value]")
+        field = request.args.get(f"filters[{i}][field]")
+        i += 1
 
-    for badge in badges_list:
-        badge.delete_uri = url_for(
-            request.args.get("delete", "activity_supervision.delete_volunteer"),
-            badge_id=badge.id,
-        )
-        badge.renew_uri = url_for(
-            request.args.get("renew", "activity_supervision.renew_volunteer"),
-            badge_id=badge.id,
-        )
+        if value is None:
+            continue
 
-    response = UserBadgeSchema(many=True).dump(badges_list)
+        if "." in field:
+            prefix, sub = field.split(".", 1)
+            if prefix == "user":
+                if sub != "full_name":
+                    continue
+                query_filter = Recipient.full_name().ilike(f"%{value}%")
+            elif prefix == "grantor":
+                if sub != "full_name":
+                    continue
+                query_filter = User.full_name().ilike(f"%{value}%")
+            elif prefix == "activity_type":
+                try:
+                    activity_id = int(value)
+                    query_filter = Badge.activity_id == activity_id
+                except ValueError:
+                    continue
+            else:
+                continue
+        elif field == "name":
+            try:
+                badge_id = int(value)
+                query_filter = Badge.badge_id == BadgeIds(badge_id)
+            except ValueError:
+                continue
+        elif field == "level":
+            value = value.lower()
+            default_levels = {
+                badge_id: [
+                    level
+                    for level, desc in badge_id.levels(only_defaults=True).items()
+                    if value in desc.name.lower()
+                ]
+                for badge_id in badge_ids or BadgeIds
+            }
+            default_level_clauses = [
+                and_(Badge.badge_id == badge_id, Badge.level.in_(levels))
+                for badge_id, levels in default_levels.items()
+                if levels
+            ]
+            query_filter = or_(
+                *default_level_clauses,
+                BadgeCustomLevel.name.ilike(f"%{value}%"),
+            )
+        elif field in ("expiration_date",):
+            query_filter = getattr(Badge, field).ilike(f"%{value}%")
 
-    return json.dumps(response), 200, {"content-type": "application/json"}
+        query = query.filter(query_filter)
+
+    # Sorting
+    if "sorters[0][field]" in request.args:
+        sort_field = request.args.get("sorters[0][field]")
+        sort_dir = request.args.get("sorters[0][dir]")
+        if sort_field == "user.full_name":
+            sort_field = Recipient.full_name()
+        elif sort_field == "grantor.full_name":
+            sort_field = User.full_name()
+        elif sort_field == "activity_type.name":
+            sort_field = ActivityType.name
+        elif sort_field == "name":
+            sort_field = Badge.badge_id
+        order = desc(sort_field) if sort_dir == "desc" else sort_field
+        query = query.order_by(order)
+    else:
+        query = query.order_by(Recipient.last_name, Recipient.first_name, Recipient.id)
+
+    # Pagination
+    page = int(request.args.get("page", 1))
+    size = int(request.args.get("size", 50))
+    paginated = query.paginate(page=page, per_page=size, error_out=False)
+
+    response = UserBadgeSchema(many=True).dump(paginated.items)
+    return (
+        {"data": response, "last_page": paginated.pages},
+        200,
+        {"content-type": "application/json"},
+    )
