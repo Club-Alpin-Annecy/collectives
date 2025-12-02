@@ -141,11 +141,23 @@ class StatisticsEngine:
             "type d'activité.",
         },
         "nb_user_per_activity_type": {
-            "name": "Participants par activité",
+            "name": "Participants uniques par activité",
             "description": "Nombre d'utilisateur ayant fait au moins un événement de l'activité. "
             "Les événements annulés sont exclus."
             "La somme peut être supérieure au nombre total d'utilisateur "
             "car un utilisateur peut compter pour plusieurs types d'activité.",
+        },
+        "nb_active_registrations_per_activity_type": {
+            "name": "Inscriptions par activité",
+            "description": "Nombre total d'inscriptions unitaires valides, sur des événements "
+            "valides, par acticité. "
+            "Une personne peut générer plusieurs inscriptions. "
+            "Les coencadrants sont inclus. "
+            "Les encadrants sont exclus. "
+            "Les inscritions anullées, les absents, etc, sont exclus. "
+            "Les événements annulés sont exclus."
+            "La somme peut être supérieure au nombre total d'inscriptions "
+            "car une inscription peut compter pour plusieurs types d'activité.",
         },
         "nb_events_by_event_tag": {
             "name": "Nombre d'événements par label",
@@ -502,6 +514,21 @@ class StatisticsEngine:
         query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
         counts = query.group_by(ActivityType.id).all()
         return {c[3].name: c[4] for c in counts}
+
+    @lru_cache()
+    def nb_active_registrations_per_activity_type(self) -> dict:
+        """Returns the number of active registrations per activity.
+        Cf :py:meth:`collectives.models.registration.RegistrationStatus.is_valid()`
+        """
+        query = db.session.query(
+            Event, Registration, ActivityType, func.count(distinct(Registration.id))
+        )
+        query = self.global_filters(query)
+        query = query.join(Registration, Event.registrations)
+        query = query.join(ActivityType, Event.activity_types)
+        query = query.filter(Registration.status.in_(RegistrationStatus.valid_status()))
+        counts = query.group_by(ActivityType.id).all()
+        return {c[2].name: c[3] for c in counts}
 
     @lru_cache()
     def nb_unregistrations_inc_late_and_unjustified_absentees_per_week(self) -> dict:

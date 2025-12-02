@@ -35,6 +35,7 @@ def test_statistics_engine_all(stats_env, leader2_user):
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 4
     assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
+    assert engine.nb_active_registrations_per_activity_type()["Alpinisme"] == 6
 
     assert engine.attendee_time_by_gender_and_license_type() == {
         ("XX", "Femme"): 2,
