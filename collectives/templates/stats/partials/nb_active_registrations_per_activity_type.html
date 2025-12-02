@@ -1,0 +1,25 @@
+<canvas id="registration-activity-chart"></canvas>
+              
+<div class="tooltip">
+    <img src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}" alt="(I)" />
+    <span class="text">{{ engine.INDEX['nb_active_registrations_per_activity_type']['description'] }}</span>
+</div>
+
+<script>
+    new Chart(document.getElementById('registration-activity-chart'), {
+      type: 'bar',
+      data: {
+        labels: {{ engine.nb_active_registrations_per_activity_type().keys() | list | tojson | safe }},
+        datasets: [{
+          data: {{ engine.nb_active_registrations_per_activity_type().values() | list | tojson | safe }},
+        }]
+      },
+      options: {
+        plugins: {
+          title: {
+            text: "{{ engine.INDEX['nb_active_registrations_per_activity_type']['name'] | safe }}",
+          }
+        }
+      }
+    });
+</script>
