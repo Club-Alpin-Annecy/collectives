@@ -20,7 +20,7 @@ def test_admin_badges_display(hotline_client, user_with_valid_benevole_badge):
 
     response = hotline_client.get("/api/badges/")
     assert response.status_code == 200
-    data = json.loads(response.text)
+    data = json.loads(response.text)["data"]
     assert len(data) == 1
     assert data[0]["name"] == BadgeIds.Benevole.display_name()
     assert data[0]["user"]["mail"] == user_with_valid_benevole_badge.mail
