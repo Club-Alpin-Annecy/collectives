@@ -29,17 +29,20 @@ oauth = OAuth()
 
 # Utility Functions
 
+
 def get_auth0_pending_data() -> Optional[Dict[str, Any]]:
     """Retrieve pending Auth0 data from session.
-    
+
     :return: Auth0 data dict or None if not found
     """
     return session.get("auth0_pending")
 
 
-def store_auth0_pending_data(auth0_id: str, email: str, userinfo: Dict[str, Any]) -> None:
+def store_auth0_pending_data(
+    auth0_id: str, email: str, userinfo: Dict[str, Any]
+) -> None:
     """Store Auth0 user data in session for later processing.
-    
+
     :param auth0_id: Auth0 user ID (sub claim)
     :param email: User email
     :param userinfo: Full userinfo dict from Auth0
@@ -58,15 +61,17 @@ def clear_auth0_pending_data() -> None:
 
 def get_next_url() -> str:
     """Retrieve and clear the next URL from session.
-    
+
     :return: Next URL or "/" if not found
     """
     return session.pop("oauth_next", "/") or "/"
 
 
-def handle_auth0_error(error_message: str, detailed_error: Optional[Exception] = None) -> WerkzeugResponse:
+def handle_auth0_error(
+    error_message: str, detailed_error: Optional[Exception] = None
+) -> WerkzeugResponse:
     """Handle Auth0 errors uniformly.
-    
+
     :param error_message: User-friendly error message
     :param detailed_error: Optional exception for logging
     :return: Redirect response to login page
@@ -80,7 +85,7 @@ def handle_auth0_error(error_message: str, detailed_error: Optional[Exception] =
 
 def link_user_to_auth0(user: User, auth0_id: str) -> None:
     """Link an existing user account to Auth0.
-    
+
     :param user: User object to link
     :param auth0_id: Auth0 user ID
     """
@@ -91,7 +96,7 @@ def link_user_to_auth0(user: User, auth0_id: str) -> None:
 
 def download_and_save_avatar(picture_url: str, user_id: int) -> Optional[str]:
     """Download avatar from URL and save it to uploads directory.
-    
+
     :param picture_url: URL of the avatar image
     :param user_id: User ID for filename
     :return: Saved filename or None if failed
@@ -100,56 +105,54 @@ def download_and_save_avatar(picture_url: str, user_id: int) -> Optional[str]:
     import requests
     from flask import current_app
     from werkzeug.utils import secure_filename
-    
+
     try:
         # Download image
         response = requests.get(picture_url, timeout=10)
         response.raise_for_status()
-        
+
         # Determine file extension from Content-Type
-        content_type = response.headers.get('Content-Type', '')
-        extension = '.jpg'  # default
-        if 'png' in content_type:
-            extension = '.png'
-        elif 'gif' in content_type:
-            extension = '.gif'
-        elif 'webp' in content_type:
-            extension = '.webp'
-        
+        content_type = response.headers.get("Content-Type", "")
+        extension = ".jpg"  # default
+        if "png" in content_type:
+            extension = ".png"
+        elif "gif" in content_type:
+            extension = ".gif"
+        elif "webp" in content_type:
+            extension = ".webp"
+
         # Generate filename
         filename = secure_filename(f"auth0_avatar_{user_id}{extension}")
-        
+
         # Get upload directory from config
         upload_folder = os.path.join(
-            current_app.config.get('UPLOAD_FOLDER', 'collectives/static/uploads'),
-            'avatars'
+            current_app.config.get("UPLOAD_FOLDER", "collectives/static/uploads"),
+            "avatars",
         )
-        
+
         # Create directory if it doesn't exist
         os.makedirs(upload_folder, exist_ok=True)
-        
+
         # Save file
         filepath = os.path.join(upload_folder, filename)
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             f.write(response.content)
-        
+
         # Return relative path for database storage
         return f"avatars/{filename}"
-        
+
     except Exception as e:
         from flask import current_app
+
         current_app.logger.error(f"Failed to download avatar from {picture_url}: {e}")
         return None
 
 
 def create_user_from_auth0_data(
-    auth0_id: str,
-    email: str,
-    user_type: UserType,
-    **kwargs
+    auth0_id: str, email: str, user_type: UserType, **kwargs
 ) -> User:
     """Create a new user with Auth0 data.
-    
+
     :param auth0_id: Auth0 user ID
     :param email: User email
     :param user_type: Type of user account
@@ -163,29 +166,29 @@ def create_user_from_auth0_data(
     user.legal_text_signature_date = current_time()
     user.legal_text_signed_version = Configuration.CURRENT_LEGAL_TEXT_VERSION
     user.enabled = True
-    
+
     # Set additional attributes
     for key, value in kwargs.items():
         if hasattr(user, key):
             setattr(user, key, value)
-    
+
     return user
 
 
 def complete_login(user: User) -> WerkzeugResponse:
     """Complete the login process for a user.
-    
+
     :param user: User object to log in
     :return: Redirect response
     """
     clear_auth0_pending_data()
     login_user(user, remember=True)
-    
+
     # Check for legal text signature
     if not user.has_signed_legal_text():
         flash(Markup("Merci d'accepter les mentions légales du site."), "warning")
         return redirect(url_for("root.legal"))
-    
+
     next_page = get_next_url()
     return redirect(next_page)
 
@@ -201,7 +204,7 @@ def init_oauth(app):
         "auth0",
         client_id=app.config["AUTH0_CLIENT_ID"],
         client_secret=app.config["AUTH0_CLIENT_SECRET"],
-        server_metadata_url=f'https://{app.config["AUTH0_DOMAIN"]}/.well-known/openid-configuration',
+        server_metadata_url=f"https://{app.config['AUTH0_DOMAIN']}/.well-known/openid-configuration",
         client_kwargs={"scope": "openid profile email"},
     )
 
@@ -210,14 +213,14 @@ def init_oauth(app):
 @rate_limit(
     limit=10,
     window_seconds=60,
-    identifier='auth0_login',
-    error_message="Trop de tentatives de connexion. Veuillez patienter."
+    identifier="auth0_login",
+    error_message="Trop de tentatives de connexion. Veuillez patienter.",
 )
 def login_auth0() -> WerkzeugResponse:
     """Initiate Auth0 OAuth login flow.
 
     Redirects user to Auth0 login page.
-    
+
     :return: Redirect to Auth0 or event index if already authenticated
     """
     if current_user.is_authenticated:
@@ -247,14 +250,14 @@ def login_auth0() -> WerkzeugResponse:
 @rate_limit(
     limit=20,
     window_seconds=60,
-    identifier='auth0_callback',
-    error_message="Trop de requêtes de callback. Veuillez réessayer."
+    identifier="auth0_callback",
+    error_message="Trop de requêtes de callback. Veuillez réessayer.",
 )
 def callback_auth0() -> WerkzeugResponse:
     """Handle Auth0 OAuth callback.
 
     Processes the Auth0 callback, verifies the user, and creates or links account.
-    
+
     :return: Redirect to appropriate page based on user status
     """
     # Verify state to prevent CSRF
@@ -274,7 +277,9 @@ def callback_auth0() -> WerkzeugResponse:
         # Get user info from Auth0
         userinfo = token.get("userinfo")
         if not userinfo:
-            return handle_auth0_error("Impossible de récupérer les informations utilisateur")
+            return handle_auth0_error(
+                "Impossible de récupérer les informations utilisateur"
+            )
 
         auth0_id = userinfo.get("sub")
         email = userinfo.get("email")
@@ -354,7 +359,7 @@ def complete_auth0_signup() -> WerkzeugResponse:
 
     User needs to provide license number and date of birth to complete registration.
     Supports both extranet mode (with license verification) and local mode.
-    
+
     :return: Redirect or render signup completion form
     """
     # Check if we have pending Auth0 data
@@ -388,7 +393,9 @@ def complete_auth0_signup() -> WerkzeugResponse:
 
     # Verify that email matches
     if form.mail.data != auth0_data["email"]:
-        form.mail.errors.append("L'email doit correspondre à celui de votre compte Auth0")
+        form.mail.errors.append(
+            "L'email doit correspondre à celui de votre compte Auth0"
+        )
         return render_template(
             "auth/auth0_complete_signup.html",
             form=form,
@@ -430,7 +437,7 @@ def complete_auth0_signup() -> WerkzeugResponse:
         auth0_id=auth0_data["auth0_id"],
         email=auth0_data["email"],
         user_type=UserType.Extranet,
-        license=form.license.data
+        license=form.license.data,
     )
 
     # Sync with extranet
@@ -439,7 +446,7 @@ def complete_auth0_signup() -> WerkzeugResponse:
 
     db.session.add(user)
     db.session.commit()
-    
+
     # Download and save avatar if available from Auth0
     userinfo = auth0_data.get("userinfo", {})
     picture_url = userinfo.get("picture")
@@ -452,15 +459,15 @@ def complete_auth0_signup() -> WerkzeugResponse:
 
     flash(
         "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter via Auth0.",
-        "success"
+        "success",
     )
-    
+
     return complete_login(user)
 
 
 def complete_auth0_signup_local(auth0_data: Dict[str, Any]) -> WerkzeugResponse:
     """Complete Auth0 signup in local mode (without extranet verification).
-    
+
     :param auth0_data: Auth0 user data from session
     :return: Redirect or render signup form
     """
@@ -488,7 +495,9 @@ def complete_auth0_signup_local(auth0_data: Dict[str, Any]) -> WerkzeugResponse:
 
     # Verify that email matches
     if form.mail.data != auth0_data["email"]:
-        form.mail.errors.append("L'email doit correspondre à celui de votre compte Auth0")
+        form.mail.errors.append(
+            "L'email doit correspondre à celui de votre compte Auth0"
+        )
         return render_template(
             "auth/auth0_complete_signup.html",
             form=form,
@@ -517,13 +526,13 @@ def complete_auth0_signup_local(auth0_data: Dict[str, Any]) -> WerkzeugResponse:
     user = create_user_from_auth0_data(
         auth0_id=auth0_data["auth0_id"],
         email=auth0_data["email"],
-        user_type=UserType.Local
+        user_type=UserType.Local,
     )
     form.populate_obj(user)
 
     db.session.add(user)
     db.session.commit()
-    
+
     # Download and save avatar if available from Auth0
     userinfo = auth0_data.get("userinfo", {})
     picture_url = userinfo.get("picture")
@@ -543,7 +552,7 @@ def link_account_auth0() -> WerkzeugResponse:
     """Link an existing account to Auth0.
 
     User must verify their password to link their existing account to Auth0.
-    
+
     :return: Redirect or render account linking form
     """
     from collectives.forms.auth import LoginForm
@@ -595,9 +604,9 @@ def link_account_auth0() -> WerkzeugResponse:
 @blueprint.route("/link/auth0/cancel")
 def cancel_link_auth0() -> WerkzeugResponse:
     """Cancel Auth0 account linking process.
-    
+
     Clears pending Auth0 data and redirects to login page.
-    
+
     :return: Redirect to login page
     """
     clear_auth0_pending_data()
@@ -608,11 +617,11 @@ def cancel_link_auth0() -> WerkzeugResponse:
 @blueprint.route("/logout/auth0")
 def logout_auth0() -> WerkzeugResponse:
     """Log out from both the application and Auth0.
-    
+
     This route performs two actions:
     1. Logs out the user from the local Flask session
     2. Redirects to Auth0 logout, which will then redirect back to /auth/login
-    
+
     :return: Redirect to Auth0 logout URL
     """
     # Logout from local session first
@@ -625,16 +634,12 @@ def logout_auth0() -> WerkzeugResponse:
     client_id = current_app.config["AUTH0_CLIENT_ID"]
     return_to = url_for("auth.login", _external=True)
 
-    logout_url = (
-        f"https://{auth0_domain}/v2/logout?"
-        + urlencode(
-            {
-                "client_id": client_id,
-                "returnTo": return_to,
-            },
-            quote_via=quote_plus,
-        )
+    logout_url = f"https://{auth0_domain}/v2/logout?" + urlencode(
+        {
+            "client_id": client_id,
+            "returnTo": return_to,
+        },
+        quote_via=quote_plus,
     )
 
     return redirect(logout_url)
-

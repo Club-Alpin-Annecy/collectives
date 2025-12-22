@@ -139,10 +139,13 @@ def create_app(config_filename="config.py", extra_config=None):
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)
         app.register_blueprint(question.blueprint)
-        
+
         # Register Auth0 webhook blueprint if Auth0 is enabled
         if app.config.get("AUTH0_ENABLED", False):
-            from collectives.api.auth0_webhooks import blueprint as auth0_webhooks_blueprint
+            from collectives.api.auth0_webhooks import (
+                blueprint as auth0_webhooks_blueprint,
+            )
+
             app.register_blueprint(auth0_webhooks_blueprint)
 
         # Error handling

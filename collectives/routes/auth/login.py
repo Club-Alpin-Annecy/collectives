@@ -162,19 +162,19 @@ def login():
 @rate_limit(
     limit=5,
     window_seconds=300,
-    identifier='admin_bypass_login',
-    error_message="Trop de tentatives de connexion administrateur. Veuillez patienter 5 minutes."
+    identifier="admin_bypass_login",
+    error_message="Trop de tentatives de connexion administrateur. Veuillez patienter 5 minutes.",
 )
 def admin_login():
     """Route for admin bypass login.
-    
+
     This route allows administrators to bypass Auth0 and use classic login
     when AUTH0_FORCE_SSO is enabled. Only accessible if AUTH0_BYPASS_ENABLED is True.
-    
+
     Useful as a fallback if Auth0 is down or needs to be temporarily disabled.
     """
     from flask import current_app
-    
+
     # Check if bypass is enabled
     if not current_app.config.get("AUTH0_BYPASS_ENABLED", False):
         flash(
@@ -182,14 +182,14 @@ def admin_login():
             "warning",
         )
         return redirect(url_for("auth.login"))
-    
+
     # User is already authenticated
     if current_user.is_authenticated:
         flash("Vous êtes déjà connecté", "warning")
         return redirect(url_for("event.index"))
-    
+
     form = LoginForm()
-    
+
     # If no login is provided, display admin login interface
     if not form.validate_on_submit():
         return render_template(
@@ -197,7 +197,7 @@ def admin_login():
             form=form,
             contact_reason="vous connecter en tant qu'administrateur",
         )
-    
+
     # Check if user exists
     if "@" in form.login.data or form.login.data == "admin":
         users = User.query.filter_by(mail=form.login.data).all()
@@ -330,12 +330,9 @@ def logout():
     from flask import current_app
 
     # Check if user has Auth0 ID and Auth0 is enabled
-    if (
-        current_user.auth0_id
-        and current_app.config.get("AUTH0_ENABLED", False)
-    ):
+    if current_user.auth0_id and current_app.config.get("AUTH0_ENABLED", False):
         logout_user()
         return redirect(url_for("auth.logout_auth0"))
-    
+
     logout_user()
     return redirect(url_for("auth.login"))
