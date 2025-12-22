@@ -1,18 +1,18 @@
 """Auth0 SSO authentication routes."""
 
 import secrets
-from typing import Dict, Any, Optional
-from urllib.parse import urlencode, quote_plus
+from typing import Any, Dict, Optional
+from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.flask_client import OAuth
 from flask import (
+    Response,
     flash,
     redirect,
     render_template,
     request,
     session,
     url_for,
-    Response,
 )
 from flask_login import current_user, login_user, logout_user
 from markupsafe import Markup
@@ -20,9 +20,8 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from collectives.models import Configuration, User, UserType, db
 from collectives.routes.auth.globals import blueprint
-from collectives.utils.time import current_time
 from collectives.utils.rate_limit import rate_limit
-
+from collectives.utils.time import current_time
 
 oauth = OAuth()
 
@@ -77,7 +76,7 @@ def handle_auth0_error(
     :return: Redirect response to login page
     """
     if detailed_error:
-        flash(f"{error_message}: {str(detailed_error)}", "error")
+        flash(f"{error_message}: {detailed_error!s}", "error")
     else:
         flash(error_message, "error")
     return redirect(url_for("auth.login"))
@@ -102,6 +101,7 @@ def download_and_save_avatar(picture_url: str, user_id: int) -> Optional[str]:
     :return: Saved filename or None if failed
     """
     import os
+
     import requests
     from flask import current_app
     from werkzeug.utils import secure_filename

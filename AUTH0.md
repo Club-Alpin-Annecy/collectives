@@ -49,7 +49,7 @@ AUTH0_FORCE_SSO = True
 AUTH0_BYPASS_ENABLED = True
 
 # 2. Appliquer la migration
-uv run flask db upgrade
+FLASK_APP=collectives:create_app uv run flask db upgrade
 
 # 3. Démarrer
 uv run python run.py
