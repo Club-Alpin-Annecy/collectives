@@ -38,21 +38,21 @@ Guide de déploiement production
 ## ⚡ Quick Start
 
 ```bash
-# 1. Configurer instance/config.py
-AUTH0_ENABLED = True
-AUTH0_DOMAIN = "your-tenant.eu.auth0.com"
-AUTH0_CLIENT_ID = "your_client_id"
-AUTH0_CLIENT_SECRET = "your_client_secret"
+# 1. Un certain nombre de variables d'env variable sont à setup. Elles sont chargées dans instance/config.py
+AUTH0_ENABLED=True
+AUTH0_DOMAIN="your-tenant.eu.auth0.com"
+AUTH0_CLIENT_ID="your_client_id"
+AUTH0_CLIENT_SECRET="your_client_secret"
 
 # Mode Force SSO (optionnel)
-AUTH0_FORCE_SSO = True
-AUTH0_BYPASS_ENABLED = True
+AUTH0_FORCE_SSO=True
+AUTH0_BYPASS_ENABLED=True
 
 # 2. Appliquer la migration
 FLASK_APP=collectives:create_app uv run flask db upgrade
 
 # 3. Démarrer
-uv run python run.py
+AUTH0_ENABLED=True AUTH0_DOMAIN="your-tenant.eu.auth0.com" AUTH0_CLIENT_ID="your_client_id" AUTH0_CLIENT_SECRET="your_client_secret" uv run python run.py
 ```
 
 ➡️ Consulter [docs/auth0/README.md](docs/auth0/README.md) pour plus de détails
