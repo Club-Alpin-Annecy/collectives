@@ -89,6 +89,10 @@ def create_app(config_filename="config.py", extra_config=None):
     payline.api.init_app(app)
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
+    # Initialize Auth0 OAuth if enabled
+    if app.config.get("AUTH0_ENABLED", False) and auth.init_oauth:
+        auth.init_oauth(app)
+
     app.context_processor(jinja.helpers_processor)
 
     _migrate = Migrate(app, models.db)
@@ -135,6 +139,14 @@ def create_app(config_filename="config.py", extra_config=None):
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)
         app.register_blueprint(question.blueprint)
+
+        # Register Auth0 webhook blueprint if Auth0 is enabled
+        if app.config.get("AUTH0_ENABLED", False):
+            from collectives.api.auth0_webhooks import (
+                blueprint as auth0_webhooks_blueprint,
+            )
+
+            app.register_blueprint(auth0_webhooks_blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

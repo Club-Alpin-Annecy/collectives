@@ -1,0 +1,76 @@
+
+{% extends 'base.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}   
+    <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Auth0 Link Account Windows -->
+<div id="cover"></div>
+<div class="login-form">
+    <div class="box">
+        <h1 class="heading-1 padding-default">Lier votre compte</h1>
+
+        <div class="padding-default">
+            <p>
+                Un compte existe déjà avec l'adresse email <strong>{{ auth0_email }}</strong>.
+            </p>
+            <p>
+                Pour lier ce compte à Auth0, veuillez entrer votre mot de passe actuel.
+            </p>
+        </div>
+
+        <form method="POST">
+            {{ form.csrf_token }}
+            {{ form.hidden_tag() }}
+
+            <!-- Hidden login field pre-filled with Auth0 email -->
+            {{ form.login(type="hidden", value=auth0_email) }}
+
+            <div class="form-group padding-default">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    <div class="text-danger">
+                        {% for error in form.password.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="padding-default">
+                <button type="submit" class="button button-primary input-100">
+                    Lier mon compte à Auth0
+                </button>
+            </div>
+        </form>
+
+        <div class="padding-default">
+            <hr class="separator">
+
+            <p class="contact-link">
+                <a href="{{url_for('auth.recover')}}">Mot de passe oublié ?</a>
+            </p>
+
+            <p class="contact-link">
+                <a href="{{url_for('auth.cancel_link_auth0')}}">Annuler la liaison</a>
+            </p>
+
+            <p class="contact-link">
+                <a href="{{url_for('auth.login')}}">Retour à la connexion</a>
+            </p>
+
+            <p class="text-muted small">
+                Note : Une fois votre compte lié, vous pourrez vous connecter avec Auth0 ou avec votre mot de passe habituel.
+            </p>
+
+            {% include 'partials/contact_link.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
