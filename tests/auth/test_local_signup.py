@@ -132,7 +132,7 @@ def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_ac
     assert response.status_code == 200
 
     data = {
-        "mail": user1.mail,
+        "mail": "uSer1@example.org",
         "license": user1.license,
         "date_of_birth": user1.date_of_birth,
     }

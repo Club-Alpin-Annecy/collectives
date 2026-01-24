@@ -248,7 +248,7 @@ def signup():
         # Local account recovery
         else:
             if (
-                existing_user.mail != form.mail.data
+                existing_user.mail.lower() != form.mail.data.lower()
                 or existing_user.date_of_birth != form.date_of_birth.data
                 or existing_user.license != form.license.data
             ):
@@ -317,7 +317,7 @@ def get_existing_user(
 
     if mail and date_of_birth:
         filters = or_(
-            filters, and_(User.mail == mail, User.date_of_birth == date_of_birth)
+            filters, and_(User.mail.ilike(mail), User.date_of_birth == date_of_birth)
         )
 
     existing_users = User.query.filter(filters).all()
