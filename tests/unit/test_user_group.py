@@ -1,6 +1,7 @@
 """Unit tests for UserGroup class"""
 
 from collectives.models import BadgeIds, RegistrationStatus, RoleIds, User, db
+from collectives.models.badge import Badge
 from collectives.models.user_group import (
     GroupBadgeCondition,
     GroupEventCondition,
@@ -250,3 +251,59 @@ def test_any_role_condition(user1, president_user, leader_user):
     assert user1 not in group0_members
     assert president_user in group0_members
     assert leader_user in group0_members
+
+
+def test_badge_condition_with_null_and_non_null_expiration(
+    user_with_valid_benevole_badge,
+    user_with_expired_benevole_badge,
+):
+    """Test GroupBadgeCondition behavior with null and non-null expiration dates
+
+    This test verifies that:
+    - Badges with null expiration_date are considered valid
+    - Badges with expiration_date in the future are considered valid
+    - Badges with expiration_date in the past are considered expired
+    """
+
+    time = current_time()
+    group0 = UserGroup()
+
+    # Create a badge condition for Benevole badges
+    gbc = GroupBadgeCondition()
+    gbc.badge_id = BadgeIds.Benevole
+    db.session.add(gbc)
+
+    group0.badge_conditions.append(gbc)
+    db.session.add(group0)
+    db.session.commit()
+
+    # User with valid badge should be in the group
+    group0_members = group0.get_members(time=time)
+    assert user_with_valid_benevole_badge in group0_members
+
+    # User with expired badge should not be in the group
+    assert user_with_expired_benevole_badge not in group0_members
+
+    # Test: Add a badge with null expiration_date to the expired user
+    # This badge should be considered valid
+    badge_with_null_expiration = Badge()
+    badge_with_null_expiration.user_id = user_with_expired_benevole_badge.id
+    badge_with_null_expiration.badge_id = BadgeIds.Benevole
+    badge_with_null_expiration.expiration_date = None  # Null expiration date
+    badge_with_null_expiration.grantor_id = user_with_valid_benevole_badge.id
+    db.session.add(badge_with_null_expiration)
+    db.session.commit()
+
+    # Now the user should be in the group due to the null-expiration badge
+    group0_members = group0.get_members(time=time)
+    assert user_with_expired_benevole_badge in group0_members
+
+    # Test: Invert condition - users without Benevole badges
+    gbc.invert = True
+    db.session.commit()
+
+    group0_members = group0.get_members(time=time)
+    assert user_with_valid_benevole_badge not in group0_members
+    assert (
+        user_with_expired_benevole_badge not in group0_members
+    )  # Has badge with null expiration

@@ -275,7 +275,7 @@ def ttl_cache(ttl: int = 10):
             cache[key] = (result, now)
             return result
 
-        wrapper.expire_all = lambda: cache.clear()
+        wrapper.expire_all = cache.clear
 
         return wrapper
 
