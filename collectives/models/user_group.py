@@ -130,7 +130,10 @@ class GroupBadgeCondition(db.Model, GroupConditionBase):
 
     def get_condition(self, time: datetime):
         """:returns: the SQLAlchemy expression corresponding to this condition"""
-        non_expired = ~(Badge.expiration_date < time.date())  # NULL means non-expired
+        non_expired = or_(
+            Badge.expiration_date.is_(None), Badge.expiration_date >= time.date()
+        )
+
         conditions = [non_expired]
 
         if self.badge_id:
