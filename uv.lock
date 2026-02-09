@@ -755,15 +755,15 @@ dependencies = [
 
 [[package]]
 name = "flask-marshmallow"
-version = "1.3.0"
+version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flask" },
     { name = "marshmallow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/91/f3893613c3a388a643f8a96e1b08a17b863fcc03beb6f2a40bb224da7df7/flask_marshmallow-1.3.0.tar.gz", hash = "sha256:27a35d0ce5dcba161cc5f2f4764afbc2536c93fa439a793250b827835e3f3be6", size = 40852, upload-time = "2025-01-07T04:04:07.757Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/09/43/6e5c19e8abc01f5daf1d3c8ad169c495335390572b8bead3f7e7302131c6/flask_marshmallow-1.4.0.tar.gz", hash = "sha256:98c90a253052c72d2ddddc925539ac33bbd780c6fba86478ffe18e3b89d8b471", size = 40970, upload-time = "2026-02-04T16:07:59.916Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/cd/5b3d4103460766eb834f6deaf26a87a4735a0c9687f24163e07d1f3d7791/flask_marshmallow-1.3.0-py3-none-any.whl", hash = "sha256:c0a0644b46406851873ab41c1e8a7de3ef27fa69b00b89bf630f1696ec0813a0", size = 12174, upload-time = "2025-01-07T04:04:06.326Z" },
+    { url = "https://files.pythonhosted.org/packages/70/9b/7d0605c6f90d640547c3c9a0b95bc3bb17e252ae0f46f1dbfa90d2e06518/flask_marshmallow-1.4.0-py3-none-any.whl", hash = "sha256:b758fc2c428d0cbee6fd0ccf0d55524fe9e426a86a177dcc0fc8cd71ad4b7c59", size = 12254, upload-time = "2026-02-04T16:07:58.878Z" },
 ]
 
 [[package]]
@@ -1252,11 +1252,11 @@ wheels = [
 
 [[package]]
 name = "phonenumbers"
-version = "9.0.22"
+version = "9.0.23"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/16/12/8583ba0f327cebf42e4c1a63f394332f42d86a5cc16e0f578bb29d17b524/phonenumbers-9.0.22.tar.gz", hash = "sha256:eff985c65575749d1d54e07c56c3517d5243e03e08e4a6191761df9aab2278f2", size = 2297728, upload-time = "2026-01-16T06:31:02.211Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/1a/d1a90630b5f5e6ff3918f1ab6958430c051c3f311610780bcd9bc7200a5d/phonenumbers-9.0.23.tar.gz", hash = "sha256:e5aa44844684ffb4928f25a7b8c31dbf6e3763138cb13edd2ab03bf6d4803d98", size = 2298342, upload-time = "2026-02-04T15:58:16.916Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/95/a958da5ca5ae35b3a0d4a1ce88b001b4360fd6b48b97339dba2815ec10d4/phonenumbers-9.0.22-py2.py3-none-any.whl", hash = "sha256:645e66cd9a136b3b257b5f941fa97d324124114d31ad3c9f2488682f47ad7ee1", size = 2584081, upload-time = "2026-01-16T06:30:58.43Z" },
+    { url = "https://files.pythonhosted.org/packages/06/91/17099726260627a23109abf9590b02f08ff3798e3722d760a1f142d9932d/phonenumbers-9.0.23-py2.py3-none-any.whl", hash = "sha256:f29651fb72ba4d22d2691bb0b432f1d2c93fd49cc7b89aa6c11bd6b0e4167412", size = 2584396, upload-time = "2026-02-04T15:58:13.529Z" },
 ]
 
 [[package]]
