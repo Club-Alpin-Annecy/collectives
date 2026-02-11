@@ -1329,7 +1329,11 @@ def qr_mark_present(event_id):
         ), 404
 
     # Check if user is registered for this event
-    registration = next((r for r in event.registrations if r.user_id == user.id), None)
+    registration = (
+        db.session.query(Registration)
+        .filter_by(event_id=event.id, user_id=user.id)
+        .first()
+    )
 
     # Check if registration is valid (Active, PaymentPending, or Waiting)
     error = None
@@ -1341,7 +1345,7 @@ def qr_mark_present(event_id):
         error = f"{user.full_name()} est en liste d'attente pour cet événement."
     elif registration.status == RegistrationStatus.Present:
         error = f"{user.full_name()} est déjà marqué présent."
-    elif user.license_expiry_date and user.license_expiry_date < event.end.date():
+    elif not user.check_license_valid_at_time(event.end):
         error = f"La licence de {user.full_name()} a expiré."
     elif not user.is_active:
         error = f"Le compte de {user.full_name()} n'est pas actif."

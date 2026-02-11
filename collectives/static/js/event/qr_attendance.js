@@ -67,7 +67,7 @@ function addToHistory(name, license, success, message) {
   
   const icon = document.createElement('div');
   icon.className = 'qr-history-item__icon';
-  icon.className = 'qr-history-item__icon';
+
   icon.innerHTML = success ? '✓' : '✗';
   
   historyItem.appendChild(info);
