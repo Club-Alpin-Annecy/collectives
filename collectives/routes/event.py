@@ -12,6 +12,7 @@ from flask import (
     Blueprint,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -1268,6 +1269,102 @@ def preview(event_id):
     url = url_for("event.view_event", event_id=event.id, name=slugify(event.title))
     return render_template(
         "event/preview.html", event=event, url=url, now=current_time()
+    )
+
+
+@blueprint.route("/<int:event_id>/qr_attendance")
+@valid_user()
+def qr_attendance(event_id):
+    """Route to display QR code scanner for marking attendance.
+
+    :param int event_id: Primary key of the event.
+    """
+    event = db.session.get(Event, event_id)
+
+    if event is None:
+        flash("Événement introuvable.", "error")
+        return redirect(url_for("event.index"))
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    return render_template("event/qr_attendance.html", event=event)
+
+
+@blueprint.route("/<int:event_id>/qr_attendance/mark_present", methods=["POST"])
+@valid_user()
+def qr_mark_present(event_id):
+    """Route to mark a user as present via QR code scan.
+
+    :param int event_id: Primary key of the event.
+    """
+
+    event = db.session.get(Event, event_id)
+
+    if event is None:
+        return jsonify({"success": False, "error": "Événement introuvable."}), 404
+
+    if not event.has_edit_rights(current_user):
+        return jsonify({"success": False, "error": "Accès restreint."}), 403
+
+    # Get license from request
+    qr_data = request.json.get("qr_data", "")
+
+    # Extract license number (12 digits) from QR data, starting at character 7 (index 6)
+    # Format: "0000T1740020180258202604    DUPONT ROGER"
+    license_number = qr_data[6:18]
+    if not license_number.isdigit() or len(license_number) != 12:
+        return jsonify({"success": False, "error": "QR code invalide."}), 400
+
+    # Find user by license
+    user = db.session.query(User).filter(User.license == license_number).first()
+
+    if not user:
+        return jsonify(
+            {
+                "success": False,
+                "error": f"Aucun utilisateur trouvé avec la licence {license_number}.",
+            }
+        ), 404
+
+    # Check if user is registered for this event
+    registration = next((r for r in event.registrations if r.user_id == user.id), None)
+
+    # Check if registration is valid (Active, PaymentPending, or Waiting)
+    error = None
+    if not registration:
+        error = f"{user.full_name()} n'est pas inscrit à cet événement."
+    elif registration.status == RegistrationStatus.PaymentPending:
+        error = f"Le paiement de l'inscription de {user.full_name()} est en attente."
+    elif registration.status == RegistrationStatus.Waiting:
+        error = f"{user.full_name()} est en liste d'attente pour cet événement."
+    elif registration.status == RegistrationStatus.Present:
+        error = f"{user.full_name()} est déjà marqué présent."
+    elif user.license_expiry_date and user.license_expiry_date < event.end.date():
+        error = f"La licence de {user.full_name()} a expiré."
+    elif not user.is_active:
+        error = f"Le compte de {user.full_name()} n'est pas actif."
+    elif registration.status != RegistrationStatus.Active:
+        error = f"L'inscription de {user.full_name()} n'est pas valide (statut: {registration.status.display_name()})."
+
+    if error:
+        return jsonify({"success": False, "error": error}), 400
+
+    # Mark as present
+    registration.status = RegistrationStatus.Present
+    db.session.add(registration)
+    db.session.commit()
+
+    return jsonify(
+        {
+            "success": True,
+            "message": f"{user.full_name()} marqué présent.",
+            "user": {
+                "name": user.full_name(),
+                "license": user.license,
+            },
+        }
     )
 
 
