@@ -55,7 +55,15 @@ function addToHistory(name, license, success, message) {
   
   const info = document.createElement('div');
   info.className = 'qr-history-item__info';
-  info.innerHTML = `<strong>${name || license}</strong><br><small>${timestamp} - ${message}</small>`;
+  const nameOrLicense = name || license;
+  const nameElement = document.createElement('strong');
+  nameElement.textContent = nameOrLicense;
+  const lineBreak = document.createElement('br');
+  const detailsElement = document.createElement('small');
+  detailsElement.textContent = `${timestamp} - ${message}`;
+  info.appendChild(nameElement);
+  info.appendChild(lineBreak);
+  info.appendChild(detailsElement);
   
   const icon = document.createElement('div');
   icon.className = 'qr-history-item__icon';
