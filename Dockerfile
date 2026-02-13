@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.13
 
 LABEL org.opencontainers.image.authors="CAF Annecy <digital@cafannecy.fr"
 
