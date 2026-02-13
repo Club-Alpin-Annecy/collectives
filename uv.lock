@@ -736,7 +736,7 @@ wheels = [
 [[package]]
 name = "flask-images"
 version = "3.0.5"
-source = { git = "https://github.com/Club-Alpin-Annecy/Flask-Images?rev=master#4636afc4547049d27dfc76f8ce8fecb74c1f1a97" }
+source = { git = "https://github.com/Club-Alpin-Annecy/Flask-Images?rev=master#bea11086311e5c8a75237c8ee553e641bcb132e0" }
 dependencies = [
     { name = "flask" },
     { name = "itsdangerous" },
