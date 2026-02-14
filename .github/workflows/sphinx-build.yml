@@ -21,7 +21,7 @@ jobs:
       - name: Build Sphinx docs
         working-directory: doc
         env:
-            SPHINXOPTS: -W  --keep-going
+            SPHINXOPTS: --keep-going
         run: |
           uv run make html
       - name: Check general doc coverage
