@@ -40,6 +40,9 @@ Instance specific configuration can be included in `instance/config.py`
 Default account is admin
 Default password is foobar2 (can be changed in config.py)
 
+## Test data
+A data set for tests can be loaded into the db via `etc/test_set.py` 
+
 ## Legacy installation via pip (deprecated)
 
 1. Unzip the package from the source.
