@@ -11,11 +11,25 @@
         justify-content: space-between;
         width: 100%;
         padding-bottom: $padding-vertical-l;
+        text-align: center;
+
+        @media screen and (max-width: 700px) {
+            flex-direction: column-reverse;
+            gap: $padding-vertical-s;
+        }
+        
     }
 
     &--activity-type {
         min-width: 60px;
         margin-top: 8px;
+
+        img{
+            width: 90px;
+            @media screen and (max-width: 700px) {
+                width: 50px;
+            }
+        }
     }
 
     &--date {
@@ -47,6 +61,44 @@
 
     &--administration-title {
        color: $color-blue-primary-dark;
+    }
+
+    .contactinfos {
+        .inputGrow {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: $padding-horizontal-xs;
+        }
+
+        .inputGrow > label {
+            min-width: 260px;
+            margin: 0;
+        }
+
+        .inputGrow .grow {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .inputGrow input[type="button"] {
+            flex-shrink: 0;
+        }
+
+        @media screen and (max-width: 700px) {
+            .inputGrow {
+                align-items: stretch;
+                flex-wrap: wrap;
+            }
+
+            .inputGrow > label {
+                min-width: 100%;
+            }
+
+            .inputGrow .grow {
+                width: 100%;
+            }
+        }
     }
     
     &--uploaded-file-link {

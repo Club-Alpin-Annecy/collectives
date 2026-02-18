@@ -89,8 +89,8 @@
 
     <h5 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h5>
     {% if current_user.has_signed_ca() %}
-        <div class="contactinfos">
-            <p class="inputGrow">
+        <form class="contactinfos">
+            <div class="inputGrow">
                 <label for="phonelist">
                     Liste téléphonique :
                 </label>
@@ -98,15 +98,15 @@
                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='phone') | select | join(', ') }}"
                         id="phonelist"
                         readonly
-                        class="grow"
+                        class="grow padding-s"
                         />
-                <input type="button" value="Copier" onclick="copyToClipboard('phonelist' )">
+                <input type="button" class="padding-s button button-primary" value="Copier" onclick="copyToClipboard('phonelist' )">
                 {%if isMobileUser() %}
-                    <input type="button" value="Message" onclick="document.location.href='sms:' + document.getElementById('phonelist').value">
+                    <input type="button" class="padding-s button button-primary" value="Message" onclick="document.location.href='sms:' + document.getElementById('phonelist').value">
                 {% endif %}
 
-            </p>
-            <p class="inputGrow">
+            </div>
+            <div class="inputGrow margin-top-m">
                 <label>
                     Liste d'email :
                 </label>
@@ -114,14 +114,14 @@
                         value="{{ event.active_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
                         id="maillist"
                         readonly
-                        class="grow"
+                        class="grow padding-s"
                         />
-                <input type="button" value="Copier" onclick="copyToClipboard('maillist')">
-                <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('maillist').value">
-                </p>
+                <input type="button" class="padding-s button button-primary" value="Copier" onclick="copyToClipboard('maillist')">
+                <input type="button" class="padding-s button button-primary" value="Message" onclick="document.location.href='mailto:' + document.getElementById('maillist').value">
+            </div>
 
             {%if event.num_waiting_registrations() %}
-            <p class="inputGrow">
+            <div class="inputGrow margin-top-m">
                 <label>
                     Liste d'email des personnes en liste d'attente :
                 </label>
@@ -129,15 +129,15 @@
                         value="{{ event.waiting_registrations() | map(attribute='user') | map(attribute='mail') | join('; ') }}"
                         id="waiting_maillist"
                         readonly
-                        class="grow"
+                        class="grow padding-s"
                         />
-                <input type="button" value="Copier" onclick="copyToClipboard('waiting_maillist')">
-                <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('waiting_maillist').value">
-                </p>
+                <input type="button" class="padding-s button button-primary" value="Copier" onclick="copyToClipboard('waiting_maillist')">
+                <input type="button" class="padding-s button button-primary" value="Message" onclick="document.location.href='mailto:' + document.getElementById('waiting_maillist').value">
+            </div>
             {%endif%}
 
             {%if event.leaders|length > 1 %}
-            <p class="inputGrow">
+            <div class="inputGrow margin-top-m">
                 <label>
                     Liste d'email des encadrants :
                 </label>
@@ -145,13 +145,13 @@
                         value="{{ event.leaders | map(attribute='mail') | join('; ') }}"
                         id="leader_maillist"
                         readonly
-                        class="grow"
+                        class="grow padding-s"
                         />
-                <input type="button" value="Copier" onclick="copyToClipboard('leader_maillist')">
-                <input type="button" value="Message" onclick="document.location.href='mailto:' + document.getElementById('leader_maillist').value">
-                </p>
+                <input type="button" class="padding-s button button-primary" value="Copier" onclick="copyToClipboard('leader_maillist')">
+                <input type="button" class="padding-s button button-primary" value="Message" onclick="document.location.href='mailto:' + document.getElementById('leader_maillist').value">
+            </div>
             {%endif%}
-        </div>
+            </form>
     {% else %}
         <p>
             Vous ne pouvez pas voir les coordonnées des participants car vous n'avez pas signé la
@@ -165,8 +165,8 @@
     <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
     <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
-        <p>
-            <input id = "user-search" size="32" autocomplete="off" class="search-input" placeholder="Nom…" >
+        <p class="align-center">
+            <input id = "user-search" size="32" autocomplete="off" class="search-input input-75" placeholder="Nom…" >
         </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
@@ -205,7 +205,7 @@
                         </a>
                     </td>
                     <td style="text-align:center">
-                        <select name="reg_{{ registration.id }}" onchange="attendanceUpdate(this, {{registration.status.value}});">
+                        <select name="reg_{{ registration.id }}" onchange="attendanceUpdate(this, {{registration.status.value}});" class="padding-s">
                             {% for status in registration.valid_transitions() %}
                                 <option
                                         value="{{status.value}}"
@@ -222,7 +222,7 @@
                 <tr>
                     <td>Tous les "Inscrits"</td>
                     <td style="text-align:center">
-                        <select name="none" onchange="attendanceSelectAll(this.value)">
+                        <select name="none" onchange="attendanceSelectAll(this.value)" class="padding-s">
                             <option value="" selected disabled> </option>
                             {% for status in models.RegistrationStatus.Active.valid_transitions(event.requires_payment()) %}
                                 <option value="{{status.value}}">{{status.display_name()}}</option>
@@ -233,11 +233,13 @@
             </tbody>
         </table>
             {% if ns.license_to_renew %}
-            <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
-            = Licence à renouveler <br/>
+            <div class="text-gray">
+                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
+                = Licence à renouveler 
+            </div>
             {% endif %}
 
-        <textarea id="attendance-rejection-explanation" name="rejection-reason" class="input-50" style="min-width: 22em;" rows="5"
+        <textarea id="attendance-rejection-explanation" name="rejection-reason" class="input-50 margin-top-s margin-bottom-s" rows="5"
             placeholder="Explication optionelle pour les personnes nouvellement refusées..."
         ></textarea>
 
