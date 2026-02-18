@@ -113,7 +113,8 @@
 .tag{
 	border-radius: 5px;
 	display: inline-block;
-	padding: 3px 5px;
+	padding: $padding-xs;
+	margin: $padding-m;
 }
 
 .tag.red{

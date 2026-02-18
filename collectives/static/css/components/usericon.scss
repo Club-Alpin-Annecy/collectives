@@ -79,13 +79,14 @@
             border-radius: 5px;
             padding: 0px 2px;
             border: 1px solid $color-gray-light;
+            margin-top: $padding-vertical-xxs;
         }
 
         .pending-renewal {
             color: $color-white;
             background-color: $color-error-dark;
             margin-right: 3px;
-
+            margin-top: $padding-vertical-xxs;
             img {
                 height: 16px;
                 vertical-align: middle;
