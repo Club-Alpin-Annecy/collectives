@@ -120,6 +120,15 @@ class EventRoleMixin:
         :rtype: boolean
         """
         return user.can_colead_any_activity(self.activity_types)
+    
+    def potential_coleaders_registrations(self):
+        """Get the list of active registrations who can be co-leaders for this event.
+        Include already selected co-leaders.
+
+        :return: List of registrations who can be co-leaders for this event.
+        :rtype: list(:py:class:`collectives.models.registration.Registration`)
+        """
+        return [ r for r in self.active_registrations() if self.can_be_coleader(r.user) ]
 
 
 def event_activities_without_leaders(

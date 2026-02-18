@@ -122,10 +122,11 @@
     <div id="encadrement">
       <h3 class="heading-3">Encadrement</h3>
       <div class="userlist">
-      {% for user in event.ranked_leaders() %}
-        {{ macros.leader_icon(user) }}
-      {% endfor %}
-
+        {% for user in event.ranked_leaders() %}
+          {{ macros.leader_icon(user) }}
+        {% endfor %}
+      </div>
+      
       {% if event.coleaders() | length %}
         <h4 class="heading-4">Co-encadrants en formation</h4>
         <div class="userlist">  
@@ -171,24 +172,16 @@
 
       <div class="userlist">
         {% set active_normal_registrations = event.active_normal_registrations() %}
+        {% set nb_registrations_to_display = 11 %}
         {% for registration in active_normal_registrations %}
-            <div class="useractionmenu {{ "display-none" if loop.index > 15 }}">
+            <div class="{{ "display-none" if loop.index > nb_registrations_to_display }}">
               {{ macros.registration_icon(registration) }}
-
-              {% if event.has_edit_rights(current_user) %}
-              <div class="popover">
-                {% if event.can_be_coleader(registration.user) %}
-                  <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    Co-encadrant en formation
-                  </form>
-                {% endif %}
-              </div>
-              {% endif %}
             </div>
         {% endfor %}
-        {% if active_normal_registrations|length > 15 %}
-          <button onclick="showAllRegistration(this)" class="button button-secondary padding-s">Voir plus ({{ active_normal_registrations|length - 15 }})</button>
+        {% if active_normal_registrations|length > nb_registrations_to_display %}
+          <button onclick="showAllRegistration(this)" class="button button-secondary padding-s">
+              Voir plus ({{ active_normal_registrations|length - nb_registrations_to_display }})
+          </button>
         {% endif %}
       </div>
 

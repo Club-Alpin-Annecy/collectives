@@ -173,6 +173,31 @@
     </div>
     </form>
 
+
+    <h5 class="heading-5 collective-display--administration-title">Co-encadrants en formation</h5>
+    <div class="margin-bottom-m">
+        {% for registration in event.potential_coleaders_registrations() %}
+                <div class="align-center margin-bottom-m"> 
+                    <span class="vertical-align-middle display-inline-block" style="width: 300px;">{{ registration.user.full_name() }}</span>
+                    <form   class="vertical-align-middle display-inline-block"
+                            method="post" 
+                            action="{{ url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="submit" name="is_coleader" value="Normal" class="button padding-s {{ 'button-primary' if registration.level == registration.level.Normal else 'button-secondary' }}">
+                    </form>
+                    <form   class="vertical-align-middle display-inline-block"
+                            method="post" 
+                            action="{{ url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader) }}" >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="submit" name="is_coleader" value="Co-encadrant" class="padding-s button {{ 'button-primary' if registration.level == registration.level.CoLeader else 'button-secondary' }}">
+                    </form>
+                </div>
+        {% endfor %}
+        {% if not event.potential_coleaders_registrations() %}
+            <p class="text-gray">Aucun co-encadrant inscrit.</p>
+        {% endif %}
+    </div>
+
     <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
     <form class="form" action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
