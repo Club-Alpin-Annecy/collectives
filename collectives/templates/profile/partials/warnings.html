@@ -1,0 +1,21 @@
+    <!-- Warning space -->
+    {% if user.has_a_valid_suspended_badge() %}
+        <div class="flash-warning flash">Compte suspendu jusqu'au {{format_date(user.suspension_end_date())}} </div>
+    {% endif %}
+            
+    {% if user == current_user and not user.has_valid_phone_number() %}
+        <div class="flash-warning flash">{{get_bad_phone_message(user) | safe }}</div>
+    {%endif%}
+
+    {% if user == current_user and not user.has_valid_phone_number(emergency=True) %}
+        <div class="flash-warning flash">{{get_bad_phone_message(user, emergency=True) | safe }}</div>
+    {%endif%}
+
+
+    {% if user.type == models.UserType.UnverifiedLocal %}
+        <div class="flash-warning flash">
+            Le compte de l'utilisateur n'est pas encore validé par mail. 
+            Il peut refaire sa validation en faisant une demande de nouveau mot de passe.
+        </div>
+    {% endif %}
+    <!-- End of Warning space -->

@@ -1,0 +1,79 @@
+    <!-- Personal information space -->
+    <div class="">
+        {% if user.license_expiry_date %}
+        <div class="card padding-m padding-left-s margin-bottom-s card-info {{ 'flash-warning' if not user.check_license_valid_at_time(current_time())}}">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Expiration de la licence</div>
+                <div>{{ user.license_expiry_date.strftime('%d/%m/%Y') if user.license_expiry_date }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card padding-m padding-left-s margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Genre</div>
+                <div>{{ user.get_gender_name() }}</div>
+            </div>
+        </div>
+
+        {% if user.date_of_birth and user == current_user %}
+        <div class="card padding-m padding-left-s margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Date de naissance</div>
+                <div>{{ user.date_of_birth.strftime('%d/%m/%Y')  }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <div class="card padding-m padding-left-s margin-bottom-s card-info {{ 'flash-warning' if not user.has_valid_phone_number() else '' }}" >
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Téléphone</div>
+                <div>{{ format_phones(user.phone) | default("Non renseigné", true) }}</div>
+            </div>
+        </div>
+
+        <div class="card padding-m padding-left-s margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Email</div>
+                <div><a href="mailto:{{ user.mail }}">{{ user.mail }}</a></div>
+            </div>
+        </div>
+
+        <div class="card padding-m padding-left-s margin-bottom-s card-info {{ 'flash-warning' if not user.has_valid_phone_number(emergency=True) else '' }}" >
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}" alt=""/></div>
+            <div>
+                <div class="text-primary bold margin-bottom-xs">Contact d'urgence</div>
+                <div>{{ user.emergency_contact_name }}{% if user.emergency_contact_phone %} — {{ format_phones(user.emergency_contact_phone) }}{% endif %}</div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    {% if user == current_user and user.type == models.UserType.Extranet %}
+    <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
+        <p id="info_extranet">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
+            Ces données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au {{Configuration.CLUB_NAME}}. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
+            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/monespace/">https://extranet-clubalpin.com/monespace/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
+            Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
+        </p>
+        <input type="submit" value="Resynchroniser mes informations FFCAM" class="button button-secondary">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+    {% endif %}
+
+    {% if user != current_user and user.type != models.UserType.Extranet %}
+        <p id="info_extranet">
+            Les informations ci-dessus sont fournies par l'utilisateur et 
+            n'ont pas été vérifiées par la fédération.
+        </p>
+    {% endif %}
+    <!-- End of Personal information space -->

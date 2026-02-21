@@ -7,90 +7,89 @@
     @media (max-width: 500px) {
         grid-template-columns: repeat(auto-fit, minmax(100px, 170px));
     }
+}
+
+.usericon {
+    display: flex;
+    border-radius: 20px;
+    padding: 5px 15px 5px 5px;
+    height: 42px;
+    color: $color-blue-primary-dark;
+    border: 1px solid $color-white;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
 
 
-    .usericon {
+    &:hover {
+        border: 1px solid $color-gray-light;
+    }
+
+    &-wrapper {
         display: flex;
-        border-radius: 20px;
-        padding: 5px 15px 5px 5px;
-        height: 42px;
-        color: $color-blue-primary-dark;
-        border: 1px solid $color-white;
-        box-sizing: border-box;
-        width: 100%;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    &-avatar {
+        height: 30px;
+        flex-shrink: 0;
         overflow: hidden;
+        border-radius: 50%;
+        background: $color-gray-light;
+        margin-right: 10px;
+    }
 
+    &-text {
+        letter-spacing: -0.03em;
+        
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
 
-        &:hover {
-            border: 1px solid $color-gray-light;
-        }
-
-        &-wrapper {
-            display: flex;
-        }
+        width: 100%;
+        line-height: 100%;
+        
 
         a {
             color: inherit;
             text-decoration: none;
         }
+    
 
-        &-avatar {
-            height: 30px;
-            flex-shrink: 0;
-            overflow: hidden;
-            border-radius: 50%;
-            background: $color-gray-light;
-            margin-right: 10px;
+        &-name {
+            white-space: nowrap;
+            color: $color-blue-primary-dark;
+            font-weight: $font-weight-medium;
+            font-size: $font-size-s;
         }
 
-        &-text {
-            letter-spacing: -0.03em;
-            
-            display: flex;
-            flex-direction: column;
-            flex-wrap: nowrap;
-            justify-content: center;
-
-            width: 100%;
-            line-height: 100%;
-            
-
-            a {
-                color: inherit;
-                text-decoration: none;
-            }
-        
-
-            &-name {
-                white-space: nowrap;
-                color: $color-blue-primary-dark;
-                font-weight: $font-weight-medium;
-                font-size: $font-size-s;
-            }
-
-            &-info {
-                color: $color-gray-medium;
-                font-weight: $font-weight-medium;
-                font-size: $font-size-xxs;
-            }
+        &-info {
+            color: $color-gray-medium;
+            font-weight: $font-weight-medium;
+            font-size: $font-size-xxs;
         }
+    }
 
-        .tag {
-            border-radius: 5px;
-            padding: 0px 2px;
-            border: 1px solid $color-gray-light;
-            margin-top: $padding-vertical-xxs;
-        }
+    .tag {
+        border-radius: 5px;
+        padding: 0px 2px;
+        border: 1px solid $color-gray-light;
+        margin: $padding-vertical-xxs 0 0 0;
+    }
 
-        .pending-renewal {
-            color: $color-white;
-            background-color: $color-error-dark;
-            margin-right: 3px;
-            margin-top: $padding-vertical-xxs;
-            img {
-                height: 16px;
-                vertical-align: middle;
-            }
+    .pending-renewal {
+        color: $color-white;
+        background-color: $color-error-dark;
+        margin-right: 3px;
+        margin-top: $padding-vertical-xxs;
+        img {
+            height: 16px;
+            vertical-align: middle;
         }
     }
 }
