@@ -1,23 +1,135 @@
 .padding-default{
-    padding: $padding-default;
+    padding: $padding-default !important;
 }
 
 .padding-xs{
-    padding: $padding-xs;
+    padding: $padding-xs !important;
 }
 
 .padding-s{
-    padding: $padding-s;
+    padding: $padding-s !important;
 }
 
 .padding-m{
-    padding: $padding-m;
+    padding: $padding-m !important;
 }
 
 .padding-l{
-    padding: $padding-l;
+    padding: $padding-l !important;
 }
 
 .padding-xl{
-    padding: $padding-xl;
+    padding: $padding-xl !important;
+}
+
+.padding-top-0 {
+    padding-top: 0 !important;
+}
+
+.padding-top-default {
+    padding-top: $padding-vertical-default !important;
+}
+
+.padding-top-xs {
+    padding-top: $padding-vertical-xs !important;
+}
+
+.padding-top-s {
+    padding-top: $padding-vertical-s !important;
+}
+
+.padding-top-m {
+    padding-top: $padding-vertical-m !important;
+}
+
+.padding-top-l {
+    padding-top: $padding-vertical-l !important;
+}
+
+.padding-top-xl {
+    padding-top: $padding-vertical-xl !important;
+}
+
+.padding-bottom-0 {
+    padding-bottom: 0 !important;
+}
+
+.padding-bottom-default {
+    padding-bottom: $padding-vertical-default !important;
+}
+
+.padding-bottom-xs {
+    padding-bottom: $padding-vertical-xs !important;
+}
+
+.padding-bottom-s {
+    padding-bottom: $padding-vertical-s !important;
+}
+
+.padding-bottom-m {
+    padding-bottom: $padding-vertical-m !important;
+}
+
+.padding-bottom-l {
+    padding-bottom: $padding-vertical-l !important;
+}
+
+.padding-bottom-xl {
+    padding-bottom: $padding-vertical-xl !important;
+}
+
+.padding-left-0 {
+    padding-left: 0 !important;
+}
+
+.padding-left-default {
+    padding-left: $padding-horizontal-default !important;
+}
+
+.padding-left-xs {
+    padding-left: $padding-horizontal-xs !important;
+}
+
+.padding-left-s {
+    padding-left: $padding-horizontal-s !important;
+}
+
+.padding-left-m {
+    padding-left: $padding-horizontal-m !important;
+}
+
+.padding-left-l {
+    padding-left: $padding-horizontal-l !important;
+}
+
+.padding-left-xl {
+    padding-left: $padding-horizontal-xl !important;
+}
+
+.padding-right-0 {
+    padding-right: 0 !important;
+}
+
+.padding-right-default {
+    padding-right: $padding-horizontal-default !important;
+}
+
+.padding-right-xs {
+    padding-right: $padding-horizontal-xs !important;
+}
+
+.padding-right-s {
+    padding-right: $padding-horizontal-s !important;
+}
+
+.padding-right-m {
+    padding-right: $padding-horizontal-m !important;
+}
+
+.padding-right-l {
+    padding-right: $padding-horizontal-l !important;
+}
+
+.padding-right-xl {
+    padding-right: $padding-horizontal-xl !important;
 }

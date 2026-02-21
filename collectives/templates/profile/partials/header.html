@@ -1,0 +1,34 @@
+    <!-- Profile Header space -->
+    <div class="align-center margin-bottom-l">
+        <img src="{%   if user.avatar
+                    %}{{ url_for('images.crop', filename=user.avatar, width=200, height=200) }}{%
+            else
+                    %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%
+            endif %}"
+        alt="Avatar de l'utilisateur"
+        class="avatar big" />
+        <div class="heading-2">{{user.full_name()}}</div>
+        <div class="heading-4">{{user.license}} • {{user.license_category}}</div>
+        <div>
+            {% if user.has_a_valid_benevole_badge() %}
+                <span class="flash-info tag margin-0"> Bénévole régulier </span>
+            {% endif %}
+            {% if user.has_a_valid_suspended_badge() %}
+                <span class="flash-error tag margin-0">Suspendu</span>
+            {% elif  user.number_of_valid_warning_badges() > 0 %}
+                <span class="flash-warning tag margin-0">{{user.number_of_valid_warning_badges()}} avertissements</span>
+            {% endif %}
+            {% if not user.enabled %}
+                <span class="flash-error tag margin-0">Désactivé</span>
+            {% endif %}
+            {% for role in user.roles %}
+                <span class="flash-info tag margin-0">
+                    {{role.name}}
+                    {% if role.activity_type %}
+                        {{role.activity_type.name}}
+                    {% endif %}
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- End of Profile Header space -->

@@ -86,4 +86,14 @@ form {
     .input-100 {
         width: 100%;
     }
+
+    @media screen and (max-width: 700px) {
+        .input-25,
+        .input-33,
+        .input-50,
+        .input-66,
+        .input-75 {
+            width: 95%;
+        }
+    }
 }

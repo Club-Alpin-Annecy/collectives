@@ -1,4 +1,33 @@
-{% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, is_pending_renewal=False, competency_activities=None, show_all_competencies=False) -%}
+{#
+      Macro: usericon(  user, 
+                        show_info=False, 
+                        info_url=None, 
+                        with_license_tags=False,
+                        competency_activities=None,
+                        show_all_competencies=False)
+
+      Rôle
+      - Affiche une carte "icône utilisateur" (avatar + nom + infos optionnelles).
+
+      Paramètres
+      - user: utilisateur à afficher (collectives.models.User).
+      - show_info: si true, affiche le nom complet + ligne d'infos (badges, tags licence).
+                                           sinon, affiche seulement le nom abrégé. 
+                                           Habituellement true pour les encadrants, false pour les inscrits.
+      - info_url: URL de destination du clic quand show_info=true.
+      - with_license_tags: active les tags de licence (-18, -25).
+      - competency_activities: activités utilisées pour filtrer les badges de compétence.
+      - show_all_competencies: affiche toutes les compétences si true, sinon filtrage standard.
+
+      Comportement
+      - Avatar utilisateur si présent, sinon avatar par défaut basé sur user.id.
+      - Le composant est stylé via le CSS .usericon/.userlist.
+
+      Exemples
+      - leader_icon(leader): affiche un encadrant avec lien vers son profil encadrant.
+      - registration_icon(registration): affiche un inscrit avec tags licence + badges.
+#}
+{% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, competency_activities=None, show_all_competencies=False) -%}
 <div class="usericon">
       <a class="usericon-wrapper" href="{%if show_info%}{{info_url}}{%else%}#{%endif%}"
                   alt="Avatar de {{user.abbrev_name()}}">
@@ -7,27 +36,25 @@
                   else
                         %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%
                   endif %}" />
-            <span class="usericon-name">
+            <span class="usericon-text">
                   {% if show_info %}
-                        {% if with_license_tags %}
-                              {% if user.is_minor() %}
-                                    <span class="license-tag minor">-18</span>
-                              {% elif user.is_youth() %}
-                                    <span class="license-tag youth">-25</span>
+                        
+                        <div class="usericon-text-name">{{user.full_name().title()}}</div>
+                        <div class="usericon-text-info">
+                              {% if with_license_tags %}
+                                    {% if user.is_minor() %}
+                                          <span class="tag">-18</span>
+                                    {% elif user.is_youth() %}
+                                          <span class="tag">-25</span>
+                                    {% endif %}
+                                   
                               {% endif %}
-                              {% if is_pending_renewal %}
-                                    <span class="license-tag pending-renewal">
-                                          <img src="{{url_for('static', filename='img/icon/ionicon/md-time-white.svg')}}">
-                                          Licence à renouveler
-                                    </span>
-                              {% endif %}
-                        {% endif %}
-                        {{user.full_name().title()}}
-                        {% for badge in user.get_icon_competency_badges(activity_types=competency_activities, show_all=show_all_competencies) %}
-                              <span class="competency-badge" title="{{ badge.level_name(with_activity=True) }}">{{ badge.level_name(short=True) }}</span>
-                        {% endfor %}
+                              {% for badge in user.get_icon_competency_badges(activity_types=competency_activities, show_all=show_all_competencies) %}
+                                    <span class="tag" title="{{ badge.level_name(with_activity=True) }}">{{ badge.level_name(short=True) }}</span>
+                              {% endfor %}
+                        </div>
                   {% else %}
-                        {{user.abbrev_name().title()}}
+                        <div class="usericon-text-name">{{user.abbrev_name().title()}}</div>
                   {% endif %}
             </span>
       </a>
@@ -44,7 +71,6 @@
             show_info=registration.event.has_edit_rights(current_user),
             info_url=url_for("profile.show_user", user_id=registration.user.id, event_id=registration.event.id),
             with_license_tags=True,
-            is_pending_renewal=registration.is_pending_renewal(),
             competency_activities=registration.event.activity_types,
             show_all_competencies=registration.event.show_all_badges,
       )}}
