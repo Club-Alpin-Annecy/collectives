@@ -50,7 +50,7 @@ function attendanceUpdate(select, origValue){
 }
 
 function showAllRegistration(button) {
-    button.parentElement.querySelectorAll('.useractionmenu.display-none').forEach(function(el){
+    button.parentElement.querySelectorAll('.display-none').forEach(function(el){
         el.classList.remove('display-none');
     });
     button.style.display = 'none';

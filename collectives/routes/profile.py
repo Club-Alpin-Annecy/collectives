@@ -111,7 +111,7 @@ def show_user(user_id: int, event_id: int = 0):
             skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
 
     return render_template(
-        "profile.html",
+        "profile/main.html",
         title="Profil adhérent",
         user=user,
         practitioner_badge_form=practitioner_badge_form,

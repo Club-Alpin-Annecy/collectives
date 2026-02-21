@@ -131,17 +131,7 @@
         <h4 class="heading-4">Co-encadrants en formation</h4>
         <div class="userlist">  
           {% for registration in event.coleaders() %}
-            <div class="useractionmenu">
               {{ macros.registration_icon(registration) }}
-              {% if event.has_edit_rights(current_user) %}
-              <div class="popover">
-                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" method="post" onclick="this.submit();">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  Enlever des co-encadrants
-                </form>
-              </div>
-              {% endif %}
-            </div>
           {% endfor %}
         </div>
       {% endif %}
