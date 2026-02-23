@@ -1,0 +1,200 @@
+/**
+ * QR Code Generic Styles
+ * Generic styles for QR code readers and scanners
+ * Works with html5-qrcode library and custom implementations
+ */
+
+// ============================================
+// Generic QR Code Components
+// ============================================
+
+// QR Reader container (base styles for all QR readers)
+// Supports both class usage (.qr-reader) and html5-qrcode ID (#qr-reader)
+.qr-reader,
+#qr-reader {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+// ============================================
+// HTML5-QRCode Library Specific Styles
+// ============================================
+
+// html5-qrcode library dashboard buttons
+#qr-reader__dashboard_section_csr button,
+#qr-reader__dashboard_section_swaplink {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  &:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+  }
+}
+
+// QR Result messages (generic)
+.qr-result {
+  margin: 20px auto;
+  padding: 15px;
+  max-width: 600px;
+  border-radius: 5px;
+  text-align: center;
+  transition: opacity 0.5s;
+  font-weight: 500;
+
+  &--success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+  }
+
+  &--error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+  }
+
+  &--info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+  }
+
+  &--warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+  }
+}
+
+// QR History list (generic)
+.qr-history {
+  margin: 20px auto;
+  max-width: 600px;
+
+  &__title {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: 600;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.qr-history-item {
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateX(2px);
+  }
+
+  &--success {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+  }
+
+  &--error {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+  }
+
+  &--pending {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+  }
+
+  &__info {
+    flex: 1;
+
+    strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    small {
+      color: #666;
+      font-size: 0.9em;
+    }
+  }
+
+  &__icon {
+    font-size: 24px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .qr-reader,
+  #qr-reader {
+    max-width: 100%;
+    margin: 10px 0;
+  }
+
+  .qr-result,
+  .qr-history {
+    max-width: 100%;
+    margin: 15px 0;
+  }
+
+  .qr-history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+
+    &__icon {
+      align-self: flex-end;
+      margin-left: 0;
+    }
+  }
+}
+
+// Small screens
+@media (max-width: 480px) {
+  .qr-reader,
+  #qr-reader {
+    border-radius: 4px;
+  }
+
+  .qr-result {
+    padding: 10px;
+    font-size: 0.95em;
+  }
+
+  .qr-history-item {
+    padding: 8px 10px;
+
+    &__info small {
+      font-size: 0.85em;
+    }
+
+    &__icon {
+      font-size: 20px;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros with context %}
+
+{% block additionalhead %}
+  <!-- html5-qrcode library -->
+  <script   src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" 
+            integrity="sha384-c9d8RFSL+u3exBOJ4Yp3HUJXS4znl9f+z66d1y54ig+ea249SpqR+w1wyvXz/lk+" 
+            crossorigin="anonymous"></script>
+  
+  <!-- QR Attendance Scanner -->
+  <script>
+    // Pass variables from Jinja2 to JavaScript
+    window.eventId = {{ event.id }};
+    window.csrfToken = "{{ csrf_token() }}";
+  </script>
+  <script src="{{ url_for('static', filename='js/event/qr_attendance.js') }}"></script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page-content">
+
+    <p><a class="button button-secondary" href="{{ url_for('event.view_event', event_id=event.id) }}">Retour à la collective</a></p>
+    
+    <p class="heading-3">
+      Scanne une licence pour marquer présent
+    </p>
+    
+    <div id="scan-result-container"></div>
+    
+    <div id="qr-reader"></div>
+    
+    <div class="qr-history">
+      <h3>Historique des scans</h3>
+      <div id="scan-history-list"></div>
+    </div>
+</div>
+
+{% endblock %}
