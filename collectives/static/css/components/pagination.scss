@@ -29,7 +29,7 @@
             font-weight: $font-weight-medium;
             &.active {
                 background: $color-blue-primary-light;
-                color: $color-white !important;
+                color: $color-white !important; /* !important necessary to override Tabulator's default active page color */
             }
             &:not(:disabled):hover {
                 background: $color-blue-primary-dark;

@@ -1,5 +1,6 @@
 """Module for all User methods related to badge manipulation and check."""
 
+import itertools
 from datetime import date, timedelta
 from typing import List, Optional, Set
 
@@ -306,6 +307,19 @@ class UserBadgeMixin:
             activity_id=activity_id,
             valid_only=valid_only,
         )
+
+    def get_competency_badge_by_activity(self, valid_only: bool = True):
+        """
+        Get the users' corresponding competency badges by activity, if any.
+        """
+        badges = self.get_competency_badges(valid_only=valid_only)
+        badges.sort(
+            key=lambda badge: badge.activity_type.name if badge.activity_type else ""
+        )
+        badges_by_activity = itertools.groupby(
+            badges, key=lambda badge: badge.activity_type
+        )
+        return badges_by_activity
 
     def get_most_relevant_competency_badge(
         self,

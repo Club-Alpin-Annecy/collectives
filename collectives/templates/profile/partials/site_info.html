@@ -1,87 +1,89 @@
+
+<!-- Début Bénévolat régulier -->
 {% if user.has_a_valid_benevole_badge() %}
-    <div class="card padding-m padding-left-s margin-bottom-s card-info">
-        <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/></div>
-        <div>
-            <div class="text-primary bold">Bénévolat régulier</div>
+    <div class="card">
+        <div class="card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/></div>
             <div>
-                {% for activity in user.activities_with_valid_badge([models.BadgeIds.Benevole])  %}
-                    {% if loop.index != 1 %} • {% endif %}
-                    {{activity.name}} 
-                {% endfor %}
+                
+                <div>
+                    {% for activity in user.activities_with_valid_badge([models.BadgeIds.Benevole])  %}
+                        {% if loop.index != 1 %} • {% endif %}
+                        {{activity.name}} 
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 {% endif %}
+<!-- Fin Bénévolat régulier -->
 
-<!-- Badge sans activité -->
-{% set badges = user.get_competency_badges(None) %}
+
+{% set badges = user.get_competency_badge_by_activity() %}
 {% if badges %}
-<div class="card padding-m padding-left-s margin-bottom-s card-info">
-    <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/></div>
-    <div>
-        <div class="text-primary bold">Formations</div>
-            {% for badge in badges %}
-                {% if not badge.activity_type %}
-                    <div>
-                        {{ badge.level_name() }}
-                        <em> {{ '(' ~format_date(badge.expiration_date) ~ ')' if badge.expiration_date else '' }}</em>
-                    </div>
+    <div class="card margin-bottom-m">
+        <div class="heading-4 text-primary align-center margin-bottom-s">Formations</div>
+        {% for activity, badges in badges %}
+            <div class="card-info margin-bottom-s">
+                {% if not activity %}
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/association.svg') }}" alt=""/>
+                {% elif activity.kind == models.ActivityKind.Regular %}
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.short ~ '.svg') }}" alt=""/>
+                {% else %}
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/benevolat.svg') }}" alt=""/>
                 {% endif %}
-            {% endfor %}
+
+                <div>
+                    <div class="text-primary bold">{{ activity.name }}</div>
+                    {% for badge in badges %}
+                        <div>
+                            {{ badge.level_name() }}
+                            <em> {{ '(' ~format_date(badge.expiration_date) ~ ')' if badge.expiration_date else '' }}</em>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}    
     </div>
-</div>
 {% endif %}
 
-<!-- Badges liés à des activités-->
-{% for activity in models.ActivityType.get_all_types() %}
-    {% set badges = user.get_competency_badges(activity.id) %}
-    {% if badges %}
-    <div class="card padding-m padding-left-s margin-bottom-s card-info">
-        <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.short ~ '.svg') }}" alt=""/>
-        <div>
-            <div class="text-primary bold">{{ activity.name }}</div>
-                {% for badge in badges %}
-                    <div>
-                        {{ badge.level_name() }}
-                        <em> {{ '(' ~format_date(badge.expiration_date) ~ ')' if badge.expiration_date else '' }}</em>
-                    </div>
-                {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-{% endfor %}
 
+<!-- Formulaires pour attribuer un niveau de pratique -->
 {% if practitioner_badge_form %}
-<div class="card padding-m padding-left-s margin-bottom-s card-info">
-    <div>
-        <div class="text-primary bold">Attributer un niveau de pratique :</div>
-        <form 
-            class="form align-center margin-top-s" 
-            id="practitioner_badge_form" 
-            action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
-            method="post" >
-                {{practitioner_badge_form.hidden_tag()}}
-                {{practitioner_badge_form.activity_id(class="input-75 padding-s margin-bottom-xs")}}
-                {{practitioner_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
-                {{practitioner_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
-        </form>
+<div class="card margin-bottom-m">
+    <div class="card-info">
+        <div>
+            <div class="text-primary bold">Attributer un niveau de pratique :</div>
+            <form 
+                class="form align-center margin-top-s" 
+                id="practitioner_badge_form" 
+                action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
+                method="post" >
+                    {{practitioner_badge_form.hidden_tag()}}
+                    {{practitioner_badge_form.activity_id(class="input-75 padding-s margin-bottom-xs")}}
+                    {{practitioner_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
+                    {{practitioner_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
+            </form>
+        </div>
     </div>
 </div>
 {% endif %}
 
 {% if skill_badge_form %}
-<div class="card padding-m padding-left-s margin-bottom-s card-info">
-    <div>
-        <div class="text-primary bold">Attributer une spécialisation :</div>
-        <form 
-            class="form align-center margin-top-s" 
-            id="skill_badge_form" 
-            action="{{url_for('.set_competency_badge', badge_id=skill_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
-            method="post" >
-                {{skill_badge_form.hidden_tag()}}
-                {{skill_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
-                {{skill_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
-        </form>
+<div class="card margin-bottom-m">
+    <div class="card-info">
+        <div>
+            <div class="text-primary bold">Attributer une spécialisation :</div>
+            <form 
+                class="form align-center margin-top-s" 
+                id="skill_badge_form" 
+                action="{{url_for('.set_competency_badge', badge_id=skill_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
+                method="post" >
+                    {{skill_badge_form.hidden_tag()}}
+                    {{skill_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
+                    {{skill_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
+            </form>
+        </div>
     </div>
 </div>
 {% endif %}

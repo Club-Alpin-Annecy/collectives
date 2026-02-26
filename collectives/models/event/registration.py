@@ -80,7 +80,7 @@ class EventRegistrationMixin:
         :return: All registration of this event which are valid
         """
         return [r for r in self.registrations if r.is_holding_slot()]
-    
+
     def pending_for_renewal_registrations(self) -> List[Registration]:
         """Returns all pending registrations for renewal.
 
@@ -89,7 +89,9 @@ class EventRegistrationMixin:
         :return: All registration of this event which are pending, ordered.
         """
         return [
-            r for r in self.holding_slot_registrations() if r.is_pending_renewal() and r.status.is_valid()
+            r
+            for r in self.holding_slot_registrations()
+            if r.is_pending_renewal() and r.status.is_valid()
         ]
 
     def waiting_registrations(self) -> List[Registration]:

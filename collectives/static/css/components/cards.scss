@@ -43,9 +43,9 @@
         visibility: visible;
     }
 
-    &.card-info{
+    & .card-info{
         display: flex;
-        gap: 16px;
+        gap: $padding-horizontal-xs;
         align-items: center;
         line-height: 1;
     }
