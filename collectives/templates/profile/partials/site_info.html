@@ -1,6 +1,7 @@
 
-<!-- Début Bénévolat régulier -->
+
 {% if user.has_a_valid_benevole_badge() %}
+<!-- Début Bénévolat régulier -->
     <div class="card">
         <div class="card-info">
             <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/></div>
@@ -15,8 +16,9 @@
             </div>
         </div>
     </div>
-{% endif %}
 <!-- Fin Bénévolat régulier -->
+{% endif %}
+
 
 
 {% set badges = user.get_competency_badges_by_activity() %}
