@@ -19,8 +19,8 @@
 <!-- Fin Bénévolat régulier -->
 
 
-{% set badges = user.get_competency_badge_by_activity() %}
-{% if badges %}
+{% set badges = user.get_competency_badges_by_activity() %}
+{% if user.get_competency_badges() %}
     <div class="card margin-bottom-m">
         <div class="heading-4 text-primary align-center margin-bottom-s">Formations</div>
         {% for activity, badges in badges %}

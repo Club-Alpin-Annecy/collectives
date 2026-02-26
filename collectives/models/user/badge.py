@@ -308,7 +308,7 @@ class UserBadgeMixin:
             valid_only=valid_only,
         )
 
-    def get_competency_badge_by_activity(self, valid_only: bool = True):
+    def get_competency_badges_by_activity(self, valid_only: bool = True):
         """
         Get the users' corresponding competency badges by activity, if any.
         """
