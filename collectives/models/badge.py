@@ -475,9 +475,7 @@ class Badge(db.Model):
         if level_desc is None:
             return self.level
 
-        name = (
-            level_desc.abbrev if short else f"{level_desc.name} ({level_desc.abbrev})"
-        )
+        name = level_desc.abbrev if short else f"{level_desc.name}"
         if with_activity and self.activity_type is not None:
             name += f" - {self.activity_name}"
         return name

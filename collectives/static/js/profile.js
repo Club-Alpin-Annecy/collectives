@@ -8,6 +8,9 @@ window.onload = function () {
 
     var common_options = {
         layout: "fitColumns",
+        // allow rows to grow in height when cell content wraps or contains line breaks
+        variableRowHeight: true,
+        resizableRows:true, 
         ajaxURL: ajaxURL, // URL is defined in template
         ajaxFiltering: true,
         ajaxSorting: true,

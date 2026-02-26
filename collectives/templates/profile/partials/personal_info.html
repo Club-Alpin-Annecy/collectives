@@ -1,0 +1,52 @@
+    <!-- Personal information space -->
+    <div class="card margin-bottom-m">
+        {% if user.license_expiry_date %}
+        <div class="margin-bottom-s card-info {{ 'flash-warning' if not user.check_license_valid_at_time(current_time())}}">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}" alt=""/></div>
+            <div>Licence jusqu'au {{ user.license_expiry_date.strftime('%d/%m/%Y') if user.license_expiry_date }}</div>
+        </div>
+        {% endif %}
+
+        {% if user.gender in (models.Gender.Man, models.Gender.Woman) %}
+        <div class="margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" alt=""/></div>
+            <div>{{ user.get_gender_name() }}</div>
+        </div>
+        {% endif %}
+
+        {% if user.date_of_birth and user == current_user %}
+        <div class="margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}" alt=""/></div>
+            <div>Date de naissance {{ user.date_of_birth.strftime('%d/%m/%Y')  }}</div>
+        </div>
+        {% endif %}
+
+
+        <div class="margin-bottom-s card-info {{ 'flash-warning' if not user.has_valid_phone_number() else '' }}" >
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-call.svg') }}" alt=""/></div>
+            <div>{{ format_phones(user.phone) | default("Non renseigné", true) }}</div>
+        </div>
+
+        <div class="margin-bottom-s card-info">
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/ios-mail.svg') }}" alt=""/></div>
+            <div><a href="mailto:{{ user.mail }}">{{ user.mail }}</a></div>
+        </div>
+
+        <div class="card-info {{ 'flash-warning' if not user.has_valid_phone_number(emergency=True) else '' }}" >
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-warning.svg') }}" alt=""/></div>
+            <div>Contact d'urgence:<br/>
+                {{ user.emergency_contact_name }}{% if user.emergency_contact_phone %} — {{ format_phones(user.emergency_contact_phone) }}{% endif %}</div>
+        </div>
+
+        {% if user != current_user and user.type != models.UserType.Extranet %}
+            <div id="info_extranet" class="margin-top-s">
+                Informations non vérifiées par la fédération.
+            </div>
+        {% endif %}
+    </div>
+
+
+
+
+    
+    <!-- End of Personal information space -->
