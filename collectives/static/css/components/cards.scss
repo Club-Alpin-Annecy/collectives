@@ -42,18 +42,40 @@
     .tooltip:hover .text, .tooltip:active .text {
         visibility: visible;
     }
-}
 
-.card.single-stat{
-    text-align: center;
-
-    .value{
-        font-size: 4em;
-        font-weight: bold;
+    & .card-info{
+        display: flex;
+        gap: $padding-horizontal-xs;
+        align-items: center;
+        line-height: 1;
     }
 
-    .header-3{
-        font-weight: normal;
+    &.single-stat{
+        text-align: center;
+
+        .value{
+            font-size: 4em;
+            font-weight: bold;
+        }
+
+        .header-3{
+            font-weight: normal;
+        }
+    }
+}
+
+.card-display {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: minmax(2em, auto);
+
+
+
+    @for $i from 1 through 6 {
+      &.grid-columns-#{$i} {
+        grid-template-columns: repeat($i, 1fr);
+      }
     }
 }
 
@@ -71,3 +93,4 @@
         }
     }
 }
+

@@ -104,14 +104,14 @@ def show_user(user_id: int, event_id: int = 0):
             )
             return redirect(url_for("profile.confidentiality_agreement"))
 
-        if current_user.is_leader():
+        if current_user.is_leader() or current_user.can_manage_all_activities():
             practitioner_badge_form = CompetencyBadgeForm(
                 badge_id=BadgeIds.Practitioner
             )
             skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
 
     return render_template(
-        "profile.html",
+        "profile/main.html",
         title="Profil adhérent",
         user=user,
         practitioner_badge_form=practitioner_badge_form,
@@ -153,9 +153,10 @@ def update_user():
     if not form.validate_on_submit():
         form.password.data = None
         return render_template(
-            "basicform.html",
+            "profile/edit_user.html",
             form=form,
             title="Profil adhérent",
+            user=current_user,
         )
 
     user = current_user
@@ -460,7 +461,7 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
 
-    if not current_user.is_leader():
+    if not current_user.is_leader() and not current_user.can_manage_all_activities():
         flash("Non autorisé", "error")
         return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
 
@@ -478,8 +479,10 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
         else:
             activity_id = level_desc.activity_id
 
-        if activity_id is not None and not current_user.can_lead_activity(
-            ActivityType.get(activity_id)
+        if (
+            not current_user.can_manage_all_activities()
+            and activity_id is not None
+            and not current_user.can_lead_activity(ActivityType.get(activity_id))
         ):
             flash(
                 "Vous ne pouvez pas définir un niveau de pratique pour une activité "

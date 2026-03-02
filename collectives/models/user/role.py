@@ -236,6 +236,9 @@ class UserRoleMixin:
           otherwise an "organizer" role suffices.
         :return: The list of activities the user can lead.
         """
+        if self.can_manage_all_activities():
+            return ActivityType.get_all_types()
+
         ok_roles = (
             RoleIds.all_activity_leader_roles()
             if need_leader

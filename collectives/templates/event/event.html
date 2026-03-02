@@ -56,7 +56,7 @@
 
     <div class="collective-display--header">
       <div>
-        <h1 class="heading-1">
+        <h1 class="heading-2">
           {{event.title}}
           {% if event.visibility == models.EventVisibility.Activity %}
             <span class="event-status-badge event-status-private">Interne</span>&nbsp;
@@ -99,14 +99,14 @@
           {{ format_datetime_range(event.start, event.end) | capitalize}}
         </span>
       </div>
-      <div>
+      <div class="collective-display--activity-type">
         <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px"  title="{{event.event_type.name}}"/> 
 
         {% for atype in event.activity_types %}
           {% if atype.kind == models.ActivityKind.Service %}
-            <img src="/static/caf/icon/benevolat.svg" width="90px"  title="{{atype.name}}"/> 
+            <img src="/static/caf/icon/benevolat.svg" title="{{atype.name}}"/> 
           {% else %}
-            <img src="/static/caf/icon/{{atype.short}}.svg" width="90px"  title="{{atype.name}}"/> 
+            <img src="/static/caf/icon/{{atype.short}}.svg" title="{{atype.name}}"/> 
           {% endif %}
         {% endfor %}
       </div>
@@ -122,25 +122,18 @@
     <div id="encadrement">
       <h3 class="heading-3">Encadrement</h3>
       <div class="userlist">
-      {% for user in event.ranked_leaders() %}
-        {{ macros.leader_icon(user) }}
-      {% endfor %}
-
+        {% for user in event.ranked_leaders() %}
+          {{ macros.leader_icon(user) }}
+        {% endfor %}
+      </div>
+      
       {% if event.coleaders() | length %}
         <h4 class="heading-4">Co-encadrants en formation</h4>
-        {% for registration in event.coleaders() %}
-          <div class="useractionmenu">
-            {{ macros.registration_icon(registration) }}
-            {% if event.has_edit_rights(current_user) %}
-            <div class="popover">
-              <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.Normal)}}" method="post" onclick="this.submit();">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                Enlever des co-encadrants
-              </form>
-            </div>
-            {% endif %}
-          </div>
-        {% endfor %}
+        <div class="userlist">  
+          {% for registration in event.coleaders() %}
+              {{ macros.registration_icon(registration) }}
+          {% endfor %}
+        </div>
       {% endif %}
       </div>
     </div>
@@ -167,30 +160,33 @@
         <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
       {% endif %}
 
-      {% for registration in event.active_normal_registrations() %}
-          <div class="useractionmenu">
-            {{ macros.registration_icon(registration) }}
-
-            {% if event.has_edit_rights(current_user) %}
-            <div class="popover">
-              {% if event.can_be_coleader(registration.user) %}
-                <form class="update" action="{{url_for('event.change_registration_level', reg_id=registration.id, reg_level=registration.level.CoLeader)}}" method="post" onclick="this.submit();">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  Co-encadrant en formation
-                </form>
-              {% endif %}
-            </div>
-            {% endif %}
-          </div>
-      {% endfor %}
-
-     {# Registrations pending licence renewal #}
-      {% if event.has_edit_rights(current_user) %}
-        {% for registration in event.holding_slot_registrations() if registration.is_pending_renewal() and registration.status.is_valid() %}
-            <div class="useractionmenu">
-            {{ macros.registration_icon(registration) }}
+      <div class="userlist">
+        {% set active_normal_registrations = event.active_normal_registrations() %}
+        {% set nb_registrations_to_display = 11 %}
+        {% for registration in active_normal_registrations %}
+            <div class="{{ "display-none" if loop.index > nb_registrations_to_display }}">
+              {{ macros.registration_icon(registration) }}
             </div>
         {% endfor %}
+        {% if active_normal_registrations|length > nb_registrations_to_display %}
+          <button onclick="showAllRegistration(this)" class="button button-secondary padding-s">
+              Voir plus ({{ active_normal_registrations|length - nb_registrations_to_display }})
+          </button>
+        {% endif %}
+      </div>
+
+     {# Registrations pending licence renewal #}
+      {% if event.has_edit_rights(current_user) and event.pending_for_renewal_registrations() %}
+        <div class="flash-warning flash margin-top-m">
+          <div class="heading-4">Attention : Inscrits en attente de renouvellement de licence</div>
+          <div class="userlist">
+            {% for registration in event.pending_for_renewal_registrations() %}
+                <div class="useractionmenu">
+                {{ macros.registration_icon(registration) }}
+                </div>
+            {% endfor %}
+          </div>
+        </div>
       {% endif %}
 
       {% if current_user.is_active %}
@@ -329,11 +325,13 @@
               {{ self_register.button(True) }}
           {% endif %}
           <br/>
-          {% for registration in event.waiting_registrations() %}
-              <div class="useractionmenu">
-                {{ macros.registration_icon(registration) }}
-              </div>
-          {% endfor %}
+          <div class="userlist">
+            {% for registration in event.waiting_registrations() %}
+                <div class="useractionmenu">
+                  {{ macros.registration_icon(registration) }}
+                </div>
+            {% endfor %}
+          </div>
         {% endif %}
 
     </div>

@@ -81,6 +81,19 @@ class EventRegistrationMixin:
         """
         return [r for r in self.registrations if r.is_holding_slot()]
 
+    def pending_for_renewal_registrations(self) -> List[Registration]:
+        """Returns all pending registrations for renewal.
+
+        See :py:meth:`collectives.models.registration.Registration.is_pending_renewal`
+
+        :return: All registration of this event which are pending, ordered.
+        """
+        return [
+            r
+            for r in self.holding_slot_registrations()
+            if r.is_pending_renewal() and r.status.is_valid()
+        ]
+
     def waiting_registrations(self) -> List[Registration]:
         """Returns all waiting list registrations.
 

@@ -1,0 +1,42 @@
+{% if extends %}
+  {% extends extends %}
+{% else %}
+  {% extends 'partials/basic-extends.html' %}
+{% endif %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+
+{% block additionalhead %}
+  {% include 'partials/form-additionalhead.html' %}
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content">
+  <!-- Logging Windows -->
+  <h1 class="heading-1">{{ title }}</h1>
+  {% if subtitle %}<h4 class="heading-4">{{subtitle}}</h4>{% endif  %}
+  {% if description %}<p>{{description}}</p>{% endif  %}
+
+  {% if user == current_user and user.type == models.UserType.Extranet %}
+    <form action="{{url_for('profile.force_user_sync')}}" method="post" id="refresh_extranet">
+        <p id="info_extranet">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-information-circle-outline.svg') }}"/>
+            Les données personnelles sont une copie de celles que vous avez fournies lors de votre adhésion au {{Configuration.CLUB_NAME}}. Elles sont stockées au niveau de la Fédération Française des Clubs Alpins et de Montagne, fédération à laquelle le club est affilié. <br/>
+            Pour les modifier, rendez-vous dans votre espace personnel FFCAM <a href="https://extranet-clubalpin.com/monespace/">https://extranet-clubalpin.com/monespace/</a> puis dans le menu "Mes informations". L'authentification se fera via votre numéro de licence et votre code internet fourni lors de votre adhésion.<br/>
+            Une fois vos données à jour, vous pourrez les synchroniser sur ce site via le bouton ci-dessous.
+        </p>
+        <input type="submit" value="Resynchroniser mes informations FFCAM" class="button button-secondary">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+
+  <div class="heading-4 margin-top-l">Paramètres pour le site</div>
+
+  {% endif %}
+
+
+  {{ generator.form_generator(form, action=(action or '')) }}
+
+</div>
+
+{% endblock %}

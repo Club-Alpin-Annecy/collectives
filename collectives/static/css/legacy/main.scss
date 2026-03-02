@@ -113,7 +113,8 @@
 .tag{
 	border-radius: 5px;
 	display: inline-block;
-	padding: 3px 5px;
+	padding: $padding-xs;
+	margin: $padding-m;
 }
 
 .tag.red{
@@ -128,6 +129,27 @@
 
 img.icon{
 	height: 1em;
+}
+
+.inverted-icon{
+	background-color: $color-blue-primary-dark;
+	border-radius: 3px;
+	vertical-align: middle;
+	/* keep inline flow but use flex to center the icon */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 1.6em;
+	width: 1.6em;
+	text-align: center;
+
+	img{
+		filter: invert(1);
+		/* ensure image fits and is vertically centered by flex */
+		height: 1.1em;
+		width: auto;
+		display: block;
+	}
 }
 
 /* UTILS */

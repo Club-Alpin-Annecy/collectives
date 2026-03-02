@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros with context %}
+
+{% block additionalhead %}
+  {% include 'profile/partials/head.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content" id="profile">
+
+  <div class="columns">
+    <div class="column is-4 padding-m">
+        {% include 'profile/partials/header.html' %}
+
+        {% include 'profile/partials/stats.html' %}
+
+        {% include 'profile/partials/personal_info.html' %}
+
+        {% include 'profile/partials/site_info.html' %}
+        
+    </div>
+
+    <div class="column is-8 padding-m">
+        {% include 'profile/partials/buttons.html' %}
+
+        {% include 'profile/partials/warnings.html' %}
+
+        {% include 'profile/partials/events.html' %}
+
+        
+    </div>
+  </div>
+
+   <p class="align-right">
+            {%if current_user == user%}
+                {%if not current_user.is_admin() %}
+                    <a class="button button-small button-danger" href="{{url_for('profile.delete_user')}}">Supprimer mon compte utilisateur</a>
+                {% endif %}
+            {%elif current_user.is_hotline()%}
+                <a class="button button-small button-danger" href="{{url_for('profile.delete_user', user_id=user.id)}}">Supprimer le compte utilisateur</a>
+            {%endif%}
+    </p>
+    
+</div>
+
+{% endblock %}

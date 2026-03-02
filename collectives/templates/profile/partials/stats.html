@@ -1,0 +1,12 @@
+    <!-- Statistics space   -->
+    <div class="card-display margin-bottom-l margin-auto" style="max-width: 450px;">
+        <div class="card padding-m align-center">
+                <div class="text-primary heading-4">Réalisées</div>
+                <div class="heading-2">{{ user.get_reservations_completed() | length }}</div>
+        </div>
+        <div class="card padding-m align-center">
+                <div class="text-primary heading-4">À venir</div>
+                <div class="heading-2">{{ user.get_reservations_planned_and_ongoing() | length }}</div>
+        </div>
+    </div>
+    <!-- End of Statistics space   -->
