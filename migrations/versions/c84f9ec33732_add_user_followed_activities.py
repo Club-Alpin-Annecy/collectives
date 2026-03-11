@@ -48,17 +48,35 @@ def upgrade():
 
     # Populate with existing data from registrations
     # This will auto-subscribe users to activities they've registered for
-    op.execute(
-        """
-        INSERT INTO user_followed_activities (user_id, activity_type_id, followed_at, explicitly_unfollowed)
-        SELECT DISTINCT r.user_id, eat.activity_id, datetime('now'), 0
-        FROM registrations r
-        JOIN events e ON r.event_id = e.id
-        JOIN event_activity_types eat ON e.id = eat.event_id
-        WHERE r.status IN (0, 1, 4)
-        ON CONFLICT (user_id, activity_type_id) DO NOTHING
-        """
-    )
+    # Using dialect-specific SQL for cross-database compatibility
+
+    conn = op.get_bind()
+    dialect = conn.dialect.name
+
+    if dialect == "mysql":
+        # MySQL syntax
+        op.execute(
+            """
+            INSERT IGNORE INTO user_followed_activities (user_id, activity_type_id, followed_at, explicitly_unfollowed)
+            SELECT DISTINCT r.user_id, eat.activity_id, NOW(), 0
+            FROM registrations r
+            JOIN events e ON r.event_id = e.id
+            JOIN event_activity_types eat ON e.id = eat.event_id
+            WHERE r.status IN (0, 1, 4)
+            """
+        )
+    else:
+        # SQLite and other dialects - use INSERT OR IGNORE
+        op.execute(
+            """
+            INSERT OR IGNORE INTO user_followed_activities (user_id, activity_type_id, followed_at, explicitly_unfollowed)
+            SELECT DISTINCT r.user_id, eat.activity_id, datetime('now'), 0
+            FROM registrations r
+            JOIN events e ON r.event_id = e.id
+            JOIN event_activity_types eat ON e.id = eat.event_id
+            WHERE r.status IN (0, 1, 4)
+            """
+        )
 
     # ### end Alembic commands ###
 
