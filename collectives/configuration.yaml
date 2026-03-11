@@ -593,3 +593,35 @@ Désinscriptions tardives:
         content: 18
         description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
         type: Integer
+
+Notifications aux abonnés:
+    EVENT_NOTIFICATION_TO_FOLLOWERS_SUBJECT:
+        content: "Nouvelle collective : {event_title}"
+        description: Email subject for event notification to followers
+        type: ShortString
+
+    EVENT_NOTIFICATION_TO_FOLLOWERS_MESSAGE:
+        content: |
+            Bonjour {user_name},
+
+            Une nouvelle collective '{event_title}' vient d'être publiée !
+
+            Activités : {activities}
+            Encadrants : {leaders}
+            Date : {event_date}
+            Lieu : {event_location}
+
+            Description :
+            {event_description}
+
+            Pour consulter l'événement et vous inscrire :
+            {event_link}
+
+            ---
+            Vous recevez cet e-mail car vous suivez une ou plusieurs activités de cette collective.
+            Pour ne plus recevoir de notifications pour une activité, cliquez sur le lien correspondant ci-dessous :
+            {unsubscribe_links}
+
+            Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.
+        description: Email template content for event notification to followers
+        type: LongString

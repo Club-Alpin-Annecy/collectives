@@ -182,6 +182,11 @@
                             </li>
                             {% endif %}
                             <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.followed_activities')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-notifications.svg') }}" class="legacy-icon" /> Mes activités suivies
+                                </a>
+                            </li>
+                            <li class="menu-dropdown-item">
                                 <a href="{{ url_for('auth.logout') }}" title="Déconnexion" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}"  class="legacy-icon" alt="Déconnexion" /> Déconnexion
                                 </a>

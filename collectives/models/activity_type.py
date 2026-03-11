@@ -165,6 +165,30 @@ class ActivityType(db.Model):
     :type: :py:class:`collectives.models.badge.BadgeCustomLevel`
     """
 
+    followers_assoc = db.relationship(
+        "UserFollowedActivity",
+        back_populates="activity_type",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+    """Users following this activity
+
+    :type: list(:py:class:`collectives.models.user_followed_activity.UserFollowedActivity`)
+    """
+
+    def followed_by(self, user):
+        """Check if a user is following this activity.
+
+        :param user: User to check
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if user follows this activity and hasn't explicitly unfollowed
+        :rtype: bool
+        """
+        for assoc in self.followers_assoc:
+            if assoc.user_id == user.id and not assoc.explicitly_unfollowed:
+                return True
+        return False
+
     def __str__(self) -> str:
         """Displays the user name."""
         return self.name + f" (ID {self.id})"
