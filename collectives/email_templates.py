@@ -12,6 +12,7 @@ from collectives.models import (
     Configuration,
     ConfirmationToken,
     Event,
+    EventStatus,
     Registration,
     User,
     db,
@@ -32,6 +33,9 @@ def send_new_event_notification(event):
     if emails:
         leader_names = [l.full_name() for l in event.leaders]
         activity_names = [a.name for a in event.activity_types]
+        subject = Configuration.NEW_EVENT_SUBJECT
+        if event.status == EventStatus.Pending:
+            subject = f"{subject} ({EventStatus.display_names()[EventStatus.Pending]})"
         message = Configuration.NEW_EVENT_MESSAGE.format(
             leader_name=",".join(leader_names),
             activity_name=",".join(activity_names),
@@ -44,9 +48,7 @@ def send_new_event_notification(event):
             ),
         )
         try:
-            mail.send_mail(
-                subject=Configuration.NEW_EVENT_SUBJECT, email=emails, message=message
-            )
+            mail.send_mail(subject=subject, email=emails, message=message)
         # pylint: disable=broad-except
         except BaseException as err:
             current_app.logger.error(f"Mailer error: {err}")

@@ -282,6 +282,128 @@ def test_event_creation(leader_client):
     assert "<strong>Lorem ipsum</strong>" in response.text
 
 
+def test_draft_event_notification_without_checkbox(
+    leader_client, mail_success_monkeypatch
+):
+    """Test that no notification is sent when creating a draft event without checkbox"""
+    response = leader_client.get("/collectives/add")
+    assert response.status_code == 200
+
+    now = current_time()
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    data = {
+        "update_activity": "0",
+        "event_type_id": "1",
+        "single_activity_type": alpinisme.id,
+        "leader_actions-0-leader_id": leader_client.user.id,
+        "main_leader_id": leader_client.user.id,
+        "add_leader": "0",
+        "update_leaders": "0",
+        "title": "Test draft event",
+        "status": int(EventStatus.Pending),
+        "num_slots": "5",
+        "start": (now + timedelta(days=10)).strftime("%Y-%m-%d %X"),
+        "end": (now + timedelta(days=10, hours=3)).strftime("%Y-%m-%d %X"),
+        "num_online_slots": "4",
+        "num_waiting_list": "5",
+        "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "description": "Test draft event description",
+        "tag_list": "6",
+        "search_terms": "",
+        "duplicate_event": "",
+        "parent_event_id": "",
+        "edit_session_id": "test-draft-no-checkbox",
+    }
+    initial_mail_count = mail_success_monkeypatch.sent_mail_count()
+    response = leader_client.post("/collectives/add", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert mail_success_monkeypatch.sent_mail_count() == initial_mail_count
+
+
+def test_draft_event_notification_with_checkbox(
+    leader_client, mail_success_monkeypatch
+):
+    """Test that notification is sent when creating a draft event with checkbox checked"""
+    response = leader_client.get("/collectives/add")
+    assert response.status_code == 200
+
+    now = current_time()
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    data = {
+        "update_activity": "0",
+        "event_type_id": "1",
+        "single_activity_type": alpinisme.id,
+        "leader_actions-0-leader_id": leader_client.user.id,
+        "main_leader_id": leader_client.user.id,
+        "add_leader": "0",
+        "update_leaders": "0",
+        "title": "Test draft event with notification",
+        "status": int(EventStatus.Pending),
+        "notify_on_draft": "y",
+        "num_slots": "5",
+        "start": (now + timedelta(days=10)).strftime("%Y-%m-%d %X"),
+        "end": (now + timedelta(days=10, hours=3)).strftime("%Y-%m-%d %X"),
+        "num_online_slots": "4",
+        "num_waiting_list": "5",
+        "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "description": "Test draft event description",
+        "tag_list": "6",
+        "search_terms": "",
+        "duplicate_event": "",
+        "parent_event_id": "",
+        "edit_session_id": "test-draft-with-checkbox",
+    }
+    response = leader_client.post("/collectives/add", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    mails_to_activity = mail_success_monkeypatch.sent_to("dev-collectives@cafannecy.fr")
+    assert len(mails_to_activity) == 1
+    assert "Test draft event with notification" in mails_to_activity[0]["message"]
+    assert "En attente" in mails_to_activity[0]["subject"]
+
+
+def test_confirmed_event_notification_always_sent(
+    leader_client, mail_success_monkeypatch
+):
+    """Test that notification is always sent when creating a confirmed event"""
+    response = leader_client.get("/collectives/add")
+    assert response.status_code == 200
+
+    now = current_time()
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    data = {
+        "update_activity": "0",
+        "event_type_id": "1",
+        "single_activity_type": alpinisme.id,
+        "leader_actions-0-leader_id": leader_client.user.id,
+        "main_leader_id": leader_client.user.id,
+        "add_leader": "0",
+        "update_leaders": "0",
+        "title": "Test confirmed event",
+        "status": int(EventStatus.Confirmed),
+        "num_slots": "5",
+        "start": (now + timedelta(days=10)).strftime("%Y-%m-%d %X"),
+        "end": (now + timedelta(days=10, hours=3)).strftime("%Y-%m-%d %X"),
+        "num_online_slots": "4",
+        "num_waiting_list": "5",
+        "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "description": "Test confirmed event description",
+        "tag_list": "6",
+        "search_terms": "",
+        "duplicate_event": "",
+        "parent_event_id": "",
+        "edit_session_id": "test-confirmed-event",
+    }
+    response = leader_client.post("/collectives/add", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    mails_to_activity = mail_success_monkeypatch.sent_to("dev-collectives@cafannecy.fr")
+    assert len(mails_to_activity) == 1
+    assert "Test confirmed event" in mails_to_activity[0]["message"]
+    assert "En attente" not in mails_to_activity[0]["subject"]
+
+
 def test_event_modification(event, leader_client):
     """Test various event modifications."""
     response = leader_client.get(f"/collectives/{event.id}/edit")
@@ -317,6 +439,41 @@ def test_event_modification(event, leader_client):
         "There is an error in request"
     )
     assert "New <strong>description</strong> for you" in response.text
+
+
+def test_notify_checkbox_not_in_edit_mode(event, leader_client):
+    """Test that notify_on_draft checkbox is not present in edit mode"""
+    response = leader_client.get(f"/collectives/{event.id}/edit")
+    assert response.status_code == 200
+    assert "notify_on_draft" not in response.text
+
+
+def test_draft_to_confirmed_sends_notification(event, leader_client, mail_success_monkeypatch):
+    """Test that modifying a draft event to confirmed sends a notification"""
+    response = leader_client.get(f"/collectives/{event.id}/edit")
+    assert response.status_code == 200
+
+    data = utils.load_data_from_form(response.text, "form_edit_event")
+    data["status"] = int(EventStatus.Pending)
+    response = leader_client.post(
+        f"/collectives/{event.id}/edit", data=data, follow_redirects=True
+    )
+    assert response.status_code == 200
+
+    initial_mail_count = mail_success_monkeypatch.sent_mail_count()
+
+    response = leader_client.get(f"/collectives/{event.id}/edit")
+    assert response.status_code == 200
+    data = utils.load_data_from_form(response.text, "form_edit_event")
+    data["status"] = int(EventStatus.Confirmed)
+    response = leader_client.post(
+        f"/collectives/{event.id}/edit", data=data, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert mail_success_monkeypatch.sent_mail_count() == initial_mail_count + 1
+    mails_to_activity = mail_success_monkeypatch.sent_to("dev-collectives@cafannecy.fr")
+    assert len(mails_to_activity) == 1
+    assert "En attente" not in mails_to_activity[0]["subject"]
 
 
 def test_event_duplication(leader_client, paying_event):

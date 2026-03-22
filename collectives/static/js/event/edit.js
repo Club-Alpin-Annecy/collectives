@@ -440,6 +440,18 @@ function iconFormatter(cell, formatterParams, onRendered) {
 }
 
 
+function setupNotifyOnDraft() {
+    const statusField = document.getElementById('status');
+    const notifyWrapper = document.getElementById('notify_on_draft_wrapper');
+    if (statusField && notifyWrapper) {
+        function updateNotifyVisibility() {
+            notifyWrapper.style.display = statusField.value === '1' ? 'block' : 'none';
+        }
+        statusField.addEventListener('change', updateNotifyVisibility);
+        updateNotifyVisibility();
+    }
+}
+
 function createUploadedFilesTable(editor, csrf_token) {
     function insertFileAsLink(e, cell) {
         url = cell.getValue();
