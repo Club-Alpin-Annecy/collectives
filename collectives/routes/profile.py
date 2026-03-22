@@ -9,9 +9,11 @@ from datetime import date
 from io import BytesIO
 from os.path import exists
 
+from itsdangerous import BadSignature
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -51,11 +53,11 @@ from collectives.routes.auth import (
     get_changed_email_message,
     sync_user,
 )
-from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
 from collectives.utils.profile_token import profile_token
 from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 images = Images()
 
@@ -63,10 +65,22 @@ blueprint = Blueprint("profile", __name__, url_prefix="/profile")
 
 
 @blueprint.before_request
-@valid_user()
 def before_request():
     """Protect all profile from unregistered access"""
-    pass
+    if request.endpoint in {
+        "profile.notification_click",
+        "profile.unsubscribe_notifications",
+    }:
+        return None
+
+    if not current_user.is_authenticated:
+        return current_app.login_manager.unauthorized()
+
+    if not current_user.has_signed_legal_text():
+        flash("""Merci d'accepter les dernières mentions légales du site.""", "error")
+        return redirect(url_for("root.legal"))
+
+    return None
 
 
 @blueprint.route("/user/<int:user_id>", methods=["GET"])
@@ -264,6 +278,63 @@ def update_notifications():
             "ou hebdomadaire si la collective correspond aux filtres."
         ),
     )
+
+
+@blueprint.route("/user/notifications/click/<token>", methods=["GET"])
+def notification_click(token: str):
+    """Track clicks from digest emails and redirect to the target event."""
+    serializer = current_app.extensions["new_event_notification_serializer"]
+    try:
+        payload = serializer.loads(token)
+    except BadSignature:
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    if payload.get("action") != "click":
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user = db.session.get(User, payload.get("user_id"))
+    event = db.session.get(Event, payload.get("event_id"))
+    if user is None or event is None:
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user.last_new_event_notification_clicked_at = current_time()
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+
+    return redirect(
+        url_for("event.view_event", event_id=event.id, name=slugify(event.title))
+    )
+
+
+@blueprint.route("/user/notifications/unsubscribe/<token>", methods=["GET"])
+def unsubscribe_notifications(token: str):
+    """One-click unsubscribe for notification digests."""
+    serializer = current_app.extensions["new_event_notification_serializer"]
+    try:
+        payload = serializer.loads(token)
+    except BadSignature:
+        flash("Lien de désabonnement invalide", "error")
+        return redirect(url_for("root.index"))
+
+    if payload.get("action") != "unsubscribe":
+        flash("Lien de désabonnement invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user = db.session.get(User, payload.get("user_id"))
+    if user is None:
+        flash("Lien de désabonnement invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user.new_event_notification_enabled = False
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+    flash("Les notifications de nouvelles collectives ont été désactivées.", "success")
+    return redirect(url_for("root.index"))
 
 
 @blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})
@@ -516,6 +587,10 @@ def delete_user(user_id: int):
         user.emergency_contact_phone = ""
         user.roles.clear()
         user.badges.clear()
+        user.notified_event_types.clear()
+        user.notified_activity_types.clear()
+        user.new_event_notification_enabled = False
+        user.new_event_notification_weekdays = None
         user.delete_avatar()
 
         db.session.add(user)

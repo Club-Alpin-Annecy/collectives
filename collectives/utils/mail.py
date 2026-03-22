@@ -73,7 +73,8 @@ def send_mail_threaded(app, **kwargs):
                 Configuration.SMTP_PASSWORD,
             )
 
-            msg = MIMEMultipart()
+            subtype = "alternative" if kwargs.get("html_message") else "mixed"
+            msg = MIMEMultipart(subtype)
 
             msg["From"] = Configuration.SMTP_ADDRESS
             msg["Subject"] = kwargs["subject"]
@@ -91,6 +92,8 @@ def send_mail_threaded(app, **kwargs):
                 msg["To"] = dest
 
             msg.attach(MIMEText(kwargs["message"], "plain", "utf-8"))
+            if kwargs.get("html_message"):
+                msg.attach(MIMEText(kwargs["html_message"], "html", "utf-8"))
 
             # DKIM part
             if Configuration.DKIM_KEY != "" and Configuration.DKIM_SELECTOR != "":
