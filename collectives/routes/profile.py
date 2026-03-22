@@ -82,9 +82,13 @@ def show_user(user_id: int, event_id: int = 0):
             flash("Non autorisé", "error")
             return redirect(url_for("event.index"))
 
-        if not current_user.is_hotline() and not current_user.is_supervisor():
-            # Hotline and supervisors can see info about all users
-            # Other leaders need a link from an event to which the user is registered
+        if (
+            not current_user.is_hotline()
+            and not current_user.is_supervisor()
+            and not current_user.can_create_events()
+        ):
+            # Hotline, supervisors, and leaders can see info about all users
+            # Other roles need a link from an event to which the user is registered
 
             event: Event = db.session.get(Event, event_id)
 
@@ -516,3 +520,25 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
         flash(f"Badge {badge_id.display_name()} mis à jour", "success")
 
     return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
+
+
+@blueprint.route("/search", methods=["GET"])
+def search_user():
+    """Route for leaders to search for users by name.
+
+    Accessible to users who can create events (leaders, supervisors, etc.).
+    Requires the RGPD confidentiality agreement to be signed.
+    """
+    if not current_user.can_create_events():
+        flash("Non autorisé", "error")
+        return redirect(url_for("event.index"))
+
+    if not current_user.has_signed_ca():
+        flash(
+            """Vous devez signer la charte RGPD avant de pouvoir
+                 accéder à des informations des utilisateurs""",
+            "error",
+        )
+        return redirect(url_for("profile.confidentiality_agreement"))
+
+    return render_template("profile/search.html", title="Recherche d'adhérent")

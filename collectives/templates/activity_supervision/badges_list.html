@@ -26,10 +26,9 @@
         loadBadgesTable('{{url_for("api.badges", badge_ids=badge_ids)|safe}}', {{ routes | tojson}}, '{{csrf_token()}}', show_type, show_level, show_grantor, badgeLevels);
 
         const searchInput = document.getElementById('user_search');
-        setupAutoComplete(
+        setupUserAutoComplete(
           searchInput,
           '{{url_for("api.autocomplete_users")}}',
-          function(item) { return item.full_name; },
           function(id, val) { return onSelectAutocomplete(id, val);}
           )
 

@@ -76,6 +76,32 @@ function setupAutoComplete(
 
 window.setupAutoComplete = setupAutoComplete;
 
+/**
+ * Wrapper around setupAutoComplete for user name searches.
+ * Displays the license number alongside the name in suggestions to disambiguate
+ * users with similar names. The selected value remains the full name only.
+ * @param {string} field The HTML element
+ * @param {string} baseUrl The API url providing the results
+ * @param {function} onSelect Function called when user selects a suggestion. Passed item id and full name.
+ * @param {dict} settings Optional settings -- see autoCompleteDefaultSettings
+ */
+function setupUserAutoComplete(field, baseUrl, onSelect, settings = {}) {
+    return setupAutoComplete(
+        field,
+        baseUrl,
+        function (item) { return item.full_name; },
+        onSelect,
+        Object.assign({
+            itemInnerHTML: function (item, val) {
+                var license = item.license ? ` <small style="color: grey;">(${escapeHTML(item.license)})</small>` : '';
+                return `<span>${escapeHTML(val)}${license}</span>`;
+            }
+        }, settings)
+    );
+}
+
+window.setupUserAutoComplete = setupUserAutoComplete;
+
 
 
 // Formats "parent event" autocomplete options

@@ -40,11 +40,11 @@ def test_show_user_profile_to_leader_with_event(leader_client, event1_with_reg, 
     assert user1.mail in response.text
 
 
-def test_do_not_show_user_profile_to_leader_without_event(leader_client, user2):
-    """Test user access to another user profile."""
+def test_show_user_profile_to_leader_without_event(leader_client, user2):
+    """Test that a leader can access a user profile without an event link."""
 
     response = leader_client.get(f"/profile/user/{user2.id}")
-    assert response.status_code == 302
+    assert response.status_code == 200
 
 
 def test_do_not_show_user_profile_to_other(user1_client, user2):

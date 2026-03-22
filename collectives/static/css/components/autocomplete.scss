@@ -1,0 +1,5 @@
+// Override js-autocomplete CDN styles to prevent suggestion text from being
+// clipped when content is wider than the input field (e.g. name + license).
+.autocomplete-suggestions {
+    min-width: max-content;
+}

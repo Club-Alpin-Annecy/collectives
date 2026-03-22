@@ -26,6 +26,7 @@ class AutocompleteUserSchema(UserIdentitySchema):
         fields = (
             "id",
             "full_name",
+            "license",
             "is_active",
         )
 
