@@ -268,10 +268,11 @@ def autocomplete_event():
     if not search_term:
         abort(400)
 
-    # Support explicit ID lookup via "#N" or bare integer
-    id_term = search_term.lstrip("#")
+    # Detect "#N" as an explicit ID lookup
+    explicit_id_lookup = search_term.startswith("#")
+    id_term = search_term.lstrip("#").strip()
     try:
-        event_id = int(id_term)
+        event_id = int(id_term) if id_term else None
     except ValueError:
         event_id = None
 
@@ -284,10 +285,17 @@ def autocomplete_event():
 
         query = Event.query
 
-        # Search term in title (accent/punctuation-normalized) or exact id
-        search_clause = Event.title.ilike(f"%{normalized}%")
-        if event_id:
-            search_clause = or_(search_clause, (Event.id == event_id))
+        if explicit_id_lookup and event_id is not None:
+            # "#N" pattern: look up by id only, no title search
+            search_clause = Event.id == event_id
+        else:
+            # Title search: try both the original term and the normalized one so
+            # that apostrophes/accents in the stored title are still matched.
+            search_clause = Event.title.ilike(f"%{search_term}%")
+            if normalized and normalized.lower() != search_term.lower():
+                search_clause = or_(search_clause, Event.title.ilike(f"%{normalized}%"))
+            if event_id is not None:
+                search_clause = or_(search_clause, Event.id == event_id)
         query = query.filter(search_clause)
 
         # Remove excluded ids

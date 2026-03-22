@@ -6,7 +6,8 @@ function autoCompleteDefaultSettings() {
     return {
         minChars: 2,  // Minimum number of characters to start loading results
         maxResults: 8, // Maximum number of results to load
-        itemClass: "autocomplete-suggestion", // CSS class of loaded results containers 
+        cache: 1, // Whether the library caches results (0 = disable)
+        itemClass: "autocomplete-suggestion", // CSS class of loaded results containers
         // Function rendering the HTML for a given result
         itemInnerHTML: function (item, itemValue) { return `<span>${escapeHTML(itemValue)}</span>`; }
     }
@@ -68,6 +69,7 @@ function setupAutoComplete(
     return new window.autoComplete({
         selector: field,
         minChars: settings.minChars,
+        cache: settings.cache,
         source: loadResults,
         renderItem: renderItem,
         onSelect: onSelectInternal
@@ -102,6 +104,26 @@ function setupUserAutoComplete(field, baseUrl, onSelect, settings = {}) {
 
 window.setupUserAutoComplete = setupUserAutoComplete;
 
+/**
+ * Wrapper around setupAutoComplete for event title/id searches.
+ * Formats suggestions as "#id Title… (DD/MM/YYYY)".
+ * Caching is disabled so that "#12" always fires even if "#1" returned nothing.
+ * @param {string} field The HTML element
+ * @param {string} baseUrl The API url providing the results
+ * @param {function} onSelect Function called when user selects a suggestion. Passed item id and formatted label.
+ * @param {dict} settings Optional settings -- see autoCompleteDefaultSettings
+ */
+function setupEventAutoComplete(field, baseUrl, onSelect, settings = {}) {
+    return setupAutoComplete(
+        field,
+        baseUrl,
+        function (item) { return formatParentEvent(item.id, item.title, item.start); },
+        onSelect,
+        Object.assign({ cache: 0 }, settings)
+    );
+}
+
+window.setupEventAutoComplete = setupEventAutoComplete;
 
 
 // Formats "parent event" autocomplete options

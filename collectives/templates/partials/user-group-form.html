@@ -79,9 +79,10 @@ document.addEventListener('DOMContentLoaded', ()=> {
             eventSearchInput.value = "";
         },
         {
-            "itemInnerHTML" : 
+            cache: 0,
+            "itemInnerHTML":
             function(item, val) {
-                return `<span>${escapeHTML(formatParentEvent(item.id, item.title, item.start))}</span>` ;
+                return `<span>${escapeHTML(formatParentEvent(item.id, item.title, item.start))}</span>`;
             }
         }
         );
