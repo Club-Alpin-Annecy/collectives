@@ -412,6 +412,80 @@ def send_unjustified_absence_notification(event, user):
         current_app.logger.error(f"Mailer error: {err}")
 
 
+def send_event_notification_to_followers(
+    event: Event, followers: list[User], sender: User
+):
+    """Send a notification email to followers of event activities.
+
+    This function sends an email to all users who follow at least one activity
+    of the event. Each user receives only one notification per event.
+
+    :param event: The event to notify about
+    :type event: :py:class:`collectives.models.event.Event`
+    :param followers: List of users to notify
+    :type followers: list(:py:class:`collectives.models.user.User`)
+    :param sender: User who triggered the notification
+    :type sender: :py:class:`collectives.models.user.User`
+    """
+    from itsdangerous import URLSafeTimedSerializer
+
+    leader_names = [l.full_name() for l in event.leaders]
+    activity_names = [a.name for a in event.activity_types]
+
+    # Create serializer for unsubscribe tokens
+    serializer = URLSafeTimedSerializer(
+        current_app.config["SECRET_KEY"], salt="unfollow-activity"
+    )
+
+    for user in followers:
+        try:
+            # Generate unsubscribe links for each activity
+            unsubscribe_links = []
+            for activity in event.activity_types:
+                token = serializer.dumps(
+                    {"user_id": user.id, "activity_id": activity.id}
+                )
+                link = url_for(
+                    "profile.unfollow_activity_with_token",
+                    activity_id=activity.id,
+                    token=token,
+                    _external=True,
+                )
+                unsubscribe_links.append(f"  - {activity.name}: {link}")
+
+            message = Configuration.EVENT_NOTIFICATION_TO_FOLLOWERS_MESSAGE.format(
+                user_name=user.first_name,
+                event_title=event.title,
+                activities=", ".join(activity_names),
+                leaders=", ".join(leader_names),
+                event_date=format_date(event.start),
+                event_location=event.location or "Non spécifié",
+                event_description=event.description[:200] + "..."
+                if len(event.description) > 200
+                else event.description,
+                event_link=url_for(
+                    "event.view_event",
+                    event_id=event.id,
+                    name=slugify(event.title),
+                    _external=True,
+                ),
+                unsubscribe_links="\n".join(unsubscribe_links),
+            )
+
+            mail.send_mail(
+                subject=Configuration.EVENT_NOTIFICATION_TO_FOLLOWERS_SUBJECT.format(
+                    event_title=event.title
+                ),
+                email=[user.mail],
+                message=message,
+            )
+        # pylint: disable=broad-except
+        except BaseException as err:
+            current_app.logger.error(
+                f"Mailer error sending notification to {user.mail}: {err}"
+            )
+
+
 def _anonymize_mail(email: str):
     """Returns an anonymized version of an email, for logging"""
     parts = email.split("@")

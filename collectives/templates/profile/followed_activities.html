@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" id="profile">
+    <h1 class="heading-1">Mes activités suivies</h1>
+
+    <p class="help-text">
+        Les activités que vous suivez vous permettent de recevoir des notifications par email lorsqu'une nouvelle collective est publiée.
+        Vous êtes automatiquement abonné(e) à une activité lorsque vous vous inscrivez à une collective de cette activité.
+    </p>
+
+    <h2 class="heading-2">Activités suivies</h2>
+    {% if followed_activities %}
+    <div class="followed-activities-list">
+        {% for activity in followed_activities %}
+        <div class="activity-card">
+            <div class="activity-info">
+                <span class="activity-name">{{ activity.name }}</span>
+                <span class="activity-short">({{ activity.short }})</span>
+            </div>
+            <form action="{{ url_for('profile.unfollow_activity', activity_id=activity.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="button button-danger">Ne plus suivre</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-message">Vous ne suivez aucune activité pour le moment.</p>
+    {% endif %}
+
+    <h2 class="heading-2">Autres activités disponibles</h2>
+    {% set other_activities = all_activities | rejectattr('id', 'in', followed_activities | map(attribute='id')) | list %}
+    {% if other_activities %}
+    <div class="available-activities-list">
+        {% for activity in other_activities %}
+        <div class="activity-card">
+            <div class="activity-info">
+                <span class="activity-name">{{ activity.name }}</span>
+                <span class="activity-short">({{ activity.short }})</span>
+            </div>
+            <form action="{{ url_for('profile.follow_activity', activity_id=activity.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="button button-primary">Suivre</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-message">Toutes les activités sont déjà suivies.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

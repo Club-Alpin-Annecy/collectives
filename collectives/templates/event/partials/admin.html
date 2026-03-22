@@ -78,6 +78,16 @@
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/>
             Questionnaire
         </a>
+
+        {% if event.is_confirmed() %}
+        <form class="inline" action="{{url_for('event.notify_followers', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer l\'envoi des notifications aux abonnés des activités de cette collective ?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="button button-primary" style="width: 100%">
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-mail.svg') }}"/>
+                Notifier les abonnés
+            </button>
+        </form>
+        {% endif %}
         
         {% if event.questions %}
         <a class="button button-secondary" href="{{ url_for('question.show_answers', event_id=event.id)}}">

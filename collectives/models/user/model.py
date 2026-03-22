@@ -340,6 +340,105 @@ class UserModelMixin:
             lazy=True,
         )
 
+    @declared_attr
+    def followed_activities_assoc(self):
+        """List of followed activities associations for this user
+
+        :type: list(:py:class:`collectives.models.user_followed_activity.UserFollowedActivity`)
+        """
+        return db.relationship(
+            "UserFollowedActivity",
+            back_populates="user",
+            lazy=True,
+            cascade="all, delete-orphan",
+        )
+
+    def follow_activity(self, activity_type):
+        """Follow an activity type if not already explicitly unfollowed.
+
+        :param activity_type: Activity type to follow
+        :type activity_type: :py:class:`collectives.models.activity_type.ActivityType`
+        :return: True if the activity is now followed, False if user explicitly unfollowed it
+        :rtype: bool
+        """
+        for assoc in self.followed_activities_assoc:
+            if assoc.activity_type_id == activity_type.id:
+                if assoc.explicitly_unfollowed:
+                    return False
+                # Update timestamp
+                assoc.followed_at = current_time()
+                return True
+
+        # Create new association
+        from collectives.models.user_followed_activity import UserFollowedActivity
+
+        new_follow = UserFollowedActivity(
+            user_id=self.id,
+            activity_type_id=activity_type.id,
+            followed_at=current_time(),
+            explicitly_unfollowed=False,
+        )
+        db.session.add(new_follow)
+        return True
+
+    def unfollow_activity(self, activity_type):
+        """Explicitly unfollow an activity type.
+
+        :param activity_type: Activity type to unfollow
+        :type activity_type: :py:class:`collectives.models.activity_type.ActivityType`
+        """
+        for assoc in self.followed_activities_assoc:
+            if assoc.activity_type_id == activity_type.id:
+                assoc.explicitly_unfollowed = True
+                assoc.unfollowed_at = current_time()
+                db.session.add(assoc)
+                return
+
+        # If no association exists, create one with explicitly_unfollowed=True
+        from collectives.models.user_followed_activity import UserFollowedActivity
+
+        new_follow = UserFollowedActivity(
+            user_id=self.id,
+            activity_type_id=activity_type.id,
+            followed_at=current_time(),
+            explicitly_unfollowed=True,
+            unfollowed_at=current_time(),
+        )
+        db.session.add(new_follow)
+
+    def is_following_activity(self, activity_type):
+        """Check if user is following an activity type.
+
+        :param activity_type: Activity type to check
+        :type activity_type: :py:class:`collectives.models.activity_type.ActivityType`
+        :return: True if user follows this activity and hasn't explicitly unfollowed
+        :rtype: bool
+        """
+        for assoc in self.followed_activities_assoc:
+            if (
+                assoc.activity_type_id == activity_type.id
+                and not assoc.explicitly_unfollowed
+            ):
+                return True
+        return False
+
+    def get_followed_activities(self):
+        """Get list of activity types this user is following.
+
+        :return: List of followed activity types
+        :rtype: list(:py:class:`collectives.models.activity_type.ActivityType`)
+        """
+        from collectives.models.activity_type import ActivityType
+
+        activity_ids = [
+            assoc.activity_type_id
+            for assoc in self.followed_activities_assoc
+            if not assoc.explicitly_unfollowed
+        ]
+        if not activity_ids:
+            return []
+        return ActivityType.query.filter(ActivityType.id.in_(activity_ids)).all()
+
     @hybrid_method
     def full_name(self) -> str:
         """Returns the user full name as a string"""

@@ -11,6 +11,7 @@ from os.path import exists
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -20,6 +21,7 @@ from flask import (
 )
 from flask_images import Images
 from flask_login import current_user, logout_user
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
@@ -516,3 +518,86 @@ def set_competency_badge(user_id: int, badge_id: int, event_id: int):
         flash(f"Badge {badge_id.display_name()} mis à jour", "success")
 
     return redirect(url_for(".show_user", user_id=user_id, event_id=event_id))
+
+
+@blueprint.route("/followed-activities", methods=["GET"])
+def followed_activities():
+    """Route to display and manage followed activities."""
+    followed = current_user.get_followed_activities()
+    all_activities = ActivityType.get_all_types(include_deprecated=False)
+
+    return render_template(
+        "profile/followed_activities.html",
+        title="Mes activités suivies",
+        followed_activities=followed,
+        all_activities=all_activities,
+    )
+
+
+@blueprint.route("/unfollow-activity/<int:activity_id>", methods=["POST"])
+def unfollow_activity(activity_id: int):
+    """Route to unfollow an activity."""
+    activity = db.session.get(ActivityType, activity_id)
+    if activity is None:
+        flash("Activité invalide", "error")
+        return redirect(url_for(".followed_activities"))
+
+    current_user.unfollow_activity(activity)
+    db.session.commit()
+
+    flash(f"Vous ne suivez plus l'activité '{activity.name}'", "success")
+    return redirect(url_for(".followed_activities"))
+
+
+@blueprint.route("/follow-activity/<int:activity_id>", methods=["POST"])
+def follow_activity(activity_id: int):
+    """Route to follow an activity."""
+    activity = db.session.get(ActivityType, activity_id)
+    if activity is None:
+        flash("Activité invalide", "error")
+        return redirect(url_for(".followed_activities"))
+
+    current_user.follow_activity(activity)
+    db.session.commit()
+
+    flash(f"Vous suivez maintenant l'activité '{activity.name}'", "success")
+    return redirect(url_for(".followed_activities"))
+
+
+@blueprint.route("/unfollow-activity/<int:activity_id>/token/<token>", methods=["GET"])
+def unfollow_activity_with_token(activity_id: int, token: str):
+    """Route to unfollow an activity using a signed token (from email).
+
+    :param int activity_id: ID of the activity to unfollow
+    :param str token: Signed token containing user_id and activity_id
+    """
+    serializer = URLSafeTimedSerializer(
+        current_app.config["SECRET_KEY"], salt="unfollow-activity"
+    )
+
+    try:
+        data = serializer.loads(token, max_age=30 * 24 * 3600)  # 30 days
+        token_user_id = data.get("user_id")
+        token_activity_id = data.get("activity_id")
+
+        if token_user_id != current_user.id or token_activity_id != activity_id:
+            flash("Lien de désabonnement invalide", "error")
+            return redirect(url_for(".followed_activities"))
+
+    except SignatureExpired:
+        flash("Ce lien de désabonnement a expiré (30 jours)", "error")
+        return redirect(url_for(".followed_activities"))
+    except BadSignature:
+        flash("Lien de désabonnement invalide", "error")
+        return redirect(url_for(".followed_activities"))
+
+    activity = db.session.get(ActivityType, activity_id)
+    if activity is None:
+        flash("Activité invalide", "error")
+        return redirect(url_for(".followed_activities"))
+
+    current_user.unfollow_activity(activity)
+    db.session.commit()
+
+    flash(f"Vous ne suivez plus l'activité '{activity.name}'", "success")
+    return redirect(url_for(".followed_activities"))

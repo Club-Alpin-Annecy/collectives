@@ -754,6 +754,10 @@ def self_register(event_id):
         registration.status = RegistrationStatus.Waiting
         try:
             event.add_registration_check_race_conditions(registration)
+            # Auto-subscribe to activities (only if not explicitly unfollowed)
+            for activity in event.activity_types:
+                current_user.follow_activity(activity)
+            db.session.commit()
         except RuntimeError as err:
             flash(str(err), "error")
         return redirect(url_for("event.view_event", event_id=event_id))
@@ -780,6 +784,10 @@ def self_register(event_id):
         # Free event
         try:
             event.add_registration_check_race_conditions(registration)
+            # Auto-subscribe to activities (only if not explicitly unfollowed)
+            for activity in event.activity_types:
+                current_user.follow_activity(activity)
+            db.session.commit()
         except RuntimeError as err:
             flash(str(err), "error")
 
@@ -802,6 +810,9 @@ def self_register(event_id):
 
         try:
             event.add_registration_check_race_conditions(registration)
+            # Auto-subscribe to activities (only if not explicitly unfollowed)
+            for activity in event.activity_types:
+                current_user.follow_activity(activity)
         except RuntimeError as err:
             flash(str(err), "error")
             return redirect(url_for("event.view_event", event_id=event_id))
@@ -954,6 +965,10 @@ def register_user(event_id):
                     event.add_registration_check_race_conditions(
                         registration, allow_overbooking=True
                     )
+                    # Auto-subscribe user to activities (only if not explicitly unfollowed)
+                    for activity in event.activity_types:
+                        user.follow_activity(activity)
+                    db.session.commit()
                 except DuplicateRegistrationError:
                     flash("Ce participant est déjà inscrit")
             else:
@@ -1366,6 +1381,63 @@ def qr_mark_present(event_id):
             },
         }
     )
+
+
+@blueprint.route("/<int:event_id>/notify-followers", methods=["POST"])
+@valid_user()
+def notify_followers(event_id):
+    """Route to notify followers of event activities about this event.
+
+    Sends an email notification to all users who follow at least one
+    activity of this event. Each user receives only one notification
+    per event, even if they follow multiple activities.
+
+    :param int event_id: Primary key of the event.
+    """
+    event = db.session.get(Event, event_id)
+
+    if event is None:
+        flash("Événement introuvable.", "error")
+        return redirect(url_for("event.index"))
+
+    if not event.has_edit_rights(current_user):
+        flash("Accès restreint, rôle insuffisant.", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    if event.status != EventStatus.Confirmed:
+        flash(
+            "Seuls les événements publiés (confirmés) peuvent notifier les abonnés.",
+            "error",
+        )
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    # Get all followers of the event's activities
+    followers_to_notify = set()
+    for activity in event.activity_types:
+        for assoc in activity.followers_assoc:
+            if not assoc.explicitly_unfollowed:
+                followers_to_notify.add(assoc.user)
+
+    if not followers_to_notify:
+        flash("Aucun abonné à notifier pour cet événement.", "warning")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
+    # Send notification emails
+    from collectives.email_templates import send_event_notification_to_followers
+
+    try:
+        send_event_notification_to_followers(
+            event, list(followers_to_notify), current_user
+        )
+        flash(
+            f"Notification envoyée à {len(followers_to_notify)} abonné(s).",
+            "success",
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error sending notifications: {e}")
+        flash("Une erreur s'est produite lors de l'envoi des notifications.", "error")
+
+    return redirect(url_for("event.view_event", event_id=event_id))
 
 
 def update_waiting_list(event: Event) -> List[Registration]:
