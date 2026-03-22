@@ -309,7 +309,7 @@ def autocomplete_event():
                 Event.activity_types.any(ActivityType.id.in_(activity_ids))
             )
 
-        query = query.order_by(Event.id.desc())
+        query = query.order_by(Event.start.desc())
         found_events = query.limit(limit).all()
 
         if len(found_events) < limit:
@@ -317,7 +317,7 @@ def autocomplete_event():
             # See issue #618
             query = query_without_activity_filtering
             query = query.filter(~Event.id.in_([event.id for event in found_events]))
-            query = query.order_by(Event.id.desc())
+            query = query.order_by(Event.start.desc())
             found_events += query.limit(limit - len(found_events)).all()
 
     content = AutocompleteEventSchema().dumps(found_events, many=True)
