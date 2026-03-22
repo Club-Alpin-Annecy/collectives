@@ -1,6 +1,8 @@
 """API to get the event list in index page."""
 
 import json
+import re
+import unicodedata
 from datetime import timedelta
 
 from flask import abort, request, url_for
@@ -227,20 +229,34 @@ class AutocompleteEventSchema(EventSchema):
         fields = ("id", "title", "start", "view_uri")
 
 
+def _normalize_search_term(text: str) -> str:
+    """Normalize a search term for accent- and punctuation-insensitive matching.
+
+    Strips combining accent characters and punctuation, and lowercases the result.
+    On MySQL with a unicode_ci collation the DB side is already accent-insensitive,
+    so passing the normalized term makes both directions work.
+    """
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    text = re.sub(r"[^\w\s]", " ", text)
+    return text.strip()
+
+
 @blueprint.route("/event/autocomplete/")
 def autocomplete_event():
     """API endpoint for event autocompletion.
 
     At least 2 characters are required to make a name search.
 
-    :param string q: Search string. Either the event id or a substring from the title
+    :param string q: Search string. Either the event id (or ``#id``), or a
+                     substring from the title. Accents and punctuation are ignored.
     :param int l: Maximum number of returned items.
     :param list[int] aid: List of activity ids to include. Empty means include
                           events for any activity
     :param list[int] eid: List of event ids to exclude
     :return: A tuple:
 
-        - JSON containing information describe in AutocompleteUserSchema
+        - JSON containing information describe in AutocompleteEventSchema
         - HTTP return code : 200
         - additional header (content as JSON)
     :rtype: (string, int, dict)
@@ -248,24 +264,28 @@ def autocomplete_event():
 
     found_events = []
 
-    search_term = request.args.get("q")
+    search_term = request.args.get("q", "").strip()
     if not search_term:
         abort(400)
 
+    # Support explicit ID lookup via "#N" or bare integer
+    id_term = search_term.lstrip("#")
     try:
-        event_id = int(search_term)
+        event_id = int(id_term)
     except ValueError:
         event_id = None
 
-    if event_id is not None or (len(search_term) >= 2):
-        limit = request.args.get("l", type=int) or 8
+    normalized = _normalize_search_term(search_term)
+
+    if event_id is not None or len(normalized) >= 2:
+        limit = request.args.get("l", type=int) or 12
         activity_ids = request.args.getlist("aid", type=int)
         excluded_ids = request.args.getlist("eid", type=int)
 
         query = Event.query
 
-        # Search term in title or id
-        search_clause = Event.title.ilike(f"%{search_term}%")
+        # Search term in title (accent/punctuation-normalized) or exact id
+        search_clause = Event.title.ilike(f"%{normalized}%")
         if event_id:
             search_clause = or_(search_clause, (Event.id == event_id))
         query = query.filter(search_clause)

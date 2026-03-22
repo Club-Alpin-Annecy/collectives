@@ -107,6 +107,7 @@ window.setupUserAutoComplete = setupUserAutoComplete;
 // Formats "parent event" autocomplete options
 function formatParentEvent(id, title, start_date)
 {
-    const dateString = moment(start_date).format('ddd D MMM YY');
-    return `#${id} ${title} (${dateString})`;
+    const truncated = title.length > 30 ? title.substring(0, 30) + '…' : title;
+    const dateString = moment(start_date).format('DD/MM/YYYY');
+    return `#${id} ${truncated} (${dateString})`;
 }
