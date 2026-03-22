@@ -18,7 +18,7 @@ from flask_assets import Bundle, Environment
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
-from itsdangerous import URLSafeSerializer
+from itsdangerous import URLSafeTimedSerializer
 
 from collectives import api, forms, models
 from collectives.new_event_notifications import register_cli
@@ -81,7 +81,7 @@ def create_app(config_filename="config.py", extra_config=None):
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
-    app.extensions["new_event_notification_serializer"] = URLSafeSerializer(
+    app.extensions["new_event_notification_serializer"] = URLSafeTimedSerializer(
         app.config["SECRET_KEY"], salt="new-event-notifications"
     )
 

@@ -28,7 +28,6 @@ INACTIVITY_DISABLE_AFTER_DAYS = 365
 def queue_new_event_notification(event: Event):
     """Persist a newly created event for later digest delivery."""
     db.session.add(NewEventNotification(event=event))
-    db.session.commit()
 
 
 def send_supervisor_new_event_notification(event: Event):
@@ -77,21 +76,46 @@ def _notification_query():
     )
 
 
-def _pending_events_for_user(user: User, now=None) -> list[Event]:
-    """Return matching pending events for a user."""
-    now = now or current_time()
-    if not user.is_new_event_digest_due(now):
-        return []
-
-    query = _notification_query()
-    if user.last_new_event_notification_sent_at is not None:
-        query = query.filter(
-            NewEventNotification.created_at > user.last_new_event_notification_sent_at
+def _load_due_users(now) -> list[User]:
+    """Load enabled subscribers whose digest should be evaluated now."""
+    users = (
+        User.query.options(
+            selectinload(User.notified_event_types),
+            selectinload(User.notified_activity_types),
         )
+        .filter_by(enabled=True, new_event_notification_enabled=True)
+        .all()
+    )
+    return [user for user in users if user.is_new_event_digest_due(now)]
 
+
+def _candidate_notifications_for_users(users: list[User]):
+    """Load pending notifications once for the current batch of due users."""
+    query = _notification_query()
+    sent_markers = [
+        user.last_new_event_notification_sent_at
+        for user in users
+        if user.last_new_event_notification_sent_at is not None
+    ]
+    if sent_markers:
+        query = query.filter(NewEventNotification.created_at > min(sent_markers))
+    return query.all()
+
+
+def _pending_events_for_user(
+    user: User,
+    notifications: list[NewEventNotification],
+) -> list[Event]:
+    """Return matching pending events for a user from a shared notification batch."""
     events = []
     seen_event_ids = set()
-    for notification in query.all():
+    for notification in notifications:
+        if (
+            user.last_new_event_notification_sent_at is not None
+            and notification.created_at <= user.last_new_event_notification_sent_at
+        ):
+            continue
+
         event = notification.event
         if event is None or event.id in seen_event_ids:
             continue
@@ -99,6 +123,25 @@ def _pending_events_for_user(user: User, now=None) -> list[Event]:
             events.append(event)
             seen_event_ids.add(event.id)
     return events
+
+
+def _purge_delivered_notifications():
+    """Drop queue rows that are older than what any active subscriber may still need."""
+    users = User.query.filter_by(enabled=True, new_event_notification_enabled=True).all()
+    if not users:
+        NewEventNotification.query.delete(synchronize_session=False)
+        return
+
+    sent_markers = [user.last_new_event_notification_sent_at for user in users]
+    if any(sent_marker is None for sent_marker in sent_markers):
+        return
+
+    oldest_needed_marker = min(sent_markers)
+    (
+        NewEventNotification.query.filter(
+            NewEventNotification.created_at <= oldest_needed_marker
+        ).delete(synchronize_session=False)
+    )
 
 
 def _build_event_link(user: User, event: Event) -> str:
@@ -190,17 +233,14 @@ def send_new_event_digests(now=None) -> int:
     now = now or current_time()
     sent_count = 0
 
-    users = (
-        User.query.options(
-            selectinload(User.notified_event_types),
-            selectinload(User.notified_activity_types),
-        )
-        .filter_by(enabled=True, new_event_notification_enabled=True)
-        .all()
-    )
+    users = _load_due_users(now)
+    if not users:
+        return 0
+
+    notifications = _candidate_notifications_for_users(users)
 
     for user in users:
-        events = _pending_events_for_user(user, now=now)
+        events = _pending_events_for_user(user, notifications)
         if not events:
             continue
 
@@ -214,6 +254,7 @@ def send_new_event_digests(now=None) -> int:
         sent_count += 1
         db.session.add(user)
 
+    _purge_delivered_notifications()
     db.session.commit()
     return sent_count
 

@@ -9,7 +9,7 @@ from datetime import date
 from io import BytesIO
 from os.path import exists
 
-from itsdangerous import BadSignature
+from itsdangerous import BadSignature, SignatureExpired
 from flask import (
     Blueprint,
     abort,
@@ -285,7 +285,13 @@ def notification_click(token: str):
     """Track clicks from digest emails and redirect to the target event."""
     serializer = current_app.extensions["new_event_notification_serializer"]
     try:
-        payload = serializer.loads(token)
+        payload = serializer.loads(
+            token,
+            max_age=current_app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"],
+        )
+    except SignatureExpired:
+        flash("Lien de notification expiré", "error")
+        return redirect(url_for("root.index"))
     except BadSignature:
         flash("Lien de notification invalide", "error")
         return redirect(url_for("root.index"))
@@ -315,7 +321,15 @@ def unsubscribe_notifications(token: str):
     """One-click unsubscribe for notification digests."""
     serializer = current_app.extensions["new_event_notification_serializer"]
     try:
-        payload = serializer.loads(token)
+        payload = serializer.loads(
+            token,
+            max_age=current_app.config[
+                "NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"
+            ],
+        )
+    except SignatureExpired:
+        flash("Lien de désabonnement expiré", "error")
+        return redirect(url_for("root.index"))
     except BadSignature:
         flash("Lien de désabonnement invalide", "error")
         return redirect(url_for("root.index"))

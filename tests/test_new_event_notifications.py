@@ -1,6 +1,7 @@
 """Tests for digest-based new event notifications."""
 
 import re
+import time
 from datetime import timedelta
 
 from collectives.models import (
@@ -95,6 +96,32 @@ def test_notification_links_track_click_and_unsubscribe(
     assert not user1.new_event_notification_enabled
 
 
+def test_notification_links_expire(app, client, user1, event):
+    """Public digest links should stop working once their token expires."""
+    serializer = app.extensions["new_event_notification_serializer"]
+    click_token = serializer.dumps(
+        {"user_id": user1.id, "action": "click", "event_id": event.id}
+    )
+    unsubscribe_token = serializer.dumps({"user_id": user1.id, "action": "unsubscribe"})
+
+    app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"] = 0
+    app.config["NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"] = 0
+    time.sleep(1)
+
+    response = client.get(
+        f"/profile/user/notifications/click/{click_token}", follow_redirects=False
+    )
+    assert response.status_code == 302
+    assert response.location == "/"
+
+    response = client.get(
+        f"/profile/user/notifications/unsubscribe/{unsubscribe_token}",
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    assert response.location == "/"
+
+
 def test_digest_contains_clickable_unsubscribe_link_in_html(
     app, user1, event, mail_success_monkeypatch
 ):
@@ -114,6 +141,31 @@ def test_digest_contains_clickable_unsubscribe_link_in_html(
     assert 'html_message' in sent_mail
     assert ">Se désabonner<" in sent_mail["html_message"]
     assert "/profile/user/notifications/unsubscribe/" in sent_mail["html_message"]
+
+
+def test_send_new_event_digests_purges_delivered_notifications(
+    user1, user2, event, mail_success_monkeypatch
+):
+    """Delivered queue rows should be purged once all active subscribers progressed."""
+    now = current_time()
+    user1.new_event_notification_enabled = True
+    user1.new_event_notification_frequency = NotificationFrequency.Daily
+    user1.last_new_event_notification_sent_at = now - timedelta(days=2)
+
+    user2.new_event_notification_enabled = True
+    user2.new_event_notification_frequency = NotificationFrequency.Daily
+    user2.last_new_event_notification_sent_at = now - timedelta(days=3)
+
+    event.start = now + timedelta(days=4)
+    db.session.add(
+        NewEventNotification(event=event, created_at=now - timedelta(hours=1))
+    )
+    db.session.commit()
+
+    sent_count = send_new_event_digests(now=now)
+
+    assert sent_count == 2
+    assert NewEventNotification.query.count() == 0
 
 
 def test_inactive_notification_policy_warns_then_disables(
