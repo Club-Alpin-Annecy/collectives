@@ -50,7 +50,13 @@ from collectives.models.reservation import (
 )
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
-from collectives.models.user import Gender, User, UserType, avatars
+from collectives.models.user import (
+    Gender,
+    NotificationFrequency,
+    User,
+    UserType,
+    avatars,
+)
 from collectives.models.user_group import (
     GroupEventCondition,
     GroupLicenseCondition,

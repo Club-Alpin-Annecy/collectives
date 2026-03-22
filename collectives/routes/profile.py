@@ -24,7 +24,11 @@ from flask_login import current_user, logout_user
 from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
-from collectives.forms import ExtranetUserForm, LocalUserForm
+from collectives.forms import (
+    ExtranetUserForm,
+    LocalUserForm,
+    NotificationPreferencesForm,
+)
 from collectives.forms.badge import CompetencyBadgeForm
 from collectives.forms.user import DeleteUserForm
 from collectives.models import (
@@ -33,6 +37,7 @@ from collectives.models import (
     BadgeIds,
     Configuration,
     Event,
+    EventType,
     Gender,
     Role,
     RoleIds,
@@ -204,6 +209,61 @@ def update_user():
     db.session.commit()
 
     return redirect(url_for("profile.update_user"))
+
+
+@blueprint.route("/user/notifications", methods=["GET", "POST"])
+def update_notifications():
+    """Route to update current user notification preferences."""
+
+    form = NotificationPreferencesForm(current_user)
+
+    if form.validate_on_submit():
+        was_enabled = current_user.new_event_notification_enabled
+        current_user.new_event_notification_enabled = (
+            form.new_event_notification_enabled.data
+        )
+        current_user.new_event_notification_frequency = (
+            form.new_event_notification_frequency.data
+        )
+
+        selected_event_types = (
+            EventType.query.filter(EventType.id.in_(form.event_type_ids.data)).all()
+            if form.event_type_ids.data
+            else []
+        )
+        selected_activity_types = (
+            ActivityType.query.filter(
+                ActivityType.id.in_(form.activity_type_ids.data)
+            ).all()
+            if form.activity_type_ids.data
+            else []
+        )
+
+        current_user.notified_event_types = selected_event_types
+        current_user.notified_activity_types = selected_activity_types
+        current_user.set_notification_weekday_list(form.weekdays.data)
+        if current_user.new_event_notification_enabled and not was_enabled:
+            current_user.last_new_event_notification_sent_at = current_time()
+            current_user.new_event_notification_warning_sent_at = None
+        if not current_user.new_event_notification_enabled:
+            current_user.new_event_notification_warning_sent_at = None
+
+        db.session.add(current_user)
+        db.session.commit()
+
+        flash("Préférences de notification mises à jour", "success")
+        return redirect(url_for("profile.update_notifications"))
+
+    return render_template(
+        "basicform.html",
+        form=form,
+        title="Mes notifications",
+        description=(
+            "Choisissez les types de collectives à surveiller. "
+            "Les notifications sont envoyées sous forme de récapitulatif quotidien "
+            "ou hebdomadaire si la collective correspond aux filtres."
+        ),
+    )
 
 
 @blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})

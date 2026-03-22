@@ -5,6 +5,7 @@ import os
 from typing import List
 
 import phonenumbers
+from flask import current_app
 from flask_uploads import IMAGES, UploadSet
 from sqlalchemy.orm import selectinload
 from werkzeug.datastructures import FileStorage
@@ -13,8 +14,9 @@ from collectives.models.configuration import Configuration
 from collectives.models.globals import db
 from collectives.models.registration import Registration, RegistrationStatus
 from collectives.models.reservation import ReservationStatus
-from collectives.models.user.enum import Gender, UserType
+from collectives.models.user.enum import Gender, NotificationFrequency, UserType
 from collectives.utils.misc import is_valid_image
+from collectives.utils.time import current_time
 
 # Upload
 avatars = UploadSet("avatars", IMAGES)
@@ -24,6 +26,113 @@ class UserMiscMixin:
     """Part of User for misc methods
 
     Not meant to be used alone."""
+
+    @staticmethod
+    def parse_notification_weekdays(raw_value: str) -> list[int]:
+        """Parse a comma-separated weekday list.
+
+        :param raw_value: Comma-separated list with values in [0, 6]
+        :return: Parsed and sorted weekday indexes
+        """
+        if not raw_value:
+            return []
+
+        values = []
+        for chunk_value in raw_value.split(","):
+            cleaned_value = chunk_value.strip()
+            if not cleaned_value:
+                continue
+            try:
+                value = int(cleaned_value)
+            except ValueError:
+                continue
+            if 0 <= value <= 6:
+                values.append(value)
+        return sorted(set(values))
+
+    def notification_weekday_list(self) -> list[int]:
+        """:returns: weekday filters configured for new event notifications."""
+        return self.parse_notification_weekdays(self.new_event_notification_weekdays)
+
+    def set_notification_weekday_list(self, weekdays: list[int]):
+        """Set weekday filters as CSV values.
+
+        :param weekdays: list of weekday indexes where Monday=0
+        """
+        valid_days = sorted({int(day) for day in weekdays if 0 <= int(day) <= 6})
+        self.new_event_notification_weekdays = (
+            ",".join(str(day) for day in valid_days) if valid_days else None
+        )
+
+    def should_receive_new_event_notification(self, event) -> bool:
+        """Check if this user should receive a notification for a newly created event."""
+        if not self.new_event_notification_enabled:
+            return False
+
+        if not self.mail or not self.enabled:
+            return False
+
+        if not self.check_license_valid_at_time(current_time()):
+            return False
+
+        selected_event_type_ids = {
+            event_type.id for event_type in self.notified_event_types
+        }
+        if (
+            selected_event_type_ids
+            and event.event_type_id not in selected_event_type_ids
+        ):
+            return False
+
+        selected_activity_ids = {
+            activity_type.id for activity_type in self.notified_activity_types
+        }
+        if selected_activity_ids:
+            event_activity_ids = {activity.id for activity in event.activity_types}
+            if selected_activity_ids.isdisjoint(event_activity_ids):
+                return False
+
+        selected_weekdays = self.notification_weekday_list()
+        if selected_weekdays and event.start.weekday() not in selected_weekdays:
+            return False
+
+        return True
+
+    def notification_digest_interval_days(self) -> int:
+        """:returns: Number of days between digest sends."""
+        if self.new_event_notification_frequency == NotificationFrequency.Daily:
+            return 1
+        return 7
+
+    def is_new_event_digest_due(self, now=None) -> bool:
+        """Check whether a new digest may be sent to this user."""
+        now = now or current_time()
+        if not self.new_event_notification_enabled:
+            return False
+        if not self.enabled or not self.mail:
+            return False
+        if not self.check_license_valid_at_time(now):
+            return False
+        if self.last_new_event_notification_sent_at is None:
+            return True
+        delta = now - self.last_new_event_notification_sent_at
+        return delta >= datetime.timedelta(days=self.notification_digest_interval_days())
+
+    def new_event_notification_inactive_since(self):
+        """Return the reference datetime used to detect notification inactivity."""
+        return (
+            self.last_new_event_notification_clicked_at
+            or self.last_new_event_notification_sent_at
+            or self.last_extranet_sync_time
+        )
+
+    def build_notification_token(self, action: str, event_id=None) -> str:
+        """Build a signed token for notification email links."""
+        serializer = current_app.extensions["new_event_notification_serializer"]
+        payload = {"user_id": self.id, "action": action}
+        if event_id is not None:
+            payload["event_id"] = event_id
+        return serializer.dumps(payload)
 
     def save_avatar(self, file: FileStorage) -> bool:
         """Save an image as user avatar.

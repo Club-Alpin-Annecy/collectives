@@ -8,6 +8,7 @@ from wtforms import (
     HiddenField,
     PasswordField,
     SelectField,
+    SelectMultipleField,
     StringField,
     SubmitField,
 )
@@ -28,6 +29,8 @@ from collectives.forms.validators import (
 )
 from collectives.models import (
     ActivityType,
+    EventType,
+    NotificationFrequency,
     Role,
     RoleIds,
     User,
@@ -237,3 +240,75 @@ class DeleteUserForm(FlaskForm):
 
         if field.data.strip() != self._user.license:
             raise ValidationError("Le numéro de license ne correspond pas")
+
+
+class NotificationPreferencesForm(FlaskForm):
+    """Form for managing event creation notification preferences."""
+
+    WEEKDAY_CHOICES = [
+        (0, "Lundi"),
+        (1, "Mardi"),
+        (2, "Mercredi"),
+        (3, "Jeudi"),
+        (4, "Vendredi"),
+        (5, "Samedi"),
+        (6, "Dimanche"),
+    ]
+
+    new_event_notification_enabled = BooleanField(
+        "Recevoir des notifications de nouvelles collectives",
+        description=(
+            "Si activé, vous recevrez un e-mail groupé quand des collectives "
+            "correspondent aux filtres ci-dessous."
+        ),
+    )
+    new_event_notification_frequency = SelectField(
+        "Fréquence d'envoi",
+        coerce=NotificationFrequency.coerce,
+        choices=NotificationFrequency.choices(),
+        description="Choisissez un récapitulatif quotidien ou hebdomadaire.",
+    )
+    event_type_ids = SelectMultipleField(
+        "Types d'événement",
+        coerce=int,
+        description="Laisser vide pour tous les types.",
+    )
+    activity_type_ids = SelectMultipleField(
+        "Activités",
+        coerce=int,
+        description="Laisser vide pour toutes les activités.",
+    )
+    weekdays = SelectMultipleField(
+        "Jours de la semaine",
+        choices=WEEKDAY_CHOICES,
+        coerce=int,
+        description="Laisser vide pour tous les jours.",
+    )
+    submit = SubmitField("Enregistrer")
+
+    def __init__(self, user: User, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._user = user
+
+        self.event_type_ids.choices = [
+            (event_type.id, event_type.name) for event_type in EventType.get_all_types()
+        ]
+        self.activity_type_ids.choices = [
+            (activity_type.id, activity_type.name)
+            for activity_type in ActivityType.get_all_types()
+        ]
+
+        if not self.is_submitted():
+            self.new_event_notification_enabled.data = (
+                user.new_event_notification_enabled
+            )
+            self.new_event_notification_frequency.data = (
+                user.new_event_notification_frequency
+            )
+            self.event_type_ids.data = [
+                event_type.id for event_type in user.notified_event_types
+            ]
+            self.activity_type_ids.data = [
+                activity_type.id for activity_type in user.notified_activity_types
+            ]
+            self.weekdays.data = user.notification_weekday_list()
