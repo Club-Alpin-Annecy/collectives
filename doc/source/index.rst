@@ -32,6 +32,7 @@ Code, participation, and issue reporting can be done on github: `https://github.
    tests
    deployment
    docker
+   notifications_digest
 
 .. toctree::
    :maxdepth: 1
