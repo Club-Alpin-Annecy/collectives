@@ -40,10 +40,45 @@ def upgrade():
             )
         )
 
+    op.create_table(
+        "new_event_notifications",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("event_id", sa.Integer(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(["event_id"], ["events.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        op.f("ix_new_event_notifications_created_at"),
+        "new_event_notifications",
+        ["created_at"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_new_event_notifications_event_id"),
+        "new_event_notifications",
+        ["event_id"],
+        unique=False,
+    )
+
 
 def downgrade():
+    op.drop_index(
+        op.f("ix_new_event_notifications_event_id"),
+        table_name="new_event_notifications",
+    )
+    op.drop_index(
+        op.f("ix_new_event_notifications_created_at"),
+        table_name="new_event_notifications",
+    )
+    op.drop_table("new_event_notifications")
+
     with op.batch_alter_table("users") as batch_op:
         batch_op.drop_column("new_event_notification_warning_sent_at")
         batch_op.drop_column("last_new_event_notification_clicked_at")
         batch_op.drop_column("last_new_event_notification_sent_at")
         batch_op.drop_column("new_event_notification_frequency")
+
+    sa.Enum("Daily", "Weekly", name="notificationfrequency").drop(
+        op.get_bind(), checkfirst=False
+    )
