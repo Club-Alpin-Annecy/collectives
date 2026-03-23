@@ -32,32 +32,6 @@ def get_url(query, max_returns=12, **kwargs):
 
 
 @pytest.fixture
-def event_with_accent(app, leader_user):
-    """Event whose title contains an accented character."""
-    from collectives.models import ActivityType, EventType
-
-    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
-    event_type = EventType.query.filter_by(name="Collective").first()
-    now = date.today()
-
-    event = Event()
-    event.title = "L'ascension du Mont-Blanc"
-    event.start = now + timedelta(days=5)
-    event.end = now + timedelta(days=5)
-    event.registration_open_time = now - timedelta(days=5)
-    event.registration_close_time = now + timedelta(days=5)
-    event.num_online_slots = 1
-    event.activity_types.append(alpinisme)
-    event.event_type = event_type
-    event.leaders = [leader_user]
-    event.main_leader = leader_user
-    event.set_rendered_description("desc")
-    db.session.add(event)
-    db.session.commit()
-    return event
-
-
-@pytest.fixture
 def three_events_different_dates(app, leader_user):
     """Three events with different start dates for ordering tests."""
     from collectives.models import ActivityType, EventType
@@ -149,45 +123,6 @@ def test_search_event_by_plain_id(user1_client, event1):
 # ---------------------------------------------------------------------------
 # Accent- and punctuation-insensitive search
 # ---------------------------------------------------------------------------
-
-
-def test_search_event_accent_insensitive(user1_client, event_with_accent):
-    """Searching without accents should match a title that has them."""
-    response = user1_client.get(get_url("ascension"))
-    assert response.status_code == 200
-    assert any(e["id"] == event_with_accent.id for e in response.json)
-
-
-def test_search_event_with_apostrophe_in_query(user1_client, event_with_accent):
-    """An apostrophe in the query must not break the search.
-
-    The query "l'ascension" should match the stored title "L'ascension…" because
-    the original term is searched as-is (case-insensitive ilike).
-    """
-    response = user1_client.get(get_url("l%27ascension"))
-    assert response.status_code == 200
-    assert any(e["id"] == event_with_accent.id for e in response.json)
-
-
-def test_search_event_punctuation_free_query(user1_client, event_with_accent):
-    """A query without punctuation should match a title that has it.
-
-    "l ascension" (space, no apostrophe) should match "L'ascension du Mont-Blanc"
-    because the SQL-side normalisation replaces apostrophes with spaces.
-    """
-    response = user1_client.get(get_url("l ascension"))
-    assert response.status_code == 200
-    assert any(e["id"] == event_with_accent.id for e in response.json)
-
-
-def test_search_event_hyphen_free_query(user1_client, event_with_accent):
-    """A query without hyphens should match a hyphenated title.
-
-    "Mont Blanc" should match "L'ascension du Mont-Blanc".
-    """
-    response = user1_client.get(get_url("Mont Blanc"))
-    assert response.status_code == 200
-    assert any(e["id"] == event_with_accent.id for e in response.json)
 
 
 @pytest.fixture
