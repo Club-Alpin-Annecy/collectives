@@ -45,16 +45,14 @@ def test_autocomplete(user1, user2):
 @pytest.mark.parametrize(
     "raw, expected",
     [
-        # Accents are stripped
-        ("éléphant", "elephant"),
-        ("Réunion", "Reunion"),
         # Apostrophes become spaces
         ("l'ascension", "l ascension"),
         ("aujourd'hui", "aujourd hui"),
         # Hyphens become spaces
         ("Mont-Blanc", "Mont Blanc"),
-        # Mixed: accent + apostrophe
-        ("L'Île-de-France", "L Ile de France"),
+        # Accents are preserved (handled by DB collation in production)
+        ("éléphant", "éléphant"),
+        ("L'Île-de-France", "L Île de France"),
         # Already clean string is unchanged
         ("alpinisme", "alpinisme"),
         # Leading/trailing whitespace is stripped
@@ -62,12 +60,12 @@ def test_autocomplete(user1, user2):
     ],
 )
 def test_normalize_search_term(raw, expected):
-    """_normalize_search_term strips accents, apostrophes and punctuation."""
+    """_normalize_search_term strips punctuation but preserves accents."""
     assert _normalize_search_term(raw) == expected
 
 
 # ---------------------------------------------------------------------------
-# Python ↔ SQL normalisation consistency
+# Python ↔ SQL punctuation normalisation consistency
 # ---------------------------------------------------------------------------
 
 
@@ -78,22 +76,17 @@ def test_normalize_search_term(raw, expected):
         "Ski/raquettes (débutants)",
         "Atelier : cartographie",
         "Réunion!",
-        "Château de Grächèn",
-        "Königssee, très beau",
-        "Señor López",
     ],
 )
 def test_python_and_sql_normalize_match(app, title):
-    """The SQL-side normalisation must produce the same result as the Python side.
+    """The SQL-side punctuation normalisation must match the Python side.
 
-    This catches any character that _normalize_search_term handles but
-    _SQL_NORMALIZE_MAP does not (or vice-versa).
+    This catches any punctuation character that _normalize_search_term handles
+    but _SQL_PUNCTUATION_MAP does not (or vice-versa).
     """
     from datetime import date, timedelta
 
     from collectives.api.event import _sql_normalized_title
-
-    # Create a temporary event with the given title
     from collectives.models import ActivityType, Event, EventType, db
 
     alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
@@ -115,9 +108,7 @@ def test_python_and_sql_normalize_match(app, title):
 
     # Query the SQL-side normalised value
     sql_result = (
-        db.session.query(_sql_normalized_title())
-        .filter(Event.id == event.id)
-        .scalar()
+        db.session.query(_sql_normalized_title()).filter(Event.id == event.id).scalar()
     )
 
     python_result = _normalize_search_term(title)

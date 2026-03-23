@@ -1,7 +1,7 @@
 """Event autocomplete API tests.
 
-Covers: title search, ID lookup (#N), accent- and punctuation-insensitive
-search, reverse-date ordering, and result limit.
+Covers: title search, ID lookup (#N), punctuation-insensitive search,
+reverse-date ordering, and result limit.
 """
 
 from datetime import date, timedelta
@@ -121,13 +121,13 @@ def test_search_event_by_plain_id(user1_client, event1):
 
 
 # ---------------------------------------------------------------------------
-# Accent- and punctuation-insensitive search
+# Punctuation-insensitive search
 # ---------------------------------------------------------------------------
 
 
 @pytest.fixture
-def event_ecole(app, leader_user):
-    """Event with accents, apostrophes and spaces in the title."""
+def event_with_punctuation(app, leader_user):
+    """Event with apostrophes in the title."""
     from collectives.models import ActivityType, EventType
 
     alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
@@ -135,7 +135,7 @@ def event_ecole(app, leader_user):
     now = date.today()
 
     event = Event()
-    event.title = "École d'aventure au Mont Blanc"
+    event.title = "Ecole d'aventure au Mont-Blanc"
     event.start = now + timedelta(days=5)
     event.end = now + timedelta(days=5)
     event.registration_open_time = now - timedelta(days=5)
@@ -151,48 +151,22 @@ def event_ecole(app, leader_user):
     return event
 
 
-@pytest.fixture
-def event_ecole_hyphenated(app, leader_user):
-    """Event with hyphens, no accents, no apostrophes in the title."""
-    from collectives.models import ActivityType, EventType
-
-    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
-    event_type = EventType.query.filter_by(name="Collective").first()
-    now = date.today()
-
-    event = Event()
-    event.title = "ecole d aventure au mont-blanc"
-    event.start = now + timedelta(days=3)
-    event.end = now + timedelta(days=3)
-    event.registration_open_time = now - timedelta(days=5)
-    event.registration_close_time = now + timedelta(days=5)
-    event.num_online_slots = 1
-    event.activity_types.append(alpinisme)
-    event.event_type = event_type
-    event.leaders = [leader_user]
-    event.main_leader = leader_user
-    event.set_rendered_description("desc")
-    db.session.add(event)
-    db.session.commit()
-    return event
-
-
-def test_clean_query_matches_accented_punctuated_title(user1_client, event_ecole):
-    """'ecole d aventure au mont-blanc' must match 'École d'aventure au Mont Blanc'."""
-    response = user1_client.get(get_url("ecole d aventure au mont-blanc"))
-    assert response.status_code == 200
-    assert any(e["id"] == event_ecole.id for e in response.json)
-
-
-def test_accented_punctuated_query_matches_clean_title(
-    user1_client, event_ecole_hyphenated
+def test_punctuation_free_query_matches_punctuated_title(
+    user1_client, event_with_punctuation
 ):
-    """'École d'aventure au Mont Blanc' must match 'ecole d aventure au mont-blanc'."""
-    response = user1_client.get(
-        get_url("\u00c9cole d%27aventure au Mont Blanc")
-    )
+    """'Ecole d aventure au Mont Blanc' must match 'Ecole d'aventure au Mont-Blanc'."""
+    response = user1_client.get(get_url("Ecole d aventure au Mont Blanc"))
     assert response.status_code == 200
-    assert any(e["id"] == event_ecole_hyphenated.id for e in response.json)
+    assert any(e["id"] == event_with_punctuation.id for e in response.json)
+
+
+def test_punctuated_query_matches_differently_punctuated_title(
+    user1_client, event_with_punctuation
+):
+    """'Ecole d%27aventure au Mont/Blanc' must match 'Ecole d'aventure au Mont-Blanc'."""
+    response = user1_client.get(get_url("Ecole d%27aventure au Mont/Blanc"))
+    assert response.status_code == 200
+    assert any(e["id"] == event_with_punctuation.id for e in response.json)
 
 
 # ---------------------------------------------------------------------------

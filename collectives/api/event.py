@@ -2,7 +2,6 @@
 
 import json
 import re
-import unicodedata
 from datetime import timedelta
 
 from flask import abort, request, url_for
@@ -230,49 +229,33 @@ class AutocompleteEventSchema(EventSchema):
 
 
 def _normalize_search_term(text: str) -> str:
-    """Normalize a search term for accent- and punctuation-insensitive matching.
+    """Normalize a search term for punctuation-insensitive matching.
 
-    Strips combining accent characters and punctuation.
+    Strips punctuation characters, replacing them with spaces.
+    Accent stripping is left to the database collation (MySQL ``unicode_ci``).
     """
-    text = unicodedata.normalize("NFKD", text)
-    text = "".join(c for c in text if not unicodedata.combining(c))
     text = re.sub(r"[^\w\s]", " ", text)
     return text.strip()
 
 
-# Mapping used to build a SQL expression that normalises a title column
-# in a DB-engine-agnostic way (works in both SQLite and MySQL).
-#
-# Must match what _normalize_search_term() does on the Python side:
-# - all [^\w\s] punctuation → space  (Python uses re.sub)
-# - all accented characters → ASCII  (Python uses NFKD + strip combining)
-#
-# Punctuation common in French event titles:
-_SQL_NORMALIZE_MAP = [
+# Punctuation replacements applied SQL-side so that queries without
+# punctuation can match titles that contain apostrophes, hyphens, etc.
+# Accent handling is delegated to the DB collation (MySQL unicode_ci).
+_SQL_PUNCTUATION_MAP = [
     ("'", " "), ("\u2019", " "), ("-", " "),
     ("/", " "), ("(", " "), (")", " "),
     (":", " "), (".", " "), (",", " "),
     ("!", " "), ("?", " "), (";", " "),
-    # Accented characters (lower + upper) — French + common borrowed
-    ("à", "a"), ("â", "a"), ("ä", "a"), ("À", "A"), ("Â", "A"), ("Ä", "A"),
-    ("é", "e"), ("è", "e"), ("ê", "e"), ("ë", "e"),
-    ("É", "E"), ("È", "E"), ("Ê", "E"), ("Ë", "E"),
-    ("î", "i"), ("ï", "i"), ("Î", "I"), ("Ï", "I"),
-    ("ò", "o"), ("ó", "o"), ("ô", "o"), ("ö", "o"), ("Ò", "O"), ("Ó", "O"), ("Ô", "O"), ("Ö", "O"),
-    ("ù", "u"), ("û", "u"), ("ü", "u"), ("Ù", "U"), ("Û", "U"), ("Ü", "U"),
-    ("ç", "c"), ("Ç", "C"),
-    ("ñ", "n"), ("Ñ", "N"),
 ]  # fmt: skip
 
 
 def _sql_normalized_title():
-    """Return a SQL expression that normalises ``Event.title``.
+    """Return a SQL expression that strips punctuation from ``Event.title``.
 
-    Chains ``REPLACE()`` calls for each entry in :data:`_SQL_NORMALIZE_MAP`
-    so that accents and common punctuation are stripped on the DB side.
+    Chains ``REPLACE()`` calls for each entry in :data:`_SQL_PUNCTUATION_MAP`.
     """
     col = Event.title
-    for src, dst in _SQL_NORMALIZE_MAP:
+    for src, dst in _SQL_PUNCTUATION_MAP:
         col = func.replace(col, src, dst)
     return col
 

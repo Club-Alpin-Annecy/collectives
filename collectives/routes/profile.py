@@ -64,7 +64,6 @@ def before_request():
     pass
 
 
-
 @blueprint.route("/user/<int:user_id>", methods=["GET"])
 @blueprint.route("/user/<int:user_id>/from_event/<int:event_id>", methods=["GET"])
 def show_user(user_id: int, event_id: int = 0):
