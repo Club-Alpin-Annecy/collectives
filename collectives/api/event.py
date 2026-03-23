@@ -232,14 +232,49 @@ class AutocompleteEventSchema(EventSchema):
 def _normalize_search_term(text: str) -> str:
     """Normalize a search term for accent- and punctuation-insensitive matching.
 
-    Strips combining accent characters and punctuation, and lowercases the result.
-    On MySQL with a unicode_ci collation the DB side is already accent-insensitive,
-    so passing the normalized term makes both directions work.
+    Strips combining accent characters and punctuation.
     """
     text = unicodedata.normalize("NFKD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
     text = re.sub(r"[^\w\s]", " ", text)
     return text.strip()
+
+
+# Mapping used to build a SQL expression that normalises a title column
+# in a DB-engine-agnostic way (works in both SQLite and MySQL).
+#
+# Must match what _normalize_search_term() does on the Python side:
+# - all [^\w\s] punctuation → space  (Python uses re.sub)
+# - all accented characters → ASCII  (Python uses NFKD + strip combining)
+#
+# Punctuation common in French event titles:
+_SQL_NORMALIZE_MAP = [
+    ("'", " "), ("\u2019", " "), ("-", " "),
+    ("/", " "), ("(", " "), (")", " "),
+    (":", " "), (".", " "), (",", " "),
+    ("!", " "), ("?", " "), (";", " "),
+    # Accented characters (lower + upper) — French + common borrowed
+    ("à", "a"), ("â", "a"), ("ä", "a"), ("À", "A"), ("Â", "A"), ("Ä", "A"),
+    ("é", "e"), ("è", "e"), ("ê", "e"), ("ë", "e"),
+    ("É", "E"), ("È", "E"), ("Ê", "E"), ("Ë", "E"),
+    ("î", "i"), ("ï", "i"), ("Î", "I"), ("Ï", "I"),
+    ("ò", "o"), ("ó", "o"), ("ô", "o"), ("ö", "o"), ("Ò", "O"), ("Ó", "O"), ("Ô", "O"), ("Ö", "O"),
+    ("ù", "u"), ("û", "u"), ("ü", "u"), ("Ù", "U"), ("Û", "U"), ("Ü", "U"),
+    ("ç", "c"), ("Ç", "C"),
+    ("ñ", "n"), ("Ñ", "N"),
+]  # fmt: skip
+
+
+def _sql_normalized_title():
+    """Return a SQL expression that normalises ``Event.title``.
+
+    Chains ``REPLACE()`` calls for each entry in :data:`_SQL_NORMALIZE_MAP`
+    so that accents and common punctuation are stripped on the DB side.
+    """
+    col = Event.title
+    for src, dst in _SQL_NORMALIZE_MAP:
+        col = func.replace(col, src, dst)
+    return col
 
 
 @blueprint.route("/event/autocomplete/")
@@ -289,11 +324,13 @@ def autocomplete_event():
             # "#N" pattern: look up by id only, no title search
             search_clause = Event.id == event_id
         else:
-            # Title search: try both the original term and the normalized one so
-            # that apostrophes/accents in the stored title are still matched.
-            search_clause = Event.title.ilike(f"%{search_term}%")
-            if normalized and normalized.lower() != search_term.lower():
-                search_clause = or_(search_clause, Event.title.ilike(f"%{normalized}%"))
+            # Title search: match the original term against the raw title,
+            # plus the normalized term against a SQL-side normalized title
+            # so that "ecole d aventure" matches "École d'aventure", etc.
+            search_clause = or_(
+                Event.title.ilike(f"%{search_term}%"),
+                _sql_normalized_title().ilike(f"%{normalized}%"),
+            )
             if event_id is not None:
                 search_clause = or_(search_clause, Event.id == event_id)
         query = query.filter(search_clause)
