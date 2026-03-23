@@ -89,12 +89,12 @@ def test_python_and_sql_normalize_match(app, title):
     This catches any character that _normalize_search_term handles but
     _SQL_NORMALIZE_MAP does not (or vice-versa).
     """
+    from datetime import date, timedelta
+
     from collectives.api.event import _sql_normalized_title
-    from collectives.models import Event, db
 
     # Create a temporary event with the given title
-    from collectives.models import ActivityType, EventType
-    from datetime import date, timedelta
+    from collectives.models import ActivityType, Event, EventType, db
 
     alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
     event_type = EventType.query.filter_by(name="Collective").first()
