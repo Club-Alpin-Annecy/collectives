@@ -47,9 +47,9 @@ function setupAutoComplete(
         xhr.send();
     };
 
-    //  Functor calling 'onSelect' with id and value from the select item
+    //  Functor calling 'onSelect' with id, value, and optional token from the selected item
     const onSelectInternal = function (e, term, item) {
-        onSelect(item.getAttribute('data-id'), item.getAttribute('data-val'));
+        onSelect(item.getAttribute('data-id'), item.getAttribute('data-val'), item.getAttribute('data-token'));
     }
 
     const renderItem = function (item) {
@@ -63,7 +63,8 @@ function setupAutoComplete(
             var style = ""; 
             var misc = "";
         }
-        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}" style="${style}">${innerHTML} ${misc}</div>`
+        var token = item.token ? ` data-token="${item.token}"` : '';
+        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}"${token} style="${style}">${innerHTML} ${misc}</div>`
     };
 
     return new window.autoComplete({

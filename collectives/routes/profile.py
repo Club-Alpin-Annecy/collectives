@@ -3,6 +3,7 @@
 This modules contains the /profile Blueprint
 """
 
+import hmac
 import textwrap
 from datetime import date
 from io import BytesIO
@@ -48,6 +49,7 @@ from collectives.routes.auth import (
 from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
+from collectives.utils.profile_token import profile_token
 from collectives.utils.time import current_time
 
 images = Images()
@@ -60,6 +62,7 @@ blueprint = Blueprint("profile", __name__, url_prefix="/profile")
 def before_request():
     """Protect all profile from unregistered access"""
     pass
+
 
 
 @blueprint.route("/user/<int:user_id>", methods=["GET"])
@@ -82,15 +85,31 @@ def show_user(user_id: int, event_id: int = 0):
             flash("Non autorisé", "error")
             return redirect(url_for("event.index"))
 
-        if (
-            not current_user.is_hotline()
-            and not current_user.is_supervisor()
-            and not current_user.can_create_events()
-        ):
-            # Hotline, supervisors, and leaders can see info about all users
-            # Other roles need a link from an event to which the user is registered
+        if current_user.is_hotline() or current_user.is_supervisor():
+            # Hotline and supervisors can access any profile freely
+            pass
+        elif current_user.can_create_events():
+            # Leaders can access via either:
+            # (a) a signed token issued by /profile/goto — prevents ID enumeration
+            # (b) a valid event link (existing path for clicking a participant's name)
+            token = request.args.get("token", "")
+            has_valid_token = hmac.compare_digest(
+                token, profile_token(current_user.id, user_id)
+            )
 
-            event: Event = db.session.get(Event, event_id)
+            event: Event = db.session.get(Event, event_id) if event_id else None
+            has_event_access = (
+                event is not None
+                and event.has_edit_rights(current_user)
+                and event.is_registered(user)
+            )
+
+            if not has_valid_token and not has_event_access:
+                flash("Non autorisé", "error")
+                return redirect(url_for("event.index"))
+        else:
+            # Other roles need a link from an event to which the user is registered
+            event = db.session.get(Event, event_id)
 
             if (
                 event is None

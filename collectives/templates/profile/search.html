@@ -13,8 +13,9 @@
       setupUserAutoComplete(
         searchInput,
         '{{ url_for("api.autocomplete_users") }}',
-        function (id, val) {
-          window.location.href = '{{ url_for("profile.show_user", user_id=0) }}'.replace('/0', '/' + id);
+        function (id, val, token) {
+          var base = '{{ url_for("profile.show_user", user_id=0) }}'.replace('/0', '/' + id);
+          window.location.href = base + '?token=' + encodeURIComponent(token);
         }
       );
     };

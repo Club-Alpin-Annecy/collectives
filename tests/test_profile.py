@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from flask import url_for
 
 from collectives.models import BadgeCustomLevel, BadgeIds, Event, User, db
+from collectives.utils.profile_token import profile_token
 from tests import utils
 from tests.fixtures import client
 from tests.fixtures.misc import (
@@ -40,11 +41,22 @@ def test_show_user_profile_to_leader_with_event(leader_client, event1_with_reg, 
     assert user1.mail in response.text
 
 
-def test_show_user_profile_to_leader_without_event(leader_client, user2):
-    """Test that a leader can access a user profile without an event link."""
+def test_do_not_show_user_profile_to_leader_without_token(leader_client, user2):
+    """Test that a leader cannot access a user profile without a token or event link."""
 
     response = leader_client.get(f"/profile/user/{user2.id}")
+    assert response.status_code == 302
+
+
+def test_show_user_profile_to_leader_with_token(leader_client, user2):
+    """Test that a leader can access a user profile with a valid HMAC token."""
+
+    token = profile_token(leader_client.user.id, user2.id)
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user2.id, token=token)
+    )
     assert response.status_code == 200
+    assert user2.full_name() in response.text
 
 
 def test_do_not_show_user_profile_to_other(user1_client, user2):
