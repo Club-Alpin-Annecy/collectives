@@ -547,6 +547,9 @@ def search_user():
     Accessible to users who can create events (leaders, supervisors, etc.).
     Requires the RGPD confidentiality agreement to be signed.
     """
+    if not Configuration.USER_SEARCH_ENABLED:
+        abort(404)
+
     if not current_user.can_create_events():
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
