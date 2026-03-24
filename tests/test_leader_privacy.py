@@ -13,6 +13,16 @@ def test_regular_user_can_access_leader_profile_by_default(user1_client, leader_
     assert response.status_code == 200
 
 
+def test_leader_can_access_own_profile(
+    leader_client, leader_user, enable_leader_privacy
+):
+    """A leader can always access their own profile, even with LEADER_PRIVACY enabled."""
+    response = leader_client.get(
+        url_for("profile.show_leader", leader_id=leader_user.id)
+    )
+    assert response.status_code == 200
+
+
 def test_regular_user_cannot_access_leader_profile(
     user1_client, leader_user, enable_leader_privacy
 ):

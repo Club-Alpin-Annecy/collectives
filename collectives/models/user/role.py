@@ -282,6 +282,8 @@ class UserRoleMixin:
             return False
         if not Configuration.LEADER_PRIVACY:
             return True
+        if self.id == leader.id:
+            return True
         if self.is_moderator():
             return True
         if self.is_hotline():
