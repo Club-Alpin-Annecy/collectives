@@ -184,6 +184,11 @@ Divers:
             volunteer certificate generation. Dimensions: 2479x3508
         type: SecretFile
 
+    LEADER_PRIVACY:
+        content: false
+        description: Si activé, le profil encadrant est masqué pour les adhérents.
+        type: Boolean
+
 Règlements:
     GUIDE_FILE:
         content: caf/doc/Organisation des sorties.pdf

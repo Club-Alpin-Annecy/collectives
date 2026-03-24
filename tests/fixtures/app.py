@@ -55,3 +55,10 @@ def enable_sanctions():
     """Enable sanctions in configuration"""
     Configuration.get_item("ENABLE_SANCTIONS").content = True
     Configuration.uncache("ENABLE_SANCTIONS")
+
+
+@pytest.fixture
+def enable_leader_privacy():
+    """Enable leader privacy in configuration"""
+    Configuration.get_item("LEADER_PRIVACY").content = True
+    Configuration.uncache("LEADER_PRIVACY")

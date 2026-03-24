@@ -4,6 +4,7 @@ import datetime
 from typing import List, Set
 
 from collectives.models.activity_type import ActivityType
+from collectives.models.configuration import Configuration
 from collectives.models.globals import db
 from collectives.models.role import Role, RoleIds
 
@@ -265,3 +266,26 @@ class UserRoleMixin:
         return {
             role.activity_type for role in self.roles if role.activity_type is not None
         }
+
+    def can_see_leader_profile(self, leader: "User") -> bool:
+        """Check if the current user may view a leader's profile.
+
+        When :py:attr:`collectives.models.configuration.Configuration.LEADER_PRIVACY`
+        is disabled (default), every authenticated user can see leader profiles.
+        When enabled, only moderators, hotline users, and supervisors of any
+        activity managed by the leader retain access.
+
+        :param leader: The leader whose profile is being accessed.
+        :return: True if the current user is allowed to see the leader's profile.
+        """
+        if not self.is_authenticated:
+            return False
+        if not Configuration.LEADER_PRIVACY:
+            return True
+        if self.is_moderator():
+            return True
+        if self.is_hotline():
+            return True
+        supervised_ids = {a.id for a in self.get_supervised_activities()}
+        leader_activity_ids = {a.id for a in leader.get_organizable_activities()}
+        return bool(supervised_ids & leader_activity_ids)

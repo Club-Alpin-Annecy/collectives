@@ -62,7 +62,10 @@
 {%- endmacro %}
 
 {% macro leader_icon(leader) -%}
-      {{usericon(leader, show_info=True, info_url=url_for("profile.show_leader", leader_id=leader.id))}}
+      {{usericon(leader, 
+            show_info= current_user.is_authenticated and current_user.can_see_leader_profile(leader), 
+            info_url=url_for("profile.show_leader", leader_id=leader.id)
+      )}}
 {%- endmacro%}
 
 {% macro registration_icon(registration) -%}
