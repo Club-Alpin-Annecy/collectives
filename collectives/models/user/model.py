@@ -189,6 +189,7 @@ class UserModelMixin:
         db.Boolean,
         nullable=False,
         default=False,
+        info={"label": "Notifications de nouvelles collectives activées"},
     )
     """Whether this user receives notifications when new events are created.
 
@@ -198,6 +199,7 @@ class UserModelMixin:
     new_event_notification_weekdays = db.Column(
         db.String(32),
         nullable=True,
+        info={"label": "Jours des notifications"},
     )
     """Comma-separated list of week day indexes (0=Monday, 6=Sunday).
 
@@ -219,19 +221,31 @@ class UserModelMixin:
     :type: :py:class:`collectives.models.user.enum.NotificationFrequency`
     """
 
-    last_new_event_notification_sent_at = db.Column(db.DateTime, nullable=True)
+    last_new_event_notification_sent_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Dernier digest envoyé le"},
+    )
     """Last time a new-event notification digest was sent.
 
     :type: :py:class:`datetime.datetime`
     """
 
-    last_new_event_notification_clicked_at = db.Column(db.DateTime, nullable=True)
+    last_new_event_notification_clicked_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Dernier clic sur une notification"},
+    )
     """Last tracked click on a new-event notification email.
 
     :type: :py:class:`datetime.datetime`
     """
 
-    new_event_notification_warning_sent_at = db.Column(db.DateTime, nullable=True)
+    new_event_notification_warning_sent_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Préavis d'inactivité envoyé le"},
+    )
     """When the inactivity warning email was last sent.
 
     :type: :py:class:`datetime.datetime`

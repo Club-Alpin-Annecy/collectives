@@ -98,6 +98,22 @@ class AdminTestUserForm(OrderedModelForm, AvatarForm, OptionalPasswordForm):
         AvatarForm.__init__(self, kwargs.get("obj"))
 
 
+class AdminTestUserCreationForm(AdminTestUserForm):
+    """Form for admins to create test/local users without notification internals."""
+
+    class Meta(AdminTestUserForm.Meta):
+        """Fields to expose on creation."""
+
+        exclude = AdminTestUserForm.Meta.exclude + [
+            "new_event_notification_enabled",
+            "new_event_notification_weekdays",
+            "new_event_notification_frequency",
+            "last_new_event_notification_sent_at",
+            "last_new_event_notification_clicked_at",
+            "new_event_notification_warning_sent_at",
+        ]
+
+
 class AdminUserForm(OrderedModelForm, AvatarForm):
     """Form for admins to edit real users info"""
 
@@ -284,6 +300,7 @@ class NotificationPreferencesForm(FlaskForm):
         coerce=int,
         description="Laisser vide pour tous les jours.",
     )
+    next = HiddenField()
     submit = SubmitField("Enregistrer")
 
     def __init__(self, user: User, *args, **kwargs):

@@ -21,6 +21,10 @@ from collectives.utils.time import current_time
 # Upload
 avatars = UploadSet("avatars", IMAGES)
 
+NEW_EVENT_DAILY_DIGEST_HOUR = 8
+NEW_EVENT_WEEKLY_DIGEST_WEEKDAY = 0
+NEW_EVENT_WEEKLY_DIGEST_HOUR = 8
+
 
 class UserMiscMixin:
     """Part of User for misc methods
@@ -98,11 +102,28 @@ class UserMiscMixin:
 
         return True
 
-    def notification_digest_interval_days(self) -> int:
-        """:returns: Number of days between digest sends."""
+    def next_notification_digest_slot(self, now=None) -> datetime.datetime:
+        """Return the current digest slot boundary for the selected frequency."""
+        now = now or current_time()
+
         if self.new_event_notification_frequency == NotificationFrequency.Daily:
-            return 1
-        return 7
+            return now.replace(
+                hour=NEW_EVENT_DAILY_DIGEST_HOUR,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
+
+        days_since_digest_day = (
+            now.weekday() - NEW_EVENT_WEEKLY_DIGEST_WEEKDAY
+        ) % 7
+        slot_day = now - datetime.timedelta(days=days_since_digest_day)
+        return slot_day.replace(
+            hour=NEW_EVENT_WEEKLY_DIGEST_HOUR,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
 
     def is_new_event_digest_due(self, now=None) -> bool:
         """Check whether a new digest may be sent to this user."""
@@ -113,10 +134,13 @@ class UserMiscMixin:
             return False
         if not self.check_license_valid_at_time(now):
             return False
+
+        current_slot = self.next_notification_digest_slot(now)
+        if now < current_slot:
+            return False
         if self.last_new_event_notification_sent_at is None:
             return True
-        delta = now - self.last_new_event_notification_sent_at
-        return delta >= datetime.timedelta(days=self.notification_digest_interval_days())
+        return self.last_new_event_notification_sent_at < current_slot
 
     def new_event_notification_inactive_since(self):
         """Return the reference datetime used to detect notification inactivity."""

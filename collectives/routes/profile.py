@@ -97,6 +97,7 @@ def show_user(user_id: int, event_id: int = 0):
 
     practitioner_badge_form = None
     skill_badge_form = None
+    notification_form = None
 
     if user.id != current_user.id:
         if not current_user.has_any_role():
@@ -152,12 +153,17 @@ def show_user(user_id: int, event_id: int = 0):
             )
             skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
 
+    if user.id == current_user.id:
+        notification_form = NotificationPreferencesForm(current_user)
+        notification_form.next.data = url_for("profile.show_user", user_id=user.id)
+
     return render_template(
         "profile/main.html",
         title="Profil adhérent",
         user=user,
         practitioner_badge_form=practitioner_badge_form,
         skill_badge_form=skill_badge_form,
+        notification_form=notification_form,
         event_id=event_id,
     )
 
@@ -230,6 +236,7 @@ def update_notifications():
     """Route to update current user notification preferences."""
 
     form = NotificationPreferencesForm(current_user)
+    next_url = form.next.data
 
     if form.validate_on_submit():
         was_enabled = current_user.new_event_notification_enabled
@@ -266,7 +273,20 @@ def update_notifications():
         db.session.commit()
 
         flash("Préférences de notification mises à jour", "success")
+        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+            return redirect(next_url)
         return redirect(url_for("profile.update_notifications"))
+
+    if next_url == url_for("profile.show_user", user_id=current_user.id):
+        return render_template(
+            "profile/main.html",
+            title="Profil adhérent",
+            user=current_user,
+            practitioner_badge_form=None,
+            skill_badge_form=None,
+            notification_form=form,
+            event_id=0,
+        )
 
     return render_template(
         "basicform.html",
@@ -348,7 +368,11 @@ def unsubscribe_notifications(token: str):
     db.session.add(user)
     db.session.commit()
     flash("Les notifications de nouvelles collectives ont été désactivées.", "success")
-    return redirect(url_for("root.index"))
+    if current_user.is_authenticated and current_user.id == user.id:
+        return redirect(url_for("profile.update_notifications"))
+    return redirect(
+        url_for("auth.login", next=url_for("profile.update_notifications"))
+    )
 
 
 @blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})

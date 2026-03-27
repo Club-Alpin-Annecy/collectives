@@ -10,6 +10,11 @@ from collectives.models import (
     UserType,
     db,
 )
+from collectives.models.user.misc import (
+    NEW_EVENT_DAILY_DIGEST_HOUR,
+    NEW_EVENT_WEEKLY_DIGEST_HOUR,
+    NEW_EVENT_WEEKLY_DIGEST_WEEKDAY,
+)
 from collectives.new_event_notifications import (
     INACTIVITY_WARNING_DELAY_DAYS,
     apply_inactive_notification_policy,
@@ -28,11 +33,21 @@ def _extract_first_link(message: str, marker: str) -> str:
     return match.group(1).replace("http://localhost", "")
 
 
+def _daily_digest_now():
+    now = current_time()
+    return now.replace(
+        hour=NEW_EVENT_DAILY_DIGEST_HOUR,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+
 def test_send_new_event_digest_only_to_active_licensed_users(
     app, user1, user2, event, mail_success_monkeypatch
 ):
     """Digest sending should skip users with an expired license."""
-    now = current_time()
+    now = _daily_digest_now()
 
     user1.new_event_notification_enabled = True
     user1.new_event_notification_frequency = NotificationFrequency.Daily
@@ -63,7 +78,7 @@ def test_notification_links_track_click_and_unsubscribe(
     app, client, user1, event, mail_success_monkeypatch
 ):
     """Digest links should work without authentication."""
-    now = current_time()
+    now = _daily_digest_now()
     user1.new_event_notification_enabled = True
     user1.new_event_notification_frequency = NotificationFrequency.Daily
     user1.last_new_event_notification_sent_at = now - timedelta(days=2)
@@ -90,7 +105,7 @@ def test_notification_links_track_click_and_unsubscribe(
 
     response = client.get(unsubscribe_link, follow_redirects=False)
     assert response.status_code == 302
-    assert response.location == "/"
+    assert response.location == "/auth/login?next=/profile/user/notifications"
 
     db.session.expire(user1)
     assert not user1.new_event_notification_enabled
@@ -126,7 +141,7 @@ def test_digest_contains_clickable_unsubscribe_link_in_html(
     app, user1, event, mail_success_monkeypatch
 ):
     """Digest emails should expose an explicit HTML unsubscribe link."""
-    now = current_time()
+    now = _daily_digest_now()
     user1.new_event_notification_enabled = True
     user1.new_event_notification_frequency = NotificationFrequency.Daily
     user1.last_new_event_notification_sent_at = now - timedelta(days=2)
@@ -147,7 +162,7 @@ def test_send_new_event_digests_purges_delivered_notifications(
     user1, user2, event, mail_success_monkeypatch
 ):
     """Delivered queue rows should be purged once all active subscribers progressed."""
-    now = current_time()
+    now = _daily_digest_now()
     user1.new_event_notification_enabled = True
     user1.new_event_notification_frequency = NotificationFrequency.Daily
     user1.last_new_event_notification_sent_at = now - timedelta(days=2)
@@ -192,3 +207,35 @@ def test_inactive_notification_policy_warns_then_disables(
     assert (warned, disabled) == (0, 1)
     assert not user1.new_event_notification_enabled
     assert user1.new_event_notification_warning_sent_at is None
+
+
+def test_daily_digest_waits_for_fixed_hour(user1):
+    """Daily digests should not be due before the configured hour."""
+    now = current_time().replace(
+        hour=max(NEW_EVENT_DAILY_DIGEST_HOUR - 1, 0),
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+    user1.new_event_notification_enabled = True
+    user1.new_event_notification_frequency = NotificationFrequency.Daily
+    user1.last_new_event_notification_sent_at = now - timedelta(days=1)
+
+    assert not user1.is_new_event_digest_due(now=now)
+
+
+def test_weekly_digest_waits_for_fixed_weekday_and_hour(user1):
+    """Weekly digests should be due only once the fixed weekly slot is reached."""
+    now = current_time().replace(
+        hour=NEW_EVENT_WEEKLY_DIGEST_HOUR,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+    now = now + timedelta(days=(NEW_EVENT_WEEKLY_DIGEST_WEEKDAY - now.weekday()) % 7)
+    user1.new_event_notification_enabled = True
+    user1.new_event_notification_frequency = NotificationFrequency.Weekly
+    user1.last_new_event_notification_sent_at = now - timedelta(days=6)
+
+    assert user1.is_new_event_digest_due(now=now)
+    assert not user1.is_new_event_digest_due(now=now - timedelta(days=1))
