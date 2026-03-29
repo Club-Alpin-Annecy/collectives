@@ -24,6 +24,7 @@ from collectives.models.user_group import GroupEventCondition, UserGroup
 from collectives.utils.time import current_time
 from tests import utils
 from tests.fixtures.user import promote_user
+from tests.mock.config import configuration_override
 
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-import
@@ -282,10 +283,10 @@ def test_event_creation(leader_client):
     assert "<strong>Lorem ipsum</strong>" in response.text
 
 
-def test_draft_event_notification_without_checkbox(
+def test_draft_event_notification_sent_by_default(
     leader_client, mail_success_monkeypatch
 ):
-    """Test that no notification is sent when creating a draft event without checkbox"""
+    """Test that notification is sent when creating a draft event (default config)"""
     response = leader_client.get("/collectives/add")
     assert response.status_code == 200
 
@@ -313,18 +314,21 @@ def test_draft_event_notification_without_checkbox(
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",
-        "edit_session_id": "test-draft-no-checkbox",
+        "edit_session_id": "test-draft-default",
     }
-    initial_mail_count = mail_success_monkeypatch.sent_mail_count()
     response = leader_client.post("/collectives/add", data=data, follow_redirects=True)
     assert response.status_code == 200
-    assert mail_success_monkeypatch.sent_mail_count() == initial_mail_count
+    mails_to_activity = mail_success_monkeypatch.sent_to("dev-collectives@cafannecy.fr")
+    assert len(mails_to_activity) == 1
+    assert "Test draft event" in mails_to_activity[0]["message"]
+    assert "En attente" in mails_to_activity[0]["subject"]
 
 
-def test_draft_event_notification_with_checkbox(
-    leader_client, mail_success_monkeypatch
+def test_draft_event_create_notification_not_sent_if_disabled_by_config(
+    leader_client, mail_success_monkeypatch, configuration_override
 ):
-    """Test that notification is sent when creating a draft event with checkbox checked"""
+    """Test that no notification is sent when creating a draft event when config.NEW_EVENT_NOTIFICATION_ON_CONFIRM is True"""
+    configuration_override("NEW_EVENT_NOTIFICATION_ON_CONFIRM", True)
     response = leader_client.get("/collectives/add")
     assert response.status_code == 200
 
@@ -338,9 +342,8 @@ def test_draft_event_notification_with_checkbox(
         "main_leader_id": leader_client.user.id,
         "add_leader": "0",
         "update_leaders": "0",
-        "title": "Test draft event with notification",
+        "title": "Test draft event with config",
         "status": int(EventStatus.Pending),
-        "notify_on_draft": "y",
         "num_slots": "5",
         "start": (now + timedelta(days=10)).strftime("%Y-%m-%d %X"),
         "end": (now + timedelta(days=10, hours=3)).strftime("%Y-%m-%d %X"),
@@ -353,20 +356,16 @@ def test_draft_event_notification_with_checkbox(
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",
-        "edit_session_id": "test-draft-with-checkbox",
+        "edit_session_id": "test-draft-config-disabled",
     }
+    initial_mail_count = mail_success_monkeypatch.sent_mail_count()
     response = leader_client.post("/collectives/add", data=data, follow_redirects=True)
     assert response.status_code == 200
-    mails_to_activity = mail_success_monkeypatch.sent_to("dev-collectives@cafannecy.fr")
-    assert len(mails_to_activity) == 1
-    assert "Test draft event with notification" in mails_to_activity[0]["message"]
-    assert "En attente" in mails_to_activity[0]["subject"]
+    assert mail_success_monkeypatch.sent_mail_count() == initial_mail_count
 
 
-def test_confirmed_event_notification_always_sent(
-    leader_client, mail_success_monkeypatch
-):
-    """Test that notification is always sent when creating a confirmed event"""
+def test_confirmed_event_notification(leader_client, mail_success_monkeypatch):
+    """Test that notification is sent when creating a confirmed event"""
     response = leader_client.get("/collectives/add")
     assert response.status_code == 200
 
@@ -441,15 +440,11 @@ def test_event_modification(event, leader_client):
     assert "New <strong>description</strong> for you" in response.text
 
 
-def test_notify_checkbox_not_in_edit_mode(event, leader_client):
-    """Test that notify_on_draft checkbox is not present in edit mode"""
-    response = leader_client.get(f"/collectives/{event.id}/edit")
-    assert response.status_code == 200
-    assert "notify_on_draft" not in response.text
-
-
-def test_draft_to_confirmed_sends_notification(event, leader_client, mail_success_monkeypatch):
-    """Test that modifying a draft event to confirmed sends a notification"""
+def test_draft_to_confirmed_sends_notification_with_config(
+    event, leader_client, mail_success_monkeypatch, configuration_override
+):
+    """Test that modifying a draft event to confirmed sends a notification when config is enabled"""
+    configuration_override("NEW_EVENT_NOTIFICATION_ON_CONFIRM", True)
     response = leader_client.get(f"/collectives/{event.id}/edit")
     assert response.status_code == 200
 

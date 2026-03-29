@@ -68,7 +68,6 @@
 
           setupDatePickers(newEvent = {{ "false" if event.id else "true" }});
         setupMultiselect();
-        setupNotifyOnDraft();
       };
   </script>
 
@@ -175,12 +174,6 @@
     <div class="controls">
       <label for="status">État : </label> {{ form.status }}
     </div>
-    {% if not event.id %}
-    <div id="notify_on_draft_wrapper" class="inline_field" style="display:none;">
-      {{ form.notify_on_draft }}
-      <label for="notify_on_draft">Envoyer une notification aux responsables d'activité</label>
-    </div>
-    {% endif %}
     <div class="controls">
       <label for="visibility">Visibilité : </label> {{ form.visibility }}
     </div>

@@ -184,10 +184,6 @@ class EventForm(ModelForm, FlaskForm):
 
     edit_session_id = HiddenField()
 
-    notify_on_draft = BooleanField(
-        "Envoyer une notification aux responsables d'activité"
-    )
-
     user_group = FormField(
         UserGroupForm, label="Restrictions d'inscription", default=UserGroup
     )

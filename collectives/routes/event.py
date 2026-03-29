@@ -666,23 +666,28 @@ def manage_event(event_id=None):
 
     if event_id is None:
         # This is a new event, send notification to supervisor
-        # If status is Pending (draft), notification is controlled by checkbox
         # If status is Confirmed or Cancelled, always send notification
-        if event.status != EventStatus.Pending or form.notify_on_draft.data:
-            send_new_event_notification(event)
-    else:
-        # This is a modified event
-        if current_status == EventStatus.Pending and event.status == EventStatus.Confirmed:
-            # Status changed from draft to confirmed, send notification to supervisors
-            send_new_event_notification(event)
-        elif (
-            current_status == EventStatus.Confirmed
-            and event.status == EventStatus.Cancelled
+        # Draft events (Pending) send notification only if config is disabled (default)
+        if (
+            event.status != EventStatus.Pending
+            or not Configuration.NEW_EVENT_NOTIFICATION_ON_CONFIRM
         ):
-            # Status changed from Confirmed to Cancelled.
-            # A notification is sent to registered users and sanction status are rehabilitated
-            send_cancelled_event_notification(current_user.full_name(), event)
-            _clear_sanctioned_registrations(event)
+            send_new_event_notification(event)
+    elif (
+        current_status == EventStatus.Pending
+        and event.status == EventStatus.Confirmed
+        and Configuration.NEW_EVENT_NOTIFICATION_ON_CONFIRM
+    ):
+        # Status changed from draft to confirmed, send notification if configured
+        send_new_event_notification(event)
+    elif (
+        current_status == EventStatus.Confirmed
+        and event.status == EventStatus.Cancelled
+    ):
+        # Status changed from Confirmed to Cancelled.
+        # A notification is sent to registered users and sanction status are rehabilitated
+        send_cancelled_event_notification(current_user.full_name(), event)
+        _clear_sanctioned_registrations(event)
 
     return redirect(url_for("event.view_event", event_id=event.id))
 
