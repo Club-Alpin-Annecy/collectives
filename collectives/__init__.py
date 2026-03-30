@@ -21,8 +21,8 @@ from flask_wtf.csrf import CSRFProtect
 from itsdangerous import URLSafeTimedSerializer
 
 from collectives import api, forms, models
-from collectives.new_event_notifications import register_cli
 from collectives.models import Configuration, DBAdaptedFlaskConfig
+from collectives.new_event_notifications import register_cli
 from collectives.routes import (
     activity_supervison,
     administration,

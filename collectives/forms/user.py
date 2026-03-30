@@ -104,14 +104,7 @@ class AdminTestUserCreationForm(AdminTestUserForm):
     class Meta(AdminTestUserForm.Meta):
         """Fields to expose on creation."""
 
-        exclude = AdminTestUserForm.Meta.exclude + [
-            "new_event_notification_enabled",
-            "new_event_notification_weekdays",
-            "new_event_notification_frequency",
-            "last_new_event_notification_sent_at",
-            "last_new_event_notification_clicked_at",
-            "new_event_notification_warning_sent_at",
-        ]
+        exclude = [*AdminTestUserForm.Meta.exclude, "new_event_notification_enabled", "new_event_notification_weekdays", "new_event_notification_frequency", "last_new_event_notification_sent_at", "last_new_event_notification_clicked_at", "new_event_notification_warning_sent_at"]
 
 
 class AdminUserForm(OrderedModelForm, AvatarForm):

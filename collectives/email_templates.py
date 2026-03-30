@@ -7,10 +7,6 @@ from typing import List
 from flask import current_app, flash, url_for
 from markupsafe import Markup
 
-from collectives.new_event_notifications import (
-    queue_new_event_notification,
-    send_supervisor_new_event_notification,
-)
 from collectives.models import (
     BadgeIds,
     Configuration,
@@ -22,6 +18,10 @@ from collectives.models import (
     db,
 )
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
+from collectives.new_event_notifications import (
+    queue_new_event_notification,
+    send_supervisor_new_event_notification,
+)
 from collectives.utils import mail
 from collectives.utils.time import current_time, format_date
 from collectives.utils.url import slugify

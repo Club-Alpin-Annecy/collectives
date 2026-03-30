@@ -11,10 +11,10 @@ from openpyxl import load_workbook
 from collectives.models import (
     ActivityType,
     Event,
-    NewEventNotification,
     EventStatus,
     EventType,
     EventVisibility,
+    NewEventNotification,
     Payment,
     Question,
     QuestionType,

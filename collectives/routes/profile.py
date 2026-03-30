@@ -9,7 +9,6 @@ from datetime import date
 from io import BytesIO
 from os.path import exists
 
-from itsdangerous import BadSignature, SignatureExpired
 from flask import (
     Blueprint,
     abort,
@@ -23,6 +22,7 @@ from flask import (
 )
 from flask_images import Images
 from flask_login import current_user, logout_user
+from itsdangerous import BadSignature, SignatureExpired
 from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
