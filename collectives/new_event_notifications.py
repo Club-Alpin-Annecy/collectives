@@ -1,5 +1,4 @@
 """Digest-based new-event notification helpers."""
-
 from datetime import timedelta
 
 import click
@@ -26,7 +25,10 @@ INACTIVITY_DISABLE_AFTER_DAYS = 365
 
 
 def queue_new_event_notification(event: Event):
-    """Persist a newly created event for later digest delivery."""
+    """Persist a newly created event for later digest delivery.
+
+    The caller remains responsible for committing the surrounding transaction.
+    """
     db.session.add(NewEventNotification(event=event))
 
 
@@ -154,8 +156,27 @@ def _build_unsubscribe_link(user: User) -> str:
     return url_for("profile.unsubscribe_notifications", token=token, _external=True)
 
 
+def _build_unsubscribe_one_click_link(user: User) -> str:
+    token = user.build_notification_token("unsubscribe")
+    return url_for(
+        "profile.unsubscribe_notifications_one_click", token=token, _external=True
+    )
+
+
+def _digest_headers(user: User) -> dict[str, str]:
+    unsubscribe_link = _build_unsubscribe_one_click_link(user)
+    return {
+        "List-Unsubscribe": f"<{unsubscribe_link}>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+
+
 def _digest_subject(user: User, events: list[Event]) -> str:
-    frequency = "quotidien" if user.new_event_notification_frequency == NotificationFrequency.Daily else "hebdomadaire"
+    frequency = (
+        "quotidien"
+        if user.new_event_notification_frequency == NotificationFrequency.Daily
+        else "hebdomadaire"
+    )
     count = len(events)
     suffix = "nouvelle collective" if count == 1 else "nouvelles collectives"
     return f"Collectives: votre récapitulatif {frequency} ({count} {suffix})"
@@ -210,7 +231,7 @@ def _digest_html_message(user: User, events: list[Event]) -> str:
                 f"Date : {escape(format_date(event.start))}<br/>"
                 f"Activité(s) : {escape(activity_names)}<br/>"
                 f"Encadrant(s) : {escape(leader_names)}<br/>"
-                f'<a href="{escape(_build_event_link(user, event))}">Voir la collective</a>'
+                f'<a href="{_build_event_link(user, event)}">Voir la collective</a>'
                 "</li>"
             )
         )
@@ -222,7 +243,7 @@ def _digest_html_message(user: User, events: list[Event]) -> str:
         f"<ul>{''.join(event_items)}</ul>"
         "<p>Ces notifications doivent rester limitées.<br/>"
         "Si elles ne vous sont plus utiles, pensez à ajuster vos filtres ou à les désactiver.</p>"
-        f'<p><a href="{escape(unsubscribe_link)}">Se désabonner</a> des notifications de nouvelles activités.</p>'
+        f'<p><a href="{unsubscribe_link}">Se désabonner</a> des notifications de nouvelles activités.</p>'
         "<p>Si aucun lien de ces e-mails n'est utilisé pendant un an, l'abonnement sera arrêté après préavis.</p>"
         "<p>Cet e-mail est envoyé par un automate, répondre à cet e-mail sera sans effet.</p>"
     )
@@ -244,12 +265,20 @@ def send_new_event_digests(now=None) -> int:
         if not events:
             continue
 
-        mail.send_mail(
+        sent = mail.send_mail(
             subject=_digest_subject(user, events),
             email=user.mail,
             message=_digest_message(user, events),
             html_message=_digest_html_message(user, events),
+            headers=_digest_headers(user),
+            sync=True,
         )
+        if not sent:
+            current_app.logger.warning(
+                "Skipping digest state update for user %s after SMTP failure",
+                user.id,
+            )
+            continue
         user.last_new_event_notification_sent_at = now
         sent_count += 1
         db.session.add(user)

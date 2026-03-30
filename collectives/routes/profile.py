@@ -30,6 +30,7 @@ from collectives.forms import (
     ExtranetUserForm,
     LocalUserForm,
     NotificationPreferencesForm,
+    csrf,
 )
 from collectives.forms.badge import CompetencyBadgeForm
 from collectives.forms.user import DeleteUserForm
@@ -70,6 +71,7 @@ def before_request():
     if request.endpoint in {
         "profile.notification_click",
         "profile.unsubscribe_notifications",
+        "profile.unsubscribe_notifications_one_click",
     }:
         return None
 
@@ -337,31 +339,23 @@ def notification_click(token: str):
 
 
 @blueprint.route("/user/notifications/unsubscribe/<token>", methods=["GET"])
+@blueprint.route("/user/notifications/unsubscribe/<token>", methods=["POST"])
 def unsubscribe_notifications(token: str):
-    """One-click unsubscribe for notification digests."""
-    serializer = current_app.extensions["new_event_notification_serializer"]
-    try:
-        payload = serializer.loads(
-            token,
-            max_age=current_app.config[
-                "NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"
-            ],
-        )
-    except SignatureExpired:
-        flash("Lien de désabonnement expiré", "error")
-        return redirect(url_for("root.index"))
-    except BadSignature:
-        flash("Lien de désabonnement invalide", "error")
-        return redirect(url_for("root.index"))
-
-    if payload.get("action") != "unsubscribe":
-        flash("Lien de désabonnement invalide", "error")
-        return redirect(url_for("root.index"))
-
-    user = db.session.get(User, payload.get("user_id"))
+    """Display or apply one-click unsubscribe for notification digests."""
+    user = _load_unsubscribe_user_from_token(token)
     if user is None:
-        flash("Lien de désabonnement invalide", "error")
         return redirect(url_for("root.index"))
+
+    if request.method == "GET":
+        return render_template(
+            "profile/unsubscribe_notifications.html",
+            title="Confirmer le désabonnement",
+            description=(
+                "Cette page confirme l'arrêt des notifications de nouvelles "
+                "collectives pour ce compte."
+            ),
+            token=token,
+        )
 
     user.new_event_notification_enabled = False
     user.new_event_notification_warning_sent_at = None
@@ -373,6 +367,52 @@ def unsubscribe_notifications(token: str):
     return redirect(
         url_for("auth.login", next=url_for("profile.update_notifications"))
     )
+
+
+def _load_unsubscribe_user_from_token(token: str):
+    """Resolve the signed unsubscribe token into a user."""
+    serializer = current_app.extensions["new_event_notification_serializer"]
+    try:
+        payload = serializer.loads(
+            token,
+            max_age=current_app.config[
+                "NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"
+            ],
+        )
+    except SignatureExpired:
+        flash("Lien de désabonnement expiré", "error")
+        return None
+    except BadSignature:
+        flash("Lien de désabonnement invalide", "error")
+        return None
+
+    if payload.get("action") != "unsubscribe":
+        flash("Lien de désabonnement invalide", "error")
+        return None
+
+    user = db.session.get(User, payload.get("user_id"))
+    if user is None:
+        flash("Lien de désabonnement invalide", "error")
+        return None
+    return user
+
+
+@blueprint.route(
+    "/user/notifications/unsubscribe/one-click/<token>", methods=["POST"]
+)
+@csrf.exempt
+def unsubscribe_notifications_one_click(token: str):
+    """RFC 8058 one-click unsubscribe endpoint for email clients."""
+    user = _load_unsubscribe_user_from_token(token)
+    if user is None:
+        return "", 400
+    if request.form.get("List-Unsubscribe") != "One-Click":
+        return "", 400
+    user.new_event_notification_enabled = False
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+    return "", 204
 
 
 @blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})

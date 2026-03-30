@@ -1,7 +1,6 @@
 """Tests for digest-based new event notifications."""
 
 import re
-import time
 from datetime import timedelta
 
 from collectives.models import (
@@ -40,6 +39,19 @@ def _daily_digest_now():
         minute=0,
         second=0,
         microsecond=0,
+    )
+
+
+def _freeze_serializer_clock(monkeypatch, timestamp: int):
+    monkeypatch.setattr("itsdangerous.timed.time.time", lambda: timestamp)
+
+
+def test_notification_token_max_age_defaults(app):
+    """Notification links should keep the long-lived base config defaults."""
+    assert app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"] == 45 * 24 * 3600
+    assert (
+        app.config["NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"]
+        == 90 * 24 * 3600
     )
 
 
@@ -95,15 +107,23 @@ def test_notification_links_track_click_and_unsubscribe(
         sent_mail, "/profile/user/notifications/unsubscribe/"
     )
 
+    before_click = current_time()
     response = client.get(click_link, follow_redirects=False)
+    after_click = current_time()
     assert response.status_code == 302
     assert f"/collectives/{event.id}-" in response.location
 
     db.session.expire(user1)
     assert user1.last_new_event_notification_clicked_at is not None
-    assert user1.last_new_event_notification_clicked_at >= now
+    assert before_click <= user1.last_new_event_notification_clicked_at <= after_click
 
     response = client.get(unsubscribe_link, follow_redirects=False)
+    assert response.status_code == 200
+
+    db.session.expire(user1)
+    assert user1.new_event_notification_enabled
+
+    response = client.post(unsubscribe_link, follow_redirects=False)
     assert response.status_code == 302
     assert response.location == "/auth/login?next=/profile/user/notifications"
 
@@ -111,25 +131,64 @@ def test_notification_links_track_click_and_unsubscribe(
     assert not user1.new_event_notification_enabled
 
 
-def test_notification_links_expire(app, client, user1, event):
+def test_notification_one_click_unsubscribe_endpoint(
+    app, client, user1, event, mail_success_monkeypatch
+):
+    """One-click unsubscribe should use the dedicated POST endpoint."""
+    now = _daily_digest_now()
+    user1.new_event_notification_enabled = True
+    user1.new_event_notification_frequency = NotificationFrequency.Daily
+    user1.last_new_event_notification_sent_at = now - timedelta(days=2)
+    event.start = now + timedelta(days=6)
+
+    db.session.add(NewEventNotification(event=event, created_at=now - timedelta(hours=1)))
+    db.session.commit()
+
+    send_new_event_digests(now=now)
+
+    one_click_header = mail_success_monkeypatch.sent_to(user1.mail)[0]["headers"][
+        "List-Unsubscribe"
+    ]
+    one_click_link = one_click_header.strip("<>").replace("http://localhost", "")
+
+    response = client.post(
+        one_click_link,
+        data={"List-Unsubscribe": "One-Click"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 204
+
+    db.session.expire(user1)
+    assert not user1.new_event_notification_enabled
+
+
+def test_notification_links_expire(app, client, user1, event, monkeypatch):
     """Public digest links should stop working once their token expires."""
     serializer = app.extensions["new_event_notification_serializer"]
+    click_max_age = app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"]
+    unsubscribe_max_age = app.config["NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"]
+    emitted_at = 1_700_000_000
+    _freeze_serializer_clock(monkeypatch, emitted_at)
     click_token = serializer.dumps(
         {"user_id": user1.id, "action": "click", "event_id": event.id}
     )
     unsubscribe_token = serializer.dumps({"user_id": user1.id, "action": "unsubscribe"})
 
-    app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"] = 0
-    app.config["NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"] = 0
-    time.sleep(1)
+    response = client.get(
+        f"/profile/user/notifications/click/{click_token}", follow_redirects=False
+    )
+    assert response.status_code == 302
+    assert f"/collectives/{event.id}-" in response.location
 
+    _freeze_serializer_clock(monkeypatch, emitted_at + click_max_age + 1)
     response = client.get(
         f"/profile/user/notifications/click/{click_token}", follow_redirects=False
     )
     assert response.status_code == 302
     assert response.location == "/"
 
-    response = client.get(
+    _freeze_serializer_clock(monkeypatch, emitted_at + unsubscribe_max_age + 1)
+    response = client.post(
         f"/profile/user/notifications/unsubscribe/{unsubscribe_token}",
         follow_redirects=False,
     )
@@ -153,9 +212,16 @@ def test_digest_contains_clickable_unsubscribe_link_in_html(
     send_new_event_digests(now=now)
 
     sent_mail = mail_success_monkeypatch.sent_to(user1.mail)[0]
-    assert 'html_message' in sent_mail
+    assert "html_message" in sent_mail
     assert ">Se désabonner<" in sent_mail["html_message"]
     assert "/profile/user/notifications/unsubscribe/" in sent_mail["html_message"]
+    assert "/profile/user/notifications/unsubscribe/one-click/" in sent_mail["headers"][
+        "List-Unsubscribe"
+    ]
+    assert (
+        sent_mail["headers"]["List-Unsubscribe-Post"]
+        == "List-Unsubscribe=One-Click"
+    )
 
 
 def test_send_new_event_digests_purges_delivered_notifications(
@@ -181,6 +247,40 @@ def test_send_new_event_digests_purges_delivered_notifications(
 
     assert sent_count == 2
     assert NewEventNotification.query.count() == 0
+
+
+def test_send_new_event_digests_keeps_queue_rows_on_delivery_failure(
+    monkeypatch, user1, user2, event
+):
+    """A failed SMTP handoff must not advance markers or purge queue rows."""
+    now = _daily_digest_now()
+    user1.new_event_notification_enabled = True
+    user1.new_event_notification_frequency = NotificationFrequency.Daily
+    user1.last_new_event_notification_sent_at = now - timedelta(days=2)
+
+    user2.new_event_notification_enabled = True
+    user2.new_event_notification_frequency = NotificationFrequency.Daily
+    user2.last_new_event_notification_sent_at = now - timedelta(days=3)
+
+    event.start = now + timedelta(days=4)
+    db.session.add(
+        NewEventNotification(event=event, created_at=now - timedelta(hours=1))
+    )
+    db.session.commit()
+
+    def send_mail(**kwargs):
+        return kwargs["email"] == user1.mail
+
+    monkeypatch.setattr("collectives.new_event_notifications.mail.send_mail", send_mail)
+
+    sent_count = send_new_event_digests(now=now)
+
+    db.session.expire(user1)
+    db.session.expire(user2)
+    assert sent_count == 1
+    assert user1.last_new_event_notification_sent_at == now
+    assert user2.last_new_event_notification_sent_at == now - timedelta(days=3)
+    assert NewEventNotification.query.count() == 1
 
 
 def test_inactive_notification_policy_warns_then_disables(
