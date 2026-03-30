@@ -29,6 +29,7 @@
     }
 
     #profile-notifications .notification-summary-row {
+        align-items: flex-start;
         display: inline-flex;
         flex-wrap: nowrap;
         gap: 0.3rem;
@@ -81,6 +82,19 @@
 
     #profile-notifications .notification-summary-values--stacked .notification-summary-item {
         display: flex;
+    }
+
+    #profile-notifications .notification-summary-tag--activities {
+        align-items: flex-start;
+    }
+
+    #profile-notifications .notification-summary-values--two-columns {
+        align-items: start;
+        column-gap: 0.65rem;
+        display: inline-grid;
+        grid-template-columns: repeat(2, minmax(0, max-content));
+        row-gap: 0.2rem;
+        white-space: normal;
     }
 
     #profile-notifications .notification-summary-label {
@@ -179,7 +193,7 @@
                     </span>
 
                     <span
-                        class="tag notification-summary-tag"
+                        class="tag notification-summary-tag notification-summary-tag--activities"
                     >
                         <img
                             class="icon"
@@ -189,7 +203,7 @@
                         />
                         {% if current_user.notified_activity_types %}
                         <span class="notification-summary-label">Activités :</span>
-                        <span class="notification-summary-values{% if notified_activity_count > 2 %} notification-summary-values--stacked{% endif %}">
+                        <span class="notification-summary-values notification-summary-values--two-columns">
                         {% for activity_type in current_user.notified_activity_types %}
                             <span class="notification-summary-item">
                                 <img
@@ -200,9 +214,6 @@
                                 />
                                 <span>{{ activity_type.name }}</span>
                             </span>
-                            {% if not loop.last and notified_activity_count <= 2 %}
-                                <span>·</span>
-                            {% endif %}
                         {% endfor %}
                         </span>
                         {% else %}
@@ -241,61 +252,7 @@
     </summary>
 
     <div class="padding-m padding-top-0">
-        <form
-            action="{{ url_for('profile.update_notifications') }}"
-            method="post"
-            class="form form-vertical"
-        >
-            {{ notification_form.hidden_tag() }}
-
-            <div class="controls margin-bottom-s">
-                <div style="display: inline-block;">
-                    {{ notification_form.new_event_notification_enabled }}
-                    {{ notification_form.new_event_notification_enabled.label }}
-                </div>
-                <div class="label-help">
-                    {{ notification_form.new_event_notification_enabled.description }}
-                </div>
-            </div>
-
-            <div class="controls margin-bottom-s">
-                {{ notification_form.new_event_notification_frequency.label(class="label-top") }}
-                <div class="label-help">{{ notification_form.new_event_notification_frequency.description }}</div>
-                {{ notification_form.new_event_notification_frequency(class="input-100") }}
-            </div>
-
-            <div class="controls margin-bottom-s">
-                {{ notification_form.event_type_ids.label(class="label-top") }}
-                <div class="label-help">{{ notification_form.event_type_ids.description }}</div>
-                {{ notification_form.event_type_ids(class="input-100", size=6) }}
-            </div>
-
-            <div class="controls margin-bottom-s">
-                {{ notification_form.activity_type_ids.label(class="label-top") }}
-                <div class="label-help">{{ notification_form.activity_type_ids.description }}</div>
-                {{ notification_form.activity_type_ids(class="input-100", size=8) }}
-            </div>
-
-            <div class="controls margin-bottom-s">
-                {{ notification_form.weekdays.label(class="label-top") }}
-                <div class="label-help">{{ notification_form.weekdays.description }}</div>
-                {{ notification_form.weekdays(class="input-100", size=7) }}
-            </div>
-
-            {% for field_name, errors in notification_form.errors.items() %}
-                {% for error in errors %}
-                    {% if field_name != "csrf_token" %}
-                    <div class="flash flash-error margin-bottom-s">
-                        <strong>Erreur :</strong> {{ error }}
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
-
-            <div class="controls">
-                {{ notification_form.submit(class="button button-primary input-100") }}
-            </div>
-        </form>
+        {% include 'profile/partials/notification_preferences_form.html' %}
     </div>
 </details>
 {% endif %}

@@ -138,6 +138,48 @@ def test_update_notification_preferences(user1_client, user1):
     assert user1.notification_weekday_list() == [1, 3]
 
 
+def test_update_notification_preferences_clears_impossible_activity_filters(
+    user1_client, user1
+):
+    """Activity filters should be cleared when selected event types do not use them."""
+
+    response = user1_client.get("/profile/user/notifications")
+    assert response.status_code == 200
+
+    data = utils.load_data_from_form(response.text, "basic_form")
+    data["new_event_notification_enabled"] = "y"
+    data["new_event_notification_frequency"] = str(int(NotificationFrequency.Daily))
+    data["event_type_ids"] = ["4"]
+    data["activity_type_ids"] = ["9"]
+    data["weekdays"] = ["1", "3"]
+
+    response = user1_client.post("/profile/user/notifications", data=data)
+    assert response.status_code == 302
+    assert response.location == "/profile/user/notifications"
+
+    db.session.expire(user1)
+    assert user1.new_event_notification_enabled
+    assert {event_type.id for event_type in user1.notified_event_types} == {4}
+    assert not user1.notified_activity_types
+
+
+def test_notification_preferences_use_dropdown_checkbox_filters(user1_client):
+    """Notification filters should render as checkbox dropdown groups."""
+
+    response = user1_client.get("/profile/user/notifications")
+    assert response.status_code == 200
+    assert 'type="checkbox"' in response.text
+    assert 'name="event_type_ids"' in response.text
+    assert 'name="activity_type_ids"' in response.text
+    assert "data-requires-activity" in response.text
+    assert "data-multi-select-dropdown" in response.text
+    assert "data-dropdown-label" in response.text
+    assert "data-selected-tags" in response.text
+    assert "data-remove-selection" in response.text
+    assert "data-tag-icon" in response.text
+    assert "Tout désélectionner" in response.text
+
+
 def test_change_password_no_modification(user1_client, user1):
     """Test if password do not change if no new password is sent."""
     response = user1_client.get("/profile/user/edit")

@@ -254,11 +254,12 @@ def update_notifications():
             if form.event_type_ids.data
             else []
         )
+        normalized_activity_type_ids = form.normalized_activity_type_ids()
         selected_activity_types = (
             ActivityType.query.filter(
-                ActivityType.id.in_(form.activity_type_ids.data)
+                ActivityType.id.in_(normalized_activity_type_ids)
             ).all()
-            if form.activity_type_ids.data
+            if normalized_activity_type_ids
             else []
         )
 
@@ -291,8 +292,8 @@ def update_notifications():
         )
 
     return render_template(
-        "basicform.html",
-        form=form,
+        "profile/notification_preferences.html",
+        notification_form=form,
         title="Mes notifications",
         description=(
             "Choisissez les types de collectives à surveiller. "

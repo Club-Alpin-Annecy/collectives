@@ -8,7 +8,6 @@ from wtforms import (
     HiddenField,
     PasswordField,
     SelectField,
-    SelectMultipleField,
     StringField,
     SubmitField,
 )
@@ -21,13 +20,14 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.order import OrderedModelForm
-from collectives.forms.utils import coerce_optional
+from collectives.forms.utils import MultiCheckboxField, coerce_optional
 from collectives.forms.validators import (
     LicenseValidator,
     PasswordValidator,
     UniqueValidator,
 )
 from collectives.models import (
+    ActivityKind,
     ActivityType,
     EventType,
     NotificationFrequency,
@@ -284,17 +284,17 @@ class NotificationPreferencesForm(FlaskForm):
         choices=NotificationFrequency.choices(),
         description="Choisissez un récapitulatif quotidien ou hebdomadaire.",
     )
-    event_type_ids = SelectMultipleField(
+    event_type_ids = MultiCheckboxField(
         "Types d'événement",
         coerce=int,
         description="Laisser vide pour tous les types.",
     )
-    activity_type_ids = SelectMultipleField(
+    activity_type_ids = MultiCheckboxField(
         "Activités",
         coerce=int,
         description="Laisser vide pour toutes les activités.",
     )
-    weekdays = SelectMultipleField(
+    weekdays = MultiCheckboxField(
         "Jours de la semaine",
         choices=WEEKDAY_CHOICES,
         coerce=int,
@@ -307,12 +307,27 @@ class NotificationPreferencesForm(FlaskForm):
         super().__init__(*args, **kwargs)
         self._user = user
 
+        event_types = EventType.get_all_types()
+        activity_types = ActivityType.get_all_types()
+        self.event_type_requires_activity_ids = {
+            event_type.id for event_type in event_types if event_type.requires_activity
+        }
+        self.event_type_icon_names = {
+            event_type.id: event_type.short for event_type in event_types
+        }
         self.event_type_ids.choices = [
-            (event_type.id, event_type.name) for event_type in EventType.get_all_types()
+            (event_type.id, event_type.name) for event_type in event_types
         ]
+        self.activity_type_icon_names = {
+            activity_type.id: (
+                activity_type.short
+                if activity_type.kind == ActivityKind.Regular
+                else "benevolat"
+            )
+            for activity_type in activity_types
+        }
         self.activity_type_ids.choices = [
-            (activity_type.id, activity_type.name)
-            for activity_type in ActivityType.get_all_types()
+            (activity_type.id, activity_type.name) for activity_type in activity_types
         ]
 
         if not self.is_submitted():
@@ -329,3 +344,18 @@ class NotificationPreferencesForm(FlaskForm):
                 activity_type.id for activity_type in user.notified_activity_types
             ]
             self.weekdays.data = user.notification_weekday_list()
+
+    def selected_event_types_require_activity(self) -> bool:
+        """Whether the current event type selection makes activity filters relevant."""
+        if not self.event_type_ids.data:
+            return True
+        return any(
+            event_type_id in self.event_type_requires_activity_ids
+            for event_type_id in self.event_type_ids.data
+        )
+
+    def normalized_activity_type_ids(self) -> list[int]:
+        """Return only activity filters that are compatible with selected event types."""
+        if self.event_type_ids.data and not self.selected_event_types_require_activity():
+            return []
+        return self.activity_type_ids.data or []

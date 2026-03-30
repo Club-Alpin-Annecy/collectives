@@ -1,0 +1,477 @@
+<style>
+    .notification-multiselect {
+        position: relative;
+    }
+
+    .notification-multiselect summary {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #c8d6df;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        list-style: none;
+        padding: 0.75rem 0.9rem;
+        text-align: left;
+    }
+
+    .notification-multiselect summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .notification-multiselect[open] summary {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .notification-multiselect-menu {
+        background: #fff;
+        border: 1px solid #c8d6df;
+        border-radius: 0 0 8px 8px;
+        border-top: 0;
+        display: grid;
+        gap: 0.6rem;
+        max-height: 14rem;
+        overflow-y: auto;
+        padding: 0.85rem 0.9rem;
+    }
+
+    .notification-multiselect-summary-label {
+        flex: 1 1 auto;
+        text-align: left;
+    }
+
+    .notification-multiselect-actions {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .notification-selected-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0 0 0.6rem;
+    }
+
+    .notification-selected-tags[hidden] {
+        display: none;
+    }
+
+    .notification-selected-tag {
+        align-items: center;
+        background: #e7f3f8;
+        border: 1px solid #bfd7e3;
+        border-radius: 999px;
+        color: #114d69;
+        display: inline-flex;
+        gap: 0.45rem;
+        padding: 0.2rem 0.65rem;
+    }
+
+    .notification-selected-tag-label {
+        line-height: 1.2;
+    }
+
+    .notification-selected-tag-icon {
+        flex: 0 0 auto;
+        height: 0.95rem;
+        width: 0.95rem;
+    }
+
+    .notification-selected-tag-remove {
+        background: transparent;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+        font-size: 0.95rem;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .notification-multiselect-clear {
+        background: transparent;
+        border: 0;
+        color: #0d6e9f;
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0;
+        text-align: left;
+    }
+
+    .form.form-vertical .notification-multiselect-option {
+        align-items: flex-start;
+        display: flex;
+        gap: 0.6rem;
+        justify-content: flex-start;
+        line-height: 1.3;
+        text-align: left;
+        width: 100%;
+    }
+
+    .form.form-vertical .notification-multiselect-option input[type="checkbox"] {
+        align-self: flex-start;
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .form.form-vertical .notification-multiselect-option span {
+        flex: 0 1 auto;
+        text-align: left;
+    }
+
+    .notification-multiselect-section[data-disabled="1"] .notification-multiselect summary {
+        background: #f6f8fa;
+        color: #5f6b72;
+    }
+</style>
+
+<form
+    action="{{ url_for('profile.update_notifications') }}"
+    method="post"
+    class="form form-vertical"
+    id="basic_form"
+    data-notification-preferences-form
+>
+    {{ notification_form.hidden_tag() }}
+
+    <div class="controls margin-bottom-s">
+        <div style="display: inline-block;">
+            {{ notification_form.new_event_notification_enabled }}
+            {{ notification_form.new_event_notification_enabled.label }}
+        </div>
+        <div class="label-help">
+            {{ notification_form.new_event_notification_enabled.description }}
+        </div>
+    </div>
+
+    <div class="controls margin-bottom-s">
+        {{ notification_form.new_event_notification_frequency.label(class="label-top") }}
+        <div class="label-help">{{ notification_form.new_event_notification_frequency.description }}</div>
+        {{ notification_form.new_event_notification_frequency(class="input-100") }}
+    </div>
+
+    <div class="controls margin-bottom-s">
+        {{ notification_form.event_type_ids.label(class="label-top") }}
+        <div class="label-help">{{ notification_form.event_type_ids.description }}</div>
+        <div
+            class="notification-multiselect-section"
+            data-multi-select-dropdown
+            data-default-label="Tous les types"
+            style="margin-top: 0.5rem;"
+        >
+            <div class="notification-selected-tags" data-selected-tags hidden></div>
+            <details class="notification-multiselect">
+                <summary>
+                    <span
+                        class="notification-multiselect-summary-label"
+                        data-dropdown-label
+                    >Tous les types</span>
+                    <span aria-hidden="true">▾</span>
+                </summary>
+                <div class="notification-multiselect-menu">
+                    <div class="notification-multiselect-actions">
+                        <button
+                            type="button"
+                            class="notification-multiselect-clear"
+                            data-clear-checkboxes
+                        >
+                            Tout désélectionner
+                        </button>
+                    </div>
+                    {% for subfield in notification_form.event_type_ids %}
+                        {% set event_type_id = subfield._value()|int %}
+                        <label class="notification-multiselect-option">
+                            {{ subfield(
+                                data_requires_activity='1' if event_type_id in notification_form.event_type_requires_activity_ids else '0',
+                                data_tag_icon=url_for('static', filename='caf/icon/' ~ notification_form.event_type_icon_names[event_type_id] ~ '.svg')
+                            ) }}
+                            <span>{{ subfield.label.text }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div
+        class="controls margin-bottom-s"
+        data-activity-filter-section
+    >
+        {{ notification_form.activity_type_ids.label(class="label-top") }}
+        <div class="label-help">{{ notification_form.activity_type_ids.description }}</div>
+        <div
+            class="label-help"
+            data-activity-filter-hint
+            hidden
+        >
+            Ce filtre n'est disponible que pour les types d'événement associés à une activité.
+        </div>
+        <div
+            class="notification-multiselect-section"
+            data-multi-select-dropdown
+            data-default-label="Toutes les activités"
+            style="margin-top: 0.5rem;"
+        >
+            <div class="notification-selected-tags" data-selected-tags hidden></div>
+            <details class="notification-multiselect">
+                <summary>
+                    <span
+                        class="notification-multiselect-summary-label"
+                        data-dropdown-label
+                    >Toutes les activités</span>
+                    <span aria-hidden="true">▾</span>
+                </summary>
+                <div class="notification-multiselect-menu">
+                    <div class="notification-multiselect-actions">
+                        <button
+                            type="button"
+                            class="notification-multiselect-clear"
+                            data-clear-checkboxes
+                        >
+                            Tout désélectionner
+                        </button>
+                    </div>
+                    {% for subfield in notification_form.activity_type_ids %}
+                        {% set activity_type_id = subfield._value()|int %}
+                        <label class="notification-multiselect-option">
+                            {{ subfield(
+                                data_tag_icon=url_for('static', filename='caf/icon/' ~ notification_form.activity_type_icon_names[activity_type_id] ~ '.svg')
+                            ) }}
+                            <span>{{ subfield.label.text }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="controls margin-bottom-s">
+        {{ notification_form.weekdays.label(class="label-top") }}
+        <div class="label-help">{{ notification_form.weekdays.description }}</div>
+        <div
+            class="notification-multiselect-section"
+            data-multi-select-dropdown
+            data-default-label="Tous les jours"
+            style="margin-top: 0.5rem;"
+        >
+            <div class="notification-selected-tags" data-selected-tags hidden></div>
+            <details class="notification-multiselect">
+                <summary>
+                    <span
+                        class="notification-multiselect-summary-label"
+                        data-dropdown-label
+                    >Tous les jours</span>
+                    <span aria-hidden="true">▾</span>
+                </summary>
+                <div class="notification-multiselect-menu">
+                    <div class="notification-multiselect-actions">
+                        <button
+                            type="button"
+                            class="notification-multiselect-clear"
+                            data-clear-checkboxes
+                        >
+                            Tout désélectionner
+                        </button>
+                    </div>
+                    {% for subfield in notification_form.weekdays %}
+                        <label class="notification-multiselect-option">
+                            {{ subfield(
+                                data_tag_icon=url_for('static', filename='img/icon/ionicon/md-calendar.svg')
+                            ) }}
+                            <span>{{ subfield.label.text }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+    </div>
+
+    {% for field_name, errors in notification_form.errors.items() %}
+        {% for error in errors %}
+            {% if field_name != "csrf_token" %}
+            <div class="flash flash-error margin-bottom-s">
+                <strong>Erreur :</strong> {{ error }}
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+
+    <div class="controls">
+        {{ notification_form.submit(class="button button-primary input-100") }}
+    </div>
+</form>
+
+<script type="text/javascript">
+  (function() {
+    const form = document.querySelector('[data-notification-preferences-form]');
+    if (!form) {
+      return;
+    }
+
+    const eventTypeInputs = Array.from(
+      form.querySelectorAll('input[name="event_type_ids"]')
+    );
+    const activityTypeInputs = Array.from(
+      form.querySelectorAll('input[name="activity_type_ids"]')
+    );
+    const activitySection = form.querySelector('[data-activity-filter-section]');
+    const activityHint = form.querySelector('[data-activity-filter-hint]');
+    const dropdownSections = Array.from(
+      form.querySelectorAll('[data-multi-select-dropdown]')
+    );
+
+    const buildDropdownLabel = (inputs, defaultLabel) => {
+      const checkedLabels = inputs
+        .filter((input) => input.checked && !input.disabled)
+        .map((input) => {
+          const label = input.closest('label');
+          return label ? label.textContent.trim() : '';
+        })
+        .filter(Boolean);
+
+      if (checkedLabels.length === 0) {
+        return defaultLabel;
+      }
+
+      if (checkedLabels.length <= 2) {
+        return checkedLabels.join(', ');
+      }
+
+      return `${checkedLabels.length} sélectionnés`;
+    };
+
+    const syncDropdownLabels = () => {
+      dropdownSections.forEach((section) => {
+        const label = section.querySelector('[data-dropdown-label]');
+        const tagsContainer = section.querySelector('[data-selected-tags]');
+        if (!label) {
+          return;
+        }
+
+        const inputs = Array.from(section.querySelectorAll('input[type="checkbox"]'));
+        const activeInputs = inputs.filter((input) => input.checked && !input.disabled);
+        label.textContent = buildDropdownLabel(
+          inputs,
+          section.dataset.defaultLabel || 'Aucune sélection'
+        );
+
+        if (!tagsContainer) {
+          return;
+        }
+
+        tagsContainer.innerHTML = '';
+        activeInputs.forEach((input) => {
+          const optionLabel = input.closest('label');
+          const optionText = optionLabel ? optionLabel.textContent.trim() : '';
+          if (!optionText) {
+            return;
+          }
+
+          const tag = document.createElement('span');
+          tag.className = 'notification-selected-tag';
+
+          if (input.dataset.tagIcon) {
+            const icon = document.createElement('img');
+            icon.className = 'notification-selected-tag-icon';
+            icon.src = input.dataset.tagIcon;
+            icon.alt = '';
+            tag.appendChild(icon);
+          }
+
+          const text = document.createElement('span');
+          text.className = 'notification-selected-tag-label';
+          text.textContent = optionText;
+
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'notification-selected-tag-remove';
+          remove.setAttribute('aria-label', `Retirer ${optionText}`);
+          remove.dataset.removeSelection = input.id;
+          remove.textContent = '×';
+
+          tag.appendChild(text);
+          tag.appendChild(remove);
+          tagsContainer.appendChild(tag);
+        });
+
+        tagsContainer.hidden = activeInputs.length === 0;
+      });
+    };
+
+    const clearSectionInputs = (section) => {
+      const inputs = Array.from(section.querySelectorAll('input[type="checkbox"]'));
+      inputs.forEach((input) => {
+        if (!input.disabled) {
+          input.checked = false;
+        }
+      });
+      syncActivityFilterState();
+      syncDropdownLabels();
+    };
+
+    const syncActivityFilterState = () => {
+      const checkedEventTypes = eventTypeInputs.filter((input) => input.checked);
+      const hasSelectedEventTypes = checkedEventTypes.length > 0;
+      const hasSelectedTypeRequiringActivity = checkedEventTypes.some(
+        (input) => input.dataset.requiresActivity === '1'
+      );
+      const disableActivityFilters =
+        hasSelectedEventTypes && !hasSelectedTypeRequiringActivity;
+
+      activityTypeInputs.forEach((input) => {
+        input.disabled = disableActivityFilters;
+      });
+
+      if (activitySection) {
+        activitySection.style.opacity = disableActivityFilters ? '0.6' : '1';
+        activitySection.dataset.disabled = disableActivityFilters ? '1' : '0';
+      }
+      if (activityHint) {
+        activityHint.hidden = !disableActivityFilters;
+      }
+
+      syncDropdownLabels();
+    };
+
+    form.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      input.addEventListener('change', syncDropdownLabels);
+    });
+
+    form.querySelectorAll('[data-clear-checkboxes]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        const section = button.closest('[data-multi-select-dropdown]');
+        if (!section) {
+          return;
+        }
+        clearSectionInputs(section);
+      });
+    });
+
+    form.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-remove-selection]');
+      if (!removeButton) {
+        return;
+      }
+
+      event.preventDefault();
+      const input = form.querySelector(`#${removeButton.dataset.removeSelection}`);
+      if (!input || input.disabled) {
+        return;
+      }
+
+      input.checked = false;
+      syncActivityFilterState();
+      syncDropdownLabels();
+    });
+
+    eventTypeInputs.forEach((input) => {
+      input.addEventListener('change', syncActivityFilterState);
+    });
+
+    syncDropdownLabels();
+    syncActivityFilterState();
+  })();
+</script>
