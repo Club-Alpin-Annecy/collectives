@@ -1,7 +1,8 @@
 """Utility for generating HMAC-based profile access tokens.
 
 These tokens authorise a specific leader (viewer) to view a specific user's
-profile and are valid only within a single Flask application instance.
+profile and are valid for any Flask application instance configured with the
+same ``SECRET_KEY`` (and will become invalid if the ``SECRET_KEY`` is rotated).
 """
 
 import hashlib

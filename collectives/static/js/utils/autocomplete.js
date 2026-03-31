@@ -120,7 +120,7 @@ function setupEventAutoComplete(field, baseUrl, onSelect, settings = {}) {
         baseUrl,
         function (item) { return formatParentEvent(item.id, item.title, item.start); },
         onSelect,
-        Object.assign({ cache: 0 }, settings)
+        Object.assign({ cache: 0, maxResults: 12 }, settings)
     );
 }
 

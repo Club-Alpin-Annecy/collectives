@@ -231,10 +231,12 @@ class AutocompleteEventSchema(EventSchema):
 def _normalize_search_term(text: str) -> str:
     """Normalize a search term for punctuation-insensitive matching.
 
-    Strips punctuation characters, replacing them with spaces.
+    Strips punctuation characters, replacing them with spaces, and collapses
+    repeated whitespace.
     Accent stripping is left to the database collation (MySQL ``unicode_ci``).
     """
     text = re.sub(r"[^\w\s]", " ", text)
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
@@ -246,6 +248,8 @@ _SQL_PUNCTUATION_MAP = [
     ("/", " "), ("(", " "), (")", " "),
     (":", " "), (".", " "), (",", " "),
     ("!", " "), ("?", " "), (";", " "),
+    # Collapse double-spaces left by adjacent punctuation (two passes)
+    ("  ", " "), ("  ", " "),
 ]  # fmt: skip
 
 
@@ -287,10 +291,12 @@ def autocomplete_event():
         abort(400)
 
     # Detect "#N" as an explicit ID lookup
-    explicit_id_lookup = search_term.startswith("#")
-    id_term = search_term.lstrip("#").strip()
+    explicit_id_match = re.search(r"#(\d+)", search_term)
+    explicit_id_lookup = explicit_id_match is not None
     try:
-        event_id = int(id_term) if id_term else None
+        event_id = (
+            int(explicit_id_match.group(1)) if explicit_id_match else int(search_term)
+        )
     except ValueError:
         event_id = None
 
