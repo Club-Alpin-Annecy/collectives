@@ -238,7 +238,7 @@ class UserRoleMixin:
         :return: The list of activities the user can lead.
         """
         if self.can_manage_all_activities():
-            return ActivityType.get_all_types()
+            return set(ActivityType.get_all_types())
 
         ok_roles = (
             RoleIds.all_activity_leader_roles()
@@ -248,8 +248,8 @@ class UserRoleMixin:
         user_roles = self.matching_roles(ok_roles)
         return {role.activity_type for role in user_roles}
 
-    def get_supervised_activities(self) -> Set[ActivityType]:
-        """Get set of activities the user supervises.
+    def get_supervised_activities(self) -> List[ActivityType]:
+        """Get list of activities the user supervises.
 
         Admin and President supervise all.
         """
@@ -257,7 +257,7 @@ class UserRoleMixin:
             return ActivityType.get_all_types(include_deprecated=True)
 
         roles = self.matching_roles([RoleIds.ActivitySupervisor])
-        return [role.activity_type for role in roles]
+        return list({role.activity_type for role in roles})
 
     def activities_with_role(self) -> Set[ActivityType]:
         """
