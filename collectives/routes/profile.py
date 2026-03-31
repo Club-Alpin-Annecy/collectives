@@ -134,6 +134,10 @@ def show_leader(leader_id):
         flash("Non autorisé", "error")
         return redirect(url_for("event.index"))
 
+    if not current_user.can_see_leader_profile(user):
+        flash("Non autorisé", "error")
+        return redirect(url_for("event.index"))
+
     return render_template(
         "leader_profile.html",
         title="Profil adhérent",
