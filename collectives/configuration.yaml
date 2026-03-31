@@ -284,6 +284,10 @@ Template mail:
         description: Email template content for event creation
         type: LongString
 
+    NEW_EVENT_NOTIFICATION_ON_CONFIRM:
+        content: false
+        description: Whether to send a notification when a draft event is confirmed. If true, new event creation supervisors notification is only sent when the status becomes "confirmed" (which can be at creation)
+        type: Boolean
 
     SELF_UNREGISTER_SUBJECT:
         content: "Notification de désinscription"
