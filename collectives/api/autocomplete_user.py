@@ -15,6 +15,7 @@ from collectives.api.common import blueprint
 from collectives.api.schemas import UserIdentitySchema
 from collectives.models import EventType, Role, RoleIds, User, db
 from collectives.utils.access import confidentiality_agreement, valid_user
+from collectives.utils.profile_token import profile_token
 
 
 class AutocompleteUserSchema(UserIdentitySchema):
@@ -26,6 +27,7 @@ class AutocompleteUserSchema(UserIdentitySchema):
         fields = (
             "id",
             "full_name",
+            "license",
             "is_active",
         )
 
@@ -98,7 +100,11 @@ def autocomplete_users():
         limit = request.args.get("l", default=8, type=int)
         found_users = _make_autocomplete_query(pattern).limit(limit)
 
-    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    results = AutocompleteUserSchema(many=True).dump(found_users)
+    for result in results:
+        result["token"] = profile_token(current_user.id, result["id"])
+
+    content = json.dumps(results)
     return content, 200, {"content-type": "application/json"}
 
 

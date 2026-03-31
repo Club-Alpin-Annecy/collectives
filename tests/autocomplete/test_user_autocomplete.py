@@ -1,5 +1,7 @@
 """User autocomplete tests."""
 
+from collectives.utils.profile_token import profile_token
+
 # pylint: disable=unused-argument
 
 
@@ -35,3 +37,24 @@ def test_search_no_found(leader_client, user1, user2, user3, user4):
     response = leader_client.get(get_url("xxx"))
     assert response.status_code == 200
     assert len(response.json) == 0
+
+
+def test_search_returns_license(leader_client, user1):
+    """Each result must expose the license number."""
+    response = leader_client.get(get_url(user1.last_name))
+    assert response.status_code == 200
+    assert len(response.json) >= 1
+    assert "license" in response.json[0]
+    assert response.json[0]["license"] == user1.license
+
+
+def test_search_returns_valid_profile_token(leader_client, user1, user2):
+    """Each result must carry a signed HMAC token bound to the requesting viewer."""
+    response = leader_client.get(get_url(user1.last_name))
+    assert response.status_code == 200
+    assert len(response.json) >= 1
+
+    result = next(r for r in response.json if r["id"] == user1.id)
+    assert result["token"] == profile_token(leader_client.user.id, user1.id)
+    # A different viewer would get a different token
+    assert result["token"] != profile_token(user2.id, user1.id)

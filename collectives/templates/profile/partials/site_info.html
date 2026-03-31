@@ -41,6 +41,7 @@
                         <div>
                             {{ badge.level_name() }}
                             <em> {{ '(' ~format_date(badge.expiration_date) ~ ')' if badge.expiration_date else '' }}</em>
+                            {% if badge.grantor %}<small class="text-gray"> — par {{ badge.grantor.full_name() }}</small>{% endif %}
                         </div>
                     {% endfor %}
                 </div>

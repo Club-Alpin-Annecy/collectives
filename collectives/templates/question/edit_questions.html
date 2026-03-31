@@ -14,12 +14,9 @@
     const eventSearchInput = document.getElementById(eventSearchInputID);
     const parentEventInput = document.getElementById(parentEventInputID);
 
-    setupAutoComplete(
+    setupEventAutoComplete(
       eventSearchInput,
       '{{url_for("api.autocomplete_event", eid=[event.id]) | safe}}',
-      function(item) {
-        return formatParentEvent(item.id, item.title, item.start) ;
-      },
       function(id, val) {
         parentEventInput.value = id;
       }

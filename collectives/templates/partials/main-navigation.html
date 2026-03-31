@@ -43,6 +43,14 @@
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
                                         class="legacy-icon" /> Ajouter un événement</a>
                             </li class="menu-dropdown-item">
+                            {% if Configuration.USER_SEARCH_ENABLED %}
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('profile.search_user')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
+                                        class="legacy-icon" /> Rechercher un adhérent
+                                </a>
+                            </li>
+                            {% endif %}
                             {% endif %}
 
                             {% if current_user.get_supervised_activities() | length %}

@@ -6,7 +6,8 @@ function autoCompleteDefaultSettings() {
     return {
         minChars: 2,  // Minimum number of characters to start loading results
         maxResults: 8, // Maximum number of results to load
-        itemClass: "autocomplete-suggestion", // CSS class of loaded results containers 
+        cache: 1, // Whether the library caches results (0 = disable)
+        itemClass: "autocomplete-suggestion", // CSS class of loaded results containers
         // Function rendering the HTML for a given result
         itemInnerHTML: function (item, itemValue) { return `<span>${escapeHTML(itemValue)}</span>`; }
     }
@@ -46,9 +47,9 @@ function setupAutoComplete(
         xhr.send();
     };
 
-    //  Functor calling 'onSelect' with id and value from the select item
+    //  Functor calling 'onSelect' with id, value, and optional token from the selected item
     const onSelectInternal = function (e, term, item) {
-        onSelect(item.getAttribute('data-id'), item.getAttribute('data-val'));
+        onSelect(item.getAttribute('data-id'), item.getAttribute('data-val'), item.getAttribute('data-token'));
     }
 
     const renderItem = function (item) {
@@ -62,12 +63,14 @@ function setupAutoComplete(
             var style = ""; 
             var misc = "";
         }
-        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}" style="${style}">${innerHTML} ${misc}</div>`
+        var token = item.token ? ` data-token="${item.token}"` : '';
+        return `<div class="${settings.itemClass}" data-val='${escapeHTML(val)}' data-id="${item.id}"${token} style="${style}">${innerHTML} ${misc}</div>`
     };
 
     return new window.autoComplete({
         selector: field,
         minChars: settings.minChars,
+        cache: settings.cache,
         source: loadResults,
         renderItem: renderItem,
         onSelect: onSelectInternal
@@ -76,11 +79,58 @@ function setupAutoComplete(
 
 window.setupAutoComplete = setupAutoComplete;
 
+/**
+ * Wrapper around setupAutoComplete for user name searches.
+ * Displays the license number alongside the name in suggestions to disambiguate
+ * users with similar names. The selected value remains the full name only.
+ * @param {string} field The HTML element
+ * @param {string} baseUrl The API url providing the results
+ * @param {function} onSelect Function called when user selects a suggestion. Passed item id and full name.
+ * @param {dict} settings Optional settings -- see autoCompleteDefaultSettings
+ */
+function setupUserAutoComplete(field, baseUrl, onSelect, settings = {}) {
+    return setupAutoComplete(
+        field,
+        baseUrl,
+        function (item) { return item.full_name; },
+        onSelect,
+        Object.assign({
+            itemInnerHTML: function (item, val) {
+                var license = item.license ? ` <small style="color: grey;">(${escapeHTML(item.license)})</small>` : '';
+                return `<span>${escapeHTML(val)}${license}</span>`;
+            }
+        }, settings)
+    );
+}
+
+window.setupUserAutoComplete = setupUserAutoComplete;
+
+/**
+ * Wrapper around setupAutoComplete for event title/id searches.
+ * Formats suggestions as "#id Title… (DD/MM/YYYY)".
+ * Caching is disabled so that "#12" always fires even if "#1" returned nothing.
+ * @param {string} field The HTML element
+ * @param {string} baseUrl The API url providing the results
+ * @param {function} onSelect Function called when user selects a suggestion. Passed item id and formatted label.
+ * @param {dict} settings Optional settings -- see autoCompleteDefaultSettings
+ */
+function setupEventAutoComplete(field, baseUrl, onSelect, settings = {}) {
+    return setupAutoComplete(
+        field,
+        baseUrl,
+        function (item) { return formatParentEvent(item.id, item.title, item.start); },
+        onSelect,
+        Object.assign({ cache: 0, maxResults: 12 }, settings)
+    );
+}
+
+window.setupEventAutoComplete = setupEventAutoComplete;
 
 
 // Formats "parent event" autocomplete options
 function formatParentEvent(id, title, start_date)
 {
-    const dateString = moment(start_date).format('ddd D MMM YY');
-    return `#${id} ${title} (${dateString})`;
+    const truncated = title.length > 30 ? title.substring(0, 30) + '…' : title;
+    const dateString = moment(start_date).format('DD/MM/YYYY');
+    return `#${id} ${truncated} (${dateString})`;
 }

@@ -1,6 +1,7 @@
 """API to get the event list in index page."""
 
 import json
+import re
 from datetime import timedelta
 
 from flask import abort, request, url_for
@@ -227,20 +228,57 @@ class AutocompleteEventSchema(EventSchema):
         fields = ("id", "title", "start", "view_uri")
 
 
+def _normalize_search_term(text: str) -> str:
+    """Normalize a search term for punctuation-insensitive matching.
+
+    Strips punctuation characters, replacing them with spaces, and collapses
+    repeated whitespace.
+    Accent stripping is left to the database collation (MySQL ``unicode_ci``).
+    """
+    text = re.sub(r"[^\w\s]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+# Punctuation replacements applied SQL-side so that queries without
+# punctuation can match titles that contain apostrophes, hyphens, etc.
+# Accent handling is delegated to the DB collation (MySQL unicode_ci).
+_SQL_PUNCTUATION_MAP = [
+    ("'", " "), ("\u2019", " "), ("-", " "),
+    ("/", " "), ("(", " "), (")", " "),
+    (":", " "), (".", " "), (",", " "),
+    ("!", " "), ("?", " "), (";", " "),
+    # Collapse double-spaces left by adjacent punctuation (two passes)
+    ("  ", " "), ("  ", " "),
+]  # fmt: skip
+
+
+def _sql_normalized_title():
+    """Return a SQL expression that strips punctuation from ``Event.title``.
+
+    Chains ``REPLACE()`` calls for each entry in :data:`_SQL_PUNCTUATION_MAP`.
+    """
+    col = Event.title
+    for src, dst in _SQL_PUNCTUATION_MAP:
+        col = func.replace(col, src, dst)
+    return col
+
+
 @blueprint.route("/event/autocomplete/")
 def autocomplete_event():
     """API endpoint for event autocompletion.
 
     At least 2 characters are required to make a name search.
 
-    :param string q: Search string. Either the event id or a substring from the title
+    :param string q: Search string. Either the event id (or ``#id``), or a
+                     substring from the title. Accents and punctuation are ignored.
     :param int l: Maximum number of returned items.
     :param list[int] aid: List of activity ids to include. Empty means include
                           events for any activity
     :param list[int] eid: List of event ids to exclude
     :return: A tuple:
 
-        - JSON containing information describe in AutocompleteUserSchema
+        - JSON containing information describe in AutocompleteEventSchema
         - HTTP return code : 200
         - additional header (content as JSON)
     :rtype: (string, int, dict)
@@ -248,26 +286,42 @@ def autocomplete_event():
 
     found_events = []
 
-    search_term = request.args.get("q")
+    search_term = request.args.get("q", "").strip()
     if not search_term:
         abort(400)
 
+    # Detect "#N" as an explicit ID lookup
+    explicit_id_match = re.search(r"#(\d+)", search_term)
+    explicit_id_lookup = explicit_id_match is not None
     try:
-        event_id = int(search_term)
+        event_id = (
+            int(explicit_id_match.group(1)) if explicit_id_match else int(search_term)
+        )
     except ValueError:
         event_id = None
 
-    if event_id is not None or (len(search_term) >= 2):
-        limit = request.args.get("l", type=int) or 8
+    normalized = _normalize_search_term(search_term)
+
+    if event_id is not None or len(normalized) >= 2:
+        limit = request.args.get("l", type=int) or 12
         activity_ids = request.args.getlist("aid", type=int)
         excluded_ids = request.args.getlist("eid", type=int)
 
         query = Event.query
 
-        # Search term in title or id
-        search_clause = Event.title.ilike(f"%{search_term}%")
-        if event_id:
-            search_clause = or_(search_clause, (Event.id == event_id))
+        if explicit_id_lookup and event_id is not None:
+            # "#N" pattern: look up by id only, no title search
+            search_clause = Event.id == event_id
+        else:
+            # Title search: match the original term against the raw title,
+            # plus the normalized term against a SQL-side normalized title
+            # so that "ecole d aventure" matches "École d'aventure", etc.
+            search_clause = or_(
+                Event.title.ilike(f"%{search_term}%"),
+                _sql_normalized_title().ilike(f"%{normalized}%"),
+            )
+            if event_id is not None:
+                search_clause = or_(search_clause, Event.id == event_id)
         query = query.filter(search_clause)
 
         # Remove excluded ids
@@ -281,7 +335,7 @@ def autocomplete_event():
                 Event.activity_types.any(ActivityType.id.in_(activity_ids))
             )
 
-        query = query.order_by(Event.id.desc())
+        query = query.order_by(Event.start.desc())
         found_events = query.limit(limit).all()
 
         if len(found_events) < limit:
@@ -289,7 +343,7 @@ def autocomplete_event():
             # See issue #618
             query = query_without_activity_filtering
             query = query.filter(~Event.id.in_([event.id for event in found_events]))
-            query = query.order_by(Event.id.desc())
+            query = query.order_by(Event.start.desc())
             found_events += query.limit(limit - len(found_events)).all()
 
     content = AutocompleteEventSchema().dumps(found_events, many=True)

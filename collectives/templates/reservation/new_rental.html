@@ -104,12 +104,9 @@
               field.form.submit();
             }
             );
-            setupAutoComplete(
+            setupUserAutoComplete(
               document.getElementById('new-user'),
               '{{url_for("api.autocomplete_users_create_rental") | safe}}',
-              function(item) {
-                return item.full_name;
-              },
               function(id, val) {
               var field = document.getElementById('{{form_user.user.id}}');
               field.value = id;

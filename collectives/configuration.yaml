@@ -167,6 +167,11 @@ Divers:
         description: Default event description template. Place holder can be inserted, and will be used for CSV import.
         type: LongString
 
+    USER_SEARCH_ENABLED:
+        content: true
+        description: Whether to enable the user search page for leaders
+        type: Boolean
+
     RESERVATION_ENABLED:
         content: false
         description: Whether to enable the reservation/rental-related functionalities
