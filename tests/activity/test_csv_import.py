@@ -82,3 +82,31 @@ def test_csv_import_unknown_leader(supervisor_client, user1):
 
     events = Event.query.all()
     assert len(events) == 0
+
+
+def test_csv_import_latin1_semicolon(supervisor_client, user1):
+    """Test upload of a latin-1 encoded csv with semicolons.
+
+    Reproduces the bug where a non-UTF-8 file with semicolon delimiters
+    caused a 500 error (AttributeError on generator.seek).
+    """
+    csv = (
+        ";;;;;;;;;;;;;;;\n"
+        "Jan Johnston;990000000001;26/11/2021 7:00;26/11/2021 7:00;Dôme des Écrins;"
+        "Aravis;d;2322;1200;F;120;d ;8;4;19/11/2021 7:00;25/11/2021 12:00;;\n"
+    )
+    file = BytesIO(csv.encode("iso-8859-1"))
+    activity = supervisor_client.user.get_supervised_activities()[0]
+
+    data = {
+        "csv_file": (file, "import.csv"),
+        "description": "{altitude}m-{denivele}m-{cotation}",
+        "type": activity.id,
+    }
+
+    response = supervisor_client.post("/activity_supervision/import", data=data)
+    assert response.status_code == 200
+
+    events = Event.query.all()
+    assert len(events) == 1
+    assert events[0].title == "Dôme des Écrins"

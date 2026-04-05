@@ -104,3 +104,25 @@ def test_skill_bulk_add(
     assert user3.badges[0].level == custom_skill_with_activity_type.level
     assert user3.badges[0].activity_id == custom_skill_with_activity_type.activity_id
     assert user3.badges[0].expiration_date is None
+
+
+def test_competency_bulk_add_latin1_semicolon(supervisor_client, user1):
+    """Test bulk badge import with a latin-1 encoded CSV using semicolons."""
+
+    csv = f"licence;niveau;activité\n{user1.license};;\n"
+    file = BytesIO(csv.encode("iso-8859-1"))
+
+    response = supervisor_client.get("/activity_supervision/competency_badge_holders/")
+    data = utils.load_data_from_form(response.text, "user-search-form")
+    data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
+    data["csv_file"] = (file, "import.csv")
+    data["badge_id"] = str(int(BadgeIds.Practitioner))
+    data["level"] = 2
+
+    response = supervisor_client.post(
+        "/activity_supervision/competency_badge/add", data=data
+    )
+
+    assert response.status_code == 302
+    assert len(user1.badges) == 1
+    assert user1.badges[0].badge_id == BadgeIds.Practitioner
