@@ -1,7 +1,7 @@
 """Unit tests for CSV import"""
 
 import datetime
-from io import StringIO
+from io import BytesIO
 
 from collectives.utils.csv import csv_to_events
 
@@ -12,9 +12,9 @@ def test_csv_import(user1):
     # pylint: disable=C0301
     csv = f""",,,,,,,,,,,,,,,\nMr TEST,{user1.license},26/11/2021 7:00,26/11/2021 7:00,Aiguille des Calvaires,Aravis,d,2322,1200,F,120,d ,8,4,19/11/2021 7:00,25/11/2021 12:00,,rando cool"""
 
-    output = StringIO(csv)
+    output = BytesIO(csv.encode("utf8"))
     events, processed, failed = csv_to_events(
-        output, "{altitude}m-{denivele}m-{cotation}"
+        output, "utf8", "{altitude}m-{denivele}m-{cotation}"
     )
     assert len(events) == 1
     event = events[0]
@@ -37,9 +37,9 @@ def test_csv_import_semicolon(user1):
     # pylint: disable=C0301
     csv = f""";;;;;;;;;;;;;;;\nMr TEST;{user1.license};26/11/2021 7:00;26/11/2021 7:00;Aiguille des Calvaires;Aravis;d;2322;1200;F;120;d ;8;4;19/11/2021 7:00;25/11/2021 12:00;;rando cool"""
 
-    output = StringIO(csv)
+    output = BytesIO(csv.encode("utf8"))
     events, processed, failed = csv_to_events(
-        output, "{altitude}m-{denivele}m-{cotation}"
+        output, "utf8", "{altitude}m-{denivele}m-{cotation}"
     )
     assert len(events) == 1
     event = events[0]

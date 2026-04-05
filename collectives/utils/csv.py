@@ -175,12 +175,12 @@ def process_stream(base_stream, activity_type, description):
     :rtype: (int, int)
     """
     try:
-        stream = codecs.iterdecode(base_stream, "utf8")
-        events, processed, failed = csv_to_events(stream, description)
+        events, processed, failed = csv_to_events(base_stream, "utf8", description)
     except UnicodeDecodeError:
         base_stream.seek(0)
-        stream = codecs.iterdecode(base_stream, "iso-8859-1")
-        events, processed, failed = csv_to_events(stream, description)
+        events, processed, failed = csv_to_events(
+            base_stream, "iso-8859-1", description
+        )
 
     # Complete event before adding it to db
     for event in events:
@@ -191,11 +191,13 @@ def process_stream(base_stream, activity_type, description):
     return processed, failed
 
 
-def csv_to_events(stream, description):
+def csv_to_events(base_stream, encoding, description):
     """Decode the csv stream to populate events.
 
-    :param stream: the csv file as a stream.
-    :type stream: :py:class:`io.StringIO`
+    :param base_stream: the csv file as a binary stream.
+    :type base_stream: :py:class:`io.BytesIO`
+    :param encoding: the encoding to use for decoding the stream.
+    :type encoding: String
     :param description: Description template that will be used to generate new events
                         description.
     :type description: String
@@ -208,13 +210,15 @@ def csv_to_events(stream, description):
     failed = []
     fields = list(current_app.config["CSV_COLUMNS"].keys())
 
+    stream = codecs.iterdecode(base_stream, encoding)
     reader = csv.DictReader(stream, delimiter=",", fieldnames=fields)
     row = next(reader, None)  # skip the headers
 
     if all(row[f] is None for f in fields[1:]):
         # Single non-None column, delimiter is likely wrong
-        # Retry with semi-column
-        stream.seek(0)
+        # Retry with semicolon
+        base_stream.seek(0)
+        stream = codecs.iterdecode(base_stream, encoding)
         reader = csv.DictReader(stream, delimiter=";", fieldnames=fields)
         next(reader, None)  # skip the headers
 
