@@ -6,7 +6,15 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
 
 from datetime import date
 
-from flask import Blueprint, flash, redirect, render_template, request, send_file, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload

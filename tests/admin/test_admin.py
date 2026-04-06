@@ -2,9 +2,8 @@
 
 from io import BytesIO
 
-import pytest
-
 import openpyxl
+import pytest
 
 from collectives.models import Role, RoleIds, User, db
 
@@ -29,7 +28,9 @@ def load_export_and_check(flask_response, expected_count):
     workbook = openpyxl.load_workbook(filename=BytesIO(flask_response.data))
     worksheet = workbook.active
     user_count = worksheet.max_row - 1
-    assert user_count == expected_count, f"Expected {expected_count} users, got {user_count}"
+    assert user_count == expected_count, (
+        f"Expected {expected_count} users, got {user_count}"
+    )
 
     assert worksheet.max_column == 5
     headers = [cell.value for cell in worksheet[1]]
@@ -97,7 +98,7 @@ def test_export_roles(admin_client):
 def test_export_search_results_no_filter(admin_client, user1, user2):
     """
     Test export of all users with no filter.
-    user1 and user2 unused parameters ensure that user fixtures are loaded 
+    user1 and user2 unused parameters ensure that user fixtures are loaded
     """
     expected_count = User.query.count()
     response = admin_client.post("/administration/users/export")
@@ -129,7 +130,7 @@ def test_export_search_results_with_filter(
     """Test export with various filters."""
     response = admin_client.post(
         "/administration/users/export",
-        data={f"filters[0][field]": filter_field, f"filters[0][value]": filter_value},
+        data={"filters[0][field]": filter_field, "filters[0][value]": filter_value},
     )
     assert response.status_code == 200
     load_export_and_check(response, expected_count)
