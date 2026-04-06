@@ -20,6 +20,57 @@ from collectives.models.badge import BadgeCustomLevel, BadgeIds
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 
+def apply_user_filters(query, request_args):
+    """Apply filters from request to user query.
+
+    :param query: Base query to filter
+    :type query: sqlalchemy query
+    :param request_args: Request arguments (request.args or request.form)
+    :return: Filtered query
+    :rtype: sqlalchemy query
+    """
+    i = 0
+    while f"filters[{i}][field]" in request_args:
+        value = request_args.get(f"filters[{i}][value]")
+        field = request_args.get(f"filters[{i}][field]")
+
+        if value is None:
+            i += 1
+            continue
+
+        if field == "roles":
+            filters = {j[0]: j[1:] for j in value.split("-")}
+            if "r" in filters:
+                filters["r"] = Role.role_id == RoleIds(int(filters["r"]))
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Role.activity_id == filters["t"]
+
+            filters = list(filters.values())
+            query_filter = User.roles.any(and_(*filters))
+
+        elif field == "badges":
+            filters = {j[0]: j[1:] for j in value.split("-")}
+            if "b" in filters:
+                filters["b"] = Badge.badge_id == BadgeIds(int(filters["b"]))
+            if "t" in filters:
+                if filters["t"] == "none":
+                    filters["t"] = None
+                filters["t"] = Badge.activity_id == filters["t"]
+
+            filters = list(filters.values())
+            query_filter = User.badges.any(and_(*filters))
+
+        else:
+            query_filter = getattr(User, field).ilike(f"%{value}%")
+
+        query = query.filter(query_filter)
+        i += 1
+
+    return query
+
+
 class AdminUserSchema(UserSchema):
     """Schema for users in admin list"""
 
@@ -96,52 +147,7 @@ def users():
     query = db.session.query(User)
     query = query.options(selectinload(User.roles), selectinload(User.badges))
 
-    # Process all filters.
-    # All filter are added as AND
-    i = 0
-    while f"filters[{i}][field]" in request.args:
-        value = request.args.get(f"filters[{i}][value]")
-        field = request.args.get(f"filters[{i}][field]")
-
-        if value is None:
-            i += 1
-            continue
-
-        if field == "roles":
-            # if field is roles,
-
-            filters = {i[0]: i[1:] for i in value.split("-")}
-            if "r" in filters:
-                filters["r"] = Role.role_id == RoleIds(int(filters["r"]))
-            if "t" in filters:
-                if filters["t"] == "none":
-                    filters["t"] = None
-                filters["t"] = Role.activity_id == filters["t"]
-
-            filters = list(filters.values())
-            query_filter = User.roles.any(and_(*filters))
-
-        elif field == "badges":
-            # if field is roles,
-
-            filters = {i[0]: i[1:] for i in value.split("-")}
-            if "b" in filters:
-                filters["b"] = Badge.badge_id == BadgeIds(int(filters["b"]))
-            if "t" in filters:
-                if filters["t"] == "none":
-                    filters["t"] = None
-                filters["t"] = Badge.activity_id == filters["t"]
-
-            filters = list(filters.values())
-            query_filter = User.badges.any(and_(*filters))
-
-        else:
-            query_filter = getattr(User, field).ilike(f"%{value}%")
-
-        query = query.filter(query_filter)
-
-        # Get next filter
-        i += 1
+    query = apply_user_filters(query, request.args)
 
     # Process first sorter only
     if "sorters[0][field]" in request.args:

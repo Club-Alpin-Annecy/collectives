@@ -95,3 +95,43 @@ function exportXLXS(element){
 
     return false;
 }
+
+function exportSearchXLXS(){
+    allFilters = table.getFilters(true);
+
+    if (allFilters.length === 0) {
+        alert('Aucun filtre actif. Tous les utilisateurs seront exportés.');
+    }
+
+    const data = new FormData();
+    data.append('csrf_token', window.csrfToken);
+    allFilters.forEach((filter, index) => {
+        data.append(`filters[${index}][field]`, filter.field);
+        data.append(`filters[${index}][value]`, filter.value);
+    });
+
+    fetch('/administration/users/export', {
+        method: 'POST',
+        body: data,
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur serveur');
+        }
+        const filename = response.headers.get('Content-Disposition')
+            ?.split('filename=')[1]?.replace(/"/g, '') || 'export.xlsx';
+        return response.blob().then(blob => ({ blob, filename }));
+    }).then(({ blob, filename }) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    }).catch(error => {
+        alert('Erreur lors de l\'export: ' + error.message);
+    });
+
+    return false;
+}

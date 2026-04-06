@@ -2,9 +2,40 @@
 
 from io import BytesIO
 
+import pytest
+
 import openpyxl
 
-from collectives.models import User
+from collectives.models import Role, RoleIds, User, db
+
+
+@pytest.fixture
+def user1_with_leader_role(user1):
+    """Add EventLeader role to user1 and clean up after test if we added it."""
+    from tests.fixtures.user import promote_to_leader
+
+    had_leader_role = user1.has_role([RoleIds.EventLeader])
+    if not had_leader_role:
+        promote_to_leader(user1)
+        db.session.commit()
+    yield user1
+    if not had_leader_role:
+        Role.query.filter_by(user_id=user1.id, role_id=RoleIds.EventLeader).delete()
+        db.session.commit()
+
+
+def load_export_and_check(flask_response, expected_count):
+    """Load Excel from response and verify row count and headers."""
+    workbook = openpyxl.load_workbook(filename=BytesIO(flask_response.data))
+    worksheet = workbook.active
+    user_count = worksheet.max_row - 1
+    assert user_count == expected_count, f"Expected {expected_count} users, got {user_count}"
+
+    assert worksheet.max_column == 5
+    headers = [cell.value for cell in worksheet[1]]
+    assert headers == ["Licence", "Prénom", "Nom", "Email", "Téléphone"]
+
+    return worksheet
 
 
 def test_index(admin_client):
@@ -61,6 +92,67 @@ def test_export_roles(admin_client):
     worksheet = workbook.active
     assert worksheet.max_row == 1
     assert worksheet.max_column == 7
+
+
+def test_export_search_results_no_filter(admin_client, user1, user2):
+    """
+    Test export of all users with no filter.
+    user1 and user2 unused parameters ensure that user fixtures are loaded 
+    """
+    expected_count = User.query.count()
+    response = admin_client.post("/administration/users/export")
+    assert response.status_code == 200
+    assert response.content_type == (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    load_export_and_check(response, expected_count)
+
+
+def test_export_search_results_user_access(user1_client):
+    """Test access denial to non-admin user."""
+    response = user1_client.post("/administration/users/export")
+    assert response.status_code == 302
+
+
+@pytest.mark.parametrize(
+    "filter_field,filter_value,expected_count",
+    [
+        ("mail", "user1@example.org", 1),
+        ("mail", "nonexistent@example.org", 0),
+        ("first_name", "Jan", 1),
+        ("last_name", "Johnston", 1),
+    ],
+)
+def test_export_search_results_with_filter(
+    admin_client, user1, user2, filter_field, filter_value, expected_count
+):
+    """Test export with various filters."""
+    response = admin_client.post(
+        "/administration/users/export",
+        data={f"filters[0][field]": filter_field, f"filters[0][value]": filter_value},
+    )
+    assert response.status_code == 200
+    load_export_and_check(response, expected_count)
+
+
+@pytest.mark.parametrize(
+    "role_id,expected_count",
+    [
+        (RoleIds.EventLeader, 1),
+        (RoleIds.Administrator, 1),
+    ],
+)
+def test_export_search_results_with_role_filter(
+    admin_client, user1_with_leader_role, user2, role_id, expected_count
+):
+    """Test export with role filters (user1 has EventLeader, admin has Administrator)."""
+    filter_value = f"r{int(role_id)}"
+    response = admin_client.post(
+        "/administration/users/export",
+        data={"filters[0][field]": "roles", "filters[0][value]": filter_value},
+    )
+    assert response.status_code == 200
+    load_export_and_check(response, expected_count)
 
 
 def test_admin_create_valideuser(admin_client):

@@ -9,6 +9,7 @@
   {# Specific for this page #}
   <script>const filters =  {{ filters |safe }}</script>
   <script>const filters_badge =  {{ filters_badge |safe }}</script>
+  <script>window.csrfToken = "{{ csrf_token() }}";</script>
   <script src="{{ url_for('static', filename='js/administration.js') }}"></script>
 {% endblock %}
 
@@ -25,6 +26,10 @@
       <a onclick="return exportXLXS(this)" class="button button-secondary" href="{{ url_for('administration.export_role', raw_filters='') }}">
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
           Exporter les utilisateurs du rôle
+      </a>
+      <a onclick="return exportSearchXLXS()" class="button button-secondary" href="#">
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-download.svg') }}"/>
+          Exporter la sélection
       </a>
   </div>
   
