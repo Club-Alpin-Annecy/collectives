@@ -96,15 +96,10 @@ function exportXLXS(element){
     return false;
 }
 
-function exportSearchXLXS(){
-    allFilters = table.getFilters(true);
-
-    if (allFilters.length === 0) {
-        alert('Aucun filtre actif. Tous les utilisateurs seront exportés.');
-    }
-
+function doExport(){
     const data = new FormData();
     data.append('csrf_token', window.csrfToken);
+    const allFilters = table.getFilters(true);
     allFilters.forEach((filter, index) => {
         data.append(`filters[${index}][field]`, filter.field);
         data.append(`filters[${index}][value]`, filter.value);
@@ -132,6 +127,42 @@ function exportSearchXLXS(){
     }).catch(error => {
         alert('Erreur lors de l\'export: ' + error.message);
     });
+}
+
+function exportSearchXLXS(){
+    const allFilters = table.getFilters(true);
+
+    if (allFilters.length === 0) {
+        const modal = document.getElementById('export-confirm-modal');
+        const message = document.getElementById('export-confirm-message');
+        const btnCancel = document.getElementById('export-confirm-cancel');
+        const btnProceed = document.getElementById('export-confirm-proceed');
+
+        message.textContent = 'Aucun filtre actif. Tous les utilisateurs seront exportés. Continuer ?';
+        modal.classList.add('display-flex');
+        modal.classList.remove('display-none');
+
+        const closeModalAndCleanup = () => {
+            modal.classList.add('display-none');
+            modal.classList.remove('display-flex');
+            btnCancel.removeEventListener('click', handleCancel);
+            btnProceed.removeEventListener('click', handleProceed);
+        };
+
+        const handleCancel = () => {
+            closeModalAndCleanup();
+        };
+
+        const handleProceed = () => {
+            closeModalAndCleanup();
+            doExport();
+        };
+
+        btnCancel.addEventListener('click', handleCancel);
+        btnProceed.addEventListener('click', handleProceed);
+    } else {
+        doExport();
+    }
 
     return false;
 }
