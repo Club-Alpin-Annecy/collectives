@@ -95,3 +95,74 @@ function exportXLXS(element){
 
     return false;
 }
+
+function doExport(){
+    const data = new FormData();
+    data.append('csrf_token', window.csrfToken);
+    const allFilters = table.getFilters(true);
+    allFilters.forEach((filter, index) => {
+        data.append(`filters[${index}][field]`, filter.field);
+        data.append(`filters[${index}][value]`, filter.value);
+    });
+
+    fetch('/administration/users/export', {
+        method: 'POST',
+        body: data,
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur serveur');
+        }
+        const filename = response.headers.get('Content-Disposition')
+            ?.split('filename=')[1]?.replace(/"/g, '') || 'export.xlsx';
+        return response.blob().then(blob => ({ blob, filename }));
+    }).then(({ blob, filename }) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    }).catch(error => {
+        alert('Erreur lors de l\'export: ' + error.message);
+    });
+}
+
+function exportSearchXLXS(){
+    const allFilters = table.getFilters(true);
+
+    if (allFilters.length === 0) {
+        const modal = document.getElementById('export-confirm-modal');
+        const message = document.getElementById('export-confirm-message');
+        const btnCancel = document.getElementById('export-confirm-cancel');
+        const btnProceed = document.getElementById('export-confirm-proceed');
+
+        message.textContent = 'Aucun filtre actif. Tous les utilisateurs seront exportés. Continuer ?';
+        modal.classList.add('display-flex');
+        modal.classList.remove('display-none');
+
+        const closeModalAndCleanup = () => {
+            modal.classList.add('display-none');
+            modal.classList.remove('display-flex');
+            btnCancel.removeEventListener('click', handleCancel);
+            btnProceed.removeEventListener('click', handleProceed);
+        };
+
+        const handleCancel = () => {
+            closeModalAndCleanup();
+        };
+
+        const handleProceed = () => {
+            closeModalAndCleanup();
+            doExport();
+        };
+
+        btnCancel.addEventListener('click', handleCancel);
+        btnProceed.addEventListener('click', handleProceed);
+    } else {
+        doExport();
+    }
+
+    return false;
+}

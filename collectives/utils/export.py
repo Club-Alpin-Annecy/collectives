@@ -80,6 +80,38 @@ def export_badges(badges: list[Badge]) -> BytesIO:
     return out
 
 
+def export_users(users):
+    """Create an excel with the input users.
+
+    :param users: List of users to export
+    :type users: list of :py:class:`collectives.models.user.User`
+    :returns: The excel with all info
+    :rtype: :py:class:`io.BytesIO`
+    """
+    workbook = Workbook()
+    worksheet = workbook.active
+    fields = {
+        "license": "Licence",
+        "first_name": "Prénom",
+        "last_name": "Nom",
+        "mail": "Email",
+        "phone": "Téléphone",
+    }
+    worksheet.append(list(fields.values()))
+
+    for user in users:
+        worksheet.append([deepgetattr(user, field, "-") for field in fields])
+
+    for i in range(ord("A"), ord("A") + len(fields)):
+        worksheet.column_dimensions[chr(i)].width = 25
+
+    out = BytesIO()
+    workbook.save(out)
+    out.seek(0)
+
+    return out
+
+
 def export_users_registered(event):
     """Create an Excel document with the contact information of registered users at an event.
 

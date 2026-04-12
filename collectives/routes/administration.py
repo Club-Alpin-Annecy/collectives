@@ -6,11 +6,20 @@ All routes are protected by :py:fun:`before_request` which protect acces to admi
 
 from datetime import date
 
-from flask import Blueprint, flash, redirect, render_template, send_file, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
+from collectives.api.admin import apply_user_filters
 from collectives.email_templates import send_confirmation_email
 from collectives.forms.auth import AdminTokenCreationForm
 from collectives.forms.badge import BadgeForm, RenewBadgeForm
@@ -424,6 +433,33 @@ def export_role(raw_filters=""):
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         download_name=f"{club_name} - Export {filename}.xlsx",
+        as_attachment=True,
+    )
+
+
+@blueprint.route("/users/export", methods=["POST"])
+def export_search_results():
+    """Export users from search results.
+
+    Accepts filter parameters in the same format as the /api/users/ endpoint
+    and exports all matching users to Excel.
+
+    :return: The Excel file with the users.
+    """
+    query = User.query
+    query = query.options(joinedload(User.roles), joinedload(User.badges))
+
+    query = apply_user_filters(query, request.form)
+
+    users = query.all()
+    out = export.export_users(users)
+
+    club_name = sanitize_file_name(Configuration.CLUB_NAME)
+
+    return send_file(
+        out,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name=f"{club_name} - Export utilisateurs.xlsx",
         as_attachment=True,
     )
 

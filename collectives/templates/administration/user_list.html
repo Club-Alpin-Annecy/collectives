@@ -9,6 +9,8 @@
   {# Specific for this page #}
   <script>const filters =  {{ filters |safe }}</script>
   <script>const filters_badge =  {{ filters_badge |safe }}</script>
+  <script>window.csrfToken = "{{ csrf_token() }}";</script>
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
   <script src="{{ url_for('static', filename='js/administration.js') }}"></script>
 {% endblock %}
 
@@ -26,8 +28,27 @@
           <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
           Exporter les utilisateurs du rôle
       </a>
+      <a onclick="return exportSearchXLXS()" class="button button-secondary" href="#">
+          <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-download.svg') }}"/>
+          Exporter la sélection
+      </a>
   </div>
   
   <div id="users-table"></div>
+</div>
+
+<div id="export-confirm-modal" class="container_bg_modal display-none">
+  <div class="container_modal">
+    <div class="container_close">
+      <span></span>
+    </div>
+    <div style="padding: 20px; text-align: center;">
+      <p id="export-confirm-message" style="margin-bottom: 20px;"></p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="export-confirm-cancel" class="button button-secondary">Annuler</button>
+        <button id="export-confirm-proceed" class="button button-primary">Exporter</button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
