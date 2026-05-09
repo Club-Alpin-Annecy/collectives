@@ -12,6 +12,7 @@ from os.path import exists
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -21,10 +22,16 @@ from flask import (
 )
 from flask_images import Images
 from flask_login import current_user, logout_user
+from itsdangerous import BadSignature, SignatureExpired
 from markupsafe import Markup
 from PIL import Image, ImageDraw, ImageFont
 
-from collectives.forms import ExtranetUserForm, LocalUserForm
+from collectives.forms import (
+    ExtranetUserForm,
+    LocalUserForm,
+    NotificationPreferencesForm,
+    csrf,
+)
 from collectives.forms.badge import CompetencyBadgeForm
 from collectives.forms.user import DeleteUserForm
 from collectives.models import (
@@ -33,6 +40,7 @@ from collectives.models import (
     BadgeIds,
     Configuration,
     Event,
+    EventType,
     Gender,
     Role,
     RoleIds,
@@ -46,11 +54,11 @@ from collectives.routes.auth import (
     get_changed_email_message,
     sync_user,
 )
-from collectives.utils.access import valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
 from collectives.utils.profile_token import profile_token
 from collectives.utils.time import current_time
+from collectives.utils.url import slugify
 
 images = Images()
 
@@ -58,10 +66,23 @@ blueprint = Blueprint("profile", __name__, url_prefix="/profile")
 
 
 @blueprint.before_request
-@valid_user()
 def before_request():
     """Protect all profile from unregistered access"""
-    pass
+    if request.endpoint in {
+        "profile.notification_click",
+        "profile.unsubscribe_notifications",
+        "profile.unsubscribe_notifications_one_click",
+    }:
+        return None
+
+    if not current_user.is_authenticated:
+        return current_app.login_manager.unauthorized()
+
+    if not current_user.has_signed_legal_text():
+        flash("""Merci d'accepter les dernières mentions légales du site.""", "error")
+        return redirect(url_for("root.legal"))
+
+    return None
 
 
 @blueprint.route("/user/<int:user_id>", methods=["GET"])
@@ -78,6 +99,7 @@ def show_user(user_id: int, event_id: int = 0):
 
     practitioner_badge_form = None
     skill_badge_form = None
+    notification_form = None
 
     if user.id != current_user.id:
         if not current_user.has_any_role():
@@ -133,12 +155,17 @@ def show_user(user_id: int, event_id: int = 0):
             )
             skill_badge_form = CompetencyBadgeForm(badge_id=BadgeIds.Skill)
 
+    if user.id == current_user.id:
+        notification_form = NotificationPreferencesForm(current_user)
+        notification_form.next.data = url_for("profile.show_user", user_id=user.id)
+
     return render_template(
         "profile/main.html",
         title="Profil adhérent",
         user=user,
         practitioner_badge_form=practitioner_badge_form,
         skill_badge_form=skill_badge_form,
+        notification_form=notification_form,
         event_id=event_id,
     )
 
@@ -204,6 +231,189 @@ def update_user():
     db.session.commit()
 
     return redirect(url_for("profile.update_user"))
+
+
+@blueprint.route("/user/notifications", methods=["GET", "POST"])
+def update_notifications():
+    """Route to update current user notification preferences."""
+
+    form = NotificationPreferencesForm(current_user)
+    next_url = form.next.data
+
+    if form.validate_on_submit():
+        was_enabled = current_user.new_event_notification_enabled
+        current_user.new_event_notification_enabled = (
+            form.new_event_notification_enabled.data
+        )
+        current_user.new_event_notification_frequency = (
+            form.new_event_notification_frequency.data
+        )
+
+        selected_event_types = (
+            EventType.query.filter(EventType.id.in_(form.event_type_ids.data)).all()
+            if form.event_type_ids.data
+            else []
+        )
+        normalized_activity_type_ids = form.normalized_activity_type_ids()
+        selected_activity_types = (
+            ActivityType.query.filter(
+                ActivityType.id.in_(normalized_activity_type_ids)
+            ).all()
+            if normalized_activity_type_ids
+            else []
+        )
+
+        current_user.notified_event_types = selected_event_types
+        current_user.notified_activity_types = selected_activity_types
+        current_user.set_notification_weekday_list(form.weekdays.data)
+        if current_user.new_event_notification_enabled and not was_enabled:
+            current_user.last_new_event_notification_sent_at = current_time()
+            current_user.new_event_notification_warning_sent_at = None
+        if not current_user.new_event_notification_enabled:
+            current_user.new_event_notification_warning_sent_at = None
+
+        db.session.add(current_user)
+        db.session.commit()
+
+        flash("Préférences de notification mises à jour", "success")
+        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+            return redirect(next_url)
+        return redirect(url_for("profile.update_notifications"))
+
+    if next_url == url_for("profile.show_user", user_id=current_user.id):
+        return render_template(
+            "profile/main.html",
+            title="Profil adhérent",
+            user=current_user,
+            practitioner_badge_form=None,
+            skill_badge_form=None,
+            notification_form=form,
+            event_id=0,
+        )
+
+    return render_template(
+        "profile/notification_preferences.html",
+        notification_form=form,
+        title="Mes notifications",
+        description=(
+            "Choisissez les types de collectives à surveiller. "
+            "Les notifications sont envoyées sous forme de récapitulatif quotidien "
+            "ou hebdomadaire si la collective correspond aux filtres."
+        ),
+    )
+
+
+@blueprint.route("/user/notifications/click/<token>", methods=["GET"])
+def notification_click(token: str):
+    """Track clicks from digest emails and redirect to the target event."""
+    serializer = current_app.extensions["new_event_notification_serializer"]
+    try:
+        payload = serializer.loads(
+            token,
+            max_age=current_app.config["NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE"],
+        )
+    except SignatureExpired:
+        flash("Lien de notification expiré", "error")
+        return redirect(url_for("root.index"))
+    except BadSignature:
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    if payload.get("action") != "click":
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user = db.session.get(User, payload.get("user_id"))
+    event = db.session.get(Event, payload.get("event_id"))
+    if user is None or event is None:
+        flash("Lien de notification invalide", "error")
+        return redirect(url_for("root.index"))
+
+    user.last_new_event_notification_clicked_at = current_time()
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+
+    return redirect(
+        url_for("event.view_event", event_id=event.id, name=slugify(event.title))
+    )
+
+
+@blueprint.route("/user/notifications/unsubscribe/<token>", methods=["GET"])
+@blueprint.route("/user/notifications/unsubscribe/<token>", methods=["POST"])
+def unsubscribe_notifications(token: str):
+    """Display or apply one-click unsubscribe for notification digests."""
+    user = _load_unsubscribe_user_from_token(token)
+    if user is None:
+        return redirect(url_for("root.index"))
+
+    if request.method == "GET":
+        return render_template(
+            "profile/unsubscribe_notifications.html",
+            title="Confirmer le désabonnement",
+            description=(
+                "Cette page confirme l'arrêt des notifications de nouvelles "
+                "collectives pour ce compte."
+            ),
+            token=token,
+        )
+
+    user.new_event_notification_enabled = False
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+    flash("Les notifications de nouvelles collectives ont été désactivées.", "success")
+    if current_user.is_authenticated and current_user.id == user.id:
+        return redirect(url_for("profile.update_notifications"))
+    return redirect(
+        url_for("auth.login", next=url_for("profile.update_notifications"))
+    )
+
+
+def _load_unsubscribe_user_from_token(token: str):
+    """Resolve the signed unsubscribe token into a user."""
+    serializer = current_app.extensions["new_event_notification_serializer"]
+    try:
+        payload = serializer.loads(
+            token,
+            max_age=current_app.config[
+                "NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE"
+            ],
+        )
+    except SignatureExpired:
+        flash("Lien de désabonnement expiré", "error")
+        return None
+    except BadSignature:
+        flash("Lien de désabonnement invalide", "error")
+        return None
+
+    if payload.get("action") != "unsubscribe":
+        flash("Lien de désabonnement invalide", "error")
+        return None
+
+    user = db.session.get(User, payload.get("user_id"))
+    if user is None:
+        flash("Lien de désabonnement invalide", "error")
+        return None
+    return user
+
+
+@blueprint.route(
+    "/user/notifications/unsubscribe/one-click/<token>", methods=["POST"]
+)
+@csrf.exempt
+def unsubscribe_notifications_one_click(token: str):
+    """RFC 8058 one-click unsubscribe endpoint for email clients."""
+    user = _load_unsubscribe_user_from_token(token)
+    if user is None:
+        return "", 400
+    if request.form.get("List-Unsubscribe") != "One-Click":
+        return "", 400
+    user.new_event_notification_enabled = False
+    user.new_event_notification_warning_sent_at = None
+    db.session.add(user)
+    db.session.commit()
+    return "", 204
 
 
 @blueprint.route("/user/force_sync", methods=["POST"], defaults={"user_id": None})
@@ -456,6 +666,10 @@ def delete_user(user_id: int):
         user.emergency_contact_phone = ""
         user.roles.clear()
         user.badges.clear()
+        user.notified_event_types.clear()
+        user.notified_activity_types.clear()
+        user.new_event_notification_enabled = False
+        user.new_event_notification_weekdays = None
         user.delete_avatar()
 
         db.session.add(user)

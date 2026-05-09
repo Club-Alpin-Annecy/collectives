@@ -1,0 +1,14 @@
+{% extends 'partials/basic-extends.html' %}
+
+{% block additionalhead %}
+  {% include 'partials/form-additionalhead.html' %}
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content">
+  <h1 class="heading-1">{{ title }}</h1>
+  {% if description %}<p>{{ description }}</p>{% endif %}
+
+  {% include 'profile/partials/notification_preferences_form.html' %}
+</div>
+{% endblock %}
