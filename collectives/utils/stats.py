@@ -44,8 +44,16 @@ class StatisticsEngine:
 
     activity_id = None
     """ All statistics of the engine will be limited to the activity with this id
-    
+
     :type: int
+    """
+
+    event_type_ids = None
+    """ All statistics of the engine will be limited to events of these event types.
+
+    An empty or ``None`` value means no restriction on event type.
+
+    :type: list[int]
     """
 
     start = None
@@ -296,6 +304,8 @@ class StatisticsEngine:
             condition = condition & (
                 Event.activity_types.any(ActivityType.id == self.activity_id)
             )
+        if self.event_type_ids:
+            condition = condition & (Event.event_type_id.in_(self.event_type_ids))
 
         if query_type == Event:
             query = query.filter(condition)
@@ -629,7 +639,11 @@ class StatisticsEngine:
 
     def __str__(self) -> str:
         """Returns string representation of Engine"""
-        return f"{self.activity_id}/{self.start}->{self.end}/{self.time_segment()}"
+        event_types = ",".join(str(i) for i in sorted(self.event_type_ids or []))
+        return (
+            f"{self.activity_id}/{event_types}/"
+            f"{self.start}->{self.end}/{self.time_segment()}"
+        )
 
     def __hash__(self) -> int:
         """Return unique hash based on StatisticsEngine parameters"""
@@ -639,6 +653,7 @@ class StatisticsEngine:
         """Check if two StatisticsEngine are equivalent."""
         return (
             self.activity_id == other.activity_id
+            and sorted(self.event_type_ids or []) == sorted(other.event_type_ids or [])
             and self.start == other.start
             and self.end == other.end
             and self.time_segment() == other.time_segment()

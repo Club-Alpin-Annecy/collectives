@@ -29,6 +29,35 @@
 
   <script src="{{ url_for('api.models_to_js') }}"></script>
 
+  {# Multi-select #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+    window.addEventListener('load', function () {
+      const select = document.getElementById('event_type_ids');
+      const choices = new Choices(select, {
+        removeItemButton: true,
+        noChoicesText: "Pas d'autres choix disponibles",
+        noResultsText: "Aucun choix trouvé",
+        itemSelectText: "Ajouter",
+        placeholder: true,
+        placeholderValue: "Tous les types d'événement",
+      });
+
+      // Choices.js keeps the placeholder on a multi-select even once items are
+      // selected; clear it while there is at least one selection.
+      function updatePlaceholder() {
+        const input = choices.input.element;
+        input.placeholder = choices.getValue(true).length
+          ? ""
+          : "Tous les types d'événement";
+      }
+      select.addEventListener('addItem', updatePlaceholder);
+      select.addEventListener('removeItem', updatePlaceholder);
+      updatePlaceholder();
+    });
+  </script>
+
 {% endblock %}
 
 {% block content %}
@@ -39,6 +68,8 @@
 
     <form action="{{url_for('root.statistics')}}" id="statistics-form" method="GET" class="filters">
           {{ form.activity_id }}
+
+          {{ form.event_type_ids(class="choices", title="Types d'événement (aucun = tous)") }}
 
           {{ form.year }}
 
