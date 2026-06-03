@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import openpyxl
 
-from collectives.models import ActivityType
+from collectives.models import ActivityType, EventType
 from collectives.utils.stats import StatisticsEngine
 from collectives.utils.time import current_time
 
@@ -120,3 +120,23 @@ def test_statistics_engine_only_alpi(stats_env, leader2_user):
     assert engine.mean_registrations_per_day() is None
 
     assert openpyxl.load_workbook(filename=engine.export_excel())
+
+
+def test_statistics_engine_only_party(stats_env):
+    """Tests statistics engine restricted to a set of event types."""
+    party = EventType.query.filter_by(name="Soirée").first()
+    collective = EventType.query.filter_by(name="Collective").first()
+
+    # Single event type: only the "Soirée" event (event3) is kept.
+    engine = StatisticsEngine(event_type_ids=[party.id])
+    assert engine.nb_events() == 1
+    assert engine.nb_events_by_event_type() == {"Soirée": 1}
+
+    # Set of event types behaves as the union of each type.
+    engine = StatisticsEngine(event_type_ids=[party.id, collective.id])
+    assert engine.nb_events() == 6
+    assert set(engine.nb_events_by_event_type()) == {"Soirée", "Collective"}
+
+    # Empty selection means no restriction on event type.
+    engine = StatisticsEngine(event_type_ids=[])
+    assert engine.nb_events() == 6

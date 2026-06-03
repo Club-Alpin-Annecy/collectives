@@ -2,10 +2,10 @@
 
 from datetime import date
 
-from wtforms import SelectField, SubmitField
+from wtforms import SelectField, SelectMultipleField, SubmitField
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.models import Event
+from collectives.models import Event, EventType
 from collectives.utils.time import get_ffcam_year
 
 
@@ -17,6 +17,9 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
 
     year = SelectField()
     """ Year to display """
+
+    event_type_ids = SelectMultipleField("Types d'événement", coerce=int, validators=[])
+    """ Event types to restrict statistics to. Empty means all event types. """
 
     submit = SubmitField(label="Sélectionner")
     """ Submit button for regular HTML display """
@@ -32,6 +35,10 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
         self.activity_id.choices = [
             (self.ALL_ACTIVITIES, "Toutes activités"),
             *self.activity_id.choices,
+        ]
+
+        self.event_type_ids.choices = [
+            (event_type.id, event_type.name) for event_type in EventType.get_all_types()
         ]
 
         first_event = Event.query.order_by(Event.start).first()
