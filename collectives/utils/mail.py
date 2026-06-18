@@ -28,13 +28,24 @@ from collectives.models import Configuration
 
 
 def send_mail(**kwargs):
-    """Wrapper for :py:func:`send_mail_threaded`"""
-    threading.Thread(
+    """Wrapper for :py:func:`send_mail_threaded`.
+
+    Pass ``sync=True`` to execute the SMTP handoff in the caller thread and
+    receive a boolean success status.
+    """
+    sync = kwargs.pop("sync", False)
+    # pylint: disable=W0212
+    app = flask.current_app._get_current_object()
+    if sync:
+        return send_mail_threaded(app, **kwargs)
+
+    thread = threading.Thread(
         target=send_mail_threaded,
-        # pylint: disable=W0212
-        args=(flask.current_app._get_current_object(),),
+        args=(app,),
         kwargs=kwargs,
-    ).start()
+    )
+    thread.start()
+    return thread
 
 
 def send_mail_threaded(app, **kwargs):
@@ -56,6 +67,8 @@ def send_mail_threaded(app, **kwargs):
           Email Adress recipient
         * *message* (``string``) --
           Email body
+        * *headers* (``dict``) --
+          Extra RFC 5322 headers to add to the email
         * *error_action* (``function``) --
           Function to activate if email sending fails
         * *success_action* (``string``) --
@@ -63,6 +76,7 @@ def send_mail_threaded(app, **kwargs):
     """
     with app.app_context():
         try:
+            kwargs.pop("sync", None)
             smtp = smtplib.SMTP(
                 host=Configuration.SMTP_HOST, port=Configuration.SMTP_PORT
             )
@@ -73,17 +87,20 @@ def send_mail_threaded(app, **kwargs):
                 Configuration.SMTP_PASSWORD,
             )
 
-            msg = MIMEMultipart()
+            subtype = "alternative" if kwargs.get("html_message") else "mixed"
+            msg = MIMEMultipart(subtype)
 
             msg["From"] = Configuration.SMTP_ADDRESS
             msg["Subject"] = kwargs["subject"]
             msg["Message-ID"] = email.utils.make_msgid(domain=app.config["SERVER_NAME"])
             msg["Date"] = email.utils.formatdate()
+            for header, value in kwargs.get("headers", {}).items():
+                msg[header] = value
 
             dest = kwargs["email"]
             if not dest:
                 # Attempt to send an email with empty dest would result in an error
-                return
+                return False
 
             if isinstance(dest, list):
                 msg["Bcc"] = ",".join(dest)
@@ -91,6 +108,8 @@ def send_mail_threaded(app, **kwargs):
                 msg["To"] = dest
 
             msg.attach(MIMEText(kwargs["message"], "plain", "utf-8"))
+            if kwargs.get("html_message"):
+                msg.attach(MIMEText(kwargs["html_message"], "html", "utf-8"))
 
             # DKIM part
             if Configuration.DKIM_KEY != "" and Configuration.DKIM_SELECTOR != "":
@@ -104,9 +123,11 @@ def send_mail_threaded(app, **kwargs):
                 msg["DKIM-Signature"] = sig.decode("ascii").lstrip("DKIM-Signature: ")
 
             smtp.send_message(msg)
+            smtp.quit()
             if "success_action" in kwargs:
                 with app.app_context():
                     kwargs["success_action"]()
+            return True
         # pylint: disable=broad-except
         except Exception as ex:
             dest = kwargs["email"]
@@ -114,4 +135,5 @@ def send_mail_threaded(app, **kwargs):
 
             if "error_action" in kwargs:
                 kwargs["error_action"](ex)
+            return False
         # pylint: enable=broad-except

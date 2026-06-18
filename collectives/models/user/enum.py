@@ -64,3 +64,20 @@ class UserType(ChoiceEnum):
             cls.Local: "Local",
             cls.UnverifiedLocal: "Local (email non-vérifié)",
         }
+
+
+class NotificationFrequency(ChoiceEnum):
+    """Enum to store new-event notification digest frequency."""
+
+    # pylint: disable=invalid-name
+    Daily = 0
+    Weekly = 1
+    # pylint: enable=invalid-name
+
+    @classmethod
+    def display_names(cls):
+        """:return: Human-readable notification frequency labels."""
+        return {
+            cls.Daily: "Quotidien",
+            cls.Weekly: "Hebdomadaire",
+        }

@@ -30,6 +30,7 @@ from collectives.models.event import (
 )
 from collectives.models.event_tag import EventTag
 from collectives.models.globals import db
+from collectives.models.new_event_notification import NewEventNotification
 from collectives.models.payment import (
     ItemPrice,
     Payment,
@@ -50,7 +51,13 @@ from collectives.models.reservation import (
 )
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
-from collectives.models.user import Gender, User, UserType, avatars
+from collectives.models.user import (
+    Gender,
+    NotificationFrequency,
+    User,
+    UserType,
+    avatars,
+)
 from collectives.models.user_group import (
     GroupEventCondition,
     GroupLicenseCondition,

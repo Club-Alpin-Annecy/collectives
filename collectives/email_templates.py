@@ -18,40 +18,27 @@ from collectives.models import (
     db,
 )
 from collectives.models.auth import ConfirmationTokenType, TokenEmailStatus
+from collectives.new_event_notifications import (
+    queue_new_event_notification,
+    send_supervisor_new_event_notification,
+)
 from collectives.utils import mail
 from collectives.utils.time import current_time, format_date
 from collectives.utils.url import slugify
 
 
 def send_new_event_notification(event):
-    """Send a notification to activity supervisor when a new event is created
+    """Queue digest notifications and notify configured activity emails immediately.
 
     :param event: The new created event.
     :type event: :py:class:`collectives.modes.event.Event`
     """
-    emails = [a.email for a in event.activity_types if a.email is not None]
-    if emails:
-        leader_names = [l.full_name() for l in event.leaders]
-        activity_names = [a.name for a in event.activity_types]
-        subject = Configuration.NEW_EVENT_SUBJECT
-        if event.status == EventStatus.Pending:
-            subject = f"{subject} ({EventStatus.display_names()[EventStatus.Pending]})"
-        message = Configuration.NEW_EVENT_MESSAGE.format(
-            leader_name=",".join(leader_names),
-            activity_name=",".join(activity_names),
-            event_title=event.title,
-            link=url_for(
-                "event.view_event",
-                event_id=event.id,
-                name=slugify(event.title),
-                _external=True,
-            ),
-        )
-        try:
-            mail.send_mail(subject=subject, email=emails, message=message)
-        # pylint: disable=broad-except
-        except BaseException as err:
-            current_app.logger.error(f"Mailer error: {err}")
+    queue_new_event_notification(event)
+    try:
+        send_supervisor_new_event_notification(event)
+    # pylint: disable=broad-except
+    except BaseException as err:
+        current_app.logger.error(f"Mailer error: {err}")
 
 
 def send_unregister_notification(event: Event, user: User, reason: str):

@@ -25,6 +25,7 @@ from collectives.forms.user import (
     AdminUserForm,
     ExtranetUserForm,
     LocalUserForm,
+    NotificationPreferencesForm,
     RoleForm,
 )
 from collectives.models import avatars, image_equipment_type, photos
