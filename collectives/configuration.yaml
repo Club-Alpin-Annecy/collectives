@@ -21,16 +21,6 @@ Sécurité:
         content: 2
         description: Duration (in hours) of a token before expiration
         type: Integer
-    
-    RECAPTCHA_PUBLIC_KEY:
-        content: ""
-        description: "Mandatory for local registration. Get one: https://www.google.com/recaptcha/admin/create . Classic key & v2"
-        type: ShortString
-
-    RECAPTCHA_PRIVATE_KEY:
-        content: ""
-        description: "Mandatory for local registration. Get one: https://www.google.com/recaptcha/admin/create"
-        type: ShortString
 
     MAX_HISTORY_FOR_ANONYMOUS:
         content: 30

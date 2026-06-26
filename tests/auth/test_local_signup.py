@@ -121,6 +121,22 @@ def test_local_duplicate_signup(
     assert len(utils.get_form_errors(response.text)) >= 1
 
 
+def test_local_signup_honeypot_username_rejected(
+    client, example_data, mail_success_monkeypatch, local_accounts
+):
+    """Signup should be rejected when honeypot field is filled."""
+
+    example_data["username"] = "spam-bot"
+
+    response = client.post("/auth/signup", data=example_data)
+    assert response.status_code == 200
+    assert len(utils.get_form_errors(response.text)) >= 1
+
+    user = db.session.query(User).filter(User.mail == example_data["mail"]).first()
+    assert user is None
+    assert mail_success_monkeypatch.sent_mail_count() == 0
+
+
 def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_accounts):
     """Test to get a new password"""
 

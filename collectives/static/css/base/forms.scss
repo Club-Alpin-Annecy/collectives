@@ -36,6 +36,10 @@ form {
             font-size: $font-size-xs;
             font-weight: $font-weight-default;
         }
+        &:has(> .hp-input) {
+            height: 1px;
+            overflow: hidden;
+         }
     }
 
     &.form-vertical {
