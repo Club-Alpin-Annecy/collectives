@@ -12,6 +12,8 @@
 
   <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
+        {% set existing_class = field.render_kw.get('class', '') if field.render_kw else '' %}
+
         {% if field.type == "HiddenField"%}
             {{ field }}
         {% elif field.type == "BooleanField"%}
@@ -27,14 +29,14 @@
                 <div class="label-help">{{ field.description }}</div>
 
                 {% if field.type == "PasswordField" %}
-                    {{ field(autocomplete="new-password", title=field.description, class="input-100") }}
+                    {{ field(autocomplete="new-password", title=field.description, class='input-100 ' ~ existing_class) }}
                     <div style="display: none" >
                         <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt="👁️" onclick="togglePassword('{{field.id}}')"/>
                     </div>
                 {% elif field.type == "FileField" %}
-                    {{ field(onchange="checkFileFieldSize(this)", title=field.description, class="input-100") }}
+                    {{ field(onchange="checkFileFieldSize(this)", title=field.description, class='input-100 ' ~ existing_class) }}
                 {% else %}
-                    {{ field(title=field.description, class="input-100") }}
+                    {{ field(title=field.description, class='input-100 ' ~ existing_class) }}
                 {% endif %}
             </div>
         {% endif %}

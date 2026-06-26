@@ -4,11 +4,13 @@ This module contains form related to authentification such as login
 and account creation.
 """
 
+import random
+import time
+
 from flask_wtf import FlaskForm
-from flask_wtf.recaptcha import RecaptchaField
 from markupsafe import Markup
 from wtforms import BooleanField, PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, EqualTo, InputRequired
+from wtforms.validators import DataRequired, EqualTo, InputRequired, ValidationError
 from wtforms_alchemy import ModelForm
 from wtforms_alchemy.utils import strip_string
 
@@ -20,7 +22,7 @@ from collectives.forms.validators import (
     UniqueValidator,
     remove_unique_validators,
 )
-from collectives.models import Configuration, User
+from collectives.models import User
 
 
 class LoginForm(FlaskForm):
@@ -162,6 +164,7 @@ class LocalAccountCreationForm(
         "mail",
         "first_name",
         "last_name",
+        "username",
         "gender",
         "phone",
         "emergency_contact_name",
@@ -171,10 +174,15 @@ class LocalAccountCreationForm(
         "password",
         "confirm",
         "legal_accepted",
-        "recaptcha",
     ]
 
-    recaptcha = RecaptchaField()
+    username = StringField(
+        label="Nom d'utilisateur",
+        render_kw={
+            "class": "hp-input",
+            "aria-hidden": "true",
+        },
+    )
 
     submit = SubmitField("Créer le compte")
 
@@ -191,5 +199,8 @@ class LocalAccountCreationForm(
         )
         self.mail.description = "Utilisée lors de votre (ré-)inscription FFCAM"
 
-        if Configuration.RECAPTCHA_PUBLIC_KEY == "":
-            del self.recaptcha
+    def validate_username(self, field):
+        """Honeypot field; any value means likely automated submission."""
+        if field.data and field.data.strip():
+            time.sleep(random.uniform(0.5, 2.0))
+            raise ValidationError("Validation impossible.")
