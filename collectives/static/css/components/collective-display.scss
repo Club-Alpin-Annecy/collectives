@@ -40,6 +40,7 @@
 
     &--description {
        padding-bottom: $padding-vertical-l;
+       overflow-wrap: break-word;
 
        table{
             border-collapse: collapse;
