@@ -184,6 +184,11 @@ Divers:
         description: Si activé, le profil encadrant est masqué pour les adhérents.
         type: Boolean
 
+    ACCOUNT_RETENTION_YEARS:
+        content: 2
+        description: Nombre d'années un compte est conservé après expiration de la licence avant anonymisation automatique du compte (purge mensuelle RGPD).
+        type: Integer
+
 Règlements:
     GUIDE_FILE:
         content: caf/doc/Organisation des sorties.pdf

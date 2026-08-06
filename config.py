@@ -93,6 +93,18 @@ Can be set using environment variable.
 :type: string
 """
 
+SCHEDULER_ENABLED = environ.get("SCHEDULER_ENABLED", "true").lower() != "false"
+"""Whether the in-process background scheduler (monthly RGPD purge, etc.)
+should run.
+
+Disable for local dev, or if the app is ever run as several processes, to
+avoid duplicate execution of scheduled jobs.
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 

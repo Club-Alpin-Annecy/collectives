@@ -35,6 +35,7 @@ from collectives.routes import (
     technician,
 )
 from collectives.utils import error, extranet, init, jinja, payline
+from collectives.utils.scheduled_tasks import init_scheduler
 
 csrf = CSRFProtect()
 
@@ -144,6 +145,8 @@ def create_app(config_filename="config.py", extra_config=None):
 
         forms.configure_forms(app)
         forms.csrf.init_app(app)
+
+        init_scheduler(app)
 
         return app
 
