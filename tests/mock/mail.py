@@ -37,7 +37,6 @@ class FakeSMTPLog:
 
         return [mail for mail in self._mails if is_dest(mail)]
 
-
 class FakeSMTP:
     """Fake SMTP object that does not do anything"""
 
@@ -55,6 +54,11 @@ class FakeSMTP:
 
     def send_message(self, *args) -> None:
         """Fake method that does not do anything"""
+        pass
+
+    def quit(self) -> None:
+        """Fake method that does not do anything"""
+        pass
 
 
 @pytest.fixture
@@ -65,7 +69,7 @@ def mail_success_monkeypatch(monkeypatch):
 
     def send_mail(**kwargs):
         mailer_log.log(**kwargs)
-        send_mail_threaded(flask.current_app, **kwargs)
+        return send_mail_threaded(flask.current_app, **kwargs)
 
     monkeypatch.setattr("smtplib.SMTP", FakeSMTP)
     monkeypatch.setattr("collectives.utils.mail.send_mail", send_mail)

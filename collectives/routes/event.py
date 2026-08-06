@@ -673,6 +673,7 @@ def manage_event(event_id=None):
             or not Configuration.NEW_EVENT_NOTIFICATION_ON_CONFIRM
         ):
             send_new_event_notification(event)
+            db.session.commit()
     elif (
         current_status == EventStatus.Pending
         and event.status == EventStatus.Confirmed
@@ -680,6 +681,7 @@ def manage_event(event_id=None):
     ):
         # Status changed from draft to confirmed, send notification if configured
         send_new_event_notification(event)
+        db.session.commit()
     elif (
         current_status == EventStatus.Confirmed
         and event.status == EventStatus.Cancelled
@@ -688,7 +690,7 @@ def manage_event(event_id=None):
         # A notification is sent to registered users and sanction status are rehabilitated
         send_cancelled_event_notification(current_user.full_name(), event)
         _clear_sanctioned_registrations(event)
-
+        db.session.commit()
     return redirect(url_for("event.view_event", event_id=event.id))
 
 

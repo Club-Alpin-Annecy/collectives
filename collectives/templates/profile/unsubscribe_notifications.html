@@ -1,0 +1,21 @@
+{% extends 'partials/basic-extends.html' %}
+
+{% block page_content %}
+<div class="page-content">
+  <h1 class="heading-1">{{ title }}</h1>
+  {% if description %}<p>{{ description }}</p>{% endif %}
+
+  <form
+    action="{{ url_for('profile.unsubscribe_notifications', token=token) }}"
+    method="POST"
+    class="form form-vertical"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="controls">
+      <button type="submit" class="button button-primary input-100">
+        Confirmer le désabonnement
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

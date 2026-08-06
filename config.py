@@ -50,6 +50,18 @@ Can be set using environment variable.
 :type: string
 """
 
+NEW_EVENT_NOTIFICATION_CLICK_TOKEN_MAX_AGE = 45 * 24 * 3600
+"""Maximum age in seconds for click-tracking notification links.
+
+:type: int
+"""
+
+NEW_EVENT_NOTIFICATION_UNSUBSCRIBE_TOKEN_MAX_AGE = 90 * 24 * 3600
+"""Maximum age in seconds for one-click unsubscribe notification links.
+
+:type: int
+"""
+
 LOGGING_CONFIGURATION = f"{basedir}/logging.cfg"
 """Logging configuration file path.
 

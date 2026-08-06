@@ -20,14 +20,17 @@ from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.order import OrderedModelForm
-from collectives.forms.utils import coerce_optional
+from collectives.forms.utils import MultiCheckboxField, coerce_optional
 from collectives.forms.validators import (
     LicenseValidator,
     PasswordValidator,
     UniqueValidator,
 )
 from collectives.models import (
+    ActivityKind,
     ActivityType,
+    EventType,
+    NotificationFrequency,
     Role,
     RoleIds,
     User,
@@ -93,6 +96,15 @@ class AdminTestUserForm(OrderedModelForm, AvatarForm, OptionalPasswordForm):
     def __init__(self, *args, **kwargs):
         OrderedModelForm.__init__(self, *args, **kwargs)
         AvatarForm.__init__(self, kwargs.get("obj"))
+
+
+class AdminTestUserCreationForm(AdminTestUserForm):
+    """Form for admins to create test/local users without notification internals."""
+
+    class Meta(AdminTestUserForm.Meta):
+        """Fields to expose on creation."""
+
+        exclude = [*AdminTestUserForm.Meta.exclude, "new_event_notification_enabled", "new_event_notification_weekdays", "new_event_notification_frequency", "last_new_event_notification_sent_at", "last_new_event_notification_clicked_at", "new_event_notification_warning_sent_at"]
 
 
 class AdminUserForm(OrderedModelForm, AvatarForm):
@@ -237,3 +249,106 @@ class DeleteUserForm(FlaskForm):
 
         if field.data.strip() != self._user.license:
             raise ValidationError("Le numéro de license ne correspond pas")
+
+
+class NotificationPreferencesForm(FlaskForm):
+    """Form for managing event creation notification preferences."""
+
+    WEEKDAY_CHOICES = [
+        (0, "Lundi"),
+        (1, "Mardi"),
+        (2, "Mercredi"),
+        (3, "Jeudi"),
+        (4, "Vendredi"),
+        (5, "Samedi"),
+        (6, "Dimanche"),
+    ]
+
+    new_event_notification_enabled = BooleanField(
+        "Recevoir des notifications de nouvelles collectives",
+        description=(
+            "Si activé, vous recevrez un e-mail groupé quand des collectives "
+            "correspondent aux filtres ci-dessous."
+        ),
+    )
+    new_event_notification_frequency = SelectField(
+        "Fréquence d'envoi",
+        coerce=NotificationFrequency.coerce,
+        choices=NotificationFrequency.choices(),
+        description="Choisissez un récapitulatif quotidien ou hebdomadaire.",
+    )
+    event_type_ids = MultiCheckboxField(
+        "Types d'événement",
+        coerce=int,
+        description="Laisser vide pour tous les types.",
+    )
+    activity_type_ids = MultiCheckboxField(
+        "Activités",
+        coerce=int,
+        description="Laisser vide pour toutes les activités.",
+    )
+    weekdays = MultiCheckboxField(
+        "Jours de la semaine",
+        choices=WEEKDAY_CHOICES,
+        coerce=int,
+        description="Laisser vide pour tous les jours.",
+    )
+    next = HiddenField()
+    submit = SubmitField("Enregistrer")
+
+    def __init__(self, user: User, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._user = user
+
+        event_types = EventType.get_all_types()
+        activity_types = ActivityType.get_all_types()
+        self.event_type_requires_activity_ids = {
+            event_type.id for event_type in event_types if event_type.requires_activity
+        }
+        self.event_type_icon_names = {
+            event_type.id: event_type.short for event_type in event_types
+        }
+        self.event_type_ids.choices = [
+            (event_type.id, event_type.name) for event_type in event_types
+        ]
+        self.activity_type_icon_names = {
+            activity_type.id: (
+                activity_type.short
+                if activity_type.kind == ActivityKind.Regular
+                else "benevolat"
+            )
+            for activity_type in activity_types
+        }
+        self.activity_type_ids.choices = [
+            (activity_type.id, activity_type.name) for activity_type in activity_types
+        ]
+
+        if not self.is_submitted():
+            self.new_event_notification_enabled.data = (
+                user.new_event_notification_enabled
+            )
+            self.new_event_notification_frequency.data = (
+                user.new_event_notification_frequency
+            )
+            self.event_type_ids.data = [
+                event_type.id for event_type in user.notified_event_types
+            ]
+            self.activity_type_ids.data = [
+                activity_type.id for activity_type in user.notified_activity_types
+            ]
+            self.weekdays.data = user.notification_weekday_list()
+
+    def selected_event_types_require_activity(self) -> bool:
+        """Whether the current event type selection makes activity filters relevant."""
+        if not self.event_type_ids.data:
+            return True
+        return any(
+            event_type_id in self.event_type_requires_activity_ids
+            for event_type_id in self.event_type_ids.data
+        )
+
+    def normalized_activity_type_ids(self) -> list[int]:
+        """Return only activity filters that are compatible with selected event types."""
+        if self.event_type_ids.data and not self.selected_event_types_require_activity():
+            return []
+        return self.activity_type_ids.data or []

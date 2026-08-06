@@ -10,9 +10,47 @@ from sqlalchemy_utils import PasswordType
 from wtforms.validators import Email
 
 from collectives.models.globals import db
-from collectives.models.user.enum import Gender, UserType
+from collectives.models.user.enum import Gender, NotificationFrequency, UserType
 from collectives.utils.misc import truncate
 from collectives.utils.time import current_time
+
+user_notification_event_types = db.Table(
+    "user_notification_event_types",
+    db.Column(
+        "user_id",
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+    db.Column(
+        "event_type_id",
+        db.Integer,
+        db.ForeignKey("event_types.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+)
+"""Association table between users and event types for notification preferences."""
+
+user_notification_activity_types = db.Table(
+    "user_notification_activity_types",
+    db.Column(
+        "user_id",
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+    db.Column(
+        "activity_type_id",
+        db.Integer,
+        db.ForeignKey("activity_types.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+)
+"""Association table between users and activity types for notification preferences."""
 
 
 class UserModelMixin:
@@ -145,6 +183,72 @@ class UserModelMixin:
     Only an enabled user can login.
 
     :type: boolean
+    """
+
+    new_event_notification_enabled = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        info={"label": "Notifications de nouvelles collectives activées"},
+    )
+    """Whether this user receives notifications when new events are created.
+
+    :type: bool
+    """
+
+    new_event_notification_weekdays = db.Column(
+        db.String(32),
+        nullable=True,
+        info={"label": "Jours des notifications"},
+    )
+    """Comma-separated list of week day indexes (0=Monday, 6=Sunday).
+
+    :type: string
+    """
+
+    new_event_notification_frequency = db.Column(
+        db.Enum(NotificationFrequency),
+        nullable=False,
+        default=NotificationFrequency.Weekly,
+        info={
+            "label": "Fréquence des notifications",
+            "choices": NotificationFrequency.choices(),
+            "coerce": NotificationFrequency.coerce,
+        },
+    )
+    """Digest frequency for new-event notifications.
+
+    :type: :py:class:`collectives.models.user.enum.NotificationFrequency`
+    """
+
+    last_new_event_notification_sent_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Dernier digest envoyé le"},
+    )
+    """Last time a new-event notification digest was sent.
+
+    :type: :py:class:`datetime.datetime`
+    """
+
+    last_new_event_notification_clicked_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Dernier clic sur une notification"},
+    )
+    """Last tracked click on a new-event notification email.
+
+    :type: :py:class:`datetime.datetime`
+    """
+
+    new_event_notification_warning_sent_at = db.Column(
+        db.DateTime,
+        nullable=True,
+        info={"label": "Préavis d'inactivité envoyé le"},
+    )
+    """When the inactivity warning email was last sent.
+
+    :type: :py:class:`datetime.datetime`
     """
 
     license_expiry_date = db.Column(
@@ -338,6 +442,32 @@ class UserModelMixin:
             "QuestionAnswer",
             backref="user",
             lazy=True,
+        )
+
+    @declared_attr
+    def notified_event_types(self):
+        """Event types for which user wants new-event notifications.
+
+        :type: list(:py:class:`collectives.models.event.event_type.EventType`)
+        """
+        return db.relationship(
+            "EventType",
+            secondary=user_notification_event_types,
+            lazy="selectin",
+            order_by="EventType.name",
+        )
+
+    @declared_attr
+    def notified_activity_types(self):
+        """Activity types for which user wants new-event notifications.
+
+        :type: list(:py:class:`collectives.models.activity_type.ActivityType`)
+        """
+        return db.relationship(
+            "ActivityType",
+            secondary=user_notification_activity_types,
+            lazy="selectin",
+            order_by="ActivityType.name",
         )
 
     @hybrid_method

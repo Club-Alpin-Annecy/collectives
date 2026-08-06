@@ -12,7 +12,9 @@ from collectives.models import (
     ActivityType,
     Event,
     EventStatus,
+    EventType,
     EventVisibility,
+    NewEventNotification,
     Payment,
     Question,
     QuestionType,
@@ -283,6 +285,66 @@ def test_event_creation(leader_client):
     assert "<strong>Lorem ipsum</strong>" in response.text
 
 
+def test_event_creation_notification_with_user_preferences(
+    leader_client, user1, user2, mail_success_monkeypatch
+):
+    """Test that new event digests are queued and only supervisor mail is immediate."""
+
+    now = current_time()
+    event_type = EventType.query.filter_by(short="collective").first()
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    assert event_type is not None
+    assert alpinisme is not None
+
+    # Matching user: same event type, activity and weekday
+    user1.new_event_notification_enabled = True
+    user1.notified_event_types = [event_type]
+    user1.notified_activity_types = [alpinisme]
+    event_start = now + timedelta(days=10)
+    user1.set_notification_weekday_list([event_start.weekday()])
+
+    # Non-matching user: different weekday
+    user2.new_event_notification_enabled = True
+    user2.notified_event_types = [event_type]
+    user2.notified_activity_types = [alpinisme]
+    user2.set_notification_weekday_list([(event_start.weekday() + 1) % 7])
+
+    db.session.commit()
+
+    data = {
+        "update_activity": "0",
+        "event_type_id": str(event_type.id),
+        "single_activity_type": alpinisme.id,
+        "leader_actions-0-leader_id": leader_client.user.id,
+        "main_leader_id": leader_client.user.id,
+        "add_leader": "0",
+        "update_leaders": "0",
+        "title": "Test collectives notification",
+        "status": int(EventStatus.Confirmed),
+        "num_slots": "5",
+        "start": event_start.strftime("%Y-%m-%d %X"),
+        "end": (event_start + timedelta(hours=3)).strftime("%Y-%m-%d %X"),
+        "num_online_slots": "4",
+        "num_waiting_list": "2",
+        "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
+        "description": "Description",
+        "tag_list": "6",
+        "search_terms": "",
+        "duplicate_event": "",
+        "parent_event_id": "",
+        "edit_session_id": "14576ab2-feb7-4ed4-ab59-9b3726f20111",
+    }
+
+    response = leader_client.post("/collectives/add", data=data)
+    assert response.status_code == 302
+
+    assert mail_success_monkeypatch.sent_mail_count() == 1
+    assert len(mail_success_monkeypatch.sent_to(user1.mail)) == 0
+    assert len(mail_success_monkeypatch.sent_to(user2.mail)) == 0
+    assert NewEventNotification.query.count() == 1
+
+
 def test_draft_event_notification_sent_by_default(
     leader_client, mail_success_monkeypatch
 ):
@@ -401,7 +463,6 @@ def test_confirmed_event_notification(leader_client, mail_success_monkeypatch):
     assert len(mails_to_activity) == 1
     assert "Test confirmed event" in mails_to_activity[0]["message"]
     assert "En attente" not in mails_to_activity[0]["subject"]
-
 
 def test_event_modification(event, leader_client):
     """Test various event modifications."""

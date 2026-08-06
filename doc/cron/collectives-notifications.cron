@@ -1,0 +1,10 @@
+# Example cron entries for Collectives notification maintenance.
+#
+# Update the project path and virtualenv path before installing this file.
+# These jobs should run on a single application host to avoid duplicate sends.
+
+# Send pending daily/weekly digests every morning.
+15 6 * * * cd /srv/collectives/CAF_Collectives && /srv/collectives/CAF_Collectives/.venv/bin/flask --app collectives:create_app send-new-event-digests
+
+# Warn and disable inactive subscriptions every morning.
+45 6 * * * cd /srv/collectives/CAF_Collectives && /srv/collectives/CAF_Collectives/.venv/bin/flask --app collectives:create_app maintain-new-event-notifications

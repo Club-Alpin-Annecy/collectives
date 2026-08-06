@@ -140,3 +140,15 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+
+Scheduled jobs
+..............
+
+Notification digests and notification inactivity maintenance are designed to be
+run outside the web server process.
+
+See :doc:`notifications_digest` for:
+
+- the available Flask CLI commands;
+- the example cron file;
+- installation instructions for scheduled execution.

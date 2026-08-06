@@ -1,0 +1,258 @@
+{% if notification_form %}
+<style>
+    #profile-notifications summary::-webkit-details-marker {
+        display: none;
+    }
+
+    #profile-notifications summary::marker {
+        content: "";
+    }
+
+    #profile-notifications .notification-chevron {
+        color: #0d6e9f;
+        display: inline-block;
+        flex: 0 0 auto;
+        font-size: 0.9rem;
+        line-height: 1;
+        transition: transform 0.18s ease-in-out;
+    }
+
+    #profile-notifications[open] .notification-chevron {
+        transform: rotate(90deg);
+    }
+
+    #profile-notifications .notification-summary-scroll {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.1rem;
+    }
+
+    #profile-notifications .notification-summary-row {
+        align-items: flex-start;
+        display: inline-flex;
+        flex-wrap: nowrap;
+        gap: 0.3rem;
+        min-width: max-content;
+        white-space: nowrap;
+    }
+
+    #profile-notifications .notification-summary-tag {
+        align-items: center;
+        color: #2a5f7f;
+        display: inline-flex;
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        font-size: 0.73rem;
+        gap: 4px;
+        margin: 0.25rem;
+        max-width: none;
+        padding: 0;
+        white-space: nowrap;
+    }
+
+    #profile-notifications .notification-summary-tag img,
+    #profile-notifications .notification-summary-item img {
+        flex: 0 0 auto;
+    }
+
+    #profile-notifications .notification-summary-values {
+        align-items: center;
+        display: inline-flex;
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        gap: 0.22rem;
+        white-space: nowrap;
+    }
+
+    #profile-notifications .notification-summary-item {
+        align-items: center;
+        display: inline-flex;
+        flex: 0 0 auto;
+        gap: 0.15rem;
+        white-space: nowrap;
+    }
+
+    #profile-notifications .notification-summary-values--stacked {
+        align-items: flex-start;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    #profile-notifications .notification-summary-values--stacked .notification-summary-item {
+        display: flex;
+    }
+
+    #profile-notifications .notification-summary-tag--activities {
+        align-items: flex-start;
+    }
+
+    #profile-notifications .notification-summary-values--two-columns {
+        align-items: start;
+        column-gap: 0.65rem;
+        display: inline-grid;
+        grid-template-columns: repeat(2, minmax(0, max-content));
+        row-gap: 0.2rem;
+        white-space: normal;
+    }
+
+    #profile-notifications .notification-summary-label {
+        color: #1f6288;
+        font-weight: 500;
+        background: #e0f1f8;
+        border-radius: 5px;
+    }
+</style>
+<details
+    id="profile-notifications"
+    class="card margin-bottom-m"
+    {% if notification_form.errors %}open{% endif %}
+>
+    <summary
+        class="padding-s"
+        style="cursor: pointer; text-align: left; list-style: none;"
+    >
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;"
+            >
+                <span
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0;"
+                >
+                    <span class="notification-chevron" aria-hidden="true">▸</span>
+                    <span class="heading-4 text-primary" style="margin: 0;">
+                        Mes notifications
+                    </span>
+                </span>
+
+                {% if current_user.new_event_notification_enabled %}
+                    <span
+                        class="tag flash-info"
+                        style="font-size: 0.8rem; padding: 0.15rem 0.55rem;"
+                    >
+                        Activées
+                    </span>
+                {% else %}
+                    <span
+                        class="tag"
+                        style="font-size: 0.8rem; padding: 0.15rem 0.55rem;"
+                    >
+                        Désactivées
+                    </span>
+                {% endif %}
+            </div>
+
+            {% if current_user.new_event_notification_enabled %}
+                {% set selected_weekdays = current_user.notification_weekday_list() %}
+                {% set notified_activity_count = current_user.notified_activity_types|length %}
+                <div class="notification-summary-scroll">
+                    <div class="notification-summary-row">
+                    <span
+                        class="tag notification-summary-tag"
+                    >
+                        <img
+                            class="icon"
+                            src="{{ url_for('static', filename='img/icon/ionicon/md-time.svg') }}"
+                            alt=""
+                            style="width: 1rem; height: 1rem;"
+                        />
+                        {{ current_user.new_event_notification_frequency.display_name() }}
+                    </span>
+
+                    <span
+                        class="tag notification-summary-tag"
+                    >
+                        <img
+                            class="icon"
+                            src="{{ url_for('static', filename='img/icon/ionicon/md-pricetags-outline.svg') }}"
+                            alt=""
+                            style="width: 1rem; height: 1rem;"
+                        />
+                        {% if current_user.notified_event_types %}
+                        <span class="notification-summary-label">Types :</span>
+                        <span class="notification-summary-values">
+                        {% for event_type in current_user.notified_event_types %}
+                            <span class="notification-summary-item">
+                                <img
+                                    src="{{ url_for('static', filename='caf/icon/' ~ event_type.short ~ '.svg') }}"
+                                    alt=""
+                                    style="width: 1rem; height: 1rem;"
+                                    title="{{ event_type.name }}"
+                                />
+                                <span>{{ event_type.name }}</span>
+                            </span>
+                            {% if not loop.last %}
+                                <span>·</span>
+                            {% endif %}
+                        {% endfor %}
+                        </span>
+                        {% else %}
+                        Tous les types
+                        {% endif %}
+                    </span>
+
+                    <span
+                        class="tag notification-summary-tag notification-summary-tag--activities"
+                    >
+                        <img
+                            class="icon"
+                            src="{{ url_for('static', filename='caf/icon/association.svg') }}"
+                            alt=""
+                            style="width: 1rem; height: 1rem;"
+                        />
+                        {% if current_user.notified_activity_types %}
+                        <span class="notification-summary-label">Activités :</span>
+                        <span class="notification-summary-values notification-summary-values--two-columns">
+                        {% for activity_type in current_user.notified_activity_types %}
+                            <span class="notification-summary-item">
+                                <img
+                                    src="{{ url_for('static', filename='caf/icon/' ~ (activity_type.short if activity_type.kind == models.ActivityKind.Regular else 'benevolat') ~ '.svg') }}"
+                                    alt=""
+                                    style="width: 1rem; height: 1rem;"
+                                    title="{{ activity_type.name }}"
+                                />
+                                <span>{{ activity_type.name }}</span>
+                            </span>
+                        {% endfor %}
+                        </span>
+                        {% else %}
+                        Toutes les activités
+                        {% endif %}
+                    </span>
+
+                    <span
+                        class="tag notification-summary-tag"
+                    >
+                        <img
+                            class="icon"
+                            src="{{ url_for('static', filename='img/icon/ionicon/md-calendar.svg') }}"
+                            alt=""
+                            style="width: 1rem; height: 1rem;"
+                        />
+                        {% if selected_weekdays %}
+                        <span class="notification-summary-label">Jours :</span>
+                        <span class="notification-summary-values">
+                        {% set weekday_separator = joiner('·') %}
+                        {% for day_value, day_label in notification_form.weekdays.choices %}
+                            {% if day_value in selected_weekdays %}
+                                {{ weekday_separator() }}
+                                <span class="notification-summary-item">{{ day_label }}</span>
+                            {% endif %}
+                        {% endfor %}
+                        </span>
+                        {% else %}
+                        Tous les jours
+                        {% endif %}
+                    </span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </summary>
+
+    <div class="padding-m padding-top-0">
+        {% include 'profile/partials/notification_preferences_form.html' %}
+    </div>
+</details>
+{% endif %}
