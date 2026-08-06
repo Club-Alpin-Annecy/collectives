@@ -43,6 +43,7 @@ dependencies = [
     "pysimplesoap",
     "flask-images",
     "setuptools",
+    "apscheduler",
 ]
 
 [project.optional-dependencies]

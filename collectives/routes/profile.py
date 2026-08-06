@@ -442,21 +442,7 @@ def delete_user(user_id: int):
     if form.validate_on_submit():
         old_name = user.full_name()
 
-        # Anonymize account
-        # Keep only gender and license category for statistics
-        user.enabled = False
-        user.first_name = "Compte"
-        user.last_name = "Supprimé"
-        user.license = str(user_id)
-        user.mail = f"{user.license}@localhost"
-        user.date_of_birth = date(user.date_of_birth.year, 1, 1)
-        user.password = ""
-        user.phone = ""
-        user.emergency_contact_name = ""
-        user.emergency_contact_phone = ""
-        user.roles.clear()
-        user.badges.clear()
-        user.delete_avatar()
+        user.anonymize()
 
         db.session.add(user)
         db.session.commit()

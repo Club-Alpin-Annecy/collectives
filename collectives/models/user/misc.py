@@ -52,6 +52,27 @@ class UserMiscMixin:
                 pass
             self.avatar = None
 
+    def anonymize(self):
+        """Anonymize account.
+
+        Keeps only gender and license category for statistics. Does not
+        commit the session; the caller is responsible for persisting the
+        change.
+        """
+        self.enabled = False
+        self.first_name = "Compte"
+        self.last_name = "Supprimé"
+        self.license = str(self.id)
+        self.mail = f"{self.license}@localhost"
+        self.date_of_birth = datetime.date(self.date_of_birth.year, 1, 1)
+        self.password = ""
+        self.phone = ""
+        self.emergency_contact_name = ""
+        self.emergency_contact_phone = ""
+        self.roles.clear()
+        self.badges.clear()
+        self.delete_avatar()
+
     def get_gender_name(self):
         """Get the name of the user gender.
 

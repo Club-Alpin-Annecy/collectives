@@ -2,13 +2,18 @@
 
 import functools
 import io
+import logging
 import re
 import types
 import unicodedata
+from datetime import date
 from typing import IO, Any, Union
 
+from dateutil.relativedelta import relativedelta
 from flask import request
 from PIL import Image
+
+LOGGER = logging.getLogger(__name__)
 
 
 class NoDefault:
@@ -102,6 +107,62 @@ def is_valid_image(file: Union[str, IO[bytes]]) -> bool:
         pass
 
     return True
+
+
+def _expired_accounts_query():
+    """Query of accounts eligible for the RGPD anonymization purge.
+
+    Accounts whose license expired more than
+    ``Configuration.ACCOUNT_RETENTION_YEARS`` years ago, excluding accounts
+    already anonymized.
+    """
+    # pylint: disable=import-outside-toplevel
+    from collectives.models import Configuration, User
+
+    threshold = date.today() - relativedelta(years=Configuration.ACCOUNT_RETENTION_YEARS)
+
+    return User.query.filter(
+        User.license_expiry_date.isnot(None),
+        User.license_expiry_date < threshold,
+        ~User.mail.like("%@localhost"),
+    )
+
+
+def count_expired_accounts() -> int:
+    """Number of accounts currently eligible for the RGPD anonymization purge.
+
+    :return: number of accounts that :py:func:`purge_expired_accounts` would anonymize
+    """
+    return _expired_accounts_query().count()
+
+
+def purge_expired_accounts() -> int:
+    """Anonymize accounts whose license has been expired for more than
+    ``Configuration.ACCOUNT_RETENTION_YEARS`` years.
+
+    :return: number of accounts anonymized
+    """
+    # pylint: disable=import-outside-toplevel
+    from collectives.models import db
+
+    LOGGER.info("RGPD: démarrage de la purge des comptes expirés")
+
+    users = _expired_accounts_query().all()
+
+    for user in users:
+        LOGGER.info(
+            "RGPD: anonymisation du compte id=%s license=%s (licence expirée le %s)",
+            user.id,
+            user.license,
+            user.license_expiry_date,
+        )
+        user.anonymize()
+        db.session.add(user)
+
+    db.session.commit()
+
+    LOGGER.info("RGPD: %d compte(s) anonymisé(s)", len(users))
+    return len(users)
 
 
 def truncate(value: str, max_len: int, append_ellipsis: bool = True) -> str:

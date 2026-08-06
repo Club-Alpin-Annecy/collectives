@@ -1,0 +1,35 @@
+{% extends 'technician/maintenance.html' %}
+
+{% block maintenance_content %}
+  <h4 class="heading-3">{{ title }}</h4>
+
+  <h5 class="heading-4">Anonymisation RGPD des comptes expirés</h5>
+  <p>
+    Anonymise tous les comptes dont la licence a expiré depuis plus de
+    <strong>{{ Configuration.ACCOUNT_RETENTION_YEARS }} an(s)</strong>.
+    Ce nombre d'années est modifiable dans la
+    <a href="{{ url_for('technician.configuration', selected_folder='Divers') }}">Configuration</a>
+    (<code>Divers/ACCOUNT_RETENTION_YEARS</code>).
+  </p>
+  <p>
+    Cette purge est exécutée automatiquement tous les mois. Le bouton ci-dessous permet de la
+    déclencher manuellement, par exemple pour vérifier son effet immédiatement.
+  </p>
+  <p>
+    <strong>{{ expired_accounts_count }}</strong> compte(s) sont à anonymiser.
+  </p>
+
+  <form
+    class="inline"
+    action="{{ url_for('technician.purge_expired_accounts_action') }}"
+    method="post"
+    onsubmit="return confirm('Anonymiser {{ expired_accounts_count }} compte(s) dont la licence a expiré depuis plus de {{ Configuration.ACCOUNT_RETENTION_YEARS }} an(s) ? Cette action est irréversible.');"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input
+      type="submit"
+      class="button button-primary"
+      value="Anonymiser les comptes expirés maintenant."
+    >
+  </form>
+{% endblock %}

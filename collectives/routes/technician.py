@@ -33,6 +33,7 @@ from collectives.models import (
     db,
 )
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
+from collectives.utils.misc import count_expired_accounts, purge_expired_accounts
 
 blueprint = Blueprint("technician", __name__, url_prefix="/technician")
 """ Technician blueprint
@@ -72,6 +73,27 @@ def maintenance():
         "technician/maintenance.html",
         title="Maintenance du serveur",
     )
+
+
+@blueprint.route("/actions", methods=["GET"])
+def actions():
+    """Route to display the maintenance actions page."""
+    return render_template(
+        "technician/actions.html",
+        title="Actions",
+        expired_accounts_count=count_expired_accounts(),
+    )
+
+
+@blueprint.route("/actions/purge_expired_accounts", methods=["POST"])
+def purge_expired_accounts_action():
+    """Endpoint to manually trigger the RGPD purge of expired accounts.
+
+    :return: redirection to the actions page
+    """
+    count = purge_expired_accounts()
+    flash(f"{count} compte(s) anonymisé(s).", "success")
+    return redirect(url_for("technician.actions"))
 
 
 @blueprint.route("/logs", methods=["GET"])
