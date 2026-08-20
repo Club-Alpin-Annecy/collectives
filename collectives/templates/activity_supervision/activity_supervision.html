@@ -35,6 +35,10 @@
         <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/checkmark-circle-outline.svg') }}"/>
         Pratiquants validés
     </a>
+    <a class="button button-primary" href="{{ url_for('retex.supervised_retex')}}">
+        <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
+        Retex
+    </a>
   </div>
 
   {% block page_content %}{% endblock %}

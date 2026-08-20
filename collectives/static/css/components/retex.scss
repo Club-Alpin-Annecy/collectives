@@ -1,0 +1,26 @@
+.retex-status-badge {
+    padding: 0.4em 0.9em 0.4em;
+    border-radius: 30px;
+    font-size: $font-size-xxs;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background-color: $solitude;
+    color: $color-gray-dark;
+
+    // Presque accident
+    &.retex-status-3 {
+        background-color: $color-warning-dark;
+    }
+
+    // Accident
+    &.retex-status-4 {
+        background-color: $color-error-dark;
+        color: $color-white;
+    }
+}
+
+.retex-status-todo {
+    @extend .retex-status-badge;
+    background-color: $color-warning-dark;
+}

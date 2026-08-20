@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% import 'partials/form-fields.html' as generator %}
+
+{% block additionalhead %}
+  {# Wysiwyg Editor #}
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+  <script>
+    var easymde = undefined;
+    window.onload = function () {
+      easymde = makeEditor("description", { uploadImage: false, status: [] });
+
+      document.getElementById('retex_form').addEventListener('submit', function () {
+        document.querySelector('textarea[name=description]').value = easymde.value();
+      });
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/event/edit.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <h1 class="heading-1">
+    <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
+    Retex — {{ event.title }}
+  </h1>
+
+  {{ generator.form_errors(form) }}
+
+  <form action="{{ url_for('retex.edit_retex', event_id=event.id) }}" method="POST" class="form form-vertical" id="retex_form">
+    {{ form.hidden_tag() }}
+
+    <div class="controls">
+      {{ form.status.label(class="label-top") }}
+      <div class="inline_field">
+        {% for subfield in form.status %}
+          <span style="display: inline-block; margin-right: 1em;">
+            {{ subfield }} {{ subfield.label }}
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="controls">
+      {{ form.description.label(class="label-top") }}
+      {{ form.description(class="input-100") }}
+    </div>
+
+    <div class="controls">
+      <br />
+      {{ form.submit(class="button button-primary input-100") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

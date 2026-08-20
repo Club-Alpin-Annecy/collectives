@@ -142,6 +142,7 @@
         </div>
         <div class="main-navigation-container-secondary">
             {% if current_user.is_authenticated %}
+                {% set pending_retex_count = current_user.pending_retex_count() if current_user.can_create_events() else 0 %}
                 <div class="menu-dropdown menu-dropdown-right">
                     <div class="menu-dropdown-trigger">
                         {% if current_user.avatar %}
@@ -157,6 +158,9 @@
                             </svg>
                         </div>
                         {% endif %}
+                        {% if pending_retex_count %}
+                        <span class="notification-badge" title="Retex en attente">{{ pending_retex_count }}</span>
+                        {% endif %}
                     </div>
                     <div class="menu-dropdown-container">
                         <ul>
@@ -171,6 +175,15 @@
                                     class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
                                         class="legacy-icon" /> Profil encadrant
+                                </a>
+                            </li>
+                            <li class="menu-dropdown-item">
+                                <a href="{{ url_for('retex.my_retex')}}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"
+                                        class="legacy-icon" /> Mes Retex
+                                    {% if pending_retex_count %}
+                                    <span class="notification-badge" style="position: static; display: inline-block; margin-left: 4px;">{{ pending_retex_count }}</span>
+                                    {% endif %}
                                 </a>
                             </li>
                             {% endif %}

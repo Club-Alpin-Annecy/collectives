@@ -31,6 +31,7 @@ from collectives.routes import (
     profile,
     question,
     reservation,
+    retex,
     root,
     technician,
 )
@@ -136,6 +137,7 @@ def create_app(config_filename="config.py", extra_config=None):
         app.register_blueprint(equipment.blueprint)
         app.register_blueprint(reservation.blueprint)
         app.register_blueprint(question.blueprint)
+        app.register_blueprint(retex.blueprint)
 
         # Error handling
         app.register_error_handler(werkzeug.exceptions.NotFound, error.not_found)

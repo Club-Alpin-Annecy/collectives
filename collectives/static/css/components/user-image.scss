@@ -1,3 +1,20 @@
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 50%;
+    background-color: $color-error-dark;
+    color: $color-white;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+    border: 1px solid $color-white;
+    z-index: 1;
+}
+
 .user-image {
     height: 40px;
     width: 40px;

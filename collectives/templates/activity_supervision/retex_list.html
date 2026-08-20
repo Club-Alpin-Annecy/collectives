@@ -1,0 +1,124 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% import 'partials/form-fields.html' as generator %}
+
+{% block additionalhead %}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/moment@2.30.1/min/moment.min.js"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+  <script src="{{ url_for('static', filename='js/retex/retex_tables.js') }}"></script>
+  <script>
+      window.onload = function () {
+        createRetexTable('retextable', '{{ url_for("api.supervised") }}');
+      };
+  </script>
+
+  {# Date range pickers for the export filters #}
+  {% include 'partials/form-additionalhead.html' %}
+
+  {# Multi-select for the activity filter #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+  {# Leader autocomplete for the leader filter #}
+  <script src="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.min.js"></script>
+  <link href="https://unpkg.com/js-autocomplete@1.0.4/auto-complete.css" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/utils/autocomplete.js') }}"></script>
+
+  <script>
+    function setRetexDateRange(days) {
+      var to = new Date();
+      var from = new Date();
+      from.setDate(from.getDate() - days);
+      document.getElementById('date_from').value = from.toISOString().slice(0, 10);
+      document.getElementById('date_to').value = to.toISOString().slice(0, 10);
+    }
+
+    window.addEventListener('load', function () {
+      new Choices(document.getElementById('activity_ids'), {
+        removeItemButton: true,
+        noChoicesText: "Pas d'autres choix disponibles",
+        noResultsText: "Aucun choix trouvé",
+        itemSelectText: "Ajouter",
+        placeholder: true,
+        placeholderValue: "Toutes les activités supervisées",
+      });
+
+      new Choices(document.getElementById('status_ids'), {
+        removeItemButton: true,
+        noChoicesText: "Pas d'autres choix disponibles",
+        noResultsText: "Aucun choix trouvé",
+        itemSelectText: "Ajouter",
+        placeholder: true,
+        placeholderValue: "Tous les statuts",
+      });
+
+      setupUserAutoComplete(
+        document.getElementById('leader_search'),
+        '{{ url_for("api.autocomplete_leaders") }}',
+        function (id, val) {
+          document.getElementById('leader_id').value = id;
+        }
+      );
+    });
+  </script>
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">
+    <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
+    Retex
+  </h2>
+
+  <div id="retextable" class="profile-event-list"></div>
+
+  <h4 class="heading-4">Export de la liste des retex</h4>
+
+  {{ generator.form_errors(export_form) }}
+
+  <form action="{{ url_for('retex.export_supervised_retex') }}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="retex_export_form">
+    <div class="controls">
+      {{ export_form.activity_ids.label(class="label-top") }}
+      <div class="label-help">{{ export_form.activity_ids.description }}</div>
+      {{ export_form.activity_ids(title=export_form.activity_ids.description, class="input-100") }}
+    </div>
+
+    <div class="controls">
+      {{ export_form.status_ids.label(class="label-top") }}
+      <div class="label-help">{{ export_form.status_ids.description }}</div>
+      {{ export_form.status_ids(title=export_form.status_ids.description, class="input-100") }}
+    </div>
+
+    <div class="controls">
+      {{ export_form.date_from.label(class="label-top") }}
+      <div class="label-help">{{ export_form.date_from.description }}</div>
+      {{ export_form.date_from(title=export_form.date_from.description, class="input-100") }}
+    </div>
+
+    <div class="controls">
+      {{ export_form.date_to.label(class="label-top") }}
+      <div class="label-help">{{ export_form.date_to.description }}</div>
+      {{ export_form.date_to(title=export_form.date_to.description, class="input-100") }}
+      <div style="display: flex; align-self: flex-start; gap: 0.5em; flex-wrap: wrap;">
+        <button type="button" class="button button-secondary" onclick="setRetexDateRange(7)">Semaine dernière</button>
+        <button type="button" class="button button-secondary" onclick="setRetexDateRange(30)">Mois dernier</button>
+        <button type="button" class="button button-secondary" onclick="setRetexDateRange(365)">Année dernière</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      {{ export_form.leader_search.label(class="label-top") }}
+      <div class="label-help">{{ export_form.leader_search.description }}</div>
+      {{ export_form.leader_search(title=export_form.leader_search.description, class="input-100") }}
+    </div>
+    {{ export_form.leader_id }}
+    {{ export_form.csrf_token }}
+
+    <div class="controls">
+      <br />
+      {{ export_form.submit(class="button button-primary input-100") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

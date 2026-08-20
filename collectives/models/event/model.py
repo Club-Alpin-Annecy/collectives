@@ -296,6 +296,16 @@ class EventModelMixin:
         )
 
     @declared_attr
+    def retex(self):
+        """Retex (debrief) associated to this event, if any
+
+        :type: :py:class:`collectives.models.retex.Retex`
+        """
+        return db.relationship(
+            "Retex", backref="event", uselist=False, cascade="all, delete-orphan"
+        )
+
+    @declared_attr
     def _user_group(self):
         """User Group
 

@@ -185,3 +185,19 @@ class EventMiscMixin:
         if len(self.activity_types) == 1:
             return self.activity_types[0]
         return None
+
+    def needs_retex(self) -> bool:
+        """Check whether this event is a past collective event still missing its retex.
+
+        :return: True if this is a "collective" event that has already ended and has
+            no associated :py:class:`collectives.models.retex.Retex` yet.
+        """
+        # pylint: disable=import-outside-toplevel
+        from collectives.utils.time import current_time
+
+        return (
+            self.event_type.short == "collective"
+            and self.end < current_time()
+            and self.retex is None
+            and self.status == EventStatus.Confirmed
+        )

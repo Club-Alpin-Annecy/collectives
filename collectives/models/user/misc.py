@@ -250,3 +250,23 @@ class UserMiscMixin:
         if self.gender == Gender.Man:
             return "M."
         return ""
+
+    def pending_retex_count(self) -> int:
+        """Count of collective events led by this user, ended in the last 30 days,
+        that do not yet have a retex.
+
+        :return: The number of such events.
+        """
+        # pylint: disable=(import-outside-toplevel
+        from collectives.models.event import Event, EventType
+        from collectives.utils.time import current_time
+
+        cutoff = current_time() - datetime.timedelta(days=30)
+        query = db.session.query(Event)
+        query = query.filter(Event.leaders.contains(self))
+        query = query.filter(Event.end < current_time())
+        query = query.filter(Event.end >= cutoff)
+        query = query.filter(Event.event_type.has(EventType.short == "collective"))
+        query = query.filter(~Event.retex.has())
+
+        return query.count()
