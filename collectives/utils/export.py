@@ -112,6 +112,50 @@ def export_users(users):
     return out
 
 
+def export_retex(events):
+    """Create an Excel document listing retex (and missing retex) for a set of events.
+
+    :param events: List of events to export
+    :type events: list of :py:class:`collectives.models.event.Event`
+    :returns: The excel with all info
+    :rtype: :py:class:`io.BytesIO`
+    """
+    workbook = Workbook()
+    worksheet = workbook.active
+    fields = [
+        "Date",
+        "Titre",
+        "Activité(s)",
+        "Encadrant principal",
+        "Statut",
+        "Description",
+    ]
+    worksheet.append(fields)
+
+    for event in events:
+        retex = event.retex
+        worksheet.append(
+            [
+                event.start.strftime("%d/%m/%Y"),
+                event.title,
+                event.activity_type_names,
+                event.main_leader.full_name() if event.main_leader else "-",
+                retex.status.display_name() if retex else "Retex Absent",
+                retex.description if retex else "",
+            ]
+        )
+
+    # set column width
+    for i in range(ord("A"), ord("A") + len(fields)):
+        worksheet.column_dimensions[chr(i)].width = 25
+
+    out = BytesIO()
+    workbook.save(out)
+    out.seek(0)
+
+    return out
+
+
 def export_users_registered(event):
     """Create an Excel document with the contact information of registered users at an event.
 

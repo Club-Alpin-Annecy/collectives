@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/moment@2.30.1/min/moment.min.js"></script>
+  <script src="{{ url_for('api.models_to_js') }}"></script>
+  <script src="{{ url_for('static', filename='js/retex/retex_tables.js') }}"></script>
+  <script>
+      window.onload = function () {
+        createRetexTable('retextable', '{{ url_for("api.mine") }}');
+      };
+  </script>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <h1 class="heading-1">
+    <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
+    Mes Retex
+  </h1>
+
+  <div id="retextable" class="profile-event-list"></div>
+</div>
+{% endblock %}

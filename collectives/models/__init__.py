@@ -48,6 +48,7 @@ from collectives.models.reservation import (
     ReservationLine,
     ReservationStatus,
 )
+from collectives.models.retex import Retex, RetexStatus
 from collectives.models.role import Role, RoleIds
 from collectives.models.upload import UploadedFile, documents
 from collectives.models.user import Gender, User, UserType, avatars

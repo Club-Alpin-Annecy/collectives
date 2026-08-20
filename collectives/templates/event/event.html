@@ -377,6 +377,8 @@
       {{ event.rendered_description | safe  }}
     </div>
 
+    {% include 'retex/partials/display.html' %}
+
     {% if event.uploaded_files | length %}
     <div id="uploaded_files">
       <strong>Fichier joints: </strong>
