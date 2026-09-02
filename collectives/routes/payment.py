@@ -27,6 +27,7 @@ from collectives.forms.payment import (
     PaymentItemsForm,
 )
 from collectives.models import (
+    ONLINE_PAYMENT_TYPES,
     Configuration,
     Event,
     ItemPrice,
@@ -39,7 +40,6 @@ from collectives.models import (
     UserGroup,
     db,
 )
-from collectives.utils import payline
 from collectives.utils.access import (
     confidentiality_agreement,
     payments_enabled,
@@ -48,6 +48,13 @@ from collectives.utils.access import (
 )
 from collectives.utils.misc import deepgetattr, sanitize_file_name
 from collectives.utils.payment import extract_payments
+from collectives.utils.payment_provider import (
+    get_active_provider,
+    get_all_providers,
+    get_provider_by_name,
+    retrieve_remote_status,
+    unique_order_ref,
+)
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 
@@ -537,14 +544,16 @@ def request_payment(payment_id):
 
             return redirect(url_for("event.view_event", event_id=payment.item.event.id))
 
+        provider = get_active_provider()
+
         if payment.processor_url:
             # Payment has already been registered with the payment processor
             if payment.processor_token:
                 # Check that the payment has not already been finalized
-                details = payline.api.get_web_payment_details(payment.processor_token)
-                if details is not None:
-                    if details.result.payment_status() != PaymentStatus.Initiated:
-                        finalize_payment(payment, details)
+                status = retrieve_remote_status(payment)
+                if status is not None:
+                    if status.status != PaymentStatus.Initiated:
+                        finalize_payment(payment, status)
                         return redirect(
                             url_for("event.view_event", event_id=payment.item.event_id)
                         )
@@ -553,35 +562,38 @@ def request_payment(payment_id):
             return redirect(payment.processor_url)
 
         # Redirect to the payment processor page
-        order_info = payline.OrderInfo(payment)
-        buyer_info = payline.BuyerInfo(current_user)
+        checkout = provider.create_checkout(payment, current_user)
 
-        payment_request = payline.api.do_web_payment(order_info, buyer_info)
+        if checkout is None:
+            flash(
+                "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+            )
+            return redirect(url_for("event.view_event", event_id=payment.item.event.id))
 
-        if payment_request is not None:
-            if not payment_request.result.is_accepted():
-                # Payment request has not been accepted, log error
-                current_app.logger.error(
-                    "Payment request error: %s", payment_request.result.__dict__
-                )
-                flash(
-                    "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
-                )
-                return redirect(
-                    url_for("event.view_event", event_id=payment.item.event.id)
-                )
+        if not checkout.accepted:
+            # Payment request has not been accepted, log error
+            current_app.logger.error(
+                "Payment request error: %s %s",
+                checkout.error_code,
+                checkout.error_message,
+            )
+            flash(
+                "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
+            )
+            return redirect(
+                url_for("event.view_event", event_id=payment.item.event.id)
+            )
 
-            payment.processor_token = payment_request.token
-            payment.processor_order_ref = order_info.unique_ref()
-            payment.processor_url = payment_request.redirect_url
-            db.session.add(payment)
-            db.session.commit()
-            return redirect(payment.processor_url)
+        payment.payment_type = provider.payment_type
+        payment.processor_token = checkout.token
+        payment.processor_order_ref = unique_order_ref(payment)
+        payment.processor_url = checkout.redirect_url
+        if checkout.raw_metadata:
+            payment.raw_metadata = checkout.raw_metadata
+        db.session.add(payment)
+        db.session.commit()
+        return redirect(payment.processor_url)
 
-        flash(
-            "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
-        )
-        return redirect(url_for("event.view_event", event_id=payment.item.event.id))
     finally:
         # Make sure to unlock the payment row
         db.session.rollback()
@@ -599,24 +611,30 @@ def do_mock_payment(token):
     if payment is None:
         abort(403)
 
-    amount = payline.OrderInfo(payment).amount_in_cents
+    amount = int((payment.amount_charged * 100).to_integral_exact())
+    provider = get_provider_by_name(payment.payment_type)
 
-    return render_template("payment/mock.html", payment=payment, amount=amount)
+    return render_template(
+        "payment/mock.html",
+        payment=payment,
+        amount=amount,
+        token_param=provider.mock_callback_param,
+    )
 
 
-def finalize_payment(payment, details):
+def finalize_payment(payment, status):
     """Finalize a payment using data return by payment processor.
     Update the associated registration if necessary.
 
     :param payment: The payment database entry
     :type payment: :py:class:`collectives.models.payment.Payment`
-    :param details: The payment processor response
-    :type details: :py:class:`collectives.utils.paylive.PaymentDetails`
+    :param status: The payment processor status response
+    :type status: :py:class:`collectives.utils.payment_provider.PaymentStatusResult`
     """
-    payment.status = details.result.payment_status()
+    payment.status = status.status
     payment.finalization_time = current_time()
-    payment.amount_paid = details.amount()
-    payment.raw_metadata = details.raw_metadata()
+    payment.amount_paid = status.amount
+    payment.raw_metadata = status.raw_metadata
 
     if payment.status == PaymentStatus.Approved:
         if payment.registration is not None:
@@ -655,21 +673,22 @@ def process():
     payment processor after a timeout has expired.
 
     The route has several URLs, but the logic for updating the registration
-    does not depend on how it was accessed.
-    However, the name of the parameter containing the token is different
-    for 'notify' requests, where it is called `token` rather than `paylinetoken`
+    does not depend on how it was accessed. Since the active payment
+    processor is not known upfront, every registered processor is tried in
+    turn to extract a token from the request (see
+    :py:meth:`collectives.utils.payment_provider.PaymentProvider.parse_callback`).
 
     :return: Redirection to event page or simple HTTP code for notify
     """
 
     # Notify calls are made by a server, do not serve them real pages
     is_notify = "notify" in request.endpoint
-    param = "token" if is_notify else "paylinetoken"
 
-    token = request.args.get(param)
-    if token is None:
-        # Try to get the token from POST parameters as well
-        token = request.form.get(param)
+    token = None
+    for candidate in get_all_providers():
+        token = candidate.parse_callback(request.endpoint, request.args, request.form)
+        if token:
+            break
 
     if token is None:
         abort(403)
@@ -687,10 +706,10 @@ def process():
         flash("Le paiement a déjà été finalisé")
         return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
-    details = payline.api.get_web_payment_details(token)
-    if details is not None:
-        if details.result.payment_status() != PaymentStatus.Initiated:
-            finalize_payment(payment, details)
+    status = retrieve_remote_status(payment)
+    if status is not None:
+        if status.status != PaymentStatus.Initiated:
+            finalize_payment(payment, status)
 
     if is_notify:
         # Return empty response
@@ -722,32 +741,30 @@ def refund_all(event_id):
     # Fetch all associated approved online payments
     query = db.session.query(Payment)
     query = query.filter(Payment.status == PaymentStatus.Approved)
-    query = query.filter(Payment.payment_type == PaymentType.Online)
+    query = query.filter(Payment.payment_type.in_(ONLINE_PAYMENT_TYPES))
     query = query.filter(PaymentItem.event_id == event_id)
     query = query.filter(PaymentItem.id == Payment.payment_item_id)
     payments = query.all()
 
     success_count = 0
 
-    # For each payment, do refund call
+    # For each payment, do refund call using the provider that originally
+    # processed it, regardless of which provider is currently active
     for payment in payments:
-        details = payline.PaymentDetails.from_metadata(payment.raw_metadata)
-        refund_details = payline.api.do_refund(details)
+        provider = get_provider_by_name(payment.payment_type)
+        refund = provider.do_refund(payment)
 
-        if refund_details is not None and refund_details.result.is_accepted():
+        if refund is not None and refund.accepted:
             # Successful refund, update payment
             payment.status = PaymentStatus.Refunded
             payment.refund_time = current_time()
-            payment.refund_metadata = refund_details.raw_metadata()
+            payment.refund_metadata = refund.raw_metadata
             db.session.add(payment)
             success_count += 1
         else:
             # Do not update payment, warn user
-            if refund_details is not None:
-                error_str = (
-                    f"Erreur {refund_details.result.code} "
-                    f"{refund_details.result.long_message}"
-                )
+            if refund is not None:
+                error_str = f"Erreur {refund.error_code} {refund.error_message}"
             else:
                 error_str = "API indisponible"
             flash(

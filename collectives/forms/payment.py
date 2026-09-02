@@ -20,11 +20,11 @@ from wtforms_alchemy import ModelForm
 from collectives.forms.order import OrderedForm
 from collectives.forms.user_group import UserGroupForm
 from collectives.models import (
+    ONLINE_PAYMENT_TYPES,
     ItemPrice,
     Payment,
     PaymentItem,
     PaymentStatus,
-    PaymentType,
     UserGroup,
     db,
 )
@@ -320,8 +320,10 @@ class OfflinePaymentForm(ModelForm, OrderedForm):
         """Overloaded  constructor"""
         super().__init__(*args, **kwargs)
 
-        # Remove 'Online' from payment type options
-        del self.payment_type.choices[PaymentType.Online]
+        # Remove online payment types from manual payment type options
+        # (descending order, so deleting one doesn't shift the others' index)
+        for payment_type in sorted(ONLINE_PAYMENT_TYPES, reverse=True):
+            del self.payment_type.choices[payment_type]
 
         # Remove online-related entries from payment status options
         del self.status.choices[PaymentStatus.Expired]
