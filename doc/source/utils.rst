@@ -46,9 +46,9 @@ Module ``collectives.utils.numbers``
 .. automodule:: collectives.utils.numbers
     :members:
 
-Module ``collectives.utils.payline``
-------------------------------------
-.. automodule:: collectives.utils.payline
+Module ``collectives.utils.payment_provider.payline``
+------------------------------------------------------
+.. automodule:: collectives.utils.payment_provider.payline
     :members:
 
 Module ``collectives.utils.render_markdown``

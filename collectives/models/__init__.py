@@ -31,6 +31,7 @@ from collectives.models.event import (
 from collectives.models.event_tag import EventTag
 from collectives.models.globals import db
 from collectives.models.payment import (
+    ONLINE_PAYMENT_TYPES,
     ItemPrice,
     Payment,
     PaymentItem,

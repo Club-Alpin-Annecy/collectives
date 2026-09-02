@@ -3,11 +3,11 @@
 # pylint: disable=unused-argument
 from flask import url_for
 
-from collectives.models import RegistrationStatus, db
+from collectives.models import Payment, PaymentType, RegistrationStatus, db
 from tests import utils
 
 
-def test_list_prices(leader_client, event1):
+def test_list_prices(leader_client, event1, enable_payment):
     """Test access to prices list"""
     response = leader_client.get(f"/payment/event/{event1.id}/edit_prices")
     assert response.status_code == 200
@@ -19,7 +19,7 @@ def test_list_prices_wrong_user(user1_client, event1):
     assert response.status_code == 302
 
 
-def test_price_creation(leader_client, event1):
+def test_price_creation(leader_client, event1, enable_payment):
     """Test basic price and item creation."""
     event1.leaders.append(leader_client.user)
     db.session.add(event1)
@@ -63,7 +63,7 @@ def test_price_list(user1_client, paying_event, disabled_paying_event):
     assert response.status_code == 200
 
 
-def test_paying_free_registration(user1_client, free_paying_event):
+def test_paying_free_registration(user1_client, free_paying_event, enable_payment):
     """Test a user registering to a free event."""
     response = user1_client.get(
         f"/collectives/{free_paying_event.id}", follow_redirects=True
@@ -145,6 +145,47 @@ def test_payline_registration(user1_client, paying_event, payline_monkeypatch):
     api_data = response.json
     assert len(api_data) == 1
     assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+
+def test_helloasso_registration(user1_client, paying_event, helloasso_monkeypatch):
+    """Test a user registering to a paying event using HelloAsso, once it is
+    selected as the active payment provider"""
+    response = user1_client.get(
+        f"/collectives/{paying_event.id}", follow_redirects=True
+    )
+    assert response.status_code == 200
+
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item = paying_event.payment_items[0]
+    item_price = item.cheapest_price_for_user_now(user1_client.user)
+    data["item_price"] = item_price.id
+
+    assert item_price.amount > 0.0
+
+    response = user1_client.post(
+        f"/collectives/{paying_event.id}/self_register", data=data
+    )
+    assert response.status_code == 302
+    response = user1_client.get(response.location, data=data)
+    assert response.status_code == 302
+    assert len(paying_event.registrations) == 1
+    assert response.location == "https://checkout.helloasso-sandbox.com/987654"
+    assert paying_event.registrations[0].user == user1_client.user
+    assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
+
+    payment = Payment.query.filter_by(
+        registration=paying_event.registrations[0]
+    ).first()
+    assert payment.payment_type == PaymentType.HelloAsso
+
+    # HelloAsso return callback (own token, embedded in the return URL)
+    response = user1_client.post(
+        f"/payment/process?token={payment.processor_token}", data=data
+    )
+    assert response.status_code == 302
+    assert response.location == f"/collectives/{paying_event.id}-"
+    assert paying_event.registrations[0].user == user1_client.user
+    assert paying_event.registrations[0].status == RegistrationStatus.Active
 
 
 def test_payline_registration_unfinalized(

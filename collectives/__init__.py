@@ -35,7 +35,7 @@ from collectives.routes import (
     root,
     technician,
 )
-from collectives.utils import error, extranet, init, jinja, payline
+from collectives.utils import error, extranet, init, jinja
 from collectives.utils.scheduled_tasks import init_scheduler
 
 csrf = CSRFProtect()
@@ -88,7 +88,6 @@ def create_app(config_filename="config.py", extra_config=None):
     api.marshmallow.init_app(app)
     profile.images.init_app(app)
     extranet.api.init_app(app)
-    payline.api.init_app(app)
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
     app.context_processor(jinja.helpers_processor)

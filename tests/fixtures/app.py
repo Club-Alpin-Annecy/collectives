@@ -62,3 +62,14 @@ def enable_leader_privacy():
     """Enable leader privacy in configuration"""
     Configuration.get_item("LEADER_PRIVACY").content = True
     Configuration.uncache("LEADER_PRIVACY")
+
+
+@pytest.fixture
+def enable_payment():
+    """Enable payments (via Payline) in configuration.
+
+    Payments are disabled by default (``PAYMENT_ENABLED`` = ``"Aucune"``);
+    tests exercising payment routes without a specific provider mock (e.g.
+    :py:func:`tests.mock.payline.payline_monkeypatch`) need this."""
+    Configuration.get_item("PAYMENT_ENABLED").content = "Payline"
+    Configuration.uncache("PAYMENT_ENABLED")
