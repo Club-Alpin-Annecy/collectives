@@ -25,7 +25,11 @@ from flask_login import current_user
 from flask_uploads import DOCUMENTS, IMAGES, UploadSet
 from werkzeug.utils import secure_filename
 
-from collectives.forms.configuration import CoverUploadForm, get_form_from_configuration
+from collectives.forms.configuration import (
+    ConfigurationEnumForm,
+    CoverUploadForm,
+    get_form_from_configuration,
+)
 from collectives.models import (
     Configuration,
     ConfigurationItem,
@@ -155,6 +159,8 @@ def configuration(selected_folder=None):
         for item in ConfigurationItem.query.filter_by(folder=selected_folder).all():
             form = get_form_from_configuration(item)(obj=item)
             form.name.value = item.name
+            if isinstance(form, ConfigurationEnumForm):
+                form.set_choices(item.name)
             if item.type in [
                 ConfigurationTypeEnum.Array,
                 ConfigurationTypeEnum.Dictionnary,
@@ -188,6 +194,8 @@ def update_configuration(selected_folder):
         return "", 403, ""
 
     form = get_form_from_configuration(item)()
+    if isinstance(form, ConfigurationEnumForm):
+        form.set_choices(item.name)
 
     if not form.validate_on_submit():
         flash("Abandon de la configuration : erreur technique", "error")

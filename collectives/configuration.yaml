@@ -8,8 +8,12 @@
 #    Dictionnary = 7
 #    Boolean = 8
 #    File = 9
+#    Enum = 11
 #
 # A LongString and a ShortString are the same object, but LongString is modifiable by a textarea
+#
+# An Enum stores a plain string, restricted in the admin UI to one of the
+# values listed under its `choices:` key.
 
 Sécurité:
     AUTH_FAILURE_WAIT:
@@ -37,10 +41,11 @@ Sécurité:
         type: LongString
 
 Paiements:
-    PAYMENTS_ENABLED:
-        content: true
-        description: Whether to enable the payment-related functionalities
-        type: Boolean
+    PAYMENT_ENABLED:
+        content: "Aucune"
+        description: "Mode de paiement actif : Aucune (fonctionnalité coupée), Payline ou HelloAsso."
+        type: Enum
+        choices: ["Aucune", "Payline", "HelloAsso"]
 
     PAYMENTS_TERMS_FILE:
         content: caf/doc/CGV.pdf
@@ -50,6 +55,27 @@ Paiements:
     REFUND_ENABLED:
         content: false
         description: Whether to enable refunding payments
+        type: Boolean
+
+    HELLOASSO_CLIENT_ID:
+        content: ""
+        description: HelloAsso API client id. If left empty the HelloAsso API will operate in mock mode.
+        type: ShortString
+
+    HELLOASSO_CLIENT_SECRET:
+        content: ""
+        description: HelloAsso API client secret (to be set in the HelloAsso back office)
+        type: ShortString
+        hidden: true
+
+    HELLOASSO_ORGANIZATION_SLUG:
+        content: ""
+        description: Slug of the HelloAsso organization used to receive payments
+        type: ShortString
+
+    HELLOASSO_SANDBOX:
+        content: true
+        description: Whether to use the HelloAsso sandbox/test environment instead of production
         type: Boolean
 
     PAYLINE_MERCHANT_ID:

@@ -6,6 +6,7 @@ from decimal import Decimal
 from sqlalchemy.orm import make_transient
 from wtforms.validators import NumberRange
 
+from collectives.models.configuration import Configuration
 from collectives.models.event import Event
 from collectives.models.globals import db
 from collectives.models.user_group import (
@@ -463,8 +464,8 @@ class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""
 
     # pylint: disable=invalid-name
-    Online = 0
-    """ Payment has been made through the online payment processor
+    Payline = 0
+    """ Payment has been made through the Payline online payment processor
     """
     Check = 1
     """ Payment has been made by check
@@ -478,6 +479,9 @@ class PaymentType(ChoiceEnum):
     Transfer = 4
     """ Payment has been using a bank transfer
     """
+    HelloAsso = 5
+    """ Payment has been made through the HelloAsso online payment processor
+    """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -487,12 +491,18 @@ class PaymentType(ChoiceEnum):
         :rtype: dict
         """
         return {
-            cls.Online: "En ligne",
+            cls.Payline: "Payline",
             cls.Check: "Chèque",
             cls.Cash: "Espèces",
             cls.Card: "CB",
             cls.Transfer: "Virement",
+            cls.HelloAsso: "HelloAsso",
         }
+
+
+ONLINE_PAYMENT_TYPES = (PaymentType.Payline, PaymentType.HelloAsso)
+""" Payment types corresponding to an online payment processor, as opposed to
+a manually reported offline payment (Check, Cash, Card, Transfer). """
 
 
 class PaymentStatus(ChoiceEnum):
@@ -684,7 +694,7 @@ class Payment(db.Model):
     def is_offline(self):
         """:return: whether this is an offline payment (Check, Card, etc)
         :rtype: bool"""
-        return self.payment_type != PaymentType.Online
+        return self.payment_type not in ONLINE_PAYMENT_TYPES
 
     def is_unsettled(self):
         """:return: whether this payment is not finalized yet. Applies mostly to Online payments
@@ -700,14 +710,14 @@ class Payment(db.Model):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)
         :rtype: bool"""
-        return self.payment_type == PaymentType.Online and self.is_approved()
+        return self.payment_type in ONLINE_PAYMENT_TYPES and self.is_approved()
 
     def has_refund_receipt(self):
         """:return: whether this payment has an associated refund receipt
                     (i.e. if it is a refunded online payment)
         :rtype: bool"""
         return (
-            self.payment_type == PaymentType.Online
+            self.payment_type in ONLINE_PAYMENT_TYPES
             and self.status == PaymentStatus.Refunded
         )
 
@@ -732,7 +742,10 @@ class Payment(db.Model):
             self.payment_item_id = item_price.item.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal()
-            self.payment_type = PaymentType.Online
+            if Configuration.PAYMENT_ENABLED == "Aucune":
+                self.payment_type = PaymentType.Payline
+            else:
+                self.payment_type = PaymentType[Configuration.PAYMENT_ENABLED]
             self.status = PaymentStatus.Initiated
             self.processor_token = ""
             self.raw_metadata = ""

@@ -186,7 +186,7 @@ def payments_enabled(api=False):
             """
             message = "Fonctionnalité désactivée"
             return (
-                Configuration.PAYMENTS_ENABLED,
+                Configuration.PAYMENT_ENABLED != "Aucune",
                 message,
                 url_for("event.index"),
             )
