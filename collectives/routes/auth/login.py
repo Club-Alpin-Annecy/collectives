@@ -13,6 +13,7 @@ from collectives.routes.auth.globals import blueprint
 from collectives.routes.auth.utils import (
     EmailChangedError,
     InvalidLicenseError,
+    TransientInvalidLicenseError,
     get_bad_phone_message,
     get_changed_email_message,
     sync_user,
@@ -91,7 +92,7 @@ def login():
 
     try:
         sync_user(user, force=False)
-    except InvalidLicenseError:
+    except (InvalidLicenseError, TransientInvalidLicenseError):
         # do nothing, will be handled by checking user.is_active below
         pass
     except EmailChangedError as err:
