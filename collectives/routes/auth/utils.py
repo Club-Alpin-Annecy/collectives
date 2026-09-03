@@ -36,6 +36,21 @@ class EmailChangedError(RuntimeError):
         self.new_email = new_email
 
 
+class TransientInvalidLicenseError(RuntimeError):
+    """Exception raised when the extranet reports a license as invalid while it is
+    still considered valid on this site.
+
+    The FFCAM API may return an invalid code for last year's license number for a
+    few weeks every September, while the new season's license has not yet been fully
+    processed on their side, even though the license remains technically valid. This
+    is distinct from :class:`InvalidLicenseError`, which indicates a license that is
+    genuinely no longer valid, and should not cause the user to be logged out or
+    directed to the account recovery process.
+    """
+
+    pass
+
+
 def sync_user(user: User, force: bool):
     """Synchronize user info from extranet.
 
@@ -44,6 +59,11 @@ def sync_user(user: User, force: bool):
 
     :param user: User to synchronize
     :param force: if True, do synchronisation even if licence has been recently renewed.
+    :raises InvalidLicenseError: if the license is genuinely invalid, both on the
+        extranet and on this site.
+    :raises TransientInvalidLicenseError: if the extranet reports the license as
+        invalid, but it is still considered valid on this site. This is likely a
+        temporary inconsistency on the FFCAM side rather than a real issue.
     """
     if not user.enabled or user.type != UserType.Extranet:
         return
@@ -57,14 +77,16 @@ def sync_user(user: User, force: bool):
         valid = False
 
     if not valid:
-        if user.license_expiry_date > time.date():
+        if user.license_expiry_date and user.license_expiry_date > time.date():
             current_app.logger.warning(
                 f"User #{user.id} synchronization : license is not active on extranet "
                 "but active on this site."
             )
-            # Do not mark the user as invalid
-            # FFCAM API may return a invalid code for previous year licenses
-            # between September 1st and 31st, while they remain technically valid
+            # Do not mark the user as invalid, nor log them out or direct them to
+            # account recovery: the FFCAM API may return an invalid code for last
+            # year's licenses between September 1st and 30th, while they remain
+            # technically valid. See #922.
+            raise TransientInvalidLicenseError()
         raise InvalidLicenseError()
 
     if force or license_info.expiry_date() > user.license_expiry_date:
