@@ -82,7 +82,7 @@ class FakeSoapClient:
             "chef_famille": None,
             "date_naissance": VALID_USER_DOB.strftime("%Y-%m-%d"),
             "date_inscription": "2022-09-09",
-            "qualite": "M",
+            "sexe": "Masculin",
             "nom": "GUIOT",
             "prenom": "JEAN NOE",
             "adresse1": None,

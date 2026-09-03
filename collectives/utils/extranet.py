@@ -5,7 +5,7 @@ from datetime import date, datetime
 from typing import Dict
 
 from flask import Flask, current_app
-from zeep import Client
+from zeep import Client, Settings
 from zeep.exceptions import Error as ZeepError
 from zeep.proxy import ServiceProxy
 
@@ -83,10 +83,10 @@ class UserInfo:
         self.phone: str = ""
         """ User phone."""
 
-        self.qualite: str = ""
-        """ User title. "titre de civilité".
+        self.sexe: str = ""
+        """ User gender.
 
-        Can be `M` `Mme` `Mlle`. Is used to guess gender."""
+        Can be `Masculin` or `Féminin`. Is used to guess gender."""
 
         self.date_of_birth: date = None
         """ User date of birth."""
@@ -122,7 +122,7 @@ def sync_user(user: User, user_info: UserInfo, license_info: LicenseInfo):
     user.license_expiry_date = license_info.expiry_date()
     user.license_category = user_info.license_category
     user.last_extranet_sync_time = current_time()
-    user.gender = Gender.Man if user_info.qualite == "M" else Gender.Woman
+    user.gender = Gender.Man if user_info.sexe == "Masculin" else Gender.Woman
     user.type = UserType.Extranet
 
 
@@ -162,7 +162,12 @@ class ExtranetApi:
         """Returns the cached SOAP client or initialize a new one"""
         if self._soap_client is None:
             try:
-                soap_client = Client(wsdl=current_app.config["EXTRANET_WSDL"])
+                # strict=False so unknown/extra elements returned by the FFCAM
+                # server (e.g. 'sexe') do not make zeep raise a parsing error
+                settings = Settings(strict=False)
+                soap_client = Client(
+                    wsdl=current_app.config["EXTRANET_WSDL"], settings=settings
+                )
                 self._auth_info = soap_client.service.auth()
             except (IOError, ZeepError) as err:
                 current_app.logger.error(f"Error loading extranet WSDL: {err}")
@@ -279,7 +284,7 @@ class ExtranetApi:
         info.date_of_birth = datetime.strptime(
             result["date_naissance"], "%Y-%m-%d"
         ).date()
-        info.qualite = result["qualite"]
+        info.sexe = result["sexe"]
         info.is_valid = True
 
         return info

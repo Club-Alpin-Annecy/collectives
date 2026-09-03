@@ -2,6 +2,8 @@
 
 # pylint: disable=unused-argument
 
+from datetime import date, timedelta
+
 from collectives.models import User, db
 from tests import fixtures, mock
 from tests.mock.extranet import (
@@ -25,17 +27,30 @@ def test_resync_own_account(client, extranet_user, extranet_monkeypatch):
     assert extranet_user.emergency_contact_name == "EMERGENCY"
 
 
-def test_resync_own_expired_account(client, extranet_user, extranet_monkeypatch):
-    """Test extranet resync with an expired license."""
-    # test with invalid license -- should redirect to auth page
+def test_resync_own_transient_invalid_license(
+    client, extranet_user, extranet_monkeypatch
+):
+    """Test extranet resync when extranet reports an invalid license while the
+    license is still valid on this site.
+
+    This happens for a few weeks every September, see #922. It should not log the
+    user out nor send them to account recovery.
+    """
     fixtures.client.login(client, extranet_user)
     extranet_user = client.user
+    previous_expiry_date = extranet_user.license_expiry_date
     extranet_user.license = EXPIRED_LICENSE
     db.session.add(extranet_user)
     db.session.commit()
-    response = client.post("/profile/user/force_sync", follow_redirects=False)
-    assert response.status_code == 302
-    assert response.location == "/auth/recover"
+
+    response = client.post("/profile/user/force_sync", follow_redirects=True)
+    assert response.status_code == 200
+    assert "réessayer" in response.text
+
+    # License should not have been touched, and user should still be logged in
+    assert extranet_user.license_expiry_date == previous_expiry_date
+    response = client.get("/profile/user/edit")
+    assert response.status_code == 200
 
     fixtures.client.logout(client)
 
@@ -99,8 +114,20 @@ def test_hotline_resync_account(hotline_client, extranet_user, extranet_monkeypa
     assert response.status_code == 200
     assert "error message" in response.text
 
-    # Forcing resyng of expired should not redirect
+    # Forcing resync of a license still valid on this site but reported invalid by
+    # the extranet (eg. FFCAM renewal glitch, see #922) should just be skipped
     extranet_user.license = EXPIRED_LICENSE
+    db.session.add(extranet_user)
+    db.session.commit()
+
+    response = hotline_client.post(
+        f"/profile/user/{extranet_user.id}/force_sync", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "réessayer" in response.text
+
+    # Forcing resync of a genuinely expired license should not redirect
+    extranet_user.license_expiry_date = date.today() - timedelta(days=1)
     db.session.add(extranet_user)
     db.session.commit()
 
