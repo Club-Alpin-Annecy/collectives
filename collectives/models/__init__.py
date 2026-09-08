@@ -14,13 +14,6 @@ from collectives.models.configuration import (
     ConfigurationTypeEnum,
     DBAdaptedFlaskConfig,
 )
-from collectives.models.equipment import (
-    Equipment,
-    EquipmentModel,
-    EquipmentStatus,
-    EquipmentType,
-    image_equipment_type,
-)
 from collectives.models.event import (
     Event,
     EventStatus,
@@ -42,11 +35,6 @@ from collectives.models.registration import (
     Registration,
     RegistrationLevels,
     RegistrationStatus,
-)
-from collectives.models.reservation import (
-    Reservation,
-    ReservationLine,
-    ReservationStatus,
 )
 from collectives.models.retex import Retex, RetexStatus
 from collectives.models.role import Role, RoleIds

@@ -25,12 +25,10 @@ from collectives.routes import (
     activity_supervison,
     administration,
     auth,
-    equipment,
     event,
     payment,
     profile,
     question,
-    reservation,
     retex,
     root,
     technician,
@@ -134,8 +132,6 @@ def create_app(config_filename="config.py", extra_config=None):
         app.register_blueprint(payment.blueprint)
         app.register_blueprint(technician.blueprint)
         app.register_blueprint(activity_supervison.blueprint)
-        app.register_blueprint(equipment.blueprint)
-        app.register_blueprint(reservation.blueprint)
         app.register_blueprint(question.blueprint)
         app.register_blueprint(retex.blueprint)
 
