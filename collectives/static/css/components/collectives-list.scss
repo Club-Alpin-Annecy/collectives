@@ -1,7 +1,7 @@
 $collectives-list-row-height: 185px;
 $button-height:40px;
 %borders {
-    border: solid 1px $color-gray-light;
+    border: solid 1px $color-gray-border;
     border-radius: 100px;
 }
 
@@ -344,27 +344,60 @@ $button-height:40px;
     .toggle-button {
         @extend %borders;
         height: $button-height;
-        font-size: $button-height/2;
         line-height: $button-height;
         display: inline-block;
         padding: 0 10px;
         color: $color-gray-dark;
+        background: $color-white;
         cursor: pointer;
+        font-family: inherit;
         font-weight: normal;
         font-size: $font-size-s;
         text-transform: none;
+        white-space: nowrap;
         img {
             height: 1.2em;
             vertical-align: middle;
         }
+        // Etat actif signale par le fond et la graisse, pas par l'epaisseur du
+        // contour: un changement de border-width decalerait toute la barre.
         &.enabled {
             font-weight: 500;
-            border-width: 3px;
+            background: $color-blue-bg-light;
+            border-color: $color-blue-primary-dark;
         }
+        .pi {
+            font-size: $font-size-xs;
+            vertical-align: middle;
+        }
+    }
+
+    // Compteur des filtres actifs restes masques sous « Plus de filtres ».
+    .filter-badge {
+        display: inline-block;
+        min-width: 1.5em;
+        margin-left: 5px;
+        padding: 0 4px;
+        border-radius: 100px;
+        background: $color-blue-primary-dark;
+        color: $color-white;
+        font-weight: 500;
+        line-height: 1.5em;
+    }
+
+    // Le focus clavier doit rester visible sur tous les controles de la barre.
+    // Les selecteurs PrimeVue sont repris tels quels: leur thème pose un focus
+    // sans contour, avec une specificite superieure a `:focus-visible` seul.
+    :focus-visible,
+    .p-inputtext:enabled:focus-visible,
+    .p-multiselect:not(.p-disabled).p-focus {
+        outline: 3px solid $color-blue-primary-dark;
+        outline-offset: 2px;
     }
 
     .borders, input.date, .p-autocomplete-input{
         @extend %borders;
+        gap: 5px;
         height: $button-height;
         font-weight: normal;
         color: $color-gray-dark;
@@ -377,6 +410,15 @@ $button-height:40px;
         .p-datepicker input {
             border: none;
             max-width: 120px;
+        }
+        // L'input herite du contour porte par le label qui l'englobe.
+        > input {
+            flex-grow: 1;
+            min-width: 0;
+            height: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
         }
     }
 
