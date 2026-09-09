@@ -115,28 +115,6 @@ class UserRoleMixin:
         """
         return self.has_role(RoleIds.all_event_creator_roles())
 
-    def can_manage_equipment(self) -> bool:
-        """Check if user has an equipment_manager role.
-
-        :return: True if user has an equiment_manager role.
-        """
-
-        return self.has_role(RoleIds.all_equipment_management_roles())
-
-    def can_manage_reservation(self) -> bool:
-        """Check if user has an equipment_manager role.
-
-        :return: True if user has an equiment_manager role.
-        """
-
-        return self.has_role(RoleIds.all_reservation_management_roles())
-
-    def can_create_reservation(self) -> bool:
-        """Check if user has role to create reservations
-        :return: True if user can create reservations
-        """
-        return self.has_role(RoleIds.all_reservation_creator_roles())
-
     def is_leader(self) -> bool:
         """Check if user has a role which allow him to lead at least one activity.
 

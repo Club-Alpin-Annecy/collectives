@@ -162,11 +162,6 @@ Divers:
         description: Whether to enable the user search page for leaders
         type: Boolean
 
-    RESERVATION_ENABLED:
-        content: false
-        description: Whether to enable the reservation/rental-related functionalities
-        type: Boolean
-
     MAX_UPLOADS_PER_EVENT:
         content : 5
         description: Maximum number of file uploads per event
