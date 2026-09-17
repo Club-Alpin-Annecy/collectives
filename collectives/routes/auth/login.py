@@ -1,7 +1,6 @@
 """Auth modules to log in an user."""
 
 import datetime
-from urllib.parse import urlparse
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
@@ -20,6 +19,7 @@ from collectives.routes.auth.utils import (
 )
 from collectives.utils import extranet
 from collectives.utils.time import current_time
+from collectives.utils.url import is_local_url
 
 
 @blueprint.route("/login", methods=["GET", "POST"])
@@ -153,7 +153,7 @@ def login():
 
     # Redirection to the page required by user before login
     next_page = request.args.get("next")
-    if not next_page or urlparse(next_page).netloc != "":
+    if not is_local_url(next_page):
         next_page = "/"
     return redirect(next_page)
 
