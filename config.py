@@ -53,7 +53,13 @@ REMEMBER_COOKIE_SECURE = not _DEBUG_ENABLED
 REMEMBER_COOKIE_HTTPONLY = True
 REMEMBER_COOKIE_SAMESITE = "Lax"
 
-SECRET_KEY = environ.get("SECRET_KEY") or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+DEFAULT_SECRET_KEY = "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+"""Insecure development secret key. MUST be overridden in production.
+
+:type: string
+"""
+
+SECRET_KEY = environ.get("SECRET_KEY") or DEFAULT_SECRET_KEY
 """A secret key to securely sign the session cookie and other.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY
@@ -75,7 +81,13 @@ File syntax is described here:
 
 :type: string"""
 
-ADMINPWD = environ.get("ADMINPWD") or "foobar2"
+DEFAULT_ADMINPWD = "foobar2"
+"""Insecure development admin password. MUST be overridden in production.
+
+:type: string
+"""
+
+ADMINPWD = environ.get("ADMINPWD") or DEFAULT_ADMINPWD
 """Password for admin account
 
 Will be set or reset at every application. Makes sure this is a secure password
