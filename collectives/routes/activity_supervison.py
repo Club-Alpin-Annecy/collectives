@@ -155,7 +155,9 @@ def export_role():
 
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm()
+    form = ActivityTypeSelectionForm(
+        activity_list=current_user.get_supervised_activities()
+    )
     if not form.validate_on_submit():
         abort(400)
 
