@@ -93,3 +93,31 @@ def test_login_next_local_redirect(client, user1):
     )
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/collectives/")
+
+
+def test_security_headers(client):
+    """Defensive headers are present on every response."""
+    response = client.get("/collectives/")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert "Referrer-Policy" in response.headers
+    assert "Strict-Transport-Security" not in response.headers
+
+    response = client.get(
+        "/collectives/", environ_overrides={"HTTP_X_FORWARDED_PROTO": "https"}
+    )
+    assert "Strict-Transport-Security" in response.headers
+
+
+def test_session_cookie_flags(client, user1):
+    """Session cookie is HttpOnly, SameSite and (outside debug) Secure."""
+    from tests.fixtures.user import PASSWORD
+
+    response = client.post(
+        "/auth/login", data={"login": user1.mail, "password": PASSWORD}
+    )
+    cookies = [h for h in response.headers.getlist("Set-Cookie") if "session=" in h]
+    assert cookies
+    for cookie in cookies:
+        assert "HttpOnly" in cookie
+        assert "SameSite=Lax" in cookie
+        assert "Secure" in cookie

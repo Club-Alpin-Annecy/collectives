@@ -13,7 +13,7 @@ Typical usage example::
 from logging.config import fileConfig
 
 import werkzeug
-from flask import Flask, current_app
+from flask import Flask, current_app, request
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
@@ -53,6 +53,23 @@ class ReverseProxied:
         return self.app(environ, start_response)
 
 
+def set_security_headers(response):
+    """Add defensive HTTP headers to every response.
+
+    HSTS is only sent when the request was made over HTTPS (as seen through the
+    reverse proxy), so that plain HTTP development setups are not affected.
+
+    :param response: The response about to be sent.
+    :type response: :py:class:`flask.Response`
+    :return: The same response, with headers added.
+    """
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if request.is_secure:
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    return response
+
+
 def create_app(config_filename="config.py", extra_config=None):
     """Flask application factory.
 
@@ -90,6 +107,7 @@ def create_app(config_filename="config.py", extra_config=None):
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
     app.context_processor(jinja.helpers_processor)
+    app.after_request(set_security_headers)
 
     _migrate = Migrate(app, models.db)
 
