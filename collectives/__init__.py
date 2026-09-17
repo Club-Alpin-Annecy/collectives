@@ -70,6 +70,36 @@ def set_security_headers(response):
     return response
 
 
+def check_default_secrets(app):
+    """Log a critical message if insecure default secrets are still in use.
+
+    With the default ``SECRET_KEY``, anyone can forge a session cookie and
+    impersonate any account (including the administrator); with the default
+    ``ADMINPWD`` the admin account is trivially accessible. Nothing is logged
+    in testing mode.
+
+    :param app: The application being configured.
+    :type app: :py:class:`flask.Flask`
+    :return: True if a default secret is in use.
+    """
+    if app.testing:
+        return False
+
+    insecure = []
+    if app.config.get("SECRET_KEY") == app.config.get("DEFAULT_SECRET_KEY"):
+        insecure.append("SECRET_KEY")
+    if app.config.get("ADMINPWD") == app.config.get("DEFAULT_ADMINPWD"):
+        insecure.append("ADMINPWD")
+
+    for name in insecure:
+        app.logger.critical(
+            "%s is set to its insecure default value. Set it through the "
+            "environment or instance/config.py before exposing this instance.",
+            name,
+        )
+    return bool(insecure)
+
+
 def create_app(config_filename="config.py", extra_config=None):
     """Flask application factory.
 
@@ -96,6 +126,7 @@ def create_app(config_filename="config.py", extra_config=None):
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
+    check_default_secrets(app)
 
     # Initialize plugins
     models.db.init_app(app)
