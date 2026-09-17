@@ -57,3 +57,39 @@ def test_svg_document_upload_is_refused(leader_client, leader_user_with_event, e
         content_type="multipart/form-data",
     )
     assert response.status_code == 415
+
+
+@pytest.mark.parametrize(
+    "next_url",
+    [
+        "/\\evil.example",
+        "//evil.example",
+        "https://evil.example/",
+        "javascript:alert(1)",
+    ],
+)
+def test_login_next_open_redirect(client, user1, next_url):
+    """The ``next`` parameter of the login page must not redirect off-site."""
+    from tests.fixtures.user import PASSWORD
+
+    response = client.post(
+        "/auth/login",
+        query_string={"next": next_url},
+        data={"login": user1.mail, "password": PASSWORD},
+    )
+    assert response.status_code == 302
+    assert "evil.example" not in response.headers["Location"]
+    assert "javascript" not in response.headers["Location"]
+
+
+def test_login_next_local_redirect(client, user1):
+    """A local ``next`` parameter is honoured after login."""
+    from tests.fixtures.user import PASSWORD
+
+    response = client.post(
+        "/auth/login",
+        query_string={"next": "/collectives/"},
+        data={"login": user1.mail, "password": PASSWORD},
+    )
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/collectives/")
