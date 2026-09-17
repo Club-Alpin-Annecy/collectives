@@ -36,6 +36,23 @@ Can be set using environment variable.
 :type: boolean
 """
 
+_DEBUG_ENABLED = (FLASK_DEBUG or "").lower() in ("1", "true", "yes", "on")
+
+SESSION_COOKIE_SECURE = not _DEBUG_ENABLED
+"""Only send the session cookie over HTTPS (disabled when FLASK_DEBUG is set).
+
+:type: boolean
+"""
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+REMEMBER_COOKIE_SECURE = not _DEBUG_ENABLED
+"""Only send the "remember me" cookie over HTTPS (disabled when FLASK_DEBUG is set).
+
+:type: boolean
+"""
+REMEMBER_COOKIE_HTTPONLY = True
+REMEMBER_COOKIE_SAMESITE = "Lax"
+
 SECRET_KEY = environ.get("SECRET_KEY") or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
 """A secret key to securely sign the session cookie and other.
 
@@ -349,7 +366,7 @@ upload files larger than this
 :type: int """
 MAX_FILE_SIZE_MESSAGE = (
     f"Le fichier est trop gros pour être chargé sur le serveur :"
-    f" [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
+    f" [size] Mo. (max {MAX_CONTENT_LENGTH / 1024 / 1024} Mo)"
 )
 
 """ Error message if uploaded file is too big.
