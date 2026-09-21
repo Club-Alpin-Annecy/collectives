@@ -14,12 +14,19 @@ CI/CD, Docker).
 
 Les numéros de ligne renvoient à l'état du code au commit `8de595c`.
 
+**Mise à jour du 21 septembre 2026** : la PR #927 (commit `5871204`) a
+supprimé la fonctionnalité de location de matériel (blueprints `reservation`
+et `equipment`, API associées). Les constats C1 (partie réservation), C2 et H2
+portent sur du code désormais absent de `master` ; ils sont conservés ici pour
+mémoire et signalés « obsolète ». Les correctifs correspondants n'ont pas été
+conservés dans cette branche.
+
 ## Synthèse
 
 | Sévérité | Nombre | Corrigé dans cette branche |
 |----------|--------|----------------------------|
-| Critique | 3      | C1, C2 corrigés ; C3 partiellement (avertissement au démarrage) |
-| Haute    | 4      | H1, H2, H3 corrigés ; H4 documenté |
+| Critique | 3      | C1 corrigé (partie upload ; partie réservation obsolète) ; C2 obsolète ; C3 partiellement (avertissement au démarrage) |
+| Haute    | 4      | H1, H3 corrigés ; H2 obsolète ; H4 documenté |
 | Moyenne  | 8      | M1, M2 (partiel), M4 (partiel), M5, M6, M7 corrigés |
 | Faible   | 12     | F1 corrigé ; reste documenté |
 
@@ -62,7 +69,9 @@ ou `AttributeError` → 500), ce qui n'est pas une protection fiable.
 
 **Recommandation** : placer `@blueprint.route` en premier (le plus haut), les
 décorateurs d'accès en dessous. Ajouter un test de non-régression qui vérifie
-qu'un utilisateur sans rôle est refusé sur ces routes. **Corrigé.**
+qu'un utilisateur sans rôle est refusé sur ces routes. **Corrigé** pour
+`api/upload.py` ; la partie `routes/reservation.py` est **obsolète** (code
+supprimé par #927).
 
 ### C2 — Endpoints API sans aucune authentification
 
@@ -95,7 +104,9 @@ Le jeton CSRF est obtenu par n'importe quelle session anonyme (page de login).
 **Recommandation** : `@valid_user(True)` + `@confidentiality_agreement(True)` +
 `@user_is("can_manage_reservation", True)` (ou `can_manage_equipment`) sur
 toutes ces routes ; vérification de propriété sur `my_reservation/<id>`.
-**Corrigé.**
+**Obsolète** : code supprimé par #927. Si la fonctionnalité est réintroduite,
+un test parcourant `app.url_map` (voir « À traiter manuellement ») évitera le
+retour du problème.
 
 ### C3 — `SECRET_KEY` et `ADMINPWD` par défaut codés en dur
 
@@ -150,7 +161,8 @@ charte signée : n'importe quel adhérent récupère nom + licence + statut de
 n'importe quel autre adhérent. La route sœur `/api/users/autocomplete/`
 exige au moins `can_create_events`.
 
-**Recommandation** : `@user_is("can_manage_reservation", True)`. **Corrigé.**
+**Recommandation** : `@user_is("can_manage_reservation", True)`.
+**Obsolète** : route supprimée par #927.
 
 ### H3 — XSS stocké via upload de SVG servi en statique
 
@@ -330,18 +342,18 @@ bruit dans les logs. **Non corrigé.**
 
 Un commit par correction, dans l'ordre :
 
-1. C1 — ordre des décorateurs `routes/reservation.py` et `api/upload.py`.
-2. C2 — authentification/autorisation des API réservation et équipement.
-3. H1/H2 — licences retirées des autocomplétions publiques, rôle requis pour
-   `create_rental`.
-4. H3 — exclusion de `svg` des uploads servis en statique.
-5. M1 — validation stricte de `next`.
-6. M2 — options cookies et en-têtes de sécurité.
-7. M4 — `|tojson` dans `user_list.html`, échappement dans `login.py`.
-8. M5 — mock Payline limité à `DEBUG`/`TESTING`.
-9. M6 — périmètre de `export_role`.
-10. M7 — liste blanche des filtres admin.
-11. C3 — avertissement critique au démarrage sur les secrets par défaut.
+1. C1 — ordre des décorateurs `api/upload.py` (la partie réservation est
+   obsolète depuis #927).
+2. H1 — licences retirées des autocomplétions publiques, créateur
+   d'événements requis pour `available_leaders`.
+3. H3 — exclusion de `svg` des uploads de documents servis en statique.
+4. M1 — validation stricte de `next`.
+5. M2 — options cookies et en-têtes de sécurité.
+6. M4 — `|tojson` dans `user_list.html`, échappement dans `login.py`.
+7. M5 — mock Payline limité à `DEBUG`/`TESTING`.
+8. M6 — périmètre de `export_role`.
+9. M7 — liste blanche des filtres admin.
+10. C3 — avertissement critique au démarrage sur les secrets par défaut.
 
 ## À traiter manuellement
 
