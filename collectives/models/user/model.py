@@ -295,17 +295,6 @@ class UserModelMixin:
         return db.relationship("Registration", backref="user", lazy=True)
 
     @declared_attr
-    def reservations(self):
-        """List of reservations made by the user.
-
-        :type: list(:py:class:`collectives.models.reservation.Reservation`)
-        """
-        return db.relationship(
-            "Reservation",
-            back_populates="user",
-        )
-
-    @declared_attr
     def payments(self):
         """List of payments made by the user.
 

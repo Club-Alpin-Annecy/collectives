@@ -12,7 +12,6 @@ from werkzeug.datastructures import FileStorage
 from collectives.models.configuration import Configuration
 from collectives.models.globals import db
 from collectives.models.registration import Registration, RegistrationStatus
-from collectives.models.reservation import ReservationStatus
 from collectives.models.user.enum import Gender, UserType
 from collectives.utils.misc import is_valid_image
 
@@ -148,31 +147,6 @@ class UserMiscMixin:
         :rtype: String
         """
         return f"{self.first_name} {self.last_name[0].upper()}"
-
-    def get_reservations_planned_and_ongoing(self):
-        """Get all reservations planned and ongoing from user.
-
-        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
-        """
-        reservation_list = []
-        for reservation in self.reservations:
-            if reservation.status in (
-                ReservationStatus.Planned,
-                ReservationStatus.Ongoing,
-            ):
-                reservation_list.append(reservation)
-        return reservation_list
-
-    def get_reservations_completed(self):
-        """Get all reservations completed from user.
-
-        :rtype: list(:py:class:`collectives.models.reservation.reservations`)
-        """
-        reservation_list = []
-        for reservation in self.reservations:
-            if reservation.status == ReservationStatus.Completed:
-                reservation_list.append(reservation)
-        return reservation_list
 
     def has_valid_phone_number(self, emergency=False):
         """Check if the user has a valid phone number.

@@ -12,13 +12,10 @@ This module is initialized by the application factory, and contains the
 
 import collectives.api.admin
 import collectives.api.autocomplete_user
-import collectives.api.equipment
 import collectives.api.event
 import collectives.api.models
 import collectives.api.payment
-import collectives.api.reservation
 import collectives.api.retex
 import collectives.api.upload
 import collectives.api.userevent
-from collectives.api.autocomplete_reservation import find_equipment_types
 from collectives.api.common import blueprint, marshmallow

@@ -25,6 +25,7 @@ def init_scheduler(app):
     scheduler = BackgroundScheduler(timezone="Europe/Paris")
 
     def _purge_expired_accounts_job():
+        """Run :func:`purge_expired_accounts` within the app context."""
         with app.app_context():
             purge_expired_accounts()
 

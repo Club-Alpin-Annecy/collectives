@@ -651,6 +651,11 @@ class PaylineApi(PaymentProvider):
 
     @property
     def mock_callback_param(self) -> str:
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.mock_callback_param`
+
+        The mock payment page mimics the user-facing Payline redirects, which
+        carry the token as `paylinetoken`.
+        """
         return "paylinetoken"
 
 

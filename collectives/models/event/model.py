@@ -251,17 +251,6 @@ class EventModelMixin:
         )
 
     @declared_attr
-    def reservations(self):
-        """Reservations linked to this event.
-
-        :type: list(:py:class:`collectives.models.reservation.Reservation`)
-        """
-        return db.relationship(
-            "Reservation",
-            back_populates="event",
-        )
-
-    @declared_attr
     def payment_items(self):
         """List of payment items associated to this event.
 

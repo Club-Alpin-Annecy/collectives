@@ -1,7 +1,7 @@
 """Rename PaymentType.Online to Payline, add HelloAsso; merge payment config
 
 Revision ID: 1be67fc329bf
-Revises: dfadf58f0fac
+Revises: b7c3e1d94f20
 Create Date: 2026-08-20 23:04:40.502611
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "1be67fc329bf"
-down_revision = "dfadf58f0fac"
+down_revision = "b7c3e1d94f20"
 branch_labels = None
 depends_on = None
 

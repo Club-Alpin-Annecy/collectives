@@ -368,13 +368,6 @@ UPLOADED_AVATARS_DEST = os.path.join(basedir, "collectives/static/uploads/avatar
 
 
 """
-UPLOADED_IMGTYPEEQUIP_DEST = os.path.join(
-    basedir, "collectives/static/uploads/typeEquipmentImg"
-)
-"""Folder path for uploaded type images.
-
-:type: string
-"""
 UPLOADED_DOCUMENTS_DEST = os.path.join(basedir, "collectives/static/uploads/documents")
 """Folder path for uploaded event documents.
 
@@ -405,7 +398,6 @@ IMAGES_PATH = [
     "static/img",
     "static/uploads",
     "static/uploads/avatars",
-    "static/uploads/typeEquipmentImg",
     "static/uploads/documents",
 ]
 

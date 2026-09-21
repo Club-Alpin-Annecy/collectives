@@ -119,7 +119,9 @@ def _expired_accounts_query():
     # pylint: disable=import-outside-toplevel
     from collectives.models import Configuration, User
 
-    threshold = date.today() - relativedelta(years=Configuration.ACCOUNT_RETENTION_YEARS)
+    threshold = date.today() - relativedelta(
+        years=Configuration.ACCOUNT_RETENTION_YEARS
+    )
 
     return User.query.filter(
         User.license_expiry_date.isnot(None),

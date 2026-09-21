@@ -43,6 +43,7 @@ from collectives.models import (
 from collectives.routes.auth import (
     EmailChangedError,
     InvalidLicenseError,
+    TransientInvalidLicenseError,
     get_changed_email_message,
     sync_user,
 )
@@ -249,6 +250,13 @@ def force_user_sync(user_id):
         flash(
             f'Le numéro de licence "{user.license}" n\'est pas ou plus valide.',
             "error",
+        )
+    except TransientInvalidLicenseError:
+        flash(
+            "La fédération n'a pas encore traité le renouvellement de votre licence, "
+            "vos données ne peuvent pas être synchronisées pour le moment. "
+            "Veuillez réessayer dans quelques jours.",
+            "warning",
         )
     except EmailChangedError as err:
         flash(Markup(get_changed_email_message(err.new_email)), "error")
