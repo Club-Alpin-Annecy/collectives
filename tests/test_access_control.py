@@ -44,3 +44,16 @@ def test_available_leaders_autocomplete_requires_event_creator(client, user1_cli
         user1_client.get("/api/available_leaders/autocomplete/?q=aa").status_code
         in DENIED
     )
+
+
+def test_svg_document_upload_is_refused(leader_client, leader_user_with_event, event1):
+    """SVG files can embed scripts and are served verbatim: they must be refused."""
+    from io import BytesIO
+
+    svg = BytesIO(b'<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>')
+    response = leader_client.post(
+        f"/api/upload/event/{event1.id}",
+        data={"image": (svg, "evil.svg")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 415
