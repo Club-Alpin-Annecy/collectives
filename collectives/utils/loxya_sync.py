@@ -277,6 +277,30 @@ def sync_user(user: User) -> SyncAction:
     return None
 
 
+def sync_user_safely(user: User) -> SyncAction:
+    """Synchronizes a user without ever interrupting the caller.
+
+    Meant for the request path — signup, login — where Loxya being unreachable
+    must not keep a member from using the site. Failures are logged and left to
+    the nightly reconciliation, which will pick the user up again.
+
+    :param user: The user to synchronize.
+    :return: The action taken, or None if nothing was done or the call failed.
+    """
+    if loxya.api.disabled() or current_app.config.get("LOXYA_DRY_RUN"):
+        return None
+
+    try:
+        return sync_user(user)
+    # pylint: disable=broad-except
+    except Exception as err:
+        db.session.rollback()
+        current_app.logger.error(
+            f"Loxya: immediate synchronization failed for user {user.id}: {err}"
+        )
+        return None
+
+
 def sync_all_users() -> SyncReport:
     """Reconciles every user whose Loxya state is out of date.
 

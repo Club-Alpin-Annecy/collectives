@@ -18,7 +18,7 @@ from collectives.routes.auth.utils import (
     get_changed_email_message,
     sync_user,
 )
-from collectives.utils import extranet
+from collectives.utils import extranet, loxya_sync
 from collectives.utils.time import current_time
 
 
@@ -103,6 +103,10 @@ def login():
               vos informations utilisateur pourront ne pas être à jour""",
             "warning",
         )
+
+    # Mirror the state onto Loxya as soon as the licence is renewed, rather than
+    # waiting for the nightly run. Best effort: never blocks the login.
+    loxya_sync.sync_user_safely(user)
 
     if user.type == UserType.UnverifiedLocal:
         flash(
