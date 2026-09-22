@@ -371,14 +371,18 @@ class UserModelMixin:
         :return: A SQL expression
         """
 
+        # Explicit comparisons rather than the ``value=`` form of ``case``: with
+        # ``value=cls.type`` the enum keys were never rendered the way the column
+        # stores them, so no branch ever matched and ``else_`` made every account
+        # look active — including expired licences.
         return and_(
             cls.enabled,
             case(
-                {
-                    UserType.UnverifiedLocal: False,
-                    UserType.Extranet: cls.license_expiry_date >= current_time(),
-                },
-                value=cls.type,
+                (cls.type == UserType.UnverifiedLocal, False),
+                (
+                    cls.type == UserType.Extranet,
+                    cls.license_expiry_date >= current_time(),
+                ),
                 else_=True,
             ),
         )
