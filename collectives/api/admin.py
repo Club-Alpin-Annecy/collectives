@@ -95,6 +95,13 @@ class AdminUserSchema(UserSchema):
 
     :type: string
     """
+    loxya_sync_uri = fields.Function(
+        lambda user: url_for("administration.sync_user_with_loxya", user_id=user.id)
+    )
+    """ URI to synchronize this user with Loxya
+
+    :type: string
+    """
     manage_uri = fields.Function(
         lambda user: url_for("administration.manage_user", user_id=user.id)
     )
@@ -111,6 +118,9 @@ class AdminUserSchema(UserSchema):
             "mail",
             "is_active",
             "enabled",
+            "loxya_active",
+            "loxya_synced_at",
+            "loxya_sync_uri",
             "roles_uri",
             "badges_uri",
             "avatar_uri",

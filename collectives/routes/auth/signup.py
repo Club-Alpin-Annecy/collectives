@@ -22,7 +22,7 @@ from collectives.models import (
 )
 from collectives.models.auth import TokenEmailStatus
 from collectives.routes.auth.globals import blueprint
-from collectives.utils import extranet
+from collectives.utils import extranet, loxya_sync
 from collectives.utils.time import current_time
 
 
@@ -141,6 +141,10 @@ def process_confirmation(token_uuid):
     # Remove token
     db.session.delete(token)
     db.session.commit()
+
+    # Create the Loxya account right away rather than waiting for the nightly
+    # run. Best effort: Loxya being down must not fail the signup.
+    loxya_sync.sync_user_safely(user)
 
     # Redirect to  login page
     action = "mis à jour" if is_recover else "crée"

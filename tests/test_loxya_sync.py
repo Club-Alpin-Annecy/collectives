@@ -221,3 +221,41 @@ def test_disabled_api_does_nothing(loxya_session, app, user1):
 
     assert loxya_session.calls == []
     assert report.actions == {}
+
+
+def test_admin_can_resynchronize_a_user(
+    loxya_session, admin_client, user1, beneficiary_payload
+):
+    """Support can replay the synchronization without waiting for the nightly run."""
+    beneficiary_payload["reference"] = f"collectives:{user1.id}"
+    loxya_session.script("POST", "/api/beneficiaries", 201, beneficiary_payload)
+
+    response = admin_client.post(f"/administration/user/{user1.id}/loxya/sync")
+
+    assert response.status_code == 302
+    assert user1.loxya_beneficiary_id == 7
+
+
+def test_admin_list_exposes_loxya_state(loxya_session, admin_client, synced_user):
+    """The user list shows whether an account is live on Loxya, and when it was synced."""
+    response = admin_client.get("/api/users/?page=1&size=50")
+
+    row = [u for u in response.json["data"] if u["id"] == synced_user.id][0]
+    assert row["loxya_active"] is True
+    assert row["loxya_sync_uri"].endswith(f"/user/{synced_user.id}/loxya/sync")
+
+
+def test_failing_loxya_does_not_break_login(loxya_session, client, user1):
+    """A member must be able to log in even when Loxya is unreachable.
+
+    No response is scripted, so every call fails: the login must still go
+    through, and the nightly reconciliation will pick the user up later.
+    """
+    response = client.post(
+        "/auth/login",
+        data={"mail": user1.mail, "password": "fooBar2+", "remember_me": False},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert user1.loxya_beneficiary_id is None
