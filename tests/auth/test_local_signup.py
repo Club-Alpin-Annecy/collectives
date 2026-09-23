@@ -158,6 +158,9 @@ def test_local_password_rescue(user1, client, mail_success_monkeypatch, local_ac
 
     assert mail_success_monkeypatch.sent_mail_count() == 1
 
+    sent_mail = mail_success_monkeypatch.sent_to(data["mail"])[0]
+    assert f"Bonjour {user1.first_name}," in sent_mail["message"]
+
     token = (
         db.session.query(ConfirmationToken)
         .filter(ConfirmationToken.existing_user_id == user1.id)
