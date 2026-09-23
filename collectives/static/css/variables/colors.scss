@@ -83,6 +83,9 @@ $color-blue-bg-light: $solitude;
 $color-gray-dark: $woodsmoke;
 $color-gray-medium: $dove-gray;
 $color-gray-light: lighten($dove-gray, 40%);
+// Contour des champs et boutons: $color-gray-light (1.33:1 sur blanc) est sous le
+// seuil WCAG 1.4.11 de 3:1 exigé pour les composants d'interface. #767676 tient 4.5:1.
+$color-gray-border: #767676;
 $color-black: #000;
 $color-white: #fff;
 
