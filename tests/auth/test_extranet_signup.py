@@ -168,6 +168,9 @@ def test_extranet_password_rescue(
 
     assert mail_success_monkeypatch.sent_mail_count() == 1
 
+    sent_mail = mail_success_monkeypatch.sent_to(extranet_user.mail)[0]
+    assert "Bonjour JEAN NOE," in sent_mail["message"]
+
     assert response.status_code == 302
 
     token = (

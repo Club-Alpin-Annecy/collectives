@@ -210,6 +210,7 @@ def signup():
 
     # In recover mode, check for any user that is already registered with this license
     existing_user = None
+    user_info = None
     if is_recover:
         existing_user = get_existing_user(
             license=form.license.data,
@@ -282,8 +283,19 @@ def signup():
     # If self-provided info is correct, generate confirmation token
     token = create_confirmation_token(user.license, existing_user)
 
+    # `user` is a fresh object populated from form fields only: depending on the
+    # form, it may not contain a first name (the recover form only asks for
+    # license, mail and date of birth). Use the most reliable source available
+    # for the name displayed in the confirmation email.
+    if user_info is not None:
+        name = user_info.first_name
+    elif existing_user is not None:
+        name = existing_user.first_name
+    else:
+        name = user.first_name
+
     # Send confirmation email with link to token
-    email_templates.send_confirmation_email(user.mail, user.first_name, token)
+    email_templates.send_confirmation_email(user.mail, name, token)
 
     return redirect(url_for(".check_token", license_number=user.license))
 
