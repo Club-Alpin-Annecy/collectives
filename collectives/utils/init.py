@@ -6,7 +6,6 @@ import sqlite3
 import sys
 import uuid
 
-import pymysql
 import sqlalchemy
 import yaml
 from click import pass_context
@@ -44,7 +43,7 @@ def catch_db_errors(fct, app, *args, **kwargs):
         app.logger.warning(msg)
     except sqlalchemy.exc.ProgrammingError:
         app.logger.warning(msg)
-    except pymysql.err.DataError:
+    except sqlalchemy.exc.DataError:
         app.logger.warning(msg)
 
 

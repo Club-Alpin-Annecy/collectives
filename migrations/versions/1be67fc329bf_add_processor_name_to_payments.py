@@ -17,19 +17,78 @@ down_revision = "b7c3e1d94f20"
 branch_labels = None
 depends_on = None
 
+payment_before = sa.Enum(
+    "Online", "Check", "Cash", "Card", "Transfer", name="paymenttype"
+)
+payment_after = sa.Enum(
+    "Payline", "Check", "Cash", "Card", "Transfer", "HelloAsso", name="paymenttype"
+)
+# Transient type holding both the old and the new values, so that rows can be
+# migrated from one to the other. On MySQL/MariaDB a value must already be part
+# of the column ENUM before it can be written, so widening has to happen first.
+payment_both = sa.Enum(
+    "Online",
+    "Payline",
+    "Check",
+    "Cash",
+    "Card",
+    "Transfer",
+    "HelloAsso",
+    name="paymenttype",
+)
+
+config_before = sa.Enum(
+    "Integer",
+    "Float",
+    "Date",
+    "ShortString",
+    "LongString",
+    "Array",
+    "Dictionnary",
+    "Boolean",
+    "File",
+    "SecretFile",
+    name="configurationtypeenum",
+)
+config_after = sa.Enum(
+    "Integer",
+    "Float",
+    "Date",
+    "ShortString",
+    "LongString",
+    "Array",
+    "Dictionnary",
+    "Boolean",
+    "File",
+    "SecretFile",
+    "Enum",
+    name="configurationtypeenum",
+)
+
 
 def upgrade():
-    op.execute("UPDATE payments SET payment_type = 'Payline' WHERE payment_type = 'Online'")
+    # ConfigurationTypeEnum.Enum is used both by the config merge below and by
+    # init_config() at app startup: the column has to accept it first.
+    with op.batch_alter_table("config", schema=None) as batch_op:
+        batch_op.alter_column(
+            "type",
+            existing_type=config_before,
+            type_=config_after,
+            nullable=False,
+        )
+
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type",
-            type_=sa.Enum(
-                "Payline", "Check", "Cash", "Card", "Transfer", "HelloAsso",
-                name="paymenttype",
-            ),
-            existing_type=sa.Enum(
-                "Online", "Check", "Cash", "Card", "Transfer", name="paymenttype"
-            ),
+            "payment_type", existing_type=payment_before, type_=payment_both
+        )
+
+    op.execute(
+        "UPDATE payments SET payment_type = 'Payline' WHERE payment_type = 'Online'"
+    )
+
+    with op.batch_alter_table("payments", schema=None) as batch_op:
+        batch_op.alter_column(
+            "payment_type", existing_type=payment_both, type_=payment_after
         )
 
     # Merge PAYMENTS_ENABLED (bool) + PAYMENT_PROVIDER (string) -> PAYMENT_ENABLED (string).
@@ -58,18 +117,18 @@ def upgrade():
 def downgrade():
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type",
-            type_=sa.Enum(
-                "Online", "Check", "Cash", "Card", "Transfer", name="paymenttype"
-            ),
-            existing_type=sa.Enum(
-                "Payline", "Check", "Cash", "Card", "Transfer", "HelloAsso",
-                name="paymenttype",
-            ),
+            "payment_type", existing_type=payment_after, type_=payment_both
         )
+
     op.execute(
-        "UPDATE payments SET payment_type = 'Online' WHERE payment_type IN ('Payline', 'HelloAsso')"
+        "UPDATE payments SET payment_type = 'Online' "
+        "WHERE payment_type IN ('Payline', 'HelloAsso')"
     )
+
+    with op.batch_alter_table("payments", schema=None) as batch_op:
+        batch_op.alter_column(
+            "payment_type", existing_type=payment_both, type_=payment_before
+        )
 
     bind = op.get_bind()
     config = sa.table(
@@ -90,7 +149,9 @@ def downgrade():
     bind.execute(
         config.update()
         .where(config.c.name == "PAYMENT_ENABLED")
-        .values(name="PAYMENTS_ENABLED", json_content=json.dumps(enabled), type="Boolean")
+        .values(
+            name="PAYMENTS_ENABLED", json_content=json.dumps(enabled), type="Boolean"
+        )
     )
     bind.execute(
         config.insert().values(
@@ -102,3 +163,12 @@ def downgrade():
             hidden=False,
         )
     )
+
+    # Narrow the config type enum last: rows above must no longer use "Enum".
+    with op.batch_alter_table("config", schema=None) as batch_op:
+        batch_op.alter_column(
+            "type",
+            existing_type=config_after,
+            type_=config_before,
+            nullable=False,
+        )
