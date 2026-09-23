@@ -3,7 +3,7 @@
 import argparse
 
 from collectives import create_app
-from collectives.utils import payline
+from collectives.utils.payment_provider import payline
 
 # pylint: disable=invalid-name
 
@@ -56,7 +56,7 @@ def getPaymentDetails(token):
     :param token: The payline token
     :type token: str
     :return: The payment information
-    :rtype: :py:class:`collectives.utils.payline.PaymentDetails`
+    :rtype: :py:class:`collectives.utils.payment_provider.payline.PaymentDetails`
     """
     details = payline.api.get_web_payment_details(token)
     print(
@@ -71,10 +71,10 @@ def doRefund(payment_details):
     """Initiates a refind request
 
     :param payment_details: Payment details as returned by :py:func:`getPaymentDetails`
-    :type payment_details: :py:class:`collectives.utils.payline.PaymentDetails`
+    :type payment_details: :py:class:`collectives.utils.payment_provider.payline.PaymentDetails`
     """
     # Try refund
-    refundResponse = payline.api.do_refund(payment_details)
+    refundResponse = payline.api._do_refund(payment_details)  # pylint: disable=protected-access
     if refundResponse is None:
         raise RuntimeError("Payline API error")
 
