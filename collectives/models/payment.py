@@ -635,7 +635,7 @@ class Payment(db.Model):
 
     :type: :py:class:`datetime.datetime`"""
 
-    processor_token = db.Column(db.String(256), index=True, nullable=False)
+    processor_token = db.Column(db.Text, index=True, nullable=False)
     """ Unique identifier of this payment for the payment processor.
 
     :type: str
@@ -647,7 +647,7 @@ class Payment(db.Model):
     :type: str
     """
 
-    processor_url = db.Column(db.String(255))
+    processor_url = db.Column(db.Text)
     """ Url that the buyer should be redirected to to make the payment
 
     :type: str
