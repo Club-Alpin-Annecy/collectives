@@ -65,6 +65,16 @@ class SyncAction(enum.Enum):
     Failed = 5
     """ The API call failed; the user keeps its state and will be retried. """
 
+    def display_name(self) -> str:
+        """Returns the French label of this action, for user facing messages."""
+        return {
+            SyncAction.Created: "compte créé",
+            SyncAction.Activated: "compte réactivé",
+            SyncAction.Deactivated: "compte désactivé",
+            SyncAction.Attached: "compte existant rattaché",
+            SyncAction.Failed: "échec",
+        }[self]
+
 
 @dataclass
 class SyncReport:

@@ -240,7 +240,7 @@ def test_admin_list_exposes_loxya_state(loxya_session, admin_client, synced_user
     """The user list shows whether an account is live on Loxya, and when it was synced."""
     response = admin_client.get("/api/users/?page=1&size=50")
 
-    row = [u for u in response.json["data"] if u["id"] == synced_user.id][0]
+    row = next(u for u in response.json["data"] if u["id"] == synced_user.id)
     assert row["loxya_active"] is True
     assert row["loxya_sync_uri"].endswith(f"/user/{synced_user.id}/loxya/sync")
 
