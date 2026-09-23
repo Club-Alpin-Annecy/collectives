@@ -3,11 +3,12 @@
 See https://dev.helloasso.com/docs for the API reference.
 
 .. warning::
-    The exact response/webhook payload shapes and status enum values used
-    below have not been verified against a live HelloAsso sandbox account.
-    Adjust :py:func:`_map_status` and the payload parsing in
-    :py:meth:`HelloAssoApi.retrieve_remote_payment_status`/:py:meth:`HelloAssoApi.do_refund`
-    once a sandbox organization is available for testing.
+    The response payload shape used by
+    :py:meth:`HelloAssoApi.retrieve_remote_payment_status` has been verified
+    against a real HelloAsso checkout-intent response: the payment state is
+    at ``order.payments[0].state``, not at the response root. The payload
+    shape returned by :py:meth:`HelloAssoApi.do_refund` is still unverified;
+    adjust it once a real refund can be tested.
 """
 
 import json
@@ -60,23 +61,42 @@ def _log_api_error(err: requests.RequestException):
 
 
 def _map_status(state: str) -> PaymentStatus:
-    """Maps a HelloAsso checkout-intent/order state to our generic
+    """Maps a HelloAsso payment state to our generic
     :py:class:`collectives.models.payment.PaymentStatus` enum.
 
-    :param state: The `state` field of a HelloAsso checkout-intent/order response
+    :param state: The `state` field of a HelloAsso payment
+        (``order.payments[0].state`` in a checkout-intent response), using
+        HelloAsso's ``PaymentState`` enum, per
+        https://dev.helloasso.com/reference/get_organizations-organizationslug-checkout-intents-checkoutintentid
     :return: The corresponding payment status
     """
     mapping = {
-        "Processing": PaymentStatus.Initiated,
-        "Waiting": PaymentStatus.Initiated,
+        # In progress, no final result yet
         "Pending": PaymentStatus.Initiated,
+        "Waiting": PaymentStatus.Initiated,
+        "WaitingBankValidation": PaymentStatus.Initiated,
+        "WaitingBankWithdraw": PaymentStatus.Initiated,
+        "WaitingAuthentication": PaymentStatus.Initiated,
+        "Init": PaymentStatus.Initiated,
+        # Successful
         "Authorized": PaymentStatus.Approved,
+        "AuthorizedPreprod": PaymentStatus.Approved,
         "Registered": PaymentStatus.Approved,
+        "Corrected": PaymentStatus.Approved,
+        # Failed
         "Refused": PaymentStatus.Refused,
         "Unknown": PaymentStatus.Refused,
+        "Error": PaymentStatus.Refused,
+        "Abandoned": PaymentStatus.Refused,
+        "Deleted": PaymentStatus.Refused,
+        "Inconsistent": PaymentStatus.Refused,
+        "NoDonation": PaymentStatus.Refused,
+        "Contested": PaymentStatus.Refused,
+        # Refunded
         "Refunded": PaymentStatus.Refunded,
-        "Cancelled": PaymentStatus.Cancelled,
-        "Expired": PaymentStatus.Expired,
+        "Refunding": PaymentStatus.Refunded,
+        # Cancelled (HelloAsso uses the single-l American spelling)
+        "Canceled": PaymentStatus.Cancelled,
     }
     return mapping.get(state, PaymentStatus.Initiated)
 
@@ -283,9 +303,11 @@ class HelloAssoApi(PaymentProvider):
         data = response.json()
         order = data.get("order") or {}
         amount_in_cents = (order.get("amount") or {}).get("total", 0)
+        payments = order.get("payments") or []
+        state = payments[0].get("state", "") if payments else ""
 
         return PaymentStatusResult(
-            status=_map_status(data.get("state", "")),
+            status=_map_status(state),
             amount=Decimal(amount_in_cents) / 100,
             raw_metadata=json.dumps(data),
         )
