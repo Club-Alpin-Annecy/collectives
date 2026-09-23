@@ -186,7 +186,7 @@ def sync_user_with_loxya(user_id):
     if action is None:
         flash(f"{user.full_name()} était déjà à jour sur Loxya", "success")
     else:
-        flash(f"{user.full_name()} : {action.name} sur Loxya", "success")
+        flash(f"{user.full_name()} : {action.display_name()} sur Loxya", "success")
     return redirect(url_for("administration.administration"))
 
 
