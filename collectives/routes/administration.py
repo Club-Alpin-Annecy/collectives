@@ -8,6 +8,7 @@ from datetime import date
 
 from flask import (
     Blueprint,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -36,7 +37,7 @@ from collectives.models import (
 )
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
-from collectives.utils import badges, export, extranet, time
+from collectives.utils import badges, export, extranet, loxya, loxya_sync, time
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import sanitize_file_name
 
@@ -153,6 +154,39 @@ def manage_user(user_id=None):
     db.session.add(user)
     db.session.commit()
 
+    return redirect(url_for("administration.administration"))
+
+
+@blueprint.route("/user/<user_id>/loxya/sync", methods=["POST"])
+def sync_user_with_loxya(user_id):
+    """Route to synchronize a single user with Loxya, on demand.
+
+    Meant for support: when a member reports not being able to rent equipment,
+    this replays the synchronization without waiting for the nightly run.
+
+    :param user_id: ID of the user to synchronize
+    """
+    user = db.session.get(User, user_id)
+    if user is None:
+        flash("Utilisateur inconnu", "error")
+        return redirect(url_for("administration.administration"))
+
+    if loxya.api.disabled():
+        flash("La synchronisation Loxya est désactivée sur ce site", "warning")
+        return redirect(url_for("administration.administration"))
+
+    try:
+        action = loxya_sync.sync_user(user)
+    # pylint: disable=broad-except
+    except Exception as err:
+        current_app.logger.error(f"Loxya: manual sync failed for user {user.id}: {err}")
+        flash(f"Échec de la synchronisation Loxya : {err}", "error")
+        return redirect(url_for("administration.administration"))
+
+    if action is None:
+        flash(f"{user.full_name()} était déjà à jour sur Loxya", "success")
+    else:
+        flash(f"{user.full_name()} : {action.display_name()} sur Loxya", "success")
     return redirect(url_for("administration.administration"))
 
 

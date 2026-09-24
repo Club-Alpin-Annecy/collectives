@@ -3,6 +3,15 @@ function actionFormatter(cell, formatterParams, onRendered){
   return '<form style="display:inline; padding:0" action="'+ cell.getValue() +'" method="'+formatterParams['method']+'" ></form><input type="image" src="/static/img/icon/ionicon/md-'+formatterParams['icon']+'.svg" style="margin: 0;height: 1.2em; width: 1.2em"  alt="'+formatterParams['alt']+'" title="'+formatterParams['alt']+'"/>';
 }
 
+// Variant of actionFormatter for actions that change state: it carries the CSRF
+// token, without which the POST is rejected, and takes the icon file name as is
+// rather than assuming an "md-" prefix.
+function postActionFormatter(cell, formatterParams, onRendered){
+  return '<form style="display:inline; padding:0" action="'+ cell.getValue() +'" method="POST">' +
+    '<input type="hidden" name="csrf_token" value="'+ window.csrfToken +'">' +
+    '</form><input type="image" src="/static/img/icon/ionicon/'+formatterParams['icon']+'.svg" style="margin: 0;height: 1.2em; width: 1.2em" alt="'+formatterParams['alt']+'" title="'+formatterParams['alt']+'"/>';
+}
+
 function onclickTriggerInsideForm(e, cell){
   cell._cell.element.querySelector('form').submit();
 }
@@ -56,6 +65,8 @@ window.onload = function(){
             {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters_badge, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"badges_uri",   formatter:actionFormatter, formatterParams:{'icon': 'pricetags-outline', 'method': 'GET', 'alt': 'Badges'},   cellClick: onclickTriggerInsideForm, headerSort:false},
+            {title:"Loxya", field:"loxya_active", formatter:"tickCross", formatterParams:{allowEmpty:true}, widthGrow:1, tooltip:function(cell){ const d = cell.getRow().getData().loxya_synced_at; return d ? "Synchronisé le " + d : "Jamais synchronisé"; }},
+            {field:"loxya_sync_uri", formatter:postActionFormatter, formatterParams:{'icon': 'refresh', 'alt': 'Resynchroniser avec Loxya'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'GET', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
             ],
