@@ -6,7 +6,10 @@ logic lives in :py:mod:`collectives.utils.loxya_sync`.
 
 Configuration is read from :py:mod:`config`:
 
-- :py:data:`config.LOXYA_URL`: base URL of the instance. Empty disables the API.
+- :py:data:`config.LOXYA_ENABLED`: master switch, off by default. The code is
+  shared with other clubs, which do not use Loxya: while it is off, the
+  integration leaves no trace at all — no log, no scheduled job, no screen.
+- :py:data:`config.LOXYA_URL`: base URL of the instance.
 - :py:data:`config.LOXYA_API_USERNAME`, :py:data:`config.LOXYA_API_PASSWORD`
 - :py:data:`config.LOXYA_TIMEOUT`, :py:data:`config.LOXYA_RATE_LIMIT`
 """
@@ -98,6 +101,28 @@ def _decode_token_expiry(token: str) -> datetime:
         return None
 
 
+REQUIRED_SETTINGS = ("LOXYA_URL", "LOXYA_API_USERNAME", "LOXYA_API_PASSWORD")
+""" Settings without which an enabled integration cannot work.
+
+:type: tuple"""
+
+
+def feature_enabled(config=None) -> bool:
+    """Checks whether the Loxya integration is switched on for this deployment.
+
+    This is the single test every entry point goes through — scheduler, routes,
+    admin screens, request hooks — so that a club which does not use Loxya never
+    sees any of it. Enabling it without the connection settings counts as off.
+
+    :param config: The Flask config to read; defaults to the current app's.
+    :return: True if the integration is enabled and configured.
+    """
+    config = current_app.config if config is None else config
+    return bool(config.get("LOXYA_ENABLED")) and all(
+        config.get(name) for name in REQUIRED_SETTINGS
+    )
+
+
 class LoxyaApi:
     """HTTP client for the Loxya API.
 
@@ -128,20 +153,29 @@ class LoxyaApi:
 
         :param app: The Flask application.
         """
-        if not app.config.get("LOXYA_URL"):
-            app.logger.warning(
-                "Loxya API is disabled (LOXYA_URL is empty), accounts will not be synchronized"
+        if not app.config.get("LOXYA_ENABLED"):
+            # The normal state for every club that does not use Loxya: say nothing.
+            return
+
+        missing = [name for name in REQUIRED_SETTINGS if not app.config.get(name)]
+        if missing:
+            app.logger.error(
+                f"LOXYA_ENABLED is set but {', '.join(missing)} is missing: "
+                "the Loxya integration stays disabled"
             )
+            return
+
+        app.logger.info(f"Loxya integration enabled against {app.config['LOXYA_URL']}")
 
     def disabled(self) -> bool:
         """Check whether the Loxya API is disabled.
 
-        An empty ``LOXYA_URL`` disables every call, which is how development and
-        CI environments avoid reaching the network.
+        See :py:func:`feature_enabled`. Development and CI leave it off, which is
+        how they never reach the network.
 
         :return: True if the API must not be called.
         """
-        return not current_app.config.get("LOXYA_URL")
+        return not feature_enabled()
 
     @property
     def session(self) -> requests.Session:

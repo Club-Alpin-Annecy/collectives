@@ -55,6 +55,10 @@ ENV_HEADER = """# Environnement de développement local — généré par ./task
 # Le bloc balisé ci-dessous est réécrit à chaque « ./tasks.py start ». Tout ce qui est
 # ajouté APRÈS ce bloc est conservé et prend le pas : c'est l'endroit où placer ses
 # réglages personnels, par exemple de vrais identifiants Loxya de recette.
+#
+# L'intégration Loxya est éteinte par défaut, comme pour tous les clubs. Pour la
+# développer contre le faux serveur (./tasks.py stub), ajouter après le bloc :
+#   LOXYA_ENABLED=true
 """
 
 

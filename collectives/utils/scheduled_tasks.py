@@ -5,6 +5,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from collectives.utils import loxya
 from collectives.utils.loxya_sync import sync_all_users
 from collectives.utils.misc import purge_expired_accounts
 
@@ -36,7 +37,10 @@ def init_scheduler(app):
         id="purge_expired_accounts",
         replace_existing=True,
     )
-    if app.config.get("LOXYA_SYNC_ENABLED", True):
+    # Only on deployments that enable Loxya: the other clubs get no job at all.
+    # The job itself reads the live mode at each run, so turning the
+    # synchronization on or off needs no restart.
+    if loxya.feature_enabled(app.config):
 
         def _loxya_sync_job():
             """Run :func:`sync_all_users` within the app context."""
