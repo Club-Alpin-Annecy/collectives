@@ -14,6 +14,7 @@ import re
 import yaml
 from flask import (
     Blueprint,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -146,13 +147,20 @@ def log_dir():
 def configuration(selected_folder=None):
     """Route to display and update configuration."""
 
-    folders = db.session.query(ConfigurationItem.folder).distinct().all()
-    folders = [f[0] for f in folders]
+    # Items tied to a feature this deployment does not enable stay out of sight,
+    # and so does any folder left empty by them.
+    available_items = [
+        item
+        for item in ConfigurationItem.query.all()
+        if item.is_available(current_app.config)
+    ]
+    # dict.fromkeys keeps the order the database returns, as before this filter.
+    folders = list(dict.fromkeys(item.folder for item in available_items))
 
     configuration_items = []
 
     if selected_folder in folders:
-        for item in ConfigurationItem.query.filter_by(folder=selected_folder).all():
+        for item in (i for i in available_items if i.folder == selected_folder):
             form = get_form_from_configuration(item)(obj=item)
             form.name.value = item.name
             if item.type in [
@@ -184,7 +192,7 @@ def update_configuration(selected_folder):
     :return: redirection to configuration
     """
     item = Configuration.get_item(request.form["name"])
-    if item is None:
+    if item is None or not item.is_available(current_app.config):
         return "", 403, ""
 
     form = get_form_from_configuration(item)()

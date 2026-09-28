@@ -201,6 +201,7 @@ def init_config(app, force=False, path="collectives/configuration.yaml", clean=T
 
                 item.description = config["description"]
                 item.hidden = config.get("hidden", False)
+                item.requires = config.get("requires")
                 item.folder = folder
                 item.type = getattr(ConfigurationTypeEnum, config["type"])
                 db.session.add(item)
