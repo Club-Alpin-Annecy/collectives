@@ -106,13 +106,26 @@ Can be set using environment variable.
 """
 
 # Loxya (equipment rental platform)
+LOXYA_ENABLED = environ.get("LOXYA_ENABLED", "false").lower() == "true"
+"""Master switch of the Loxya integration, off by default.
+
+This code base is shared between several clubs, most of which do not use Loxya.
+While this is off, the integration is invisible: no log line, no scheduled job,
+no column nor button in the administration, no configuration item shown, and its
+routes answer 404. Once on, the synchronization itself is still driven live from
+the configuration (``LOXYA_SYNC_ACTIVE``, ``LOXYA_AUTO_CREATE``), so it can be
+rolled out progressively without redeploying.
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
 LOXYA_URL = environ.get("LOXYA_URL", "")
 """Base URL of the Loxya instance, e.g. ``https://caf-annecy.loxya.app``.
 
 The web front end and the API share this host, the API living under ``/api/``.
-Leaving it empty disables the integration entirely: no account is created nor
-deactivated, and no network call is made. This is how development and CI
-environments stay hermetic.
+Required when :py:data:`LOXYA_ENABLED` is on.
 
 Can be set using environment variable.
 
@@ -156,24 +169,7 @@ Can be set using environment variable.
 :type: float
 """
 
-LOXYA_SYNC_ENABLED = environ.get("LOXYA_SYNC_ENABLED", "true").lower() != "false"
-"""Whether the scheduled Loxya account synchronization should run.
 
-Can be set using environment variable.
-
-:type: boolean
-"""
-
-LOXYA_DRY_RUN = environ.get("LOXYA_DRY_RUN", "false").lower() == "true"
-"""Whether to log the actions the synchronization would take, without calling
-the API nor writing the ``loxya_*`` columns.
-
-Used to validate volumes before enabling the integration for real.
-
-Can be set using environment variable.
-
-:type: boolean
-"""
 
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
