@@ -9,14 +9,42 @@ from collectives.utils import loxya
 # pylint: disable=unused-argument,protected-access
 
 
-def test_disabled_without_url(app):
-    """An empty LOXYA_URL disables the API, so CI never reaches the network."""
-    app.config["LOXYA_URL"] = ""
+CONNECTION = {
+    "LOXYA_URL": "https://loxya.test",
+    "LOXYA_API_USERNAME": "tester",
+    "LOXYA_API_PASSWORD": "secret",
+}
+
+
+def test_off_by_default(app):
+    """Without LOXYA_ENABLED, the API is off even when fully configured.
+
+    This is what keeps the integration out of the way of every other club.
+    """
+    app.config.update(LOXYA_ENABLED=False, **CONNECTION)
     client = loxya.LoxyaApi()
 
+    assert not loxya.feature_enabled()
     assert client.disabled()
     with pytest.raises(loxya.LoxyaError):
         client.get("/api/beneficiaries")
+
+
+@pytest.mark.parametrize("missing", sorted(CONNECTION))
+def test_enabled_but_incomplete_stays_off(app, missing):
+    """Switching it on without a connection setting keeps it off."""
+    app.config.update(LOXYA_ENABLED=True, **CONNECTION)
+    app.config[missing] = ""
+
+    assert not loxya.feature_enabled()
+
+
+def test_enabled_and_configured(app):
+    """The switch plus the three connection settings turn the API on."""
+    app.config.update(LOXYA_ENABLED=True, **CONNECTION)
+
+    assert loxya.feature_enabled()
+    assert not loxya.LoxyaApi().disabled()
 
 
 def test_token_is_cached(loxya_session):

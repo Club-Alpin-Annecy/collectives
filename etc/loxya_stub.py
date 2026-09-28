@@ -34,6 +34,10 @@ Routes de contrôle, propres au stub :
 - ``GET    /_stub/state``                   renvoie l'état complet
 - ``POST   /_stub/fail-next``               fait échouer les N prochains appels API
 
+Relevé sur l'instance le 28/09/2026 : sans compte de connexion, l'e-mail d'un
+bénéficiaire n'est pas unique ; avec compte, un doublon est refusé par un 400 et non
+un 409 ; ``GET`` et ``PUT`` sur un bénéficiaire à la corbeille répondent 404.
+
 Trois comportements sont reproduits volontairement parce qu'ils sont des pièges :
 
 1. **Un second DELETE supprime définitivement.** Sur une ressource déjà en corbeille,
@@ -357,51 +361,57 @@ class Handler(BaseHTTPRequestHandler):
     # -- ressources --------------------------------------------------------
 
     def _create_beneficiary(self, body: dict):
-        """Crée un bénéficiaire et, si les réservations sont permises, son compte.
+        """Crée un bénéficiaire et, si les réservations en ligne sont permises, son compte.
 
-        Reproduit la validation observée : activer ``can_make_reservation`` rend
-        ``pseudo``, ``email`` et ``password`` obligatoires.
+        Reproduit ce qui a été relevé sur l'instance :
+
+        - activer ``can_make_reservation`` rend ``pseudo``, ``email`` et ``password``
+          obligatoires, et crée un compte de connexion ;
+        - l'e-mail n'est unique que parmi les comptes de connexion : deux
+          bénéficiaires sans compte peuvent partager une adresse ;
+        - un doublon est refusé par un **400** de validation, pas par un 409.
         """
         details = {}
-        if body.get("can_make_reservation"):
+        with_account = bool(body.get("can_make_reservation"))
+        if with_account:
             for field in ("pseudo", "email", "password"):
                 if not body.get(field):
                     details[field] = "Ce champ est obligatoire."
+            live_users = [u for u in STATE.users.values() if not u["deleted"]]
+            if body.get("email") and any(u["email"] == body["email"] for u in live_users):
+                details["email"] = "Cette adresse e-mail est déjà utilisée."
+            # Non relevé sur l'instance : supposé symétrique de l'e-mail.
+            if body.get("pseudo") and any(u["pseudo"] == body["pseudo"] for u in live_users):
+                details["pseudo"] = "Cet identifiant est déjà utilisé."
         if details:
             return self._error(400, "Validation failed.", details)
 
-        email = body.get("email")
-        pseudo = body.get("pseudo")
-        for user in STATE.users.values():
-            if email and user["email"] == email:
-                return self._error(409, "Email already in use.")
-            if pseudo and user["pseudo"] == pseudo:
-                return self._error(409, "Pseudo already in use.")
+        user_id = None
+        if with_account:
+            user_id = STATE.next_user_id
+            STATE.next_user_id += 1
+            STATE.users[user_id] = {
+                "id": user_id,
+                "email": body.get("email"),
+                "pseudo": body.get("pseudo"),
+                "group": DEFAULT_GROUP,
+                "first_name": body.get("first_name"),
+                "last_name": body.get("last_name"),
+                "deleted": False,
+            }
 
-        user_id = STATE.next_user_id
-        STATE.next_user_id += 1
         beneficiary_id = STATE.next_beneficiary_id
         STATE.next_beneficiary_id += 1
-
-        STATE.users[user_id] = {
-            "id": user_id,
-            "email": email,
-            "pseudo": pseudo,
-            "group": DEFAULT_GROUP,
-            "first_name": body.get("first_name"),
-            "last_name": body.get("last_name"),
-            "deleted": False,
-        }
         STATE.beneficiaries[beneficiary_id] = {
             "id": beneficiary_id,
             "user_id": user_id,
             "first_name": body.get("first_name"),
             "last_name": body.get("last_name"),
-            "email": email,
+            "email": body.get("email"),
             "reference": body.get("reference"),
             "note": body.get("note"),
             "country": body.get("country", "FR"),
-            "can_make_reservation": bool(body.get("can_make_reservation")),
+            "can_make_reservation": with_account,
             "deleted": False,
         }
         return self._reply(201, beneficiary_payload(STATE.beneficiaries[beneficiary_id]))
@@ -410,7 +420,8 @@ class Handler(BaseHTTPRequestHandler):
         """Remplace un bénéficiaire. Les champs absents reprennent leur défaut.
 
         C'est bien un remplacement et non une fusion : envoyer seulement
-        ``can_make_reservation`` efface ``reference`` et ``note``.
+        ``can_make_reservation`` efface ``reference`` et ``note``. Refusé (404) sur
+        un bénéficiaire à la corbeille, comme sur l'instance.
         """
         beneficiary = STATE.beneficiaries.get(beneficiary_id)
         if beneficiary is None or beneficiary["deleted"]:
@@ -461,23 +472,26 @@ class Handler(BaseHTTPRequestHandler):
         return self._reply(200, payload)
 
     def _list_beneficiaries(self, query: dict):
-        """Liste paginée des bénéficiaires, filtrée par ``deleted`` et ``search``."""
+        """Liste paginée des bénéficiaires, filtrée par ``deleted`` et ``search``.
+
+        La recherche est une sous-chaîne, insensible à la casse, sur le prénom, le
+        nom, l'e-mail et la référence — comme sur l'instance, où chercher ``99990``
+        trouve ``collectives:99990``.
+        """
         deleted = query.get("deleted", ["0"])[0] == "1"
-        terms = query.get("search[]", []) + query.get("search", [])
+        terms = [t.casefold() for t in query.get("search[]", []) + query.get("search", [])]
         limit = int(query.get("limit", ["100"])[0])
         page = int(query.get("page", ["1"])[0])
+
+        def found(beneficiary):
+            fields = ("first_name", "last_name", "email", "reference")
+            values = [(beneficiary.get(f) or "").casefold() for f in fields]
+            return any(term in value for term in terms for value in values)
 
         matches = [
             beneficiary_payload(b)
             for b in STATE.beneficiaries.values()
-            if b["deleted"] == deleted
-            and (
-                not terms
-                or any(
-                    t in ((b["email"] or "") + (b["reference"] or "") + b["last_name"])
-                    for t in terms
-                )
-            )
+            if b["deleted"] == deleted and (not terms or found(b))
         ]
         start = (page - 1) * limit
         return self._reply(

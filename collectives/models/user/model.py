@@ -162,19 +162,9 @@ class UserModelMixin:
     loxya_beneficiary_id = db.Column(db.Integer, nullable=True, index=True)
     """ Id of the matching beneficiary on the Loxya equipment platform.
 
-    This is the entity the synchronization acts upon. `None` means the account
-    has never been created on Loxya. See
-    :py:mod:`collectives.utils.loxya_sync`.
-
-    :type: int"""
-
-    loxya_user_id = db.Column(db.Integer, nullable=True)
-    """ Id of the login account attached to the Loxya beneficiary.
-
-    Read from the ``user_id`` field of the beneficiary, never from its ``id``:
-    Loxya holds two distinct entities, whose ids happen to coincide often enough
-    to hide the confusion. Kept for traceability and support; the integration
-    never calls ``/api/users/``.
+    `None` means the member has never been created on Loxya, or was unlinked
+    after being anonymized. No login account is created alongside: members do
+    not sign in to Loxya. See :py:mod:`collectives.utils.loxya_sync`.
 
     :type: int"""
 
