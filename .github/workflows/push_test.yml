@@ -13,6 +13,10 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.13]
+    env:
+      DB_DATABASE: testdb
+      DB_USER: root
+      DB_PASSWORD: ''
 
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +26,20 @@ jobs:
 
         with:
           python-version: ${{ matrix.python-version }}
-        
+
       - name: Install the project
         run: uv sync --locked --dev
 
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+      - name: Set up MariaDB
+        uses: ankane/setup-mariadb@v1
+        with:
+          database: ${{ env.DB_DATABASE }}
+          mariadb-version: "10.11"
+
       - name: Pytest
+        env:
+          SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
         run: |
           uv run pytest --cov=collectives tests/ --cov-fail-under=60
