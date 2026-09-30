@@ -14,13 +14,13 @@ from collectives.utils.access import valid_user
 from collectives.utils.time import current_time
 
 
-@valid_user(api=True)
 @blueprint.route("/upload/event/<int:event_id>", methods=["POST"])
 @blueprint.route(
     "/upload/event/<string:edit_session_id>",
     endpoint="upload_new_event_file",
     methods=["POST"],
 )
+@valid_user(api=True)
 def upload_event_file(event_id=None, edit_session_id=None):
     """Api endpoint for adding an uploaded file to an event.
 
@@ -132,12 +132,12 @@ class UploadedFileSchema(marshmallow.SQLAlchemyAutoSchema):
         )
 
 
-@valid_user(api=True)
 @blueprint.route("/upload/event/<int:event_id>/list", methods=["GET"])
 @blueprint.route(
     "/upload/event/<string:edit_session_id>/list",
     endpoint="list_new_event_files",
 )
+@valid_user(api=True)
 def list_event_files(event_id=None, edit_session_id=None):
     """Api endpoint to list files associated to an event.
 
@@ -171,8 +171,8 @@ def list_event_files(event_id=None, edit_session_id=None):
     return json.dumps(response), 200, {"content-type": "application/json"}
 
 
-@valid_user(api=True)
 @blueprint.route("/upload/activity_documents/list", methods=["GET"])
+@valid_user(api=True)
 def list_activity_documents():
     """Api endpoint to list files associated to activities that the current_user can supervise
 
@@ -194,8 +194,8 @@ def list_activity_documents():
     return json.dumps(response), 200, {"content-type": "application/json"}
 
 
-@valid_user(api=True)
 @blueprint.route("/upload/delete/<int:file_id>", methods=["POST"])
+@valid_user(api=True)
 def delete_uploaded_file(file_id):
     """Api endpoint for deleting an uploaded file.
 

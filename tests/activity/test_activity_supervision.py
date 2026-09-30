@@ -32,12 +32,13 @@ def test_leader_list(supervisor_client):
     assert response.status_code == 200
 
 
-def test_leader_export(supervisor_client):
-    """Test export of leader of one activity.
+def test_leader_export(supervisor_client, supervisor_user):
+    """Test export of leader of one supervised activity.
 
     See :py:func:`collectives.routes.activity_supervision.export_role`
     """
-    data = {"activity_id": "1"}
+    activity = supervisor_user.get_supervised_activities()[0]
+    data = {"activity_id": str(activity.id)}
     response = supervisor_client.post("/activity_supervision/roles/export/", data=data)
     assert response.status_code == 200
 

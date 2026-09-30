@@ -1,11 +1,10 @@
 """Auth modules to log in an user."""
 
 import datetime
-from urllib.parse import urlparse
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 from collectives.forms.auth import LoginForm
 from collectives.models import Configuration, User, UserType, db
@@ -20,6 +19,7 @@ from collectives.routes.auth.utils import (
 )
 from collectives.utils import extranet
 from collectives.utils.time import current_time
+from collectives.utils.url import is_local_url
 
 
 @blueprint.route("/login", methods=["GET", "POST"])
@@ -53,8 +53,8 @@ def login():
     # If even after password filtering there are multiple users, ask user to select
     if len(users) > 1:
         users_list = "".join(
-            f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{u.license}')\" >
-                        {u.full_name()}</span>"""
+            f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{escape(u.license)}')\" >
+                        {escape(u.full_name())}</span>"""
             for u in users
         )
         flash(
@@ -153,7 +153,7 @@ def login():
 
     # Redirection to the page required by user before login
     next_page = request.args.get("next")
-    if not next_page or urlparse(next_page).netloc != "":
+    if not is_local_url(next_page):
         next_page = "/"
     return redirect(next_page)
 

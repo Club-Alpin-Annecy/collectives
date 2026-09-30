@@ -32,6 +32,22 @@ class AutocompleteUserSchema(UserIdentitySchema):
         )
 
 
+class PublicAutocompleteUserSchema(UserIdentitySchema):
+    """Schema for autocomplete results exposed to unauthenticated users.
+
+    Does not include the license number, which is the login identifier and
+    one of the account recovery factors.
+    """
+
+    class Meta(UserIdentitySchema.Meta):
+        """Fields to expose"""
+
+        fields = (
+            "id",
+            "full_name",
+        )
+
+
 def _make_autocomplete_query(pattern: str) -> Query:
     """Builds the autocomplete query for the provided pattern"""
 
@@ -103,11 +119,12 @@ def autocomplete_leaders():
         query = query.filter(User.led_events)
         found_users = query.limit(limit)
 
-    content = json.dumps(AutocompleteUserSchema(many=True).dump(found_users))
+    content = json.dumps(PublicAutocompleteUserSchema(many=True).dump(found_users))
     return content, 200, {"content-type": "application/json"}
 
 
 @blueprint.route("/available_leaders/autocomplete/")
+@valid_user(True)
 def autocomplete_available_leaders():
     """API endpoint to list available leaders for autocomplete. In contrast with the
     previous function this also includes leaders that have never led any event.
@@ -127,6 +144,9 @@ def autocomplete_available_leaders():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
+
+    if not current_user.can_create_events():
+        abort(403)
 
     pattern = request.args.get("q")
     if pattern is None or (len(pattern) < 2):

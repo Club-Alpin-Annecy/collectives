@@ -36,7 +36,30 @@ Can be set using environment variable.
 :type: boolean
 """
 
-SECRET_KEY = environ.get("SECRET_KEY") or "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+_DEBUG_ENABLED = (FLASK_DEBUG or "").lower() in ("1", "true", "yes", "on")
+
+SESSION_COOKIE_SECURE = not _DEBUG_ENABLED
+"""Only send the session cookie over HTTPS (disabled when FLASK_DEBUG is set).
+
+:type: boolean
+"""
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+REMEMBER_COOKIE_SECURE = not _DEBUG_ENABLED
+"""Only send the "remember me" cookie over HTTPS (disabled when FLASK_DEBUG is set).
+
+:type: boolean
+"""
+REMEMBER_COOKIE_HTTPONLY = True
+REMEMBER_COOKIE_SAMESITE = "Lax"
+
+DEFAULT_SECRET_KEY = "'@GU^CpusZ0G2\"`=^QAt\rF]|('"
+"""Insecure development secret key. MUST be overridden in production.
+
+:type: string
+"""
+
+SECRET_KEY = environ.get("SECRET_KEY") or DEFAULT_SECRET_KEY
 """A secret key to securely sign the session cookie and other.
 
 See https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY
@@ -58,7 +81,13 @@ File syntax is described here:
 
 :type: string"""
 
-ADMINPWD = environ.get("ADMINPWD") or "foobar2"
+DEFAULT_ADMINPWD = "foobar2"
+"""Insecure development admin password. MUST be overridden in production.
+
+:type: string
+"""
+
+ADMINPWD = environ.get("ADMINPWD") or DEFAULT_ADMINPWD
 """Password for admin account
 
 Will be set or reset at every application. Makes sure this is a secure password
@@ -349,7 +378,7 @@ upload files larger than this
 :type: int """
 MAX_FILE_SIZE_MESSAGE = (
     f"Le fichier est trop gros pour être chargé sur le serveur :"
-    f" [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
+    f" [size] Mo. (max {MAX_CONTENT_LENGTH / 1024 / 1024} Mo)"
 )
 
 """ Error message if uploaded file is too big.

@@ -452,6 +452,9 @@ class PaylineApi:
         payment_response = PaymentRequest()
 
         if self.disabled():
+            if not self.mock_allowed():
+                current_app.logger.error("Payment API is not configured")
+                return None
             # Dev mode, every payment is valid with fake token
             payment_response.result.code = "00000"
             payment_response.result.short_message = "ACCEPTED"
@@ -519,6 +522,9 @@ class PaylineApi:
         self.reload_config()
 
         if self.disabled():
+            if not self.mock_allowed():
+                current_app.logger.error("Payment API is not configured")
+                return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount")
@@ -557,6 +563,9 @@ class PaylineApi:
         self.reload_config()
 
         if self.disabled():
+            if not self.mock_allowed():
+                current_app.logger.error("Payment API is not configured")
+                return None
             # Dev mode, refund always succeeds
             response = {
                 "result": {
@@ -588,6 +597,17 @@ class PaylineApi:
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
+
+    def mock_allowed(self) -> bool:
+        """Check whether the mock payment API may be used.
+
+        The mock API trusts client-provided URL parameters to decide whether a
+        payment is approved. It must never be active on a production instance,
+        so it is only allowed when the application runs in debug or testing mode.
+
+        :return: True if the API is not configured and the app is in debug/testing mode
+        """
+        return self.disabled() and (current_app.debug or current_app.testing)
 
     def disabled(self) -> bool:
         """Check if Payline merchant Id has been set.
