@@ -14,6 +14,8 @@ import re
 import yaml
 from flask import (
     Blueprint,
+    abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -32,6 +34,7 @@ from collectives.models import (
     ConfigurationTypeEnum,
     db,
 )
+from collectives.utils import loxya, loxya_sync
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import count_expired_accounts, purge_expired_accounts
 
@@ -78,11 +81,44 @@ def maintenance():
 @blueprint.route("/actions", methods=["GET"])
 def actions():
     """Route to display the maintenance actions page."""
+    loxya_enabled = loxya.feature_enabled()
     return render_template(
         "technician/actions.html",
         title="Actions",
         expired_accounts_count=count_expired_accounts(),
+        loxya_enabled=loxya_enabled,
+        loxya_mode=loxya_sync.current_mode() if loxya_enabled else None,
+        loxya_simulation=loxya_sync.simulate() if loxya_enabled else None,
+        SyncAction=loxya_sync.SyncAction,
+        SyncMode=loxya_sync.SyncMode,
     )
+
+
+@blueprint.route("/actions/loxya_sync", methods=["POST"])
+def loxya_sync_action():
+    """Endpoint to run the Loxya synchronization now, in the current mode.
+
+    Lets a technician check the effect of a change without waiting for the
+    nightly run. Answers 404 on deployments that do not enable Loxya.
+
+    :return: redirection to the actions page
+    """
+    if not loxya.feature_enabled():
+        abort(404)
+
+    if loxya_sync.current_mode() is loxya_sync.SyncMode.Off:
+        flash("La synchronisation Loxya est éteinte, rien n'a été fait.", "warning")
+        return redirect(url_for("technician.actions"))
+
+    report = loxya_sync.sync_all_users()
+    summary = ", ".join(
+        f"{action.display_name()} : {count}" for action, count in report.actions.items()
+    )
+    flash(
+        f"Synchronisation Loxya terminée — {summary or 'aucun changement'}.",
+        "error" if report.errors else "success",
+    )
+    return redirect(url_for("technician.actions"))
 
 
 @blueprint.route("/actions/purge_expired_accounts", methods=["POST"])
@@ -146,13 +182,20 @@ def log_dir():
 def configuration(selected_folder=None):
     """Route to display and update configuration."""
 
-    folders = db.session.query(ConfigurationItem.folder).distinct().all()
-    folders = [f[0] for f in folders]
+    # Items tied to a feature this deployment does not enable stay out of sight,
+    # and so does any folder left empty by them.
+    available_items = [
+        item
+        for item in ConfigurationItem.query.all()
+        if item.is_available(current_app.config)
+    ]
+    # dict.fromkeys keeps the order the database returns, as before this filter.
+    folders = list(dict.fromkeys(item.folder for item in available_items))
 
     configuration_items = []
 
     if selected_folder in folders:
-        for item in ConfigurationItem.query.filter_by(folder=selected_folder).all():
+        for item in (i for i in available_items if i.folder == selected_folder):
             form = get_form_from_configuration(item)(obj=item)
             form.name.value = item.name
             if item.type in [
@@ -184,7 +227,7 @@ def update_configuration(selected_folder):
     :return: redirection to configuration
     """
     item = Configuration.get_item(request.form["name"])
-    if item is None:
+    if item is None or not item.is_available(current_app.config):
         return "", 403, ""
 
     form = get_form_from_configuration(item)()

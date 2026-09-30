@@ -28,6 +28,7 @@ dependencies = [
     "flask-marshmallow",
     "cmarkgfm",
     "pymysql",
+    "requests",
     "dkimpy",
     "email_validator",
     "openpyxl",
@@ -70,8 +71,18 @@ flask-images = { git = "https://github.com/Club-Alpin-Annecy/Flask-Images", rev 
 docstr-coverage = { git = "https://github.com/HunterMcGushion/docstr_coverage.git" }
 
 
+[project.scripts]
+# Tâches de développement, lançables par « uv run <tâche> » (cf. tasks.py).
+start = "tasks:start"
+stub = "tasks:stub"
+fixtures = "tasks:fixtures"
+lint = "tasks:lint"
+shell = "tasks:shell"
+destroy = "tasks:destroy"
+infos = "tasks:infos"
+
 [tool.hatch.build.targets.wheel]
-include = ["/collectives"]
+include = ["/collectives", "/tasks.py"]
 
 
 [tool.ruff]

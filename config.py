@@ -105,6 +105,72 @@ Can be set using environment variable.
 :type: boolean
 """
 
+# Loxya (equipment rental platform)
+LOXYA_ENABLED = environ.get("LOXYA_ENABLED", "false").lower() == "true"
+"""Master switch of the Loxya integration, off by default.
+
+This code base is shared between several clubs, most of which do not use Loxya.
+While this is off, the integration is invisible: no log line, no scheduled job,
+no column nor button in the administration, no configuration item shown, and its
+routes answer 404. Once on, the synchronization itself is still driven live from
+the configuration (``LOXYA_SYNC_ACTIVE``, ``LOXYA_AUTO_CREATE``), so it can be
+rolled out progressively without redeploying.
+
+Can be set using environment variable.
+
+:type: boolean
+"""
+
+LOXYA_URL = environ.get("LOXYA_URL", "")
+"""Base URL of the Loxya instance, e.g. ``https://caf-annecy.loxya.app``.
+
+The web front end and the API share this host, the API living under ``/api/``.
+Required when :py:data:`LOXYA_ENABLED` is on.
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+LOXYA_API_USERNAME = environ.get("LOXYA_API_USERNAME", "")
+"""Identifier of the Loxya account used by the integration.
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+LOXYA_API_PASSWORD = environ.get("LOXYA_API_PASSWORD", "")
+"""Password of the Loxya account used by the integration.
+
+Can be set using environment variable.
+
+:type: string
+"""
+
+LOXYA_TIMEOUT = int(environ.get("LOXYA_TIMEOUT") or 10)
+"""Timeout in seconds for every call to the Loxya API.
+
+Without it, an unresponsive Loxya would freeze a Flask worker.
+
+Can be set using environment variable.
+
+:type: int
+"""
+
+LOXYA_RATE_LIMIT = float(environ.get("LOXYA_RATE_LIMIT") or 10)
+"""Maximum number of requests per second sent to Loxya.
+
+Enforced by the client itself rather than in reaction to a 429. Sizes the
+initial backfill.
+
+Can be set using environment variable.
+
+:type: float
+"""
+
+
+
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 
