@@ -140,3 +140,22 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+Loxya equipment platform (optional)
+....................................
+Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
+instance, so that equipment volunteers can lend them equipment. This is off by
+default, and leaves no trace at all on a site that does not enable it.
+
+To enable it, add to `instance/config.py`, next to the database access::
+
+    LOXYA_ENABLED = True
+    LOXYA_URL = "https://your-club.loxya.app"
+    LOXYA_API_USERNAME = "account used by the site"
+    LOXYA_API_PASSWORD = "its password"
+
+then restart the service. If one of the last three is missing, an error is
+logged at startup and the integration stays off.
+
+Enabling it does not synchronize anything yet: a technician then sets the mode
+in `/technician/configuration`, folder Loxya, and can preview what a run would
+do in `/technician/actions`.

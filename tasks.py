@@ -58,7 +58,9 @@ ENV_HEADER = """# Environnement de développement local — généré par ./task
 #
 # L'intégration Loxya est éteinte par défaut, comme pour tous les clubs. Pour la
 # développer contre le faux serveur (./tasks.py stub), ajouter après le bloc :
-#   LOXYA_ENABLED=true
+#   DEV_LOXYA_STUB=true
+# Ce drapeau est lu par tasks.py seul : l'application, elle, ne lit sa configuration
+# Loxya que dans config.py et instance/config.py, jamais dans l'environnement.
 """
 
 
@@ -192,13 +194,11 @@ def upsert_env(path: Path, variables: dict):
 def write_worktree_files(state: dict):
     """Écrit le fichier local (gitignoré) qui isole le checkout courant."""
     db = state["db"]
-    stub_port = state["stub_port"]
 
     upsert_env(
         ROOT / ".env",
         {
             "COLLECTIVES_PORT": state["app_port"],
-            "LOXYA_STUB_PORT": stub_port,
             # Chemin ABSOLU obligatoire : « flask db upgrade » résout les chemins sqlite
             # relatifs depuis le répertoire courant, tandis que Flask-SQLAlchemy les
             # résout depuis instance/ — un chemin relatif crée donc deux bases.
@@ -207,11 +207,6 @@ def write_worktree_files(state: dict):
             "EXTRANET_DISABLE": 1,
             # Les tâches planifiées ne doivent pas se déclencher seules en développement.
             "SCHEDULER_ENABLED": "false",
-            # Pointe vers etc/loxya_stub.py, jamais vers l'API Loxya réelle.
-            # Une seule URL : le front et l'API de Loxya partagent le même hôte.
-            "LOXYA_URL": f"http://localhost:{stub_port}",
-            "LOXYA_API_USERNAME": "dev",
-            "LOXYA_API_PASSWORD": "dev",
             "FLASK_DEBUG": 1,
             "SECRET_KEY": "dev-only-not-a-real-secret",
             "ADMINPWD": "foobar2",
@@ -236,11 +231,32 @@ def load_env() -> dict:
     return variables
 
 
+def flask_app() -> str:
+    """Valeur de FLASK_APP : la fabrique d'application, avec ses réglages de dev.
+
+    L'application ne lit sa configuration Loxya que dans config.py et
+    instance/config.py. Pour la brancher sur le faux serveur sans toucher à
+    instance/config.py, qui est versionné, les réglages passent par l'argument
+    ``extra_config`` de ``create_app``, appliqué après lui. Seulement sur demande :
+    ``DEV_LOXYA_STUB=true`` dans .env.
+    """
+    if load_env().get("DEV_LOXYA_STUB", "").lower() != "true":
+        return "collectives:create_app"
+
+    stub = {
+        "LOXYA_ENABLED": True,
+        "LOXYA_URL": f"http://localhost:{ports()['stub_port']}",
+        "LOXYA_API_USERNAME": "dev",
+        "LOXYA_API_PASSWORD": "dev",
+    }
+    return f"collectives:create_app(extra_config={stub!r})"
+
+
 def app_env(**overrides) -> dict:
     """Environnement d'exécution de l'application : .env plus FLASK_APP."""
     return {
         **load_env(),
-        "FLASK_APP": "collectives:create_app",
+        "FLASK_APP": flask_app(),
         **{k: str(v) for k, v in overrides.items()},
     }
 
@@ -362,7 +378,7 @@ def task_test(args):
     clean = {
         key: value
         for key, value in os.environ.items()
-        if not key.startswith(("LOXYA_", "SQLALCHEMY_", "EXTRANET_", "SCHEDULER_"))
+        if not key.startswith(("SQLALCHEMY_", "EXTRANET_", "SCHEDULER_"))
     }
     return subprocess.run(
         ["uv", "run", "pytest", *args.rest], cwd=ROOT, env=clean, check=False
