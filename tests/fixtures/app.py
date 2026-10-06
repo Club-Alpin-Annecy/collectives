@@ -46,6 +46,14 @@ def app(db_file):
         path = "tests/assets/configuration.test.yaml"
         init.init_config(app=fixture_app, force=True, path=path, clean=False)
 
+        # create_app() already read every configuration item, *before* drop_all():
+        # with a database shared between tests (MariaDB in CI), it cached the values
+        # the previous test left behind, and recreating the items does not refresh
+        # that cache. Start from what the database holds now.
+        # pylint: disable=protected-access
+        with Configuration._lock:
+            Configuration._cache.clear()
+
         yield fixture_app
 
         db.session.remove()

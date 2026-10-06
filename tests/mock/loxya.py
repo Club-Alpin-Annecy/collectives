@@ -13,24 +13,6 @@ from collectives.utils import loxya
 # pylint: disable=unused-argument,redefined-outer-name
 
 
-LIVE_ITEMS = ("LOXYA_SYNC_ACTIVE", "LOXYA_AUTO_CREATE")
-""" Configuration items driving the synchronization mode. """
-
-
-@pytest.fixture(autouse=True)
-def fresh_loxya_configuration():
-    """Drops the cached values of the Loxya live switches around each test.
-
-    :py:class:`Configuration` caches values for the whole process: without this,
-    a mode set by one test would leak into the next one.
-    """
-    for name in LIVE_ITEMS:
-        Configuration.uncache(name)
-    yield
-    for name in LIVE_ITEMS:
-        Configuration.uncache(name)
-
-
 def set_loxya_mode(active: bool, auto_create: bool = False):
     """Sets the live synchronization mode, as a technician would.
 
