@@ -9,7 +9,7 @@ also carried unrelated drift between the models and a development database
 and retex), which has no place in a migration about Loxya.
 
 Revision ID: 7babe0b3cfa2
-Revises: b7c3e1d94f20
+Revises: bd8854e3b409
 Create Date: 2026-09-22 22:34:08.809691
 
 """
@@ -19,7 +19,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "7babe0b3cfa2"
-down_revision = "b7c3e1d94f20"
+down_revision = "bd8854e3b409"
 branch_labels = None
 depends_on = None
 
