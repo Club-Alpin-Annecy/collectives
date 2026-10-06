@@ -12,7 +12,8 @@ Usage::
 
     ./tasks.py stub [-- --token-ttl 30]
 
-Puis, côté application : ``LOXYA_URL=http://localhost:<port>``, identifiants ``dev``/``dev``.
+Puis, pour y brancher l'application, ajouter ``DEV_LOXYA_STUB=true`` au ``.env`` :
+``tasks.py`` lui passe alors l'URL du stub et les identifiants ``dev``/``dev``.
 
 Routes implémentées :
 

@@ -1,5 +1,5 @@
 Deployment for production
-==========================
+===================
 
 This document is meant to help the deployment of the collectives application on an host provider
 for production. 
@@ -173,3 +173,23 @@ it, only the ``admin`` account can log in, with the ``ADMINPWD`` of the
 instance loading the export.
 
 See :py:mod:`collectives.utils.anonymize`.
+
+Loxya equipment platform (optional)
+....................................
+Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
+instance, so that equipment volunteers can lend them equipment. This is off by
+default, and leaves no trace at all on a site that does not enable it.
+
+To enable it, add to `instance/config.py`, next to the database access::
+
+    LOXYA_ENABLED = True
+    LOXYA_URL = "https://your-club.loxya.app"
+    LOXYA_API_USERNAME = "account used by the site"
+    LOXYA_API_PASSWORD = "its password"
+
+then restart the service. If one of the last three is missing, an error is
+logged at startup and the integration stays off.
+
+Enabling it does not synchronize anything yet: a technician then sets the mode
+in `/technician/configuration`, folder Loxya, and can preview what a run would
+do in `/technician/actions`.

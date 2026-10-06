@@ -30,6 +30,28 @@ def test_off_by_default(app):
         client.get("/api/beneficiaries")
 
 
+def test_settings_are_not_read_from_the_environment(monkeypatch):
+    """Loxya is configured in config.py and instance/config.py only.
+
+    The password sits next to the database access, in instance/config.py on the
+    server. Environment variables must not be able to switch the integration on
+    nor point it elsewhere.
+    """
+    import importlib
+
+    import config
+
+    for name, value in {"LOXYA_ENABLED": "true", **CONNECTION}.items():
+        monkeypatch.setenv(name, value)
+    try:
+        reloaded = importlib.reload(config)
+        assert reloaded.LOXYA_ENABLED is False
+        assert all(getattr(reloaded, name) == "" for name in CONNECTION)
+    finally:
+        monkeypatch.undo()
+        importlib.reload(config)
+
+
 @pytest.mark.parametrize("missing", sorted(CONNECTION))
 def test_enabled_but_incomplete_stays_off(app, missing):
     """Switching it on without a connection setting keeps it off."""

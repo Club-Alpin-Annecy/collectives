@@ -4,7 +4,9 @@ Loxya (formerly Robert2) hosts the club equipment. This module is the transport
 layer only: authentication, throttling and error decoding. The synchronisation
 logic lives in :py:mod:`collectives.utils.loxya_sync`.
 
-Configuration is read from :py:mod:`config`:
+Configuration is read from :py:mod:`config`, overridden on the server by
+``instance/config.py`` — never from environment variables. The password sits
+there, next to the database access:
 
 - :py:data:`config.LOXYA_ENABLED`: master switch, off by default. The code is
   shared with other clubs, which do not use Loxya: while it is off, the
