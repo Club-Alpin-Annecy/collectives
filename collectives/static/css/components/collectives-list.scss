@@ -435,6 +435,35 @@ $button-height:40px;
         }
     }
 
+    .activity-filter {
+        width: 360px;
+        max-width: 100%;
+    }
+
+    .activity-filter-trigger {
+        @extend %borders;
+        height: $button-height;
+        padding: 0 10px 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        color: $color-gray-dark;
+        background: white;
+
+        &-label {
+            flex-grow: 1;
+            display: flex;
+            gap: 5px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-align: left;
+            .p-chip-image {
+                height: 20px;
+            }
+        }
+    }
+
     .p-multiselect-option {
         padding: 0.15rem 0.5rem;
     }
@@ -455,5 +484,49 @@ $button-height:40px;
             justify-content: space-between;
             padding: .75rem;
         }
+    }
+}
+/* Rendered in a popover attached to <body>, hence outside of .collectives-list-filters */
+.activity-filter-panel {
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .activity-filter-columns {
+        display: grid;
+        grid-template-columns: repeat(var(--columns), minmax(200px, 1fr));
+        gap: $padding-vertical-s $padding-horizontal-m;
+
+        @media screen and (max-width: 700px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .activity-filter-group,
+    .activity-filter-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .activity-filter-group {
+        font-weight: bold;
+        font-size: $font-size-m;
+        margin-bottom: $padding-vertical-xs;
+    }
+
+    .activity-filter-item {
+        padding: 2px 0;
+        .icon {
+            width: 26px;
+            height: 26px;
+        }
+    }
+
+    .activity-filter-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+        margin-top: $padding-vertical-s;
     }
 }
