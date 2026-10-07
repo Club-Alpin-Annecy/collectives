@@ -8,7 +8,7 @@ from collectives.models import User, UserType, db
 from collectives.utils import loxya_sync
 from collectives.utils.loxya_sync import SyncAction, SyncMode
 from tests.fixtures.client import login
-from tests.mock.loxya import set_loxya_mode
+from tests.mock.loxya import set_loxya_connection, set_loxya_mode
 
 # pylint: disable=unused-argument,redefined-outer-name
 
@@ -351,17 +351,20 @@ def test_anonymized_member_is_processed_once(loxya_session, linked_member):
 
 def test_mode_is_off_until_a_technician_turns_it_on(app):
     """Enabled for the deployment, but the live switch defaults to off."""
-    app.config.update(
-        LOXYA_ENABLED=True,
-        LOXYA_URL="https://loxya.test",
-        LOXYA_API_USERNAME="tester",
-        LOXYA_API_PASSWORD="secret",
-    )
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection()
 
     assert loxya_sync.current_mode() is SyncMode.Off
 
 
-def test_mode_is_off_without_the_environment_switch(loxya_session, app):
+def test_mode_is_off_until_the_credentials_are_entered(loxya_session):
+    """The live switches alone are not enough: no call without credentials."""
+    set_loxya_connection(LOXYA_URL="")
+
+    assert loxya_sync.current_mode() is SyncMode.Off
+
+
+def test_mode_is_off_without_the_file_switch(loxya_session, app):
     """The live switches are ignored while the deployment does not enable Loxya."""
     app.config["LOXYA_ENABLED"] = False
 

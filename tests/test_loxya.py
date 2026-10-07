@@ -5,15 +5,9 @@ from datetime import datetime, timedelta
 import pytest
 
 from collectives.utils import loxya
+from tests.mock.loxya import CONNECTION, set_loxya_connection
 
 # pylint: disable=unused-argument,protected-access
-
-
-CONNECTION = {
-    "LOXYA_URL": "https://loxya.test",
-    "LOXYA_API_USERNAME": "tester",
-    "LOXYA_API_PASSWORD": "secret",
-}
 
 
 def test_off_by_default(app):
@@ -21,7 +15,8 @@ def test_off_by_default(app):
 
     This is what keeps the integration out of the way of every other club.
     """
-    app.config.update(LOXYA_ENABLED=False, **CONNECTION)
+    app.config["LOXYA_ENABLED"] = False
+    set_loxya_connection()
     client = loxya.LoxyaApi()
 
     assert not loxya.feature_enabled()
@@ -30,43 +25,77 @@ def test_off_by_default(app):
         client.get("/api/beneficiaries")
 
 
-def test_settings_are_not_read_from_the_environment(monkeypatch):
-    """Loxya is configured in config.py and instance/config.py only.
+def test_switch_is_not_read_from_the_environment(monkeypatch):
+    """LOXYA_ENABLED is set in config.py and instance/config.py only.
 
-    The password sits next to the database access, in instance/config.py on the
-    server. Environment variables must not be able to switch the integration on
-    nor point it elsewhere.
+    The production runs without environment variables; the team configures it
+    through files. An environment variable must not be able to switch the
+    integration on.
     """
     import importlib
 
     import config
 
-    for name, value in {"LOXYA_ENABLED": "true", **CONNECTION}.items():
-        monkeypatch.setenv(name, value)
+    monkeypatch.setenv("LOXYA_ENABLED", "true")
     try:
-        reloaded = importlib.reload(config)
-        assert reloaded.LOXYA_ENABLED is False
-        assert all(getattr(reloaded, name) == "" for name in CONNECTION)
+        assert importlib.reload(config).LOXYA_ENABLED is False
     finally:
         monkeypatch.undo()
         importlib.reload(config)
 
 
+def test_connection_settings_are_not_file_settings():
+    """The URL and credentials belong to the hot configuration, not config.py.
+
+    Defined in config.py, they would take precedence over what technicians enter.
+    """
+    import config
+
+    assert not [name for name in CONNECTION if hasattr(config, name)]
+
+
+def test_connection_settings_come_from_the_database(app):
+    """What technicians entered is what the client uses."""
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection(LOXYA_URL="https://club.loxya.app")
+
+    assert loxya.connection_settings()["LOXYA_URL"] == "https://club.loxya.app"
+
+
 @pytest.mark.parametrize("missing", sorted(CONNECTION))
 def test_enabled_but_incomplete_stays_off(app, missing):
-    """Switching it on without a connection setting keeps it off."""
-    app.config.update(LOXYA_ENABLED=True, **CONNECTION)
-    app.config[missing] = ""
+    """Switched on, but a connection setting is still to be entered: no call.
 
-    assert not loxya.feature_enabled()
+    The integration shows — technicians must see where to enter it — but the API
+    stays off.
+    """
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection(**{missing: ""})
+
+    assert loxya.feature_enabled()
+    assert loxya.missing_settings() == [missing]
+    assert loxya.LoxyaApi().disabled()
 
 
 def test_enabled_and_configured(app):
     """The switch plus the three connection settings turn the API on."""
-    app.config.update(LOXYA_ENABLED=True, **CONNECTION)
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection()
 
-    assert loxya.feature_enabled()
+    assert loxya.configured()
     assert not loxya.LoxyaApi().disabled()
+
+
+def test_new_token_when_credentials_change(loxya_session):
+    """Technicians may change the credentials live: the cached token is dropped."""
+    client = loxya_session.client
+    loxya_session.script("GET", "/api/beneficiaries/1", 200, {"id": 1})
+
+    client.get("/api/beneficiaries/1")
+    set_loxya_connection(LOXYA_API_PASSWORD="rotated")
+    client.get("/api/beneficiaries/1")
+
+    assert loxya_session.auth_count == 2
 
 
 def test_token_is_cached(loxya_session):

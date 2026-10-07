@@ -599,8 +599,30 @@ Désinscriptions tardives:
         type: Integer
 
 # Visible et modifiable uniquement lorsque LOXYA_ENABLED est activé dans
-# l'environnement : les clubs qui n'utilisent pas Loxya n'en voient rien.
+# instance/config.py : les clubs qui n'utilisent pas Loxya n'en voient rien.
 Loxya:
+    LOXYA_URL:
+        content: ""
+        description: |
+            Adresse de l'instance Loxya du club, par exemple https://mon-club.loxya.app.
+            Tant qu'elle et les identifiants ci-dessous ne sont pas renseignés, rien
+            n'est envoyé à Loxya.
+        type: ShortString
+        requires: LOXYA_ENABLED
+
+    LOXYA_API_USERNAME:
+        content: ""
+        description: Identifiant du compte Loxya utilisé par le site pour synchroniser les adhérents
+        type: ShortString
+        requires: LOXYA_ENABLED
+
+    LOXYA_API_PASSWORD:
+        content: ""
+        description: Mot de passe du compte Loxya utilisé par le site
+        type: ShortString
+        hidden: true
+        requires: LOXYA_ENABLED
+
     LOXYA_SYNC_ACTIVE:
         content: false
         description: |

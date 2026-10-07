@@ -13,6 +13,24 @@ from collectives.utils import loxya
 # pylint: disable=unused-argument,redefined-outer-name
 
 
+CONNECTION = {
+    "LOXYA_URL": "https://loxya.test",
+    "LOXYA_API_USERNAME": "tester",
+    "LOXYA_API_PASSWORD": "secret",
+}
+""" Connection settings used by the tests. """
+
+
+def set_loxya_connection(**settings):
+    """Enters the connection settings in the hot configuration, as a technician would.
+
+    :param settings: Values overriding :py:data:`CONNECTION`, e.g. an empty one.
+    """
+    for name, value in {**CONNECTION, **settings}.items():
+        Configuration.get_item(name).content = value
+        Configuration.uncache(name)
+
+
 def set_loxya_mode(active: bool, auto_create: bool = False):
     """Sets the live synchronization mode, as a technician would.
 
@@ -127,14 +145,8 @@ def loxya_session(monkeypatch, app):
     The integration is switched on at the environment level and set to automatic
     mode; tests about the other modes call :py:func:`set_loxya_mode`.
     """
-    app.config.update(
-        LOXYA_ENABLED=True,
-        LOXYA_URL="https://loxya.test",
-        LOXYA_API_USERNAME="tester",
-        LOXYA_API_PASSWORD="secret",
-        LOXYA_TIMEOUT=5,
-        LOXYA_RATE_LIMIT=0,
-    )
+    app.config.update(LOXYA_ENABLED=True, LOXYA_TIMEOUT=5, LOXYA_RATE_LIMIT=0)
+    set_loxya_connection()
     set_loxya_mode(active=True, auto_create=True)
 
     session = FakeLoxyaSession()

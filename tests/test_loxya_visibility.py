@@ -12,27 +12,24 @@ import pytest
 
 from collectives.utils import loxya
 from collectives.utils.scheduled_tasks import init_scheduler
+from tests.mock.loxya import set_loxya_connection
 
 # pylint: disable=unused-argument,redefined-outer-name
-
-CONNECTION = {
-    "LOXYA_URL": "https://loxya.test",
-    "LOXYA_API_USERNAME": "tester",
-    "LOXYA_API_PASSWORD": "secret",
-}
 
 
 @pytest.fixture
 def loxya_off(app):
     """A deployment that does not enable Loxya, as every other club."""
-    app.config.update(LOXYA_ENABLED=False, **CONNECTION)
+    app.config["LOXYA_ENABLED"] = False
+    set_loxya_connection()
     return app
 
 
 @pytest.fixture
 def loxya_on(app):
-    """A deployment that enables Loxya, as Annecy."""
-    app.config.update(LOXYA_ENABLED=True, **CONNECTION)
+    """A deployment that enables Loxya and has entered its credentials, as Annecy."""
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection()
     return app
 
 
@@ -71,15 +68,16 @@ def test_no_log_at_startup_when_off(loxya_off, caplog):
     assert not [r for r in caplog.records if "loxya" in r.getMessage().lower()]
 
 
-def test_error_at_startup_when_on_but_incomplete(app, caplog):
-    """Switched on without its settings: said loudly, then kept off."""
-    app.config.update(LOXYA_ENABLED=True, LOXYA_URL="")
+def test_missing_credentials_are_pointed_out(app, admin_client):
+    """Switched on, credentials not entered yet: technicians are told where."""
+    app.config["LOXYA_ENABLED"] = True
+    set_loxya_connection(LOXYA_API_PASSWORD="")
 
-    with caplog.at_level(logging.ERROR):
-        loxya.LoxyaApi().init_app(app)
+    page = admin_client.get("/technician/actions")
 
-    assert any("LOXYA_URL" in r.getMessage() for r in caplog.records)
-    assert not loxya.feature_enabled()
+    assert "Connexion à Loxya à renseigner" in page.text
+    assert "LOXYA_API_PASSWORD" in page.text
+    assert "Mode en vigueur : <strong>éteint</strong>" in page.text
 
 
 def test_no_scheduled_job_when_off(loxya_off):
@@ -138,8 +136,22 @@ def test_configuration_folder_shown_when_on(loxya_on, admin_client):
     folder = admin_client.get("/technician/configuration/Loxya")
 
     assert "/technician/configuration/Loxya" in index.text
-    assert "LOXYA_SYNC_ACTIVE" in folder.text
-    assert "LOXYA_AUTO_CREATE" in folder.text
+    for name in (
+        "LOXYA_URL",
+        "LOXYA_API_USERNAME",
+        "LOXYA_API_PASSWORD",
+        "LOXYA_SYNC_ACTIVE",
+        "LOXYA_AUTO_CREATE",
+    ):
+        assert name in folder.text
+
+
+def test_password_is_masked_in_the_configuration(loxya_on, admin_client):
+    """Like the extranet and SMTP passwords, the Loxya one is never displayed."""
+    folder = admin_client.get("/technician/configuration/Loxya")
+
+    assert "secret" not in folder.text
+    assert "*****" in folder.text
 
 
 def test_hidden_setting_cannot_be_edited_when_off(loxya_off, admin_client):

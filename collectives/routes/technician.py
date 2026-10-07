@@ -87,6 +87,7 @@ def actions():
         title="Actions",
         expired_accounts_count=count_expired_accounts(),
         loxya_enabled=loxya_enabled,
+        loxya_missing=loxya.missing_settings() if loxya_enabled else [],
         loxya_mode=loxya_sync.current_mode() if loxya_enabled else None,
         loxya_simulation=loxya_sync.simulate() if loxya_enabled else None,
         SyncAction=loxya_sync.SyncAction,

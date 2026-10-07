@@ -146,16 +146,15 @@ Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
 instance, so that equipment volunteers can lend them equipment. This is off by
 default, and leaves no trace at all on a site that does not enable it.
 
-To enable it, add to `instance/config.py`, next to the database access::
+To enable it, add to `instance/config.py`::
 
     LOXYA_ENABLED = True
-    LOXYA_URL = "https://your-club.loxya.app"
-    LOXYA_API_USERNAME = "account used by the site"
-    LOXYA_API_PASSWORD = "its password"
 
-then restart the service. If one of the last three is missing, an error is
-logged at startup and the integration stays off.
+then restart the service. This is the only setting that lives in a file: it is
+the switch that hides everything about Loxya from the sites that do not use it.
 
-Enabling it does not synchronize anything yet: a technician then sets the mode
-in `/technician/configuration`, folder Loxya, and can preview what a run would
-do in `/technician/actions`.
+A technician then enters the Loxya address and the credentials of the account
+the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` — in
+`/technician/configuration`, folder Loxya, like those of the FFCAM extranet.
+Nothing is sent to Loxya until they are all set, and the synchronization mode is
+also chosen there; `/technician/actions` previews what a run would do.

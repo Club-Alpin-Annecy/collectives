@@ -107,9 +107,11 @@ Can be set using environment variable.
 
 # Loxya (equipment rental platform)
 #
-# Set on the server in instance/config.py, next to SQLALCHEMY_DATABASE_URI: that
-# file holds secrets and must only be readable by the flask user (chmod 600).
-# Deliberately not read from environment variables.
+# Only the master switch and two technical constants live here. The URL and the
+# credentials are hot configuration items (folder Loxya), entered by technicians
+# like those of the FFCAM extranet: they must not be defined in this file, which
+# would take precedence over the database. Deliberately not read from environment
+# variables.
 LOXYA_ENABLED = False
 """Master switch of the Loxya integration, off by default.
 
@@ -120,38 +122,17 @@ routes answer as an unknown URL. Once on, the synchronization itself is driven
 live from the configuration (``LOXYA_SYNC_ACTIVE``, ``LOXYA_AUTO_CREATE``), so it
 can be rolled out progressively without redeploying.
 
-To turn it on, set it to ``True`` in ``instance/config.py`` along with
-:py:data:`LOXYA_URL`, :py:data:`LOXYA_API_USERNAME` and
-:py:data:`LOXYA_API_PASSWORD`; without them, it logs an error and stays off.
+To turn it on, set it to ``True`` in ``instance/config.py`` on the server and
+restart. It cannot be a hot configuration item: it is the switch that hides the
+Loxya items from the other clubs. Technicians then enter ``LOXYA_URL``,
+``LOXYA_API_USERNAME`` and ``LOXYA_API_PASSWORD`` in the configuration, folder
+Loxya; until they do, nothing is sent.
 
 :type: boolean
 """
 
-LOXYA_URL = ""
-"""Base URL of the Loxya instance, e.g. ``https://caf-annecy.loxya.app``.
 
-The web front end and the API share this host, the API living under ``/api/``.
-Set in ``instance/config.py``.
 
-:type: string
-"""
-
-LOXYA_API_USERNAME = ""
-"""Identifier of the Loxya account used by the integration.
-
-Set in ``instance/config.py``.
-
-:type: string
-"""
-
-LOXYA_API_PASSWORD = ""
-"""Password of the Loxya account used by the integration.
-
-A secret: set it in ``instance/config.py`` on the server, never in this file,
-which is shared between all the clubs.
-
-:type: string
-"""
 
 LOXYA_TIMEOUT = 10
 """Timeout in seconds for every call to the Loxya API.
