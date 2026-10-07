@@ -79,7 +79,10 @@ def upgrade():
 
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type", existing_type=payment_before, type_=payment_both
+            "payment_type",
+            existing_type=payment_before,
+            type_=payment_both,
+            existing_nullable=False,
         )
 
     op.execute(
@@ -88,7 +91,10 @@ def upgrade():
 
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type", existing_type=payment_both, type_=payment_after
+            "payment_type",
+            existing_type=payment_both,
+            type_=payment_after,
+            existing_nullable=False,
         )
 
     # Merge PAYMENTS_ENABLED (bool) + PAYMENT_PROVIDER (string) -> PAYMENT_ENABLED (string).
@@ -117,7 +123,10 @@ def upgrade():
 def downgrade():
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type", existing_type=payment_after, type_=payment_both
+            "payment_type",
+            existing_type=payment_after,
+            type_=payment_both,
+            existing_nullable=False,
         )
 
     op.execute(
@@ -127,7 +136,10 @@ def downgrade():
 
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
-            "payment_type", existing_type=payment_both, type_=payment_before
+            "payment_type",
+            existing_type=payment_both,
+            type_=payment_before,
+            existing_nullable=False,
         )
 
     bind = op.get_bind()
