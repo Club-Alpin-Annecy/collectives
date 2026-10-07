@@ -13,7 +13,8 @@ Usage::
     ./tasks.py stub [-- --token-ttl 30]
 
 Puis, pour y brancher l'application, ajouter ``DEV_LOXYA_STUB=true`` au ``.env`` :
-``tasks.py`` lui passe alors l'URL du stub et les identifiants ``dev``/``dev``.
+``tasks.py`` allume alors l'intégration et renseigne dans la configuration à chaud
+l'URL du stub et les identifiants ``dev``/``dev``.
 
 Routes implémentées :
 

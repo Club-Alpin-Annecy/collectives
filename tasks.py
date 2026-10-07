@@ -59,8 +59,8 @@ ENV_HEADER = """# Environnement de développement local — généré par ./task
 # L'intégration Loxya est éteinte par défaut, comme pour tous les clubs. Pour la
 # développer contre le faux serveur (./tasks.py stub), ajouter après le bloc :
 #   DEV_LOXYA_STUB=true
-# Ce drapeau est lu par tasks.py seul : l'application, elle, ne lit sa configuration
-# Loxya que dans config.py et instance/config.py, jamais dans l'environnement.
+# Ce drapeau est lu par tasks.py seul : il allume LOXYA_ENABLED via la fabrique
+# d'application, et écrit en base l'URL et les identifiants du faux serveur.
 """
 
 
@@ -95,9 +95,7 @@ def run(command: list, env: dict = None, check: bool = True) -> int:
 def probe(command: str) -> bool:
     """Sonde silencieuse et tolérante à l'échec : renvoie True si la commande réussit."""
     return (
-        subprocess.run(
-            command, shell=True, cwd=ROOT, capture_output=True
-        ).returncode
+        subprocess.run(command, shell=True, cwd=ROOT, capture_output=True).returncode
         == 0
     )
 
@@ -178,9 +176,7 @@ def upsert_env(path: Path, variables: dict):
     """
     block = "\n".join([ENV_BEGIN, *[f"{k}={v}" for k, v in variables.items()], ENV_END])
     existing = path.read_text(encoding="utf-8") if path.is_file() else ENV_HEADER
-    pattern = re.compile(
-        re.escape(ENV_BEGIN) + ".*?" + re.escape(ENV_END), re.DOTALL
-    )
+    pattern = re.compile(re.escape(ENV_BEGIN) + ".*?" + re.escape(ENV_END), re.DOTALL)
 
     if pattern.search(existing):
         content = pattern.sub(block, existing)
@@ -231,25 +227,57 @@ def load_env() -> dict:
     return variables
 
 
+def loxya_stub_wanted() -> bool:
+    """Indique si le développeur a demandé à brancher Loxya sur le faux serveur."""
+    return load_env().get("DEV_LOXYA_STUB", "").lower() == "true"
+
+
 def flask_app() -> str:
     """Valeur de FLASK_APP : la fabrique d'application, avec ses réglages de dev.
 
-    L'application ne lit sa configuration Loxya que dans config.py et
-    instance/config.py. Pour la brancher sur le faux serveur sans toucher à
-    instance/config.py, qui est versionné, les réglages passent par l'argument
-    ``extra_config`` de ``create_app``, appliqué après lui. Seulement sur demande :
-    ``DEV_LOXYA_STUB=true`` dans .env.
+    L'interrupteur LOXYA_ENABLED ne se lit que dans config.py et instance/config.py.
+    Pour l'allumer sans toucher à instance/config.py, qui est versionné, il passe par
+    l'argument ``extra_config`` de ``create_app``, appliqué après lui. Seulement sur
+    demande : ``DEV_LOXYA_STUB=true`` dans .env. L'URL et les identifiants, eux, sont
+    de la configuration à chaud : voir :py:func:`seed_loxya_stub`.
     """
-    if load_env().get("DEV_LOXYA_STUB", "").lower() != "true":
+    if not loxya_stub_wanted():
         return "collectives:create_app"
+    return f"collectives:create_app(extra_config={ {'LOXYA_ENABLED': True}!r})"
 
-    stub = {
-        "LOXYA_ENABLED": True,
+
+LOXYA_STUB_SEED = """
+import os
+from flask.cli import ScriptInfo
+from collectives.models import Configuration, db
+
+app = ScriptInfo(app_import_path=os.environ["FLASK_APP"]).load_app()
+with app.app_context():
+    for name, value in {settings!r}.items():
+        Configuration.get_item(name).content = value
+        Configuration.uncache(name)
+    db.session.commit()
+"""
+""" Script écrivant en base les réglages de connexion du faux serveur. """
+
+
+def seed_loxya_stub():
+    """Renseigne en base l'URL et les identifiants du faux serveur Loxya.
+
+    Ce sont des items de configuration à chaud, qu'un technicien saisirait dans
+    l'interface ; en développement, ils pointent sur etc/loxya_stub.py. Réécrits à
+    chaque démarrage tant que ``DEV_LOXYA_STUB=true``.
+    """
+    settings = {
         "LOXYA_URL": f"http://localhost:{ports()['stub_port']}",
         "LOXYA_API_USERNAME": "dev",
         "LOXYA_API_PASSWORD": "dev",
     }
-    return f"collectives:create_app(extra_config={stub!r})"
+    run(
+        ["uv", "run", "python", "-c", LOXYA_STUB_SEED.format(settings=settings)],
+        env=app_env(),
+    )
+    info("Connexion au faux serveur Loxya renseignée dans la configuration")
 
 
 def app_env(**overrides) -> dict:
@@ -326,8 +354,10 @@ def task_info(_args):
 
     info(f"Application  : http://localhost:{state['app_port']}")
     info(f"Stub Loxya   : http://localhost:{state['stub_port']}")
-    info(f"Base         : {state['db']}"
-         + ("" if state["db"].exists() else "  (absente)"))
+    info(
+        f"Base         : {state['db']}"
+        + ("" if state["db"].exists() else "  (absente)")
+    )
     return 0
 
 
@@ -342,6 +372,8 @@ def task_start(_args):
     seed_database(state)
 
     run(["uv", "run", "flask", "db", "upgrade"], env=app_env())
+    if loxya_stub_wanted():
+        seed_loxya_stub()
     section(f"→ http://localhost:{state['app_port']}")
     return run(
         ["uv", "run", "flask", "run", "--port", str(state["app_port"]), "--debug"],
@@ -355,8 +387,15 @@ def task_stub(args):
     """Démarre le stub Loxya sur le port du checkout courant."""
     state = ports()
     return run(
-        ["uv", "run", "python", "etc/loxya_stub.py", "--port", str(state["stub_port"]),
-         *args.rest],
+        [
+            "uv",
+            "run",
+            "python",
+            "etc/loxya_stub.py",
+            "--port",
+            str(state["stub_port"]),
+            *args.rest,
+        ],
         check=False,
     )
 

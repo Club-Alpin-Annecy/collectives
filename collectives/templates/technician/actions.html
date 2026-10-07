@@ -35,6 +35,14 @@
 
   {% if loxya_enabled %}
   <h5 class="heading-4">Synchronisation des comptes avec Loxya</h5>
+  {% if loxya_missing %}
+  <p>
+    <strong>Connexion à Loxya à renseigner :</strong>
+    {{ loxya_missing | join(', ') }}, dans la
+    <a href="{{ url_for('technician.configuration', selected_folder='Loxya') }}">Configuration</a>
+    (dossier Loxya). Tant qu'ils manquent, rien n'est envoyé à Loxya.
+  </p>
+  {% endif %}
   <p>
     Mode en vigueur : <strong>{{ loxya_mode.display_name() }}</strong>.
     Il se règle dans la

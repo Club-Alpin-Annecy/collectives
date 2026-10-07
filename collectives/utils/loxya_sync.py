@@ -197,15 +197,15 @@ class SyncReport:
 def current_mode() -> SyncMode:
     """Returns the synchronization mode currently in force.
 
-    Two layers: the ``LOXYA_ENABLED`` environment switch decides whether the
-    integration exists at all on this deployment; then ``LOXYA_SYNC_ACTIVE`` and
-    ``LOXYA_AUTO_CREATE``, edited live by technicians, decide how far it goes.
-    Read at each call, so a change applies without restart — within the
-    configuration cache time.
+    Two layers: the ``LOXYA_ENABLED`` file switch decides whether the
+    integration exists at all on this deployment; then, in the hot configuration,
+    ``LOXYA_SYNC_ACTIVE`` and ``LOXYA_AUTO_CREATE`` decide how far it goes. Off as
+    long as the connection settings are not all entered. Read at each call, so a
+    change applies without restart — within the configuration cache time.
 
     :return: The mode in force.
     """
-    if not loxya.feature_enabled():
+    if not loxya.feature_enabled() or not loxya.configured():
         return SyncMode.Off
     try:
         if not Configuration.LOXYA_SYNC_ACTIVE:
@@ -589,7 +589,14 @@ def sync_all_users() -> SyncReport:
 
     if mode is SyncMode.Off:
         if loxya.feature_enabled():
-            current_app.logger.info("Loxya: synchronization is off, run skipped")
+            missing = loxya.missing_settings()
+            if missing:
+                current_app.logger.warning(
+                    f"Loxya: run skipped, {', '.join(missing)} not set in the "
+                    "configuration (folder Loxya)"
+                )
+            else:
+                current_app.logger.info("Loxya: synchronization is off, run skipped")
         return report
 
     handlers = {

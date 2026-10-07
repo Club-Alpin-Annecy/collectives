@@ -4,16 +4,18 @@ Loxya (formerly Robert2) hosts the club equipment. This module is the transport
 layer only: authentication, throttling and error decoding. The synchronisation
 logic lives in :py:mod:`collectives.utils.loxya_sync`.
 
-Configuration is read from :py:mod:`config`, overridden on the server by
-``instance/config.py`` — never from environment variables. The password sits
-there, next to the database access:
+Two configuration layers, never environment variables:
 
-- :py:data:`config.LOXYA_ENABLED`: master switch, off by default. The code is
-  shared with other clubs, which do not use Loxya: while it is off, the
-  integration leaves no trace at all — no log, no scheduled job, no screen.
-- :py:data:`config.LOXYA_URL`: base URL of the instance.
-- :py:data:`config.LOXYA_API_USERNAME`, :py:data:`config.LOXYA_API_PASSWORD`
-- :py:data:`config.LOXYA_TIMEOUT`, :py:data:`config.LOXYA_RATE_LIMIT`
+- :py:data:`config.LOXYA_ENABLED`, in ``config.py`` and set on the server in
+  ``instance/config.py``: the master switch, off by default. The code is shared
+  with other clubs, which do not use Loxya: while it is off, the integration
+  leaves no trace at all — no log, no scheduled job, no screen, no setting.
+- ``LOXYA_URL``, ``LOXYA_API_USERNAME`` and ``LOXYA_API_PASSWORD``, in the hot
+  configuration stored in database (folder Loxya), like the credentials of the
+  FFCAM extranet or the SMTP server: technicians enter them from the site, and
+  they are only shown where the switch is on. See :py:func:`connection_settings`.
+- :py:data:`config.LOXYA_TIMEOUT`, :py:data:`config.LOXYA_RATE_LIMIT`: technical
+  constants.
 """
 
 import base64
@@ -24,6 +26,8 @@ from datetime import datetime, timedelta
 
 import requests
 from flask import Flask, current_app
+
+from collectives.models import Configuration
 
 # Token lifetime is handled with the naive system clock rather than
 # :py:func:`collectives.utils.time.current_time`: it is an elapsed duration, not
@@ -103,8 +107,8 @@ def _decode_token_expiry(token: str) -> datetime:
         return None
 
 
-REQUIRED_SETTINGS = ("LOXYA_URL", "LOXYA_API_USERNAME", "LOXYA_API_PASSWORD")
-""" Settings without which an enabled integration cannot work.
+CONNECTION_SETTINGS = ("LOXYA_URL", "LOXYA_API_USERNAME", "LOXYA_API_PASSWORD")
+""" Hot configuration items without which no call can be made.
 
 :type: tuple"""
 
@@ -114,15 +118,41 @@ def feature_enabled(config=None) -> bool:
 
     This is the single test every entry point goes through — scheduler, routes,
     admin screens, request hooks — so that a club which does not use Loxya never
-    sees any of it. Enabling it without the connection settings counts as off.
+    sees any of it. It only reads ``LOXYA_ENABLED``, a file setting: the switch
+    that hides the Loxya configuration items cannot be one of them.
 
     :param config: The Flask config to read; defaults to the current app's.
-    :return: True if the integration is enabled and configured.
+    :return: True if the integration is switched on.
     """
     config = current_app.config if config is None else config
-    return bool(config.get("LOXYA_ENABLED")) and all(
-        config.get(name) for name in REQUIRED_SETTINGS
-    )
+    return bool(config.get("LOXYA_ENABLED"))
+
+
+def connection_settings() -> dict:
+    """Reads the connection settings from the hot configuration.
+
+    Read through :py:class:`Configuration` rather than ``app.config.get()``: the
+    latter never falls back on the database.
+
+    :return: The value of each of :py:data:`CONNECTION_SETTINGS`, empty if unset.
+    """
+    settings = {}
+    for name in CONNECTION_SETTINGS:
+        try:
+            settings[name] = Configuration.get(name) or ""
+        except AttributeError:
+            settings[name] = ""
+    return settings
+
+
+def missing_settings() -> list:
+    """Lists the connection settings still to be entered by a technician."""
+    return [name for name, value in connection_settings().items() if not value]
+
+
+def configured() -> bool:
+    """Checks whether every connection setting has been entered."""
+    return not missing_settings()
 
 
 class LoxyaApi:
@@ -147,6 +177,10 @@ class LoxyaApi:
         self._next_call_time: float = 0.0
         """ Monotonic time before which no request may be sent, for throttling. """
 
+        self._token_settings: int = None
+        """ Fingerprint of the connection settings :py:attr:`_token` was issued
+        for: technicians may change them live. """
+
     def init_app(self, app: Flask):
         """Initializes the API for the given Flask app.
 
@@ -159,25 +193,23 @@ class LoxyaApi:
             # The normal state for every club that does not use Loxya: say nothing.
             return
 
-        missing = [name for name in REQUIRED_SETTINGS if not app.config.get(name)]
-        if missing:
-            app.logger.error(
-                f"LOXYA_ENABLED is set but {', '.join(missing)} is missing: "
-                "the Loxya integration stays disabled"
-            )
-            return
-
-        app.logger.info(f"Loxya integration enabled against {app.config['LOXYA_URL']}")
+        # The connection settings live in database, not readable this early: a
+        # missing one is reported on /technician/actions and by the nightly job.
+        app.logger.info(
+            "Loxya integration enabled; connection settings are read from the "
+            "configuration, folder Loxya"
+        )
 
     def disabled(self) -> bool:
         """Check whether the Loxya API is disabled.
 
-        See :py:func:`feature_enabled`. Development and CI leave it off, which is
-        how they never reach the network.
+        Off unless the integration is switched on (:py:func:`feature_enabled`)
+        and its connection settings entered (:py:func:`configured`). Development
+        and CI leave it off, which is how they never reach the network.
 
         :return: True if the API must not be called.
         """
-        return not feature_enabled()
+        return not feature_enabled() or not configured()
 
     @property
     def session(self) -> requests.Session:
@@ -188,21 +220,33 @@ class LoxyaApi:
 
     @property
     def token(self) -> str:
-        """Returns a valid session token, authenticating again if needed."""
-        if self._token is None or datetime.now() >= self._token_expiry:
-            self._authenticate()
+        """Returns a valid session token, authenticating again if needed.
+
+        A new token is also requested when the connection settings changed since
+        the current one was issued.
+        """
+        settings = connection_settings()
+        fingerprint = hash(tuple(settings[name] for name in CONNECTION_SETTINGS))
+        if (
+            self._token is None
+            or datetime.now() >= self._token_expiry
+            or fingerprint != self._token_settings
+        ):
+            self._authenticate(settings)
+            self._token_settings = fingerprint
         return self._token
 
-    def _authenticate(self):
+    def _authenticate(self, settings: dict):
         """Obtains a new session token from ``POST /api/session``.
 
+        :param settings: The connection settings, see :py:func:`connection_settings`.
         :raises LoxyaAuthError: if credentials are refused or the response holds
             no token.
         """
-        url = f"{current_app.config['LOXYA_URL'].rstrip('/')}/api/session"
+        url = f"{settings['LOXYA_URL'].rstrip('/')}/api/session"
         credentials = {
-            "identifier": current_app.config["LOXYA_API_USERNAME"],
-            "password": current_app.config["LOXYA_API_PASSWORD"],
+            "identifier": settings["LOXYA_API_USERNAME"],
+            "password": settings["LOXYA_API_PASSWORD"],
         }
 
         try:
@@ -294,7 +338,7 @@ class LoxyaApi:
         if self.disabled():
             raise LoxyaError("Loxya API is disabled")
 
-        url = f"{current_app.config['LOXYA_URL'].rstrip('/')}{path}"
+        url = f"{connection_settings()['LOXYA_URL'].rstrip('/')}{path}"
 
         for attempt in (1, 2):
             self._throttle()
