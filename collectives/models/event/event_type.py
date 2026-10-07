@@ -1,6 +1,9 @@
 """Module to describe the type of event."""
 
 import json
+from typing import List
+
+from flask import current_app
 
 from collectives.models import Configuration
 from collectives.models.globals import db
@@ -130,6 +133,17 @@ class EventType(db.Model):
         """
         types = cls.get_all_types(include_deprecated=True)
         return json.dumps({typ.id: typ.name for typ in types}, ensure_ascii=False)
+
+    def volunteer_roles(self) -> List[str]:
+        """Who counts as volunteer on events of this type.
+
+        Read from the ``volunteer_time`` key of the EVENT_TYPES configuration;
+        defaults to the event leaders.
+
+        :return: a subset of ``["leaders", "participants"]``
+        """
+        definition = current_app.config["EVENT_TYPES"].get(self.id, {})
+        return definition.get("volunteer_time", ["leaders"])
 
     def get_terms_file(self) -> str:
         """Returns :py:attr:`collectives.models.event.event_type.EventType.terms_file`
