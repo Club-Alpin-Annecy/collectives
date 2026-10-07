@@ -1,7 +1,10 @@
 """Module to describe the type of activity."""
 
 import json
+import os
+from functools import lru_cache
 
+from flask import current_app
 from sqlalchemy.orm import validates
 from wtforms_alchemy.validators import Unique
 
@@ -10,12 +13,20 @@ from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
 
 
+@lru_cache
+def _has_icon(short: str) -> bool:
+    """Whether an icon named after ``short`` exists in ``static/caf/icon``."""
+    path = os.path.join(current_app.static_folder, "caf", "icon", f"{short}.svg")
+    return os.path.isfile(path)
+
+
 class ActivityKind(ChoiceEnum):
     """Enum listing kinds of activities."""
 
     # pylint: disable=invalid-name
     Regular = 0
     Service = 1
+    Initiative = 2
 
     @classmethod
     def display_names(cls) -> str:
@@ -25,6 +36,7 @@ class ActivityKind(ChoiceEnum):
         return {
             cls.Regular: "Activité régulière",
             cls.Service: "Service du club",
+            cls.Initiative: "Initiative",
         }
 
 
@@ -169,6 +181,18 @@ class ActivityType(db.Model):
         """Displays the user name."""
         return self.name + f" (ID {self.id})"
 
+    @property
+    def icon(self) -> str:
+        """Name of the icon file (without extension) in ``static/caf/icon``.
+
+        Regular activities always have a dedicated icon. Services and initiatives
+        use the generic volunteering icon, unless an icon named after them exists.
+
+        :type: string"""
+        if self.kind == ActivityKind.Regular or _has_icon(self.short):
+            return self.short
+        return "benevolat"
+
     @validates("trigram")
     def truncate_string(self, key, value):
         """Truncates a string to the max SQL field length
@@ -185,9 +209,7 @@ class ActivityType(db.Model):
         return truncate(value, max_len)
 
     @classmethod
-    def get_all_types(
-        cls, include_deprecated: bool = False, include_services: bool = True
-    ) -> list["ActivityType"]:
+    def get_all_types(cls, include_deprecated: bool = False) -> list["ActivityType"]:
         """List all activity_types in database
 
         :param include_deprecated: Whether to include deprecated activity types
@@ -197,8 +219,6 @@ class ActivityType(db.Model):
         query = cls.query.order_by("kind", "order", "name")
         if not include_deprecated:
             query = query.filter_by(deprecated=False)
-        if not include_services:
-            query = query.filter_by(kind=ActivityKind.Regular)
 
         return query.all()
 

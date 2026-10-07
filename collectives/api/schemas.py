@@ -20,11 +20,13 @@ from collectives.utils.url import slugify
 class ActivityTypeSchema(marshmallow.SQLAlchemyAutoSchema):
     """Schema to describe activity types"""
 
+    icon = fields.Str()
+
     class Meta:
         """Fields to expose"""
 
         model = ActivityType
-        fields = ("id", "short", "name", "kind")
+        fields = ("id", "short", "name", "kind", "icon")
 
 
 class RoleSchema(marshmallow.SQLAlchemyAutoSchema):

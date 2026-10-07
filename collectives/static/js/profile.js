@@ -122,11 +122,9 @@ function titleFormatter(cell, formatterParams, onRendered) {
 function typesFormatter(cell, formatterParams, onRendered) {
 
     function formatFunc(activity) {
-        if (activity['kind'] == 'Service') {
-            return `<img src="/static/caf/icon/benevolat.svg" width="30px" title="${activity['name']}"/>`;
-        } else {
-            return `<img src="/static/caf/icon/${activity['short']}.svg" width="30px" title="${activity['name']}"/>`;
-        }
+        // Event types have no 'icon' field: their icon is named after their short name
+        const icon = activity['icon'] || activity['short'];
+        return `<img src="/static/caf/icon/${icon}.svg" width="30px" title="${activity['name']}"/>`;
     }
 
     var val = cell.getValue()

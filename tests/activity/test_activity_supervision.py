@@ -111,6 +111,41 @@ def test_add_service(admin_client):
     assert activity.short == f"test-service-{activity.id}"
 
 
+def test_add_initiative(admin_client):
+    """Test adding a new initiative, listed apart from activities and services"""
+    form_data = {
+        "kind": ActivityKind.Initiative.value,
+        "name": "Refuge du Parmelan",
+        "trigram": "RPA",
+    }
+    response = admin_client.post(
+        "/activity_supervision/configuration/add",
+        data=form_data,
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "Activité Refuge du Parmelan modifiée avec succès." in response.text
+
+    activity = ActivityType.query.filter_by(trigram="RPA").first()
+    assert activity.kind == ActivityKind.Initiative
+    assert activity.icon == "benevolat"
+
+    response = admin_client.get("/activity_supervision/configuration")
+    initiatives = response.text.split("Initiatives")[1].split("Services")[0]
+    assert "Refuge du Parmelan" in initiatives
+
+
+def test_cannot_add_regular_activity(admin_client):
+    """Regular activities are defined in configuration, not created from the UI"""
+    form_data = {
+        "kind": ActivityKind.Regular.value,
+        "name": "Nouveau sport",
+        "trigram": "NSP",
+    }
+    admin_client.post("/activity_supervision/configuration/add", data=form_data)
+    assert ActivityType.query.filter_by(trigram="NSP").first() is None
+
+
 def test_manage_custom_skills(supervisor_client):
     """Test access to custom skill management page"""
     response = supervisor_client.get("/activity_supervision/custom_skills")

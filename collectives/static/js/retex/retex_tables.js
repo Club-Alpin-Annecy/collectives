@@ -69,11 +69,7 @@ function retexStatusFormatter(cell, formatterParams, onRendered) {
 
 function typesFormatter(cell, formatterParams, onRendered) {
     function formatFunc(activity) {
-        if (activity['kind'] == 'Service') {
-            return `<img src="/static/caf/icon/benevolat.svg" width="30px" title="${activity['name']}"/>`;
-        } else {
-            return `<img src="/static/caf/icon/${activity['short']}.svg" width="30px" title="${activity['name']}"/>`;
-        }
+        return `<img src="/static/caf/icon/${activity['icon']}.svg" width="30px" title="${activity['name']}"/>`;
     }
 
     var val = cell.getValue()
