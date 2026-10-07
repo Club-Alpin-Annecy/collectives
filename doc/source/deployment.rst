@@ -140,3 +140,28 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+
+Anonymized export
+..................
+An anonymized copy of a MariaDB/MySQL database can be exported for
+development, from the application directory::
+
+    python -m collectives.utils.anonymize export_anon.sql.gz
+
+The database is read from :py:attr:`config.SQLALCHEMY_DATABASE_URI`, as the
+application resolves it, or from ``--source-url``. It is copied into a
+temporary database ``<db_name>_anon_<timestamp>`` on the same server, personal
+data and secrets are scrubbed there (names, mails, phones, licenses, dates of
+birth, passwords, confirmation tokens, buyer and card details of payments,
+answers to questions, retex, uploaded file names, phones and mails in event
+descriptions, hidden configuration items, contact addresses of the club), then
+the temporary database is dumped and dropped, even if a step fails. The source
+database is only read.
+
+It requires the ``mariadb`` and ``mariadb-dump`` clients (or ``mysql`` and
+``mysqldump``), and the database user must be allowed to create and drop a
+database. ``--password`` gives the same password to every account; without
+it, only the ``admin`` account can log in, with the ``ADMINPWD`` of the
+instance loading the export.
+
+See :py:mod:`collectives.utils.anonymize`.
