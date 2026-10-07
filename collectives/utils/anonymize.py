@@ -266,6 +266,7 @@ def _anonymize_uploads(connection):
     """Replace the original file names, keeping date prefix and extension."""
 
     def rewrite(row):
+        """New name, path and session of an uploaded file row."""
         name_ext = os.path.splitext(row.name)[1]
         path_ext = os.path.splitext(row.path)[1]
         date_prefix = row.path[:9] if re.match(r"\d{2}_\d{2}_\d{2}_", row.path) else ""
