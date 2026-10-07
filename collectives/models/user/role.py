@@ -3,6 +3,8 @@
 import datetime
 from typing import List, Set
 
+from flask import current_app
+
 from collectives.models.activity_type import ActivityType
 from collectives.models.configuration import Configuration
 from collectives.models.globals import db
@@ -105,6 +107,22 @@ class UserRoleMixin:
         :return: True if user has an accountant role.
         """
         return self.has_role([RoleIds.Administrator, RoleIds.Accountant])
+
+    def can_publish_club_announcements(self) -> bool:
+        """Check if user can attach an event to the club announcement service.
+
+        Allowed to administrators, the president, and users with a role on the
+        board service (see ``BOARD_ACTIVITY`` configuration).
+
+        :return: True if user can publish club announcements.
+        """
+        if self.has_role([RoleIds.Administrator, RoleIds.President]):
+            return True
+        board = current_app.config["BOARD_ACTIVITY"]
+        return any(
+            role.activity_type is not None and role.activity_type.short == board
+            for role in self.roles
+        )
 
     def can_create_events(self) -> bool:
         """Check if user has a role which allow him to creates events.

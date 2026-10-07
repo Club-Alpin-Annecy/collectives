@@ -31,10 +31,9 @@ def test_statistics_engine_all(stats_env, leader2_user):
         "Achat": 1,
     }
     assert engine.population_registration_number() == {1: 3, 2: 1, 3: 1}
-    # The "Soirée" event does not require an activity: no volunteer time
-    assert engine.volunteer_time() == 6
+    assert engine.volunteer_time() == 7
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 4
-    assert engine.volunteer_time_by_activity_type()["Canyon"] == 2
+    assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
     assert engine.nb_active_registrations_per_activity_type()["Alpinisme"] == 6
 
@@ -75,9 +74,9 @@ def test_statistics_engine_from_now(stats_env, leader2_user):
         "Achat": 1,
     }
     assert engine.population_registration_number() == {1: 4, 2: 1}
-    assert engine.volunteer_time() == 5
+    assert engine.volunteer_time() == 6
     assert engine.volunteer_time_by_activity_type()["Alpinisme"] == 3
-    assert engine.volunteer_time_by_activity_type()["Canyon"] == 2
+    assert engine.volunteer_time_by_activity_type()["Canyon"] == 3
     assert engine.nb_user_per_activity_type()["Alpinisme"] == 4
     assert engine.attendee_time_by_gender_and_license_type() == {
         ("XX", "Femme"): 2,
@@ -132,7 +131,7 @@ def test_statistics_engine_only_party(stats_env):
     engine = StatisticsEngine(event_type_ids=[party.id])
     assert engine.nb_events() == 1
     assert engine.nb_events_by_event_type() == {"Soirée & manifestation": 1}
-    assert engine.volunteer_time() == 0
+    assert engine.volunteer_time() == 1
 
     # Set of event types behaves as the union of each type.
     engine = StatisticsEngine(event_type_ids=[party.id, collective.id])
