@@ -8,7 +8,7 @@ from marshmallow import fields
 
 from collectives.api.common import blueprint
 from collectives.api.schemas import EventSchema
-from collectives.models import ActivityType, Event, EventType, db
+from collectives.models import ActivityType, Event, db
 from collectives.utils.access import user_is, valid_user
 from collectives.utils.time import current_time
 
@@ -47,9 +47,8 @@ def mine():
     :rtype: (string, int, dict)
     """
     query = db.session.query(Event)
-    query = query.join(EventType)
     query = query.filter(Event.leaders.contains(current_user))
-    query = query.filter(EventType.short == "collective")
+    query = query.filter(Event.retex_applicable_filter())
     query = query.filter(Event.end < current_time())
     query = query.order_by(Event.end.desc())
 
@@ -85,8 +84,7 @@ def supervised():
     activity_ids = {a.id for a in current_user.get_supervised_activities()}
 
     query = db.session.query(Event)
-    query = query.join(EventType)
-    query = query.filter(EventType.short == "collective")
+    query = query.filter(Event.retex_applicable_filter())
     query = query.filter(Event.activity_types.any(ActivityType.id.in_(activity_ids)))
     query = query.filter(Event.end < current_time())
     query = query.order_by(Event.end.desc())

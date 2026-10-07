@@ -27,7 +27,7 @@ def test_statistics_engine_all(stats_env, leader2_user):
     assert engine.nb_registrations_by_gender() == {"Femme": 2, "Homme": 6}
     assert engine.nb_events_by_event_tag() == {
         "Handicaf": 3,
-        "Rando Cool": 1,
+        "Sortie Cool": 1,
         "Achat": 1,
     }
     assert engine.population_registration_number() == {1: 3, 2: 1, 3: 1}
@@ -70,7 +70,7 @@ def test_statistics_engine_from_now(stats_env, leader2_user):
     assert engine.nb_registrations_by_gender() == {"Femme": 2, "Homme": 4}
     assert engine.nb_events_by_event_tag() == {
         "Handicaf": 2,
-        "Rando Cool": 1,
+        "Sortie Cool": 1,
         "Achat": 1,
     }
     assert engine.population_registration_number() == {1: 4, 2: 1}

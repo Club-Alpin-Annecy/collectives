@@ -113,6 +113,7 @@ def event_types(app):
         event_type.name = etype["name"]
         event_type.short = etype["short"]
         event_type.requires_activity = etype["requires_activity"]
+        event_type.deprecated = etype.get("deprecated", False)
 
         if "license_types" in etype:
             event_type.license_types = ",".join(etype["license_types"])

@@ -232,7 +232,7 @@ class UserMiscMixin:
         :return: The number of such events.
         """
         # pylint: disable=(import-outside-toplevel
-        from collectives.models.event import Event, EventType
+        from collectives.models.event import Event
         from collectives.utils.time import current_time
 
         cutoff = current_time() - datetime.timedelta(days=30)
@@ -240,7 +240,7 @@ class UserMiscMixin:
         query = query.filter(Event.leaders.contains(self))
         query = query.filter(Event.end < current_time())
         query = query.filter(Event.end >= cutoff)
-        query = query.filter(Event.event_type.has(EventType.short == "collective"))
+        query = query.filter(Event.retex_applicable_filter())
         query = query.filter(~Event.retex.has())
 
         return query.count()
