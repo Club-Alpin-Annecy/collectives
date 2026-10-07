@@ -10,7 +10,6 @@ from collectives.models import (
     ActivityType,
     Configuration,
     Event,
-    EventType,
     Retex,
     User,
     db,
@@ -50,8 +49,12 @@ def edit_retex(event_id: int):
         flash("Événement inexistant", "error")
         return redirect(url_for("event.index"))
 
-    if event.event_type.short != "collective":
-        flash("Le retex n'est disponible que pour les collectives", "error")
+    if not event.is_retex_applicable():
+        flash(
+            "Le retex n'est disponible que pour les collectives "
+            "(hors cours, accès libres et entraînements)",
+            "error",
+        )
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.has_edit_rights(current_user):
@@ -113,8 +116,7 @@ def _supervised_events_query(
     )
 
     query = (
-        Event.query.join(EventType)
-        .filter(EventType.short == "collective")
+        Event.query.filter(Event.retex_applicable_filter())
         .filter(Event.activity_types.any(ActivityType.id.in_(selected_ids)))
         .filter(Event.end < current_time())
     )

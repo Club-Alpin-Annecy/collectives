@@ -28,7 +28,7 @@ def test_csv_import(user1):
     assert "2322m-1200m-F" in event.rendered_description
     assert event.leaders[0].license == user1.license
     assert len(event.tags) == 1
-    assert event.tag_refs[0].name == "Rando Cool"
+    assert event.tag_refs[0].name == "Sortie Cool"
 
 
 def test_csv_import_semicolon(user1):
@@ -53,4 +53,4 @@ def test_csv_import_semicolon(user1):
     assert "2322m-1200m-F" in event.rendered_description
     assert event.leaders[0].license == user1.license
     assert len(event.tags) == 1
-    assert event.tag_refs[0].name == "Rando Cool"
+    assert event.tag_refs[0].name == "Sortie Cool"
