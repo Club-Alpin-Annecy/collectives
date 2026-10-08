@@ -56,12 +56,23 @@ def available_event_types(
      - All event types that do not require an activity in other cases, plus the source event
        type if provided
 
+    Deprecated event types are never offered, except the source event type.
+
     :param source_event_type: Event type to unconditionally include
     :param leaders: List of leaders currently added to the event
     :return: Available event types
     """
 
     query = EventType.query
+    if source_event_type:
+        query = query.filter(
+            sqlalchemy.or_(
+                sqlalchemy.not_(EventType.deprecated),
+                EventType.id == source_event_type.id,
+            )
+        )
+    else:
+        query = query.filter(sqlalchemy.not_(EventType.deprecated))
 
     if current_user.is_moderator():
         return query.all()
@@ -195,6 +206,9 @@ class EventForm(ModelForm, FlaskForm):
         super().__init__(*args, **kwargs)
 
         self.source_event: Event = None
+        # Event being edited, also known once the form is submitted (unlike
+        # source_event). Its deprecated type and labels must remain selectable.
+        self.edited_event: Event = kwargs.get("obj")
         self.current_leaders: List[User] = []
         self.main_leader_fields: List[Field] = []
 
@@ -258,7 +272,8 @@ class EventForm(ModelForm, FlaskForm):
 
         # Find possible even types and activities given current leaders
         # If there is a source event, make sure its existing settings can be reproduced
-        source_event_type = self.source_event.event_type if self.source_event else None
+        kept_event = self.source_event or self.edited_event
+        source_event_type = kept_event.event_type if kept_event else None
         source_activities = (
             self.source_event.activity_types if self.source_event else []
         )
@@ -298,8 +313,9 @@ class EventForm(ModelForm, FlaskForm):
                 self.main_leader_id.process([])
         self.main_leader_fields = list(self.main_leader_id)
 
-        # Tags
-        self.tag_list.choices = EventTag.choices()
+        # Tags: deprecated tags already set on the event remain selectable
+        kept_tags = [tag.type for tag in kept_event.tag_refs] if kept_event else []
+        self.tag_list.choices = EventTag.choices(kept_tags)
 
         # Disallow 'Pending' status for events with existing payments (#425)
         if self.source_event and self.source_event.has_payments():

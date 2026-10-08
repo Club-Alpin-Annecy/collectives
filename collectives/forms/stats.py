@@ -38,7 +38,8 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
         ]
 
         self.event_type_ids.choices = [
-            (event_type.id, event_type.name) for event_type in EventType.get_all_types()
+            (event_type.id, event_type.name)
+            for event_type in EventType.get_all_types(include_deprecated=True)
         ]
 
         first_event = Event.query.order_by(Event.start).first()

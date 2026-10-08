@@ -72,7 +72,7 @@
             Questionnaire
         </a>
 
-        {% if event.event_type.short == "collective" %}
+        {% if event.is_retex_applicable() %}
         <a class="button button-secondary" href="{{ url_for('retex.edit_retex', event_id=event.id)}}">
             <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
             Retex

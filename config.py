@@ -213,7 +213,7 @@ ACTIVITY_TYPES = {
     24: {"short": "premier_secours", "name": "Premier secours", "email":"dev-collectives@cafannecy.fr", "trigram": "APSC"},
     25: {"short": "neige_avalanche", "name": "Neige Avalanche", "email":"dev-collectives@cafannecy.fr", "trigram": "AAV"},
     26: {"short": "speleo", "name": "Spéléologie", "email":"dev-collectives@cafannecy.fr", "trigram": "ASP"},
-    27: {"short": "handicaf", "name": "Handicaf", "email":"dev-collectives@cafannecy.fr", "trigram": "HAN"},
+    27: {"short": "handicaf", "name": "Handicaf", "email":"dev-collectives@cafannecy.fr", "trigram": "HAN", "kind": "Initiative"},
     28: {"short": "escalade_sne", "name": "Escalade en falaise", "email":"dev-collectives@cafannecy.fr", "trigram" : "AEN"},
 }
 # fmt: on
@@ -238,6 +238,8 @@ EVENT_TYPES = {
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
     },
+    # Since the 2026-2027 season, types 2, 3, 5 and 8 to 12 are deprecated: they
+    # remain on older events, but are no longer offered. See migration 6c1e4b9d2a73.
     2: {
         "short": "jeune",
         "name": "Jeunes",
@@ -245,6 +247,7 @@ EVENT_TYPES = {
         "license_types": ["J1", "J2", "E1", "E2"],
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     3: {
         "short": "formation",
@@ -252,10 +255,11 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     4: {
         "short": "soiree",
-        "name": "Soirée",
+        "name": "Soirée & manifestation",
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
@@ -267,6 +271,7 @@ EVENT_TYPES = {
         "terms_title": "guide d'organisation des randonnées lointaines "
         "du Club Alpin Français d'Annecy",
         "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
+        "deprecated": True,
     },
     6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
     7: {
@@ -282,6 +287,7 @@ EVENT_TYPES = {
         "requires_activity": True,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     9: {
         "short": "entrainement",
@@ -289,6 +295,7 @@ EVENT_TYPES = {
         "requires_activity": True,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     10: {
         "short": "cours",
@@ -296,6 +303,7 @@ EVENT_TYPES = {
         "requires_activity": True,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     11: {
         "short": "benevolat",
@@ -303,10 +311,19 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
     },
     12: {
         "short": "famille",
         "name": "Famille",
+        "requires_activity": False,
+        "terms_title": "{GUIDE_TITLE}",
+        "terms_file": "{GUIDE_FILE}",
+        "deprecated": True,
+    },
+    13: {
+        "short": "organisation",
+        "name": "Organisation",
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
@@ -315,7 +332,8 @@ EVENT_TYPES = {
 """List of event types
 
 Contains the list of event type as a dictionnary. id is an int, value is
-a hash. ``short`` is the name of the icon.
+a hash. ``short`` is the name of the icon. ``deprecated`` (optional) hides the
+type from new events while keeping it on the events which already use it.
 
 :type: dict
 """
@@ -324,22 +342,48 @@ EVENT_TAGS = {
     1: {"short": "tag_green_transport", "name": "Mobilité douce"},
     2: {
         "short": "tag_mountain_protection",
-        "name": "CPM",
+        "name": "Connaissance et Protection du Milieu Montagnard",
+        "csv_code": "CPM",
     },
     3: {"short": "tag_trip", "name": "Séjour"},
-    4: {"short": "tag_training", "name": "Formation", "deprecated": True},
-    5: {"short": "tag_rando_montagne", "name": "Randonnée alpine"},
-    6: {"short": "tag_handicaf", "name": "Handicaf"},
-    7: {"short": "tag_jeune_alpi", "name": "GJA"},
-    8: {"short": "tag_evenement", "name": "Evénement"},
+    4: {"short": "tag_training", "name": "Formation"},
+    5: {
+        "short": "tag_rando_montagne",
+        "name": "Sortie Alpine",
+        "csv_code": "Randonnée alpine",
+    },
+    6: {"short": "tag_handicaf", "name": "Handicaf", "deprecated": True},
+    7: {"short": "tag_jeune_alpi", "name": "GJA", "deprecated": True},
+    8: {"short": "tag_evenement", "name": "Evénement", "deprecated": True},
     9: {
         "short": "tag_decouverte",
-        "name": "Cycle découverte",
+        "name": "Découverte",
+        "csv_code": "Cycle découverte",
     },
-    10: {"short": "tag_rando_cool", "name": "Rando Cool"},
+    10: {"short": "tag_rando_cool", "name": "Sortie Cool", "csv_code": "Rando Cool"},
     11: {"short": "tag_shopping", "name": "Achat", "deprecated": True},
-    12: {"short": "tag_environmental_consciousness", "name": "Éco-Sensibilisation"},
+    12: {
+        "short": "tag_environmental_consciousness",
+        "name": "Éco-Sensibilisation",
+        "deprecated": True,
+    },
+    13: {"short": "tag_mineur", "name": "Mineur (-18 ans)"},
+    14: {"short": "tag_cours", "name": "Cours"},
+    15: {"short": "tag_acces_libre", "name": "Accès libre"},
+    16: {"short": "tag_entrainement", "name": "Entraînement régulier"},
+    17: {"short": "tag_sortie_lointaine", "name": "Sortie lointaine"},
+    18: {"short": "tag_famille", "name": "Famille"},
+    19: {"short": "tag_cycle_groupe", "name": "Cycle & groupe"},
 }
+"""List of event tags
+
+Contains the list of event tags as a dictionnary. id is an int, value is
+a hash. ``short`` is the name of the icon. ``csv_code`` (optional) is an
+alternative name accepted by CSV imports, e.g. the former name of the tag. ``deprecated`` (optional) hides the
+tag from new events while keeping it on the events which already hold it.
+
+:type: dict
+"""
 
 # Technical stuff
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024
@@ -351,7 +395,7 @@ upload files larger than this
 :type: int """
 MAX_FILE_SIZE_MESSAGE = (
     f"Le fichier est trop gros pour être chargé sur le serveur :"
-    f" [size] Mo. (max {MAX_CONTENT_LENGTH/1024/1024} Mo)"
+    f" [size] Mo. (max {MAX_CONTENT_LENGTH / 1024 / 1024} Mo)"
 )
 
 """ Error message if uploaded file is too big.
