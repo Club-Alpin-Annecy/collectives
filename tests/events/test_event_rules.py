@@ -182,3 +182,39 @@ def test_highlighted_club_announcements(app, event, client, announcement_service
     db.session.commit()
     with app.test_request_context():
         assert not highlighted_club_announcements()
+
+
+def test_board_member_publishes_announcement(
+    user1, user1_client, announcement_service, board_service
+):
+    """A role on the board service is enough to publish a club announcement"""
+    promote_user(user1, RoleIds.ActivityStaff, activity_name=board_service.name)
+    db.session.commit()
+
+    assert announcement_service in user1.get_organizable_activities()
+    assert announcement_service not in user1.get_organizable_activities(
+        need_leader=True
+    )
+
+    now = current_time()
+    data = {
+        "update_activity": "0",
+        "event_type_id": str(EventType.query.filter_by(short="soiree").one().id),
+        "single_activity_type": announcement_service.id,
+        "leader_actions-0-leader_id": user1.id,
+        "main_leader_id": user1.id,
+        "add_leader": "0",
+        "update_leaders": "0",
+        "title": "Assemblée générale",
+        "status": int(EventStatus.Confirmed),
+        "num_slots": "50",
+        "start": (now + timedelta(days=10)).strftime("%Y-%m-%d %X"),
+        "end": (now + timedelta(days=10, hours=3)).strftime("%Y-%m-%d %X"),
+        "num_online_slots": "0",
+        "description": "Annonce",
+        "edit_session_id": "ef32c979-57f6-48f8-a8d5-753050ff2f56",
+    }
+    response = user1_client.post("/collectives/add", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert "collectives/add" not in response.request.path
+    assert "Assemblée générale" in response.text
