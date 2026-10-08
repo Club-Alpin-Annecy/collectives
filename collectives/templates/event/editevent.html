@@ -277,7 +277,10 @@
     {{ form.csrf_token }}
 
     <div class="controls">
-    {{ form.save_all(class="button button-primary") }}
+    {{ form.save_all(class="button button-primary", value="Enregistrer les modifications") }}
+    <a href="{{ url_for('event.view_event', event_id=event.id) if event.id else url_for('event.index') }}" class="button button-secondary">
+      Annuler les modifications
+    </a>
     </div>
   </form>
 </div>
