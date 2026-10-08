@@ -1,9 +1,9 @@
 """Reclassify 2026-2027 events into the new event types and tags
 
 Events starting from 2026-09-01 move from the deprecated event types to the
-four remaining ones (Collective, Soirée & manifestation, Inscription en ligne &
-achat groupé, Organisation). The information carried by the former type is
-kept as a tag (Cours, Accès libre...). Older events are left untouched.
+five remaining ones (Collective, Soirée & manifestation, Achat groupé,
+Inscription en ligne, Organisation). The information carried by the former type
+is kept as a tag (Cours, Accès libre...). Older events are left untouched.
 
 The reclassification only runs for instances using the default EVENT_TYPES and
 EVENT_TAGS of config.py: an instance with its own catalogue is skipped, with a
@@ -33,11 +33,7 @@ logger = logging.getLogger("alembic.runtime.migration")
 CUTOFF = "2026-09-01 00:00:00"
 """Only events starting from this date are reclassified."""
 
-NEW_TYPES = {
-    13: "soiree_manifestation",
-    14: "inscription_achat",
-    15: "organisation",
-}
+NEW_TYPES = {13: "organisation"}
 """Event types created for the 2026-2027 season, by id."""
 
 EXPECTED_TAGS = {
@@ -59,22 +55,28 @@ TO_COLLECTIVE = {
     "acces_libre": 15,
     "entrainement": 16,
     "cours": 14,
+    "famille": 18,
 }
 """Former type -> tag added. These events become "collective"."""
 
-BY_ACTIVITY = {
-    "formation": 4,
-    "famille": 18,
-}
-"""Former type -> tag added. These events become "collective" when they have an
-activity or initiative, "soiree_manifestation" otherwise."""
+FORMATION = "formation"
+FORMATION_TAG = 4
+"""Formations become "collective" when held in the field, "soiree" (Soirée &
+manifestation) when theoretical. Both get the Formation tag."""
 
-RENAMED = {
-    "soiree": "soiree_manifestation",
-    "shopping": "inscription_achat",
-    "inscription": "inscription_achat",
-    "benevolat": "organisation",
+THEORY_FORMATIONS = {
+    15517: "SylvaFresque (en partenariat avec l'ONF)",
+    15839: "Espaces naturels, outils de connaissance et de protection",
+    15940: "PSC initial journée secourisme",
+    15941: "PSC Recyclage soirée",
+    15945: "Entretien du matériel",
+    15946: "Entretien du matériel",
 }
+"""Theoretical formations of the 2026-2027 season, as reviewed by the CAF
+d'Annecy (id -> title; both must match). Other formations are considered held
+in the field when they have an activity or an initiative."""
+
+RENAMED = {"benevolat": "organisation"}
 """Former type -> new type, without tag."""
 
 CPM_TAG = 2
@@ -92,13 +94,6 @@ MOVE = sa.text(
     "UPDATE events SET event_type_id = :new "
     "WHERE start >= :cutoff AND event_type_id = :old"
 )
-MOVE_WITH_ACTIVITY = sa.text(
-    "UPDATE events SET event_type_id = :new "
-    "WHERE start >= :cutoff AND event_type_id = :old "
-    "AND EXISTS (SELECT 1 FROM event_activity_types eat "
-    "JOIN activity_types a ON a.id = eat.activity_id "
-    "WHERE eat.event_id = events.id AND a.kind <> 'Service')"
-)
 
 
 def _uses_default_catalogue(event_types: dict, event_tags: dict) -> bool:
@@ -110,6 +105,34 @@ def _uses_default_catalogue(event_types: dict, event_tags: dict) -> bool:
         if event_tags.get(tag_id, {}).get("short") != short:
             return False
     return True
+
+
+def _theory_formation_ids(conn, formation_type_id: int) -> list:
+    """Ids of the formations to move to "soiree", among this season's ones."""
+    rows = conn.execute(
+        sa.text(
+            "SELECT id, title FROM events "
+            "WHERE start >= :cutoff AND event_type_id = :formation"
+        ),
+        {"cutoff": CUTOFF, "formation": formation_type_id},
+    ).fetchall()
+
+    theory = []
+    for row in rows:
+        if THEORY_FORMATIONS.get(row.id) == row.title:
+            theory.append(row.id)
+            continue
+        has_activity = conn.execute(
+            sa.text(
+                "SELECT 1 FROM event_activity_types eat "
+                "JOIN activity_types a ON a.id = eat.activity_id "
+                "WHERE eat.event_id = :event AND a.kind <> 'Service'"
+            ),
+            {"event": row.id},
+        ).first()
+        if not has_activity:
+            theory.append(row.id)
+    return theory
 
 
 def upgrade():
@@ -126,7 +149,7 @@ def upgrade():
     rows = conn.execute(sa.text("SELECT id, short FROM event_types")).fetchall()
     shorts = {row.short: row.id for row in rows}
     ids = {row.id: row.short for row in rows}
-    if "collective" not in shorts:
+    if "collective" not in shorts or "soiree" not in shorts:
         # Empty database: event types are created at application startup
         return
     for type_id, short in NEW_TYPES.items():
@@ -166,7 +189,7 @@ def upgrade():
         return {"cutoff": CUTOFF, **kwargs}
 
     # Tags first: they identify the events by their former type
-    for old, tag in {**TO_COLLECTIVE, **BY_ACTIVITY}.items():
+    for old, tag in {**TO_COLLECTIVE, FORMATION: FORMATION_TAG}.items():
         if old in shorts:
             result = conn.execute(ADD_TAG, params(tag=tag, old=shorts[old]))
             logger.info("Tag %s added to %s '%s' events", tag, result.rowcount, old)
@@ -178,18 +201,23 @@ def upgrade():
             )
             logger.info("%s '%s' events moved to 'collective'", result.rowcount, old)
 
-    for old in BY_ACTIVITY:
-        if old in shorts:
-            result = conn.execute(
-                MOVE_WITH_ACTIVITY, params(new=shorts["collective"], old=shorts[old])
+    if FORMATION in shorts:
+        theory = _theory_formation_ids(conn, shorts[FORMATION])
+        if theory:
+            conn.execute(
+                sa.text(
+                    "UPDATE events SET event_type_id = :soiree WHERE id IN :ids"
+                ).bindparams(sa.bindparam("ids", expanding=True)),
+                {"soiree": shorts["soiree"], "ids": theory},
             )
-            logger.info("%s '%s' events moved to 'collective'", result.rowcount, old)
-            result = conn.execute(
-                MOVE, params(new=shorts["soiree_manifestation"], old=shorts[old])
-            )
-            logger.info(
-                "%s '%s' events moved to 'soiree_manifestation'", result.rowcount, old
-            )
+        result = conn.execute(
+            MOVE, params(new=shorts["collective"], old=shorts[FORMATION])
+        )
+        logger.info(
+            "Formations: %s moved to 'soiree', %s moved to 'collective'",
+            len(theory),
+            result.rowcount,
+        )
 
     for old, new in RENAMED.items():
         if old in shorts:
@@ -219,8 +247,7 @@ def upgrade():
 def downgrade():
     """Best effort: former types are restored from the tags added on upgrade.
 
-    The Éco-Sensibilisation merge and the Achat groupé / Inscription en ligne
-    merge cannot be undone."""
+    The Éco-Sensibilisation merge cannot be undone."""
     conn = op.get_bind()
     shorts = {
         row.short: row.id
@@ -239,7 +266,7 @@ def downgrade():
         "DELETE FROM event_tags WHERE type = :tag AND event_id IN "
         "(SELECT id FROM events WHERE start >= :cutoff AND event_type_id = :old)"
     )
-    for old, tag in {**TO_COLLECTIVE, **BY_ACTIVITY}.items():
+    for old, tag in {**TO_COLLECTIVE, FORMATION: FORMATION_TAG}.items():
         if old not in shorts:
             continue
         values = {
@@ -247,18 +274,13 @@ def downgrade():
             "old": shorts[old],
             "tag": tag,
             "collective": shorts["collective"],
-            "soiree": shorts["soiree_manifestation"],
+            "soiree": shorts["soiree"],
         }
         conn.execute(restore, values)
         conn.execute(remove_tag, values)
 
     # Events of the new types, whatever their date, go back to a former type
-    reverse = {
-        "soiree_manifestation": "soiree",
-        "inscription_achat": "inscription",
-        "organisation": "benevolat",
-    }
-    for new, old in reverse.items():
+    for old, new in RENAMED.items():
         if old in shorts:
             conn.execute(
                 sa.text(

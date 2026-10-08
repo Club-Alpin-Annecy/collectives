@@ -8,7 +8,7 @@ from collectives.models import EventTag, EventType, db
 from tests import utils
 
 COURS_TAG = 14
-"""Tag "Cours", excluded from retex by default."""
+"""Tag "Cours"."""
 
 
 def _options(html: str, select_name: str) -> dict:
@@ -23,7 +23,10 @@ def test_deprecated_types_are_synced(app):
     youth = EventType.query.filter_by(short="jeune").one()
     assert youth.deprecated
     assert not EventType.query.filter_by(short="collective").one().deprecated
-    assert EventType.query.filter_by(short="soiree_manifestation").one()
+    assert EventType.query.filter_by(short="organisation").one()
+    soiree = EventType.query.filter_by(short="soiree").one()
+    assert soiree.name == "Soirée & manifestation"
+    assert not soiree.deprecated
 
     active = EventType.get_all_types()
     assert youth not in active
@@ -36,8 +39,13 @@ def test_new_event_offers_active_types_only(leader_client):
     assert response.status_code == 200
 
     types = _options(response.text, "event_type_id").values()
-    assert "Soirée & manifestation" in types
-    assert "Jeunes" not in types
+    assert set(types) == {
+        "Collective",
+        "Soirée & manifestation",
+        "Achat groupé",
+        "Inscription en ligne",
+        "Organisation",
+    }
 
     tags = _options(response.text, "tag_list").values()
     assert "Cours" in tags
@@ -98,22 +106,14 @@ def test_tag_csv_codes(app):
     assert EventTag.get_type_from_csv_code("Rando Cool") == 10
 
 
-def test_retex_excluded_for_courses(leader_client, past_event):
-    """Courses, open access sessions and trainings do not get a retex"""
+def test_retex_for_all_collectives(leader_client, past_event):
+    """Every collective event gets a retex, whatever its tags"""
+    past_event.tag_refs.append(EventTag(COURS_TAG))
+    db.session.commit()
+
     assert past_event.is_retex_applicable()
     assert past_event.needs_retex()
     assert leader_client.user.pending_retex_count() == 1
 
-    past_event.tag_refs.append(EventTag(COURS_TAG))
-    db.session.commit()
-
-    assert not past_event.is_retex_applicable()
-    assert not past_event.needs_retex()
-    assert leader_client.user.pending_retex_count() == 0
-
     response = leader_client.get(f"/retex/event/{past_event.id}/edit")
-    assert response.status_code == 302
-
-    response = leader_client.get("/api/retex/mine")
     assert response.status_code == 200
-    assert response.json["data"] == []
