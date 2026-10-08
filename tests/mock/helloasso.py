@@ -44,10 +44,9 @@ def fake_get(url, **kwargs):
         return FakeResponse(
             {
                 "id": "987654",
-                "state": "Authorized",
                 "order": {
                     "amount": {"total": 1000},
-                    "payments": [{"id": "555"}],
+                    "payments": [{"id": "555", "state": "Authorized"}],
                 },
             }
         )

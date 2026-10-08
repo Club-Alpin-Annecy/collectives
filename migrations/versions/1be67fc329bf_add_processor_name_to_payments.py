@@ -67,6 +67,7 @@ config_after = sa.Enum(
 
 
 def upgrade():
+    """Rename payment type Online to Payline and merge payment config into PAYMENT_ENABLED."""
     # ConfigurationTypeEnum.Enum is used both by the config merge below and by
     # init_config() at app startup: the column has to accept it first.
     with op.batch_alter_table("config", schema=None) as batch_op:
@@ -121,6 +122,7 @@ def upgrade():
 
 
 def downgrade():
+    """Restore payment type Online and the previous payment config."""
     with op.batch_alter_table("payments", schema=None) as batch_op:
         batch_op.alter_column(
             "payment_type",

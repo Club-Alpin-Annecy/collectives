@@ -651,6 +651,7 @@ class PaylineApi(PaymentProvider):
 
     @property
     def mock_callback_param(self) -> str:
+        """:return: Payline uses ``paylinetoken`` for the mock payment page."""
         return "paylinetoken"
 
 
