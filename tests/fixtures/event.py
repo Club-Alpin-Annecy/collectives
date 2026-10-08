@@ -404,7 +404,7 @@ def event_with_no_activity_type_in_less_than_x_hours_with_reg(
 
     prototype_event_in_less_than_x_hours.activity_types.clear()
 
-    event_type = EventType.query.filter_by(name="Soirée").first()
+    event_type = EventType.query.filter_by(short="soiree").first()
     prototype_event_in_less_than_x_hours.event_type = event_type
 
     for user in [
