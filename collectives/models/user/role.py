@@ -112,7 +112,8 @@ class UserRoleMixin:
         """Check if user can attach an event to the club announcement service.
 
         Allowed to administrators, the president, and users with a role on the
-        board service (see ``BOARD_ACTIVITY`` configuration).
+        board service (see ``BOARD_ACTIVITY`` configuration). Board members do
+        not need a role on the announcement service itself.
 
         :return: True if user can publish club announcements.
         """
@@ -242,7 +243,19 @@ class UserRoleMixin:
             else RoleIds.all_activity_organizer_roles()
         )
         user_roles = self.matching_roles(ok_roles)
-        return {role.activity_type for role in user_roles}
+        activities = {role.activity_type for role in user_roles}
+
+        # Board members organize club announcements without needing a role on
+        # the announcement service itself
+        if not need_leader and self.can_publish_club_announcements():
+            announcement = ActivityType.query.filter_by(
+                short=current_app.config["CLUB_ANNOUNCEMENT_ACTIVITY"],
+                deprecated=False,
+            ).first()
+            if announcement is not None:
+                activities.add(announcement)
+
+        return activities
 
     def get_supervised_activities(self) -> List[ActivityType]:
         """Get list of activities the user supervises.
