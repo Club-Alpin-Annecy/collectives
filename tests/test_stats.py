@@ -17,7 +17,7 @@ def test_statistics_engine_all(stats_env, leader2_user):
     assert engine.nb_registrations() == 8
     assert engine.nb_events() == 6
     assert engine.mean_registrations_per_event() == 8 / 6
-    assert engine.nb_events_by_event_type()["Soirée"] == 1
+    assert engine.nb_events_by_event_type()["Soirée & manifestation"] == 1
     assert engine.nb_events_by_activity_type()["Canyon"] == 2
     assert engine.nb_events_by_activity_type()["Alpinisme"] == 4
     assert engine.nb_collectives_by_activity_type()["Canyon"] == 1
@@ -124,18 +124,21 @@ def test_statistics_engine_only_alpi(stats_env, leader2_user):
 
 def test_statistics_engine_only_party(stats_env):
     """Tests statistics engine restricted to a set of event types."""
-    party = EventType.query.filter_by(name="Soirée").first()
+    party = EventType.query.filter_by(short="soiree").first()
     collective = EventType.query.filter_by(name="Collective").first()
 
-    # Single event type: only the "Soirée" event (event3) is kept.
+    # Single event type: only the "Soirée & manifestation" event (event3) is kept.
     engine = StatisticsEngine(event_type_ids=[party.id])
     assert engine.nb_events() == 1
-    assert engine.nb_events_by_event_type() == {"Soirée": 1}
+    assert engine.nb_events_by_event_type() == {"Soirée & manifestation": 1}
 
     # Set of event types behaves as the union of each type.
     engine = StatisticsEngine(event_type_ids=[party.id, collective.id])
     assert engine.nb_events() == 6
-    assert set(engine.nb_events_by_event_type()) == {"Soirée", "Collective"}
+    assert set(engine.nb_events_by_event_type()) == {
+        "Soirée & manifestation",
+        "Collective",
+    }
 
     # Empty selection means no restriction on event type.
     engine = StatisticsEngine(event_type_ids=[])

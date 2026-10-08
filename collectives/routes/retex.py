@@ -47,11 +47,7 @@ def edit_retex(event_id: int):
         return redirect(url_for("event.index"))
 
     if not event.is_retex_applicable():
-        flash(
-            "Le retex n'est disponible que pour les collectives "
-            "(hors cours, accès libres et entraînements)",
-            "error",
-        )
+        flash("Le retex n'est disponible que pour les collectives", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
     if not event.has_edit_rights(current_user):
