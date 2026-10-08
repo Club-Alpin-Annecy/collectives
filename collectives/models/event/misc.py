@@ -3,16 +3,13 @@
 import os
 from typing import List
 
-from flask import current_app
 from flask_uploads import IMAGES, UploadSet
-from sqlalchemy import and_
 from sqlalchemy.sql.elements import ColumnElement
 from werkzeug.datastructures import FileStorage
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.event.event_type import EventType
-from collectives.models.event_tag import EventTag
 from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
@@ -194,15 +191,11 @@ class EventMiscMixin:
     def is_retex_applicable(self) -> bool:
         """Check whether a retex can be written for this event.
 
-        Retex apply to "collective" events, except those holding one of the tags
-        listed in the ``RETEX_EXCLUDED_TAGS`` configuration.
+        Retex apply to "collective" events.
 
         :return: True if a retex applies to this event
         """
-        if self.event_type.short != "collective":
-            return False
-        excluded = set(current_app.config["RETEX_EXCLUDED_TAGS"])
-        return not any(tag.type in excluded for tag in self.tag_refs)
+        return self.event_type.short == "collective"
 
     @classmethod
     def retex_applicable_filter(cls) -> ColumnElement:
@@ -210,11 +203,7 @@ class EventMiscMixin:
 
         Query counterpart of :py:meth:`is_retex_applicable`.
         """
-        condition = cls.event_type.has(EventType.short == "collective")
-        excluded = current_app.config["RETEX_EXCLUDED_TAGS"]
-        if excluded:
-            condition = and_(condition, ~cls.tag_refs.any(EventTag.type.in_(excluded)))
-        return condition
+        return cls.event_type.has(EventType.short == "collective")
 
     def needs_retex(self) -> bool:
         """Check whether this event is a past collective event still missing its retex.

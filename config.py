@@ -238,8 +238,8 @@ EVENT_TYPES = {
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
     },
-    # Types 2 to 12 are deprecated since the 2026-2027 season: they remain on
-    # older events, but are no longer offered. See migration 6c1e4b9d2a73.
+    # Since the 2026-2027 season, types 2, 3, 5 and 8 to 12 are deprecated: they
+    # remain on older events, but are no longer offered. See migration 6c1e4b9d2a73.
     2: {
         "short": "jeune",
         "name": "Jeunes",
@@ -259,11 +259,10 @@ EVENT_TYPES = {
     },
     4: {
         "short": "soiree",
-        "name": "Soirée",
+        "name": "Soirée & manifestation",
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
-        "deprecated": True,
     },
     5: {
         "short": "randonnees_lointaines",
@@ -274,19 +273,13 @@ EVENT_TYPES = {
         "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
         "deprecated": True,
     },
-    6: {
-        "short": "shopping",
-        "name": "Achat groupé",
-        "requires_activity": False,
-        "deprecated": True,
-    },
+    6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
     7: {
         "short": "inscription",
         "name": "Inscription en ligne",
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
-        "deprecated": True,
     },
     8: {
         "short": "acces_libre",
@@ -329,20 +322,6 @@ EVENT_TYPES = {
         "deprecated": True,
     },
     13: {
-        "short": "soiree_manifestation",
-        "name": "Soirée & manifestation",
-        "requires_activity": False,
-        "terms_title": "{GUIDE_TITLE}",
-        "terms_file": "{GUIDE_FILE}",
-    },
-    14: {
-        "short": "inscription_achat",
-        "name": "Inscription en ligne & achat groupé",
-        "requires_activity": False,
-        "terms_title": "{GUIDE_TITLE}",
-        "terms_file": "{GUIDE_FILE}",
-    },
-    15: {
         "short": "organisation",
         "name": "Organisation",
         "requires_activity": False,
@@ -404,15 +383,6 @@ alternative name accepted by CSV imports, e.g. the former name of the tag. ``dep
 tag from new events while keeping it on the events which already hold it.
 
 :type: dict
-"""
-
-RETEX_EXCLUDED_TAGS = [14, 15, 16]
-"""Tags of "collective" events for which no retex is expected.
-
-Courses, open access sessions and regular trainings were not "collective"
-events before the 2026-2027 season, and did not have a retex.
-
-:type: list(int)
 """
 
 # Technical stuff
