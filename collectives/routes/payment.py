@@ -580,9 +580,7 @@ def request_payment(payment_id):
             flash(
                 "Erreur survenue lors de la demande de paiement, veuillez réessayer ultérieurement"
             )
-            return redirect(
-                url_for("event.view_event", event_id=payment.item.event.id)
-            )
+            return redirect(url_for("event.view_event", event_id=payment.item.event.id))
 
         payment.payment_type = provider.payment_type
         payment.processor_token = checkout.token
