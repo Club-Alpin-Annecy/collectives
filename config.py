@@ -224,6 +224,8 @@ Contains the list of activity type as a dictionnary. id is an int, value is a ha
 ``short`` is the name of the icon.
 ``trigram`` is the activity id for accounting.
 ``email`` is the dedicated activity email
+``kind`` (optional) is the name of a
+:py:class:`collectives.models.activity_type.ActivityKind`, ``Regular`` by default.
 
 :type: dict"""
 
