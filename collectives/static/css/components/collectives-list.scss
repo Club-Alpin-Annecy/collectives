@@ -525,8 +525,14 @@ $button-height:40px;
 
     .activity-filter-footer {
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: space-between;
         gap: 5px;
         margin-top: $padding-vertical-s;
+    }
+
+    .activity-filter-hint {
+        font-size: $font-size-s;
+        color: $color-gray-dark;
     }
 }

@@ -1,11 +1,6 @@
 const { ref, computed, inject } = Vue
 
 /**
- * Filter value meaning "no activity checked". Unknown by the API, it matches no event.
- */
-const NONE = '__none'
-
-/**
  * Legacy filter value, from when services were grouped in a single choice.
  * Still accepted by the API; replaced by the list of services when found in a saved filter.
  */
@@ -14,8 +9,8 @@ const LEGACY_SERVICES = '__services'
 /**
  * Activity selector displayed as one column per activity kind (activités, initiatives, services).
  *
- * The model is the list of selected activity short names. An empty list means
- * "no filter", which is displayed as every box being checked.
+ * The model is the list of checked activity short names. When nothing is
+ * checked, there is no filter: all events are displayed.
  */
 export default {
   props: ['modelValue'],
@@ -30,20 +25,12 @@ export default {
     const allIds = items.map(item => item.id)
     const itemsById = Object.fromEntries(items.map(item => [item.id, item]))
 
-    const selected = computed(() => {
-      const value = props.modelValue || []
-      if (value.length === 0) return new Set(allIds)
-      return new Set(value.filter(id => id in itemsById))
-    })
+    const selected = computed(
+      () => new Set((props.modelValue || []).filter(id => id in itemsById))
+    )
 
     function update(selection) {
-      if (allIds.every(id => selection.has(id))) {
-        emit('update:modelValue', [])
-      } else if (selection.size === 0) {
-        emit('update:modelValue', [NONE])
-      } else {
-        emit('update:modelValue', allIds.filter(id => selection.has(id)))
-      }
+      emit('update:modelValue', allIds.filter(id => selection.has(id)))
     }
 
     function toggleItem(id) {
@@ -68,26 +55,23 @@ export default {
     // Le filtre est restauré du localStorage : on remplace l'ancien choix « Services »
     // par la liste des services, et on retire les activités qui n'existent plus.
     const saved = props.modelValue || []
-    if (!(saved.length === 1 && saved[0] === NONE)) {
-      const services = groups.find(group => group.kind === 'Service')?.items.map(item => item.id) || []
-      const known = saved
-        .flatMap(id => (id === LEGACY_SERVICES ? services : [id]))
-        .filter(id => id in itemsById)
-      if (known.length !== saved.length || known.some((id, i) => id !== saved[i])) {
-        known.length === 0 ? emit('update:modelValue', []) : update(new Set(known))
-      }
+    const services = groups.find(group => group.kind === 'Service')?.items.map(item => item.id) || []
+    const known = saved
+      .flatMap(id => (id === LEGACY_SERVICES ? services : [id]))
+      .filter(id => id in itemsById)
+    if (known.length !== saved.length || known.some((id, i) => id !== saved[i])) {
+      update(new Set(known))
     }
 
     const MAX_CHIPS = 3
     const chips = computed(() => {
-      if (selected.value.size === allIds.length || selected.value.size > MAX_CHIPS) return []
+      if (selected.value.size > MAX_CHIPS) return []
       return allIds.filter(id => selected.value.has(id)).map(id => itemsById[id])
     })
     const summary = computed(() => {
-      if (selected.value.size === allIds.length) return 'Toutes activités'
-      if (selected.value.size === 0) return 'Aucune activité'
+      if (selected.value.size === 0) return 'Toutes activités'
       if (chips.value.length > 0) return ''
-      return `${selected.value.size} activités sur ${allIds.length}`
+      return `${selected.value.size} activités`
     })
 
     return {
@@ -100,8 +84,7 @@ export default {
       toggleItem,
       toggleGroup,
       groupState,
-      checkAll: () => update(new Set(allIds)),
-      uncheckAll: () => update(new Set()),
+      clear: () => update(new Set()),
       iconUrl: (item) => `/static/caf/icon/${item.icon}.svg`,
     }
   },
@@ -151,8 +134,8 @@ export default {
             </div>
           </div>
           <div class="activity-filter-footer">
-            <Button label="Tout décocher" severity="secondary" text size="small" @click="uncheckAll" />
-            <Button label="Tout cocher" text size="small" @click="checkAll" />
+            <span class="activity-filter-hint">Rien de coché : toutes les sorties sont affichées.</span>
+            <Button v-if="selected.size > 0" label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="clear" />
           </div>
         </div>
       </Popover>
