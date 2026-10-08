@@ -74,6 +74,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
     const app = createApp(EventList)
     app.provide('config', {
         activityGroups,
+        announcements: {{ announcements | tojson }},
         eventTypes,
         eventTags,
         models,

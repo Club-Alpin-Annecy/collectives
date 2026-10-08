@@ -2,6 +2,7 @@
 
 from typing import Dict, List
 
+from collectives.models.activity_type import ActivityKind
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
 
@@ -205,11 +206,33 @@ class Role(db.Model):
     :type: :py:class:`RoleIds`
     """
 
+    KIND_ROLE_NAMES = {
+        ActivityKind.Service: {
+            RoleIds.ActivitySupervisor: "Responsable de service",
+            RoleIds.ActivityStaff: "Organisateur",
+        },
+        ActivityKind.Initiative: {
+            RoleIds.ActivitySupervisor: "Responsable d'initiative",
+        },
+    }
+    """ Names of the activity roles held on a service or an initiative, when
+    they differ from the role display name.
+
+    :type: dict
+    """
+
     @property
     def name(self) -> str:
         """Returns the name of the role.
 
+        Some activity roles are named differently on a service or an initiative,
+        see :py:attr:`KIND_ROLE_NAMES`.
+
         :return: name of the role.
         """
-
-        return RoleIds(self.role_id).display_name()
+        role_id = RoleIds(self.role_id)
+        if self.activity_type is not None:
+            names = self.KIND_ROLE_NAMES.get(self.activity_type.kind, {})
+            if role_id in names:
+                return names[role_id]
+        return role_id.display_name()
