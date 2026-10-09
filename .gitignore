@@ -1,8 +1,5 @@
 __pycache__
 app.db
-# Bases locales générées par tasks.py, une par worktree
-collectives-*.db
-.playwright-cli/
 uploads
 .DS_Store
 
