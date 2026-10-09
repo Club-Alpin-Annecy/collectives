@@ -1,7 +1,5 @@
 {% extends 'activity_supervision/activity_supervision.html' %}
 
-{% import 'partials/form-fields.html' as generator  %}
-
 {% block page_content %}
 <div class="page-content" id="administration">
   <h2 class="heading-2">Revue des encadrants — {{ review.activity.name }}</h2>
@@ -18,7 +16,8 @@
     <li><span class="leaders-review-badge leaders-review-badge-new">Nouveau</span> :
       rôle attribué depuis le début de la saison précédente ; il n'est pas signalé comme inactif.</li>
     <li><span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span> /
-      <span class="leaders-review-badge leaders-review-badge-account">Compte désactivé</span> :
+      <span class="leaders-review-badge leaders-review-badge-account">Compte désactivé</span> /
+      <span class="leaders-review-badge leaders-review-badge-account">Email non vérifié</span> :
       l'adhérent ne peut plus se connecter ni encadrer.</li>
   </ul>
 
@@ -85,6 +84,8 @@
                 {% endif %}
                 {% if not leader.user.enabled %}
                   <span class="leaders-review-badge leaders-review-badge-account">Compte désactivé</span>
+                {% elif leader.user.type == models.UserType.UnverifiedLocal %}
+                  <span class="leaders-review-badge leaders-review-badge-account">Email non vérifié</span>
                 {% elif not leader.user.is_active %}
                   <span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span>
                 {% endif %}

@@ -128,10 +128,13 @@ def remove_leader(role_id):
 
     # Read before deletion: the role cannot load its relationships afterwards
     activity_id = role.activity_id
-    message = (
-        f"Rôle {role.name} retiré à {role.user.full_name()} "
-        f"pour l'activité {role.activity_type.name}"
-    )
+    if role.user is not None:
+        message = (
+            f"Rôle {role.name} retiré à {role.user.full_name()} "
+            f"pour l'activité {role.activity_type.name}"
+        )
+    else:
+        message = f"Rôle {role.name} retiré pour l'activité {role.activity_type.name}"
 
     db.session.delete(role)
     db.session.commit()
