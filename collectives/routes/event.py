@@ -798,6 +798,10 @@ def self_register(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Paid event
+    if Configuration.PAYMENT_ENABLED == "Aucune":
+        flash("Les paiements sont désactivés, inscription impossible.", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
+
     form = PaymentItemChoiceForm(event)
     if form.validate_on_submit():
         item_price = db.session.get(ItemPrice, form.item_price.data)
@@ -842,6 +846,9 @@ def select_payment_item(event_id):
     if not event or not event.requires_payment():
         flash("Pas de paiement requis pour cet événement", "error")
         return redirect(url_for(".index"))
+    if Configuration.PAYMENT_ENABLED == "Aucune":
+        flash("Les paiements sont désactivés.", "error")
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     is_leader = event.is_leader(current_user)
     registration = None
