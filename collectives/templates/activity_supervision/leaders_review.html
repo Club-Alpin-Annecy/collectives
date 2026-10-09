@@ -1,0 +1,119 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">Revue des encadrants — {{ review.activity.name }}</h2>
+
+  <p>
+    Cette page permet de vérifier, en début de saison, que les encadrants et organisateurs
+    déclarés pour l'activité sont toujours les bons. Pour chaque personne sont indiquées les
+    sorties encadrées ou co-encadrées dans l'activité (sorties confirmées uniquement).
+  </p>
+  <ul>
+    <li><span class="leaders-review-badge leaders-review-badge-inactive">Inactif</span> :
+      aucune sortie passée depuis le début de la saison {{ review.season_label(review.seasons[0]) }}
+      ({{ inactivity_seasons }} saisons complètes), et aucune sortie à venir.</li>
+    <li><span class="leaders-review-badge leaders-review-badge-new">Nouveau</span> :
+      rôle attribué depuis le début de la saison précédente ; il n'est pas signalé comme inactif.</li>
+    <li><span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span> /
+      <span class="leaders-review-badge leaders-review-badge-account">Compte désactivé</span> :
+      l'adhérent ne peut plus se connecter ni encadrer.</li>
+  </ul>
+
+  {% if form.activity_id.choices | length > 1 %}
+    <form action="{{ url_for('activity_supervision.leaders_review') }}" method="GET" class="form form-vertical">
+      <div class="controls">
+        {{ form.activity_id.label(class="label-top") }}
+        {{ form.activity_id(class="input-100", onchange="this.form.submit()") }}
+      </div>
+    </form>
+  {% endif %}
+
+  {% if review.leaders %}
+    <div class="leaders-review-table-container">
+      <table class="leaders-review-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Rôle</th>
+            {% for season in review.seasons %}
+              <th class="leaders-review-number">
+                {{ review.season_label(season) }}
+                {% if season == review.current_season %}<br/><small>en cours</small>{% endif %}
+              </th>
+            {% endfor %}
+            <th class="leaders-review-number">À venir</th>
+            <th>Dernière sortie</th>
+            <th>Rôle depuis</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for leader in review.leaders %}
+            <tr class="{{ 'leaders-review-attention' if leader.needs_attention }}">
+              <td>
+                <a href="{{ url_for('profile.show_leader', leader_id=leader.user.id) }}">{{ leader.user.full_name() }}</a>
+              </td>
+              <td>{{ leader.role.name }}</td>
+              {% for season in review.seasons %}
+                <td class="leaders-review-number">{{ leader.events_per_season[season] }}</td>
+              {% endfor %}
+              <td class="leaders-review-number">{{ leader.nb_upcoming_events }}</td>
+              <td>
+                {% if leader.last_event_start %}
+                  {{ leader.last_event_start.strftime('%d/%m/%Y') }}
+                {% else %}
+                  <em>jamais</em>
+                {% endif %}
+              </td>
+              <td>
+                {% if leader.role.creation_time %}
+                  {{ leader.role.creation_time.strftime('%d/%m/%Y') }}
+                {% else %}
+                  <em>inconnu</em>
+                {% endif %}
+              </td>
+              <td>
+                {% if leader.is_inactive %}
+                  <span class="leaders-review-badge leaders-review-badge-inactive">Inactif</span>
+                {% endif %}
+                {% if leader.is_new %}
+                  <span class="leaders-review-badge leaders-review-badge-new">Nouveau</span>
+                {% endif %}
+                {% if not leader.user.enabled %}
+                  <span class="leaders-review-badge leaders-review-badge-account">Compte désactivé</span>
+                {% elif not leader.user.is_active %}
+                  <span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if leader.can_be_removed %}
+                  {% set confirm_message = "Retirer le rôle " ~ leader.role.name ~ " à " ~ leader.user.full_name() ~ " ?" %}
+                  <form class="inline" action="{{ url_for('activity_supervision.remove_leader', role_id=leader.role.id) }}" method="POST"
+                        onsubmit='return confirm({{ confirm_message | tojson }});'>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="from_review" value="1"/>
+                    <button type="submit" class="leaders-review-remove" title="Retirer le rôle" aria-label="Retirer le rôle de {{ leader.user.full_name() }}">
+                      <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}" alt=""/>
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p><em>Aucun encadrant ni organisateur déclaré pour cette activité.</em></p>
+  {% endif %}
+
+  <p>
+    Pour ajouter un encadrant ou exporter la liste, rendez-vous sur la page
+    <a href="{{ url_for('activity_supervision.leader_list') }}">Encadrants et Organisateurs</a>.
+  </p>
+</div>
+{% endblock %}
