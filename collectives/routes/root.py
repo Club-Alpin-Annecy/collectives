@@ -14,7 +14,6 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
-from werkzeug.wsgi import ClosingIterator
 
 from collectives.forms import csrf
 from collectives.forms.auth import LegalAcceptation
@@ -88,12 +87,11 @@ def statistics():
             export.row_counts,
         )
         response = send_file(
-            export.path,
+            export.stream,
             mimetype="application/zip",
             as_attachment=True,
             download_name=export.download_name,
         )
-        response.response = ClosingIterator(response.response, export.cleanup)
         return response
 
     engine = StatisticsEngine(**kwargs)

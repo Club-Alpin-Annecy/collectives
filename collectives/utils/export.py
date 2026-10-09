@@ -1,47 +1,22 @@
 """Module to help export informations."""
 
 import csv
-import os
-import shutil
-import tempfile
 import zipfile
 from dataclasses import dataclass
 from datetime import date, datetime
-from io import BytesIO
-from typing import List, Optional
+from io import BytesIO, TextIOWrapper
+from typing import List, Optional, Tuple
 
 from openpyxl import Workbook
-from sqlalchemy import select
 
 from collectives.models import (
     ActivityType,
-    Configuration,
     Event,
-    EventType,
-    Registration,
-    User,
-    db,
 )
 from collectives.models.badge import Badge
-from collectives.models.event.model import event_activity_types, event_leaders
 from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import deepgetattr
 from collectives.utils.time import current_time
-
-
-def _club_file_identifier() -> str:
-    """Returns a filename-safe identifier for the club.
-
-    Prefers the codified club identifier (`CLUB_PREFIX`). Otherwise falls back
-    to the club name with every non-alphanumeric character removed, so that
-    spaces and special characters do not end up in the file name.
-
-    :return: The club identifier to use in file names.
-    """
-    prefix = (Configuration.CLUB_PREFIX or "").strip()
-    identifier = prefix or Configuration.CLUB_NAME
-    identifier = "".join(char for char in identifier if char.isalnum())
-    return identifier or "club"
 
 
 def export_roles(roles):
@@ -251,38 +226,103 @@ def _csv_value(value):
     return value
 
 
+#: Columns of the registrations.csv file. Any personal data is limited to this
+#: list and checked in ``tests/test_database_export.py``.
+REGISTRATION_COLUMNS: Tuple[str, ...] = (
+    "registration_id",
+    "event_id",
+    "registration_status",
+    "registration_level",
+    "registration_is_self",
+    "registration_time",
+    "user_id",
+    "user_name",
+    "license_category",
+    "user_type",
+    "gender",
+    "event_title",
+    "event_start",
+    "event_end",
+    "event_num_slots",
+    "event_num_online_slots",
+    "event_num_waiting_list",
+    "event_include_leaders_in_counts",
+    "event_registration_open_time",
+    "event_registration_close_time",
+    "event_status",
+    "event_visibility",
+    "event_main_leader_id",
+    "event_type_name",
+    "event_activity_type_name",
+)
+
+#: Columns of the leaders.csv file.
+LEADER_COLUMNS: Tuple[str, ...] = (
+    "event_id",
+    "leader_user_id",
+    "leader_name",
+    "license_category",
+    "user_type",
+    "gender",
+    "event_title",
+    "event_start",
+    "event_end",
+    "event_num_slots",
+    "event_num_online_slots",
+    "event_num_waiting_list",
+    "event_include_leaders_in_counts",
+    "event_registration_open_time",
+    "event_registration_close_time",
+    "event_status",
+    "event_visibility",
+    "event_main_leader_id",
+    "event_type_name",
+    "event_activity_type_name",
+)
+
+
+def _user_fields(user) -> List:
+    """Builds the fixed user columns shared by the two csv files.
+
+    :param user: The user, or None if the registration has no user.
+    :return: The list of field values.
+    """
+    if user is None:
+        return [None, "", None, None, None]
+    return [
+        user.id,
+        f"{user.first_name} {user.last_name}",
+        user.license_category,
+        user.type,
+        user.gender,
+    ]
+
+
 @dataclass
 class DatabaseExport:
     """Result of a raw database export.
 
-    The files live in a temporary directory that must be removed once the
-    response has been sent, see :py:meth:`DatabaseExport.cleanup`.
+    The zip is built entirely in memory, so there is nothing to clean up.
     """
 
-    path: str
-    """Path to the zip file containing the csv files."""
+    stream: BytesIO
+    """Seekable stream holding the zip file containing the csv files."""
 
     download_name: str
     """Name to advertise for the downloaded zip file."""
 
-    tmpdir: str
-    """Temporary directory holding the zip and csv files."""
-
     row_counts: dict
     """Number of rows written per csv file."""
-
-    def cleanup(self) -> None:
-        """Removes the temporary directory. Safe to call several times."""
-        shutil.rmtree(self.tmpdir, ignore_errors=True)
 
 
 class DatabaseExportService:
     """Builds a raw database export as a zip of csv files.
 
-    The queries are fixed and select only an approved set of columns (see
-    ``tests/test_database_export.py``). The stats filters (year, event types,
-    activity) are appended to each query. Contrary to the statistics engine,
-    every event status is included.
+    The csv columns are fixed (see :data:`REGISTRATION_COLUMNS` and
+    :data:`LEADER_COLUMNS`), so only an approved set of personal data is
+    exported (see ``tests/test_database_export.py``). The stats filters (year,
+    event types, activity) restrict the exported events. Contrary to the
+    statistics engine, every event status is included.
     """
 
     def __init__(
@@ -308,7 +348,7 @@ class DatabaseExportService:
             self.end = datetime(int(year) + 1, 8, 30, 23, 59)
 
     def _event_conditions(self) -> List:
-        """Builds the SQL conditions applied to the joined events.
+        """Builds the conditions restricting the exported events.
 
         :return: The list of SQLAlchemy conditions.
         """
@@ -325,165 +365,131 @@ class DatabaseExportService:
             )
         return conditions
 
-    def registration_query(self):
-        """Builds the registrations export query.
+    def _events_query(self):
+        """Builds the events query restricted by the export filters.
 
-        :return: The SQLAlchemy select statement.
+        :return: The query of matching events.
         """
-        return (
-            select(
-                Registration.id.label("registration_id"),
-                Registration.event_id,
-                Registration.status.label("registration_status"),
-                Registration.level.label("registration_level"),
-                Registration.is_self.label("registration_is_self"),
-                Registration.registration_time,
-                User.id.label("user_id"),
-                (User.first_name + " " + User.last_name).label("user_name"),
-                User.license_category,
-                User.type.label("user_type"),
-                User.gender,
-                Event.title.label("event_title"),
-                Event.start.label("event_start"),
-                Event.end.label("event_end"),
-                Event.num_slots.label("event_num_slots"),
-                Event.num_online_slots.label("event_num_online_slots"),
-                Event.num_waiting_list.label("event_num_waiting_list"),
-                Event.include_leaders_in_counts.label(
-                    "event_include_leaders_in_counts"
-                ),
-                Event.registration_open_time.label("event_registration_open_time"),
-                Event.registration_close_time.label("event_registration_close_time"),
-                Event.status.label("event_status"),
-                Event.visibility.label("event_visibility"),
-                Event.main_leader_id.label("event_main_leader_id"),
-                EventType.name.label("event_type_name"),
-                ActivityType.name.label("event_activity_type_name"),
-            )
-            .select_from(Registration)
-            .join(User, Registration.user_id == User.id, isouter=True)
-            .join(Event, Registration.event_id == Event.id, isouter=True)
-            .join(EventType, Event.event_type_id == EventType.id, isouter=True)
-            .join(
-                event_activity_types,
-                event_activity_types.c.event_id == Event.id,
-                isouter=True,
-            )
-            .join(
-                ActivityType,
-                event_activity_types.c.activity_id == ActivityType.id,
-                isouter=True,
-            )
-            .where(*self._event_conditions())
-            .order_by(Registration.id, ActivityType.id)
-        )
-
-    def leader_query(self):
-        """Builds the event leaders export query.
-
-        :return: The SQLAlchemy select statement.
-        """
-        return (
-            select(
-                event_leaders.c.event_id.label("event_id"),
-                event_leaders.c.user_id.label("leader_user_id"),
-                (User.first_name + " " + User.last_name).label("leader_name"),
-                User.license_category,
-                User.type.label("user_type"),
-                User.gender,
-                Event.title.label("event_title"),
-                Event.start.label("event_start"),
-                Event.end.label("event_end"),
-                Event.num_slots.label("event_num_slots"),
-                Event.num_online_slots.label("event_num_online_slots"),
-                Event.num_waiting_list.label("event_num_waiting_list"),
-                Event.include_leaders_in_counts.label(
-                    "event_include_leaders_in_counts"
-                ),
-                Event.registration_open_time.label("event_registration_open_time"),
-                Event.registration_close_time.label("event_registration_close_time"),
-                Event.status.label("event_status"),
-                Event.visibility.label("event_visibility"),
-                Event.main_leader_id.label("event_main_leader_id"),
-                EventType.name.label("event_type_name"),
-                ActivityType.name.label("event_activity_type_name"),
-            )
-            .select_from(event_leaders)
-            .join(User, event_leaders.c.user_id == User.id, isouter=True)
-            .join(Event, event_leaders.c.event_id == Event.id, isouter=True)
-            .join(EventType, Event.event_type_id == EventType.id, isouter=True)
-            .join(
-                event_activity_types,
-                event_activity_types.c.event_id == Event.id,
-                isouter=True,
-            )
-            .join(
-                ActivityType,
-                event_activity_types.c.activity_id == ActivityType.id,
-                isouter=True,
-            )
-            .where(*self._event_conditions())
-            .order_by(
-                event_leaders.c.event_id, event_leaders.c.user_id, ActivityType.id
-            )
-        )
-
-    def download_name(self) -> str:
-        """Builds the zip file name.
-
-        :return: The file name.
-        """
-        club_name = _club_file_identifier()
-        year = self.year if self.year is not None else "all"
-        timestamp = current_time().strftime("%Y%m%d-%H%M%S")
-        return f"export_{club_name}_{year}_{timestamp}.zip"
+        return Event.query.filter(*self._event_conditions()).order_by(Event.id)
 
     @staticmethod
-    def _write_csv(query, path: str) -> int:
-        """Executes a query and writes its result to a csv file.
+    def _event_fields(event) -> List:
+        """Builds the fixed event columns shared by the two csv files.
 
-        :param query: The SQLAlchemy select statement.
-        :param path: The path of the csv file to write.
+        :param event: The event to describe.
+        :return: The list of field values.
+        """
+        return [
+            event.title,
+            event.start,
+            event.end,
+            event.num_slots,
+            event.num_online_slots,
+            event.num_waiting_list,
+            event.include_leaders_in_counts,
+            event.registration_open_time,
+            event.registration_close_time,
+            event.status,
+            event.visibility,
+            event.main_leader_id,
+        ]
+
+    def _registration_rows(self, events) -> List:
+        """Builds the rows of the registrations.csv file.
+
+        Each registration yields one row per activity type of its event, so
+        that the csv keeps one row per (registration, activity) couple.
+
+        :param events: The events to export.
+        :return: The list of rows (column order follows
+            :data:`REGISTRATION_COLUMNS`).
+        """
+        rows = []
+        for event in events:
+            event_type_name = event.event_type.name if event.event_type else None
+            event_fields = self._event_fields(event)
+            for registration in event.registrations:
+                for activity_type in event.activity_types or [None]:
+                    rows.append(
+                        [
+                            registration.id,
+                            registration.event_id,
+                            registration.status,
+                            registration.level,
+                            registration.is_self,
+                            registration.registration_time,
+                            *_user_fields(registration.user),
+                            *event_fields,
+                            event_type_name,
+                            activity_type.name if activity_type else None,
+                        ]
+                    )
+        return rows
+
+    def _leader_rows(self, events) -> List:
+        """Builds the rows of the leaders.csv file.
+
+        Each leader yields one row per activity type of its event, so that the
+        csv keeps one row per (leader, activity) couple.
+
+        :param events: The events to export.
+        :return: The list of rows (column order follows :data:`LEADER_COLUMNS`).
+        """
+        rows = []
+        for event in events:
+            event_type_name = event.event_type.name if event.event_type else None
+            event_fields = self._event_fields(event)
+            for leader in event.leaders:
+                for activity_type in event.activity_types or [None]:
+                    rows.append(
+                        [
+                            event.id,
+                            *_user_fields(leader),
+                            *event_fields,
+                            event_type_name,
+                            activity_type.name if activity_type else None,
+                        ]
+                    )
+        return rows
+
+    @staticmethod
+    def _write_csv(binary_file, headers, rows) -> int:
+        """Writes an iterable of rows as csv into a zip entry.
+
+        :param binary_file: The writable binary stream (a zip entry).
+        :param headers: The column names.
+        :param rows: An iterable of row value lists.
         :return: The number of written rows.
         """
-        result = db.session.execute(query)
         count = 0
-        with open(path, "w", newline="", encoding="utf-8-sig") as csv_file:
+        with TextIOWrapper(binary_file, encoding="utf-8-sig", newline="") as csv_file:
             writer = csv.writer(csv_file, delimiter=";")
-            writer.writerow(list(result.keys()))
-            for row in result:
+            writer.writerow(headers)
+            for row in rows:
                 writer.writerow([_csv_value(value) for value in row])
                 count += 1
         return count
 
     def export(self) -> DatabaseExport:
-        """Builds the csv files and bundles them into a zip file.
-
-        The caller is responsible for calling
-        :py:meth:`DatabaseExport.cleanup` on the returned object once the
-        response has been sent.
+        """Builds the csv files and bundles them into an in-memory zip file.
 
         :return: The export result.
         """
-        tmpdir = tempfile.mkdtemp(prefix="collectives_export_")
-        download_name = self.download_name()
-        try:
+        year = self.year if self.year is not None else "all"
+        timestamp = current_time().strftime("%Y%m%d-%H%M%S")
+        download_name = f"export_{year}_{timestamp}.zip"
+
+        events = list(self._events_query())
+        row_counts = {}
+        buffer = BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
             files = (
-                ("registrations.csv", self.registration_query()),
-                ("leaders.csv", self.leader_query()),
+                ("registrations.csv", REGISTRATION_COLUMNS, self._registration_rows(events)),
+                ("leaders.csv", LEADER_COLUMNS, self._leader_rows(events)),
             )
-            row_counts = {}
-            for filename, query in files:
-                row_counts[filename] = self._write_csv(
-                    query, os.path.join(tmpdir, filename)
-                )
+            for filename, headers, rows in files:
+                with archive.open(filename, "w") as entry:
+                    row_counts[filename] = self._write_csv(entry, headers, rows)
+        buffer.seek(0)
 
-            zip_path = os.path.join(tmpdir, download_name)
-            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
-                for filename, _ in files:
-                    archive.write(os.path.join(tmpdir, filename), arcname=filename)
-        except Exception:
-            shutil.rmtree(tmpdir, ignore_errors=True)
-            raise
-
-        return DatabaseExport(zip_path, download_name, tmpdir, row_counts)
+        return DatabaseExport(buffer, download_name, row_counts)
