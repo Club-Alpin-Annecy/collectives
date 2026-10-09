@@ -47,6 +47,7 @@ from collectives.models.badge import BadgeIds
 from collectives.utils import badges, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
+from collectives.utils.leaders_review import INACTIVITY_SEASONS, LeadersReview
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 
@@ -125,8 +126,22 @@ def remove_leader(role_id):
         flash("Non autorisé", "error")
         return redirect(url_for(".leader_list"))
 
+    # Read before deletion: the role cannot load its relationships afterwards
+    activity_id = role.activity_id
+    if role.user is not None:
+        message = (
+            f"Rôle {role.name} retiré à {role.user.full_name()} "
+            f"pour l'activité {role.activity_type.name}"
+        )
+    else:
+        message = f"Rôle {role.name} retiré pour l'activité {role.activity_type.name}"
+
     db.session.delete(role)
     db.session.commit()
+
+    if request.form.get("from_review"):
+        flash(message, "success")
+        return redirect(url_for(".leaders_review", activity_id=activity_id))
 
     return redirect(url_for(".leader_list"))
 
@@ -146,6 +161,38 @@ def leader_list():
         add_leader_form=add_leader_form,
         export_form=export_form,
         title="Encadrants et Organisateurs",
+    )
+
+
+@blueprint.route("/leader/review", methods=["GET"])
+def leaders_review():
+    """Route for activity supervisors to review the leaders of an activity,
+    with their activity over the last seasons."""
+
+    activities = [
+        a for a in current_user.get_supervised_activities() if not a.deprecated
+    ]
+    if not activities:
+        flash("Aucune activité supervisée", "error")
+        return redirect(url_for(".activity_supervision"))
+
+    form = ActivityTypeSelectionForm(
+        formdata=request.args,
+        meta={"csrf": False},
+        activity_list=activities,
+        submit_label="Afficher",
+    )
+    activity = next(
+        (a for a in activities if a.id == form.activity_id.data), activities[0]
+    )
+    form.activity_id.data = activity.id
+
+    return render_template(
+        "activity_supervision/leaders_review.html",
+        form=form,
+        review=LeadersReview(activity),
+        inactivity_seasons=INACTIVITY_SEASONS,
+        title="Revue des encadrants",
     )
 
 

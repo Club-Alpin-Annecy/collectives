@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from collectives.models.globals import db
 from collectives.models.utils import ChoiceEnum
+from collectives.utils.time import current_time
 
 
 class RoleIds(ChoiceEnum):
@@ -203,6 +204,14 @@ class Role(db.Model):
     """ Type of the role.
 
     :type: :py:class:`RoleIds`
+    """
+
+    creation_time = db.Column(db.DateTime, nullable=True, default=current_time)
+    """ Time at which the role was granted.
+
+    Is null for roles granted before this column was introduced.
+
+    :type: :py:class:`datetime.datetime`
     """
 
     @property
