@@ -32,4 +32,57 @@
       value="Anonymiser les comptes expirés maintenant."
     >
   </form>
+
+  {% if loxya_enabled %}
+  <h5 class="heading-4">Synchronisation des comptes avec Loxya</h5>
+  {% if loxya_missing %}
+  <p>
+    <strong>Connexion à Loxya à renseigner :</strong>
+    {{ loxya_missing | join(', ') }}, dans la
+    <a href="{{ url_for('technician.configuration', selected_folder='Loxya') }}">Configuration</a>
+    (dossier Loxya). Tant qu'ils manquent, rien n'est envoyé à Loxya.
+  </p>
+  {% endif %}
+  <p>
+    Mode en vigueur : <strong>{{ loxya_mode.display_name() }}</strong>.
+    Il se règle dans la
+    <a href="{{ url_for('technician.configuration', selected_folder='Loxya') }}">Configuration</a>
+    (<code>Loxya/LOXYA_SYNC_ACTIVE</code> et <code>Loxya/LOXYA_AUTO_CREATE</code>).
+  </p>
+  <p>Simulation — ce qu'une synchronisation ferait maintenant, sans rien envoyer à Loxya :</p>
+  <ul>
+    <li>
+      <strong>{{ loxya_simulation[SyncAction.Created] }}</strong> adhérent(s) à créer
+      {% if loxya_mode == SyncMode.Off %}
+        <em>— aucun ne le sera tant que la synchronisation est éteinte</em>
+      {% elif loxya_mode == SyncMode.Manual %}
+        <em>— en mode manuel, uniquement à la main depuis la liste des utilisateurs</em>
+      {% endif %}
+    </li>
+    <li><strong>{{ loxya_simulation[SyncAction.Activated] }}</strong> compte(s) à réactiver</li>
+    <li><strong>{{ loxya_simulation[SyncAction.Deactivated] }}</strong> compte(s) à désactiver</li>
+    <li><strong>{{ loxya_simulation[SyncAction.Anonymized] }}</strong> compte(s) à anonymiser</li>
+    {% if SyncAction.LoginAdded in loxya_simulation %}
+    <li><strong>{{ loxya_simulation[SyncAction.LoginAdded] }}</strong> accès en ligne à ajouter</li>
+    {% endif %}
+  </ul>
+  <p>
+    La synchronisation s'exécute automatiquement chaque nuit. Le bouton ci-dessous la lance
+    immédiatement, dans le mode en vigueur.
+  </p>
+  <form
+    class="inline"
+    action="{{ url_for('technician.loxya_sync_action') }}"
+    method="post"
+    onsubmit="return confirm('Lancer la synchronisation Loxya maintenant, en mode {{ loxya_mode.display_name() }} ?');"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input
+      type="submit"
+      class="button button-primary"
+      value="Synchroniser avec Loxya maintenant"
+      {% if loxya_mode == SyncMode.Off %}disabled{% endif %}
+    >
+  </form>
+  {% endif %}
 {% endblock %}

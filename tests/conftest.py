@@ -8,6 +8,7 @@ pytest_plugins = [
     "tests.fixtures.payment",
     "tests.fixtures.stats",
     "tests.mock.extranet",
+    "tests.mock.loxya",
     "tests.mock.payline",
     "tests.mock.session",
 ]

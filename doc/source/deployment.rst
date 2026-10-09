@@ -140,3 +140,28 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+Loxya equipment platform (optional)
+....................................
+Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
+instance, so that equipment volunteers can lend them equipment. This is off by
+default, and leaves no trace at all on a site that does not enable it.
+
+To enable it, add to `instance/config.py`::
+
+    LOXYA_ENABLED = True
+
+then restart the service. This is the only setting that lives in a file: it is
+the switch that hides everything about Loxya from the sites that do not use it.
+
+A technician then enters the Loxya address and the credentials of the account
+the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` — in
+`/technician/configuration`, folder Loxya, like those of the FFCAM extranet.
+Nothing is sent to Loxya until they are all set, and the synchronization mode is
+also chosen there; `/technician/actions` previews what a run would do.
+
+By default, members only exist on Loxya as beneficiaries, picked by volunteers
+when lending equipment. With `LOXYA_CREATE_ACCOUNTS`, they also get a login
+account, to book online themselves: their licence number is the identifier, and
+they choose a password through Loxya's « Mot de passe oublié ? » link. Loxya
+refuses two accounts with the same email address, so only one member of a family
+sharing an address gets one.

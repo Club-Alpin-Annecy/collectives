@@ -172,6 +172,16 @@ class ConfigurationItem(db.Model):
 
     :type: Boolean"""
 
+    requires = db.Column(db.Text(), nullable=True)
+    """Name of an application setting this item depends on, if any.
+
+    The item is only shown and editable while that setting is truthy. This keeps
+    the settings of an optional feature out of sight of the deployments that do
+    not enable it — the code base is shared between several clubs. The item
+    still exists in the database; it is simply never displayed.
+
+    :type: string"""
+
     description = db.Column(db.Text(), nullable=False)
     """Description of the item.
 
@@ -199,6 +209,14 @@ class ConfigurationItem(db.Model):
 
     type = db.Column(db.Enum(ConfigurationTypeEnum))
     """ Configuration type. See :py:class:`ConfigurationTypeEnum` """
+
+    def is_available(self, app_config) -> bool:
+        """Checks whether this item should be shown and editable.
+
+        :param app_config: The Flask application config.
+        :return: False if the item depends on a setting that is off.
+        """
+        return not self.requires or bool(app_config.get(self.requires))
 
     def __init__(self, name):
         """Constructor of Configuration.

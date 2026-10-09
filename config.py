@@ -105,6 +105,53 @@ Can be set using environment variable.
 :type: boolean
 """
 
+# Loxya (equipment rental platform)
+#
+# Only the master switch and two technical constants live here. The URL and the
+# credentials are hot configuration items (folder Loxya), entered by technicians
+# like those of the FFCAM extranet: they must not be defined in this file, which
+# would take precedence over the database. Deliberately not read from environment
+# variables.
+LOXYA_ENABLED = False
+"""Master switch of the Loxya integration, off by default.
+
+This code base is shared between several clubs, most of which do not use Loxya.
+While this is off, the integration is invisible: no log line, no scheduled job,
+no column nor button in the administration, no configuration item shown, and its
+routes answer as an unknown URL. Once on, the synchronization itself is driven
+live from the configuration (``LOXYA_SYNC_ACTIVE``, ``LOXYA_AUTO_CREATE``), so it
+can be rolled out progressively without redeploying.
+
+To turn it on, set it to ``True`` in ``instance/config.py`` on the server and
+restart. It cannot be a hot configuration item: it is the switch that hides the
+Loxya items from the other clubs. Technicians then enter ``LOXYA_URL``,
+``LOXYA_API_USERNAME`` and ``LOXYA_API_PASSWORD`` in the configuration, folder
+Loxya; until they do, nothing is sent.
+
+:type: boolean
+"""
+
+
+
+
+LOXYA_TIMEOUT = 10
+"""Timeout in seconds for every call to the Loxya API.
+
+Without it, an unresponsive Loxya would freeze a Flask worker.
+
+:type: int
+"""
+
+LOXYA_RATE_LIMIT = 10
+"""Maximum number of requests per second sent to Loxya.
+
+Enforced by the client itself rather than in reaction to a 429. Sizes the
+initial backfill.
+
+:type: float
+"""
+
+
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 

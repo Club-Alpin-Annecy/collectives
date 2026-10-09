@@ -597,3 +597,68 @@ Désinscriptions tardives:
         content: 18
         description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
         type: Integer
+
+# Visible et modifiable uniquement lorsque LOXYA_ENABLED est activé dans
+# instance/config.py : les clubs qui n'utilisent pas Loxya n'en voient rien.
+Loxya:
+    LOXYA_URL:
+        content: ""
+        description: |
+            Adresse de l'instance Loxya du club, par exemple https://mon-club.loxya.app.
+            Tant qu'elle et les identifiants ci-dessous ne sont pas renseignés, rien
+            n'est envoyé à Loxya.
+        type: ShortString
+        requires: LOXYA_ENABLED
+
+    LOXYA_API_USERNAME:
+        content: ""
+        description: Identifiant du compte Loxya utilisé par le site pour synchroniser les adhérents
+        type: ShortString
+        requires: LOXYA_ENABLED
+
+    LOXYA_API_PASSWORD:
+        content: ""
+        description: Mot de passe du compte Loxya utilisé par le site
+        type: ShortString
+        hidden: true
+        requires: LOXYA_ENABLED
+
+    LOXYA_SYNC_ACTIVE:
+        content: false
+        description: |
+            Active la synchronisation des comptes adhérents avec Loxya.
+            Désactivé : rien n'est envoyé à Loxya, ni automatiquement ni à la main.
+            Activé seul (mode « manuel ») : les comptes ne sont créés sur Loxya qu'à la
+            main, depuis la liste des utilisateurs ; les comptes déjà créés sont ensuite
+            tenus à jour automatiquement (désactivation à l'expiration de la licence,
+            réactivation au renouvellement).
+            Prise en compte en moins d'une minute, sans redémarrage.
+        type: Boolean
+        requires: LOXYA_ENABLED
+
+    LOXYA_AUTO_CREATE:
+        content: false
+        description: |
+            Crée automatiquement sur Loxya le compte de tout adhérent actif (mode « auto ») :
+            chaque nuit, à l'inscription et à la connexion. Sans effet tant que
+            LOXYA_SYNC_ACTIVE est désactivé.
+            À activer une fois la phase pilote validée : la nuit suivante crée les comptes
+            de tous les adhérents actifs.
+        type: Boolean
+        requires: LOXYA_ENABLED
+
+    LOXYA_CREATE_ACCOUNTS:
+        content: false
+        description: |
+            Donne aussi aux adhérents un compte de connexion Loxya, pour réserver en ligne
+            par eux-mêmes (matériel, et peut-être demain les salles). Désactivé : ils
+            n'existent sur Loxya que comme bénéficiaires, que les bénévoles choisissent
+            lors d'un prêt.
+            Identifiant : le numéro de licence. Le mot de passe, aléatoire, n'est connu de
+            personne : l'adhérent choisit le sien par « Mot de passe oublié ? » sur Loxya.
+            Loxya refuse deux comptes avec la même adresse e-mail : dans une famille qui en
+            partage une, seul le premier adhérent reçoit un compte, les autres restent
+            bénéficiaires.
+            Activée, l'option ajoute un compte aux adhérents déjà présents sur Loxya.
+        type: Boolean
+        requires: LOXYA_ENABLED

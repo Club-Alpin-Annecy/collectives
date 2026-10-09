@@ -163,6 +163,36 @@ class UserModelMixin:
 
     :type: :py:class:`datetime.datetime`"""
 
+    loxya_beneficiary_id = db.Column(db.Integer, nullable=True, index=True)
+    """ Id of the matching beneficiary on the Loxya equipment platform.
+
+    `None` means the member has never been created on Loxya, or was unlinked
+    after being anonymized. See :py:mod:`collectives.utils.loxya_sync`.
+
+    :type: int"""
+
+    loxya_user_id = db.Column(db.Integer, nullable=True)
+    """ Id of the Loxya login account of the member, to book online.
+
+    `None` when the beneficiary has none: login accounts are optional, see the
+    ``LOXYA_CREATE_ACCOUNTS`` setting.
+
+    :type: int"""
+
+    loxya_active = db.Column(db.Boolean, nullable=True)
+    """ Last activation state actually pushed to Loxya.
+
+    Compared against :py:attr:`is_active` to build the list of changes to apply.
+    `None` means never synchronized. This column also guards against issuing a
+    second ``DELETE``, which Loxya turns into a permanent deletion.
+
+    :type: boolean"""
+
+    loxya_synced_at = db.Column(db.DateTime, nullable=True)
+    """ Date of the last successful synchronization with Loxya.
+
+    :type: :py:class:`datetime.datetime`"""
+
     gender = db.Column(
         db.Enum(Gender),
         nullable=False,

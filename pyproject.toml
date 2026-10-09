@@ -28,6 +28,7 @@ dependencies = [
     "flask-marshmallow",
     "cmarkgfm",
     "pymysql",
+    "requests",
     "dkimpy",
     "email_validator",
     "openpyxl",
