@@ -2,6 +2,9 @@
 
 from datetime import datetime, timedelta
 
+import sqlalchemy as sa
+from sqlalchemy import event
+
 from collectives.models import (
     ActivityType,
     Event,
@@ -12,6 +15,7 @@ from collectives.models import (
     RegistrationStatus,
     Role,
     RoleIds,
+    UserType,
     db,
 )
 from collectives.utils.leaders_review import LeadersReview
@@ -222,3 +226,67 @@ def test_role_creation_time(supervisor_client, user1):
 
     role = Role.query.filter_by(user_id=user1.id).one()
     assert role.creation_time is not None
+
+
+def test_review_query_count_is_constant(supervisor_user, user1, user2):
+    """Test that the review does not fire one user query per role holder."""
+    _age_roles()
+
+    def count_queries():
+        statements = []
+
+        def record(_conn, _cursor, statement, *_args):
+            statements.append(statement)
+
+        db.session.expire_all()
+        event.listen(db.engine, "before_cursor_execute", record)
+        try:
+            LeadersReview(_alpinisme(), now=NOW)
+        finally:
+            event.remove(db.engine, "before_cursor_execute", record)
+        return len(statements)
+
+    count_queries()  # warm up
+    baseline = count_queries()
+
+    promote_user(user1, RoleIds.EventLeader)
+    promote_user(user2, RoleIds.Trainee)
+    db.session.commit()
+
+    assert count_queries() == baseline
+
+
+def test_review_unverified_account_badge(supervisor_client, leader_user):
+    """Test that a not yet validated email is not reported as an expired licence."""
+    leader_user.type = UserType.UnverifiedLocal
+    db.session.commit()
+
+    response = supervisor_client.get("/activity_supervision/leader/review")
+    assert response.status_code == 200
+
+    table = response.text.split('<table class="leaders-review-table">')[1]
+    assert "Email non vérifié" in table
+    assert "Licence expirée" not in table
+
+
+def test_remove_orphan_role(supervisor_client):
+    """Test removing a role which is not linked to any user anymore."""
+    activity = _alpinisme()
+    db.session.execute(
+        sa.text(
+            "INSERT INTO roles (user_id, activity_id, role_id) VALUES "
+            "(NULL, :activity_id, 'EventLeader')"
+        ),
+        {"activity_id": activity.id},
+    )
+    db.session.commit()
+    role_id = db.session.execute(sa.text("SELECT max(id) FROM roles")).scalar()
+
+    response = supervisor_client.post(
+        f"/activity_supervision/leader/delete/{role_id}", data={"from_review": "1"}
+    )
+    assert response.status_code == 302
+    assert db.session.get(Role, role_id) is None
+
+    response = supervisor_client.get(response.location)
+    assert "retiré pour l" in response.text

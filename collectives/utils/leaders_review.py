@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Set, Tuple
 
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from collectives.models import (
     ActivityType,
@@ -109,8 +110,10 @@ class LeadersReview:
         """:return: the activity-related roles of the reviewed activity"""
         query = Role.query.filter(Role.activity_id == self.activity.id)
         query = query.filter(Role.role_id.in_(RoleIds.all_relates_to_activity()))
-        query = query.join(Role.user)
-        return query.all()
+        # Roles are expected to have a user, and the review accesses it for
+        # every row: load it now rather than one query per role holder.
+        query = query.filter(Role.user_id.isnot(None))
+        return query.options(joinedload(Role.user)).all()
 
     def _activity_events_filter(self):
         """:return: SQL condition on confirmed events of the reviewed activity"""
