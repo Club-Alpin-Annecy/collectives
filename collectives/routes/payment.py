@@ -505,8 +505,7 @@ def report_offline(registration_id, payment_id=None):
 @blueprint.route("/<payment_id>/pay", methods=["GET"])
 @valid_user()
 def request_payment(payment_id):
-    """Route for displaying the Payline payment widget.
-    If Payline is not configured properly display a mock payment page.
+    """Route for redirecting the user to the payment processor checkout page.
     If the item is free approve the payment immediately with a 0.0 "Cash" transaction.
 
     :param payment_id: The primary key of the payment being made
@@ -546,17 +545,14 @@ def request_payment(payment_id):
 
         provider = get_active_provider()
 
-        if payment.processor_url:
-            # Payment has already been registered with the payment processor
-            if payment.processor_token:
-                # Check that the payment has not already been finalized
-                status = retrieve_remote_status(payment)
-                if status is not None:
-                    if status.status != PaymentStatus.Initiated:
-                        finalize_payment(payment, status)
-                        return redirect(
-                            url_for("event.view_event", event_id=payment.item.event_id)
-                        )
+        if payment.is_submitted_to_processor():
+            # Check that the payment has not already been finalized
+            status = retrieve_remote_status(payment)
+            if status is not None and status.status != PaymentStatus.Initiated:
+                    finalize_payment(payment, status)
+                    return redirect(
+                        url_for("event.view_event", event_id=payment.item.event_id)
+                    )
 
             # Simply redirect to the processor url
             return redirect(payment.processor_url)

@@ -61,11 +61,6 @@ class RefundResult:
 
 class PaymentProvider(ABC):
     """Interface that online payment processor integrations must implement.
-
-    A concrete implementation wraps a specific processor's API (SOAP, REST, ...)
-    and exposes it through this processor-agnostic surface, so that
-    :py:mod:`collectives.routes.payment` does not need to know which processor
-    is active.
     """
 
     payment_type: PaymentType
