@@ -124,10 +124,14 @@ class HelloAssoApi(PaymentProvider):
         """ Monotonic timestamp at which :py:attr:`_access_token` expires"""
 
     def reload_config(self):
-        """Reads current configuration"""
+        """Reads current configuration, dropping the cached access token if
+        any setting it depends on has changed"""
 
-        organization_changed = (
-            self.organization_slug != Configuration.HELLOASSO_ORGANIZATION_SLUG
+        previous_config = (
+            self.client_id,
+            self.client_secret,
+            self.organization_slug,
+            self.sandbox,
         )
 
         self.client_id = Configuration.HELLOASSO_CLIENT_ID
@@ -135,13 +139,35 @@ class HelloAssoApi(PaymentProvider):
         self.organization_slug = Configuration.HELLOASSO_ORGANIZATION_SLUG
         self.sandbox = Configuration.HELLOASSO_SANDBOX
 
-        if organization_changed:
-            self._access_token = ""
-            self._token_expiry = 0.0
+        current_config = (
+            self.client_id,
+            self.client_secret,
+            self.organization_slug,
+            self.sandbox,
+        )
+
+        if current_config != previous_config:
+            self._reset_access_token()
             if self.disabled():
                 current_app.logger.warning(
                     "HelloAsso payment API disabled, using mock API"
                 )
+
+    def _reset_access_token(self):
+        """Drops the cached OAuth2 access token, so that the next request
+        fetches a new one"""
+        self._access_token = ""
+        self._token_expiry = 0.0
+
+    def _handle_api_error(self, err: requests.RequestException):
+        """Logs a HelloAsso API error, and drops the cached access token if
+        it has been rejected (e.g. revoked, or issued for other credentials).
+
+        :param err: The exception raised by the failed request
+        """
+        if err.response is not None and err.response.status_code == 401:
+            self._reset_access_token()
+        _log_api_error(err)
 
     def disabled(self) -> bool:
         """Check if a HelloAsso client id has been set.
@@ -247,7 +273,7 @@ class HelloAssoApi(PaymentProvider):
             )
             response.raise_for_status()
         except requests.RequestException as err:
-            _log_api_error(err)
+            self._handle_api_error(err)
             return None
 
         data = response.json()
@@ -297,7 +323,7 @@ class HelloAssoApi(PaymentProvider):
             )
             response.raise_for_status()
         except requests.RequestException as err:
-            _log_api_error(err)
+            self._handle_api_error(err)
             return None
 
         data = response.json()
@@ -338,10 +364,36 @@ class HelloAssoApi(PaymentProvider):
             )
             response.raise_for_status()
         except requests.RequestException as err:
-            _log_api_error(err)
+            self._handle_api_error(err)
             return None
 
         return RefundResult(accepted=True, raw_metadata=json.dumps(response.json()))
+
+    def checkout_expired(self, payment: Payment, status: PaymentStatusResult) -> bool:
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.checkout_expired`
+
+        HelloAsso's API never reports a checkout intent as expired: it simply
+        never gets an order. Its checkout page (``redirectUrl``, valid for 15
+        minutes) however answers 404 once expired, so check it directly. Any
+        other answer, or failing to reach it, keeps the current checkout.
+        """
+        try:
+            if json.loads(status.raw_metadata).get("order"):
+                # A payment has been made on this checkout intent, or is in
+                # progress: replacing it could have the buyer pay twice
+                return False
+        except (json.JSONDecodeError, AttributeError):
+            return False
+
+        try:
+            response = requests.get(payment.processor_url, timeout=REQUEST_TIMEOUT)
+        except requests.RequestException as err:
+            current_app.logger.warning(
+                f"HelloAsso: could not check checkout page of payment {payment.id}: {err}"
+            )
+            return False
+
+        return response.status_code == 404
 
     @staticmethod
     def _checkout_intent_id(payment: Payment) -> Optional[str]:
