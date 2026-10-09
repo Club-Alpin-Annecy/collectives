@@ -25,6 +25,7 @@ depends_on = None
 
 COLUMNS = (
     "loxya_beneficiary_id",
+    "loxya_user_id",
     "loxya_active",
     "loxya_synced_at",
 )
@@ -37,7 +38,10 @@ INDEX_NAME = "ix_users_loxya_beneficiary_id"
 def upgrade():
     """Adds the Loxya synchronization columns to the users table."""
     with op.batch_alter_table("users", schema=None) as batch_op:
-        batch_op.add_column(sa.Column("loxya_beneficiary_id", sa.Integer(), nullable=True))
+        batch_op.add_column(
+            sa.Column("loxya_beneficiary_id", sa.Integer(), nullable=True)
+        )
+        batch_op.add_column(sa.Column("loxya_user_id", sa.Integer(), nullable=True))
         batch_op.add_column(sa.Column("loxya_active", sa.Boolean(), nullable=True))
         batch_op.add_column(sa.Column("loxya_synced_at", sa.DateTime(), nullable=True))
         batch_op.create_index(INDEX_NAME, ["loxya_beneficiary_id"], unique=False)

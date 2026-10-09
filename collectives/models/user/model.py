@@ -167,8 +167,15 @@ class UserModelMixin:
     """ Id of the matching beneficiary on the Loxya equipment platform.
 
     `None` means the member has never been created on Loxya, or was unlinked
-    after being anonymized. No login account is created alongside: members do
-    not sign in to Loxya. See :py:mod:`collectives.utils.loxya_sync`.
+    after being anonymized. See :py:mod:`collectives.utils.loxya_sync`.
+
+    :type: int"""
+
+    loxya_user_id = db.Column(db.Integer, nullable=True)
+    """ Id of the Loxya login account of the member, to book online.
+
+    `None` when the beneficiary has none: login accounts are optional, see the
+    ``LOXYA_CREATE_ACCOUNTS`` setting.
 
     :type: int"""
 

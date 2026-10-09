@@ -514,3 +514,154 @@ def test_admin_list_exposes_loxya_state(loxya_session, admin_client, linked_memb
     row = next(u for u in response.json["data"] if u["id"] == linked_member.id)
     assert row["loxya_active"] is True
     assert row["loxya_sync_uri"].endswith(f"/user/{linked_member.id}/loxya/sync")
+
+
+# -- Login accounts --------------------------------------------------------------
+
+USERS = "/api/users"
+
+
+@pytest.fixture
+def with_logins(loxya_session):
+    """Members get a login account, to book online."""
+    set_loxya_mode(active=True, auto_create=True, logins=True)
+    return loxya_session
+
+
+@pytest.fixture
+def member_with_login(linked_member):
+    """A linked member who also has login account 101."""
+    linked_member.loxya_user_id = 101
+    db.session.commit()
+    return linked_member
+
+
+def wants_login(kwargs) -> bool:
+    """Checks whether a beneficiary payload asks for a login account."""
+    return bool(kwargs["json"].get("can_make_reservation"))
+
+
+def test_creation_with_a_login(with_logins, member1):
+    """The licence number is the identifier; the password is random, and unknown."""
+    with_logins.script("POST", BENEFICIARIES, 201, beneficiary(user_id=101))
+
+    assert loxya_sync.sync_user(member1) == SyncAction.Created
+
+    sent = with_logins.calls_to("POST", BENEFICIARIES)[0][2]["json"]
+    assert sent["can_make_reservation"] is True
+    assert sent["pseudo"] == member1.license
+    assert len(sent["password"]) >= 20
+    assert member1.loxya_user_id == 101
+
+
+def test_login_refused_falls_back_to_a_beneficiary(with_logins, member1):
+    """An address already used by an account entered by hand: beneficiary only."""
+
+    def create(kwargs):
+        if wants_login(kwargs):
+            return 400, {"error": {"code": 400, "details": {"email": "Déjà utilisée."}}}
+        return 201, beneficiary()
+
+    with_logins.route("POST", BENEFICIARIES, create)
+
+    assert loxya_sync.sync_user(member1) == SyncAction.Created
+    assert member1.loxya_beneficiary_id == 7
+    assert member1.loxya_user_id is None
+
+
+def test_a_family_address_gets_a_single_login(with_logins, member_with_login, member2):
+    """Loxya refuses two logins with one address: the second member gets none."""
+    member2.mail = member_with_login.mail.upper()
+    db.session.commit()
+    with_logins.script("POST", BENEFICIARIES, 201, beneficiary(beneficiary_id=8))
+
+    loxya_sync.sync_user(member2)
+
+    (create,) = with_logins.calls_to("POST", BENEFICIARIES)
+    assert not wants_login(create[2])
+    assert SyncAction.LoginAdded not in loxya_sync.sync_all_users().actions
+
+
+def test_login_added_to_a_member_already_on_loxya(with_logins, linked_member):
+    """Switching the option on equips the members already created."""
+    assert loxya_sync.simulate()[SyncAction.LoginAdded] == 1
+    with_logins.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary(note="kept"))
+    with_logins.script("PUT", f"{BENEFICIARIES}/7", 200, beneficiary(user_id=101))
+
+    report = loxya_sync.sync_all_users()
+
+    assert report.actions == {SyncAction.LoginAdded: 1}
+    sent = with_logins.calls_to("PUT", f"{BENEFICIARIES}/7")[0][2]["json"]
+    assert wants_login({"json": sent}) and sent["pseudo"] == linked_member.license
+    assert sent["note"] == "kept"
+    assert linked_member.loxya_user_id == 101
+    assert loxya_sync.simulate()[SyncAction.LoginAdded] == 0
+
+
+def test_no_login_without_the_option(loxya_session, linked_member):
+    """Off by default: members stay beneficiaries, nothing to add."""
+    assert SyncAction.LoginAdded not in loxya_sync.simulate()
+    assert loxya_sync.sync_user(linked_member) is None
+
+
+def test_deactivation_trashes_the_login_too(loxya_session, member_with_login):
+    """Trashing a beneficiary leaves its login usable: both go."""
+    loxya_session.script("GET", f"{USERS}/101", 200, {"id": 101})
+    loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary(user_id=101))
+    loxya_session.script("DELETE", f"{USERS}/101", 204)
+    loxya_session.script("DELETE", f"{BENEFICIARIES}/7", 204)
+
+    loxya_sync.deactivate_account(member_with_login)
+
+    assert len(loxya_session.calls_to("DELETE", f"{USERS}/101")) == 1
+    assert len(loxya_session.calls_to("DELETE", f"{BENEFICIARIES}/7")) == 1
+
+
+def test_no_login_delete_when_already_trashed(loxya_session, member_with_login):
+    """Same guard as for the beneficiary: a second DELETE would purge the login."""
+    loxya_session.script("GET", f"{USERS}/101", 404, {})
+    loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary(user_id=101))
+    loxya_session.script("DELETE", f"{BENEFICIARIES}/7", 204)
+
+    loxya_sync.deactivate_account(member_with_login)
+
+    assert loxya_session.calls_to("DELETE", f"{USERS}/101") == []
+
+
+def test_reactivation_restores_the_login(loxya_session, member_with_login):
+    """The login comes back out of the trash bin with its beneficiary."""
+    member_with_login.loxya_active = False
+    db.session.commit()
+    loxya_session.script("PUT", f"{BENEFICIARIES}/restore/7", 200, beneficiary())
+    loxya_session.script("PUT", f"{USERS}/restore/101", 200, {"id": 101})
+
+    assert loxya_sync.reactivate_account(member_with_login) == SyncAction.Activated
+    assert member_with_login.loxya_user_id == 101
+
+
+def test_reactivation_forgets_a_purged_login(loxya_session, member_with_login):
+    """Purged by hand: forgotten, so that the option can add a new one."""
+    member_with_login.loxya_active = False
+    db.session.commit()
+    loxya_session.script("PUT", f"{BENEFICIARIES}/restore/7", 200, beneficiary())
+
+    loxya_sync.reactivate_account(member_with_login)
+
+    assert member_with_login.loxya_user_id is None
+    assert member_with_login.loxya_active is True
+
+
+def test_anonymization_purges_the_login(loxya_session, member_with_login):
+    """The login holds an email and a name: deleted for good, unlike the
+    beneficiary, which carries the rental history."""
+    member_with_login.anonymize()
+    db.session.commit()
+    loxya_session.script("DELETE", f"{USERS}/101", 204)
+    loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary())
+    loxya_session.script("PUT", f"{BENEFICIARIES}/7", 200, beneficiary())
+    loxya_session.script("DELETE", f"{BENEFICIARIES}/7", 204)
+
+    assert loxya_sync.sync_user(member_with_login) == SyncAction.Anonymized
+    assert len(loxya_session.calls_to("DELETE", f"{USERS}/101")) == 2
+    assert len(loxya_session.calls_to("DELETE", f"{BENEFICIARIES}/7")) == 1
+    assert member_with_login.loxya_user_id is None
