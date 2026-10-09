@@ -60,8 +60,7 @@ class RefundResult:
 
 
 class PaymentProvider(ABC):
-    """Interface that online payment processor integrations must implement.
-    """
+    """Interface that online payment processor integrations must implement."""
 
     payment_type: PaymentType
     """Payment type identifying this provider (e.g. ``PaymentType.Payline``),
@@ -107,6 +106,23 @@ class PaymentProvider(ABC):
         :param payment: The database payment entry to refund
         :return: The refund result, or None if the API call failed outright
         """
+
+    def checkout_expired(self, payment: Payment, status: PaymentStatusResult) -> bool:
+        """Checks whether the checkout page previously created for a still
+        unsettled payment can no longer be used, in which case a new checkout
+        must be created for the buyer to be able to pay.
+
+        Default implementation returns False, for processors which report
+        expired checkouts through :py:meth:`retrieve_remote_payment_status`
+        instead (e.g. Payline, as ``PaymentStatus.Expired``).
+
+        :param payment: The database payment entry, as previously updated by
+            :py:meth:`create_checkout`
+        :param status: The payment status, as just returned by
+            :py:meth:`retrieve_remote_payment_status`
+        :return: True if a new checkout must be created
+        """
+        return False
 
     def parse_callback(
         self, endpoint: str, args: Dict[str, Any], form: Dict[str, Any]

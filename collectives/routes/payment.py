@@ -549,13 +549,18 @@ def request_payment(payment_id):
             # Check that the payment has not already been finalized
             status = retrieve_remote_status(payment)
             if status is not None and status.status != PaymentStatus.Initiated:
-                    finalize_payment(payment, status)
-                    return redirect(
-                        url_for("event.view_event", event_id=payment.item.event_id)
-                    )
+                finalize_payment(payment, status)
+                return redirect(
+                    url_for("event.view_event", event_id=payment.item.event_id)
+                )
 
-            # Simply redirect to the processor url
-            return redirect(payment.processor_url)
+            # Simply redirect to the processor url, unless its checkout page
+            # has expired: then fall through to create a new checkout
+            original_provider = get_provider_by_name(payment.payment_type)
+            if status is None or not original_provider.checkout_expired(
+                payment, status
+            ):
+                return redirect(payment.processor_url)
 
         # Redirect to the payment processor page
         checkout = provider.create_checkout(payment, current_user)
@@ -582,8 +587,8 @@ def request_payment(payment_id):
         payment.processor_token = checkout.token
         payment.processor_order_ref = unique_order_ref(payment)
         payment.processor_url = checkout.redirect_url
-        if checkout.raw_metadata:
-            payment.raw_metadata = checkout.raw_metadata
+        # Also drops the metadata of any previous, expired checkout
+        payment.raw_metadata = checkout.raw_metadata
         db.session.add(payment)
         db.session.commit()
         return redirect(payment.processor_url)
@@ -684,7 +689,7 @@ def process():
         if token:
             break
 
-    if token is None:
+    if not token:
         abort(403)
 
     payment = Payment.query.filter_by(processor_token=token).first()

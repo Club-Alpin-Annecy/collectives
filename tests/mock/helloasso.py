@@ -1,5 +1,8 @@
 """Mock functions for HelloAsso."""
 
+import itertools
+from types import SimpleNamespace
+
 import pytest
 
 from collectives.models import Configuration
@@ -58,6 +61,7 @@ _CONFIG_KEYS = (
     "HELLOASSO_CLIENT_ID",
     "HELLOASSO_CLIENT_SECRET",
     "HELLOASSO_ORGANIZATION_SLUG",
+    "HELLOASSO_SANDBOX",
 )
 
 
@@ -85,3 +89,54 @@ def helloasso_monkeypatch(app, monkeypatch):
     # against its own fresh db) does not read back these stale cached values.
     for name in _CONFIG_KEYS:
         Configuration.uncache(name)
+
+
+@pytest.fixture
+def helloasso_checkouts(helloasso_monkeypatch, monkeypatch):
+    """Mock creating a new checkout intent (id 987654, then 987655, ...) on
+    each checkout request.
+
+    :return: An object whose ``payment_states`` dict maps a checkout intent
+        id to the state of its payment (e.g. ``{987654: "Authorized"}``; no
+        order, i.e. nothing paid, if absent), and whose ``expired`` set lists
+        the checkout intents whose checkout page answers 404."""
+    checkouts = SimpleNamespace(payment_states={}, expired=set())
+    intent_ids = itertools.count(987654)
+
+    def checkouts_post(url, **kwargs):
+        """Mock POST calls, creating a new checkout intent on each request"""
+        if url.endswith("/checkout-intents"):
+            intent_id = next(intent_ids)
+            return FakeResponse(
+                {
+                    "id": intent_id,
+                    "redirectUrl": f"https://checkout.helloasso-sandbox.com/{intent_id}",
+                }
+            )
+        return fake_post(url, **kwargs)
+
+    def checkouts_get(url, **kwargs):
+        """Mock GET calls to a checkout intent, or to its checkout page,
+        according to the state recorded in ``checkouts``"""
+        intent_id = int(url.rsplit("/", 1)[-1])
+        if "/checkout-intents/" not in url:
+            # Checkout page the buyer is redirected to
+            expired = intent_id in checkouts.expired
+            return SimpleNamespace(status_code=404 if expired else 200)
+
+        data = {"id": intent_id}
+        if intent_id in checkouts.payment_states:
+            state = checkouts.payment_states[intent_id]
+            data["order"] = {
+                "amount": {"total": 1000},
+                "payments": [{"id": "555", "state": state}],
+            }
+        return FakeResponse(data)
+
+    monkeypatch.setattr(
+        "collectives.utils.payment_provider.helloasso.requests.post", checkouts_post
+    )
+    monkeypatch.setattr(
+        "collectives.utils.payment_provider.helloasso.requests.get", checkouts_get
+    )
+    return checkouts

@@ -716,6 +716,15 @@ class Payment(db.Model):
             and bool(self.processor_token)
         )
 
+    def is_mock(self):
+        """:return: whether this online payment went through the mock payment
+                    page (payment processor not configured) instead of a real
+                    processor, i.e. no money has actually been collected
+        :rtype: bool"""
+        return self.payment_type in ONLINE_PAYMENT_TYPES and "/do_mock_payment/" in (
+            self.processor_url or ""
+        )
+
     def has_receipt(self):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)

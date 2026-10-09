@@ -3,7 +3,14 @@
 # pylint: disable=unused-argument
 from flask import url_for
 
-from collectives.models import Payment, PaymentType, RegistrationStatus, db
+from collectives.models import (
+    Configuration,
+    Payment,
+    PaymentStatus,
+    PaymentType,
+    RegistrationStatus,
+    db,
+)
 from tests import utils
 
 
@@ -186,6 +193,110 @@ def test_helloasso_registration(user1_client, paying_event, helloasso_monkeypatc
     assert response.location == f"/collectives/{paying_event.id}-"
     assert paying_event.registrations[0].user == user1_client.user
     assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+    # Real (non-mock) payment: receipt carries no mock warning
+    assert not payment.is_mock()
+    response = user1_client.get(f"/payment/{payment.id}/receipt")
+    assert response.status_code == 200
+    assert "Paiement fictif" not in response.text
+
+
+def test_helloasso_mock_registration(user1_client, paying_event, helloasso_monkeypatch):
+    """Test that a payment made while HelloAsso is not configured (mock mode)
+    is flagged as mock, with a warning on its receipt"""
+    Configuration.get_item("HELLOASSO_CLIENT_ID").content = ""
+    Configuration.uncache("HELLOASSO_CLIENT_ID")
+
+    response = user1_client.get(
+        f"/collectives/{paying_event.id}", follow_redirects=True
+    )
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item_price = paying_event.payment_items[0].cheapest_price_for_user_now(
+        user1_client.user
+    )
+    data["item_price"] = item_price.id
+
+    response = user1_client.post(
+        f"/collectives/{paying_event.id}/self_register", data=data
+    )
+    response = user1_client.get(response.location)
+    payment = Payment.query.one()
+    assert response.location == f"/payment/do_mock_payment/{payment.processor_token}"
+    assert payment.is_mock()
+
+    # Mock "Paiement accepté" link
+    amount = int(payment.amount_charged * 100)
+    response = user1_client.get(
+        f"/payment/process?token={payment.processor_token}"
+        f"&message=ACCEPTED&amount={amount}"
+    )
+    assert response.status_code == 302
+    assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+    response = user1_client.get(f"/payment/{payment.id}/receipt")
+    assert response.status_code == 200
+    assert "Paiement fictif" in response.text
+
+
+def _start_helloasso_payment(client, event):
+    """Self-registers the client's user to a paying event, up to the redirection
+    to the HelloAsso checkout
+
+    :return: The response redirecting to HelloAsso, and the created payment"""
+    response = client.get(f"/collectives/{event.id}", follow_redirects=True)
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item_price = event.payment_items[0].cheapest_price_for_user_now(client.user)
+    data["item_price"] = item_price.id
+
+    response = client.post(f"/collectives/{event.id}/self_register", data=data)
+    response = client.get(response.location)
+    return response, Payment.query.one()
+
+
+def test_helloasso_expired_checkout(user1_client, paying_event, helloasso_checkouts):
+    """Test that an unpaid HelloAsso checkout is replaced by a new one once it
+    has expired, rather than sending the buyer back to its dead redirect URL"""
+    response, payment = _start_helloasso_payment(user1_client, paying_event)
+    assert response.location == "https://checkout.helloasso-sandbox.com/987654"
+    first_token = payment.processor_token
+
+    # Buyer leaves the checkout through HelloAsso's back link: still unpaid
+    response = user1_client.get(f"/payment/cancel?token={first_token}")
+    assert response.status_code == 302
+    assert payment.status == PaymentStatus.Initiated
+    assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
+
+    # Before expiry, buyer is sent back to the same checkout
+    response = user1_client.get(f"/payment/{payment.id}/pay")
+    assert response.location == "https://checkout.helloasso-sandbox.com/987654"
+
+    # After expiry (checkout page answers 404), a new checkout is created
+    helloasso_checkouts.expired.add(987654)
+    response = user1_client.get(f"/payment/{payment.id}/pay")
+    assert response.location == "https://checkout.helloasso-sandbox.com/987655"
+    assert payment.processor_token != first_token
+    assert payment.status == PaymentStatus.Initiated
+
+    # Paying the new checkout confirms the registration
+    helloasso_checkouts.payment_states[987655] = "Authorized"
+    response = user1_client.get(f"/payment/process?token={payment.processor_token}")
+    assert response.status_code == 302
+    assert payment.status == PaymentStatus.Approved
+    assert paying_event.registrations[0].status == RegistrationStatus.Active
+
+
+def test_helloasso_expired_checkout_with_order(
+    user1_client, paying_event, helloasso_checkouts
+):
+    """Test that a checkout is never replaced once HelloAsso has an order for
+    it, so that a payment still in progress cannot be made twice"""
+    response, payment = _start_helloasso_payment(user1_client, paying_event)
+    helloasso_checkouts.payment_states[987654] = "WaitingAuthentication"
+
+    helloasso_checkouts.expired.add(987654)
+    response = user1_client.get(f"/payment/{payment.id}/pay")
+    assert response.location == "https://checkout.helloasso-sandbox.com/987654"
+    assert payment.status == PaymentStatus.Initiated
 
 
 def test_payline_registration_unfinalized(
