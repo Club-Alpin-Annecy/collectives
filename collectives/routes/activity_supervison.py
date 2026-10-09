@@ -7,6 +7,7 @@ import sqlalchemy as sa
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -29,6 +30,7 @@ from collectives.forms.badge import (
     BadgeCustomPractitionerLevelForm,
 )
 from collectives.forms.csv import CSVForm
+from collectives.forms.export import DatabaseExportForm
 from collectives.forms.upload import AddActivityDocumentForm
 from collectives.forms.user import AddLeaderForm
 from collectives.models import (
@@ -282,6 +284,48 @@ def activity_supervision():
     return render_template(
         "activity_supervision/activity_supervision.html",
         title="Gestion des activités",
+    )
+
+
+@blueprint.route("/database_export", methods=["GET", "POST"])
+@user_is("can_manage_all_activities", api=True)
+def database_export():
+    """Export the raw database as a zip of csv files (activity managers only).
+
+    Access is restricted to users who manage all activities (admins and
+    presidents). The exported events are restricted by the FFCAM year and
+    activity selected in the form. Every event status is included, unlike the
+    statistics engine.
+    """
+    form = DatabaseExportForm()
+
+    if request.method == "POST":
+        if not form.validate_on_submit():
+            flash("Filtre d'export invalide", "error")
+            return redirect(url_for(".database_export"))
+
+        kwargs = {"year": form.year.data}
+        if form.activity_id.data != form.ALL_ACTIVITIES:
+            kwargs["activity_id"] = form.activity_id.data
+
+        export_result = export.DatabaseExportService(**kwargs).export()
+        current_app.logger.info(
+            "Database export by admin %s (%s): %s",
+            current_user.id,
+            current_user.full_name(),
+            export_result.row_counts,
+        )
+        return send_file(
+            export_result.stream,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=export_result.download_name,
+        )
+
+    return render_template(
+        "activity_supervision/database_export.html",
+        form=form,
+        title="Export de la base de données",
     )
 
 

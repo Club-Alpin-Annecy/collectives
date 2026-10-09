@@ -27,9 +27,6 @@ class StatisticsParametersForm(ActivityTypeSelectionForm):
     excel = SubmitField(label="Export Excel")
     """ Submit button for excel download """
 
-    database = SubmitField(label="Export base de données")
-    """ Submit button for raw database export (admins only) """
-
     def __init__(self, *args, **kwargs):
         """Creates a new form"""
         current_year = get_ffcam_year(date.today())

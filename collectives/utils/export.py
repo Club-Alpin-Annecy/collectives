@@ -320,25 +320,22 @@ class DatabaseExportService:
 
     The csv columns are fixed (see :data:`REGISTRATION_COLUMNS` and
     :data:`LEADER_COLUMNS`), so only an approved set of personal data is
-    exported (see ``tests/test_database_export.py``). The stats filters (year,
-    event types, activity) restrict the exported events. Contrary to the
+    exported (see ``tests/test_database_export.py``). The activity supervision
+    filters (year, activity) restrict the exported events. Contrary to the
     statistics engine, every event status is included.
     """
 
     def __init__(
         self,
         year: Optional[int] = None,
-        event_type_ids: Optional[List[int]] = None,
         activity_id: Optional[int] = None,
     ) -> None:
         """Creates a new export service.
 
         :param year: FFCAM year to restrict events to. None means no date restriction.
-        :param event_type_ids: Event types to restrict to. Empty means all.
         :param activity_id: Activity to restrict to. None means all.
         """
         self.year = year
-        self.event_type_ids = list(event_type_ids) if event_type_ids else None
         self.activity_id = activity_id
 
         self.start = None
@@ -357,8 +354,6 @@ class DatabaseExportService:
             conditions.append(Event.start >= self.start)
         if self.end is not None:
             conditions.append(Event.start <= self.end)
-        if self.event_type_ids:
-            conditions.append(Event.event_type_id.in_(self.event_type_ids))
         if self.activity_id:
             conditions.append(
                 Event.activity_types.any(ActivityType.id == self.activity_id)
@@ -484,7 +479,11 @@ class DatabaseExportService:
         buffer = BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
             files = (
-                ("registrations.csv", REGISTRATION_COLUMNS, self._registration_rows(events)),
+                (
+                    "registrations.csv",
+                    REGISTRATION_COLUMNS,
+                    self._registration_rows(events),
+                ),
                 ("leaders.csv", LEADER_COLUMNS, self._leader_rows(events)),
             )
             for filename, headers, rows in files:

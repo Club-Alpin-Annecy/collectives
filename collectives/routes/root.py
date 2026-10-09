@@ -5,8 +5,6 @@ This modules contains the root Blueprint
 
 from flask import (
     Blueprint,
-    abort,
-    current_app,
     redirect,
     render_template,
     request,
@@ -20,7 +18,6 @@ from collectives.forms.auth import LegalAcceptation
 from collectives.forms.stats import StatisticsParametersForm
 from collectives.models import Configuration, db
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
-from collectives.utils.export import DatabaseExportService
 from collectives.utils.stats import StatisticsEngine
 from collectives.utils.time import current_time
 
@@ -75,24 +72,6 @@ def statistics():
             kwargs["activity_id"] = form.activity_id.data
     else:
         kwargs = {"year": StatisticsParametersForm().year.data}
-
-    if "database" in request.args:
-        if not current_user.is_admin():
-            abort(403)
-        export = DatabaseExportService(**kwargs).export()
-        current_app.logger.info(
-            "Database export by admin %s (%s): %s",
-            current_user.id,
-            current_user.full_name(),
-            export.row_counts,
-        )
-        response = send_file(
-            export.stream,
-            mimetype="application/zip",
-            as_attachment=True,
-            download_name=export.download_name,
-        )
-        return response
 
     engine = StatisticsEngine(**kwargs)
 

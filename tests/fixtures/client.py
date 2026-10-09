@@ -93,6 +93,14 @@ def supervisor_client(client, supervisor_user):
 
 
 @pytest.fixture
+def president_client(client, president_user):
+    """Flask client authenticated as President."""
+    login(client, president_user)
+    yield client
+    logout(client)
+
+
+@pytest.fixture
 def hotline_client(client, hotline_user):
     """Flask client authenticated as hotline."""
     login(client, hotline_user)

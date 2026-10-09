@@ -1,0 +1,16 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% import 'partials/form-fields.html' as generator %}
+
+{% block page_content %}
+<div class="page-content" id="administration">
+  <h2 class="heading-2">Export de la base de données</h2>
+
+  <p>
+    Exporte les inscriptions et les encadrants des événements au format CSV
+    (fichier zip). Tous les statuts d'événement sont inclus.
+  </p>
+
+  {{ generator.form_generator(form, url_for('activity_supervision.database_export')) }}
+</div>
+{% endblock %}
