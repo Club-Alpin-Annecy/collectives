@@ -67,22 +67,12 @@ class ConfigurationTypeEnum(enum.Enum):
 
     Enum = 11
     """ A string will be stored in the attribute ``content``, restricted to
-    one of a fixed set of choices.
-
-    The choices themselves are not persisted in the database: they are read
-    directly from the ``choices:`` list of the item's entry in
-    ``configuration.yaml`` (see :py:func:`get_enum_choices`). This is purely
-    a GUI/validation concern; the enum-ness plays no role in how ``content``
-    is stored or read."""
+    choices listed in ``configuration.yaml`` (see :py:func:`get_enum_choices`)."""
 
 
 def get_enum_choices(name: str) -> List[str]:
-    """Reads the valid choices for an ``Enum``-typed configuration item
-    directly from ``collectives/configuration.yaml``.
-
-    :param name: Name of the configuration item
-    :returns: The valid choices declared for this item, or an empty list if
-        the item is absent from the file or declares no ``choices:``"""
+    """:param name: Name of the configuration item
+    :returns: The valid choices declared for this item in ``configuration.yaml``"""
     with open("collectives/configuration.yaml", "r", encoding="utf-8") as file:
         yaml_content = yaml.safe_load(file.read())
     for config_item in yaml_content.values():

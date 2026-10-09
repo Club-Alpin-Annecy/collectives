@@ -219,6 +219,16 @@ def test_leader_register_paying_user(leader_client, user1, paying_event):
     assert paying_event.registrations[0].status == RegistrationStatus.Active
 
 
+def test_paying_event_autoregistration_payments_disabled(user1_client, paying_event):
+    """Test user cannot self register to a paying event while payments are disabled"""
+    response = user1_client.post(
+        f"/collectives/{paying_event.id}/self_register", follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "Les paiements sont désactivés" in response.text
+    assert len(paying_event.registrations) == 0
+
+
 def test_youth_event_autoregistration(youth_user, youth_client, youth_event):
     """Test user auto registration"""
     response = youth_client.get(f"/collectives/{youth_event.id}", follow_redirects=True)

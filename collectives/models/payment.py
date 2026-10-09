@@ -706,6 +706,16 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.status == PaymentStatus.Approved
 
+    def is_submitted_to_processor(self):
+        """:return: whether this online payment has already been registered
+                    with the payment processor (i.e. a checkout url and token exist)
+        :rtype: bool"""
+        return (
+            self.payment_type in ONLINE_PAYMENT_TYPES
+            and bool(self.processor_url)
+            and bool(self.processor_token)
+        )
+
     def has_receipt(self):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)
@@ -743,9 +753,11 @@ class Payment(db.Model):
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal()
             if Configuration.PAYMENT_ENABLED == "Aucune":
-                self.payment_type = PaymentType.Payline
-            else:
-                self.payment_type = PaymentType[Configuration.PAYMENT_ENABLED]
+                # Gates the next PaymentType attribute selection
+                raise RuntimeError(
+                    "Cannot create a payment while payments are disabled"
+                )
+            self.payment_type = PaymentType[Configuration.PAYMENT_ENABLED]
             self.status = PaymentStatus.Initiated
             self.processor_token = ""
             self.raw_metadata = ""
