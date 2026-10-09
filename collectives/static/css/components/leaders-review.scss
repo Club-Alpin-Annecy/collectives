@@ -1,0 +1,80 @@
+.leaders-review-table-container {
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.leaders-review-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 0.4em 0.4em;
+        border-bottom: 1px solid #ced6e0;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    th {
+        font-weight: $font-weight-bold;
+        border-bottom-width: 2px;
+    }
+
+    .leaders-review-number {
+        text-align: center;
+    }
+
+    th small {
+        font-weight: normal;
+    }
+
+    tr.leaders-review-attention {
+        background-color: $color-gray-light;
+    }
+}
+
+.leaders-review-remove {
+    padding: 0.3em;
+    border: 1px solid $color-error-dark;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+
+    .icon {
+        width: 1.2em;
+        height: 1.2em;
+        margin: 0;
+    }
+
+    &:hover,
+    &:focus-visible {
+        background-color: $color-white;
+    }
+}
+
+.leaders-review-badge {
+    display: inline-block;
+    margin: 0.1em 0;
+    padding: 0.3em 0.8em;
+    border-radius: 30px;
+    font-size: $font-size-xxs;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+
+    &.leaders-review-badge-inactive {
+        background-color: $color-error-dark;
+        color: $color-white;
+    }
+
+    &.leaders-review-badge-account {
+        background-color: $color-warning-dark;
+        color: $color-gray-dark;
+    }
+
+    &.leaders-review-badge-new {
+        background-color: $solitude;
+        color: $color-gray-dark;
+    }
+}
