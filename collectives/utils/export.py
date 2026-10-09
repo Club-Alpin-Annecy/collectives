@@ -8,12 +8,14 @@ from io import BytesIO, TextIOWrapper
 from typing import List, Optional, Tuple
 
 from openpyxl import Workbook
+from sqlalchemy.orm import joinedload, selectinload
 
 from collectives.models import (
     ActivityType,
     Event,
 )
 from collectives.models.badge import Badge
+from collectives.models.registration import Registration
 from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import deepgetattr
 from collectives.utils.time import current_time
@@ -363,9 +365,19 @@ class DatabaseExportService:
     def _events_query(self):
         """Builds the events query restricted by the export filters.
 
+        The relationships needed to build the csv rows are eager loaded to
+        avoid N+1 queries.
+
         :return: The query of matching events.
         """
-        return Event.query.filter(*self._event_conditions()).order_by(Event.id)
+        return (
+            Event.query.filter(*self._event_conditions())
+            .order_by(Event.id)
+            .options(
+                selectinload(Event.registrations).joinedload(Registration.user),
+                selectinload(Event.leaders),
+            )
+        )
 
     @staticmethod
     def _event_fields(event) -> List:

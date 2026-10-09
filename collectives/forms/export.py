@@ -16,7 +16,7 @@ class DatabaseExportForm(ActivityTypeSelectionForm):
     same as the statistics page. There is no event type filter.
     """
 
-    year = SelectField("Année")
+    year = SelectField("Année", coerce=int)
     """ FFCAM year to export """
 
     submit = SubmitField("Exporter la base de données")
