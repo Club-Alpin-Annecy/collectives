@@ -8,65 +8,41 @@ import os
 import zipfile
 from datetime import date
 
+from sqlalchemy.sql.elements import ColumnClause, Label
+
 from collectives.models import ActivityType, Configuration, EventType
 from collectives.utils.export import DatabaseExportService
 from collectives.utils.time import get_ffcam_year
-
-REGISTRATION_COLUMNS = (
-    "registration_id",
-    "event_id",
-    "registration_status",
-    "registration_level",
-    "registration_is_self",
-    "registration_time",
-    "user_id",
-    "user_name",
-    "license_category",
-    "user_type",
-    "gender",
-    "event_title",
-    "event_start",
-    "event_end",
-    "event_num_slots",
-    "event_num_online_slots",
-    "event_num_waiting_list",
-    "event_include_leaders_in_counts",
-    "event_registration_open_time",
-    "event_registration_close_time",
-    "event_status",
-    "event_visibility",
-    "event_main_leader_id",
-    "event_type_name",
-    "event_activity_type_name",
-)
-
-LEADER_COLUMNS = (
-    "event_id",
-    "leader_user_id",
-    "leader_name",
-    "license_category",
-    "user_type",
-    "gender",
-    "event_title",
-    "event_start",
-    "event_end",
-    "event_num_slots",
-    "event_num_online_slots",
-    "event_num_waiting_list",
-    "event_include_leaders_in_counts",
-    "event_registration_open_time",
-    "event_registration_close_time",
-    "event_status",
-    "event_visibility",
-    "event_main_leader_id",
-    "event_type_name",
-    "event_activity_type_name",
-)
 
 
 def _current_year() -> int:
     """Returns the current FFCAM year."""
     return get_ffcam_year(date.today())
+
+
+#: Personal data columns that must never be part of the raw database export.
+PII_COLUMNS = {
+    "email",
+    "phone",
+    "date_of_birth",
+    "license",
+    "password",
+    "avatar",
+    "emergency_contact_name",
+    "emergency_contact_phone",
+}
+
+
+def _underlying_columns(expression) -> set:
+    """Recursively collects the base column names used by a select expression."""
+    if isinstance(expression, Label):
+        return _underlying_columns(expression.element)
+    if isinstance(expression, ColumnClause):
+        return {expression.name} if expression.name else set()
+    names = set()
+    for child in expression.get_children():
+        names |= _underlying_columns(child)
+    return names
 
 
 def _read_csv(archive: zipfile.ZipFile, name: str) -> list:
@@ -78,19 +54,14 @@ def _read_csv(archive: zipfile.ZipFile, name: str) -> list:
         return list(reader)
 
 
-def test_registration_query_columns(app):
-    """The registration query only selects the approved columns."""
-    service = DatabaseExportService()
-    assert (
-        tuple(service.registration_query().selected_columns.keys())
-        == REGISTRATION_COLUMNS
-    )
-
-
-def test_leader_query_columns(app):
-    """The leader query only selects the approved columns."""
-    service = DatabaseExportService()
-    assert tuple(service.leader_query().selected_columns.keys()) == LEADER_COLUMNS
+def test_export_excludes_pii_columns(stats_env):
+    """The export queries must not select any personal data column."""
+    service = DatabaseExportService(year=_current_year())
+    for query in (service.registration_query(), service.leader_query()):
+        selected = set()
+        for column in query.selected_columns:
+            selected |= _underlying_columns(column)
+        assert selected.isdisjoint(PII_COLUMNS), selected & PII_COLUMNS
 
 
 def test_export_creates_zip(stats_env):
@@ -216,11 +187,24 @@ def test_database_export_endpoint_non_admin(leader_client, stats_env):
     assert response.status_code == 403
 
 
-def test_export_button_visible_for_admin(admin_client, stats_env):
-    """The export button is displayed for admins."""
-    response = admin_client.get(f"/stats?year={_current_year()}")
-    assert response.status_code == 200
-    assert "Export base de données" in response.text
+def test_database_export_cleans_up_temp_files(admin_client, stats_env, monkeypatch):
+    """The temporary directory is removed once the response is closed."""
+    captured = {}
+    original_export = DatabaseExportService.export
+
+    def export(self):
+        database_export = original_export(self)
+        captured["export"] = database_export
+        return database_export
+
+    monkeypatch.setattr(DatabaseExportService, "export", export)
+
+    response = admin_client.get(
+        f"/stats?database=1&year={_current_year()}&activity_id=999999"
+    )
+    response.close()
+
+    assert not os.path.exists(captured["export"].tmpdir)
 
 
 def test_export_button_hidden_for_non_admin(leader_client, stats_env):

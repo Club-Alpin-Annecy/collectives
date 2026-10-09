@@ -153,11 +153,17 @@ addition of a PII column is caught in review.
 
 Because `send_file` streams the response *after* the view returns, cleanup cannot be
 done in the view body (a `TemporaryDirectory` context manager or `@after_this_request`
-would delete the files before the body is sent). Cleanup is registered on the response
-instead, via `response.call_on_close`, which runs once the WSGI server has finished
-sending the body (or the client has disconnected):
+would delete the files before the body is sent).
+
+`send_file` responses use `direct_passthrough=True`: Werkzeug returns the file wrapper
+directly and never calls `Response.close()`, so `response.call_on_close` is **not**
+invoked and the temp directory leaks. Cleanup must instead run when the response
+iterator is closed, which the WSGI server does after sending the body (or on client
+disconnect). This is done by wrapping the response body in a `ClosingIterator`:
 
 ```python
+from werkzeug.wsgi import ClosingIterator
+
 tmpdir = tempfile.mkdtemp()
 try:
     zip_path = build_zip(tmpdir)          # CSVs + zip written under tmpdir
@@ -171,19 +177,22 @@ except Exception:
     shutil.rmtree(tmpdir, ignore_errors=True)
     raise
 
-response.call_on_close(lambda: shutil.rmtree(tmpdir, ignore_errors=True))
+response.response = ClosingIterator(response.response, export.cleanup)
 return response
 ```
 
 Notes:
 
-- `send_file` closes its own file handle before the close callbacks run, so the
-  directory can be removed even where deleting open files is not allowed.
+- `ClosingIterator.close` closes the underlying file wrapper before running the
+  cleanup callback, so the directory can be removed even where deleting open files
+  is not allowed.
 - `ignore_errors=True` makes cleanup idempotent and safe on client disconnect.
 - The same temp path is passed to both CSV writers and the zip builder so a single
   `rmtree` cleans everything.
 - If a reverse proxy buffers the response, the app-to-proxy stream completes first,
   so cleanup may happen while the proxy still streams to the client; that is fine.
+- Regression test: closing the export response must remove the temp directory
+  (`test_database_export_cleans_up_temp_files`).
 
 ### User interface 
 
@@ -218,6 +227,7 @@ data stream and file name to the controller.
 - archive contains `registrations.csv` and `leaders.csv`
 - uses a temporary directory on disk; each query result is streamed to its csv file,
   then both are zipped
-- builds the `send_file` response for the zip and registers `response.call_on_close`
-  to remove the temporary directory (see "Cleanup"). On any exception before the
-  response is returned, removes the directory immediately.
+- builds the `send_file` response for the zip and wires cleanup through a
+  `ClosingIterator` so the temporary directory is removed once the response is sent
+  (see "Cleanup"). On any exception before the response is returned, removes the
+  directory immediately.
