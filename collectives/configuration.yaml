@@ -646,3 +646,19 @@ Loxya:
             de tous les adhérents actifs.
         type: Boolean
         requires: LOXYA_ENABLED
+
+    LOXYA_CREATE_ACCOUNTS:
+        content: false
+        description: |
+            Donne aussi aux adhérents un compte de connexion Loxya, pour réserver en ligne
+            par eux-mêmes (matériel, et peut-être demain les salles). Désactivé : ils
+            n'existent sur Loxya que comme bénéficiaires, que les bénévoles choisissent
+            lors d'un prêt.
+            Identifiant : le numéro de licence. Le mot de passe, aléatoire, n'est connu de
+            personne : l'adhérent choisit le sien par « Mot de passe oublié ? » sur Loxya.
+            Loxya refuse deux comptes avec la même adresse e-mail : dans une famille qui en
+            partage une, seul le premier adhérent reçoit un compte, les autres restent
+            bénéficiaires.
+            Activée, l'option ajoute un compte aux adhérents déjà présents sur Loxya.
+        type: Boolean
+        requires: LOXYA_ENABLED

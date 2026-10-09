@@ -158,3 +158,10 @@ the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` —
 `/technician/configuration`, folder Loxya, like those of the FFCAM extranet.
 Nothing is sent to Loxya until they are all set, and the synchronization mode is
 also chosen there; `/technician/actions` previews what a run would do.
+
+By default, members only exist on Loxya as beneficiaries, picked by volunteers
+when lending equipment. With `LOXYA_CREATE_ACCOUNTS`, they also get a login
+account, to book online themselves: their licence number is the identifier, and
+they choose a password through Loxya's « Mot de passe oublié ? » link. Loxya
+refuses two accounts with the same email address, so only one member of a family
+sharing an address gets one.

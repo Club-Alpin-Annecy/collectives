@@ -1,68 +1,44 @@
 """Synchronization of member accounts with the Loxya equipment platform.
 
-Mirrors the Collectives member base onto Loxya: an active member has a
-beneficiary there, so that an equipment volunteer can lend them equipment; an
-inactive one does not. Only FFCAM members (:py:attr:`UserType.Extranet`) are
-concerned — administration and test accounts are left alone.
+An active FFCAM member (:py:attr:`UserType.Extranet`) has a live beneficiary on
+Loxya, so that volunteers can lend them equipment; an inactive one has it in the
+trash bin. Optionally, members also get a login account, to book online.
 
-Beneficiaries are created *without a login account*: members are not expected to
-sign in to Loxya. This also matters for families sharing an email address, which
-Loxya only refuses on login accounts.
-
-The work is computed in SQL, as the difference between the current state and the
-last one pushed (:py:attr:`User.loxya_active`). Everything runs synchronously, in
-a single process: the reconciliation is itself the retry queue, since a user
-whose synchronization failed keeps its previous state and shows up again on the
-next run.
-
-The rollout is driven live by two configuration items, see :py:func:`current_mode`.
+The work is the difference, computed in SQL, between the current state and the
+last one pushed (:py:attr:`User.loxya_active`). A failed user keeps its previous
+state and comes up again on the next run: the reconciliation is the retry queue.
 
 .. warning::
-    ``DELETE`` is the only destructive call of the integration: issued on a
-    beneficiary already in the trash bin, Loxya purges it for good, along with its
-    rental history. Every ``DELETE`` below is therefore preceded by a check that
-    the beneficiary is live. See :py:func:`_is_already_trashed`.
+    On Loxya, a ``DELETE`` on a resource already in the trash bin purges it for
+    good, with its rental history. Every ``DELETE`` below is preceded by a check
+    that the resource is live, except the deliberate purge of
+    :py:func:`anonymize_account`.
 """
 
 import enum
+import secrets
 from dataclasses import dataclass, field
 
 from flask import current_app
-from sqlalchemy import and_
+from sqlalchemy import and_, func
+from sqlalchemy.orm import aliased
 
 from collectives.models import Configuration, User, UserType, db
 from collectives.utils import loxya
 from collectives.utils.time import current_time
 
 REFERENCE_PREFIX = "collectives:"
-""" Prefix of the cross-reference written in the Loxya ``reference`` field.
-
-Lets a Loxya beneficiary be traced back to its Collectives user, and lets a
-volunteer spot it: the reference is shown next to the name when picking a
-beneficiary.
-
-:type: str"""
+""" Prefix of the cross-reference written in the Loxya ``reference`` field. """
 
 REFERENCE_WIDTH = 6
-""" Number of digits the user id is padded to in the reference.
+""" Digits the user id is padded to: Loxya searches by substring, so unpadded,
+``collectives:1`` would also find ``collectives:12``. """
 
-Loxya searches by substring: unpadded, looking for ``collectives:1`` would also
-return ``collectives:12``, ``collectives:100``… Fixed width keeps a search for a
-reference down to that reference alone.
-
-:type: int"""
-
-ANONYMIZED_MAIL_PATTERN = "%@localhost"
-""" SQL pattern matching the address :py:meth:`User.anonymize` sets.
-
-The same convention the RGPD purge relies on.
-
-:type: str"""
+ANONYMIZED_MAIL_SUFFIX = "@localhost"
+""" End of the address set by :py:meth:`User.anonymize`. """
 
 SEARCH_LIMIT = 100
-""" Page size used when searching beneficiaries.
-
-:type: int"""
+""" Page size used when searching beneficiaries. """
 
 WRITABLE_FIELDS = (
     "first_name",
@@ -81,12 +57,7 @@ WRITABLE_FIELDS = (
     "color",
     "note",
 )
-""" Fields of a beneficiary accepted by ``PUT /api/beneficiaries/{id}``.
-
-Loxya treats that ``PUT`` as a full replacement: every field left out is reset.
-See :py:func:`_replace`.
-
-:type: tuple"""
+""" Fields of a beneficiary, all sent back by :py:func:`_replace`. """
 
 ANONYMIZED_IDENTITY = {
     "first_name": "Compte",
@@ -101,32 +72,23 @@ ANONYMIZED_IDENTITY = {
     "note": None,
     "can_make_reservation": False,
 }
-""" Values written over the personal data of an anonymized member on Loxya.
-
-Mirrors :py:meth:`User.anonymize`. The reference is kept: it only points to the
-anonymized Collectives account.
-
-:type: dict"""
+""" Values written over the personal data of an anonymized member. The reference
+is kept: it only points to the anonymized Collectives account. """
 
 
 class SyncMode(enum.Enum):
-    """How far the synchronization is allowed to go, set live by technicians."""
+    """How far the synchronization goes, set live by technicians."""
 
     # pylint: disable=invalid-name
     Off = 0
-    """ Nothing is sent to Loxya, neither automatically nor by hand. """
-
+    """ Nothing is sent to Loxya. """
     Manual = 1
-    """ Accounts are only created by hand, from the user list. Those already
-    created are kept up to date automatically: deactivated when the licence
-    expires, reactivated on renewal, anonymized with the Collectives account. """
-
+    """ Members are created by hand only; those created are kept up to date. """
     Auto = 2
-    """ Every active member is created automatically: nightly, on signup and on
-    login. """
+    """ Every active member is created: nightly, on signup and on login. """
 
     def display_name(self) -> str:
-        """Returns the French label of this mode, for user facing messages."""
+        """Returns the French label of this mode."""
         return {
             SyncMode.Off: "éteint",
             SyncMode.Manual: "manuel",
@@ -139,32 +101,24 @@ class SyncAction(enum.Enum):
 
     # pylint: disable=invalid-name
     Created = 1
-    """ A beneficiary was created on Loxya. """
-
     Attached = 2
-    """ An existing Loxya beneficiary was linked to the user, rather than
-    created again. """
-
+    """ A beneficiary already on Loxya was linked rather than created again. """
     Activated = 3
-    """ A beneficiary was restored from the trash bin. """
-
     Deactivated = 4
-    """ A beneficiary was moved to the Loxya trash bin. """
-
     Anonymized = 5
-    """ The personal data of a beneficiary was erased, and the user unlinked. """
-
-    Failed = 6
-    """ The API call failed; the user keeps its state and will be retried. """
+    LoginAdded = 6
+    """ A login account was added to a beneficiary that had none. """
+    Failed = 7
 
     def display_name(self) -> str:
-        """Returns the French label of this action, for user facing messages."""
+        """Returns the French label of this action."""
         return {
             SyncAction.Created: "compte créé",
             SyncAction.Attached: "compte existant rattaché",
             SyncAction.Activated: "compte réactivé",
             SyncAction.Deactivated: "compte désactivé",
             SyncAction.Anonymized: "compte anonymisé",
+            SyncAction.LoginAdded: "accès en ligne ajouté",
             SyncAction.Failed: "échec",
         }[self]
 
@@ -175,16 +129,15 @@ class SyncReport:
 
     actions: dict = field(default_factory=dict)
     """ Number of users per :py:class:`SyncAction`. """
-
     errors: list = field(default_factory=list)
-    """ ``(user id, message)`` pairs for every failure of the run. """
+    """ ``(user id, message)`` for every failure. """
 
     def record(self, action: SyncAction):
         """Counts one occurrence of an action."""
         self.actions[action] = self.actions.get(action, 0) + 1
 
     def __str__(self) -> str:
-        """Returns a one line summary, suitable for logging."""
+        """Returns a one line summary, for logging."""
         counts = ", ".join(
             f"{action.name}: {count}"
             for action, count in sorted(
@@ -194,26 +147,28 @@ class SyncReport:
         return counts or "no change"
 
 
+def _setting(name: str) -> bool:
+    """Reads a Loxya boolean from the hot configuration; False if not created yet."""
+    try:
+        return bool(getattr(Configuration, name))
+    except AttributeError:
+        return False
+
+
 def current_mode() -> SyncMode:
-    """Returns the synchronization mode currently in force.
-
-    Two layers: the ``LOXYA_ENABLED`` file switch decides whether the
-    integration exists at all on this deployment; then, in the hot configuration,
-    ``LOXYA_SYNC_ACTIVE`` and ``LOXYA_AUTO_CREATE`` decide how far it goes. Off as
-    long as the connection settings are not all entered. Read at each call, so a
-    change applies without restart — within the configuration cache time.
-
-    :return: The mode in force.
-    """
+    """Returns the mode in force: Off until the integration is switched on and its
+    connection settings entered, then set by ``LOXYA_SYNC_ACTIVE`` and
+    ``LOXYA_AUTO_CREATE``. Read at each call: changes apply without restart."""
     if not loxya.feature_enabled() or not loxya.configured():
         return SyncMode.Off
-    try:
-        if not Configuration.LOXYA_SYNC_ACTIVE:
-            return SyncMode.Off
-        return SyncMode.Auto if Configuration.LOXYA_AUTO_CREATE else SyncMode.Manual
-    except AttributeError:
-        # Configuration items not created yet: stay on the safe side.
+    if not _setting("LOXYA_SYNC_ACTIVE"):
         return SyncMode.Off
+    return SyncMode.Auto if _setting("LOXYA_AUTO_CREATE") else SyncMode.Manual
+
+
+def logins_wanted() -> bool:
+    """Checks whether members get a login account, to book online themselves."""
+    return _setting("LOXYA_CREATE_ACCOUNTS")
 
 
 def reference_for(user: User) -> str:
@@ -223,7 +178,7 @@ def reference_for(user: User) -> str:
 
 def is_anonymized(user: User) -> bool:
     """Checks whether the account was anonymized by the RGPD purge."""
-    return user.mail.endswith(ANONYMIZED_MAIL_PATTERN.lstrip("%"))
+    return user.mail.endswith(ANONYMIZED_MAIL_SUFFIX)
 
 
 def is_eligible(user: User) -> bool:
@@ -231,59 +186,69 @@ def is_eligible(user: User) -> bool:
     return user.is_active and user.type == UserType.Extranet and not is_anonymized(user)
 
 
-def _pending_queries() -> dict:
-    """Builds the queries selecting the users whose Loxya state is out of date.
+def _mail_taken_condition():
+    """SQL condition: another user already holds a Loxya login with this address.
 
-    Ordered as they must be processed: anonymization first, since an anonymized
-    account is also an inactive one.
+    Loxya refuses a second login with the same address, and families share one.
     """
-    eligible = and_(
-        User.is_active,
-        User.type == UserType.Extranet,
-        ~User.mail.like(ANONYMIZED_MAIL_PATTERN),
+    other = aliased(User)
+    return (
+        db.session.query(other.id)
+        .filter(
+            other.id != User.id,
+            other.loxya_user_id.isnot(None),
+            func.lower(other.mail) == func.lower(User.mail),
+        )
+        .exists()
     )
-    anonymized = User.mail.like(ANONYMIZED_MAIL_PATTERN)
 
-    return {
-        SyncAction.Anonymized: User.query.filter(
-            anonymized, User.loxya_beneficiary_id.isnot(None)
-        ),
+
+def _pending_queries() -> dict:
+    """Builds the queries selecting the users to process, in processing order:
+    anonymization first, since an anonymized account is also an inactive one."""
+    anonymized = User.mail.endswith(ANONYMIZED_MAIL_SUFFIX)
+    eligible = and_(User.is_active, User.type == UserType.Extranet, ~anonymized)
+    linked = User.loxya_beneficiary_id.isnot(None)
+
+    queries = {
+        SyncAction.Anonymized: User.query.filter(anonymized, linked),
         SyncAction.Deactivated: User.query.filter(
             ~eligible, ~anonymized, User.loxya_active.is_(True)
         ),
         SyncAction.Activated: User.query.filter(
-            eligible,
-            User.loxya_beneficiary_id.isnot(None),
-            User.loxya_active.is_(False),
+            eligible, linked, User.loxya_active.is_(False)
         ),
-        SyncAction.Created: User.query.filter(
-            eligible, User.loxya_beneficiary_id.is_(None)
-        ),
+        SyncAction.Created: User.query.filter(eligible, ~linked),
     }
+    if logins_wanted():
+        queries[SyncAction.LoginAdded] = User.query.filter(
+            eligible,
+            User.loxya_active.is_(True),
+            User.loxya_user_id.is_(None),
+            ~_mail_taken_condition(),
+        )
+    return queries
 
 
 def pending_changes() -> dict:
-    """Lists the users whose Loxya state differs from their Collectives state.
-
-    Computed in SQL so only the users to process are loaded, never the whole
-    table. A user whose state has not moved appears in none of the lists, which
-    is what makes a run idempotent.
-
-    :return: The users to process, per :py:class:`SyncAction`.
-    """
+    """Lists the users to process, per :py:class:`SyncAction`."""
     return {action: query.all() for action, query in _pending_queries().items()}
 
 
 def simulate() -> dict:
-    """Counts what a run would do, without any call to Loxya.
-
-    :return: The number of users per :py:class:`SyncAction`.
-    """
+    """Counts what a run would do, without calling Loxya."""
     return {action: query.count() for action, query in _pending_queries().items()}
 
 
+def _mail_taken(user: User) -> bool:
+    """Checks whether another user already holds a Loxya login with this address."""
+    return db.session.query(
+        User.query.filter(User.id == user.id, _mail_taken_condition()).exists()
+    ).scalar()
+
+
 def _mark_synced(user: User, active: bool):
-    """Records the state actually pushed to Loxya, and commits it."""
+    """Records the state pushed to Loxya, and commits it."""
     user.loxya_active = active
     user.loxya_synced_at = current_time()
     db.session.add(user)
@@ -291,16 +256,28 @@ def _mark_synced(user: User, active: bool):
 
 
 def _unlink(user: User):
-    """Forgets the Loxya beneficiary of a user, and commits it."""
+    """Forgets the Loxya records of a user, and commits it."""
     user.loxya_beneficiary_id = None
+    user.loxya_user_id = None
     user.loxya_active = None
     user.loxya_synced_at = current_time()
     db.session.add(user)
     db.session.commit()
 
 
+def _login_fields(user: User) -> dict:
+    """Fields creating a login account: the licence number as identifier, and a
+    random password, never stored — members set their own through the « Mot de
+    passe oublié ? » link of Loxya."""
+    return {
+        "can_make_reservation": True,
+        "pseudo": user.license,
+        "password": secrets.token_urlsafe(24),
+    }
+
+
 def _search(term: str) -> list:
-    """Searches live beneficiaries. Loxya matches by substring, on several fields."""
+    """Searches live beneficiaries, by substring on several fields."""
     response = loxya.api.get(
         "/api/beneficiaries",
         params={"search": term, "limit": SEARCH_LIMIT, "deleted": 0},
@@ -309,10 +286,8 @@ def _search(term: str) -> list:
 
 
 def _same_person(candidate: dict, user: User) -> bool:
-    """Checks that a beneficiary carries the email *and* the name of a user.
-
-    The email alone is not enough: family members often share one.
-    """
+    """Checks that a beneficiary carries the email *and* the name of a user:
+    family members often share an email."""
 
     def same(left, right):
         """Compares two strings, ignoring case and surrounding spaces."""
@@ -326,15 +301,12 @@ def _same_person(candidate: dict, user: User) -> bool:
 
 
 def _find_existing(user: User) -> dict:
-    """Looks for a live beneficiary already standing for this user on Loxya.
+    """Looks for a live beneficiary already standing for this user.
 
-    First by cross-reference, which recovers a creation whose local commit was
-    lost. Then among beneficiaries entered by hand, which carry no reference: one
-    is only adopted if it matches the user's email and name, and is the only one
-    to do so. A beneficiary referencing *another* user is never adopted.
-
-    :param user: The user to look for.
-    :return: The matching beneficiary, or None.
+    First by reference, which recovers a creation whose commit was lost. Then
+    among beneficiaries entered by hand, without reference: one is adopted only
+    if it is the single match on email and name. A beneficiary referencing
+    another user is never adopted.
     """
     reference = reference_for(user)
     ours = [c for c in _search(reference) if c.get("reference") == reference]
@@ -360,17 +332,10 @@ def _find_existing(user: User) -> dict:
 
 
 def _replace(beneficiary_id: int, **changes) -> dict:
-    """Updates a beneficiary without losing the fields left unchanged.
-
-    Loxya treats ``PUT`` as a full replacement, so the current object is read
-    first and sent back whole. Beneficiaries entered by hand may carry a login
-    account; for those the web front end sends an empty pseudo and password,
-    which leaves the account untouched, and so do we.
-
-    :param beneficiary_id: The beneficiary to update.
-    :param changes: The fields to change.
-    :return: The updated beneficiary.
-    """
+    """Updates a beneficiary, which Loxya ``PUT`` replaces whole: the current one
+    is read first and sent back with the changes. For one with a login account,
+    an empty pseudo and password leave the account untouched, as in Loxya's
+    front end."""
     current = loxya.api.get(f"/api/beneficiaries/{beneficiary_id}")
     payload = {name: current.get(name) for name in WRITABLE_FIELDS}
     if current.get("user_id"):
@@ -380,14 +345,12 @@ def _replace(beneficiary_id: int, **changes) -> dict:
 
 
 def create_account(user: User) -> SyncAction:
-    """Creates the Loxya beneficiary standing for a user, or adopts an existing one.
+    """Creates the beneficiary standing for a user, or adopts an existing one.
 
-    No login account is created: ``can_make_reservation`` stays off, which only
-    governs online booking by the member themself. A volunteer can still pick the
-    beneficiary when lending equipment — checked on the instance.
-
-    :param user: The user to create on Loxya.
-    :return: :py:attr:`SyncAction.Created` or :py:attr:`SyncAction.Attached`.
+    With :py:func:`logins_wanted`, the beneficiary comes with a login account,
+    unless its address is already that of another member's. Loxya may still
+    refuse it, the address being used by an account entered by hand: the
+    beneficiary is then created without.
     """
     existing = _find_existing(user)
     if existing is not None:
@@ -397,129 +360,159 @@ def create_account(user: User) -> SyncAction:
             f"Loxya: attaching existing beneficiary {existing['id']} to user {user.id}"
         )
         user.loxya_beneficiary_id = existing["id"]
+        user.loxya_user_id = existing.get("user_id")
         _mark_synced(user, True)
         return SyncAction.Attached
 
-    beneficiary = loxya.api.post(
-        "/api/beneficiaries",
-        json={
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.mail,
-            "reference": reference_for(user),
-            "can_make_reservation": False,
-            "country": "FR",
-        },
-    )
+    payload = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.mail,
+        "reference": reference_for(user),
+        "can_make_reservation": False,
+        "country": "FR",
+    }
+    beneficiary = None
+    if logins_wanted() and not _mail_taken(user):
+        try:
+            beneficiary = loxya.api.post(
+                "/api/beneficiaries", json={**payload, **_login_fields(user)}
+            )
+        except loxya.LoxyaValidationError as err:
+            current_app.logger.warning(
+                f"Loxya: login refused for user {user.id} ({err.details or err}), "
+                "creating the beneficiary alone"
+            )
+    if beneficiary is None:
+        beneficiary = loxya.api.post("/api/beneficiaries", json=payload)
+
     user.loxya_beneficiary_id = beneficiary["id"]
+    user.loxya_user_id = beneficiary.get("user_id")
     _mark_synced(user, True)
     return SyncAction.Created
 
 
-def _is_already_trashed(user: User) -> bool:
-    """Checks on Loxya whether the beneficiary is already in the trash bin.
+def add_login(user: User) -> SyncAction:
+    """Adds a login account to the beneficiary of a user.
 
-    This is the guard that makes deactivation safe. :py:attr:`User.loxya_active`
-    only covers a logical replay; it does not cover a divergence between the
-    database and Loxya — a beneficiary trashed by hand, or a ``DELETE`` that
-    succeeded before its commit failed. In those cases ``loxya_active`` still
-    reads True while the beneficiary is already trashed, and the next ``DELETE``
-    would purge it.
-
-    Loxya answers 404 for a beneficiary in the trash bin; ``is_deleted`` is
-    checked as well, should that ever change.
-
-    :param user: The user whose beneficiary is checked.
-    :return: True if no ``DELETE`` must be issued.
+    :return: :py:attr:`SyncAction.LoginAdded`, or None if the address is already
+        another member's login, or Loxya refused it — the address being used by
+        an account entered by hand, tried again next run.
     """
+    if _mail_taken(user):
+        return None
     try:
-        beneficiary = loxya.api.get(f"/api/beneficiaries/{user.loxya_beneficiary_id}")
+        beneficiary = _replace(
+            user.loxya_beneficiary_id, email=user.mail, **_login_fields(user)
+        )
+    except loxya.LoxyaValidationError as err:
+        current_app.logger.warning(
+            f"Loxya: login refused for user {user.id} ({err.details or err})"
+        )
+        return None
+    user.loxya_user_id = beneficiary["user_id"]
+    _mark_synced(user, True)
+    return SyncAction.LoginAdded
+
+
+def _is_live(path: str) -> bool:
+    """Checks that a resource exists outside the trash bin — Loxya answers 404
+    for one in it. The guard before every ``DELETE``: ``loxya_active`` does not
+    cover a resource trashed by hand, or a ``DELETE`` whose commit failed."""
+    try:
+        resource = loxya.api.get(path)
     except loxya.LoxyaNotFoundError:
-        return True
-    return bool((beneficiary or {}).get("is_deleted"))
+        return False
+    return not (resource or {}).get("is_deleted")
+
+
+def _trash(path: str):
+    """Moves a resource to the trash bin, unless it already is there."""
+    if _is_live(path):
+        loxya.api.delete(path)
+    else:
+        current_app.logger.warning(
+            f"Loxya: {path} already trashed, DELETE skipped to avoid a purge"
+        )
 
 
 def deactivate_account(user: User) -> SyncAction:
-    """Moves the Loxya beneficiary of a user to the trash bin.
+    """Moves the beneficiary of a user, and its login account, to the trash bin.
 
-    Reversible through :py:func:`reactivate_account`. The beneficiary is never
-    purged: it carries the rental history.
-
-    :param user: The user to deactivate on Loxya.
-    :return: :py:attr:`SyncAction.Deactivated`, or None if nothing was pushed.
+    Trashing a beneficiary does not disable its login: both go. Never purged:
+    the beneficiary carries the rental history.
     """
     if not user.loxya_active or user.loxya_beneficiary_id is None:
         return None
-
-    if _is_already_trashed(user):
-        current_app.logger.warning(
-            f"Loxya: beneficiary {user.loxya_beneficiary_id} of user {user.id} is "
-            "already trashed, skipping the DELETE to avoid a permanent deletion"
-        )
-    else:
-        loxya.api.delete(f"/api/beneficiaries/{user.loxya_beneficiary_id}")
-
+    if user.loxya_user_id is not None:
+        _trash(f"/api/users/{user.loxya_user_id}")
+    _trash(f"/api/beneficiaries/{user.loxya_beneficiary_id}")
     _mark_synced(user, False)
     return SyncAction.Deactivated
 
 
-def reactivate_account(user: User) -> SyncAction:
-    """Restores the Loxya beneficiary of a user from the trash bin.
+def _restore(path: str) -> bool:
+    """Restores a resource from the trash bin.
 
-    If Loxya no longer knows it — purged by hand — the user is unlinked and a new
-    beneficiary created, rather than failing on every run.
-
-    :param user: The user to reactivate on Loxya.
-    :return: :py:attr:`SyncAction.Activated`, or the outcome of the recreation.
+    :return: False if Loxya no longer knows it — purged by hand.
     """
-    beneficiary_id = user.loxya_beneficiary_id
+    kind, key = path.rsplit("/", 1)
     try:
-        loxya.api.put(f"/api/beneficiaries/restore/{beneficiary_id}")
+        loxya.api.put(f"{kind}/restore/{key}")
     except loxya.LoxyaNotFoundError:
-        if not _is_already_trashed(user):
-            # Restored on Loxya in the meantime: it is already live.
-            _mark_synced(user, True)
-            return SyncAction.Activated
+        # Also the answer for a resource that is not in the trash bin.
+        return _is_live(path)
+    return True
+
+
+def reactivate_account(user: User) -> SyncAction:
+    """Restores the beneficiary of a user, and its login account, from the trash
+    bin. A beneficiary purged by hand is created again rather than failing on
+    every run; a purged login is forgotten, to be added again."""
+    if not _restore(f"/api/beneficiaries/{user.loxya_beneficiary_id}"):
         current_app.logger.warning(
-            f"Loxya: beneficiary {beneficiary_id} of user {user.id} no longer exists, "
-            "creating a new one"
+            f"Loxya: beneficiary {user.loxya_beneficiary_id} of user {user.id} "
+            "no longer exists, creating a new one"
         )
         user.loxya_beneficiary_id = None
+        user.loxya_user_id = None
         user.loxya_active = None
         return create_account(user)
 
+    if user.loxya_user_id is not None and not _restore(
+        f"/api/users/{user.loxya_user_id}"
+    ):
+        user.loxya_user_id = None
     _mark_synced(user, True)
     return SyncAction.Activated
+
+
+def _purge(path: str):
+    """Deletes a resource for good: a first ``DELETE`` trashes it, a second
+    purges it. Either may find it already gone."""
+    for _ in range(2):
+        try:
+            loxya.api.delete(path)
+        except loxya.LoxyaNotFoundError:
+            return
 
 
 def anonymize_account(user: User) -> SyncAction:
     """Erases the personal data of an anonymized member from Loxya.
 
-    :py:meth:`User.anonymize` does not call Loxya; this catches up. The
-    beneficiary is usually in the trash bin by then — the licence expired long
-    before the purge — and Loxya refuses edits there: it is restored, overwritten
-    with :py:data:`ANONYMIZED_IDENTITY`, and trashed again. Its rental history
-    stays, now attached to an anonymous beneficiary. The user is then unlinked.
-
-    The ``DELETE`` is safe: it only follows a read or a restore confirming the
-    beneficiary is live. An interrupted run is simply replayed on the next one.
-
-    :param user: The anonymized user.
-    :return: :py:attr:`SyncAction.Anonymized`.
+    The login account, which holds an email and a name, is purged. The
+    beneficiary carries the rental history: it is restored if needed — Loxya
+    refuses edits in the trash bin —, overwritten with
+    :py:data:`ANONYMIZED_IDENTITY` and trashed again. An interrupted run is
+    replayed on the next one.
     """
-    beneficiary_id = user.loxya_beneficiary_id
-    try:
-        loxya.api.get(f"/api/beneficiaries/{beneficiary_id}")
-    except loxya.LoxyaNotFoundError:
-        try:
-            loxya.api.put(f"/api/beneficiaries/restore/{beneficiary_id}")
-        except loxya.LoxyaNotFoundError:
-            # Purged for good: no personal data left on Loxya.
-            _unlink(user)
-            return SyncAction.Anonymized
+    if user.loxya_user_id is not None:
+        _purge(f"/api/users/{user.loxya_user_id}")
 
-    _replace(beneficiary_id, **ANONYMIZED_IDENTITY)
-    loxya.api.delete(f"/api/beneficiaries/{beneficiary_id}")
+    path = f"/api/beneficiaries/{user.loxya_beneficiary_id}"
+    if _is_live(path) or _restore(path):
+        _replace(user.loxya_beneficiary_id, **ANONYMIZED_IDENTITY)
+        loxya.api.delete(path)
     _unlink(user)
     return SyncAction.Anonymized
 
@@ -527,9 +520,7 @@ def anonymize_account(user: User) -> SyncAction:
 def sync_user(user: User, allow_create: bool = True) -> SyncAction:
     """Aligns the Loxya state of a single user on its Collectives state.
 
-    :param user: The user to synchronize.
-    :param allow_create: Whether a user not yet on Loxya may be created. Off in
-        manual mode, where creation is only done by hand.
+    :param allow_create: Whether a user not yet on Loxya may be created.
     :return: The action taken, or None when there was nothing to do.
     """
     if is_anonymized(user):
@@ -542,6 +533,8 @@ def sync_user(user: User, allow_create: bool = True) -> SyncAction:
             return create_account(user) if allow_create else None
         if not user.loxya_active:
             return reactivate_account(user)
+        if logins_wanted() and user.loxya_user_id is None:
+            return add_login(user)
         return None
 
     if user.loxya_active:
@@ -550,15 +543,9 @@ def sync_user(user: User, allow_create: bool = True) -> SyncAction:
 
 
 def sync_user_safely(user: User) -> SyncAction:
-    """Synchronizes a user from the request path, without ever interrupting it.
-
-    Meant for signup and login, where Loxya being unreachable must not keep a
-    member from using the site. Failures are logged and left to the nightly
-    reconciliation. Creates the account in automatic mode only.
-
-    :param user: The user to synchronize.
-    :return: The action taken, or None if nothing was done or the call failed.
-    """
+    """Synchronizes a user on signup or login, never interrupting the request:
+    failures are logged and left to the nightly run. Creates in automatic mode
+    only."""
     mode = current_mode()
     if mode is SyncMode.Off:
         return None
@@ -577,12 +564,8 @@ def sync_user_safely(user: User) -> SyncAction:
 def sync_all_users() -> SyncReport:
     """Reconciles every user whose Loxya state is out of date.
 
-    In manual mode, users not yet on Loxya are left out: only the accounts
-    already created are kept up to date. Failures are caught per user and
-    committed individually: an error on one member neither interrupts the run nor
-    loses the work done on the others.
-
-    :return: A summary of the run.
+    In manual mode, users not yet on Loxya are left out. Each user is committed on
+    its own: a failure neither stops the run nor loses the others' work.
     """
     report = SyncReport()
     mode = current_mode()
@@ -604,6 +587,7 @@ def sync_all_users() -> SyncReport:
         SyncAction.Deactivated: deactivate_account,
         SyncAction.Activated: reactivate_account,
         SyncAction.Created: create_account,
+        SyncAction.LoginAdded: add_login,
     }
 
     for action, users in pending_changes().items():

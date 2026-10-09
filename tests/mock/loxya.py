@@ -31,15 +31,17 @@ def set_loxya_connection(**settings):
         Configuration.uncache(name)
 
 
-def set_loxya_mode(active: bool, auto_create: bool = False):
+def set_loxya_mode(active: bool, auto_create: bool = False, logins: bool = False):
     """Sets the live synchronization mode, as a technician would.
 
     :param active: Value of ``LOXYA_SYNC_ACTIVE``.
     :param auto_create: Value of ``LOXYA_AUTO_CREATE``.
+    :param logins: Value of ``LOXYA_CREATE_ACCOUNTS``.
     """
     for name, value in (
         ("LOXYA_SYNC_ACTIVE", active),
         ("LOXYA_AUTO_CREATE", auto_create),
+        ("LOXYA_CREATE_ACCOUNTS", logins),
     ):
         Configuration.get_item(name).content = value
         Configuration.uncache(name)
