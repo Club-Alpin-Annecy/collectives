@@ -75,6 +75,9 @@
 
           {{ form.submit(class="button button-primary") }}
           {{ form.excel(class="button button-primary") }}
+          {% if current_user.is_admin() %}
+            {{ form.database(class="button button-primary") }}
+          {% endif %}
     </form>
 
     <br/>

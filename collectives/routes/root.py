@@ -3,7 +3,16 @@
 This modules contains the root Blueprint
 """
 
-from flask import Blueprint, redirect, render_template, request, send_file, url_for
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from collectives.forms import csrf
@@ -11,6 +20,7 @@ from collectives.forms.auth import LegalAcceptation
 from collectives.forms.stats import StatisticsParametersForm
 from collectives.models import Configuration, db
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
+from collectives.utils.export import DatabaseExportService
 from collectives.utils.stats import StatisticsEngine
 from collectives.utils.time import current_time
 
@@ -63,9 +73,29 @@ def statistics():
         }
         if form.activity_id.data != form.ALL_ACTIVITIES:
             kwargs["activity_id"] = form.activity_id.data
-        engine = StatisticsEngine(**kwargs)
     else:
-        engine = StatisticsEngine(year=StatisticsParametersForm().year.data)
+        kwargs = {"year": StatisticsParametersForm().year.data}
+
+    if "database" in request.args:
+        if not current_user.is_admin():
+            abort(403)
+        export = DatabaseExportService(**kwargs).export()
+        current_app.logger.info(
+            "Database export by admin %s (%s): %s",
+            current_user.id,
+            current_user.full_name(),
+            export.row_counts,
+        )
+        response = send_file(
+            export.path,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=export.download_name,
+        )
+        response.call_on_close(export.cleanup)
+        return response
+
+    engine = StatisticsEngine(**kwargs)
 
     if "excel" in request.args:
         return send_file(
