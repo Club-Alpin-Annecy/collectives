@@ -3,7 +3,14 @@
 This modules contains the root Blueprint
 """
 
-from flask import Blueprint, redirect, render_template, request, send_file, url_for
+from flask import (
+    Blueprint,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_login import current_user, login_required
 
 from collectives.forms import csrf
