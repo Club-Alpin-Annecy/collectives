@@ -70,10 +70,9 @@ def statistics():
         }
         if form.activity_id.data != form.ALL_ACTIVITIES:
             kwargs["activity_id"] = form.activity_id.data
+        engine = StatisticsEngine(**kwargs)
     else:
-        kwargs = {"year": StatisticsParametersForm().year.data}
-
-    engine = StatisticsEngine(**kwargs)
+        engine = StatisticsEngine(year=StatisticsParametersForm().year.data)
 
     if "excel" in request.args:
         return send_file(

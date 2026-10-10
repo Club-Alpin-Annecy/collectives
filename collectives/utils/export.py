@@ -228,59 +228,59 @@ def _csv_value(value):
     return value
 
 
-#: Columns of the registrations.csv file. Any personal data is limited to this
-#: list and checked in ``tests/test_database_export.py``.
-REGISTRATION_COLUMNS: Tuple[str, ...] = (
-    "registration_id",
-    "event_id",
-    "registration_status",
+DBEXPORT_REGISTRATION_COLUMNS: Tuple[str, ...] = (
+    "ID inscription",
+    "ID événement",
+    "Etat inscription",
     "registration_level",
-    "registration_is_self",
-    "registration_time",
-    "user_id",
-    "user_name",
-    "license_category",
-    "user_type",
-    "gender",
-    "event_title",
-    "event_start",
-    "event_end",
-    "event_num_slots",
-    "event_num_online_slots",
-    "event_num_waiting_list",
-    "event_include_leaders_in_counts",
-    "event_registration_open_time",
-    "event_registration_close_time",
-    "event_status",
-    "event_visibility",
-    "event_main_leader_id",
-    "event_type_name",
-    "event_activity_type_name",
+    "Auto-inscription",
+    "Date d'inscription",
+    "ID participant",
+    "Participant",
+    "Category de license",
+    "Type d'utilisateur",
+    "Genre",
+    "Titre",
+    "Date de RDV",
+    "Date de fin",
+    "Nombre de participants",
+    "Nombre de participants internet",
+    "Nombre de places en liste d'attente",
+    "Nombre de participants incluent les encadrants",
+    "Ouverture des inscriptions",
+    "Fermeture des inscriptions",
+    "Etat événement",
+    "Visibilité événement",
+    "ID Encadrant principal",
+    "Type d'événement",
+    "Activité",
 )
 
-#: Columns of the leaders.csv file.
-LEADER_COLUMNS: Tuple[str, ...] = (
-    "event_id",
-    "leader_user_id",
-    "leader_name",
-    "license_category",
-    "user_type",
-    "gender",
-    "event_title",
-    "event_start",
-    "event_end",
-    "event_num_slots",
-    "event_num_online_slots",
-    "event_num_waiting_list",
-    "event_include_leaders_in_counts",
-    "event_registration_open_time",
-    "event_registration_close_time",
-    "event_status",
-    "event_visibility",
-    "event_main_leader_id",
-    "event_type_name",
-    "event_activity_type_name",
+DBEXPORT_LEADER_COLUMNS: Tuple[str, ...] = (
+    "ID événement",
+    "ID encadrant",
+    "Encadrant",
+    "Catégorie de license",
+    "Type d'utilisateur",
+    "Genre",
+    "Titre",
+    "Date de RDV",
+    "Date de fin",
+    "Nombre de participants",
+    "Nombre de participants internet",
+    "Nombre de places en liste d'attente",
+    "Nombre de participants incluent les encadrants",
+    "Ouverture des inscriptions",
+    "Fermeture des inscriptions",
+    "Etat événement",
+    "Visibilité événement",
+    "ID Encadrant principal",
+    "Type d'événement",
+    "Activité",
 )
+
+DBEXPORT_REGISTRATIONS_CSV: str = "inscriptions.csv"
+DBEXPORT_LEADERS_CSV: str = "encadrants.csv"
 
 
 def _user_fields(user) -> List:
@@ -320,7 +320,7 @@ class DatabaseExport:
 class DatabaseExportService:
     """Builds a raw database export as a zip of csv files.
 
-    The csv columns are fixed (see :data:`REGISTRATION_COLUMNS` and
+    The csv columns are fixed (see :data:`DBEXPORT_REGISTRATION_COLUMNS` and
     :data:`LEADER_COLUMNS`), so only an approved set of personal data is
     exported (see ``tests/test_database_export.py``). The activity supervision
     filters (year, activity) restrict the exported events. Contrary to the
@@ -402,18 +402,17 @@ class DatabaseExportService:
         ]
 
     def _registration_rows(self, events) -> List:
-        """Builds the rows of the registrations.csv file.
+        """Builds the rows of the registrations csv file.
 
         Each registration yields one row per activity type of its event, so
         that the csv keeps one row per (registration, activity) couple.
 
         :param events: The events to export.
         :return: The list of rows (column order follows
-            :data:`REGISTRATION_COLUMNS`).
+            :data:`DBEXPORT_REGISTRATION_COLUMNS`).
         """
         rows = []
         for event in events:
-            event_type_name = event.event_type.name if event.event_type else None
             event_fields = self._event_fields(event)
             for registration in event.registrations:
                 for activity_type in event.activity_types or [None]:
@@ -427,14 +426,14 @@ class DatabaseExportService:
                             registration.registration_time,
                             *_user_fields(registration.user),
                             *event_fields,
-                            event_type_name,
+                            event.event_type.name if event.event_type else None,
                             activity_type.name if activity_type else None,
                         ]
                     )
         return rows
 
     def _leader_rows(self, events) -> List:
-        """Builds the rows of the leaders.csv file.
+        """Builds the rows of the leaders csv file.
 
         Each leader yields one row per activity type of its event, so that the
         csv keeps one row per (leader, activity) couple.
@@ -444,7 +443,6 @@ class DatabaseExportService:
         """
         rows = []
         for event in events:
-            event_type_name = event.event_type.name if event.event_type else None
             event_fields = self._event_fields(event)
             for leader in event.leaders:
                 for activity_type in event.activity_types or [None]:
@@ -453,7 +451,7 @@ class DatabaseExportService:
                             event.id,
                             *_user_fields(leader),
                             *event_fields,
-                            event_type_name,
+                            event.event_type.name if event.event_type else None,
                             activity_type.name if activity_type else None,
                         ]
                     )
@@ -492,11 +490,15 @@ class DatabaseExportService:
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
             files = (
                 (
-                    "registrations.csv",
-                    REGISTRATION_COLUMNS,
+                    DBEXPORT_REGISTRATIONS_CSV,
+                    DBEXPORT_REGISTRATION_COLUMNS,
                     self._registration_rows(events),
                 ),
-                ("leaders.csv", LEADER_COLUMNS, self._leader_rows(events)),
+                (
+                    DBEXPORT_LEADERS_CSV,
+                    DBEXPORT_LEADER_COLUMNS,
+                    self._leader_rows(events),
+                ),
             )
             for filename, headers, rows in files:
                 with archive.open(filename, "w") as entry:

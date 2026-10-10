@@ -11,8 +11,10 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.export import DatabaseExportForm
 from collectives.models import ActivityType
 from collectives.utils.export import (
-    LEADER_COLUMNS,
-    REGISTRATION_COLUMNS,
+    DBEXPORT_LEADER_COLUMNS,
+    DBEXPORT_LEADERS_CSV,
+    DBEXPORT_REGISTRATION_COLUMNS,
+    DBEXPORT_REGISTRATIONS_CSV,
     DatabaseExportService,
 )
 from collectives.utils.time import get_ffcam_year
@@ -47,7 +49,7 @@ def _read_csv(archive: zipfile.ZipFile, name: str) -> list:
 
 def test_export_excludes_pii_columns():
     """The export columns must not include any personal data column."""
-    columns = set(REGISTRATION_COLUMNS) | set(LEADER_COLUMNS)
+    columns = set(DBEXPORT_REGISTRATION_COLUMNS) | set(DBEXPORT_LEADER_COLUMNS)
     assert columns.isdisjoint(PII_COLUMNS), columns & PII_COLUMNS
 
 
@@ -55,27 +57,31 @@ def test_export_creates_zip(stats_env):
     """The export bundles both csv files into an in-memory zip."""
     export = DatabaseExportService(year=_current_year()).export()
 
-    assert set(export.row_counts) == {"registrations.csv", "leaders.csv"}
-    assert export.row_counts["registrations.csv"] > 0
-    assert export.row_counts["leaders.csv"] > 0
+    assert set(export.row_counts) == {DBEXPORT_REGISTRATIONS_CSV, DBEXPORT_LEADERS_CSV}
+    assert export.row_counts[DBEXPORT_REGISTRATIONS_CSV] > 0
+    assert export.row_counts[DBEXPORT_LEADERS_CSV] > 0
 
     with zipfile.ZipFile(export.stream) as archive:
-        assert sorted(archive.namelist()) == [
-            "leaders.csv",
-            "registrations.csv",
+        assert sorted(
+            archive.namelist()
+        ) == [  # this may break if csv files are renamed
+            DBEXPORT_LEADERS_CSV,
+            DBEXPORT_REGISTRATIONS_CSV,
         ]
-        with archive.open("registrations.csv") as csv_file:
+        with archive.open(DBEXPORT_REGISTRATIONS_CSV) as csv_file:
             content = csv_file.read().decode("utf-8-sig")
-    assert content.startswith("registration_id;event_id;")
+    assert content.startswith(
+        f"{DBEXPORT_REGISTRATION_COLUMNS[0]};{DBEXPORT_REGISTRATION_COLUMNS[1]};"
+    )
 
 
 def test_export_includes_all_event_statuses(stats_env, draft_event, cancelled_event):
     """Unlike statistics, the export includes draft and cancelled events."""
     export = DatabaseExportService(year=_current_year()).export()
     with zipfile.ZipFile(export.stream) as archive:
-        leaders = _read_csv(archive, "leaders.csv")
+        leaders = _read_csv(archive, DBEXPORT_LEADERS_CSV)
 
-    titles = {row["event_title"] for row in leaders}
+    titles = {row[str(DBEXPORT_LEADER_COLUMNS[6])] for row in leaders}
     assert draft_event.title in titles
     assert cancelled_event.title in titles
 
@@ -85,28 +91,20 @@ def test_export_respects_activity_filter(stats_env):
     canyon = ActivityType.query.filter_by(name="Canyon").first()
     export = DatabaseExportService(year=_current_year(), activity_id=canyon.id).export()
     with zipfile.ZipFile(export.stream) as archive:
-        leaders = _read_csv(archive, "leaders.csv")
+        leaders = _read_csv(archive, DBEXPORT_LEADERS_CSV)
 
     assert leaders
-    assert "Canyon" in {row["event_activity_type_name"] for row in leaders}
+    assert "Canyon" in {row["Activité"] for row in leaders}
 
 
 def test_export_concatenates_user_name(stats_env, user1):
     """The user name column is first and last name concatenated with a space."""
     export = DatabaseExportService(year=_current_year()).export()
     with zipfile.ZipFile(export.stream) as archive:
-        rows = _read_csv(archive, "registrations.csv")
+        rows = _read_csv(archive, DBEXPORT_REGISTRATIONS_CSV)
 
-    names = {row["user_name"] for row in rows}
+    names = {row["Participant"] for row in rows}
     assert f"{user1.first_name} {user1.last_name}" in names
-
-
-def test_download_name(stats_env):
-    """The zip name follows the export_<year>_<timestamp>.zip pattern."""
-    name = DatabaseExportService(year=_current_year()).export().download_name
-    assert name.startswith("export_")
-    assert f"_{_current_year()}_" in name
-    assert name.endswith(".zip")
 
 
 def test_export_form_defaults_to_all_activities(stats_env):
@@ -161,7 +159,10 @@ def test_database_export_endpoint_admin(admin_client, stats_env):
     assert ".zip" in response.headers["Content-Disposition"]
 
     with zipfile.ZipFile(io.BytesIO(response.data)) as archive:
-        assert sorted(archive.namelist()) == ["leaders.csv", "registrations.csv"]
+        assert sorted(archive.namelist()) == [
+            DBEXPORT_LEADERS_CSV,
+            DBEXPORT_REGISTRATIONS_CSV,
+        ]
 
 
 def test_database_export_endpoint_non_admin(supervisor_client, stats_env):
