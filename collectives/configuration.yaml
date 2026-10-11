@@ -80,7 +80,7 @@ Paiements:
 
     PAYLINE_MERCHANT_ID:
         content: ""
-        description: Payline merchant id, refer to payline account. If left empty the payline API will operate in mock mode.
+        description: Payline merchant id, refer to payline account. If left empty, payments fail, unless in debug mode or with PAYLINE_ALLOW_MOCK where the payline API operates in mock mode.
         type: ShortString
 
     PAYLINE_ACCESS_KEY:

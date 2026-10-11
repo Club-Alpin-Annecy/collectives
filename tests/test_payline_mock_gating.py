@@ -9,6 +9,8 @@ from collectives.utils import payline
 @pytest.fixture
 def unconfigured_payline(app):
     """Leave Payline unconfigured (empty merchant id) so that the mock API is selected."""
+    # FLASK_DEBUG may be set in the developer environment
+    app.debug = False
     item = Configuration.get_item("PAYLINE_MERCHANT_ID")
     item.content = ""
     db.session.add(item)
@@ -61,3 +63,30 @@ def test_mock_payment_page_hidden_outside_debug_and_testing(
             assert response.headers["Location"].endswith("/collectives/")
     finally:
         app.testing = True
+
+
+def test_payline_mock_allowed_by_config(app, unconfigured_payline):
+    """A demo instance can explicitly allow the mock API outside debug/testing."""
+    with app.test_request_context("/"):
+        app.testing = False
+        app.config["PAYLINE_ALLOW_MOCK"] = True
+        try:
+            assert payline.api.mock_allowed()
+            assert payline.api.do_refund(None) is not None
+        finally:
+            app.testing = True
+            app.config["PAYLINE_ALLOW_MOCK"] = False
+
+
+def test_payline_mock_allowed_reloads_config(app, unconfigured_payline):
+    """mock_allowed() reads the current merchant id, not a stale one."""
+    item = Configuration.get_item("PAYLINE_MERCHANT_ID")
+    item.content = "merchant"
+    db.session.add(item)
+    db.session.commit()
+    Configuration.uncache("PAYLINE_MERCHANT_ID")
+    # Simulate a fresh worker that never loaded the configuration
+    payline.api.payline_merchant_id = ""
+
+    with app.test_request_context("/"):
+        assert not payline.api.mock_allowed()

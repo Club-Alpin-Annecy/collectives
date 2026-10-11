@@ -11,7 +11,7 @@
             "module": "flask",
             "env": {
                 "FLASK_APP": "collectives",
-                "FLASK_ENV": "development"
+                "FLASK_DEBUG": "1"
             },
             "args": [
                 "run",

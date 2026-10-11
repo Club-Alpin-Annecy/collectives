@@ -53,7 +53,8 @@ def login():
     # If even after password filtering there are multiple users, ask user to select
     if len(users) > 1:
         users_list = "".join(
-            f"""<span   class=\"button button-secondary\" onclick=\"connect_to('{escape(u.license)}')\" >
+            f"""<span   class=\"button button-secondary\" data-license=\"{escape(u.license)}\"
+                        onclick=\"connect_to(this.dataset.license)\" >
                         {escape(u.full_name())}</span>"""
             for u in users
         )
