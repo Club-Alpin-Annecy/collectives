@@ -19,6 +19,26 @@ from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeCustomLevel, BadgeIds
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
+FILTERABLE_USER_COLUMNS = ("mail", "first_name", "last_name", "license", "phone")
+"""User columns on which the administration table may filter with a text pattern.
+
+:type: tuple(string)
+"""
+
+SORTABLE_USER_COLUMNS = (
+    "id",
+    "mail",
+    "first_name",
+    "last_name",
+    "license",
+    "enabled",
+    "license_expiry_date",
+)
+"""User columns on which the administration table may sort.
+
+:type: tuple(string)
+"""
+
 
 def apply_user_filters(query, request_args):
     """Apply filters from request to user query.
@@ -62,8 +82,11 @@ def apply_user_filters(query, request_args):
             filters = list(filters.values())
             query_filter = User.badges.any(and_(*filters))
 
-        else:
+        elif field in FILTERABLE_USER_COLUMNS:
             query_filter = getattr(User, field).ilike(f"%{value}%")
+        else:
+            i += 1
+            continue
 
         query = query.filter(query_filter)
         i += 1
@@ -150,10 +173,11 @@ def users():
     query = apply_user_filters(query, request.args)
 
     # Process first sorter only
-    if "sorters[0][field]" in request.args:
-        sort_field = request.args.get("sorters[0][field]")
+    sort_field = request.args.get("sorters[0][field]")
+    if sort_field in SORTABLE_USER_COLUMNS:
+        sort_column = getattr(User, sort_field)
         sort_dir = request.args.get("sorters[0][dir]")
-        order = desc(sort_field) if sort_dir == "desc" else sort_field
+        order = desc(sort_column) if sort_dir == "desc" else sort_column
         query = query.order_by(order)
 
     # Pagination block

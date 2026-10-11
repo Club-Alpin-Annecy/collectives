@@ -595,6 +595,9 @@ def do_mock_payment(token):
     :param token: The unique string identifying the payment
     :type token: string
     """
+    if not payline.api.mock_allowed():
+        abort(404)
+
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
         abort(403)
