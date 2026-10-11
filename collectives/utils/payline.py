@@ -35,6 +35,15 @@ CPT stands for "Full"
 :type: string
 """
 
+PAYLINE_TIMEOUT = 15
+"""Timeout, in seconds, of calls to the Payline API.
+
+Calls are made while serving a page: without a short timeout, a slow Payline
+holds the server threads, and slows the whole site down.
+
+:type: int
+"""
+
 
 class PaymentResult:
     """Result returned after payline API requests. Gives information
@@ -411,6 +420,7 @@ class PaylineApi:
         return SoapClient(
             wsdl=wsdl_path,
             wsdl_basedir=".",
+            timeout=PAYLINE_TIMEOUT,
             http_headers={
                 "Authorization": f"Basic {self.encoded_auth}",
                 "Content-Type": "text/plain",
@@ -505,7 +515,8 @@ class PaylineApi:
 
             return payment_response
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
@@ -540,7 +551,8 @@ class PaylineApi:
             )
             return PaymentDetails(response)
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
@@ -584,7 +596,8 @@ class PaylineApi:
 
             return RefundDetails(response)
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
