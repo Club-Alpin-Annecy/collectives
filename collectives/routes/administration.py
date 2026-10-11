@@ -202,6 +202,9 @@ def sync_user_with_loxya(user_id):
 
     try:
         action = loxya_sync.sync_user(user, allow_create=True)
+    except loxya_sync.SyncInProgress:
+        flash("Une synchronisation Loxya est en cours : réessayez plus tard", "warning")
+        return redirect(url_for("administration.administration"))
     # pylint: disable=broad-except
     except Exception as err:
         current_app.logger.error(f"Loxya: manual sync failed for user {user.id}: {err}")

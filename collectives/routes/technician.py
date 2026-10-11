@@ -115,7 +115,11 @@ def loxya_sync_action():
         flash("La synchronisation Loxya est éteinte, rien n'a été fait.", "warning")
         return redirect(url_for("technician.actions"))
 
-    report = loxya_sync.sync_all_users()
+    try:
+        report = loxya_sync.sync_all_users()
+    except loxya_sync.SyncInProgress:
+        flash("Une synchronisation Loxya est déjà en cours.", "warning")
+        return redirect(url_for("technician.actions"))
     summary = ", ".join(
         f"{action.display_name()} : {count}" for action, count in report.items()
     )

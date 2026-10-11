@@ -14,7 +14,9 @@ state and comes up again on the next run: the reconciliation is the retry queue.
     that the beneficiary is live.
 """
 
+import threading
 from collections import Counter
+from contextlib import contextmanager
 
 from flask import current_app
 from sqlalchemy import and_
@@ -71,6 +73,27 @@ ANONYMIZED_IDENTITY = {
 }
 """ Values written over the personal data of an anonymized member. The reference
 is kept: it only points to the anonymized Collectives account. """
+
+
+_lock = threading.Lock()
+""" Held while synchronizing. Two runs at once — the nightly job, the button, a
+login — could both find a beneficiary live and both DELETE it, the second one
+purging it. The application runs in a single process: a thread lock is enough. """
+
+
+class SyncInProgress(loxya.LoxyaError):
+    """Another synchronization is running: try again later."""
+
+
+@contextmanager
+def _exclusive():
+    """Runs a block alone, or raises :py:class:`SyncInProgress`."""
+    if not _lock.acquire(blocking=False):
+        raise SyncInProgress("A Loxya synchronization is already running")
+    try:
+        yield
+    finally:
+        _lock.release()
 
 
 class SyncMode(ChoiceEnum):
@@ -165,18 +188,13 @@ def _pending_queries() -> dict:
     return {
         SyncAction.Anonymized: User.query.filter(anonymized, linked),
         SyncAction.Deactivated: User.query.filter(
-            ~eligible, ~anonymized, User.loxya_active.is_(True)
+            eligible.is_not(True), ~anonymized, User.loxya_active.is_(True)
         ),
         SyncAction.Activated: User.query.filter(
             eligible, linked, User.loxya_active.is_(False)
         ),
         SyncAction.Created: User.query.filter(eligible, ~linked),
     }
-
-
-def pending_changes() -> dict:
-    """Lists the users to process, per :py:class:`SyncAction`."""
-    return {action: query.all() for action, query in _pending_queries().items()}
 
 
 def simulate() -> dict:
@@ -380,22 +398,24 @@ def sync_user(user: User, allow_create: bool = True) -> SyncAction:
 
     :param allow_create: Whether a user not yet on Loxya may be created.
     :return: The action taken, or None when there was nothing to do.
+    :raises SyncInProgress: if another synchronization is running.
     """
-    if is_anonymized(user):
-        if user.loxya_beneficiary_id is None:
+    with _exclusive():
+        if is_anonymized(user):
+            if user.loxya_beneficiary_id is None:
+                return None
+            return anonymize_account(user)
+
+        if is_eligible(user):
+            if user.loxya_beneficiary_id is None:
+                return create_account(user) if allow_create else None
+            if not user.loxya_active:
+                return reactivate_account(user)
             return None
-        return anonymize_account(user)
 
-    if is_eligible(user):
-        if user.loxya_beneficiary_id is None:
-            return create_account(user) if allow_create else None
-        if not user.loxya_active:
-            return reactivate_account(user)
+        if user.loxya_active:
+            return deactivate_account(user)
         return None
-
-    if user.loxya_active:
-        return deactivate_account(user)
-    return None
 
 
 def sync_user_safely(user: User) -> SyncAction:
@@ -408,6 +428,8 @@ def sync_user_safely(user: User) -> SyncAction:
 
     try:
         return sync_user(user, allow_create=mode is SyncMode.Auto)
+    except SyncInProgress:
+        return None
     # pylint: disable=broad-except
     except Exception as err:
         db.session.rollback()
@@ -424,6 +446,7 @@ def sync_all_users() -> Counter:
     its own: a failure neither stops the run nor loses the others' work.
 
     :return: The number of users per :py:class:`SyncAction`.
+    :raises SyncInProgress: if another synchronization is running.
     """
     report = Counter()
     mode = current_mode()
@@ -447,21 +470,23 @@ def sync_all_users() -> Counter:
         SyncAction.Created: create_account,
     }
 
-    for action, users in pending_changes().items():
-        if action is SyncAction.Created and mode is not SyncMode.Auto:
-            continue
-        for user in users:
-            try:
-                outcome = handlers[action](user)
-                if outcome is not None:
-                    report[outcome] += 1
-            # pylint: disable=broad-except
-            except Exception as err:
-                db.session.rollback()
-                current_app.logger.error(
-                    f"Loxya: {action.name} failed for user {user.id}: {err}"
-                )
-                report[SyncAction.Failed] += 1
+    with _exclusive():
+        for action, query in _pending_queries().items():
+            # In manual mode, members are only created by hand: not even loaded.
+            if action is SyncAction.Created and mode is not SyncMode.Auto:
+                continue
+            for user in query.all():
+                try:
+                    outcome = handlers[action](user)
+                    if outcome is not None:
+                        report[outcome] += 1
+                # pylint: disable=broad-except
+                except Exception as err:
+                    db.session.rollback()
+                    current_app.logger.error(
+                        f"Loxya: {action.name} failed for user {user.id}: {err}"
+                    )
+                    report[SyncAction.Failed] += 1
 
     current_app.logger.info(
         f"Loxya: synchronization done in {mode.name} mode — "

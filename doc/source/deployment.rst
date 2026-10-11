@@ -1,6 +1,5 @@
 Deployment for production
-===================
-
+============
 This document is meant to help the deployment of the collectives application on an host provider
 for production. 
 
