@@ -171,6 +171,14 @@ class UserModelMixin:
 
     :type: int"""
 
+    loxya_user_id = db.Column(db.Integer, nullable=True)
+    """ Id of the Loxya login account of the member, to book online.
+
+    `None` when the beneficiary has none: login accounts are optional, see the
+    ``LOXYA_CREATE_ACCOUNTS`` setting.
+
+    :type: int"""
+
     loxya_active = db.Column(db.Boolean, nullable=True)
     """ Last activation state actually pushed to Loxya.
 

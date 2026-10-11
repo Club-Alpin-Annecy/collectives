@@ -38,6 +38,10 @@ class LoxyaNotFoundError(LoxyaError):
     """The resource does not exist — or sits in the Loxya trash bin."""
 
 
+class LoxyaValidationError(LoxyaError):
+    """Loxya rejected the payload (400), e.g. an email already used by an account."""
+
+
 def feature_enabled(config=None) -> bool:
     """Checks whether this deployment enables the Loxya integration.
 
@@ -173,6 +177,8 @@ class LoxyaApi:
             message += f" {error['details']}"
         if response.status_code == 404:
             raise LoxyaNotFoundError(message)
+        if response.status_code == 400:
+            raise LoxyaValidationError(message)
         raise LoxyaError(message)
 
     def _request(self, method: str, path: str, **kwargs) -> dict:

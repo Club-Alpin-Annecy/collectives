@@ -13,12 +13,15 @@ puis saisir dans Configuration → Loxya l'URL du stub et les identifiants
 
 Les pièges de l'instance sont reproduits volontairement :
 
-- un ``DELETE`` sur un bénéficiaire déjà à la corbeille le **purge** ;
-- ``GET`` et ``PUT`` sur un bénéficiaire à la corbeille répondent 404 ;
+- un ``DELETE`` sur une ressource déjà à la corbeille la **purge** ;
+- ``GET`` et ``PUT`` sur une ressource à la corbeille répondent 404 ;
 - ``PUT`` remplace l'objet entier : un champ absent est effacé ;
-- la recherche se fait par sous-chaîne.
-
-Les comptes de connexion ne sont pas reproduits : l'intégration n'en crée pas.
+- l'e-mail n'est unique que parmi les comptes de connexion, et un doublon est
+  refusé par un 400, pas un 409 ;
+- mettre un bénéficiaire à la corbeille laisse son compte actif, et purger un
+  compte laisse son bénéficiaire, ``user_id`` remis à ``null`` ;
+- bénéficiaires et comptes ont des identifiants distincts — sur l'instance ils
+  coïncident souvent, ce qui masque une confusion ; ici, elle échoue.
 """
 
 import argparse
@@ -46,24 +49,66 @@ BENEFICIARY_FIELDS = (
 )
 """ Champs d'un bénéficiaire conservés par le stub. """
 
-STATE = {"tokens": set(), "beneficiaries": {}, "next_id": 1}
-""" État en mémoire. """
+STATE = {
+    "tokens": set(),
+    "beneficiaries": {},
+    "users": {},
+    "next_id": {"b": 1, "u": 101},
+}
+""" État en mémoire. Comptes numérotés à partir de 101, bénéficiaires à partir de 1. """
 
 
-def live(key: int) -> dict:
-    """Renvoie le bénéficiaire s'il existe et n'est pas à la corbeille."""
-    beneficiary = STATE["beneficiaries"].get(key)
-    return beneficiary if beneficiary and not beneficiary["deleted"] else None
+def new_id(kind: str) -> int:
+    """Alloue un identifiant de bénéficiaire (``b``) ou de compte (``u``)."""
+    STATE["next_id"][kind] += 1
+    return STATE["next_id"][kind] - 1
+
+
+def live(store: str, key: int) -> dict:
+    """Renvoie la ressource si elle existe et n'est pas à la corbeille."""
+    item = STATE[store].get(key)
+    return item if item and not item["deleted"] else None
+
+
+def account_errors(body: dict, user: dict = None) -> dict:
+    """Valide les champs d'un compte de connexion, comme l'instance.
+
+    L'unicité du pseudo n'a pas été observée ; elle est supposée.
+    """
+    errors = {}
+    if user is None:
+        for field in ("pseudo", "email", "password"):
+            if not body.get(field):
+                errors[field] = "Ce champ est obligatoire."
+    for field, message in (
+        ("email", "Cette adresse e-mail est déjà utilisée."),
+        ("pseudo", "Cet identifiant est déjà utilisé."),
+    ):
+        value = body.get(field)
+        if value and any(
+            u[field] == value and u is not user
+            for u in STATE["users"].values()
+            if not u["deleted"]
+        ):
+            errors[field] = message
+    return errors
 
 
 def beneficiary_payload(beneficiary: dict) -> dict:
     """Représentation d'un bénéficiaire, dans la forme renvoyée par Loxya."""
+    user = STATE["users"].get(beneficiary["user_id"])
     return {
         **{field: beneficiary.get(field) for field in BENEFICIARY_FIELDS},
         "id": beneficiary["id"],
-        "user_id": None,
+        "user_id": beneficiary["user_id"],
         "is_deleted": beneficiary["deleted"],
+        "user": None if user is None else user_payload(user),
     }
+
+
+def user_payload(user: dict) -> dict:
+    """Représentation d'un compte de connexion."""
+    return {key: user[key] for key in ("id", "pseudo", "email", "group")}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -103,7 +148,8 @@ class Handler(BaseHTTPRequestHandler):
         """Authentifie la requête puis la confie au gestionnaire de sa route."""
         url = urlparse(self.path)
         if method == "GET" and url.path == "/_stub/state":
-            return self._reply(200, {"beneficiaries": STATE["beneficiaries"]})
+            state = {k: v for k, v in STATE.items() if k in ("beneficiaries", "users")}
+            return self._reply(200, state)
         if method == "POST" and url.path == "/api/session":
             if self._body() != CREDENTIALS:
                 return self._error(401, "Bad credentials.")
@@ -139,14 +185,28 @@ class Handler(BaseHTTPRequestHandler):
         """Traite les requêtes DELETE."""
         self._route("DELETE")
 
+    # -- Bénéficiaires -----------------------------------------------------
+
     def create_beneficiary(self, query):
-        """Crée un bénéficiaire."""
+        """Crée un bénéficiaire, et son compte si les réservations en ligne sont permises."""
         body = self._body()
-        beneficiary = {"id": STATE["next_id"], "deleted": False}
+        with_account = bool(body.get("can_make_reservation"))
+        errors = account_errors(body) if with_account else {}
+        if errors:
+            return self._error(400, "Validation failed.", errors)
+        beneficiary = {"id": new_id("b"), "user_id": None, "deleted": False}
         beneficiary.update({field: body.get(field) for field in BENEFICIARY_FIELDS})
-        STATE["next_id"] += 1
+        if with_account:
+            beneficiary["user_id"] = self._create_user(body)
         STATE["beneficiaries"][beneficiary["id"]] = beneficiary
         return self._reply(201, beneficiary_payload(beneficiary))
+
+    def _create_user(self, body: dict) -> int:
+        """Crée le compte de connexion d'un bénéficiaire et renvoie son identifiant."""
+        user = {"id": new_id("u"), "pseudo": body["pseudo"], "email": body["email"]}
+        user.update(group="external", deleted=False)
+        STATE["users"][user["id"]] = user
+        return user["id"]
 
     def list_beneficiaries(self, query):
         """Recherche par sous-chaîne, sans casse, sur nom, prénom, e-mail et référence."""
@@ -168,52 +228,85 @@ class Handler(BaseHTTPRequestHandler):
 
     def get_beneficiary(self, beneficiary_id, query):
         """Fiche d'un bénéficiaire ; 404 s'il est à la corbeille."""
-        beneficiary = live(beneficiary_id)
+        beneficiary = live("beneficiaries", beneficiary_id)
         if beneficiary is None:
             return self._error(404, "Not found.")
         return self._reply(200, beneficiary_payload(beneficiary))
 
     def replace_beneficiary(self, beneficiary_id, query):
-        """Remplace un bénéficiaire : les champs absents sont effacés."""
-        beneficiary = live(beneficiary_id)
+        """Remplace un bénéficiaire ; lui ajoute un compte s'il passe en réservation en ligne."""
+        beneficiary = live("beneficiaries", beneficiary_id)
         if beneficiary is None:
             return self._error(404, "Not found.")
         body = self._body()
+        user = STATE["users"].get(beneficiary["user_id"])
+        if body.get("can_make_reservation"):
+            errors = account_errors(body, user)
+            if errors:
+                return self._error(400, "Validation failed.", errors)
+            if user is None:
+                beneficiary["user_id"] = self._create_user(body)
         beneficiary.update({field: body.get(field) for field in BENEFICIARY_FIELDS})
         return self._reply(200, beneficiary_payload(beneficiary))
 
-    def delete_beneficiary(self, beneficiary_id, query):
-        """Met à la corbeille, ou purge un bénéficiaire déjà à la corbeille."""
-        beneficiary = STATE["beneficiaries"].get(beneficiary_id)
-        if beneficiary is None:
+    # -- Commun aux bénéficiaires et aux comptes ---------------------------
+
+    def delete(self, store: str, key: int):
+        """Met à la corbeille, ou purge une ressource déjà à la corbeille."""
+        item = STATE[store].get(key)
+        if item is None:
             return self._error(404, "Not found.")
-        if beneficiary["deleted"]:
-            del STATE["beneficiaries"][beneficiary_id]
-            LOGGER.warning("Bénéficiaire %d PURGÉ (second DELETE)", beneficiary_id)
-        else:
-            beneficiary["deleted"] = True
+        if not item["deleted"]:
+            item["deleted"] = True
+            return self._reply(204)
+        del STATE[store][key]
+        LOGGER.warning("%s %d PURGÉ (second DELETE)", store, key)
+        if store == "users":
+            for beneficiary in STATE["beneficiaries"].values():
+                if beneficiary["user_id"] == key:
+                    beneficiary["user_id"] = None
         return self._reply(204)
 
-    def restore_beneficiary(self, beneficiary_id, query):
-        """Sort un bénéficiaire de la corbeille ; 404 s'il a été purgé."""
-        beneficiary = STATE["beneficiaries"].get(beneficiary_id)
-        if beneficiary is None:
+    def restore(self, store: str, key: int):
+        """Sort une ressource de la corbeille ; 404 si elle a été purgée."""
+        item = STATE[store].get(key)
+        if item is None:
             return self._error(404, "Not found.")
-        beneficiary["deleted"] = False
-        return self._reply(200, beneficiary_payload(beneficiary))
+        item["deleted"] = False
+        payload = (
+            beneficiary_payload(item)
+            if store == "beneficiaries"
+            else user_payload(item)
+        )
+        return self._reply(200, payload)
+
+    def get_user(self, user_id, query):
+        """Fiche d'un compte ; 404 s'il est à la corbeille."""
+        user = live("users", user_id)
+        if user is None:
+            return self._error(404, "Not found.")
+        return self._reply(200, user_payload(user))
 
 
 ROUTES = {
     "GET": [
         (r"/api/beneficiaries", Handler.list_beneficiaries),
         (r"/api/beneficiaries/(\d+)", Handler.get_beneficiary),
+        (r"/api/users/(\d+)", Handler.get_user),
     ],
     "POST": [(r"/api/beneficiaries", Handler.create_beneficiary)],
     "PUT": [
-        (r"/api/beneficiaries/restore/(\d+)", Handler.restore_beneficiary),
+        (
+            r"/api/beneficiaries/restore/(\d+)",
+            lambda h, k, query: h.restore("beneficiaries", k),
+        ),
+        (r"/api/users/restore/(\d+)", lambda h, k, query: h.restore("users", k)),
         (r"/api/beneficiaries/(\d+)", Handler.replace_beneficiary),
     ],
-    "DELETE": [(r"/api/beneficiaries/(\d+)", Handler.delete_beneficiary)],
+    "DELETE": [
+        (r"/api/beneficiaries/(\d+)", lambda h, k, query: h.delete("beneficiaries", k)),
+        (r"/api/users/(\d+)", lambda h, k, query: h.delete("users", k)),
+    ],
 }
 """ Routes de l'API, par verbe : motif du chemin et gestionnaire. """
 

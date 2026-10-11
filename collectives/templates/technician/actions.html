@@ -62,6 +62,9 @@
     <li><strong>{{ loxya_simulation[SyncAction.Activated] }}</strong> compte(s) à réactiver</li>
     <li><strong>{{ loxya_simulation[SyncAction.Deactivated] }}</strong> compte(s) à désactiver</li>
     <li><strong>{{ loxya_simulation[SyncAction.Anonymized] }}</strong> compte(s) à anonymiser</li>
+    {% if SyncAction.LoginAdded in loxya_simulation %}
+    <li><strong>{{ loxya_simulation[SyncAction.LoginAdded] }}</strong> accès en ligne à ajouter</li>
+    {% endif %}
   </ul>
   <p>
     La synchronisation s'exécute automatiquement chaque nuit. Le bouton ci-dessous la lance
