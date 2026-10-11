@@ -223,7 +223,8 @@ Aucun en-tête `Strict-Transport-Security`, `X-Content-Type-Options`,
 `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, `Content-Security-Policy`.
 
 **Recommandation** : positionner ces options ; ajouter les en-têtes.
-**Partiellement corrigé** : cookies `Secure` (hors `FLASK_DEBUG`), `HttpOnly`,
+**Partiellement corrigé** : cookies `Secure` (hors `FLASK_DEBUG`, que `run.py`
+positionne désormais ; surchargeables dans `instance/config.py`), `HttpOnly`,
 `SameSite=Lax` ; en-têtes `X-Content-Type-Options`, `Referrer-Policy`,
 `Strict-Transport-Security` (uniquement en HTTPS). `X-Frame-Options` et une
 CSP restent à décider (le site est-il intégré en iframe ailleurs ? les scripts
@@ -259,9 +260,17 @@ exponentiel, journaliser IP + identifiant en cas d'échec. **Non corrigé.**
 - `collectives/templates/index.html:73` : `BANNER_MESSAGE` dans un template
   literal JS (technicien, confiance).
 
+- `collectives/models/badge.py` : `BadgeIds.js_levels()` renvoie un
+  `json.dumps` inséré `|safe` dans un `<script>` par cinq templates ; les noms
+  des niveaux personnalisés, modifiables par les superviseurs, peuvent fermer
+  la balise.
+
 **Recommandation** : `|tojson` au lieu de `|safe` pour les données
-structurées ; échapper les noms. **Partiellement corrigé** (`user_list.html`
-et `login.py`).
+structurées ; échapper les noms. **Partiellement corrigé** (`user_list.html`,
+`login.py` où la licence passe par un attribut `data-license` plutôt que dans
+le code JS de `onclick`, `BadgeIds.js_levels()` qui échappe `<`, `>`, `&`
+et `'`, et `badges_list.js` qui insère les noms de niveaux en texte plutôt
+qu'en HTML).
 
 ### M5 — Mode « mock » Payline actif dès que `PAYLINE_MERCHANT_ID` est vide
 
@@ -277,6 +286,8 @@ de production où les paiements sont activés mais Payline mal configuré, les
 inscriptions payantes deviennent gratuites.
 
 **Recommandation** : n'autoriser le mock qu'en `DEBUG`/`TESTING`. **Corrigé.**
+Une instance de démonstration peut le réactiver explicitement avec
+`PAYLINE_ALLOW_MOCK = True` dans `instance/config.py`.
 
 ### M6 — Export des rôles hors périmètre supervisé
 
@@ -349,8 +360,11 @@ Un commit par correction, dans l'ordre :
 3. H3 — exclusion de `svg` des uploads de documents servis en statique.
 4. M1 — validation stricte de `next`.
 5. M2 — options cookies et en-têtes de sécurité.
-6. M4 — `|tojson` dans `user_list.html`, échappement dans `login.py`.
-7. M5 — mock Payline limité à `DEBUG`/`TESTING`.
+6. M4 — `|tojson` dans `user_list.html`, licence en attribut `data-license`
+   dans `login.py`, JSON échappé dans `BadgeIds.js_levels()` et noms de
+   niveaux insérés en texte dans `badges_list.js`.
+7. M5 — mock Payline limité à `DEBUG`/`TESTING`, ou à `PAYLINE_ALLOW_MOCK`
+   (instance de démonstration).
 8. M6 — périmètre de `export_role`.
 9. M7 — liste blanche des filtres admin.
 10. C3 — avertissement critique au démarrage sur les secrets par défaut.

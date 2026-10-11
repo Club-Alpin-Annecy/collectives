@@ -393,7 +393,7 @@ class PaylineApi:
             self._webpayment_client = None
             self._directpayment_client = None
             if self.disabled():
-                current_app.logger.warning("Payment API disabled, using mock API")
+                current_app.logger.warning("Payment API is not configured")
 
     @property
     def encoded_auth(self):
@@ -603,11 +603,17 @@ class PaylineApi:
 
         The mock API trusts client-provided URL parameters to decide whether a
         payment is approved. It must never be active on a production instance,
-        so it is only allowed when the application runs in debug or testing mode.
+        so it is only allowed when the application runs in debug or testing mode,
+        or when explicitly enabled with ``PAYLINE_ALLOW_MOCK`` (demo instance).
 
-        :return: True if the API is not configured and the app is in debug/testing mode
+        :return: True if the API is not configured and the mock API is allowed
         """
-        return self.disabled() and (current_app.debug or current_app.testing)
+        self.reload_config()
+        return self.disabled() and (
+            current_app.debug
+            or current_app.testing
+            or current_app.config.get("PAYLINE_ALLOW_MOCK", False)
+        )
 
     def disabled(self) -> bool:
         """Check if Payline merchant Id has been set.
