@@ -250,16 +250,17 @@ def view_event(event_id, name=""):
     :param int event_id: ID of the event to display.
     :param string name: Name of the event, only for URL cosmetic purpose.
     """
-    event = (
-        Event.query.options(
+    # Many routes redirect here without the name: answer the redirection
+    # before loading registrations and payment items.
+    query = Event.query.filter_by(id=event_id)
+    if name != "":
+        query = query.options(
             joinedload(Event.registrations)
             .selectinload(Registration.user)
             .selectinload(User.roles),
             selectinload(Event.payment_items).selectinload(PaymentItem.prices),
         )
-        .filter_by(id=event_id)
-        .first()
-    )
+    event = query.first()
 
     if event is None or not event.is_visible_to(current_user):
         if not current_user.is_authenticated:
@@ -278,6 +279,14 @@ def view_event(event_id, name=""):
                 **request.args,
             )
         )
+
+    registered_user_ids = {registration.user_id for registration in event.registrations}
+    if registered_user_ids and event.has_edit_rights(current_user):
+        # Badges of registered users are displayed to the event staff only:
+        # load them in one query rather than one per user.
+        User.query.filter(User.id.in_(registered_user_ids)).options(
+            selectinload(User.badges)
+        ).all()
 
     register_user_form = (
         RegistrationForm() if event.has_edit_rights(current_user) else None
