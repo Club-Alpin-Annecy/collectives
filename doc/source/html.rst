@@ -41,6 +41,7 @@ To create a URL to a static files, please use :py:func:`url_for`. EG ``{{ url_fo
 browsers keep the file until it changes (see :py:mod:`collectives.utils.static`). A path
 written by hand, in a template or a JS file, has no version: scripts and styles are then
 checked by browsers on every page, and images and fonts are cached for an hour only.
+Files uploaded by users, in ``static/uploads``, are neither versioned nor cached.
 JS modules may import each other with relative paths: the import map of the page
 redirects them to their versioned URL.
 
