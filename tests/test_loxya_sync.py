@@ -433,7 +433,7 @@ def test_auto_mode_creates_at_night(loxya_session, member1):
 
     report = loxya_sync.sync_all_users()
 
-    assert report.actions.get(SyncAction.Created) == 1
+    assert report[SyncAction.Created] == 1
     assert member1.loxya_beneficiary_id == 7
 
 
@@ -444,7 +444,7 @@ def test_run_is_idempotent(loxya_session, member1):
     """A second run makes no call at all when nothing moved."""
     loxya_session.script("POST", BENEFICIARIES, 201, beneficiary())
     report = loxya_sync.sync_all_users()
-    assert not report.errors
+    assert not report[SyncAction.Failed]
     before = len(loxya_session.calls)
     assert before > 0
 
@@ -459,8 +459,7 @@ def test_failure_does_not_stop_the_batch(loxya_session, member1, member2):
 
     report = loxya_sync.sync_all_users()
 
-    assert report.actions.get(SyncAction.Failed) == 2
-    assert len(report.errors) == 2
+    assert report[SyncAction.Failed] == 2
 
 
 def test_simulation_calls_nothing(loxya_session, member1, linked_member):

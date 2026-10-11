@@ -117,11 +117,11 @@ def loxya_sync_action():
 
     report = loxya_sync.sync_all_users()
     summary = ", ".join(
-        f"{action.display_name()} : {count}" for action, count in report.actions.items()
+        f"{action.display_name()} : {count}" for action, count in report.items()
     )
     flash(
         f"Synchronisation Loxya terminée — {summary or 'aucun changement'}.",
-        "error" if report.errors else "success",
+        "error" if report[loxya_sync.SyncAction.Failed] else "success",
     )
     return redirect(url_for("technician.actions"))
 

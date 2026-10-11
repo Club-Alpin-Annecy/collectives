@@ -10,7 +10,6 @@ Configuration, never from environment variables:
   Loxya; while it is off, nothing of it shows.
 - ``LOXYA_URL``, ``LOXYA_API_USERNAME``, ``LOXYA_API_PASSWORD``: hot
   configuration, folder Loxya, entered by technicians.
-- :py:data:`config.LOXYA_TIMEOUT`, :py:data:`config.LOXYA_RATE_LIMIT`.
 """
 
 import time
@@ -22,6 +21,13 @@ from collectives.models import Configuration
 
 CONNECTION_SETTINGS = ("LOXYA_URL", "LOXYA_API_USERNAME", "LOXYA_API_PASSWORD")
 """ Hot configuration items without which no call can be made. """
+
+TIMEOUT = 10
+""" Timeout in seconds of every call: an unresponsive Loxya must not freeze a
+worker. """
+
+RATE_LIMIT = 10
+""" Maximum number of requests per second sent to Loxya. """
 
 
 class LoxyaError(RuntimeError):
@@ -145,7 +151,7 @@ class LoxyaApi:
                     "password": settings["LOXYA_API_PASSWORD"],
                 },
                 headers={"accept": "application/json"},
-                timeout=current_app.config["LOXYA_TIMEOUT"],
+                timeout=TIMEOUT,
             )
         except requests.RequestException as err:
             raise LoxyaError(f"Loxya authentication failed: {err}") from err
@@ -159,14 +165,13 @@ class LoxyaApi:
         return token
 
     def _throttle(self):
-        """Waits as needed to honour ``LOXYA_RATE_LIMIT`` requests per second."""
-        rate = current_app.config.get("LOXYA_RATE_LIMIT") or 0
-        if rate <= 0:
+        """Waits as needed to honour :py:data:`RATE_LIMIT` requests per second."""
+        if RATE_LIMIT <= 0:
             return
         delay = self._next_call_time - time.monotonic()
         if delay > 0:
             time.sleep(delay)
-        self._next_call_time = time.monotonic() + 1.0 / rate
+        self._next_call_time = time.monotonic() + 1.0 / RATE_LIMIT
 
     @staticmethod
     def _raise_for_status(response: requests.Response):
@@ -212,7 +217,7 @@ class LoxyaApi:
                         "accept": "application/json",
                         "Authorization": f"Bearer {self.token}",
                     },
-                    timeout=current_app.config["LOXYA_TIMEOUT"],
+                    timeout=TIMEOUT,
                     **kwargs,
                 )
             except requests.RequestException as err:

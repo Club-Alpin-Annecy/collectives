@@ -174,11 +174,12 @@ def manage_user(user_id=None):
 
 
 @blueprint.route("/user/<user_id>/loxya/sync", methods=["POST"])
+@user_is("is_admin")
 def sync_user_with_loxya(user_id):
     """Route to synchronize a single user with Loxya, on demand.
 
     In manual mode, this is how the first members are enrolled; afterwards, it
-    lets support replay the synchronization without waiting for the nightly run.
+    replays the synchronization without waiting for the nightly run.
     Answers 404 on deployments that do not enable Loxya.
 
     :param user_id: ID of the user to synchronize

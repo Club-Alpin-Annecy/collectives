@@ -171,4 +171,4 @@ def test_timeout_is_always_set(loxya_session):
     client.get("/api/beneficiaries/1")
 
     _, _, kwargs = loxya_session.calls[0]
-    assert kwargs["timeout"] == 5
+    assert kwargs["timeout"] == loxya.TIMEOUT
