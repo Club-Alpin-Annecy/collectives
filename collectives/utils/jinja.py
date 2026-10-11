@@ -12,6 +12,7 @@ from collectives.utils import numbers
 from collectives.utils import time as custom_time
 from collectives.utils.misc import is_mobile_user
 from collectives.utils.render_markdown import markdown_to_html
+from collectives.utils.static import static_importmap
 
 
 def helpers_processor():
@@ -30,6 +31,7 @@ def helpers_processor():
     helper_functions["markdown_to_html"] = markdown_to_html
     helper_functions["map_method"] = map_method
     helper_functions["str"] = str
+    helper_functions["static_importmap"] = static_importmap
 
     return helper_functions
 

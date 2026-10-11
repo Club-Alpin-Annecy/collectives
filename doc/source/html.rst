@@ -37,6 +37,13 @@ Static files such as css and js files go into ``collectives/static`` folder.
 
 To create a URL to a static files, please use :py:func:`url_for`. EG ``{{ url_for('static', filename='css/administration.css') }}``
 
+:py:func:`url_for` adds the version of the file to the URL, eg ``?v=1d83483309b3``, so that
+browsers keep the file until it changes (see :py:mod:`collectives.utils.static`). A path
+written by hand, in a template or a JS file, has no version: scripts and styles are then
+checked by browsers on every page, and images and fonts are cached for an hour only.
+JS modules may import each other with relative paths: the import map of the page
+redirects them to their versioned URL.
+
 Collectives use of templates
 -----------------------------
 

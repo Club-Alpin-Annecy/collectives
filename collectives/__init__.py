@@ -33,7 +33,7 @@ from collectives.routes import (
     root,
     technician,
 )
-from collectives.utils import error, extranet, init, jinja, payline
+from collectives.utils import error, extranet, init, jinja, payline, static
 from collectives.utils.scheduled_tasks import init_scheduler
 
 csrf = CSRFProtect()
@@ -87,6 +87,7 @@ def create_app(config_filename="config.py", extra_config=None):
     profile.images.init_app(app)
     extranet.api.init_app(app)
     payline.api.init_app(app)
+    static.init_app(app)
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
     app.context_processor(jinja.helpers_processor)
@@ -100,6 +101,8 @@ def create_app(config_filename="config.py", extra_config=None):
 
         # Initialize asset compilation
         assets = Environment(app)
+        # Static URLs are already versioned, see collectives.utils.static
+        assets.url_expire = False
 
         filters = "libsass"
         if app.config.get("DEBUG", False):
