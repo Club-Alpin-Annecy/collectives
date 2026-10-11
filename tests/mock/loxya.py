@@ -145,7 +145,8 @@ def loxya_session(monkeypatch, app):
     The integration is switched on at the environment level and set to automatic
     mode; tests about the other modes call :py:func:`set_loxya_mode`.
     """
-    app.config.update(LOXYA_ENABLED=True, LOXYA_TIMEOUT=5, LOXYA_RATE_LIMIT=0)
+    app.config.update(LOXYA_ENABLED=True)
+    monkeypatch.setattr(loxya, "RATE_LIMIT", 0)
     set_loxya_connection()
     set_loxya_mode(active=True, auto_create=True)
 

@@ -14,13 +14,13 @@ state and comes up again on the next run: the reconciliation is the retry queue.
     that the beneficiary is live.
 """
 
-import enum
-from dataclasses import dataclass, field
+from collections import Counter
 
 from flask import current_app
 from sqlalchemy import and_
 
 from collectives.models import Configuration, User, UserType, db
+from collectives.models.utils import ChoiceEnum
 from collectives.utils import loxya
 from collectives.utils.time import current_time
 
@@ -73,7 +73,7 @@ ANONYMIZED_IDENTITY = {
 is kept: it only points to the anonymized Collectives account. """
 
 
-class SyncMode(enum.Enum):
+class SyncMode(ChoiceEnum):
     """How far the synchronization goes, set live by technicians."""
 
     # pylint: disable=invalid-name
@@ -84,16 +84,16 @@ class SyncMode(enum.Enum):
     Auto = 2
     """ Every active member is created: nightly, on signup and on login. """
 
-    def display_name(self) -> str:
-        """Returns the French label of this mode."""
-        return {
-            SyncMode.Off: "éteint",
-            SyncMode.Manual: "manuel",
-            SyncMode.Auto: "automatique",
-        }[self]
+    @classmethod
+    def display_names(cls):
+        """Display name for all modes.
+
+        :return: dict of all modes
+        """
+        return {cls.Off: "éteint", cls.Manual: "manuel", cls.Auto: "automatique"}
 
 
-class SyncAction(enum.Enum):
+class SyncAction(ChoiceEnum):
     """Outcome of the synchronization of a single user."""
 
     # pylint: disable=invalid-name
@@ -105,40 +105,20 @@ class SyncAction(enum.Enum):
     Anonymized = 5
     Failed = 6
 
-    def display_name(self) -> str:
-        """Returns the French label of this action."""
+    @classmethod
+    def display_names(cls):
+        """Display name for all actions.
+
+        :return: dict of all actions
+        """
         return {
-            SyncAction.Created: "compte créé",
-            SyncAction.Attached: "compte existant rattaché",
-            SyncAction.Activated: "compte réactivé",
-            SyncAction.Deactivated: "compte désactivé",
-            SyncAction.Anonymized: "compte anonymisé",
-            SyncAction.Failed: "échec",
-        }[self]
-
-
-@dataclass
-class SyncReport:
-    """Summary of a synchronization run."""
-
-    actions: dict = field(default_factory=dict)
-    """ Number of users per :py:class:`SyncAction`. """
-    errors: list = field(default_factory=list)
-    """ ``(user id, message)`` for every failure. """
-
-    def record(self, action: SyncAction):
-        """Counts one occurrence of an action."""
-        self.actions[action] = self.actions.get(action, 0) + 1
-
-    def __str__(self) -> str:
-        """Returns a one line summary, for logging."""
-        counts = ", ".join(
-            f"{action.name}: {count}"
-            for action, count in sorted(
-                self.actions.items(), key=lambda item: item[0].name
-            )
-        )
-        return counts or "no change"
+            cls.Created: "compte créé",
+            cls.Attached: "compte existant rattaché",
+            cls.Activated: "compte réactivé",
+            cls.Deactivated: "compte désactivé",
+            cls.Anonymized: "compte anonymisé",
+            cls.Failed: "échec",
+        }
 
 
 def _setting(name: str) -> bool:
@@ -437,13 +417,15 @@ def sync_user_safely(user: User) -> SyncAction:
         return None
 
 
-def sync_all_users() -> SyncReport:
+def sync_all_users() -> Counter:
     """Reconciles every user whose Loxya state is out of date.
 
     In manual mode, users not yet on Loxya are left out. Each user is committed on
     its own: a failure neither stops the run nor loses the others' work.
+
+    :return: The number of users per :py:class:`SyncAction`.
     """
-    report = SyncReport()
+    report = Counter()
     mode = current_mode()
 
     if mode is SyncMode.Off:
@@ -472,17 +454,17 @@ def sync_all_users() -> SyncReport:
             try:
                 outcome = handlers[action](user)
                 if outcome is not None:
-                    report.record(outcome)
+                    report[outcome] += 1
             # pylint: disable=broad-except
             except Exception as err:
                 db.session.rollback()
                 current_app.logger.error(
                     f"Loxya: {action.name} failed for user {user.id}: {err}"
                 )
-                report.record(SyncAction.Failed)
-                report.errors.append((user.id, str(err)))
+                report[SyncAction.Failed] += 1
 
     current_app.logger.info(
-        f"Loxya: synchronization done in {mode.name} mode — {report}"
+        f"Loxya: synchronization done in {mode.name} mode — "
+        + (", ".join(f"{a.name}: {n}" for a, n in report.items()) or "no change")
     )
     return report
