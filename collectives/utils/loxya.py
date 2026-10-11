@@ -31,28 +31,11 @@ RATE_LIMIT = 10
 
 
 class LoxyaError(RuntimeError):
-    """An error returned by, or while reaching, the Loxya API."""
-
-    def __init__(self, message: str, status_code: int = None, details: dict = None):
-        """Constructor.
-
-        :param message: Human readable error message.
-        :param status_code: HTTP status code returned by Loxya, if any.
-        :param details: Per-field error messages returned by Loxya, if any.
-        """
-        super().__init__(message)
-        self.status_code: int = status_code
-        """ HTTP status code returned by Loxya. """
-        self.details: dict = details or {}
-        """ Per-field error messages, from ``error.details``. """
+    """An exception indicating that something has gone wrong with the Loxya API."""
 
 
 class LoxyaNotFoundError(LoxyaError):
     """The resource does not exist — or sits in the Loxya trash bin."""
-
-
-class LoxyaValidationError(LoxyaError):
-    """Loxya rejected the payload (400), e.g. an email already used by an account."""
 
 
 def feature_enabled(config=None) -> bool:
@@ -160,7 +143,7 @@ class LoxyaApi:
         if not token:
             # Upstream body left out on purpose: it may hold sensitive material.
             raise LoxyaError(
-                "Loxya authentication failed", status_code=response.status_code
+                f"Loxya authentication failed: HTTP {response.status_code}"
             )
         return token
 
@@ -185,14 +168,12 @@ class LoxyaApi:
             error = response.json().get("error") or {}
         except ValueError:
             error = {}
-        exception = {400: LoxyaValidationError, 404: LoxyaNotFoundError}.get(
-            response.status_code, LoxyaError
-        )
-        raise exception(
-            error.get("message") or f"HTTP {response.status_code}",
-            status_code=response.status_code,
-            details=error.get("details"),
-        )
+        message = f"HTTP {response.status_code}: {error.get('message')}"
+        if error.get("details"):
+            message += f" {error['details']}"
+        if response.status_code == 404:
+            raise LoxyaNotFoundError(message)
+        raise LoxyaError(message)
 
     def _request(self, method: str, path: str, **kwargs) -> dict:
         """Performs an authenticated request, authenticating again once on a 401.

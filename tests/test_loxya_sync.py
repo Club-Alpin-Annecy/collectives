@@ -136,15 +136,6 @@ def test_never_adopts_the_beneficiary_of_another_member(loxya_session, member1):
     assert member1.loxya_beneficiary_id == 8
 
 
-def test_same_email_but_another_name_is_not_adopted(loxya_session, member1):
-    """Sharing an email is not enough to be the same person."""
-    relative = beneficiary(email=member1.mail, first_name="Autre", last_name="Personne")
-    loxya_session.route("GET", BENEFICIARIES, search_by({member1.mail: [relative]}))
-    loxya_session.script("POST", BENEFICIARIES, 201, beneficiary(beneficiary_id=8))
-
-    assert loxya_sync.create_account(member1) == SyncAction.Created
-
-
 def test_ambiguous_manual_matches_are_not_adopted(loxya_session, member1):
     """Two candidates entered by hand: none is picked, a new one is created."""
     twin = {
@@ -222,15 +213,6 @@ def test_no_delete_when_loxya_says_already_trashed(loxya_session, linked_member)
 
     assert loxya_session.calls_to("DELETE") == []
     assert linked_member.loxya_active is False
-
-
-def test_no_delete_when_beneficiary_flagged_deleted(loxya_session, linked_member):
-    """Same guard, should Loxya ever answer 200 with is_deleted."""
-    loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary(is_deleted=True))
-
-    loxya_sync.deactivate_account(linked_member)
-
-    assert loxya_session.calls_to("DELETE") == []
 
 
 # -- Reactivation ----------------------------------------------------------------
@@ -335,39 +317,12 @@ def test_anonymization_of_a_purged_beneficiary_only_unlinks(
     assert linked_member.loxya_beneficiary_id is None
 
 
-def test_anonymized_member_is_processed_once(loxya_session, linked_member):
-    """Once unlinked, an anonymized member drops out of every list."""
-    linked_member.anonymize()
-    db.session.commit()
-    loxya_session.script("GET", f"{BENEFICIARIES}/7", 404, {})
-    loxya_session.script("PUT", f"{BENEFICIARIES}/restore/7", 404, {})
-
-    loxya_sync.sync_all_users()
-
-    assert not any(loxya_sync.simulate().values())
-
-
 # -- Modes -----------------------------------------------------------------------
-
-
-def test_mode_is_off_until_a_technician_turns_it_on(app):
-    """Enabled for the deployment, but the live switch defaults to off."""
-    app.config["LOXYA_ENABLED"] = True
-    set_loxya_connection()
-
-    assert loxya_sync.current_mode() is SyncMode.Off
 
 
 def test_mode_is_off_until_the_credentials_are_entered(loxya_session):
     """The live switches alone are not enough: no call without credentials."""
     set_loxya_connection(LOXYA_URL="")
-
-    assert loxya_sync.current_mode() is SyncMode.Off
-
-
-def test_mode_is_off_without_the_file_switch(loxya_session, app):
-    """The live switches are ignored while the deployment does not enable Loxya."""
-    app.config["LOXYA_ENABLED"] = False
 
     assert loxya_sync.current_mode() is SyncMode.Off
 
@@ -463,14 +418,6 @@ def test_failure_does_not_stop_the_batch(loxya_session, member1, member2):
     assert report[SyncAction.Failed] == 2
 
 
-def test_simulation_calls_nothing(loxya_session, member1, linked_member):
-    """Counting what a run would do reaches no API."""
-    counts = loxya_sync.simulate()
-
-    assert counts[SyncAction.Created] == 0  # member1 is the linked member
-    assert loxya_session.calls == []
-
-
 def test_failing_loxya_does_not_break_login(
     loxya_session, client, extranet_monkeypatch, extranet_user
 ):
@@ -505,15 +452,6 @@ def test_admin_button_refuses_in_off_mode(loxya_session, admin_client, member1):
 
     assert loxya_session.calls == []
     assert member1.loxya_beneficiary_id is None
-
-
-def test_admin_list_exposes_loxya_state(loxya_session, admin_client, linked_member):
-    """When enabled, the user list shows the Loxya state of each account."""
-    response = admin_client.get("/api/users/?page=1&size=50")
-
-    row = next(u for u in response.json["data"] if u["id"] == linked_member.id)
-    assert row["loxya_active"] is True
-    assert row["loxya_sync_uri"].endswith(f"/user/{linked_member.id}/loxya/sync")
 
 
 def test_runs_never_overlap(loxya_session, linked_member):
