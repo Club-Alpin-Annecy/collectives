@@ -166,14 +166,9 @@ def test_ambiguous_manual_matches_are_not_adopted(loxya_session, member1):
 
 
 def test_only_ffcam_members_are_created(app, member1, user2):
-    """Administration and test accounts never reach Loxya."""
-    admin = User.query.filter_by(mail="admin").first()
-
-    to_create = loxya_sync.pending_changes()[SyncAction.Created]
-
-    assert member1 in to_create
-    assert admin not in to_create
-    assert user2 not in to_create
+    """Administration and test accounts never reach Loxya: of the admin, user2
+    and member1, only the last one is to be created."""
+    assert loxya_sync.simulate()[SyncAction.Created] == 1
 
 
 def test_linked_account_that_stops_being_a_member_is_deactivated(linked_member):
@@ -181,7 +176,15 @@ def test_linked_account_that_stops_being_a_member_is_deactivated(linked_member):
     linked_member.type = UserType.Local
     db.session.commit()
 
-    assert linked_member in loxya_sync.pending_changes()[SyncAction.Deactivated]
+    assert loxya_sync.simulate()[SyncAction.Deactivated] == 1
+
+
+def test_licence_without_expiry_date_is_deactivated(linked_member):
+    """Not active in Python, and NULL rather than false in SQL: still withdrawn."""
+    linked_member.license_expiry_date = None
+    db.session.commit()
+
+    assert loxya_sync.simulate()[SyncAction.Deactivated] == 1
 
 
 # -- Deactivation ----------------------------------------------------------------
@@ -341,9 +344,7 @@ def test_anonymized_member_is_processed_once(loxya_session, linked_member):
 
     loxya_sync.sync_all_users()
 
-    assert all(
-        linked_member not in users for users in loxya_sync.pending_changes().values()
-    )
+    assert not any(loxya_sync.simulate().values())
 
 
 # -- Modes -----------------------------------------------------------------------
@@ -513,3 +514,14 @@ def test_admin_list_exposes_loxya_state(loxya_session, admin_client, linked_memb
     row = next(u for u in response.json["data"] if u["id"] == linked_member.id)
     assert row["loxya_active"] is True
     assert row["loxya_sync_uri"].endswith(f"/user/{linked_member.id}/loxya/sync")
+
+
+def test_runs_never_overlap(loxya_session, linked_member):
+    """Two runs at once could both DELETE a beneficiary, the second purging it."""
+    # pylint: disable=protected-access
+    with loxya_sync._lock:
+        with pytest.raises(loxya_sync.SyncInProgress):
+            loxya_sync.sync_all_users()
+        assert loxya_sync.sync_user_safely(linked_member) is None
+
+    assert loxya_session.calls == []

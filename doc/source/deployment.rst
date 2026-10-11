@@ -140,6 +140,7 @@ For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+
 Loxya equipment platform (optional)
 ....................................
 Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
