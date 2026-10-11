@@ -55,3 +55,37 @@ function showAllRegistration(button) {
     });
     button.style.display = 'none';
 }
+// Before registrations open, display a countdown and reload the page once at
+// opening time, rather than having every member refresh it over and over.
+function setupRegistrationCountdown() {
+    const countdown = document.getElementById('registration-countdown');
+    if (!countdown) return;
+
+    // Remaining time comes from the server clock, not from the visitor's one
+    const opening = Date.now() + Number(countdown.dataset.seconds) * 1000;
+    const value = countdown.querySelector('.registration-countdown-value');
+    const pad = (n) => String(n).padStart(2, '0');
+
+    function update() {
+        const remaining = Math.max(0, Math.ceil((opening - Date.now()) / 1000));
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = remaining % 60;
+        if (hours > 0) value.textContent = `${hours} h ${pad(minutes)} min`;
+        else if (minutes > 0) value.textContent = `${minutes} min ${pad(seconds)} s`;
+        else value.textContent = `${seconds} s`;
+    }
+    update();
+    setInterval(update, 1000);
+
+    // A random delay spreads the reloads of all waiting members over a few seconds
+    const reloadTime = opening + 500 + Math.random() * 2500;
+    const reload = () => window.location.reload();
+    setTimeout(reload, reloadTime - Date.now());
+    // Browsers delay timers of background tabs: check again when the tab is shown
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && Date.now() >= reloadTime) reload();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', setupRegistrationCountdown);
