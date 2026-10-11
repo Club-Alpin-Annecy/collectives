@@ -17,6 +17,7 @@ from collectives.api.schemas import (
 )
 from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeCustomLevel, BadgeIds
+from collectives.utils import loxya
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 
 
@@ -95,6 +96,13 @@ class AdminUserSchema(UserSchema):
 
     :type: string
     """
+    loxya_sync_uri = fields.Function(
+        lambda user: url_for("administration.sync_user_with_loxya", user_id=user.id)
+    )
+    """ URI to synchronize this user with Loxya
+
+    :type: string
+    """
     manage_uri = fields.Function(
         lambda user: url_for("administration.manage_user", user_id=user.id)
     )
@@ -111,6 +119,9 @@ class AdminUserSchema(UserSchema):
             "mail",
             "is_active",
             "enabled",
+            "loxya_active",
+            "loxya_synced_at",
+            "loxya_sync_uri",
             "roles_uri",
             "badges_uri",
             "avatar_uri",
@@ -124,6 +135,10 @@ class AdminUserSchema(UserSchema):
             "leader_profile_uri",
             "full_name",
         )
+
+
+LOXYA_FIELDS = ("loxya_active", "loxya_synced_at", "loxya_sync_uri")
+""" Fields of :py:class:`AdminUserSchema` only exposed when Loxya is enabled. """
 
 
 @blueprint.route("/users/")
@@ -160,7 +175,9 @@ def users():
     page = int(request.args.get("page"))
     size = int(request.args.get("size"))
     paginated_users = query.paginate(page=page, per_page=size, error_out=False)
-    data = AdminUserSchema(many=True).dump(paginated_users.items)
+    # Deployments that do not enable Loxya get no trace of it, JSON included.
+    exclude = () if loxya.feature_enabled() else LOXYA_FIELDS
+    data = AdminUserSchema(many=True, exclude=exclude).dump(paginated_users.items)
     response = {"data": data, "last_page": paginated_users.pages}
 
     return response, 200, {"content-type": "application/json"}

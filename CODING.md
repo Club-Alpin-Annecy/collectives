@@ -14,6 +14,13 @@
  * Do not add blank spaces at end of line
  * Never align with tabs, always using spaces
 
+# Configuration
+ * Store new settings preferably in `collectives/configuration.yaml` (hot configuration): it is stored in database, edited live by technicians in `/technician/configuration`, and read through `Configuration.SETTING_NAME`.
+ * This includes the credentials of third-party services, like `EXTRANET_ACCOUNT_PWD` or `SMTP_PASSWORD`: mark secrets with `hidden: true`, so they are never displayed.
+ * Give the items of an optional feature `requires: <SETTING>`: they are then only shown and editable when that `config.py` setting is true. The code is shared between clubs that do not all use every feature.
+ * Keep `config.py` (cold configuration, requires a restart) for what cannot live in database: highly technical settings, the database access, and the switch of an optional feature.
+ * Never define in `config.py` a setting that lives in `configuration.yaml`: the file would take precedence over the database. Read hot settings with `Configuration.SETTING_NAME`, not `app.config.get(...)`, which never looks into the database.
+
 # Commit :
  * message in English
  
