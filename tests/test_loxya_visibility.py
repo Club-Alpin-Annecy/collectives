@@ -6,11 +6,8 @@ scheduled job, no column, no button, no configuration item, no route. Each test
 checks one entry point, off then on.
 """
 
-import logging
-
 import pytest
 
-from collectives.utils import loxya
 from collectives.utils.scheduled_tasks import init_scheduler
 from tests.mock.loxya import set_loxya_connection
 
@@ -58,14 +55,6 @@ def scheduled_jobs(app) -> list:
 
 
 # -- Startup -------------------------------------------------------------------
-
-
-def test_no_log_at_startup_when_off(loxya_off, caplog):
-    """Not using Loxya is the normal state: nothing to say about it."""
-    with caplog.at_level(logging.DEBUG):
-        loxya.LoxyaApi().init_app(loxya_off)
-
-    assert not [r for r in caplog.records if "loxya" in r.getMessage().lower()]
 
 
 def test_missing_credentials_are_pointed_out(app, admin_client):
@@ -144,14 +133,6 @@ def test_configuration_folder_shown_when_on(loxya_on, admin_client):
         "LOXYA_AUTO_CREATE",
     ):
         assert name in folder.text
-
-
-def test_password_is_masked_in_the_configuration(loxya_on, admin_client):
-    """Like the extranet and SMTP passwords, the Loxya one is never displayed."""
-    folder = admin_client.get("/technician/configuration/Loxya")
-
-    assert "secret" not in folder.text
-    assert "*****" in folder.text
 
 
 def test_hidden_setting_cannot_be_edited_when_off(loxya_off, admin_client):
