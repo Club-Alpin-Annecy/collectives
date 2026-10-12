@@ -7,6 +7,7 @@ from wtforms.validators import InputRequired
 from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
 from collectives.utils.misc import truncate
+from collectives.utils.whatsapp import normalize_whatsapp_invite_link
 
 # Reponsables d'une collective (avec droits de modifs sur ladite collective,
 #  pas comptés dans le nombre de place
@@ -154,6 +155,11 @@ class EventModelMixin:
     """Whether to show all competency badges on registration icons
 
     :type: bool"""
+
+    whatsapp_invite_link = db.Column(db.String(255), nullable=True)
+    """Invite link of the WhatsApp group of this event, only shown to participants.
+
+    :type: string"""
 
     # Non DB attributes
     @property
@@ -336,6 +342,18 @@ class EventModelMixin:
         """
         max_len = getattr(self.__class__, key).prop.columns[0].type.length
         return truncate(value, max_len)
+
+    @validates("whatsapp_invite_link")
+    def validate_whatsapp_invite_link(self, key, value):  # pylint: disable=unused-argument
+        """Only stores canonical WhatsApp group invite links.
+
+        :param string key: name of field to validate
+        :param string value: tentative value
+        :return: The canonical link, or None if the value is empty.
+        :rtype: string
+        :raises ValueError: If the value is not a WhatsApp group invite link.
+        """
+        return normalize_whatsapp_invite_link(value)
 
     @property
     def tags(self):

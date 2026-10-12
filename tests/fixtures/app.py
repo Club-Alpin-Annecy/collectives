@@ -64,3 +64,13 @@ def enable_leader_privacy():
     """Enable leader privacy in configuration"""
     Configuration.get_item("LEADER_PRIVACY").content = True
     Configuration.uncache("LEADER_PRIVACY")
+
+
+@pytest.fixture
+def disable_whatsapp_groups(app):  # pylint: disable=unused-argument
+    """Disable WhatsApp groups in configuration, and enable them back afterwards"""
+    Configuration.get_item("WHATSAPP_GROUPS_ENABLED").content = False
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+    yield
+    Configuration.get_item("WHATSAPP_GROUPS_ENABLED").content = True
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")

@@ -157,7 +157,7 @@ def test_refund_after_anonymization(admin_client, user1: User, paying_event):
 
 def test_anonymize_free_texts(user1: User, event1_with_answers, past_event):
     """Tokens are deleted, answers, retex and event descriptions are
-    scrubbed."""
+    scrubbed, WhatsApp invite links are dropped."""
     token = ConfirmationToken(user1.license, user1)
     token.token_type = ConfirmationTokenType.ActivateAccount
     db.session.add(token)
@@ -166,6 +166,7 @@ def test_anonymize_free_texts(user1: User, event1_with_answers, past_event):
     )
     past_event.description = "Contact : 06 12 34 56 78 ou jeanne.dupont@gmail.com"
     past_event.rendered_description = '<a href="tel:+33612345678">appeler</a>'
+    past_event.whatsapp_invite_link = "https://chat.whatsapp.com/AbCdEf123456"
 
     _anonymize()
 
@@ -175,6 +176,7 @@ def test_anonymize_free_texts(user1: User, event1_with_answers, past_event):
     assert past_event.retex.description == "[anonymisé]"
     assert past_event.description == "[anonymisé]"
     assert past_event.rendered_description == "[anonymisé]"
+    assert past_event.whatsapp_invite_link is None
 
 
 def test_anonymize_uploads(app, user1: User):
