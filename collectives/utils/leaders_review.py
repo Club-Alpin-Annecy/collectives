@@ -58,7 +58,8 @@ class LeaderReview:
     """ Start of the most recent past led or co-led event, if any """
 
     nb_upcoming_events: int = 0
-    """ Number of led or co-led events which have not started yet """
+    """ Number of led or co-led events which have not started yet, including
+    those waiting for validation """
 
     is_new: bool = False
     """ Whether the role has been granted recently, during the previous or current
@@ -66,7 +67,7 @@ class LeaderReview:
 
     is_inactive: bool = False
     """ Whether the leader has not led any event for :py:data:`INACTIVITY_SEASONS`
-    full seasons """
+    full seasons. Never set for activity supervisors. """
 
     @property
     def user(self) -> User:
@@ -116,8 +117,12 @@ class LeadersReview:
         return query.options(joinedload(Role.user)).all()
 
     def _activity_events_filter(self):
-        """:return: SQL condition on confirmed events of the reviewed activity"""
-        return (Event.status == EventStatus.Confirmed) & Event.activity_types.any(
+        """:return: SQL condition on events of the reviewed activity which are
+        confirmed, or upcoming and still waiting for validation"""
+        is_counted = (Event.status == EventStatus.Confirmed) | (
+            (Event.status == EventStatus.Pending) & (Event.start >= self.now)
+        )
+        return is_counted & Event.activity_types.any(
             ActivityType.id == self.activity.id
         )
 
@@ -199,8 +204,11 @@ class LeadersReview:
         for review in reviews:
             creation_time = review.role.creation_time
             review.is_new = creation_time is not None and creation_time >= new_since
+            # Supervisors are not expected to lead events, and cannot be removed
+            # from the review anyway: never flag them.
             review.is_inactive = (
-                not review.is_new
+                review.can_be_removed
+                and not review.is_new
                 and review.nb_upcoming_events == 0
                 and (
                     review.last_event_start is None
