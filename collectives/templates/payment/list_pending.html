@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block additionalhead %}
+  <style>
+    #pending-payments { border-collapse: collapse; width: 100%; }
+    #pending-payments th, #pending-payments td {
+      border-bottom: 1px solid #ddd;
+      padding: 0.5em;
+      text-align: left;
+      vertical-align: middle;
+    }
+    #pending-payments .amount { text-align: right; white-space: nowrap; }
+    .table-scroll { overflow-x: auto; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content" style="max-width: 100%">
+  <p><a class="button button-secondary" href="{{ url_for('payment.list_all') }}">Retour à la liste des paiements</a></p>
+
+  <h1 class="heading-1">Paiements en attente</h1>
+
+  <p>
+    Paiements en ligne toujours « En cours » plus d'une heure après leur création.
+    L'adhérent a pu payer sans que Payline nous en ait informés, par exemple si Payline
+    était injoignable. « Revérifier » demande à Payline l'état du paiement et le finalise
+    s'il est terminé : une inscription en attente de paiement est confirmée si le
+    paiement a été accepté, et supprimée s'il a été refusé, annulé ou s'il a expiré.
+  </p>
+
+  {% if payments %}
+  <div class="table-scroll">
+  <table id="pending-payments">
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>Créé le</th>
+        <th>Adhérent</th>
+        <th>Collective</th>
+        <th>Objet</th>
+        <th class="amount">Montant</th>
+        <th>Inscription</th>
+        <th>Référence Payline</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for payment in payments %}
+      <tr>
+        <td><a href="{{ url_for('payment.payment_details', payment_id=payment.id) }}">{{ payment.id }}</a></td>
+        <td>{{ format_datetime(payment.creation_time) }}</td>
+        <td>{{ payment.buyer.full_name() }}</td>
+        <td><a href="{{ url_for('event.view_event', event_id=payment.item.event_id) }}">{{ payment.item.event.title }}</a></td>
+        <td>{{ payment.item.title }} — {{ payment.price.title }}</td>
+        <td class="amount">{{ format_currency(payment.amount_charged) }}</td>
+        <td>
+          {% if payment.registration %}
+            {{ payment.registration.status.display_name() }}
+          {% else %}
+            Aucune
+          {% endif %}
+        </td>
+        <td>{{ payment.processor_order_ref or "" }}</td>
+        <td>
+          <form class="inline" method="POST" action="{{ url_for('payment.check_pending', payment_id=payment.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="submit" class="button button-primary button-small" value="Revérifier">
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p><em>Aucun paiement en attente depuis plus d'une heure.</em></p>
+  {% endif %}
+</div>
+{% endblock %}
