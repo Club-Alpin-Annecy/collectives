@@ -6,6 +6,11 @@ Module ``collectives.utils.access``
 .. automodule:: collectives.utils.access
     :members:
 
+Module ``collectives.utils.anonymize``
+--------------------------------------
+.. automodule:: collectives.utils.anonymize
+    :members:
+
 Module ``collectives.utils.csv``
 ---------------------------------
 .. automodule:: collectives.utils.csv
