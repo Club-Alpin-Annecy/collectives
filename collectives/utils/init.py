@@ -17,6 +17,7 @@ from collectives.models import (
     Configuration,
     ConfigurationItem,
     ConfigurationTypeEnum,
+    Event,
     EventType,
     Role,
     RoleIds,
@@ -77,7 +78,7 @@ def activity_types(app):
             activity_type.short = atype["short"]
 
         # if order is not specified, default to '50'
-        activity_type.kind = ActivityKind.Regular
+        activity_type.kind = ActivityKind[atype.get("kind", ActivityKind.Regular.name)]
         db.session.add(activity_type)
 
     # Remove activity not in config
@@ -123,16 +124,21 @@ def event_types(app):
 
         db.session.add(event_type)
 
-    # Remove event trypes not in config
+    # Remove event types not in config, unless some events still use them:
+    # deleting them would leave those events without a type.
     all_keys = app.config["EVENT_TYPES"].keys()
     absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
 
     for item in EventType.query.filter(absent_filter).all():
+        nb_events = Event.query.filter(Event.event_type_id == item.id).count()
+        if nb_events > 0:
+            app.logger.error(
+                f"Obsolete event type {item.name} (id {item.id}) is still used "
+                f"by {nb_events} event(s): keeping it"
+            )
+            continue
         app.logger.warning(f"Obsolete event type {item.name}: deleting")
-
-    EventType.query.filter(absent_filter).delete(synchronize_session=False)
-    # due to synchronize_session=False, do not use this session after without
-    # commit it
+        db.session.delete(item)
 
     db.session.commit()
 

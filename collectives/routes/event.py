@@ -227,7 +227,7 @@ def index(activity_type_id=None, name=""):
             )
 
     event_types = EventType.get_all_types()
-    activity_types = ActivityType.get_all_types(include_services=False)
+    activity_types = ActivityType.get_all_types()
     return render_template(
         "index.html",
         activity_types=activity_types,
