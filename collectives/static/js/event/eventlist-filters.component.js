@@ -39,12 +39,17 @@ export default {
     // Les filtres sont conservés en localStorage sans date d'expiration: un critère
     // retiré côté serveur depuis la dernière visite y subsiste. Le rendu de son chip
     // échoue alors, et c'est le filtre entier qui disparait de la barre.
-    const pruneUnknown = (selected, options) =>
-      (selected || []).filter(id => options.some(option => option.id === id))
+    // On ne réassigne que si un critère a disparu: une nouvelle liste, même
+    // identique, relancerait la recherche des sorties.
+    const pruneUnknown = (key, options) => {
+      const selected = props.filters[key] || []
+      const known = selected.filter(id => options.some(option => option.id === id))
+      if (known.length !== selected.length) props.filters[key] = known
+    }
 
-    props.filters.activities = pruneUnknown(props.filters.activities, config.activityList)
-    props.filters.eventTypes = pruneUnknown(props.filters.eventTypes, config.eventTypes)
-    props.filters.eventTags = pruneUnknown(props.filters.eventTags, config.eventTags)
+    pruneUnknown('activities', config.activityList)
+    pruneUnknown('eventTypes', config.eventTypes)
+    pruneUnknown('eventTags', config.eventTags)
 
     /** Critères masqués tant que « Plus de filtres » n'est pas déplié. */
     const advancedFilters = () => [

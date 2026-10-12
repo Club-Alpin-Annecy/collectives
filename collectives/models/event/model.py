@@ -68,7 +68,7 @@ class EventModelMixin:
 
     :type: :py:class:`datetime.datetime`"""
 
-    end = db.Column(db.DateTime, nullable=False)
+    end = db.Column(db.DateTime, nullable=False, index=True)
     """End of event.
 
     :type: :py:class:`datetime.datetime`"""

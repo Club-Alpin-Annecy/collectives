@@ -4,6 +4,7 @@
 from flask import url_for
 
 from collectives.models import RegistrationStatus, db
+from collectives.utils import payline
 from tests import utils
 
 
@@ -209,3 +210,33 @@ def test_payline_registration_unfinalized(
     api_data = response.json
     assert len(api_data) == 1
     assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+
+def test_payline_notify_unfinalized(
+    user1_client, paying_event, payline_monkeypatch, monkeypatch
+):
+    """Test that a notification is not acknowledged while the payment cannot be
+    finalized, eg when Payline does not answer"""
+    response = user1_client.get(
+        f"/collectives/{paying_event.id}", follow_redirects=True
+    )
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item = paying_event.payment_items[0]
+    data["item_price"] = item.cheapest_price_for_user_now(user1_client.user).id
+    response = user1_client.post(
+        f"/collectives/{paying_event.id}/self_register", data=data
+    )
+    response = user1_client.get(response.location)
+    assert response.status_code == 302
+
+    token = "1jom6TVNaLuHygEB62681665928911817"
+    get_details = payline.api.get_web_payment_details
+    monkeypatch.setattr(payline.api, "get_web_payment_details", lambda token: None)
+    response = user1_client.get(f"/payment/notify?token={token}")
+    assert response.status_code == 503
+    assert paying_event.registrations[0].status == RegistrationStatus.PaymentPending
+
+    monkeypatch.setattr(payline.api, "get_web_payment_details", get_details)
+    response = user1_client.get(f"/payment/notify?token={token}")
+    assert response.status_code == 200
+    assert paying_event.registrations[0].status == RegistrationStatus.Active

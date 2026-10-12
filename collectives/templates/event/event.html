@@ -291,6 +291,13 @@
         {% elif (event.num_online_slots == 0 and event.num_waiting_list == 0) or not event.has_defined_registration_date() %}
           <p>Il n'y a pas d'inscription par Internet pour cet événement</p>
         {% elif current_time < event.registration_open_time %}
+            {% set seconds_before_opening = (event.registration_open_time - current_time).total_seconds() %}
+            {% if current_user.is_authenticated and seconds_before_opening < 86400 %}
+              <p id="registration-countdown" data-seconds="{{ seconds_before_opening }}">
+                Ouverture des inscriptions dans <strong class="registration-countdown-value"></strong>.
+                La page se rechargera d'elle-même à l'ouverture : inutile de l'actualiser.
+              </p>
+            {% endif %}
             {% if payment_item_choice_form and payment_item_choice_form.item_price.choices %}
               <p>Cet événement sera payant; sous réserve de changement, les tarifs suivants vous seront proposés :
                 <ul>

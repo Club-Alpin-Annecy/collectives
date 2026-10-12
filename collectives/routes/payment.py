@@ -688,11 +688,21 @@ def process():
         return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
     details = payline.api.get_web_payment_details(token)
-    if details is not None:
-        if details.result.payment_status() != PaymentStatus.Initiated:
-            finalize_payment(payment, details)
+    finalized = (
+        details is not None
+        and details.result.payment_status() != PaymentStatus.Initiated
+    )
+    if finalized:
+        finalize_payment(payment, details)
 
     if is_notify:
+        if not finalized:
+            # Do not acknowledge a payment we could not finalize, so that
+            # Payline may notify us again
+            current_app.logger.warning(
+                f"Payment {payment.id} not finalized on notification"
+            )
+            return {}, 503
         # Return empty response
         return {}, 200
     return redirect(url_for("event.view_event", event_id=payment.item.event_id))
