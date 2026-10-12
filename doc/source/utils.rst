@@ -31,6 +31,11 @@ Module ``collectives.utils.jinja``
 .. automodule:: collectives.utils.jinja
     :members:
 
+Module ``collectives.utils.leaders_review``
+-------------------------------------------
+.. automodule:: collectives.utils.leaders_review
+    :members:
+
 Module ``collectives.utils.mail``
 ---------------------------------
 .. automodule:: collectives.utils.mail
