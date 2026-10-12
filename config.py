@@ -237,6 +237,7 @@ EVENT_TYPES = {
         "requires_activity": True,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "volunteer_time": ["leaders"],
     },
     # Since the 2026-2027 season, types 2, 3, 5 and 8 to 12 are deprecated: they
     # remain on older events, but are no longer offered. See migration 6c1e4b9d2a73.
@@ -263,6 +264,7 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "volunteer_time": ["leaders"],
     },
     5: {
         "short": "randonnees_lointaines",
@@ -273,13 +275,19 @@ EVENT_TYPES = {
         "terms_file": "2021-09-12_Organisation_Randonnées_Lointaines.pdf",
         "deprecated": True,
     },
-    6: {"short": "shopping", "name": "Achat groupé", "requires_activity": False},
+    6: {
+        "short": "shopping",
+        "name": "Achat groupé",
+        "requires_activity": False,
+        "volunteer_time": [],
+    },
     7: {
         "short": "inscription",
         "name": "Inscription en ligne",
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "volunteer_time": [],
     },
     8: {
         "short": "acces_libre",
@@ -327,6 +335,7 @@ EVENT_TYPES = {
         "requires_activity": False,
         "terms_title": "{GUIDE_TITLE}",
         "terms_file": "{GUIDE_FILE}",
+        "volunteer_time": ["leaders", "participants"],
     },
 }
 """List of event types
@@ -334,6 +343,8 @@ EVENT_TYPES = {
 Contains the list of event type as a dictionnary. id is an int, value is
 a hash. ``short`` is the name of the icon. ``deprecated`` (optional) hides the
 type from new events while keeping it on the events which already use it.
+``volunteer_time`` (optional) lists who counts as volunteer on events of this
+type, among ``"leaders"`` and ``"participants"``; defaults to the leaders.
 
 :type: dict
 """
@@ -383,6 +394,24 @@ alternative name accepted by CSV imports, e.g. the former name of the tag. ``dep
 tag from new events while keeping it on the events which already hold it.
 
 :type: dict
+"""
+
+CLUB_ANNOUNCEMENT_ACTIVITY = "annonce-club"
+"""Short name of the service whose events are club announcements.
+
+Upcoming club announcements which are not full are highlighted above the event
+list. Only board members can attach an event to this service.
+
+:type: string
+"""
+
+BOARD_ACTIVITY = "comite-directeur"
+"""Short name of the service gathering the board members (comité directeur).
+
+Users with a role on this service, as well as the president and administrators,
+can publish club announcements.
+
+:type: string
 """
 
 # Technical stuff
