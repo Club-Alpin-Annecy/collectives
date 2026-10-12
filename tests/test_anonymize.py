@@ -156,18 +156,15 @@ def test_refund_after_anonymization(admin_client, user1: User, paying_event):
 
 
 def test_anonymize_free_texts(user1: User, event1_with_answers, past_event):
-    """Tokens are deleted, answers and retex are scrubbed, event descriptions
-    lose their phones and mails only."""
+    """Tokens are deleted, answers, retex and event descriptions are
+    scrubbed."""
     token = ConfirmationToken(user1.license, user1)
     token.token_type = ConfirmationTokenType.ActivateAccount
     db.session.add(token)
     past_event.retex = Retex(
         author_id=past_event.leaders[0].id, description="Chute de Jeanne Dupont"
     )
-    past_event.description = (
-        "Départ 8h, 1 200 m de dénivelé. Contact : 06 12 34 56 78 "
-        "ou jeanne.dupont@gmail.com"
-    )
+    past_event.description = "Contact : 06 12 34 56 78 ou jeanne.dupont@gmail.com"
     past_event.rendered_description = '<a href="tel:+33612345678">appeler</a>'
 
     _anonymize()
@@ -176,10 +173,8 @@ def test_anonymize_free_texts(user1: User, event1_with_answers, past_event):
     answer = event1_with_answers.questions[0].answers[0]
     assert answer.value == "[anonymisé]"
     assert past_event.retex.description == "[anonymisé]"
-    assert past_event.description == (
-        "Départ 8h, 1 200 m de dénivelé. Contact : 0600000000 ou contact@example.org"
-    )
-    assert past_event.rendered_description == '<a href="tel:0600000000">appeler</a>'
+    assert past_event.description == "[anonymisé]"
+    assert past_event.rendered_description == "[anonymisé]"
 
 
 def test_anonymize_uploads(app, user1: User):

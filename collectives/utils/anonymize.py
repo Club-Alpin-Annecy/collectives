@@ -87,18 +87,6 @@ snapshot without locking the source tables."""
 
 ANONYMIZED_TEXT = "[anonymisé]"
 
-ANONYMIZED_PHONE = "0600000000"
-
-ANONYMIZED_MAIL = "contact@example.org"
-
-PHONE_PATTERN = re.compile(
-    r"(?<![\w+])(?:(?:\+|00)33[\s.-]?(?:\(0\)[\s.-]?)?|0)[1-9](?:[\s.-]?\d{2}){4}(?!\d)"
-)
-"""French phone numbers, national or international, with or without
-separators."""
-
-MAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-
 
 def _prefixed(prefix, column, suffix=""):
     """SQL expression concatenating a prefix, a column, and a suffix.
@@ -143,20 +131,6 @@ def _rewrite_rows(connection, table, columns, rewrite):
             .values({name: bindparam(f"new_{name}") for name in columns}),
             changes,
         )
-
-
-def scrub_contacts(content):
-    """Replace the phone numbers and mail addresses in a text.
-
-    :param content: Text to scrub, or None.
-    :type content: string
-    :return: The text, with every phone and mail replaced by a fake one.
-    :rtype: string
-    """
-    if not content:
-        return content
-    content = MAIL_PATTERN.sub(ANONYMIZED_MAIL, content)
-    return PHONE_PATTERN.sub(ANONYMIZED_PHONE, content)
 
 
 def filter_payline_metadata(raw_metadata):
@@ -251,14 +225,11 @@ def _anonymize_free_texts(connection):
         )
     )
 
-    _rewrite_rows(
-        connection,
-        Event.__table__,
-        ["description", "rendered_description"],
-        lambda row: {
-            "description": scrub_contacts(row.description),
-            "rendered_description": scrub_contacts(row.rendered_description),
-        },
+    events = Event.__table__
+    connection.execute(
+        events.update().values(
+            description=ANONYMIZED_TEXT, rendered_description=ANONYMIZED_TEXT
+        )
     )
 
 

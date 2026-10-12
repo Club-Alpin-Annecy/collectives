@@ -153,10 +153,10 @@ application resolves it, or from ``--source-url``. It is copied into a
 temporary database ``<db_name>_anon_<timestamp>`` on the same server, personal
 data and secrets are scrubbed there (names, mails, phones, licenses, dates of
 birth, passwords, confirmation tokens, buyer and card details of payments,
-answers to questions, retex, uploaded file names, phones and mails in event
-descriptions, hidden configuration items, contact addresses of the club), then
-the temporary database is dumped and dropped, even if a step fails. The source
-database is only read.
+answers to questions, retex, event descriptions, uploaded file names, hidden
+configuration items, contact addresses of the club), then the temporary
+database is dumped and dropped, even if a step fails. The source database is
+only read.
 
 It requires the ``mariadb`` and ``mariadb-dump`` clients (or ``mysql`` and
 ``mysqldump``), and the database user must be allowed to create and drop a
