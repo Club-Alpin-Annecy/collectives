@@ -218,7 +218,9 @@ def test_event_filter_tags(user1_client, event1, event2, event3):
     assert data[0]["title"] == event1.title
     assert data[0]["tags"][0]["name"] == "Handicaf"
     assert data[1]["title"] == event2.title
-    assert data[1]["tags"][0]["name"] == "CPM"
+    assert (
+        data[1]["tags"][0]["name"] == "Connaissance et Protection du Milieu Montagnard"
+    )
 
 
 def test_event_title_search(user1_client, event1, event2):
