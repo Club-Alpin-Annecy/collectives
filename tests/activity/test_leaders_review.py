@@ -1,9 +1,10 @@
 """Module to test the leaders review of activity supervision."""
 
+import importlib.util
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import sqlalchemy as sa
-from sqlalchemy import event
 
 from collectives.models import (
     ActivityType,
@@ -130,12 +131,10 @@ def test_review_stats(supervisor_user, leader_user, leader2_user, user1, user2):
     assert not new_leader.is_inactive
     assert new_leader.last_event_start is None
 
+    # Supervisors are not expected to lead events
     supervisor = _review_of(review, supervisor_user)
-    assert supervisor.is_inactive
+    assert not supervisor.is_inactive
     assert not supervisor.can_be_removed
-
-    # Leaders needing attention come first
-    assert review.leaders[0] == supervisor
 
 
 def test_review_inactive_leader(leader_user):
@@ -149,6 +148,30 @@ def test_review_inactive_leader(leader_user):
     assert leader.needs_attention
     assert leader.can_be_removed
     assert leader.last_event_start == datetime(2024, 8, 30)
+
+
+def test_review_inactive_leaders_first(leader_user, leader2_user):
+    """Test that leaders needing attention are listed first."""
+    _age_roles()
+    _create_event(datetime(2025, 11, 15), [leader_user])
+
+    review = LeadersReview(_alpinisme(), now=NOW)
+    assert review.leaders[0].user == leader2_user
+    assert review.leaders[0].is_inactive
+
+
+def test_review_pending_events(leader_user):
+    """Test that upcoming events waiting for validation count, but not past ones."""
+    _age_roles()
+    _create_event(datetime(2023, 5, 1), [leader_user])
+    _create_event(datetime(2025, 5, 1), [leader_user], status=EventStatus.Pending)
+    _create_event(datetime(2026, 11, 7), [leader_user], status=EventStatus.Pending)
+
+    leader = _review_of(LeadersReview(_alpinisme(), now=NOW), leader_user)
+    assert leader.nb_upcoming_events == 1
+    assert leader.events_per_season == {2024: 0, 2025: 0, 2026: 1}
+    assert leader.last_event_start == datetime(2023, 5, 1)
+    assert not leader.is_inactive
 
 
 def test_review_ignores_invalid_coleading(leader_user, user1):
@@ -186,6 +209,18 @@ def test_review_page_unsupervised_activity(supervisor_client, leader_user):
     assert "Revue des encadrants — Alpinisme" in response.text
 
 
+def test_review_page_default_activity(supervisor_client, supervisor_user):
+    """Test that the default activity is the first supervised one, in display order."""
+    other_activity = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    promote_user(supervisor_user, RoleIds.ActivitySupervisor, other_activity.name)
+    db.session.commit()
+
+    first = min((_alpinisme(), other_activity), key=lambda a: (a.order, a.name))
+    for _ in range(3):
+        response = supervisor_client.get("/activity_supervision/leader/review")
+        assert f"Revue des encadrants — {first.name}" in response.text
+
+
 def test_review_page_forbidden(user1_client):
     """Test that a regular user cannot access the review page."""
     response = user1_client.get("/activity_supervision/leader/review")
@@ -212,6 +247,18 @@ def test_remove_role_from_review(supervisor_client, leader_user):
     assert f"Rôle Encadrant retiré à {leader_user.full_name()}" in response.text
 
 
+def test_remove_invalid_role_from_review(supervisor_client):
+    """Test that an invalid removal from the review page goes back to the review."""
+    response = supervisor_client.post(
+        "/activity_supervision/leader/delete/999999", data={"from_review": "1"}
+    )
+    assert response.status_code == 302
+    assert response.location.endswith("/activity_supervision/leader/review")
+
+    response = supervisor_client.post("/activity_supervision/leader/delete/999999")
+    assert response.location.endswith("/activity_supervision/leader")
+
+
 def test_role_creation_time(supervisor_client, user1):
     """Test that a newly granted role records its creation time."""
     response = supervisor_client.post(
@@ -228,6 +275,50 @@ def test_role_creation_time(supervisor_client, user1):
     assert role.creation_time is not None
 
 
+def _load_role_creation_time_migration():
+    """:return: the migration module estimating existing roles creation time"""
+    path = (
+        Path(__file__).parents[2]
+        / "migrations/versions/3c9f1e7a2b54_add_role_creation_time.py"
+    )
+    spec = importlib.util.spec_from_file_location("role_creation_time", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_migration_estimates_role_creation_time(leader_user, user1):
+    """Test the estimation of existing roles creation time from their first event."""
+    migration = _load_role_creation_time_migration()
+    assert migration.season_start(datetime(2023, 8, 31)) == datetime(2022, 9, 1)
+    assert migration.season_start(datetime(2023, 9, 1)) == datetime(2023, 9, 1)
+
+    alpinisme = _alpinisme()
+    other_activity = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    _create_event(datetime(2022, 3, 5), [leader_user])
+    _create_event(datetime(2024, 1, 6), [leader_user])
+    _create_event(datetime(2019, 6, 1), [leader_user], activity=other_activity)
+    coled = _create_event(datetime(2021, 11, 20), [leader_user])
+    _add_coleader(coled, user1)
+    rejected = _create_event(datetime(2020, 1, 4), [leader_user])
+    _add_coleader(rejected, user1, status=RegistrationStatus.Rejected)
+    upcoming = _create_event(datetime(2026, 11, 7), [user1])
+    _add_coleader(upcoming, leader_user)
+
+    first = migration.first_led_events(db.session.connection(), before=NOW)
+    assert first[(leader_user.id, alpinisme.id)] == datetime(2020, 1, 4)
+    assert first[(leader_user.id, other_activity.id)] == datetime(2019, 6, 1)
+    assert first[(user1.id, alpinisme.id)] == datetime(2021, 11, 20)
+
+    # Only upcoming events: no estimation
+    third_activity = ActivityType.query.filter(
+        ActivityType.id.notin_((alpinisme.id, other_activity.id))
+    ).first()
+    _create_event(datetime(2027, 2, 6), [user1], activity=third_activity)
+    first = migration.first_led_events(db.session.connection(), before=NOW)
+    assert (user1.id, third_activity.id) not in first
+
+
 def test_review_query_count_is_constant(supervisor_user, user1, user2):
     """Test that the review does not fire one user query per role holder."""
     _age_roles()
@@ -239,11 +330,11 @@ def test_review_query_count_is_constant(supervisor_user, user1, user2):
             statements.append(statement)
 
         db.session.expire_all()
-        event.listen(db.engine, "before_cursor_execute", record)
+        sa.event.listen(db.engine, "before_cursor_execute", record)
         try:
             LeadersReview(_alpinisme(), now=NOW)
         finally:
-            event.remove(db.engine, "before_cursor_execute", record)
+            sa.event.remove(db.engine, "before_cursor_execute", record)
         return len(statements)
 
     count_queries()  # warm up

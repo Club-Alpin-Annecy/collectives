@@ -7,12 +7,18 @@
   <p>
     Cette page permet de vérifier, en début de saison, que les encadrants et organisateurs
     déclarés pour l'activité sont toujours les bons. Pour chaque personne sont indiquées les
-    sorties encadrées ou co-encadrées dans l'activité (sorties confirmées uniquement).
+    sorties encadrées ou co-encadrées dans l'activité : sorties confirmées, ainsi que les
+    sorties à venir encore en attente de validation.
+  </p>
+  <p>
+    Pour les rôles attribués avant la mise en place de cette page, « Rôle depuis » est estimé
+    au début de la saison de la première sortie encadrée ou co-encadrée dans l'activité.
   </p>
   <ul>
     <li><span class="leaders-review-badge leaders-review-badge-inactive">Inactif</span> :
       aucune sortie passée depuis le début de la saison {{ review.season_label(review.seasons[0]) }}
-      ({{ inactivity_seasons }} saisons complètes), et aucune sortie à venir.</li>
+      ({{ inactivity_seasons }} saisons complètes), et aucune sortie à venir. Les responsables
+      d'activité ne sont jamais signalés.</li>
     <li><span class="leaders-review-badge leaders-review-badge-new">Nouveau</span> :
       rôle attribué depuis le début de la saison précédente ; il n'est pas signalé comme inactif.</li>
     <li><span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span> /
