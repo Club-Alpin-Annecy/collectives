@@ -3,6 +3,7 @@
 This modules contains the /payment Blueprint
 """
 
+from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
 
@@ -19,6 +20,8 @@ from flask import (
 )
 from flask_login import current_user
 from openpyxl import Workbook
+from sqlalchemy import inspect
+from sqlalchemy.orm import selectinload
 
 from collectives.forms.payment import (
     CopyItemForm,
@@ -55,6 +58,12 @@ blueprint = Blueprint("payment", __name__, url_prefix="/payment")
 """ Event blueprint
 
 This blueprint contains all routes for event display and management
+"""
+
+PENDING_PAYMENT_DELAY = timedelta(hours=1)
+""" Age from which online payments still in progress are listed to the accountant.
+
+:type: :py:class:`datetime.timedelta`
 """
 
 
@@ -233,6 +242,131 @@ def list_all():
     return render_template(
         "payment/list_all.html",
     )
+
+
+@blueprint.route("/pending", methods=["GET"])
+@valid_user()
+@user_is("is_accountant")
+@confidentiality_agreement()
+def list_pending():
+    """Route listing the online payments still in progress a while after their
+    creation.
+
+    They may have been paid without the site being notified, for instance when
+    Payline could not be reached. The accountant may check them again with the
+    Payline API, see :py:func:`check_pending`.
+
+    Payments never sent to Payline are left out: they cannot have been paid.
+    """
+    payments = (
+        Payment.query.filter(
+            Payment.payment_type == PaymentType.Online,
+            Payment.status == PaymentStatus.Initiated,
+            Payment.processor_token != "",
+            Payment.creation_time <= current_time() - PENDING_PAYMENT_DELAY,
+        )
+        .options(
+            selectinload(Payment.buyer),
+            selectinload(Payment.registration),
+            selectinload(Payment.item).selectinload(PaymentItem.event),
+        )
+        .order_by(Payment.creation_time.desc())
+        .all()
+    )
+
+    return render_template("payment/list_pending.html", payments=payments)
+
+
+@blueprint.route("/<int:payment_id>/check", methods=["POST"])
+@valid_user()
+@user_is("is_accountant")
+@confidentiality_agreement()
+def check_pending(payment_id):
+    """Route asking Payline for the status of a payment still in progress, and
+    finalizing the payment accordingly.
+
+    :param payment_id: The primary key of the payment to check
+    :type payment_id: int
+    """
+    try:
+        # Lock the payment row against concurrent checks and payment requests.
+        # Notifications from Payline (see process()) do not lock it.
+        payment = (
+            db.session.query(Payment)
+            .filter_by(id=payment_id)
+            .with_for_update()
+            .populate_existing()
+            .first()
+        )
+        if payment is None:
+            abort(404)
+
+        if payment.status != PaymentStatus.Initiated:
+            flash(
+                f"Le paiement n°{payment.id} est déjà finalisé : "
+                f"{payment.status.display_name()}."
+            )
+        elif not payment.processor_token:
+            flash(
+                f"Le paiement n°{payment.id} n'a jamais été transmis à Payline : "
+                "l'adhérent n'a pas atteint la page de paiement.",
+                "warning",
+            )
+        else:
+            details = payline.api.get_web_payment_details(payment.processor_token)
+            if details is None:
+                flash(
+                    "Payline n'a pas répondu, veuillez réessayer ultérieurement.",
+                    "error",
+                )
+            elif details.result.payment_status() == PaymentStatus.Initiated:
+                flash(
+                    f"Payline indique que le paiement n°{payment.id} est toujours en "
+                    f"cours ({details.result.code} : {details.result.long_message}).",
+                    "warning",
+                )
+            else:
+                registration = payment.registration
+                finalize_payment(payment, details, buyer_messages=False)
+                flash(
+                    f"Le paiement n°{payment.id} a été mis à jour d'après Payline : "
+                    f"{payment.status.display_name()}."
+                )
+                flash_registration_outcome(payment, registration)
+    finally:
+        # Make sure to unlock the payment row
+        db.session.rollback()
+
+    return redirect(url_for("payment.list_pending"))
+
+
+def flash_registration_outcome(payment, registration):
+    """Tells the accountant what became of the registration of a payment they
+    have just finalized, when it needs their attention.
+
+    :param payment: The finalized payment
+    :type payment: :py:class:`collectives.models.payment.Payment`
+    :param registration: The registration of the payment before finalization
+    :type registration: :py:class:`collectives.models.registration.Registration`
+    """
+    if registration is not None and inspect(registration).was_deleted:
+        flash(f"L'inscription associée au paiement n°{payment.id} a été supprimée.")
+    elif payment.status != PaymentStatus.Approved:
+        return
+    elif registration is None:
+        if not payment.item.event.is_leader(payment.buyer):
+            flash(
+                f"Le paiement n°{payment.id} n'est associé à aucune inscription : "
+                "voyez avec l'encadrant de la collective.",
+                "warning",
+            )
+    elif not registration.status.is_valid():
+        flash(
+            f"Le paiement n°{payment.id} a été accepté, mais l'inscription associée "
+            f"est « {registration.status.display_name()} » : voyez avec l'encadrant "
+            "de la collective, un remboursement est peut-être nécessaire.",
+            "warning",
+        )
 
 
 @blueprint.route("/event/<event_id>/list_payments", methods=["GET"])
@@ -604,7 +738,7 @@ def do_mock_payment(token):
     return render_template("payment/mock.html", payment=payment, amount=amount)
 
 
-def finalize_payment(payment, details):
+def finalize_payment(payment, details, buyer_messages=True):
     """Finalize a payment using data return by payment processor.
     Update the associated registration if necessary.
 
@@ -612,7 +746,11 @@ def finalize_payment(payment, details):
     :type payment: :py:class:`collectives.models.payment.Payment`
     :param details: The payment processor response
     :type details: :py:class:`collectives.utils.paylive.PaymentDetails`
+    :param buyer_messages: Whether to flash messages addressed to the buyer
+    :type buyer_messages: bool
     """
+    notify_buyer = flash if buyer_messages else lambda *args, **kwargs: None
+
     payment.status = details.result.payment_status()
     payment.finalization_time = current_time()
     payment.amount_paid = details.amount()
@@ -620,24 +758,40 @@ def finalize_payment(payment, details):
 
     if payment.status == PaymentStatus.Approved:
         if payment.registration is not None:
-            flash(
-                "Votre paiement a été accepté, votre inscription est désormais confirmée."
-            )
-            payment.registration.status = RegistrationStatus.Active
-            db.session.add(payment.registration)
+            if payment.registration.is_pending_payment():
+                notify_buyer(
+                    "Votre paiement a été accepté, votre inscription est désormais confirmée."
+                )
+                payment.registration.status = RegistrationStatus.Active
+                db.session.add(payment.registration)
+            elif payment.registration.status.is_valid():
+                notify_buyer("Votre paiement a été accepté.")
+            else:
+                # The registration has been cancelled meanwhile, do not revive it
+                notify_buyer(
+                    "Votre paiement a été accepté, mais votre inscription n'est plus "
+                    "en attente de paiement. Veuillez vous rapprocher de l'encadrant "
+                    "de la collective concernée.",
+                    "warning",
+                )
         elif payment.item.event.is_leader(payment.buyer):
             # Buyer is a leader and does not need registration
-            flash("Votre paiement a été accepté.")
+            notify_buyer("Votre paiement a été accepté.")
         else:
             # This should not be possible, but still check nonetheless
-            flash(
+            notify_buyer(
                 "L'inscription associée à ce paiement a été supprimée. Veuillez vous rapprocher "
                 "de l'encadrant de la collective concernée.",
                 "warning",
             )
     else:
-        if payment.registration is not None and payment.registration.is_self:
-            flash(
+        # The registration may have been settled meanwhile, e.g. by another payment
+        if (
+            payment.registration is not None
+            and payment.registration.is_self
+            and payment.registration.is_pending_payment()
+        ):
+            notify_buyer(
                 "Votre paiement a été refusé ou annulé, votre inscription a été supprimée."
             )
             db.session.delete(payment.registration)
