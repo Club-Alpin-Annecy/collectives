@@ -1,0 +1,203 @@
+// WhatsApp group of an event: set-up panel for leaders, join box for participants
+
+$whatsapp-green: #25D366;
+$whatsapp-green-bg-light: #E7F9EE;
+
+.whatsapp-group {
+    margin: $padding-vertical-l 0;
+    // Keep the block below the sticky header when reached through #whatsapp-group
+    scroll-margin-top: 6rem;
+    background: $color-white;
+    border: 1px solid $color-gray-light;
+    border-radius: 6px;
+
+    .whatsapp-logo {
+        width: 1.75rem;
+        height: 1.75rem;
+        flex-shrink: 0;
+        color: $whatsapp-green;
+    }
+
+    &--summary {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: $padding-horizontal-xs;
+        padding: $padding-vertical-m $padding-horizontal-default;
+        cursor: pointer;
+        list-style: none;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        // Disclosure chevron, pointing down when opened
+        &::after {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            margin-left: auto;
+            border-right: 2px solid $color-gray-medium;
+            border-bottom: 2px solid $color-gray-medium;
+            transform: rotate(-45deg);
+            transition: transform .15s ease-in-out;
+        }
+
+        .whatsapp-group[open] > &::after {
+            transform: rotate(45deg);
+        }
+
+        &:hover .whatsapp-group--title {
+            color: $color-blue-primary-light;
+        }
+    }
+
+    &--title {
+        font-weight: $font-weight-medium;
+        font-size: $font-size-m;
+        color: $color-blue-primary-dark;
+    }
+
+    &--status {
+        padding: $padding-vertical-xxs $padding-horizontal-xs;
+        border-radius: 999px;
+        font-size: $font-size-xs;
+        color: $color-gray-dark;
+        background: $color-gray-bg-light;
+
+        &-shared {
+            background: $whatsapp-green-bg-light;
+        }
+    }
+
+    &--body {
+        padding: 0 $padding-horizontal-default $padding-vertical-l;
+        border-top: 1px solid $color-gray-light;
+
+        > p {
+            margin: $padding-vertical-m 0;
+        }
+
+        a {
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &--steps {
+        counter-reset: whatsapp-step;
+        list-style: none;
+        margin: 0 0 $padding-vertical-l;
+        padding: 0;
+
+        > li {
+            counter-increment: whatsapp-step;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: $padding-vertical-xs;
+            padding: 0 0 $padding-vertical-m 2.5rem;
+
+            &::before {
+                content: counter(whatsapp-step);
+                position: absolute;
+                left: 0;
+                top: -0.1rem;
+                width: 1.75rem;
+                height: 1.75rem;
+                line-height: 1.75rem;
+                text-align: center;
+                border-radius: 50%;
+                font-weight: $font-weight-medium;
+                color: $color-white;
+                background: $color-blue-primary-dark;
+            }
+
+            > label, > span {
+                font-weight: $font-weight-medium;
+            }
+        }
+    }
+
+    &--copy {
+        display: flex;
+        align-items: flex-start;
+        gap: $padding-horizontal-xs;
+
+        input[type=text], textarea {
+            flex: 1 1 auto;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: $color-gray-bg-light;
+            padding: $padding-input-default;
+            box-sizing: border-box;
+            font: inherit;
+            line-height: $line-height-default;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button {
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        @media screen and (max-width: 700px) {
+            flex-wrap: wrap;
+
+            input[type=text], textarea, .button {
+                width: 100%;
+            }
+        }
+    }
+
+    // Raise specificity above `a.button`, which sets `display: inline-block`
+    a.button#{&}--open {
+        display: inline-flex;
+        align-items: center;
+        gap: $padding-horizontal-xxs;
+        margin: 0;
+
+        .whatsapp-logo {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+
+    &--form {
+        display: flex;
+        flex-direction: column;
+        gap: $padding-vertical-xs;
+    }
+
+    &--join {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: $padding-horizontal-xs $padding-horizontal-s;
+        padding: $padding-vertical-m $padding-horizontal-default;
+
+        .whatsapp-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .button {
+            margin: 0 0 0 auto;
+        }
+
+        @media screen and (max-width: 700px) {
+            .button {
+                width: 100%;
+                margin: 0;
+            }
+        }
+    }
+
+    &--hint {
+        font-size: $font-size-xs;
+        color: $color-gray-medium;
+    }
+}
