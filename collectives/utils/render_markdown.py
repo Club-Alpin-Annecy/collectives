@@ -42,11 +42,13 @@ class _TextExtractor(HTMLParser):
     """Tags starting a new line"""
 
     def __init__(self):
+        """Start with no collected text, outside any ``<pre>`` block."""
         super().__init__(convert_charrefs=True)
         self.parts = []
         self.pre_depth = 0
 
     def handle_starttag(self, tag, attrs):
+        """Open a new line or paragraph before line and block tags."""
         if tag in self.LINE_TAGS:
             self.parts.append("\n")
         elif tag in self.BLOCK_TAGS:
@@ -55,13 +57,15 @@ class _TextExtractor(HTMLParser):
             self.pre_depth += 1
 
     def handle_endtag(self, tag):
+        """Close a paragraph after block tags."""
         if tag in self.BLOCK_TAGS:
             self.parts.append("\n\n")
         if tag == "pre":
             self.pre_depth = max(self.pre_depth - 1, 0)
 
     def handle_data(self, data):
-        # Outside <pre>, line breaks of the HTML source are mere spaces
+        """Collect the text; outside ``<pre>``, line breaks of the HTML
+        source are mere spaces."""
         if not self.pre_depth:
             data = re.sub(r"\s+", " ", data)
         self.parts.append(data)
