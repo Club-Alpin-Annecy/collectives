@@ -78,7 +78,7 @@ PAYLINE_METADATA_KEPT = {
 }
 """Parts of a Payline response kept in ``Payment.raw_metadata`` and
 ``refund_metadata``: the result and the amount, enough for
-:py:class:`collectives.utils.payline.PaymentDetails`. None keeps a part whole.
+:py:class:`collectives.utils.payment_provider.payline.PaymentDetails`. None keeps a part whole.
 Buyer, card, order and contract details are dropped."""
 
 DUMP_OPTIONS = ["--single-transaction", "--routines", "--triggers"]

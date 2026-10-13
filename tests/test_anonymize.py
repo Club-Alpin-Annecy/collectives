@@ -25,7 +25,7 @@ from collectives.models import (
     db,
 )
 from collectives.utils.anonymize import anonymize, anonymize_database
-from collectives.utils.payline import PaymentDetails
+from collectives.utils.payment_provider.payline import PaymentDetails
 
 
 def _anonymize(password=None):
@@ -116,7 +116,7 @@ def _online_payment(user, event):
     return payment
 
 
-def test_anonymize_payments(user1: User, paying_event):
+def test_anonymize_payments(user1: User, paying_event, payline_monkeypatch):
     """Buyer and card details are dropped; amount and order reference are kept."""
     online = _online_payment(user1, paying_event)
     cash = Payment(buyer=user1, item_price=paying_event.payment_items[0].prices[0])
@@ -138,7 +138,9 @@ def test_anonymize_payments(user1: User, paying_event):
     assert cash.raw_metadata == ""
 
 
-def test_refund_after_anonymization(admin_client, user1: User, paying_event):
+def test_refund_after_anonymization(
+    admin_client, user1: User, paying_event, payline_monkeypatch
+):
     """Refunding an anonymized online payment goes through the mock Payline."""
     ConfigurationItem.query.filter_by(name="REFUND_ENABLED").one().content = True
     Configuration.uncache("REFUND_ENABLED")
