@@ -12,7 +12,7 @@ from functools import wraps
 import flask_login
 from flask import abort, flash, redirect, url_for
 
-from collectives.models import Configuration
+from collectives.models.payment import payments_enabled
 
 
 def access_requires(function, test, api=False):
@@ -186,7 +186,7 @@ def payments_enabled(api=False):
             """
             message = "Fonctionnalité désactivée"
             return (
-                Configuration.PAYMENT_ENABLED != "Aucune",
+                payments_enabled(),
                 message,
                 url_for("event.index"),
             )

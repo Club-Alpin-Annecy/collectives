@@ -12,8 +12,13 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from collectives.models import Configuration, User
-from collectives.models.payment import Payment, PaymentStatus, PaymentType
+from collectives.models import User
+from collectives.models.payment import (
+    Payment,
+    PaymentStatus,
+    PaymentType,
+    active_payment_type,
+)
 
 
 @dataclass
@@ -163,6 +168,20 @@ def register_provider(provider: PaymentProvider):
     _PROVIDERS[provider.payment_type] = provider
 
 
+def init_providers():
+    """Registers all known payment providers.
+
+    Must be called once at application startup (see
+    :py:func:`collectives.create_app`) before any provider lookup.
+    """
+    # pylint: disable=import-outside-toplevel
+    # Imported here since the provider modules themselves import this package
+    from collectives.utils.payment_provider import helloasso, payline
+
+    register_provider(helloasso.api)
+    register_provider(payline.api)
+
+
 def get_provider_by_name(name: PaymentType) -> PaymentProvider:
     """Returns the provider singleton with the given name.
 
@@ -177,7 +196,10 @@ def get_provider_by_name(name: PaymentType) -> PaymentProvider:
 
 def get_active_provider() -> PaymentProvider:
     """:return: The currently configured, active payment provider."""
-    return get_provider_by_name(PaymentType[Configuration.PAYMENT_ENABLED])
+    payment_type = active_payment_type()
+    if payment_type is None:
+        raise RuntimeError("No active payment provider configured")
+    return get_provider_by_name(payment_type)
 
 
 def retrieve_remote_status(payment: Payment) -> Optional[PaymentStatusResult]:
@@ -226,10 +248,3 @@ def unique_order_ref(payment: Optional[Payment]) -> str:
     rolling_id = payment.id % 10000
 
     return f"CAF{date_str}{activity_str}{rolling_id:04}"
-
-
-# Concrete providers must be imported after the definitions above, since they
-# call register_provider() at module load time; importing them here (instead
-# of relying on some other module to do it) guarantees that importing this
-# package is enough for get_provider_by_name()/get_active_provider() to work.
-from collectives.utils.payment_provider import helloasso, payline  # noqa: E402

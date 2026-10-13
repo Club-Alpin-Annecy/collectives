@@ -2,7 +2,9 @@
 
 from datetime import timedelta
 from decimal import Decimal
+from typing import Optional
 
+from flask import current_app
 from sqlalchemy.orm import make_transient
 from wtforms.validators import NumberRange
 
@@ -460,6 +462,13 @@ class ItemPrice(db.Model):
         self._deprecated_license_types = ""
 
 
+PAYMENT_DISABLED = "Aucune"
+""" Value of ``Configuration.PAYMENT_ENABLED`` meaning online payments are disabled.
+
+Must match the corresponding choice in ``configuration.yaml``.
+"""
+
+
 class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""
 
@@ -503,6 +512,32 @@ class PaymentType(ChoiceEnum):
 ONLINE_PAYMENT_TYPES = (PaymentType.Payline, PaymentType.HelloAsso)
 """ Payment types corresponding to an online payment processor, as opposed to
 a manually reported offline payment (Check, Cash, Card, Transfer). """
+
+
+def active_payment_type() -> Optional[PaymentType]:
+    """Maps ``Configuration.PAYMENT_ENABLED`` to the corresponding online payment type.
+
+    The match is case-insensitive and restricted to :py:data:`ONLINE_PAYMENT_TYPES`,
+    so that the configuration choices do not need to match enum member names exactly.
+
+    :return: The configured online payment type, or None if payments are disabled
+             or the configured value is not recognized
+    """
+    value = str(Configuration.PAYMENT_ENABLED).strip()
+    if value == PAYMENT_DISABLED:
+        return None
+    for payment_type in ONLINE_PAYMENT_TYPES:
+        if payment_type.name.lower() == value.lower():
+            return payment_type
+    current_app.logger.error(
+        "Unknown PAYMENT_ENABLED value '%s', payments are disabled", value
+    )
+    return None
+
+
+def payments_enabled() -> bool:
+    """:return: True if an online payment processor is currently configured."""
+    return active_payment_type() is not None
 
 
 class PaymentStatus(ChoiceEnum):
@@ -635,7 +670,7 @@ class Payment(db.Model):
 
     :type: :py:class:`datetime.datetime`"""
 
-    processor_token = db.Column(db.Text, index=True, nullable=False)
+    processor_token = db.Column(db.String(256), index=True, nullable=False)
     """ Unique identifier of this payment for the payment processor.
 
     :type: str
@@ -761,12 +796,12 @@ class Payment(db.Model):
             self.payment_item_id = item_price.item.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal()
-            if Configuration.PAYMENT_ENABLED == "Aucune":
-                # Gates the next PaymentType attribute selection
+            payment_type = active_payment_type()
+            if payment_type is None:
                 raise RuntimeError(
                     "Cannot create a payment while payments are disabled"
                 )
-            self.payment_type = PaymentType[Configuration.PAYMENT_ENABLED]
+            self.payment_type = payment_type
             self.status = PaymentStatus.Initiated
             self.processor_token = ""
             self.raw_metadata = ""

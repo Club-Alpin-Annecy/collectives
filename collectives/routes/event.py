@@ -56,7 +56,7 @@ from collectives.models.event import (
     DuplicateRegistrationError,
     event_activities_without_leaders,
 )
-from collectives.models.payment import ItemPrice, Payment
+from collectives.models.payment import ItemPrice, Payment, payments_enabled
 from collectives.models.question import QuestionAnswer
 from collectives.models.user_group import GroupEventCondition
 from collectives.routes.auth import get_bad_phone_message, login_manager
@@ -798,7 +798,7 @@ def self_register(event_id):
         return redirect(url_for("event.view_event", event_id=event_id))
 
     # Paid event
-    if Configuration.PAYMENT_ENABLED == "Aucune":
+    if not payments_enabled():
         flash("Les paiements sont désactivés, inscription impossible.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 
@@ -846,7 +846,7 @@ def select_payment_item(event_id):
     if not event or not event.requires_payment():
         flash("Pas de paiement requis pour cet événement", "error")
         return redirect(url_for(".index"))
-    if Configuration.PAYMENT_ENABLED == "Aucune":
+    if not payments_enabled():
         flash("Les paiements sont désactivés.", "error")
         return redirect(url_for("event.view_event", event_id=event_id))
 

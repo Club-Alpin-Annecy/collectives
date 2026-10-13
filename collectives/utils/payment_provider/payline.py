@@ -18,7 +18,6 @@ from collectives.utils.payment_provider import (
     PaymentProvider,
     PaymentStatusResult,
     RefundResult,
-    register_provider,
     unique_order_ref,
 )
 from collectives.utils.time import format_date
@@ -660,5 +659,3 @@ api: PaylineApi = PaylineApi()
 
 `api` requires to be initialized with :py:meth:`PaylineApi.init_app` to be used.
 """
-
-register_provider(api)

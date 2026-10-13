@@ -27,7 +27,6 @@ from collectives.utils.payment_provider import (
     PaymentProvider,
     PaymentStatusResult,
     RefundResult,
-    register_provider,
     unique_order_ref,
 )
 
@@ -430,5 +429,3 @@ api: HelloAssoApi = HelloAssoApi()
 
 `api` requires to be initialized with :py:meth:`HelloAssoApi.init_app` to be used.
 """
-
-register_provider(api)
