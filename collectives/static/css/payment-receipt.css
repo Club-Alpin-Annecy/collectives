@@ -78,3 +78,12 @@ ul.address li {
     display: inline;
     font-style: italic;
 }
+
+p.mock-warning {
+    text-align: center;
+    font-weight: bold;
+    color: darkred;
+    border: 2px solid darkred;
+    padding: 0.5em;
+    margin: 1em 10%;
+}
