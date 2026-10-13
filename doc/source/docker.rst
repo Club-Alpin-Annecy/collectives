@@ -51,6 +51,18 @@ Waitress configuration
 Additionnal parameter for waitress (wsgi engine) can be set using ``WAITRESS_OPTS``.
 See `waitress-serve manual <https://docs.pylonsproject.org/projects/waitress/en/stable/runner.html#invocation>`_ .
 
+Database migration
+...........................
+
+On startup, the container applies database migrations (``flask db upgrade``). If the
+migration fails, the container stops. Set ``FORCE_START_ON_MIGRATION_FAILURE=1`` to start
+the server anyway.
+
+.. warning::
+
+    Starting with a failed migration may leave the database schema out of date and cause
+    runtime errors. Only use this option for troubleshooting.
+
 Build cafannecy/collectives docker
 -----------------------------------
 
