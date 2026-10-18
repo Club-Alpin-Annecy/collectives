@@ -1,5 +1,7 @@
 __pycache__
 app.db
+# Bases locales générées par tasks.py, une par worktree
+collectives-*.db
 uploads
 .DS_Store
 
