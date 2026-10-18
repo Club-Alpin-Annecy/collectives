@@ -1,7 +1,7 @@
 """add event whatsapp invite link
 
 Revision ID: 3f6a2c8e1d47
-Revises: bd8854e3b409
+Revises: 420c243a17f8
 Create Date: 2026-10-12 10:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "3f6a2c8e1d47"
-down_revision = "bd8854e3b409"
+down_revision = "420c243a17f8"
 branch_labels = None
 depends_on = None
 

@@ -2,6 +2,8 @@
 
 import pytest
 
+from collectives.models import Configuration
+
 # pylint: disable=unused-argument
 
 
@@ -200,8 +202,15 @@ class FakeSoapClient:
 
 @pytest.fixture
 def payline_monkeypatch(app, monkeypatch):
-    """Fix methods to avoid external dependencies"""
+    """Fix methods and configuration to avoid external dependencies"""
     monkeypatch.setattr(
-        "collectives.utils.payline.api._create_client",
+        "collectives.utils.payment_provider.payline.api._create_client",
         lambda wsdl_path: FakeSoapClient(),
     )
+
+    Configuration.get_item("PAYMENT_ENABLED").content = "Payline"
+    Configuration.uncache("PAYMENT_ENABLED")
+
+    yield
+
+    Configuration.uncache("PAYMENT_ENABLED")

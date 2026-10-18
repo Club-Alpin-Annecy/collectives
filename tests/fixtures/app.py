@@ -74,3 +74,14 @@ def disable_whatsapp_groups(app):  # pylint: disable=unused-argument
     yield
     Configuration.get_item("WHATSAPP_GROUPS_ENABLED").content = True
     Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+
+
+@pytest.fixture
+def enable_payment():
+    """Enable payments (via Payline) in configuration.
+
+    Payments are disabled by default (``PAYMENT_ENABLED`` = ``"Aucune"``);
+    tests exercising payment routes without a specific provider mock (e.g.
+    :py:func:`tests.mock.payline.payline_monkeypatch`) need this."""
+    Configuration.get_item("PAYMENT_ENABLED").content = "Payline"
+    Configuration.uncache("PAYMENT_ENABLED")
