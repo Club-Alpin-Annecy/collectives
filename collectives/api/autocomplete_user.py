@@ -6,7 +6,7 @@ Especially used for user registration by leader in events.
 
 import json
 
-from flask import abort, request
+from flask import request
 from flask_login import current_user
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Query
@@ -14,7 +14,7 @@ from sqlalchemy.orm import Query
 from collectives.api.common import blueprint
 from collectives.api.schemas import UserIdentitySchema
 from collectives.models import EventType, Role, RoleIds, User, db
-from collectives.utils.access import confidentiality_agreement, valid_user
+from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.profile_token import profile_token
 
 
@@ -61,6 +61,7 @@ def _make_autocomplete_query(pattern: str) -> Query:
 @blueprint.route("/users/autocomplete/")
 @valid_user(True)
 @confidentiality_agreement(True)
+@user_is("can_create_events", True)
 def autocomplete_users():
     """API endpoint to list users for autocomplete.
 
@@ -75,9 +76,6 @@ def autocomplete_users():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
-    if not current_user.can_create_events():
-        abort(403)
-
     pattern = request.args.get("q")
     if pattern is None or (len(pattern) < 2):
         found_users = []
@@ -125,6 +123,7 @@ def autocomplete_leaders():
 
 @blueprint.route("/available_leaders/autocomplete/")
 @valid_user(True)
+@user_is("can_create_events", True)
 def autocomplete_available_leaders():
     """API endpoint to list available leaders for autocomplete. In contrast with the
     previous function this also includes leaders that have never led any event.
@@ -144,9 +143,6 @@ def autocomplete_available_leaders():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
-
-    if not current_user.can_create_events():
-        abort(403)
 
     pattern = request.args.get("q")
     if pattern is None or (len(pattern) < 2):

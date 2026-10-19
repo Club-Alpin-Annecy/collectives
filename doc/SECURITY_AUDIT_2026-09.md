@@ -270,7 +270,10 @@ structurées ; échapper les noms. **Partiellement corrigé** (`user_list.html`,
 `login.py` où la licence passe par un attribut `data-license` plutôt que dans
 le code JS de `onclick`, `BadgeIds.js_levels()` qui échappe `<`, `>`, `&`
 et `'`, et `badges_list.js` qui insère les noms de niveaux en texte plutôt
-qu'en HTML).
+qu'en HTML). Dans `administration.js`, les cellules Rôles et Badges et les
+libellés des filtres `select` sont échappés : Tabulator insère en HTML le
+retour des formatters et les libellés de liste, et `/api/users/` renvoie les
+noms d'activités bruts.
 
 ### M5 — Mode « mock » Payline actif dès que `PAYLINE_MERCHANT_ID` est vide
 
