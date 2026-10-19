@@ -22,6 +22,16 @@ def test_admin_user_list_escapes_activity_names(hotline_client):
     assert "</script><script>alert(1)</script>" not in text
 
 
+def test_admin_user_list_filters_keep_order(hotline_client):
+    """Filters are passed as an ordered list, not a dict that tojson would sort."""
+    response = hotline_client.get("/administration/")
+    text = response.get_data(as_text=True)
+    start = text.index("const filters =") + len("const filters =")
+    filters = json.loads(text[start : text.index("</script>", start)])
+    assert filters[0] == {"value": "", "label": ""}
+    assert filters[1] == {"value": "tnone", "label": "Role General"}
+
+
 def test_badge_levels_escaped_in_script(app, custom_skill):
     """Custom level names cannot close the <script> tag they are inserted in (audit M4)."""
     payload = "x</script><script>alert(1)</script>'&"
