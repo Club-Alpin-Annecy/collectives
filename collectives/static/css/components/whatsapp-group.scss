@@ -133,6 +133,11 @@ $whatsapp-green-bg-light: #E7F9EE;
             box-sizing: border-box;
             font: inherit;
             line-height: $line-height-default;
+
+            &:focus-visible {
+                outline: 2px solid $color-blue-primary-light;
+                outline-offset: -2px;
+            }
         }
 
         textarea {
