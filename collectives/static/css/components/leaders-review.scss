@@ -33,6 +33,27 @@
     }
 }
 
+.leaders-review-comment {
+    min-width: 12em;
+
+    .leaders-review-comment-text {
+        margin: 0 0 0.3em;
+        white-space: pre-line;
+    }
+
+    summary {
+        cursor: pointer;
+        font-size: $font-size-xxs;
+    }
+
+    textarea {
+        display: block;
+        width: 100%;
+        min-width: 15em;
+        margin: 0.3em 0;
+    }
+}
+
 .leaders-review-remove {
     padding: 0.3em;
     border: 1px solid $color-error-dark;

@@ -47,7 +47,11 @@ from collectives.models.badge import BadgeIds
 from collectives.utils import badges, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
-from collectives.utils.leaders_review import INACTIVITY_SEASONS, LeadersReview
+from collectives.utils.leaders_review import (
+    COMMENT_MAX_LENGTH,
+    INACTIVITY_SEASONS,
+    LeadersReview,
+)
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 
@@ -151,6 +155,41 @@ def remove_leader(role_id):
     return redirect(url_for(".leader_list"))
 
 
+@blueprint.route("/leader/comment/<int:role_id>", methods=["POST"])
+def comment_leader(role_id):
+    """Route for an activity supervisor to set the comment of an activity role,
+    from the leaders review page.
+
+    :param role_id: Id of the commented role
+    :type role_id: int
+    """
+
+    role = db.session.get(Role, role_id)
+    if role is None or role.role_id not in RoleIds.all_relates_to_activity():
+        flash("Role invalide", "error")
+        return redirect(url_for(".leaders_review"))
+
+    if role.activity_type not in current_user.get_supervised_activities():
+        flash("Non autorisé", "error")
+        return redirect(url_for(".leaders_review"))
+
+    review_url = url_for(".leaders_review", activity_id=role.activity_id)
+
+    comment = request.form.get("comment", "").strip()
+    if len(comment) > COMMENT_MAX_LENGTH:
+        flash(
+            f"Commentaire trop long ({COMMENT_MAX_LENGTH} caractères maximum)",
+            "error",
+        )
+        return redirect(review_url)
+
+    role.comment = comment or None
+    db.session.commit()
+
+    flash("Commentaire enregistré", "success")
+    return redirect(review_url)
+
+
 @blueprint.route("/leader", methods=["GET"])
 def leader_list():
     """Route for activity supervisors to access leader list and trainees
@@ -202,6 +241,7 @@ def leaders_review():
         form=form,
         review=LeadersReview(activity),
         inactivity_seasons=INACTIVITY_SEASONS,
+        comment_max_length=COMMENT_MAX_LENGTH,
         title="Revue des encadrants",
     )
 

@@ -26,6 +26,11 @@
       <span class="leaders-review-badge leaders-review-badge-account">Email non vérifié</span> :
       l'adhérent ne peut plus se connecter ni encadrer.</li>
   </ul>
+  <p>
+    La colonne « Commentaire » permet de noter des informations sur chaque personne
+    (formation prévue, personne à relancer…). Elle n'est visible et modifiable que par
+    les responsables de l'activité.
+  </p>
 
   {% if form.activity_id.choices | length > 1 %}
     <form action="{{ url_for('activity_supervision.leaders_review') }}" method="GET" class="form form-vertical">
@@ -53,6 +58,7 @@
             <th>Dernière sortie</th>
             <th>Rôle depuis</th>
             <th>Statut</th>
+            <th>Commentaire</th>
             <th></th>
           </tr>
         </thead>
@@ -95,6 +101,20 @@
                 {% elif not leader.user.is_active %}
                   <span class="leaders-review-badge leaders-review-badge-account">Licence expirée</span>
                 {% endif %}
+              </td>
+              <td class="leaders-review-comment">
+                {% if leader.role.comment %}
+                  <p class="leaders-review-comment-text">{{ leader.role.comment }}</p>
+                {% endif %}
+                <details>
+                  <summary>{{ 'Modifier' if leader.role.comment else 'Ajouter' }}</summary>
+                  <form action="{{ url_for('activity_supervision.comment_leader', role_id=leader.role.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <textarea name="comment" rows="3" maxlength="{{ comment_max_length }}"
+                              aria-label="Commentaire sur {{ leader.user.full_name() }}">{{ leader.role.comment or '' }}</textarea>
+                    <button type="submit" class="button button-secondary">Enregistrer</button>
+                  </form>
+                </details>
               </td>
               <td>
                 {% if leader.can_be_removed %}
