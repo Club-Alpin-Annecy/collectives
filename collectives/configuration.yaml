@@ -114,6 +114,13 @@ FFCAM:
         type: ShortString
         hidden: true
 
+    EXTRANET_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers l'extranet FFCAM,
+            pour le chargement du WSDL comme pour les appels SOAP.
+        type: Integer
+
     LICENSE_RENEWAL_MONTH:
         content: 9
         description: Month at which license renewals start.
