@@ -19,7 +19,7 @@ from collectives.models import (
     UserType,
     db,
 )
-from collectives.utils.leaders_review import LeadersReview
+from collectives.utils.leaders_review import COMMENT_MAX_LENGTH, LeadersReview
 from tests.fixtures.user import promote_user
 
 # pylint: disable=unused-argument
@@ -381,3 +381,83 @@ def test_remove_orphan_role(supervisor_client):
 
     response = supervisor_client.get(response.location)
     assert "retiré pour l" in response.text
+
+
+def test_comment_role_from_review(supervisor_client, leader_user):
+    """Test setting, displaying and clearing a role comment from the review page."""
+    role = Role.query.filter_by(user_id=leader_user.id).one()
+    role_id, activity_id = role.id, role.activity_id
+
+    response = supervisor_client.post(
+        f"/activity_supervision/leader/comment/{role_id}",
+        data={"comment": "  Recyclage prévu\nen mars  "},
+    )
+    assert response.status_code == 302
+    assert response.location.endswith(
+        f"/activity_supervision/leader/review?activity_id={activity_id}"
+    )
+    assert db.session.get(Role, role_id).comment == "Recyclage prévu\nen mars"
+
+    response = supervisor_client.get(response.location)
+    assert "Commentaire enregistré" in response.text
+    assert "Recyclage prévu\nen mars" in response.text
+
+    supervisor_client.post(
+        f"/activity_supervision/leader/comment/{role_id}", data={"comment": "  "}
+    )
+    assert db.session.get(Role, role_id).comment is None
+
+
+def test_comment_role_too_long(supervisor_client, leader_user):
+    """Test that a too long comment is refused."""
+    role = Role.query.filter_by(user_id=leader_user.id).one()
+    role.comment = "Ancien commentaire"
+    db.session.commit()
+
+    response = supervisor_client.post(
+        f"/activity_supervision/leader/comment/{role.id}",
+        data={"comment": "a" * (COMMENT_MAX_LENGTH + 1)},
+    )
+    assert response.status_code == 302
+    assert db.session.get(Role, role.id).comment == "Ancien commentaire"
+    response = supervisor_client.get(response.location)
+    assert "Commentaire trop long" in response.text
+
+
+def test_comment_role_unsupervised_activity(supervisor_client, leader_user):
+    """Test that a supervisor cannot comment a role of another activity."""
+    other_activity = ActivityType.query.filter(ActivityType.name != "Alpinisme").first()
+    promote_user(leader_user, RoleIds.EventLeader, other_activity.name)
+    db.session.commit()
+    role = Role.query.filter_by(
+        user_id=leader_user.id, activity_id=other_activity.id
+    ).one()
+
+    response = supervisor_client.post(
+        f"/activity_supervision/leader/comment/{role.id}", data={"comment": "Intrus"}
+    )
+    assert response.status_code == 302
+    assert db.session.get(Role, role.id).comment is None
+
+    response = supervisor_client.post(
+        "/activity_supervision/leader/comment/999999", data={"comment": "Intrus"}
+    )
+    assert response.status_code == 302
+    assert response.location.endswith("/activity_supervision/leader/review")
+
+
+def test_comment_role_forbidden(leader_client, leader_user):
+    """Test that a leader can neither comment nor see the comment of their role."""
+    role = Role.query.filter_by(user_id=leader_user.id).one()
+    role.comment = "Commentaire confidentiel"
+    db.session.commit()
+
+    response = leader_client.post(
+        f"/activity_supervision/leader/comment/{role.id}", data={"comment": "Modifié"}
+    )
+    assert response.status_code == 302
+    assert db.session.get(Role, role.id).comment == "Commentaire confidentiel"
+
+    response = leader_client.get(f"/profile/organizer/{leader_user.id}")
+    assert response.status_code == 200
+    assert "Commentaire confidentiel" not in response.text

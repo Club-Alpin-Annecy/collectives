@@ -214,6 +214,14 @@ class Role(db.Model):
     :type: :py:class:`datetime.datetime`
     """
 
+    comment = db.Column(db.Text, nullable=True)
+    """ Free comment about the role holder, written by the activity supervisors.
+
+    Must only be shown to the supervisors of the role activity.
+
+    :type: string
+    """
+
     @property
     def name(self) -> str:
         """Returns the name of the role.

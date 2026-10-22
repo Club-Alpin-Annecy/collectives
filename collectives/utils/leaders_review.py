@@ -38,6 +38,12 @@ considered inactive.
 :type: int
 """
 
+COMMENT_MAX_LENGTH = 1000
+""" Maximum length of the supervisor comment on a role.
+
+:type: int
+"""
+
 
 def season_start(year: int) -> datetime:
     """:return: the start of the season beginning in ``year``"""
