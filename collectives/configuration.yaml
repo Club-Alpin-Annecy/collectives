@@ -109,6 +109,13 @@ Paiements:
         description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
         type: ShortString
 
+    PAYMENT_PROCESSOR_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers le prestataire
+            de paiement (Payline ou HelloAsso).
+        type: Integer
+
 FFCAM:
 
     LICENSE_CATEGORIES:
@@ -247,6 +254,11 @@ Mail:
     SMTP_PORT:
         content: 25
         description: TCP port for SMTP server
+        type: Integer
+
+    SMTP_TIMEOUT:
+        content: 10
+        description: Délai maximal (en secondes) des échanges avec le serveur SMTP.
         type: Integer
 
     SMTP_ADDRESS:
