@@ -363,12 +363,17 @@ class PaylineApi(PaymentProvider):
         """ Payline access key (to be set in payline backoffice)"""
         self.payline_country: str = ""
         """ Payline country code"""
+        self.payline_timeout: int = None
+        """ Timeout in seconds of requests to Payline"""
 
     def reload_config(self):
         """Reads current configuration, reset client if necessary"""
 
         merchant_id_changed = (
             self.payline_merchant_id != Configuration.PAYLINE_MERCHANT_ID
+        )
+        timeout_changed = (
+            self.payline_timeout != Configuration.PAYMENT_PROCESSOR_TIMEOUT
         )
 
         self.payline_merchant_id = Configuration.PAYLINE_MERCHANT_ID
@@ -377,6 +382,12 @@ class PaylineApi(PaymentProvider):
         self.payline_contract_number = Configuration.PAYLINE_CONTRACT_NUMBER
         self.payline_merchant_name = Configuration.PAYLINE_MERCHANT_NAME
         self.payline_country = Configuration.PAYLINE_COUNTRY
+        self.payline_timeout = Configuration.PAYMENT_PROCESSOR_TIMEOUT
+
+        if timeout_changed:
+            # Reset clients, as their timeout is set at creation
+            self._webpayment_client = None
+            self._directpayment_client = None
 
         if merchant_id_changed:
             # Reset clients
@@ -401,6 +412,7 @@ class PaylineApi(PaymentProvider):
         return SoapClient(
             wsdl=wsdl_path,
             wsdl_basedir=".",
+            timeout=self.payline_timeout,
             http_headers={
                 "Authorization": f"Basic {self.encoded_auth}",
                 "Content-Type": "text/plain",

@@ -5,6 +5,7 @@ DKIM. Conf are taken from app :py:mod:`config`:
 
 - :py:data:`config.SMTP_HOST`: Hostname of SMTP server
 - :py:data:`config.SMTP_PORT`: Connexion port to SMTP server
+- :py:data:`config.SMTP_TIMEOUT`: Timeout in seconds of SMTP connexion
 - :py:data:`config.SMTP_ADDRESS`: Sender address. Also used to set DKIM domain
 - :py:data:`config.SMTP_LOGIN`: Login of SMTP server
 - :py:data:`config.SMTP_PASSWORD`: Password of SMTP server
@@ -64,7 +65,9 @@ def send_mail_threaded(app, **kwargs):
     with app.app_context():
         try:
             smtp = smtplib.SMTP(
-                host=Configuration.SMTP_HOST, port=Configuration.SMTP_PORT
+                host=Configuration.SMTP_HOST,
+                port=Configuration.SMTP_PORT,
+                timeout=Configuration.SMTP_TIMEOUT,
             )
 
             smtp.starttls()
