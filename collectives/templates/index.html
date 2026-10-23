@@ -62,13 +62,13 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
 
     const eventTypes = [
         {% for type in event_types %}
-            { "id": "{{type.short}}", "name": "{{type.name}}"},
+            { "id": {{ type.short | tojson }}, "name": {{ type.name | tojson }} },
         {% endfor %}
     ]
 
     const eventTags = [
         {% for tag in models.EventTag.all().values() %}
-            { "id": "{{tag['short']}}", "name": "{{tag['name']}}"},
+            { "id": {{ tag['short'] | tojson }}, "name": {{ tag['name'] | tojson }} },
         {% endfor %}
     ]
     const app = createApp(EventList)

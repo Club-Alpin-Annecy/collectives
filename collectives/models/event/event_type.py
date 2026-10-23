@@ -75,6 +75,16 @@ class EventType(db.Model):
     :type: string
     """
 
+    deprecated = db.Column(
+        db.Boolean, nullable=False, default=False, server_default=db.false()
+    )
+    """ Whether this event type is no longer offered for new events.
+
+    Deprecated types are kept for the events which already use them.
+
+    :type: bool
+    """
+
     terms_file = db.Column(db.String(256), nullable=True)
     """ Name of the file containings the terms that must be accepted for registering to
     an event of this type.
@@ -100,12 +110,16 @@ class EventType(db.Model):
         return len(license_types) == 0 or user.license_category in license_types
 
     @classmethod
-    def get_all_types(cls):
+    def get_all_types(cls, include_deprecated: bool = False):
         """List all event_types in database
 
+        :param include_deprecated: Whether to include deprecated event types
         :return: list of types
         :rtype: list(:py:class:`EventType`)"""
-        return cls.query.order_by("id", "name").all()
+        query = cls.query.order_by("id", "name")
+        if not include_deprecated:
+            query = query.filter_by(deprecated=False)
+        return query.all()
 
     @classmethod
     def js_values(cls):
@@ -114,7 +128,7 @@ class EventType(db.Model):
         :return: types as js Dictionnary
         :rtype: String
         """
-        types = cls.get_all_types()
+        types = cls.get_all_types(include_deprecated=True)
         return json.dumps({typ.id: typ.name for typ in types}, ensure_ascii=False)
 
     def get_terms_file(self) -> str:

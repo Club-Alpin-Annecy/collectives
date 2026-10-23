@@ -53,7 +53,7 @@ def stats_env(
     )
     event2.tag_refs.append(EventTag(6))
 
-    party = EventType.query.filter_by(name="Soirée").first()
+    party = EventType.query.filter_by(short="soiree").first()
     event3.tag_refs.append(EventTag(10))
     event3.tag_refs.append(EventTag(11))
     event3.activity_types = [canyon, escalade]
