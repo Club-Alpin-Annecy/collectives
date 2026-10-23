@@ -23,7 +23,7 @@ function createPaymentsTable(url)
             {title:"Type", field:"payment_type", widthGrow:1, headerFilter:true, editor:"select", editorParams:{values: addEmpty(EnumPaymentType)}, headerFilterParams:{values: addEmpty(EnumPaymentType)}},
             {title:"Adhérent", field:"buyer_name", widthGrow:2, headerFilter:true},
             {title:"Inscription", field:"registration_status", widthGrow:1, headerFilter:true,  editor:"select", editorParams:{values: addEmpty(EnumRegistrationStatus)}, headerFilterParams:{values: addEmpty(EnumRegistrationStatus)}},
-            {title:"Ref payline", field:"processor_order_ref", widthGrow:2, headerFilter:true},    
+            {title:"Référence", field:"processor_order_ref", widthGrow:2, headerFilter:true},
         ],
 
         rowClick:function(e, row){

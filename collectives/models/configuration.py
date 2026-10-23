@@ -4,7 +4,9 @@ import enum
 import json
 from datetime import datetime
 from threading import Lock
+from typing import List
 
+import yaml
 from flask import Config, current_app
 from sqlalchemy.sql import func
 
@@ -55,13 +57,28 @@ class ConfigurationTypeEnum(enum.Enum):
 
     SecretFile = 10
     """ A file will be stored, but that should not be exposed in static.
-    
+
     Actual file is stored in local file system, in
     ``collectives/private_assets``. The ``content`` attribute
     of a ``SecretFile`` configuration instance only contains the path,
     relative to the current working directory of the application.
-    
+
     Often, default content are not in ``private_assets``."""
+
+    Enum = 11
+    """ A string will be stored in the attribute ``content``, restricted to
+    choices listed in ``configuration.yaml`` (see :py:func:`get_enum_choices`)."""
+
+
+def get_enum_choices(name: str) -> List[str]:
+    """:param name: Name of the configuration item
+    :returns: The valid choices declared for this item in ``configuration.yaml``"""
+    with open("collectives/configuration.yaml", "r", encoding="utf-8") as file:
+        yaml_content = yaml.safe_load(file.read())
+    for config_item in yaml_content.values():
+        if name in config_item:
+            return config_item[name].get("choices", [])
+    return []
 
 
 # pylint: disable=invalid-name
@@ -221,6 +238,13 @@ class ConfigurationItem(db.Model):
         :param object content: new content that will be converted to JSON."""
         if isinstance(content, datetime):
             content = content.strftime("%Y/%m/%d %H:%M:%S")
+        if self.type == ConfigurationTypeEnum.Enum:
+            choices = get_enum_choices(self.name)
+            if choices and content not in choices:
+                raise ValueError(
+                    f"Invalid value {content!r} for enum configuration item "
+                    f"'{self.name}': must be one of {choices}"
+                )
         self.json_content = json.dumps(content, ensure_ascii=False).encode("utf8")
 
 

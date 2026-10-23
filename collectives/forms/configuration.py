@@ -16,6 +16,8 @@ from wtforms import (
 from wtforms.validators import DataRequired, NumberRange
 from wtforms_alchemy.utils import strip_string
 
+from collectives.models.configuration import get_enum_choices
+
 
 class ConfigurationBaseForm(FlaskForm):
     """Base form for all configuration item."""
@@ -89,6 +91,23 @@ class ConfigurationFileForm(ConfigurationBaseForm):
 
 class ConfigurationSecretFileForm(ConfigurationFileForm):
     """Form for file configuration item."""
+
+
+class ConfigurationEnumForm(ConfigurationBaseForm):
+    """Form for Enum configuration item.
+
+    Valid choices differ per configuration item, so they cannot be set on
+    the class itself: call :py:meth:`set_choices` on the instance once it
+    has been built by :py:func:`get_form_from_configuration`."""
+
+    content = SelectField()
+
+    def set_choices(self, name):
+        """Populates ``content``'s choices from ``configuration.yaml``.
+
+        :param str name: Name of the configuration item
+        """
+        self.content.choices = [(c, c) for c in get_enum_choices(name)]
 
 
 def get_form_from_configuration(item):

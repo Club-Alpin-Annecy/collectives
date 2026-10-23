@@ -4,6 +4,7 @@
 {% import 'macros.html' as macros with context %}
 {% import 'partials/event/self_register.html' as self_register with context %}
 {% import 'partials/event/self_unregister.html' as self_unregister with context %}
+{% import 'partials/event/pending_payment.html' as pending_payment with context %}
 
 
 {% block additionalhead %}
@@ -219,21 +220,19 @@
           {# Active registration or waiting list #}
 
           {%if event.is_pending_payment(current_user) %}
-            <p>Votre inscription est en attente de paiement.
-            <ul>
             {% for r in event.existing_registrations(current_user) %}
               {% if r.is_pending_payment() %}
                 {% for payment in r.unsettled_payments() %}
-                  <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+                  {{ pending_payment.text(payment, "Votre inscription") }}
                 {% else %}
                   {# No pending payments, propose to choose item and price #}
+                  <p>Votre inscription est en attente de paiement.</p>
                   {% with registration=r, is_leader=False %}
                     {% include 'partials/event/payment_item_choice.html' %}
                   {% endwith %}
                 {% endfor %}
               {% endif %}
             {% endfor %}
-            </ul></p>
           {%endif%}
 
           {% if not current_user.check_license_valid_at_time(event.end) %}
@@ -250,9 +249,23 @@
             </form>
           {% endif %}
 
-          {% if current_time < event.start %} {# Unregister #}
-            {{ self_unregister.button(Configuration, event.is_in_late_unregistration_period(current_user)) }} {# Late Unregister condition #} 
-          <br/><br/>
+          {# Actions: pay pending payments, unregister #}
+          {% set has_pending_payment = event.is_pending_payment(current_user) %}
+          {% set can_unregister = current_time < event.start %}
+          {% if has_pending_payment or can_unregister %}
+            <div class="collective-display--actions">
+              {% if has_pending_payment %}
+                {% for r in event.existing_registrations(current_user) if r.is_pending_payment() %}
+                  {% for payment in r.unsettled_payments() %}
+                    {{ pending_payment.buttons(payment) }}
+                  {% endfor %}
+                {% endfor %}
+              {% endif %}
+              {% if can_unregister %}
+                {{ self_unregister.button(Configuration, event.is_in_late_unregistration_period(current_user)) }} {# Late Unregister condition #}
+              {% endif %}
+            </div>
+            <br/>
           {% endif %}
 
           {# Questionnaire #}
@@ -340,15 +353,14 @@
     {% if event.requires_payment() and event.is_leader(current_user) %}
       <p>Cet événement est payant; en tant qu'encadrant ou bénévole, vous pouvez participer aux frais.</p>
       {% if event.has_approved_or_unsettled_payments(current_user) %}
-        <ul>
         {% for payment in event.user_payments(current_user) %}
           {%if payment.is_unsettled() %}
-            <li><a href="{{url_for('payment.request_payment', payment_id=payment.id)}}">Procéder au paiement de '{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+            {{ pending_payment.text(payment, "Votre participation aux frais") }}
+            <div class="collective-display--actions">{{ pending_payment.buttons(payment) }}</div>
           {%elif payment.is_approved()%}
-            <li>Vous avez réglé <a href="{{url_for('payment.payment_details', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></li>
+            <p>Vous avez réglé <a href="{{url_for('payment.payment_details', payment_id=payment.id)}}">'{{payment.item.title}} -- {{payment.price.title}}'</a></p>
           {%endif%}
         {% endfor %}
-        </ul>
       {%else%}
         {% with is_leader=True%}
             {% include 'partials/event/payment_item_choice.html' %}
