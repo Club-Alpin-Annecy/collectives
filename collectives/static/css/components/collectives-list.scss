@@ -315,6 +315,35 @@ $button-height:40px;
     }
 }
 
+#club-announcements {
+    border: 2px solid rgb(29, 105, 137);
+    padding: 10px;
+    margin-top: 10px;
+
+    .heading-1 {
+        margin: 5px;
+        color: rgb(29, 105, 137);
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 25px;
+    }
+
+    li {
+        padding: 3px 0;
+    }
+
+    a {
+        font-weight: bold;
+    }
+
+    .club-announcements-details {
+        color: $color-gray-dark;
+        margin-left: 0.5em;
+    }
+}
+
 .collectives-list-filters {
     padding: $padding-default;
     text-align: center;
