@@ -29,10 +29,8 @@
             <div class="card-info margin-bottom-s">
                 {% if not activity %}
                     <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/association.svg') }}" alt=""/>
-                {% elif activity.kind == models.ActivityKind.Regular %}
-                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.short ~ '.svg') }}" alt=""/>
                 {% else %}
-                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/benevolat.svg') }}" alt=""/>
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.icon ~ '.svg') }}" alt=""/>
                 {% endif %}
 
                 <div>

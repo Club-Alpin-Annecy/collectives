@@ -32,7 +32,6 @@ from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
 from collectives.forms.user import AddLeaderForm
 from collectives.models import (
-    ActivityKind,
     ActivityType,
     BadgeCustomLevel,
     BadgeIds,
@@ -330,7 +329,7 @@ def configuration():
     return render_template(
         "activity_supervision/configuration.html",
         activities=activities,
-        title="Configuration des activités et services",
+        title="Configuration des activités, initiatives et services",
     )
 
 
@@ -359,11 +358,9 @@ def configuration_form(activity_type_id: int = None):
 
     if form.validate_on_submit():
         if activity is None:
-            # May only create services, not regular activities
-            # Generate short name from full name
-            activity = ActivityType(
-                kind=ActivityKind.Service, short=slugify(form.name.data)
-            )
+            # May only create services and initiatives, not regular activities
+            # (the kind is set by the form). Generate short name from full name
+            activity = ActivityType(short=slugify(form.name.data))
 
         form.populate_obj(activity)
         db.session.add(activity)
@@ -380,7 +377,11 @@ def configuration_form(activity_type_id: int = None):
 
     return render_template(
         "basicform.html",
-        title=f"Configuration {activity.name}" if activity else "Nouveau service",
+        title=(
+            f"Configuration {activity.name}"
+            if activity
+            else "Nouveau service ou initiative"
+        ),
         form=form,
         extends="activity_supervision/activity_supervision.html",
     )
