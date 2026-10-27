@@ -5,9 +5,10 @@ from datetime import date, timedelta
 import pytest
 
 from collectives.models import User, UserType, db
-from collectives.utils import loxya_sync
+from collectives.utils import extranet, loxya_sync
 from collectives.utils.loxya_sync import SyncAction, SyncMode
 from tests.fixtures.client import login
+from tests.mock.extranet import EXPIRED_LICENSE, VALID_LICENSE, VALID_USER_EMAIL
 from tests.mock.loxya import set_loxya_connection, set_loxya_mode
 
 # pylint: disable=unused-argument,redefined-outer-name
@@ -42,6 +43,15 @@ def linked_member(member1):
     member1.loxya_active = True
     db.session.commit()
     return member1
+
+
+def expire(user: User, license_number: str = EXPIRED_LICENSE) -> User:
+    """Makes the licence of a user look expired here, with the given number on
+    the extranet."""
+    user.license = license_number
+    user.license_expiry_date = date.today() - timedelta(days=1)
+    db.session.commit()
+    return user
 
 
 def beneficiary(beneficiary_id=7, reference=None, **fields) -> dict:
@@ -361,11 +371,12 @@ def test_manual_mode_does_not_create_at_night(loxya_session, member1):
     assert member1.loxya_beneficiary_id is None
 
 
-def test_manual_mode_keeps_enrolled_members_up_to_date(loxya_session, linked_member):
+def test_manual_mode_keeps_enrolled_members_up_to_date(
+    loxya_session, extranet_monkeypatch, linked_member
+):
     """The pilot's accounts are maintained: an expired licence is withdrawn."""
     set_loxya_mode(active=True, auto_create=False)
-    linked_member.license_expiry_date = date.today() - timedelta(days=1)
-    db.session.commit()
+    expire(linked_member)
     loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary())
     loxya_session.script("DELETE", f"{BENEFICIARIES}/7", 204)
 
@@ -393,7 +404,118 @@ def test_auto_mode_creates_at_night(loxya_session, member1):
     assert member1.loxya_beneficiary_id == 7
 
 
+# -- Licence check on the extranet -------------------------------------------------
+
+
+def test_renewed_licence_is_not_withdrawn(
+    loxya_session, extranet_monkeypatch, linked_member
+):
+    """The expiry date here is only refreshed at login: a member who renewed
+    without logging in since keeps their beneficiary."""
+    expire(linked_member, VALID_LICENSE)
+    linked_member.mail = VALID_USER_EMAIL
+    db.session.commit()
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Renewed: 1}
+    assert loxya_session.calls == []
+    assert linked_member.license_expiry_date > date.today()
+    assert linked_member.last_extranet_sync_time is not None
+
+
+def test_renewal_with_a_new_email_only_updates_the_expiry(
+    loxya_session, extranet_monkeypatch, linked_member
+):
+    """A changed email is confirmed by the member at login, not overwritten here."""
+    expire(linked_member, VALID_LICENSE)
+    mail = linked_member.mail
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Renewed: 1}
+    assert linked_member.license_expiry_date > date.today()
+    assert linked_member.mail == mail
+
+
+def test_unreachable_extranet_postpones_the_withdrawal(
+    loxya_session, monkeypatch, linked_member
+):
+    """Without an answer from the extranet, the member is kept until next run."""
+    expire(linked_member)
+
+    def unreachable(license_number):
+        raise extranet.ExtranetError()
+
+    monkeypatch.setattr(extranet.api, "check_license", unreachable)
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Failed: 1}
+    assert loxya_session.calls == []
+    assert linked_member.loxya_active is True
+
+
+def test_extranet_down_postpones_the_other_withdrawals(
+    loxya_session, monkeypatch, linked_member, member2
+):
+    """Once the extranet is deemed down, it is not waited on for every member."""
+    expire(linked_member)
+    member2.loxya_beneficiary_id = 8
+    member2.loxya_active = True
+    expire(member2, member2.license)
+    monkeypatch.setattr(loxya_sync, "MAX_EXTRANET_FAILURES", 1)
+    checks = []
+
+    def unreachable(license_number):
+        checks.append(license_number)
+        raise extranet.ExtranetError()
+
+    monkeypatch.setattr(extranet.api, "check_license", unreachable)
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Failed: 1, SyncAction.Postponed: 1}
+    assert len(checks) == 1
+    assert loxya_session.calls == []
+
+
+def test_disabled_account_is_withdrawn_without_the_extranet(
+    loxya_session, monkeypatch, linked_member
+):
+    """Only a licence expiry is checked: an account disabled here is withdrawn."""
+    linked_member.enabled = False
+    db.session.commit()
+
+    def unexpected(license_number):
+        raise AssertionError("The extranet should not be called")
+
+    monkeypatch.setattr(extranet.api, "check_license", unexpected)
+    loxya_session.script("GET", f"{BENEFICIARIES}/7", 200, beneficiary())
+    loxya_session.script("DELETE", f"{BENEFICIARIES}/7", 204)
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Deactivated: 1}
+
+
 # -- Robustness ------------------------------------------------------------------
+
+
+def test_run_out_of_time_leaves_the_rest_to_the_next(
+    loxya_session, monkeypatch, member1, member2
+):
+    """Past the maximum duration, the run stops: what was done is kept."""
+    # The run starts at 0, the first member is processed on time, the second one
+    # comes after the deadline.
+    clock = iter([0, 0])
+    monkeypatch.setattr(loxya_sync, "monotonic", lambda: next(clock, 7200))
+    loxya_session.script("POST", BENEFICIARIES, 201, beneficiary())
+
+    report = loxya_sync.sync_all_users()
+
+    assert report == {SyncAction.Created: 1, SyncAction.Postponed: 1}
+    assert loxya_sync.simulate()[SyncAction.Created] == 1
 
 
 def test_run_is_idempotent(loxya_session, member1):

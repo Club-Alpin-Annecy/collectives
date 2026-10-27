@@ -4,6 +4,11 @@ An active FFCAM member (:py:attr:`UserType.Extranet`) has a live beneficiary on
 Loxya, so that volunteers can lend them equipment; an inactive one has it in the
 trash bin.
 
+The licence expiry date stored here is only refreshed from the extranet when the
+member logs in: before withdrawing a member whose licence looks expired, the
+nightly run checks it on the extranet, so that a renewal is not mistaken for a
+departure.
+
 The work is the difference, computed in SQL, between the current state and the
 last one pushed (:py:attr:`User.loxya_active`). A failed user keeps its previous
 state and comes up again on the next run: the reconciliation is the retry queue.
@@ -17,13 +22,15 @@ state and comes up again on the next run: the reconciliation is the retry queue.
 import threading
 from collections import Counter
 from contextlib import contextmanager
+from datetime import timedelta
+from time import monotonic
 
 from flask import current_app
 from sqlalchemy import and_
 
 from collectives.models import Configuration, User, UserType, db
 from collectives.models.utils import ChoiceEnum
-from collectives.utils import loxya
+from collectives.utils import extranet, loxya
 from collectives.utils.time import current_time
 
 REFERENCE_PREFIX = "collectives:"
@@ -38,6 +45,14 @@ ANONYMIZED_MAIL_SUFFIX = "@localhost"
 
 SEARCH_LIMIT = 100
 """ Page size used when searching beneficiaries. """
+
+MAX_DURATION = timedelta(hours=1)
+""" Time after which the nightly run stops, leaving the rest to the next night:
+better a change a day late than a slow site when the first events start. """
+
+MAX_EXTRANET_FAILURES = 3
+""" Extranet errors in a row after which it is deemed down for the run: the
+withdrawals that depend on it are postponed rather than waiting on each one. """
 
 WRITABLE_FIELDS = (
     "first_name",
@@ -127,6 +142,10 @@ class SyncAction(ChoiceEnum):
     Deactivated = 4
     Anonymized = 5
     Failed = 6
+    Renewed = 7
+    """ The licence looked expired, but was renewed on the extranet. """
+    Postponed = 8
+    """ Left to the next run: out of time, or extranet down. """
 
     @classmethod
     def display_names(cls):
@@ -141,6 +160,8 @@ class SyncAction(ChoiceEnum):
             cls.Deactivated: "compte désactivé",
             cls.Anonymized: "compte anonymisé",
             cls.Failed: "échec",
+            cls.Renewed: "licence renouvelée, compte conservé",
+            cls.Postponed: "reporté au prochain passage",
         }
 
 
@@ -171,6 +192,12 @@ def reference_for(user: User) -> str:
 def is_anonymized(user: User) -> bool:
     """Checks whether the account was anonymized by the RGPD purge."""
     return user.mail.endswith(ANONYMIZED_MAIL_SUFFIX)
+
+
+def _depends_on_licence(user: User) -> bool:
+    """Checks whether an account is withdrawn for its licence alone, rather than
+    disabled or turned into a local one."""
+    return user.enabled and user.type == UserType.Extranet
 
 
 def is_eligible(user: User) -> bool:
@@ -320,6 +347,35 @@ def create_account(user: User) -> SyncAction:
     return SyncAction.Created
 
 
+def refresh_licence(user: User) -> bool:
+    """Checks on the extranet whether the licence of a member was renewed, and if
+    so records it, as a login would: the profile is refreshed too, unless the
+    email changed, which only the member can confirm at login.
+
+    :return: True if the licence is valid.
+    :raises extranet.ExtranetError: if the extranet could not answer.
+    """
+    try:
+        license_info = extranet.api.check_license(user.license)
+    except extranet.LicenseBelongsToOtherClubError:
+        return False
+    if not license_info.is_valid_at_time(current_time()):
+        return False
+
+    user_info = extranet.api.fetch_user_info(user.license)
+    if user_info.is_valid and user_info.email == user.mail:
+        extranet.sync_user(user, user_info, license_info)
+    else:
+        current_app.logger.warning(
+            f"Loxya: licence of user {user.id} renewed, but its email changed on "
+            "the extranet: only the expiry date is updated"
+        )
+        user.license_expiry_date = license_info.expiry_date()
+    db.session.add(user)
+    db.session.commit()
+    return True
+
+
 def _is_live(path: str) -> bool:
     """Checks that a beneficiary exists outside the trash bin — Loxya answers 404
     for one in it. The guard before every ``DELETE``: ``loxya_active`` does not
@@ -443,7 +499,10 @@ def sync_all_users() -> Counter:
     """Reconciles every user whose Loxya state is out of date.
 
     In manual mode, users not yet on Loxya are left out. Each user is committed on
-    its own: a failure neither stops the run nor loses the others' work.
+    its own: a failure neither stops the run nor loses the others' work. A licence
+    that looks expired is checked on the extranet first, see
+    :py:func:`refresh_licence`. After :py:data:`MAX_DURATION`, the remaining users
+    are left to the next run.
 
     :return: The number of users per :py:class:`SyncAction`.
     :raises SyncInProgress: if another synchronization is running.
@@ -469,17 +528,45 @@ def sync_all_users() -> Counter:
         SyncAction.Activated: reactivate_account,
         SyncAction.Created: create_account,
     }
+    deadline = monotonic() + MAX_DURATION.total_seconds()
+    extranet_failures = 0
 
     with _exclusive():
         for action, query in _pending_queries().items():
             # In manual mode, members are only created by hand: not even loaded.
             if action is SyncAction.Created and mode is not SyncMode.Auto:
                 continue
-            for user in query.all():
+            users = query.all()
+            for index, user in enumerate(users):
+                if monotonic() >= deadline:
+                    report[SyncAction.Postponed] += len(users) - index
+                    break
+
+                check_licence = action is SyncAction.Deactivated and (
+                    _depends_on_licence(user)
+                )
+                if check_licence and extranet_failures >= MAX_EXTRANET_FAILURES:
+                    report[SyncAction.Postponed] += 1
+                    continue
+
                 try:
+                    if check_licence:
+                        renewed = refresh_licence(user)
+                        extranet_failures = 0
+                        if renewed:
+                            report[SyncAction.Renewed] += 1
+                            continue
                     outcome = handlers[action](user)
                     if outcome is not None:
                         report[outcome] += 1
+                except extranet.ExtranetError as err:
+                    db.session.rollback()
+                    extranet_failures += 1
+                    current_app.logger.error(
+                        f"Loxya: licence of user {user.id} could not be checked on "
+                        f"the extranet, withdrawal postponed: {err!r}"
+                    )
+                    report[SyncAction.Failed] += 1
                 # pylint: disable=broad-except
                 except Exception as err:
                     db.session.rollback()
@@ -487,6 +574,12 @@ def sync_all_users() -> Counter:
                         f"Loxya: {action.name} failed for user {user.id}: {err}"
                     )
                     report[SyncAction.Failed] += 1
+
+        if report[SyncAction.Postponed]:
+            current_app.logger.warning(
+                f"Loxya: {report[SyncAction.Postponed]} users postponed to the next "
+                "run, out of time or extranet down"
+            )
 
     current_app.logger.info(
         f"Loxya: synchronization done in {mode.name} mode — "
