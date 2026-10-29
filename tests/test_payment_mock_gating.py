@@ -37,6 +37,10 @@ def unconfigured_providers(app):
     db.session.commit()
     for name in PROVIDER_ID_ITEMS:
         Configuration.uncache(name)
+    # The providers are process-wide singletons: drop the identifiers
+    # that a previous test may have left in them
+    payline.api.reload_config()
+    helloasso.api.reload_config()
     yield
     # Do not leak state to other tests
     for name in PROVIDER_ID_ITEMS:

@@ -96,6 +96,19 @@ class PaymentProvider(ABC):
         self.reload_config()
         return self.disabled() and (current_app.debug or current_app.testing)
 
+    def mock_refused(self) -> bool:
+        """Checks whether mock mode is refused to this provider, which is not
+        configured (see :py:meth:`disabled`), logging an error if so.
+
+        :return: True if the caller must return no result instead of a mock one
+        """
+        if self.mock_allowed():
+            return False
+        current_app.logger.error(
+            "%s payment API is not configured", self.payment_type.name
+        )
+        return True
+
     @abstractmethod
     def create_checkout(self, payment: Payment, user: User) -> Optional[CheckoutResult]:
         """Initiates a hosted checkout for the given payment and buyer.

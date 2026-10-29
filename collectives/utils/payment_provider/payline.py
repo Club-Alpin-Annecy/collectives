@@ -454,8 +454,7 @@ class PaylineApi(PaymentProvider):
         payment_response = PaymentRequest()
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("Payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, every payment is valid with fake token
             payment_response.result.code = "00000"
@@ -524,8 +523,7 @@ class PaylineApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("Payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
@@ -565,8 +563,7 @@ class PaylineApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("Payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, refund always succeeds
             response = {

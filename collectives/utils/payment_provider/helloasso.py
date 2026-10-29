@@ -214,8 +214,7 @@ class HelloAssoApi(PaymentProvider):
         token = str(uuid.uuid4())
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("HelloAsso payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, every payment is valid with fake token
             return CheckoutResult(
@@ -289,8 +288,7 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("HelloAsso payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
@@ -343,8 +341,7 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
-            if not self.mock_allowed():
-                current_app.logger.error("HelloAsso payment API is not configured")
+            if self.mock_refused():
                 return None
             # Dev mode, refund always succeeds
             return RefundResult(
