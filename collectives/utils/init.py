@@ -77,7 +77,13 @@ def activity_types(app):
             activity_type.short = atype["short"]
 
         # if order is not specified, default to '50'
-        activity_type.kind = ActivityKind[atype.get("kind", ActivityKind.Regular.name)]
+        kind = atype.get("kind", ActivityKind.Regular.name)
+        if kind not in ActivityKind.__members__:
+            raise ValueError(
+                f"Invalid kind '{kind}' for activity '{atype['short']}' in "
+                f"ACTIVITY_TYPES, expected one of {list(ActivityKind.__members__)}"
+            )
+        activity_type.kind = ActivityKind[kind]
         db.session.add(activity_type)
 
     # Remove activity not in config
@@ -128,8 +134,16 @@ def event_types(app):
     all_keys = app.config["EVENT_TYPES"].keys()
     absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
 
-    for item in EventType.query.filter(absent_filter).all():
-        nb_events = Event.query.filter(Event.event_type_id == item.id).count()
+    obsolete_types = EventType.query.filter(absent_filter).all()
+    nb_events_by_type = dict(
+        db.session.query(Event.event_type_id, sqlalchemy.func.count(Event.id))
+        .filter(Event.event_type_id.in_([item.id for item in obsolete_types]))
+        .group_by(Event.event_type_id)
+        .all()
+    )
+
+    for item in obsolete_types:
+        nb_events = nb_events_by_type.get(item.id, 0)
         if nb_events > 0:
             app.logger.error(
                 f"Obsolete event type {item.name} (id {item.id}) is still used "

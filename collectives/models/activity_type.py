@@ -2,7 +2,6 @@
 
 import json
 import os
-from functools import lru_cache
 
 from flask import current_app
 from sqlalchemy.orm import validates
@@ -13,7 +12,6 @@ from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
 
 
-@lru_cache
 def _has_icon(short: str) -> bool:
     """Whether an icon named after ``short`` exists in ``static/caf/icon``."""
     path = os.path.join(current_app.static_folder, "caf", "icon", f"{short}.svg")

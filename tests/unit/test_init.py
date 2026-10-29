@@ -1,5 +1,7 @@
 """Unit tests for database initialisation from configuration"""
 
+import pytest
+
 from collectives.models import ActivityKind, ActivityType, EventType, db
 from collectives.utils import init
 
@@ -40,3 +42,16 @@ def test_activity_kind_from_config(app):
     ).one()
     assert first.kind == ActivityKind.Initiative
     assert second.kind == ActivityKind.Regular
+
+
+def test_invalid_activity_kind_from_config(app):
+    """A misspelt kind in ACTIVITY_TYPES fails with a message naming the activity"""
+    activity_types = {
+        tid: dict(atype) for tid, atype in app.config["ACTIVITY_TYPES"].items()
+    }
+    first_id = next(iter(activity_types))
+    activity_types[first_id]["kind"] = "initiative"
+    app.config["ACTIVITY_TYPES"] = activity_types
+
+    with pytest.raises(ValueError, match=activity_types[first_id]["short"]):
+        init.activity_types(app)
