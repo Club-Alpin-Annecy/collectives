@@ -394,7 +394,7 @@ class PaylineApi(PaymentProvider):
             self._webpayment_client = None
             self._directpayment_client = None
             if self.disabled():
-                current_app.logger.warning("Payment API disabled, using mock API")
+                current_app.logger.warning("Payment API is not configured")
 
     @property
     def encoded_auth(self):
@@ -454,6 +454,8 @@ class PaylineApi(PaymentProvider):
         payment_response = PaymentRequest()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, every payment is valid with fake token
             payment_response.result.code = "00000"
             payment_response.result.short_message = "ACCEPTED"
@@ -521,6 +523,8 @@ class PaylineApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount")
@@ -559,6 +563,8 @@ class PaylineApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, refund always succeeds
             response = {
                 "result": {

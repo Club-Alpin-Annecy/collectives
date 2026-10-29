@@ -10,10 +10,11 @@ Typical usage example::
   collectives.create_app().run(debug=True)
 """
 
+import os
 from logging.config import fileConfig
 
 import werkzeug
-from flask import Flask, current_app
+from flask import Flask, abort, current_app, request
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
@@ -21,6 +22,7 @@ from flask_wtf.csrf import CSRFProtect
 
 from collectives import api, forms, models
 from collectives.models import Configuration, DBAdaptedFlaskConfig
+from collectives.models.upload import STATIC_SAFE_IMAGES, documents
 from collectives.routes import (
     activity_supervison,
     administration,
@@ -53,6 +55,100 @@ class ReverseProxied:
         return self.app(environ, start_response)
 
 
+def set_security_headers(response):
+    """Add defensive HTTP headers to every response.
+
+    HSTS is only sent when the request was made over HTTPS (as seen through the
+    reverse proxy), so that plain HTTP development setups are not affected.
+
+    :param response: The response about to be sent.
+    :type response: :py:class:`flask.Response`
+    :return: The same response, with headers added.
+    """
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if request.is_secure:
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    return response
+
+
+def refuse_private_uploads():
+    """Never serve the files of the private upload set.
+
+    Flask-Uploads serves every configured upload set under ``/_uploads/``,
+    including the private one (``collectives/private_assets``), whose files
+    (e.g. ``SecretFile`` configuration items) are only read by the server.
+    """
+    if (
+        request.endpoint == "_uploads.uploaded_file"
+        and (request.view_args or {}).get("setname") == technician.private_upload.name
+    ):
+        abort(404)
+
+
+def serve_documents_as_attachments(response):
+    """Make browsers download uploaded documents instead of displaying them.
+
+    Uploaded documents are served from the site's origin, both by Flask-Uploads
+    (``/_uploads/documents/``) and as static files. A browser displays some of
+    them itself (e.g. GPX files, served as XML) and would run the scripts they
+    contain, so every document other than a safe image is sent as an attachment.
+
+    :param response: The response about to be sent.
+    :type response: :py:class:`flask.Response`
+    :return: The same response, with ``Content-Disposition`` set if needed.
+    """
+    view_args = request.view_args or {}
+    if request.endpoint == "static":
+        path = os.path.join(current_app.static_folder, view_args["filename"])
+    elif (
+        request.endpoint == "_uploads.uploaded_file"
+        and view_args["setname"] == documents.name
+    ):
+        path = documents.path(view_args["filename"])
+    else:
+        return response
+
+    documents_folder = os.path.abspath(documents.config.destination)
+    if not os.path.abspath(path).startswith(documents_folder + os.sep):
+        return response
+
+    extension = os.path.splitext(path)[1][1:].lower()
+    if extension not in STATIC_SAFE_IMAGES:
+        response.headers["Content-Disposition"] = "attachment"
+    return response
+
+
+def check_default_secrets(app):
+    """Log a critical message if insecure default secrets are still in use.
+
+    With the default ``SECRET_KEY``, anyone can forge a session cookie and
+    impersonate any account (including the administrator); with the default
+    ``ADMINPWD`` the admin account is trivially accessible. Nothing is logged
+    in testing mode.
+
+    :param app: The application being configured.
+    :type app: :py:class:`flask.Flask`
+    :return: True if a default secret is in use.
+    """
+    if app.testing:
+        return False
+
+    insecure = []
+    if app.config.get("SECRET_KEY") == app.config.get("DEFAULT_SECRET_KEY"):
+        insecure.append("SECRET_KEY")
+    if app.config.get("ADMINPWD") == app.config.get("DEFAULT_ADMINPWD"):
+        insecure.append("ADMINPWD")
+
+    for name in insecure:
+        app.logger.critical(
+            "%s is set to its insecure default value. Set it through the "
+            "environment or instance/config.py before exposing this instance.",
+            name,
+        )
+    return bool(insecure)
+
+
 def create_app(config_filename="config.py", extra_config=None):
     """Flask application factory.
 
@@ -79,6 +175,7 @@ def create_app(config_filename="config.py", extra_config=None):
     # To get one variable, tape app.config['MY_VARIABLE']
 
     fileConfig(app.config["LOGGING_CONFIGURATION"], disable_existing_loggers=False)
+    check_default_secrets(app)
 
     # Initialize plugins
     models.db.init_app(app)
@@ -90,6 +187,9 @@ def create_app(config_filename="config.py", extra_config=None):
     csrf.init_app(app)  # CSRF-protect non FLaskWTF views
 
     app.context_processor(jinja.helpers_processor)
+    app.after_request(set_security_headers)
+    app.after_request(serve_documents_as_attachments)
+    app.before_request(refuse_private_uploads)
 
     _migrate = Migrate(app, models.db)
 

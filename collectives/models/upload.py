@@ -13,7 +13,16 @@ from collectives.models.user import User
 from collectives.utils.misc import is_valid_image
 from collectives.utils.time import current_time
 
-documents = UploadSet("documents", DOCUMENTS + IMAGES + ("gpx",))
+STATIC_SAFE_IMAGES = tuple(ext for ext in IMAGES if ext != "svg")
+"""Image extensions that can be served as static files.
+
+SVG is excluded: it can embed scripts, and files in this set are served verbatim
+from ``static/``, so an uploaded SVG would be a stored XSS.
+
+:type: tuple(string)
+"""
+
+documents = UploadSet("documents", DOCUMENTS + STATIC_SAFE_IMAGES + ("gpx",))
 """Upload instance for documents
 
 :type: flask_uploads.UploadSet

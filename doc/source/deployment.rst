@@ -117,7 +117,7 @@ This deployment works, but is less modern than a Kubernetes and is the same cost
 
 Installation
 ..............
-For development, you can run `FLASK_APP=collectives:create_app flask run`. 
+For development, you can run `FLASK_APP=collectives:create_app flask run --debug`. 
 However, it is not the recommended method for production environment.
 
 You can choose any production method you like, however, you can use waitress
@@ -133,6 +133,14 @@ See `configuration`_
 Flask and DB related configuration should be in `instance/config.py`. Since 
 it might contains secrets, this file should be readable only by flask user 
 (chmod 600). 
+
+Session cookies are only sent over HTTPS outside debug mode. An instance
+served over plain HTTP must set ``SESSION_COOKIE_SECURE = False`` and
+``REMEMBER_COOKIE_SECURE = False`` in `instance/config.py`.
+
+When the active payment provider is not configured (``PAYLINE_MERCHANT_ID`` or
+``HELLOASSO_CLIENT_ID`` empty), payments fail outside debug mode, where a mock
+payment API approves every payment.
 
 Database
 .........

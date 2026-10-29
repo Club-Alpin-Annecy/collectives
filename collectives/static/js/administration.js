@@ -25,12 +25,24 @@ function badgeFormatter(cell, formatterParams, onRendered){
     return `<ul> ${cell.getValue().map(displayBadge).join(' ')} </ul>`;
 }
 
+// Tabulator inserts formatter output and select labels as HTML: activity names
+// are editable by supervisors, so every value must be escaped.
+function escapeValue(value){
+    return escapeHTML(String(value ?? ''));
+}
+
+// Tabulator also copies the returned label into the filter input once chosen:
+// escaping "<" alone prevents any tag while keeping "&" or "'" readable there.
+function escapeListItem(value, label){
+    return String(label ?? '').replace(/</g, '&lt;');
+}
+
 function displayRole(role){
-    return `<li>${role['name']} ${role.activity_type?.name || ''}</li>`
+    return `<li>${escapeValue(role['name'])} ${escapeValue(role.activity_type?.name)}</li>`
 }
 
 function displayBadge(badge){
-    return `<li>${badge['name']} ${badge.activity_type?.name || ''}</li>`
+    return `<li>${escapeValue(badge['name'])} ${escapeValue(badge.activity_type?.name)}</li>`
 }
 
 var table;
@@ -52,8 +64,8 @@ window.onload = function(){
             {title:"Email", field:"mail", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Prénom", field:"first_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Nom", field:"last_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
-            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
-            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters_badge, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
+            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: {values: filters, listItemFormatter: escapeListItem}, formatter:roleFormatter, headerSort:false,  widthGrow:2},
+            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: {values: filters_badge, listItemFormatter: escapeListItem}, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
             {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"badges_uri",   formatter:actionFormatter, formatterParams:{'icon': 'pricetags-outline', 'method': 'GET', 'alt': 'Badges'},   cellClick: onclickTriggerInsideForm, headerSort:false},
             {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
