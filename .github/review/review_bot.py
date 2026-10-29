@@ -52,6 +52,8 @@ RETRY_STATUSES = (402, 429, 500, 502, 503, 504)
 RETRY_DELAYS = (15, 45, 90)
 RETRY_AFTER_CAP = 120
 SUMMARY_ENV = "GITHUB_STEP_SUMMARY"
+SKIPPED_ANNOTATION = "::warning title=Review skipped::"
+ANNOTATION_ESCAPES = (("%", "%25"), ("\r", "%0D"), ("\n", "%0A"))
 READING_ORDER_MIN_SIZE = 400
 NEW_RULE = "NEW"
 FINDING_KEYS = (
@@ -1882,6 +1884,23 @@ def post_comment(repo: str, number: int, own_id: int | None, body: str) -> None:
     gh_api(["--method", method, "--input", "-", endpoint], stdin=payload)
 
 
+def skipped_annotation(reason: str) -> str:
+    """Builds the GitHub Actions warning shown when the review was skipped.
+
+    Args:
+        reason: Why the model could not answer.
+
+    Returns:
+        One `::warning` workflow-command line: `%`, CR and LF of the reason are
+        escaped as GitHub requires (so it stays on one line), then the text is
+        neutralised.
+    """
+    text = reason
+    for char, escaped in ANNOTATION_ESCAPES:
+        text = text.replace(char, escaped)
+    return SKIPPED_ANNOTATION + review_lib.neutralize(text)
+
+
 def write_summary(text: str) -> None:
     """Appends text to the job summary file, or prints it when there is none.
 
@@ -2155,6 +2174,7 @@ def main(argv: list[str]) -> int:
         run(args)
     except ModelUnavailable as error:
         print(f"model unavailable, review skipped: {error}", file=sys.stderr)
+        print(skipped_annotation(str(error)))
         if os.environ.get(SUMMARY_ENV):
             write_summary(unavailable_note(str(error)))
         return 0

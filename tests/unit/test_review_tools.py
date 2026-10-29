@@ -3278,3 +3278,56 @@ def test_checks_line_leaves_out_the_bots_own_check(bot):
     )
     assert bot.OWN_CHECK_NAME not in line
     assert "Tests ✓" in line
+
+
+# ------------------------------------------------ round 7c: F12 skipped-review warning
+
+SKIPPED_PREFIX = "::warning title=Review skipped::"
+
+
+def test_skipped_annotation_is_a_warning_with_the_reason(bot):
+    """A GitHub Actions warning titled 'Review skipped', carrying the reason."""
+    text = bot.skipped_annotation("HTTP 402 after 4 attempt(s)")
+    assert text.startswith(SKIPPED_PREFIX)
+    assert "HTTP 402 after 4 attempt(s)" in text
+
+
+def test_skipped_annotation_escapes_workflow_command_characters(bot):
+    """One line only: `%`, CR and LF become %25, %0D and %0A."""
+    text = bot.skipped_annotation("50%\r\nnext")
+    assert "\n" not in text
+    assert "\r" not in text
+    assert text == f"{SKIPPED_PREFIX}50%25%0D%0Anext"
+
+
+def test_skipped_annotation_neutralizes_the_reason(bot):
+    """A mention in the error text cannot notify anyone."""
+    text = bot.skipped_annotation("bad gateway, ask @someone")
+    assert "`@someone`" in text
+    assert re.search(r"(?<!`)@someone", text) is None
+
+
+def run_main(bot, monkeypatch, error: Exception) -> int:
+    """Runs `main` with `run` replaced by a function raising `error`."""
+
+    def failing_run(_args):
+        raise error
+
+    monkeypatch.setattr(bot, "run", failing_run)
+    return bot.main(["--repo", "o/r", "--pr", "1"])
+
+
+def test_main_prints_the_annotation_and_exits_zero_when_model_unavailable(
+    bot, monkeypatch, capsys
+):
+    """The job stays green but the warning is on stdout."""
+    code = run_main(bot, monkeypatch, bot.ModelUnavailable("HTTP 402 after 4"))
+    assert code == 0
+    assert f"{SKIPPED_PREFIX}HTTP 402 after 4" in capsys.readouterr().out.splitlines()
+
+
+def test_main_still_fails_on_a_bug_without_the_annotation(bot, monkeypatch, capsys):
+    """A bot error exits 1 and posts no 'skipped' warning."""
+    code = run_main(bot, monkeypatch, RuntimeError("boom"))
+    assert code == 1
+    assert SKIPPED_PREFIX not in capsys.readouterr().out
