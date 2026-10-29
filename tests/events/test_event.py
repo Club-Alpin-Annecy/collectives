@@ -267,7 +267,7 @@ def test_event_creation(leader_client):
                                 bibendum et. _Vestibulum dapibus_ posuere sagittis. Praesent
                                 commodo facilisis orci. Sed a volutpat ex. Donec in quam ornare,
                                 tempus orci in, semper nisl.""",
-        "tag_list": "6",
+        "tag_list": "16",
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",
@@ -279,7 +279,7 @@ def test_event_creation(leader_client):
     assert data["title"] in response.text
     assert f"Inscrits 0 / {data['num_slots']}" in response.text
     assert "Alpinisme" in response.text
-    assert "Handicaf" in response.text
+    assert "Entraînement régulier" in response.text
     assert "<strong>Lorem ipsum</strong>" in response.text
 
 
@@ -310,7 +310,7 @@ def test_draft_event_notification_sent_by_default(
         "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "description": "Test draft event description",
-        "tag_list": "6",
+        "tag_list": "16",
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",
@@ -352,7 +352,7 @@ def test_draft_event_create_notification_not_sent_if_disabled_by_config(
         "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "description": "Test draft event description",
-        "tag_list": "6",
+        "tag_list": "16",
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",
@@ -389,7 +389,7 @@ def test_confirmed_event_notification(leader_client, mail_success_monkeypatch):
         "registration_open_time": (now - timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "registration_close_time": (now + timedelta(days=5)).strftime("%Y-%m-%d %X"),
         "description": "Test confirmed event description",
-        "tag_list": "6",
+        "tag_list": "16",
         "search_terms": "",
         "duplicate_event": "",
         "parent_event_id": "",

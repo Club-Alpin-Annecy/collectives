@@ -4,10 +4,12 @@ import os
 from typing import List
 
 from flask_uploads import IMAGES, UploadSet
+from sqlalchemy.sql.elements import ColumnElement
 from werkzeug.datastructures import FileStorage
 
 from collectives.models.activity_type import ActivityType
 from collectives.models.event.enum import EventStatus, EventVisibility
+from collectives.models.event.event_type import EventType
 from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
@@ -186,17 +188,35 @@ class EventMiscMixin:
             return self.activity_types[0]
         return None
 
+    def is_retex_applicable(self) -> bool:
+        """Check whether a retex can be written for this event.
+
+        Retex apply to "collective" events.
+
+        :return: True if a retex applies to this event
+        """
+        return self.event_type.short == "collective"
+
+    @classmethod
+    def retex_applicable_filter(cls) -> ColumnElement:
+        """SQL condition matching the events for which a retex applies.
+
+        Query counterpart of :py:meth:`is_retex_applicable`.
+        """
+        return cls.event_type.has(EventType.short == "collective")
+
     def needs_retex(self) -> bool:
         """Check whether this event is a past collective event still missing its retex.
 
-        :return: True if this is a "collective" event that has already ended and has
+        :return: True if a retex applies to this event (see
+            :py:meth:`is_retex_applicable`), it has already ended and has
             no associated :py:class:`collectives.models.retex.Retex` yet.
         """
         # pylint: disable=import-outside-toplevel
         from collectives.utils.time import current_time
 
         return (
-            self.event_type.short == "collective"
+            self.is_retex_applicable()
             and self.end < current_time()
             and self.retex is None
             and self.status == EventStatus.Confirmed
