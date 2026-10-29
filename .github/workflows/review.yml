@@ -14,6 +14,11 @@ on:
         description: Pull request number
         required: true
         type: number
+      post:
+        description: Post the review as a comment (otherwise only show it in the run summary)
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -42,9 +47,17 @@ jobs:
       - name: Review
         env:
           PR: ${{ github.event.pull_request.number || inputs.pr }}
+          # A manual run only shows the review in the summary unless `post` is ticked.
+          SUMMARY_ONLY: ${{ github.event_name == 'workflow_dispatch' && !inputs.post && '1' || '' }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
           REVIEW_API_BASE: ${{ vars.REVIEW_API_BASE }}
           REVIEW_MODEL: ${{ vars.REVIEW_MODEL }}
+          REVIEW_VERIFY_MODEL: ${{ vars.REVIEW_VERIFY_MODEL }}
           REVIEW_API_KEY: ${{ secrets.REVIEW_API_KEY }}
-        run: python3 .github/review/review_bot.py --repo "$REPO" --pr "$PR"
+        run: |
+          args=()
+          if [ -n "$SUMMARY_ONLY" ]; then
+            args+=(--summary-only)
+          fi
+          python3 .github/review/review_bot.py --repo "$REPO" --pr "$PR" "${args[@]}"
