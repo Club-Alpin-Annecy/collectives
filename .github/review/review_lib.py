@@ -4,6 +4,7 @@ Nothing here talks to the network or to GitHub: every function takes text or
 plain data and returns plain data, so it is easy to test.
 """
 
+import difflib
 import re
 
 TAGS = ("FEATURE", "FIX", "INTERNAL", "OTHER")
@@ -14,6 +15,10 @@ CONFIGURATION_PATH = "collectives/configuration.yaml"
 TESTS_PREFIX = "tests/"
 SENSITIVE_HEADING = "# Sensitive areas"
 HEADING_PREFIX = "# "
+ROUTE_PREFIXES = ("collectives/routes/", "collectives/api/")
+ROUTE_MARKER = ".route("
+DEV_NULL = "/dev/null"
+NUMBER_PADDING = "    "
 MODELS_PREFIX = "collectives/models/"
 ANONYMIZE_PATH = "collectives/utils/anonymize.py"
 TEXT_COLUMN_PATTERNS = ("db.Column(db.Text", "db.Column(db.String")
@@ -28,6 +33,57 @@ CHANGE_REMOVES = "removes"
 CHANGE_MODIFIES = "modifies"
 TAG_FIX = "FIX"
 
+NEUTRALIZE_LIMIT = 600
+ELLIPSIS = "…"
+CODE_SPAN_RE = re.compile(r"(`[^`]*`)")
+LINEBREAK_RE = re.compile(r"[\r\n\t]+")
+LINK_RE = re.compile(r"!?\[(?P<label>[^\]]*)\]\((?P<target>[^)\s]*)\)")
+URL_RE = re.compile(r"https?://[^\s`]+")
+MENTION_RE = re.compile(r"(?<![\w`])@[A-Za-z0-9][A-Za-z0-9_-]*(?:/[A-Za-z0-9_-]+)?")
+TRAILING_PUNCTUATION = ".,;:!?)]}'\""
+NEUTRALIZE_TOKEN_RE = re.compile(
+    "|".join(
+        f"(?P<{name}>{pattern.pattern})"
+        for name, pattern in (
+            ("link", LINK_RE),
+            ("url", URL_RE),
+            ("mention", MENTION_RE),
+        )
+    )
+)
+CODE_PREFIX = "collectives/"
+PYPROJECT_PATH = "pyproject.toml"
+DEPENDENCIES_OPENER = "dependencies = ["
+NETWORK_LIBRARIES = (
+    "requests",
+    "httpx",
+    "urllib3",
+    "aiohttp",
+    "zeep",
+    "suds",
+    "smtplib",
+    "ftplib",
+    "paramiko",
+    "boto3",
+    "socket",
+)
+NETWORK_MODULE = "urllib.request"
+SERVICE_WORDS = (
+    "URL",
+    "HOST",
+    "ENDPOINT",
+    "API",
+    "TOKEN",
+    "KEY",
+    "SECRET",
+    "PASSWORD",
+    "LOGIN",
+)
+SIGNAL_NETWORK = "network library"
+SIGNAL_SETTING = "service setting"
+SIGNAL_DEPENDENCY = "new dependency"
+IMPORT_RE = re.compile(r"^\s*(?:import|from)\s+([A-Za-z_][\w.]*)")
+QUOTED_NAME_RE = re.compile(r"""^\s*["'][^"']+["']""")
 RULE_ID_RE = re.compile(r"\*\*([A-Z]+\d+)\*\*")
 AREA_RE = re.compile(r"^ \* ([^:]+):(.*)$")
 BACKTICK_RE = re.compile(r"`([^`]+)`")
@@ -40,6 +96,78 @@ CONFIG_ITEM_RE = re.compile(r"^\s{4}([A-Z][A-Z0-9_]+):\s*$")
 NEW_FILE_PREFIX = "+++ "
 NEW_FILE_B_PREFIX = "+++ b/"
 DIFF_HEADER = "diff --git "
+
+
+def wrap_token(match: re.Match) -> str:
+    """Rewrites one link, URL or mention so GitHub neither links nor notifies.
+
+    Args:
+        match: A match of `NEUTRALIZE_TOKEN_RE`.
+
+    Returns:
+        The replacement text.
+    """
+    if match.group("link") is not None:
+        text, url = match.group("label").strip(), match.group("target")
+        label = NEUTRALIZE_TOKEN_RE.sub(wrap_token, text)
+        return f"{label} `{url}`" if label else f"`{url}`"
+    token = match.group(0)
+    if match.group("url") is not None:
+        tail = len(token) - len(token.rstrip(TRAILING_PUNCTUATION))
+        core, rest = token[: len(token) - tail], token[len(token) - tail :]
+        return f"`{core}`{rest}"
+    return f"`{token}`"
+
+
+def neutralize(text: object, limit: int = NEUTRALIZE_LIMIT) -> str:
+    """Makes model or contributor text safe to post in a comment.
+
+    Mentions and URLs go into backticks, links become text plus the backticked
+    URL, line breaks become spaces, and the result is cut to `limit` characters.
+
+    Args:
+        text: The text; anything but a string gives "".
+        limit: The maximum length of the result.
+
+    Returns:
+        The neutralised text.
+    """
+    if not isinstance(text, str):
+        return ""
+    parts = CODE_SPAN_RE.split(LINEBREAK_RE.sub(" ", text))
+    result = "".join(
+        part if index % 2 else NEUTRALIZE_TOKEN_RE.sub(wrap_token, part)
+        for index, part in enumerate(parts)
+    )
+    if len(result) <= limit:
+        return result
+    cut = result[: limit - 1]
+    if cut.count("`") % 2:
+        cut = cut[:-1] + "`"
+    return cut + ELLIPSIS
+
+
+def overlapping_prs(
+    paths: list[str], open_prs: list[dict], own_number: int
+) -> list[dict]:
+    """Finds the other open PRs that change some of the same files.
+
+    Args:
+        paths: The files changed by the PR under review.
+        open_prs: Items with `number`, `title` and `files`.
+        own_number: The number of the PR under review.
+
+    Returns:
+        `number`, `title` and `shared` paths of each overlapping PR, by number.
+    """
+    result = []
+    for item in sorted(open_prs, key=lambda pr: pr["number"]):
+        shared = [path for path in paths if path in item["files"]]
+        if item["number"] != own_number and shared:
+            result.append(
+                {"number": item["number"], "title": item["title"], "shared": shared}
+            )
+    return result
 
 
 def parse_rule_ids(coding_md: str) -> set[str]:
@@ -114,32 +242,33 @@ def sensitive_areas_touched(paths: list[str], areas: dict) -> list[str]:
     ]
 
 
-def added_line_contents(diff: str) -> list[tuple[str, int, str]]:
-    """Parses a unified diff into its added lines.
+def new_side_lines(diff: str) -> list[tuple[str, int, str, bool]]:
+    """Parses a unified diff into the lines of the new side of each file.
 
     Args:
         diff: A unified diff (`diff --git` format).
 
     Returns:
-        A `(path, new line number, text)` tuple per added line. Deleted files
-        have none.
+        A `(path, new line number, text, added)` tuple per context or added
+        line, in diff order. Deleted files have none.
     """
-    result: list[tuple[str, int, str]] = []
+    result: list[tuple[str, int, str, bool]] = []
     path = None
     old_left = new_left = new_number = 0
     for line in diff.splitlines():
         if old_left > 0 or new_left > 0:
-            if line.startswith("+"):
-                if path:
-                    result.append((path, new_number, line[1:]))
-                new_number += 1
-                new_left -= 1
-            elif line.startswith("-"):
+            if line.startswith("-"):
                 old_left -= 1
-            elif not line.startswith("\\"):
-                new_number += 1
+                continue
+            if line.startswith("\\"):
+                continue
+            added = line.startswith("+")
+            if path:
+                result.append((path, new_number, line[1:], added))
+            new_number += 1
+            new_left -= 1
+            if not added:
                 old_left -= 1
-                new_left -= 1
             continue
         hunk = HUNK_RE.match(line)
         if hunk:
@@ -153,6 +282,157 @@ def added_line_contents(diff: str) -> list[tuple[str, int, str]]:
         elif line.startswith(NEW_FILE_PREFIX):
             path = None
     return result
+
+
+def added_line_contents(diff: str) -> list[tuple[str, int, str]]:
+    """Parses a unified diff into its added lines.
+
+    Args:
+        diff: A unified diff (`diff --git` format).
+
+    Returns:
+        A `(path, new line number, text)` tuple per added line. Deleted files
+        have none.
+    """
+    return [
+        (path, number, text)
+        for path, number, text, added in new_side_lines(diff)
+        if added
+    ]
+
+
+def new_outside_services(diff: str) -> list[dict]:
+    """Finds the traces of a new outside service in a diff.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        `path`, `line` and `signal` ("network library", "service setting" or
+        "new dependency") per added line, ordered by path then line.
+    """
+    found = []
+    in_dependencies = False
+    for path, number, text, added in new_side_lines(diff):
+        signal = None
+        if path == PYPROJECT_PATH:
+            if text.strip().startswith(DEPENDENCIES_OPENER):
+                in_dependencies = True
+            elif text.strip() == "]":
+                in_dependencies = False
+            elif added and in_dependencies and QUOTED_NAME_RE.match(text):
+                signal = SIGNAL_DEPENDENCY
+        elif not added:
+            continue
+        elif path == CONFIGURATION_PATH:
+            item = CONFIG_ITEM_RE.match(text)
+            if item and any(word in item.group(1) for word in SERVICE_WORDS):
+                signal = SIGNAL_SETTING
+        elif path.startswith(CODE_PREFIX) and is_network_import(text):
+            signal = SIGNAL_NETWORK
+        if signal and added:
+            found.append({"path": path, "line": number, "signal": signal})
+    return sorted(found, key=lambda item: (item["path"], item["line"]))
+
+
+def is_network_import(text: str) -> bool:
+    """Tells whether a line imports a network library.
+
+    Args:
+        text: One line of Python code.
+
+    Returns:
+        True for an `import X` or `from X import` of `NETWORK_LIBRARIES`.
+    """
+    match = IMPORT_RE.match(text)
+    if not match:
+        return False
+    module = match.group(1)
+    return module.split(".")[0] in NETWORK_LIBRARIES or module.startswith(
+        NETWORK_MODULE
+    )
+
+
+def added_line_texts(diff: str) -> dict[str, dict[int, str]]:
+    """Lists the text of the added lines, per file and new line number.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        Path to a mapping of new line number to the line text (no leading `+`).
+    """
+    result: dict[str, dict[int, str]] = {}
+    for path, number, text in added_line_contents(diff):
+        result.setdefault(path, {})[number] = text
+    return result
+
+
+def extended_diff(files: list[dict], context: int) -> str:
+    """Builds a unified diff with a chosen amount of context.
+
+    Args:
+        files: Items with `path`, `status`, `base_text` and `head_text`
+            (None when the file does not exist on that side).
+        context: Number of unchanged lines shown around each change.
+
+    Returns:
+        The diff text, parsable by `added_lines`. Unchanged files are omitted.
+    """
+    lines: list[str] = []
+    for item in files:
+        path = item["path"]
+        base, head = item["base_text"], item["head_text"]
+        body = list(
+            difflib.unified_diff(
+                (base or "").splitlines(),
+                (head or "").splitlines(),
+                n=context,
+                lineterm="",
+            )
+        )
+        if not body:
+            continue
+        old_name = DEV_NULL if base is None else f"a/{path}"
+        new_name = DEV_NULL if head is None else f"b/{path}"
+        lines += [f"{DIFF_HEADER}a/{path} b/{path}", f"--- {old_name}"]
+        lines += [f"+++ {new_name}", *body[2:]]
+    return "".join(f"{line}\n" for line in lines)
+
+
+def number_lines(diff: str) -> str:
+    """Prefixes the lines of each hunk with their new-file line number.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        The diff where context and added lines read `N|<line>` and removed
+        lines read `    |<line>`; headers are unchanged.
+    """
+    out: list[str] = []
+    old_left = new_left = new_number = 0
+    for line in diff.splitlines():
+        if old_left > 0 or new_left > 0:
+            if line.startswith("-"):
+                old_left -= 1
+                out.append(f"{NUMBER_PADDING}|{line}")
+            elif line.startswith("\\"):
+                out.append(line)
+            else:
+                out.append(f"{new_number}|{line}")
+                new_number += 1
+                new_left -= 1
+                if not line.startswith("+"):
+                    old_left -= 1
+            continue
+        out.append(line)
+        hunk = HUNK_RE.match(line)
+        if hunk:
+            old_left = int(hunk.group(1) or 1)
+            new_number = int(hunk.group(2))
+            new_left = int(hunk.group(3) or 1)
+    return "\n".join(out) + "\n"
 
 
 def added_lines(diff: str) -> dict[str, set[int]]:
@@ -287,6 +567,12 @@ def pr_facts(title: str, files: list[dict], diff: str, areas: dict) -> dict:
             if REVIEW_OK_RE.search(text)
         ],
         "unanonymised_text_columns": unanonymised_text_columns(paths, contents),
+        "new_routes": [
+            (path, number)
+            for path, number, text in contents
+            if path.startswith(ROUTE_PREFIXES) and ROUTE_MARKER in text
+        ],
+        "new_outside_services": new_outside_services(diff),
         "change_type": change_type(files),
         "new_tables": [
             match.group(1)

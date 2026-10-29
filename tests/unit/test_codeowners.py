@@ -17,10 +17,7 @@ def fixture_codeowners_rules() -> list[list[str]]:
 
     Returns:
         One list of tokens (path first, then owners) per non-comment line.
-        Fails when the file does not exist yet.
     """
-    if not CODEOWNERS_PATH.exists():
-        pytest.fail(f"{CODEOWNERS_PATH} does not exist yet")
     lines = CODEOWNERS_PATH.read_text(encoding="utf-8").splitlines()
     return [
         line.split()
@@ -31,12 +28,10 @@ def fixture_codeowners_rules() -> list[list[str]]:
 
 @pytest.fixture(name="review_lib")
 def fixture_review_lib():
-    """Imports `review_lib`, failing (not skipping) while it is not built."""
+    """Imports `review_lib`."""
     sys.path.insert(0, str(REPO_ROOT / ".github" / "review"))
     try:
         import review_lib  # pylint: disable=import-outside-toplevel
-    except ModuleNotFoundError:
-        pytest.fail("review_lib is not built yet")
     finally:
         sys.path.pop(0)
     return review_lib
