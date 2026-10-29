@@ -643,9 +643,17 @@ Désinscriptions tardives:
         description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
         type: Integer
 
-# Visible et modifiable uniquement lorsque LOXYA_ENABLED est activé dans
-# instance/config.py : les clubs qui n'utilisent pas Loxya n'en voient rien.
 Loxya:
+    LOXYA_ENABLED:
+        content: false
+        description: |
+            Active l'intégration avec Loxya, la plateforme de gestion du matériel.
+            Désactivé : rien de Loxya n'apparaît sur le site, hors de ce dossier.
+            Activé : une colonne apparaît dans la liste des utilisateurs et une section
+            dans les actions de maintenance. Rien n'est envoyé à Loxya tant que la
+            synchronisation n'est pas activée à son tour.
+        type: Boolean
+
     LOXYA_URL:
         content: ""
         description: |
@@ -653,20 +661,24 @@ Loxya:
             Tant qu'elle et les identifiants ci-dessous ne sont pas renseignés, rien
             n'est envoyé à Loxya.
         type: ShortString
-        requires: LOXYA_ENABLED
 
     LOXYA_API_USERNAME:
         content: ""
         description: Identifiant du compte Loxya utilisé par le site pour synchroniser les adhérents
         type: ShortString
-        requires: LOXYA_ENABLED
 
     LOXYA_API_PASSWORD:
         content: ""
         description: Mot de passe du compte Loxya utilisé par le site
         type: ShortString
         hidden: true
-        requires: LOXYA_ENABLED
+
+    LOXYA_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers Loxya. S'applique aussi à la
+            connexion des adhérents : un Loxya qui ne répond plus la retarde d'autant.
+        type: Integer
 
     LOXYA_SYNC_ACTIVE:
         content: false
@@ -679,7 +691,6 @@ Loxya:
             réactivation au renouvellement).
             Prise en compte en moins d'une minute, sans redémarrage.
         type: Boolean
-        requires: LOXYA_ENABLED
 
     LOXYA_AUTO_CREATE:
         content: false
@@ -690,4 +701,11 @@ Loxya:
             À activer une fois la phase pilote validée : la nuit suivante crée les comptes
             de tous les adhérents actifs.
         type: Boolean
-        requires: LOXYA_ENABLED
+
+    LOXYA_MAX_DURATION:
+        content: 60
+        description: |
+            Durée maximale (en minutes) d'une synchronisation de nuit. Passé ce délai,
+            elle s'arrête et les adhérents restants sont repris la nuit suivante ;
+            le travail déjà fait est conservé.
+        type: Integer

@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from collectives.models import User, UserType, db
+from collectives.models import Configuration, User, UserType, db
 from collectives.utils import extranet, loxya_sync
 from collectives.utils.loxya_sync import SyncAction, SyncMode
 from tests.fixtures.client import login
@@ -505,11 +505,14 @@ def test_disabled_account_is_withdrawn_without_the_extranet(
 def test_run_out_of_time_leaves_the_rest_to_the_next(
     loxya_session, monkeypatch, member1, member2
 ):
-    """Past the maximum duration, the run stops: what was done is kept."""
+    """Past the maximum duration, read from the hot configuration, the run stops:
+    what was done is kept."""
+    Configuration.get_item("LOXYA_MAX_DURATION").content = 5
+    Configuration.uncache("LOXYA_MAX_DURATION")
     # The run starts at 0, the first member is processed on time, the second one
-    # comes after the deadline.
+    # comes just after the 5 minutes.
     clock = iter([0, 0])
-    monkeypatch.setattr(loxya_sync, "monotonic", lambda: next(clock, 7200))
+    monkeypatch.setattr(loxya_sync, "monotonic", lambda: next(clock, 301))
     loxya_session.script("POST", BENEFICIARIES, 201, beneficiary())
 
     report = loxya_sync.sync_all_users()

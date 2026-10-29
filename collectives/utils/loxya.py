@@ -5,26 +5,23 @@ logic lives in :py:mod:`collectives.utils.loxya_sync`.
 
 Configuration, never from environment variables:
 
-- :py:data:`config.LOXYA_ENABLED`, set on the server in ``instance/config.py``:
-  the master switch, off by default. Other clubs share this code without using
-  Loxya; while it is off, nothing of it shows.
+- ``LOXYA_ENABLED``: hot configuration, folder Loxya, the master switch, off by
+  default. Other clubs share this code without using Loxya; while it is off,
+  nothing of it shows outside its configuration folder.
 - ``LOXYA_URL``, ``LOXYA_API_USERNAME``, ``LOXYA_API_PASSWORD``: hot
   configuration, folder Loxya, entered by technicians.
+- ``LOXYA_TIMEOUT``: hot configuration, timeout in seconds of every call, so that
+  an unresponsive Loxya does not freeze a worker.
 """
 
 import time
 
 import requests
-from flask import Flask, current_app
 
 from collectives.models import Configuration
 
 CONNECTION_SETTINGS = ("LOXYA_URL", "LOXYA_API_USERNAME", "LOXYA_API_PASSWORD")
 """ Hot configuration items without which no call can be made. """
-
-TIMEOUT = 10
-""" Timeout in seconds of every call: an unresponsive Loxya must not freeze a
-worker. """
 
 RATE_LIMIT = 10
 """ Maximum number of requests per second sent to Loxya. """
@@ -38,17 +35,16 @@ class LoxyaNotFoundError(LoxyaError):
     """The resource does not exist — or sits in the Loxya trash bin."""
 
 
-def feature_enabled(config=None) -> bool:
-    """Checks whether this deployment enables the Loxya integration.
+def feature_enabled() -> bool:
+    """Checks whether this club enables the Loxya integration.
 
     The single test every entry point goes through, so that other clubs never see
-    any of it. A file setting: it hides the Loxya configuration items, so it
-    cannot be one of them.
-
-    :param config: The Flask config to read; defaults to the current app's.
+    any of it. Read at each call: switching it needs no restart.
     """
-    config = current_app.config if config is None else config
-    return bool(config.get("LOXYA_ENABLED"))
+    try:
+        return bool(Configuration.LOXYA_ENABLED)
+    except AttributeError:
+        return False
 
 
 def connection_settings() -> dict:
@@ -90,14 +86,6 @@ class LoxyaApi:
         self._next_call_time: float = 0.0
         """ Monotonic time before which no request may be sent. """
 
-    def init_app(self, app: Flask):
-        """Initializes the API. Opens no connection: Loxya may be down at startup.
-
-        :param app: The Flask application.
-        """
-        if app.config.get("LOXYA_ENABLED"):
-            app.logger.info("Loxya integration enabled (settings: folder Loxya)")
-
     def disabled(self) -> bool:
         """Checks whether the API must not be called: switched off or not configured."""
         return not feature_enabled() or not configured()
@@ -134,7 +122,7 @@ class LoxyaApi:
                     "password": settings["LOXYA_API_PASSWORD"],
                 },
                 headers={"accept": "application/json"},
-                timeout=TIMEOUT,
+                timeout=Configuration.LOXYA_TIMEOUT,
             )
         except requests.RequestException as err:
             raise LoxyaError(f"Loxya authentication failed: {err}") from err
@@ -198,7 +186,7 @@ class LoxyaApi:
                         "accept": "application/json",
                         "Authorization": f"Bearer {self.token}",
                     },
-                    timeout=TIMEOUT,
+                    timeout=Configuration.LOXYA_TIMEOUT,
                     **kwargs,
                 )
             except requests.RequestException as err:
@@ -229,4 +217,4 @@ class LoxyaApi:
 
 
 api: LoxyaApi = LoxyaApi()
-""" Client used by the application, initialized by :py:meth:`LoxyaApi.init_app`. """
+""" Client used by the application. """

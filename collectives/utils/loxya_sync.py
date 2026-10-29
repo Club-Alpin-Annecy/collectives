@@ -22,7 +22,6 @@ state and comes up again on the next run: the reconciliation is the retry queue.
 import threading
 from collections import Counter
 from contextlib import contextmanager
-from datetime import timedelta
 from time import monotonic
 
 from flask import current_app
@@ -45,10 +44,6 @@ ANONYMIZED_MAIL_SUFFIX = "@localhost"
 
 SEARCH_LIMIT = 100
 """ Page size used when searching beneficiaries. """
-
-MAX_DURATION = timedelta(hours=1)
-""" Time after which the nightly run stops, leaving the rest to the next night:
-better a change a day late than a slow site when the first events start. """
 
 MAX_EXTRANET_FAILURES = 3
 """ Extranet errors in a row after which it is deemed down for the run: the
@@ -501,8 +496,9 @@ def sync_all_users() -> Counter:
     In manual mode, users not yet on Loxya are left out. Each user is committed on
     its own: a failure neither stops the run nor loses the others' work. A licence
     that looks expired is checked on the extranet first, see
-    :py:func:`refresh_licence`. After :py:data:`MAX_DURATION`, the remaining users
-    are left to the next run.
+    :py:func:`refresh_licence`. After ``LOXYA_MAX_DURATION`` minutes, read from the
+    hot configuration, the remaining users are left to the next run: better a
+    change a day late than a slow site when the first events start.
 
     :return: The number of users per :py:class:`SyncAction`.
     :raises SyncInProgress: if another synchronization is running.
@@ -528,7 +524,7 @@ def sync_all_users() -> Counter:
         SyncAction.Activated: reactivate_account,
         SyncAction.Created: create_account,
     }
-    deadline = monotonic() + MAX_DURATION.total_seconds()
+    deadline = monotonic() + Configuration.LOXYA_MAX_DURATION * 60
     extranet_failures = 0
 
     with _exclusive():

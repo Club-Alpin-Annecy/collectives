@@ -1,5 +1,7 @@
 Deployment for production
-=====This document is meant to help the deployment of the collectives application on an host provider
+==========================
+
+This document is meant to help the deployment of the collectives application on an host provider
 for production. 
 
 However, don't hesitate to adapt scripts and definitions to your own needs. These 
@@ -153,23 +155,20 @@ Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
 instance, so that equipment volunteers can lend them equipment. This is off by
 default, and leaves no trace at all on a site that does not enable it.
 
-To enable it, add to `instance/config.py`::
+To enable it, a technician turns on `LOXYA_ENABLED` in
+`/technician/configuration`, folder Loxya; no restart is needed.
 
-    LOXYA_ENABLED = True
-
-then restart the service. This is the only setting that lives in a file: it is
-the switch that hides everything about Loxya from the sites that do not use it.
-
-A technician then enters the Loxya address and the credentials of the account
+The technician then enters the Loxya address and the credentials of the account
 the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` — in
-`/technician/configuration`, folder Loxya, like those of the FFCAM extranet.
+the same folder, like those of the FFCAM extranet.
 Nothing is sent to Loxya until they are all set, and the synchronization mode is
 also chosen there; `/technician/actions` previews what a run would do.
 
 The synchronization runs every night at 4:30. A member whose licence looks
 expired is checked on the FFCAM extranet before being withdrawn, since the
-expiry date is otherwise only refreshed at login. A run stops after an hour,
-leaving the remaining members to the next night.
+expiry date is otherwise only refreshed at login. A run stops after
+`LOXYA_MAX_DURATION` minutes (an hour by default), leaving the remaining members
+to the next night.
 
 Anonymized export
 ..................

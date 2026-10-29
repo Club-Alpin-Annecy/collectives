@@ -2,8 +2,9 @@
 
 import pytest
 
+from collectives.models import Configuration
 from collectives.utils import loxya
-from tests.mock.loxya import CONNECTION, set_loxya_connection
+from tests.mock.loxya import CONNECTION, set_loxya_connection, set_loxya_enabled
 
 # pylint: disable=unused-argument,protected-access
 
@@ -13,7 +14,6 @@ def test_off_by_default(app):
 
     This is what keeps the integration out of the way of every other club.
     """
-    app.config["LOXYA_ENABLED"] = False
     set_loxya_connection()
     client = loxya.LoxyaApi()
 
@@ -30,7 +30,7 @@ def test_enabled_but_incomplete_stays_off(app, missing):
     The integration shows — technicians must see where to enter it — but the API
     stays off.
     """
-    app.config["LOXYA_ENABLED"] = True
+    set_loxya_enabled()
     set_loxya_connection(**{missing: ""})
 
     assert loxya.feature_enabled()
@@ -65,11 +65,14 @@ def test_status_codes_map_to_exceptions(loxya_session, status_code, expected):
 
 
 def test_timeout_is_always_set(loxya_session):
-    """No call may hang: an unresponsive Loxya must not freeze a worker."""
+    """No call may hang: an unresponsive Loxya must not freeze a worker. The
+    timeout is read from the hot configuration at each call."""
+    Configuration.get_item("LOXYA_TIMEOUT").content = 3
+    Configuration.uncache("LOXYA_TIMEOUT")
     client = loxya_session.client
     loxya_session.script("GET", "/api/beneficiaries/1", 200, {"id": 1})
 
     client.get("/api/beneficiaries/1")
 
     _, _, kwargs = loxya_session.calls[0]
-    assert kwargs["timeout"] == loxya.TIMEOUT
+    assert kwargs["timeout"] == 3

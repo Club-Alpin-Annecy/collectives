@@ -21,6 +21,15 @@ CONNECTION = {
 """ Connection settings used by the tests. """
 
 
+def set_loxya_enabled(enabled: bool = True):
+    """Switches the integration on or off, as a technician would.
+
+    :param enabled: Value of ``LOXYA_ENABLED``.
+    """
+    Configuration.get_item("LOXYA_ENABLED").content = enabled
+    Configuration.uncache("LOXYA_ENABLED")
+
+
 def set_loxya_connection(**settings):
     """Enters the connection settings in the hot configuration, as a technician would.
 
@@ -142,10 +151,10 @@ class FakeLoxyaSession:
 def loxya_session(monkeypatch, app):
     """Wires a :py:class:`FakeLoxyaSession` into a fresh, enabled Loxya client.
 
-    The integration is switched on at the environment level and set to automatic
-    mode; tests about the other modes call :py:func:`set_loxya_mode`.
+    The integration is switched on and set to automatic mode; tests about the
+    other modes call :py:func:`set_loxya_mode`.
     """
-    app.config.update(LOXYA_ENABLED=True)
+    set_loxya_enabled()
     monkeypatch.setattr(loxya, "RATE_LIMIT", 0)
     set_loxya_connection()
     set_loxya_mode(active=True, auto_create=True)

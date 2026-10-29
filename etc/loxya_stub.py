@@ -6,10 +6,8 @@ l'intégration, telle qu'observée sur l'instance réelle (Loxya v1.3.11-premium
 
     python etc/loxya_stub.py [--port 5055]
 
-Pour y brancher l'application : activer ``LOXYA_ENABLED`` (``instance/config.py``,
-ou ``FLASK_APP='collectives:create_app(extra_config={"LOXYA_ENABLED": True})'``),
-puis saisir dans Configuration → Loxya l'URL du stub et les identifiants
-``dev`` / ``dev``. ``GET /_stub/state`` montre son état.
+Pour y brancher l'application : dans Configuration → Loxya, activer
+``LOXYA_ENABLED``, puis saisir l'URL du stub et les identifiants ``dev`` / ``dev``. ``GET /_stub/state`` montre son état.
 
 Les pièges de l'instance sont reproduits volontairement :
 

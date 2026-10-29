@@ -134,16 +134,6 @@ Can be set using environment variable.
 :type: boolean
 """
 
-LOXYA_ENABLED = False
-"""Enables the integration with the Loxya equipment platform, off by default.
-
-Set it to True in ``instance/config.py`` on the server and restart, then enter
-the connection settings in the configuration, folder Loxya. While it is off,
-nothing of Loxya shows: the code is shared with clubs that do not use it.
-
-:type: boolean
-"""
-
 PAYMENTS_MAX_PRICE = 10000
 """Maximum price in euros for a payment item
 

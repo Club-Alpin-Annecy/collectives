@@ -1,15 +1,19 @@
 """Module to check the Loxya integration stays invisible where it is not enabled.
 
 This code base is shared between several clubs, most of which do not use Loxya.
-With ``LOXYA_ENABLED`` off — the default — none of it may show: no log line, no
-scheduled job, no column, no button, no configuration item, no route. Each test
-checks one entry point, off then on.
+With ``LOXYA_ENABLED`` off — the default — nothing of it may show outside its
+configuration folder: no log line, no column, no button, no route. Since the
+switch is hot, the nightly job is armed everywhere, but does nothing while it is
+off. Each test checks one entry point, off then on.
 """
+
+import logging
 
 import pytest
 
+from collectives.utils.loxya_sync import sync_all_users
 from collectives.utils.scheduled_tasks import init_scheduler
-from tests.mock.loxya import set_loxya_connection
+from tests.mock.loxya import set_loxya_connection, set_loxya_enabled, set_loxya_mode
 
 # pylint: disable=unused-argument,redefined-outer-name
 
@@ -17,7 +21,7 @@ from tests.mock.loxya import set_loxya_connection
 @pytest.fixture
 def loxya_off(app):
     """A deployment that does not enable Loxya, as every other club."""
-    app.config["LOXYA_ENABLED"] = False
+    set_loxya_enabled(False)
     set_loxya_connection()
     return app
 
@@ -25,7 +29,7 @@ def loxya_off(app):
 @pytest.fixture
 def loxya_on(app):
     """A deployment that enables Loxya and has entered its credentials, as Annecy."""
-    app.config["LOXYA_ENABLED"] = True
+    set_loxya_enabled()
     set_loxya_connection()
     return app
 
@@ -59,7 +63,7 @@ def scheduled_jobs(app) -> list:
 
 def test_missing_credentials_are_pointed_out(app, admin_client):
     """Switched on, credentials not entered yet: technicians are told where."""
-    app.config["LOXYA_ENABLED"] = True
+    set_loxya_enabled()
     set_loxya_connection(LOXYA_API_PASSWORD="")
 
     page = admin_client.get("/technician/actions")
@@ -69,14 +73,21 @@ def test_missing_credentials_are_pointed_out(app, admin_client):
     assert "Mode en vigueur : <strong>éteint</strong>" in page.text
 
 
-def test_no_scheduled_job_when_off(loxya_off):
-    """Other clubs get no nightly Loxya job at all."""
-    assert "loxya_sync" not in scheduled_jobs(loxya_off)
+def test_scheduled_job_is_armed(app):
+    """The switch being hot, the job is armed everywhere and reads it at each run."""
+    assert "loxya_sync" in scheduled_jobs(app)
 
 
-def test_scheduled_job_when_on(loxya_on):
-    """The job is armed once enabled; it reads the live mode at each run."""
-    assert "loxya_sync" in scheduled_jobs(loxya_on)
+def test_nightly_run_does_nothing_when_off(loxya_off, caplog):
+    """Off, the nightly run does nothing and logs nothing, even with the
+    synchronization itself left active."""
+    set_loxya_mode(active=True, auto_create=True)
+
+    with caplog.at_level(logging.DEBUG, logger=loxya_off.logger.name):
+        report = sync_all_users()
+
+    assert not report
+    assert not caplog.records
 
 
 # -- Administration --------------------------------------------------------------
@@ -110,55 +121,11 @@ def test_sync_route_looks_unknown_when_off(loxya_off, admin_client):
 # -- Technician pages ------------------------------------------------------------
 
 
-def test_configuration_folder_hidden_when_off(loxya_off, admin_client):
-    """The Loxya settings do not appear in the configuration pages."""
-    index = admin_client.get("/technician/configuration")
+def test_switch_is_in_the_configuration_when_off(loxya_off, admin_client):
+    """The switch is how a club turns Loxya on: it is listed even when off."""
     folder = admin_client.get("/technician/configuration/Loxya")
 
-    assert "/technician/configuration/Loxya" not in index.text
-    assert "LOXYA_SYNC_ACTIVE" not in folder.text
-
-
-def test_configuration_folder_shown_when_on(loxya_on, admin_client):
-    """Once enabled, technicians find and edit the live switches."""
-    index = admin_client.get("/technician/configuration")
-    folder = admin_client.get("/technician/configuration/Loxya")
-
-    assert "/technician/configuration/Loxya" in index.text
-    for name in (
-        "LOXYA_URL",
-        "LOXYA_API_USERNAME",
-        "LOXYA_API_PASSWORD",
-        "LOXYA_SYNC_ACTIVE",
-        "LOXYA_AUTO_CREATE",
-    ):
-        assert name in folder.text
-
-
-def test_hidden_setting_cannot_be_edited_when_off(loxya_off, admin_client):
-    """Hidden also means refused, not merely out of sight."""
-    response = admin_client.post(
-        "/technician/configuration/Loxya",
-        data={"name": "LOXYA_SYNC_ACTIVE", "content": "y"},
-    )
-
-    assert response.status_code == 403
-
-
-def test_other_folders_keep_their_order(loxya_on, admin_client, app):
-    """Filtering must not reorder the configuration menu of the other clubs."""
-    app.config["LOXYA_ENABLED"] = False
-    off = admin_client.get("/technician/configuration").text
-    app.config["LOXYA_ENABLED"] = True
-    on = admin_client.get("/technician/configuration").text
-
-    def folder_links(html):
-        return [
-            part.split('"')[0]
-            for part in html.split('href="/technician/configuration/')[1:]
-        ]
-
-    assert folder_links(off) == [f for f in folder_links(on) if f != "Loxya"]
+    assert "LOXYA_ENABLED" in folder.text
 
 
 def test_actions_page_has_no_loxya_when_off(loxya_off, admin_client):
