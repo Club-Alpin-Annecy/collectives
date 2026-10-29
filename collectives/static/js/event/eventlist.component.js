@@ -84,9 +84,12 @@ export default {
             gotoEvents()
         })
 
+        const formatDate = (date) => moment(date).format('dddd D MMMM')
+
         return {
             events,
             config,
+            formatDate,
             IsLoading: () => loading.value,
             eventParams,
             eventFilters,
@@ -120,6 +123,18 @@ export default {
                 <h5 class="heading-1">Message important</h5>
                 <div v-html="config.siteParams.bannerMessage" />
             </div>
+            <section id="club-announcements" v-if="config.announcements.length" aria-labelledby="club-announcements-title">
+                <h5 id="club-announcements-title" class="heading-1">À la une : annonces du club</h5>
+                <ul>
+                    <li v-for="announcement in config.announcements" :key="announcement.url">
+                        <a :href="announcement.url">{{ announcement.title }}</a>
+                        <span class="club-announcements-details">
+                            {{ formatDate(announcement.start) }} ·
+                            {{ announcement.free_slots }} place{{ announcement.free_slots > 1 ? 's' : '' }} disponible{{ announcement.free_slots > 1 ? 's' : '' }}
+                        </span>
+                    </li>
+                </ul>
+            </section>
             <div class="collectives-list">
 
                 <EventListFilters v-bind:filters="eventFilters"/>

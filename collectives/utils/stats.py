@@ -274,25 +274,14 @@ class StatisticsEngine:
         return floor((self.end - self.start).total_seconds() / 3600 / 24)
 
     @lru_cache()
-    def valid_activity_events(self):
-        """Returns valid relevent events from cache or process it.
-
-        Their status is Confirmed. Their type requires an activity.
-        """
-        query = self.global_filters(Event.query, requires_activity=True)
-        return query.all()
-
-    @lru_cache()
     def events(self):
         """Returns relevent events from cache or process it."""
         return self.global_filters(Event.query).all()
 
-    def global_filters(self, query, requires_activity=False, filter_dates=True):
+    def global_filters(self, query, filter_dates=True):
         """Add a filter to the query to look only for relevant events.
 
         :param query: The sqlalchemy query to fix
-        :param requires_activity: If True, keep only events whose type requires
-            an activity
         :param filter_dates: If False, ignore the engine start and end dates
         :returns: The filtered query
         """
@@ -316,9 +305,6 @@ class StatisticsEngine:
             query = query.filter(Registration.event.has(condition))
         else:
             query = query.filter(condition)
-
-        if requires_activity:
-            query = query.filter(Event.event_type.has(EventType.requires_activity))
 
         return query
 
@@ -465,20 +451,20 @@ class StatisticsEngine:
 
     @lru_cache()
     def volunteer_time(self) -> float:
-        """Returns the total number of volunteer hours."""
-        events = self.valid_activity_events()
-        return sum(
-            event.duration_in_ffcam_days() * len(event.leaders) for event in events
-        )
+        """Returns the total volunteer time, in "ffcam days".
+
+        See :py:meth:`collectives.models.event.misc.EventMiscMixin.volunteer_days`.
+        """
+        return sum(event.volunteer_days() for event in self.events())
 
     @lru_cache()
     def volunteer_time_by_activity_type(self) -> dict:
-        """Returns the total number of volunteer hours of each activity type."""
+        """Returns the total volunteer time of each activity type, in "ffcam days"."""
         durations = {}
-        for event in self.valid_activity_events():
+        for event in self.events():
+            duration = event.volunteer_days()
             for activity_type in event.activity_types:
                 activity_name = activity_type.name
-                duration = event.duration_in_ffcam_days() * len(event.leaders)
                 durations[activity_name] = durations.get(activity_name, 0) + duration
         return durations
 
