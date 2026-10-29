@@ -26,7 +26,7 @@ conservés dans cette branche.
 | Sévérité | Nombre | Corrigé dans cette branche |
 |----------|--------|----------------------------|
 | Critique | 3      | C1 corrigé (partie upload ; partie réservation obsolète) ; C2 obsolète ; C3 partiellement (avertissement au démarrage) |
-| Haute    | 4      | H1, H3 corrigés ; H2 obsolète ; H4 documenté |
+| Haute    | 5      | H1, H3, H5 corrigés ; H2 obsolète ; H4 documenté |
 | Moyenne  | 8      | M1, M2 (partiel), M4 (partiel), M5, M6, M7 corrigés |
 | Faible   | 12     | F1 corrigé ; reste documenté |
 
@@ -178,9 +178,15 @@ encadrants ou superviseurs (semi-confiance), les victimes tout visiteur.
 Les avatars et photos passent par Flask-Images (ré-encodage) et ne sont pas
 concernés.
 
+Les fichiers `.gpx`, servis en `application/gpx+xml`, sont affichés comme du
+XML par les navigateurs et exposent au même risque.
+
 **Recommandation** : exclure `svg` des jeux d'extensions servis en statique ;
 servir les uploads avec `Content-Disposition: attachment` et
-`X-Content-Type-Options: nosniff`. **Corrigé** (exclusion de `svg` + `nosniff`).
+`X-Content-Type-Options: nosniff`. **Corrigé** : exclusion de `svg`, `nosniff`,
+et `Content-Disposition: attachment` sur tous les documents autres que les
+images, servis par Flask-Uploads comme en statique (y compris les SVG déjà
+déposés).
 
 ### H4 — Documents uploadés publics et aux noms prévisibles
 
@@ -195,6 +201,21 @@ l'URL (listes de participants exportées, fichiers GPX de rendez-vous, etc.).
 `event.is_visible_to(current_user)` (ou droits d'activité), stocker hors de
 `static/`, ou au minimum ajouter un suffixe aléatoire au nom de fichier.
 **Non corrigé** (changement de structure de stockage et de migration).
+
+### H5 — Fichiers privés téléchargeables via Flask-Uploads
+
+**Fichiers** : `collectives/routes/technician.py:53`,
+`collectives/forms/__init__.py:34`.
+
+Flask-Uploads sert tous les jeux d'upload configurés sous
+`/_uploads/<jeu>/<fichier>`, y compris le jeu `private`
+(`collectives/private_assets`) qui contient les éléments de configuration
+`SecretFile` (ex. fond des attestations de bénévolat). Leur chemin est
+prévisible (`<NOM_ELEMENT>/v<n>/<fichier>`) et ils sont téléchargeables
+sans être connecté.
+
+**Recommandation** : refuser toute requête vers ce jeu. **Corrigé** : réponse
+404 pour `/_uploads/private/`, quel que soit l'utilisateur.
 
 ---
 
@@ -362,7 +383,8 @@ Un commit par correction, dans l'ordre :
    obsolète depuis #927).
 2. H1 — licences retirées des autocomplétions publiques, créateur
    d'événements requis pour `available_leaders`.
-3. H3 — exclusion de `svg` des uploads de documents servis en statique.
+3. H3 — exclusion de `svg` des uploads de documents servis en statique, et
+   documents autres que les images servis en pièce jointe.
 4. M1 — validation stricte de `next`.
 5. M2 — options cookies et en-têtes de sécurité.
 6. M4 — `|tojson` dans `user_list.html`, licence en attribut `data-license`
@@ -372,6 +394,7 @@ Un commit par correction, dans l'ordre :
 8. M6 — périmètre de `export_role`.
 9. M7 — liste blanche des filtres admin.
 10. C3 — avertissement critique au démarrage sur les secrets par défaut.
+11. H5 — fichiers privés (`private_assets`) jamais servis.
 
 ## À traiter manuellement
 

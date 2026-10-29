@@ -4,7 +4,16 @@ These tests target routes that were found unprotected (or wrongly protected)
 during the September 2026 security audit. See ``doc/SECURITY_AUDIT_2026-09.md``.
 """
 
+import json
+import os
+import shutil
+from io import BytesIO
+
 import pytest
+from PIL import Image
+
+from collectives.models.upload import UploadedFile
+from tests import fixtures
 
 DENIED = (302, 401, 403)
 """HTTP status codes considered as an access refusal."""
@@ -37,19 +46,17 @@ def test_public_leader_autocomplete_hides_license(client, leader_user_with_event
         assert "mail" not in result
 
 
-def test_available_leaders_autocomplete_requires_event_creator(client, user1_client):
+def test_available_leaders_autocomplete_requires_event_creator(client, user1):
     """Available leaders autocomplete must refuse anonymous and plain users."""
-    assert client.get("/api/available_leaders/autocomplete/?q=aa").status_code in DENIED
-    assert (
-        user1_client.get("/api/available_leaders/autocomplete/?q=aa").status_code
-        in DENIED
-    )
+    url = "/api/available_leaders/autocomplete/?q=aa"
+    assert client.get(url).status_code in DENIED
+
+    fixtures.client.login(client, user1)
+    assert client.get(url).status_code in DENIED
 
 
 def test_svg_document_upload_is_refused(leader_client, leader_user_with_event, event1):
     """SVG files can embed scripts and are served verbatim: they must be refused."""
-    from io import BytesIO
-
     svg = BytesIO(b'<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>')
     response = leader_client.post(
         f"/api/upload/event/{event1.id}",
@@ -57,6 +64,46 @@ def test_svg_document_upload_is_refused(leader_client, leader_user_with_event, e
         content_type="multipart/form-data",
     )
     assert response.status_code == 415
+
+
+def test_uploaded_documents_served_as_attachments(
+    leader_client, leader_user_with_event, event1
+):
+    """Uploaded documents other than images are downloaded, never displayed:
+    a GPX file is served as XML and could run scripts in the site's origin."""
+    gpx = BytesIO(
+        b'<gpx xmlns:h="http://www.w3.org/1999/xhtml"><h:script>1</h:script></gpx>'
+    )
+    png = BytesIO()
+    Image.new("RGB", (1, 1)).save(png, "PNG")
+    png.seek(0)
+
+    responses = {}
+    for file, name in ((gpx, "trace.gpx"), (png, "photo.png")):
+        responses[name] = leader_client.post(
+            f"/api/upload/event/{event1.id}",
+            data={"image": (file, name)},
+            content_type="multipart/form-data",
+        )
+        assert responses[name].status_code == 200
+    uploads = {upload.name: upload for upload in UploadedFile.query.all()}
+
+    try:
+        # Link given to users (Flask-Uploads), and the same file as a static file
+        gpx_link = json.loads(responses["trace.gpx"].text)["data"]["filePath"]
+        gpx_static = f"/static/uploads/documents/{uploads['trace.gpx'].path}"
+        for url in (gpx_link, gpx_static):
+            with leader_client.get(url) as response:
+                assert response.status_code == 200
+                assert response.headers["Content-Disposition"] == "attachment"
+
+        png_static = f"/static/uploads/documents/{uploads['photo.png'].path}"
+        with leader_client.get(png_static) as response:
+            assert response.status_code == 200
+            assert response.headers["Content-Disposition"].startswith("inline")
+    finally:
+        for upload in uploads.values():
+            os.remove(upload.full_path())
 
 
 @pytest.mark.parametrize(
@@ -121,3 +168,25 @@ def test_session_cookie_flags(client, user1):
         assert "HttpOnly" in cookie
         assert "SameSite=Lax" in cookie
         assert "Secure" in cookie
+
+
+def test_private_assets_never_served(app, client, admin_user):
+    """Files of the private upload set (e.g. ``SecretFile`` configuration items)
+    are only read by the server: nobody may download them, not even an admin."""
+    item_folder = os.path.join(app.config["UPLOADED_PRIVATE_DEST"], "TEST_ITEM")
+    os.makedirs(os.path.join(item_folder, "v1"), exist_ok=True)
+    with open(os.path.join(item_folder, "v1", "secret.png"), "wb") as file:
+        file.write(b"secret")
+    url = "/_uploads/private/TEST_ITEM/v1/secret.png"
+
+    try:
+        with client.get(url) as response:
+            assert response.status_code in (302, 404)
+            assert b"secret" not in response.data
+
+        fixtures.client.login(client, admin_user, app.config["ADMINPWD"])
+        with client.get(url) as response:
+            assert response.status_code in (302, 404)
+            assert b"secret" not in response.data
+    finally:
+        shutil.rmtree(item_folder)
