@@ -237,6 +237,30 @@ def index(activity_type_id=None, name=""):
     )
 
 
+# Longer numbers cannot be an event id and would overflow the database integer
+MAX_EVENT_NUMBER_DIGITS = 9
+
+
+@blueprint.route("/goto")
+@valid_user()
+def goto():
+    """Redirects to the event whose number is given in the `numero` argument.
+
+    Only redirects: the event page applies its own access rules.
+    """
+    raw_number = request.args.get("numero", "").strip()
+    if not raw_number.isdecimal() or len(raw_number) > MAX_EVENT_NUMBER_DIGITS:
+        flash("Numéro de collective invalide.", "error")
+        return redirect(url_for("event.index"))
+
+    event_id = int(raw_number)
+    if db.session.get(Event, event_id) is None:
+        flash(f"Aucune collective ne porte le numéro {event_id}.", "error")
+        return redirect(url_for("event.index"))
+
+    return redirect(url_for("event.view_event", event_id=event_id))
+
+
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
 @blueprint.route("/<int:event_id>-")
