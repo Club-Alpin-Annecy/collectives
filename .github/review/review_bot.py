@@ -33,6 +33,8 @@ MAX_DIFF_CHARS = 150_000
 MAX_DISCUSSION_CHARS = 30_000
 MODEL_TIMEOUT = 300
 MODEL_ATTEMPTS = 4
+USAGE_KEYS = ("prompt_tokens", "completion_tokens")
+USAGE = dict.fromkeys(USAGE_KEYS, 0)
 RETRY_STATUSES = (402, 429, 500, 502, 503, 504)
 RETRY_DELAYS = (15, 45, 90)
 RETRY_AFTER_CAP = 120
@@ -782,6 +784,24 @@ def unavailable_note(error: str) -> str:
     )
 
 
+def reset_usage() -> None:
+    """Sets the token counters of `USAGE` back to 0."""
+    USAGE.update(dict.fromkeys(USAGE_KEYS, 0))
+
+
+def add_usage(data: dict) -> None:
+    """Adds the token usage of one successful model response to `USAGE`.
+
+    Args:
+        data: The decoded response; without a `usage` object nothing is added.
+    """
+    usage = data.get("usage")
+    if not isinstance(usage, dict):
+        return
+    for key in USAGE_KEYS:
+        USAGE[key] += usage.get(key) or 0
+
+
 def call_model(
     messages: list[dict],
     base_url: str,
@@ -821,7 +841,9 @@ def call_model(
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 data = json.load(response)
-            return data["choices"][0]["message"]["content"]
+            content = data["choices"][0]["message"]["content"]
+            add_usage(data)
+            return content
         except urllib.error.HTTPError as error:
             status = error.code
             retry_after = error.headers.get("Retry-After") if error.headers else None
@@ -1350,6 +1372,7 @@ def run(args: argparse.Namespace) -> None:
     Raises:
         RuntimeError: On a missing setting or a failed call.
     """
+    reset_usage()
     base_url = os.environ.get("REVIEW_API_BASE", "")
     model = os.environ.get("REVIEW_MODEL", "")
     api_key = os.environ.get("REVIEW_API_KEY", "")
@@ -1428,6 +1451,7 @@ def run(args: argparse.Namespace) -> None:
         record = {
             "facts": facts,
             "model": model,
+            "usage": dict(USAGE),
             "head_sha": data["head_sha"],
             "context_lines": data["context_lines"],
             "reviewed_sha_source": data["reviewed_sha_source"],
