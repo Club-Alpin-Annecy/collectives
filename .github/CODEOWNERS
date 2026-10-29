@@ -1,0 +1,22 @@
+# Mirrors the sensitive areas of CODING.md: changes there always need a human maintainer.
+# Owners follow who wrote each area (agreed 29 Oct 2026). Later lines win over earlier ones.
+# tests/unit/test_codeowners.py checks that every sensitive path of CODING.md is covered.
+/collectives/models/payment.py @jnguiot @gdaviet
+/collectives/utils/payment.py @jnguiot @gdaviet
+/collectives/utils/payment_provider/ @jnguiot @gdaviet
+/collectives/utils/payment_provider/helloasso.py @jnguiot
+/collectives/utils/payment_provider/payline.py @gdaviet
+/collectives/routes/payment.py @jnguiot @gdaviet
+/collectives/api/payment.py @jnguiot @gdaviet
+/collectives/routes/auth/ @jnguiot @gdaviet
+/collectives/models/auth.py @jnguiot
+/collectives/models/role.py @jnguiot @gdaviet
+/collectives/models/user_group.py @gdaviet
+/collectives/utils/access.py @jnguiot
+/migrations/ @jnguiot @gdaviet
+/collectives/configuration.yaml @jnguiot
+/deployment/ @jnguiot
+/Dockerfile @jnguiot @gdaviet
+/collectives/utils/anonymize.py @jnguiot
+/.github/workflows/ @jnguiot
+/.github/review/ @jnguiot

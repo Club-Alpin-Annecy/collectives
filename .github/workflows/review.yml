@@ -1,0 +1,48 @@
+name: Pull request review
+
+# Runs on pull_request_target so the secret is available for fork PRs. Safe only
+# because the checkout is the BASE branch: the scripts that run are already merged,
+# the PR's diff and text reach the model as plain data and nothing from the PR is
+# ever executed. Never add `ref:` pointing at the PR head, and never interpolate
+# event strings into `run:`.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: review-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review the pull request
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'dependabot[bot]')
+    steps:
+      - name: Check out the base branch
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Review
+        env:
+          PR: ${{ github.event.pull_request.number || inputs.pr }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_API_BASE: ${{ vars.REVIEW_API_BASE }}
+          REVIEW_MODEL: ${{ vars.REVIEW_MODEL }}
+          REVIEW_API_KEY: ${{ secrets.REVIEW_API_KEY }}
+        run: python3 .github/review/review_bot.py --repo "$REPO" --pr "$PR"

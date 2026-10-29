@@ -1,0 +1,54 @@
+name: Review dashboard
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the dashboard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build the page and update the pinned issue
+        env:
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=()
+          if [ "$(date -u +%u)" = "1" ]; then
+            args+=(--monday)
+          fi
+          python3 .github/review/review_dashboard.py --repo "$REPO" --out _site "${args[@]}"
+
+      - name: Upload the page
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
