@@ -1,8 +1,7 @@
 """Tests of the automated review tools in `.github/review/`.
 
 The modules are not a package: they are imported by adding their folder to
-`sys.path`. While a module does not exist, every test that needs it fails
-(it is never skipped).
+`sys.path`.
 """
 
 import importlib
@@ -31,7 +30,7 @@ AREAS = {
 
 
 def load_module(name: str):
-    """Imports a module of `.github/review/`, failing if it does not exist.
+    """Imports a module of `.github/review/`.
 
     Args:
         name: The module name, e.g. `review_lib`.
@@ -42,8 +41,6 @@ def load_module(name: str):
     sys.path.insert(0, str(REVIEW_DIR))
     try:
         return importlib.import_module(name)
-    except ModuleNotFoundError:
-        pytest.fail(f"{name} is not built yet")
     finally:
         sys.path.pop(0)
 
@@ -508,7 +505,7 @@ def test_filter_findings_keeps_valid_and_new_rule(bot):
     """A known rule or NEW, on an added line, is kept in order."""
     first = finding()
     second = finding(rule="NEW", line=4, severity="SUGGESTION", evidence="y = other()")
-    kept, dropped = bot.filter_findings([first, second], RULE_IDS, ADDED)
+    kept, dropped = bot.filter_findings([first, second], RULE_IDS, ADDED, TEXTS)
     assert kept == [first, second]
     assert dropped == []
 
@@ -537,7 +534,7 @@ def test_filter_findings_keeps_valid_and_new_rule(bot):
 def test_filter_findings_drops_invalid(bot, bad):
     """Invalid findings are dropped without raising, valid ones kept."""
     good = finding()
-    kept, dropped = bot.filter_findings([bad, good], RULE_IDS, ADDED)
+    kept, dropped = bot.filter_findings([bad, good], RULE_IDS, ADDED, TEXTS)
     assert kept == [good]
     assert dropped == [bad]
 
@@ -1161,8 +1158,39 @@ def change_files() -> list[dict]:
     ]
 
 
+def test_extended_diff_headers_for_added_removed_and_modified(lib):
+    """Each status gets the headers git would print, with /dev/null where due."""
+    diff = lib.extended_diff(change_files(), 3)
+    assert "diff --git a/new.py b/new.py" in diff
+    assert "--- /dev/null\n+++ b/new.py" in diff
+    assert "diff --git a/gone.py b/gone.py" in diff
+    assert "--- a/gone.py\n+++ /dev/null" in diff
+    assert "diff --git a/mod.py b/mod.py" in diff
+    assert "--- a/mod.py\n+++ b/mod.py" in diff
+
+
+def test_extended_diff_is_parsed_by_added_lines(lib):
+    """Added file and modified file give their added lines; removed file none."""
+    added = lib.added_lines(lib.extended_diff(change_files(), 3))
+    assert added == {"new.py": {1, 2}, "mod.py": {5, 35}}
+
+
+def test_extended_diff_context_does_not_change_added_lines(lib):
+    """Invariant: more context never changes which lines count as added."""
+    wide = lib.extended_diff(change_files(), 20)
+    narrow = lib.extended_diff(change_files(), 3)
+    assert lib.added_lines(wide) == lib.added_lines(narrow)
+
+
+def test_extended_diff_wider_context_shows_more_lines(lib):
+    """Line 20 is 15 lines from the nearest change: only the wide diff shows it."""
+    assert " line 20\n" in lib.extended_diff(change_files(), 20)
+    assert " line 20\n" not in lib.extended_diff(change_files(), 3)
+
+
 NUMBERED_INPUT = """\
 diff --git a/a.py b/a.py
+index 1111111..2222222 100644
 --- a/a.py
 +++ b/a.py
 @@ -1,3 +1,3 @@
@@ -1173,7 +1201,213 @@ diff --git a/a.py b/a.py
 """
 
 
+def test_number_lines_exact_on_a_small_hunk(lib):
+    """Headers are unchanged; context and added lines carry their new number."""
+    out = lib.number_lines(NUMBERED_INPUT).splitlines()
+    assert out[:5] == NUMBERED_INPUT.splitlines()[:5]
+    assert out[5] == "1| one"
+    assert out[7] == "2|+TWO"
+    assert out[8] == "3| three"
+    assert len(out) == 9
+
+
+def test_number_lines_removed_line_has_no_number(lib):
+    """A removed line keeps its text but gets padding instead of a number."""
+    removed = lib.number_lines(NUMBERED_INPUT).splitlines()[6]
+    assert removed.endswith("|-two")
+    assert not any(char.isdigit() for char in removed.split("|")[0])
+
+
+def test_added_line_texts_maps_new_numbers_to_text_without_plus(lib):
+    """Text of each added line, by path and new line number."""
+    texts = lib.added_line_texts(MULTI_DIFF)
+    assert texts == {
+        "a.py": {2: "added2", 12: "new12", 13: "new13"},
+        "b.py": {1: "x", 2: "y"},
+    }
+
+
+def test_pr_facts_new_routes_only_under_routes_and_api(lib):
+    """Added `.route(` lines count in routes/ and api/ only."""
+    routes = [
+        "@blueprint.route('/a')",
+        "def a(): pass",
+        "@blueprint.route('/b', methods=['POST'])",
+    ]
+    diff = (
+        new_files_diff({"collectives/routes/x.py": routes})
+        + new_files_diff({"collectives/api/y.py": routes[:1]})
+        + new_files_diff({"collectives/utils/z.py": routes[:1]})
+    )
+    files = [
+        file_entry("collectives/routes/x.py"),
+        file_entry("collectives/api/y.py"),
+        file_entry("collectives/utils/z.py"),
+    ]
+    assert facts(lib, files=files, diff=diff)["new_routes"] == [
+        ("collectives/routes/x.py", 1),
+        ("collectives/routes/x.py", 3),
+        ("collectives/api/y.py", 1),
+    ]
+
+
+def test_pr_facts_new_routes_empty_without_routes(lib):
+    """The key is always present."""
+    diff = new_files_diff({"collectives/routes/x.py": ["x = 1"]})
+    result = facts(lib, files=[file_entry("collectives/routes/x.py")], diff=diff)
+    assert result["new_routes"] == []
+
+
 # ------------------------------------------------ round 3: reliability (bot)
+
+
+@pytest.mark.parametrize(
+    "evidence",
+    [
+        "x = compute(value)",
+        "x   =  compute(value)",
+        "  x = compute(value)\n",
+        "if ok: x = compute(value)  # and more",
+    ],
+    ids=["exact", "other-whitespace", "padded", "quote-longer-than-line"],
+)
+def test_filter_findings_keeps_matching_evidence(bot, evidence):
+    """Evidence equal to, or containing, the added line is accepted."""
+    item = finding(evidence=evidence)
+    kept, dropped = bot.filter_findings([item], RULE_IDS, ADDED, TEXTS)
+    assert kept == [item]
+    assert dropped == []
+
+
+def test_filter_findings_keeps_evidence_contained_in_the_line(bot):
+    """A quote of part of the added line is accepted."""
+    item = finding(evidence="compute(value)")
+    kept, _ = bot.filter_findings([item], RULE_IDS, ADDED, TEXTS)
+    assert kept == [item]
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        finding(evidence="y = other()"),
+        finding(evidence=""),
+        finding(evidence="   "),
+        finding(evidence=None),
+        finding(evidence=123),
+        {k: v for k, v in VALID_FINDING.items() if k != "evidence"},
+    ],
+    ids=["other-line", "empty", "blank", "none", "not-a-string", "missing"],
+)
+def test_filter_findings_drops_bad_evidence(bot, bad):
+    """Evidence of another line, empty, malformed or missing: dropped, no raise."""
+    good = finding()
+    kept, dropped = bot.filter_findings([bad, good], RULE_IDS, ADDED, TEXTS)
+    assert kept == [good]
+    assert dropped == [bad]
+
+
+def test_downgrade_blocking_that_relies_on_unseen_code(bot):
+    """BLOCKING with a non-empty `relies_on` becomes SHOULD-FIX."""
+    item = finding(relies_on="the definition of compute()")
+    assert bot.downgrade([item])[0]["severity"] == "SHOULD-FIX"
+
+
+def test_downgrade_leaves_input_untouched(bot):
+    """The list and its dicts are not modified."""
+    item = finding(relies_on="somewhere")
+    items = [item]
+    result = bot.downgrade(items)
+    assert item["severity"] == "BLOCKING"
+    assert items == [item]
+    assert result is not items
+    assert result[0] is not item
+
+
+def test_downgrade_keeps_everything_else(bot):
+    """Other severities, and BLOCKING with nothing unseen, are unchanged."""
+    items = [
+        finding(relies_on=""),
+        finding(severity="SHOULD-FIX", relies_on="x"),
+        finding(severity="SUGGESTION", relies_on="x"),
+    ]
+    assert bot.downgrade(items) == items
+
+
+def test_keep_after_verification_refuted_with_quote_in_file(bot):
+    """Refuted and the quote is really in the file: the finding goes."""
+    answer = {"verdict": "refuted", "quote": "if  current_time < event.start"}
+    assert not bot.keep_after_verification(answer, "a\nif current_time < event.start\n")
+
+
+def test_keep_after_verification_refuted_with_quote_not_in_file(bot):
+    """A refutation that cites nothing real is ignored."""
+    answer = {"verdict": "refuted", "quote": "invented line"}
+    assert bot.keep_after_verification(answer, "a\nb\n") is True
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        {"verdict": "unsure", "quote": "a"},
+        {"verdict": "confirmed", "quote": "a"},
+        {"verdict": "refuted", "quote": ""},
+        {"verdict": "refuted"},
+        {"verdict": "maybe"},
+        {},
+        "not a dict",
+        None,
+    ],
+    ids=[
+        "unsure",
+        "confirmed",
+        "refuted-empty-quote",
+        "refuted-no-quote",
+        "unknown-verdict",
+        "empty",
+        "string",
+        "none",
+    ],
+)
+def test_keep_after_verification_keeps_otherwise(bot, answer):
+    """Only a proven refutation removes a finding; anything else keeps it."""
+    assert bot.keep_after_verification(answer, "a\nb\n") is True
+
+
+def test_build_verify_messages_carry_problem_and_file(bot):
+    """The verifier sees the claim and the whole file."""
+    item = finding(problem="UNIQUE-PROBLEM-TEXT")
+    messages = bot.build_verify_messages(item, "FILE-BODY-789\n")
+    joined = "\n".join(message["content"] for message in messages)
+    assert "UNIQUE-PROBLEM-TEXT" in joined
+    assert "FILE-BODY-789" in joined
+    assert "refuted" in joined
+
+
+def test_cap_findings_orders_by_severity_and_limits(bot):
+    """Most severe first, stable inside a severity; the rest is returned capped."""
+    items = [
+        finding(severity="SUGGESTION", problem="s1"),
+        finding(severity="SHOULD-FIX", problem="w1"),
+        finding(severity="BLOCKING", problem="b1"),
+        finding(severity="SUGGESTION", problem="s2"),
+        finding(severity="BLOCKING", problem="b2"),
+        finding(severity="SHOULD-FIX", problem="w2"),
+        finding(severity="SUGGESTION", problem="s3"),
+    ]
+    kept, capped = bot.cap_findings(items)
+    assert [item["problem"] for item in kept] == ["b1", "b2", "w1", "w2", "s1"]
+    assert [item["problem"] for item in capped] == ["s2", "s3"]
+
+
+def test_cap_findings_custom_limit_and_short_list(bot):
+    """The limit is respected; fewer findings than the limit are all kept."""
+    items = [finding(problem="a"), finding(severity="SUGGESTION", problem="b")]
+    kept, capped = bot.cap_findings(items, limit=1)
+    assert [item["problem"] for item in kept] == ["a"]
+    assert [item["problem"] for item in capped] == ["b"]
+    kept, capped = bot.cap_findings(items)
+    assert len(kept) == 2
+    assert capped == []
 
 
 def prompt_text(bot, facts=None, **kwargs) -> str:
@@ -1182,3 +1416,438 @@ def prompt_text(bot, facts=None, **kwargs) -> str:
         "rules", "agents", facts or {}, "DIFF", "", "", **kwargs
     )
     return "\n".join(message["content"] for message in messages)
+
+
+def test_build_messages_mentions_new_routes_and_security_rule(bot):
+    """A non-empty `new_routes` fact names the routes and asks for SEC5."""
+    full = prompt_text(bot, {"new_routes": [("collectives/routes/x.py", 7)]})
+    assert "collectives/routes/x.py" in full
+    assert "SEC5" in full
+    assert "SEC5" not in prompt_text(bot, {"new_routes": []})
+
+
+def test_build_messages_output_schema_has_evidence_and_relies_on(bot):
+    """The schema the model must follow lists both new fields."""
+    text = prompt_text(bot)
+    assert "evidence" in text
+    assert "relies_on" in text
+
+
+def test_build_messages_includes_previous_review_only_when_given(bot):
+    """The earlier review appears when non-empty, and never otherwise."""
+    assert "PREVIOUS-REVIEW-TEXT" in prompt_text(
+        bot, previous_review="PREVIOUS-REVIEW-TEXT"
+    )
+    assert "PREVIOUS-REVIEW-TEXT" not in prompt_text(bot, previous_review="")
+    assert "previous review" not in prompt_text(bot).lower()
+
+
+# ------------------------------------------ round 4: neutralising posted text
+
+MENTION = "`@jnguiot`"
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("@jnguiot", MENTION),
+        ("thanks @jnguiot for this", f"thanks {MENTION} for this"),
+        ("@org/team please", "`@org/team` please"),
+        ("cc @a and @b2.", "cc `@a` and `@b2`."),
+        ("(@jnguiot)", f"({MENTION})"),
+    ],
+    ids=["alone", "mid-sentence", "team", "several", "in-parentheses"],
+)
+def test_neutralize_wraps_mentions(lib, text, expected):
+    """A mention at the start or inside a sentence is put in backticks."""
+    assert lib.neutralize(text) == expected
+
+
+def test_neutralize_leaves_email_addresses_alone(lib):
+    """Pinned: an `@` glued to a word is an address, which GitHub never notifies."""
+    assert lib.neutralize("write to a@b.fr now") == "write to a@b.fr now"
+
+
+def test_neutralize_does_not_double_backticks(lib):
+    """Text already in backticks is left as it is."""
+    assert lib.neutralize("ask `@jnguiot` or `https://x.fr/a`") == (
+        "ask `@jnguiot` or `https://x.fr/a`"
+    )
+
+
+def test_neutralize_markdown_link_becomes_text_and_backticked_url(lib):
+    """The label stays, the destination is shown but not clickable."""
+    assert lib.neutralize("see [the doc](https://evil.fr/x) now") == (
+        "see the doc `https://evil.fr/x` now"
+    )
+
+
+def test_neutralize_markdown_image_becomes_text_and_backticked_url(lib):
+    """An image is not fetched: its alt text and URL are shown as text."""
+    assert lib.neutralize("![logo](https://evil.fr/p.png)") == (
+        "logo `https://evil.fr/p.png`"
+    )
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+def test_neutralize_wraps_bare_urls(lib, scheme):
+    """A bare URL is put in backticks."""
+    assert lib.neutralize(f"go to {scheme}://evil.fr/a?b=1 please") == (
+        f"go to `{scheme}://evil.fr/a?b=1` please"
+    )
+
+
+def test_neutralize_flattens_newlines_and_tabs(lib):
+    """Newlines and tabs become single spaces."""
+    assert lib.neutralize("a\nb\tc\n\nd") == "a b c d"
+
+
+def test_neutralize_truncates_with_an_ellipsis(lib):
+    """Longer than the limit: cut to the limit, ending with an ellipsis."""
+    out = lib.neutralize("x" * 50, limit=10)
+    assert len(out) == 10
+    assert out.endswith("…")
+    assert lib.neutralize("x" * 10, limit=10) == "x" * 10
+
+
+def test_neutralize_default_limit_is_600(lib):
+    """Without argument, 600 characters are kept."""
+    assert len(lib.neutralize("x" * 700)) == 600
+    assert lib.neutralize("x" * 600) == "x" * 600
+
+
+@pytest.mark.parametrize("value", [None, 5, ["a"], {"a": 1}])
+def test_neutralize_non_string_is_empty(lib, value):
+    """Anything but a string gives an empty string."""
+    assert lib.neutralize(value) == ""
+
+
+HOSTILE = "@evil see https://evil.fr/x"
+HOSTILE_OUT = "`@evil` see `https://evil.fr/x`"
+
+
+def test_render_comment_neutralizes_every_model_text(bot):
+    """Title, problem, fix, questions and reading order cannot notify or link."""
+    kept = [finding(problem=f"P {HOSTILE}", fix=f"F {HOSTILE}")]
+    text = bot.render_comment(
+        f"T {HOSTILE}",
+        "CHANGES REQUESTED",
+        "Checks run: none",
+        [],
+        kept,
+        [f"Q {HOSTILE}"],
+        [f"R {HOSTILE}"],
+    )
+    for prefix in "TPFQR":
+        assert f"{prefix} {HOSTILE_OUT}" in text
+    assert HOSTILE not in text
+
+
+def test_render_comment_keeps_the_path_as_is(bot):
+    """The path is not prose: it is posted unchanged."""
+    kept = [finding(path="collectives/a.py")]
+    text = bot.render_comment("t", "v", "c", [], kept, [], [])
+    assert "- [BLOCKING] collectives/a.py:3 — DB1 — p — f" in text
+
+
+def test_render_issue_neutralizes_title_and_author(dash):
+    """A hostile PR title or author cannot mention or link from the issue."""
+    pr = old_pr(number=11, title=f"T {HOSTILE}", author="@octo")
+    groups = dash.build_groups([pr], MAINTAINERS, NOW)
+    issue = dash.render_issue(groups, "https://x/dash", NOW)
+    assert f"T {HOSTILE_OUT}" in issue
+    assert "(`@octo`)" in issue
+    assert HOSTILE not in issue
+
+
+def test_render_html_escapes_and_neutralizes_title(dash):
+    """HTML is still escaped, and the title is neutralised too."""
+    pr = old_pr(number=11, title="<b>@evil</b> https://evil.fr/x")
+    groups = dash.build_groups([pr], MAINTAINERS, NOW)
+    page = dash.render_html(groups, "https://github.com/o/r/issues/9", NOW)
+    assert "<b>@evil" not in page
+    assert "&lt;b&gt;`@evil`&lt;/b&gt; `https://evil.fr/x`" in page
+
+
+# --------------------------------------- round 4: reviewed state (H1), F5, F6
+
+COMMITS = [
+    {"sha": "c1", "author_date": "2026-10-01T10:00:00+00:00"},
+    {"sha": "c2", "author_date": "2026-10-02T10:00:00+00:00"},
+]
+
+
+def human_review(user="gdaviet", at="2026-10-03T10:00:00+00:00", sha="r-sha") -> dict:
+    """A review item as `pick_reviewed_sha` reads it."""
+    return {"user": user, "submitted_at": at, "commit_id": sha}
+
+
+def human_inline(user="gdaviet", at="2026-10-03T10:00:00+00:00", sha="i-sha") -> dict:
+    """An inline review comment item as `pick_reviewed_sha` reads it."""
+    return {"user": user, "created_at": at, "original_commit_id": sha}
+
+
+def test_pick_reviewed_sha_earliest_review_beats_later_inline(bot):
+    """The review came first: its commit is the one the human looked at."""
+    reviews = [human_review(at="2026-10-03T10:00:00+00:00")]
+    inline = [human_inline(at="2026-10-04T10:00:00+00:00")]
+    assert bot.pick_reviewed_sha("outsider", reviews, inline, COMMITS) == "r-sha"
+
+
+def test_pick_reviewed_sha_earliest_inline_beats_later_review(bot):
+    """The inline comment came first: its original commit is returned."""
+    reviews = [human_review(at="2026-10-05T10:00:00+00:00")]
+    inline = [human_inline(at="2026-10-03T10:00:00+00:00")]
+    assert bot.pick_reviewed_sha("outsider", reviews, inline, COMMITS) == "i-sha"
+
+
+def test_pick_reviewed_sha_ignores_the_author_and_bots(bot):
+    """Only a human other than the author counts, however early."""
+    reviews = [
+        human_review(user="outsider", at="2026-10-01T00:00:00+00:00", sha="own"),
+        human_review(user="copilot[bot]", at="2026-10-01T01:00:00+00:00", sha="bot"),
+        human_review(user="gdaviet", at="2026-10-06T00:00:00+00:00", sha="human"),
+    ]
+    inline = [human_inline(user="dependabot[bot]", at="2026-10-01T02:00:00+00:00")]
+    assert bot.pick_reviewed_sha("outsider", reviews, inline, COMMITS) == "human"
+
+
+def test_pick_reviewed_sha_none_without_human_review_or_comment(bot):
+    """Pinned: only own and bot items, or nothing, give None."""
+    reviews = [human_review(user="outsider"), human_review(user="x[bot]")]
+    assert bot.pick_reviewed_sha("outsider", reviews, [], COMMITS) is None
+    assert bot.pick_reviewed_sha("outsider", [], [], COMMITS) is None
+
+
+GENERIC = "Cette fonctionnalité sert-elle tous les clubs ? (PROD2)"
+GENERIC_WORDS = [
+    "Is this useful for all clubs?",
+    "Qui maintient ce code ?",
+    "Who maintains this?",
+    "Does it respect PROD3?",
+]
+SPECIFIC = "Pourquoi garder `Role.comment` en clair ?"
+
+
+def test_keep_questions_drops_generic_product_questions_without_facts(bot):
+    """No supporting fact: product boilerplate goes, specific questions stay."""
+    questions = [*GENERIC_WORDS, SPECIFIC, GENERIC]
+    assert bot.keep_questions(questions, {}) == [SPECIFIC]
+
+
+@pytest.mark.parametrize(
+    "facts",
+    [
+        {"new_tables": ["orders"]},
+        {"new_config_items": ["MY_SETTING"]},
+        {"new_switches": ["ENABLE_THING"]},
+        {"new_routes": [("collectives/routes/x.py", 3)]},
+        {"change_type": "adds", "size": 201},
+    ],
+    ids=["tables", "config-items", "switches", "routes", "big-addition"],
+)
+def test_keep_questions_keeps_generic_ones_with_a_supporting_fact(bot, facts):
+    """Each kind of supporting fact, alone, justifies the product questions."""
+    questions = [GENERIC, SPECIFIC]
+    assert bot.keep_questions(questions, facts) == questions
+
+
+@pytest.mark.parametrize(
+    "facts",
+    [
+        {"new_tables": [], "new_routes": [], "change_type": "modifies", "size": 900},
+        {"change_type": "adds", "size": 200},
+    ],
+    ids=["empty-facts-big-modification", "small-addition"],
+)
+def test_keep_questions_facts_that_do_not_support(bot, facts):
+    """Empty lists, a big modification or a small addition support nothing."""
+    assert bot.keep_questions([GENERIC, SPECIFIC], facts) == [SPECIFIC]
+
+
+def test_keep_questions_limit_and_order(bot):
+    """At most `limit` questions (3 by default), in the original order."""
+    questions = [f"specific {n}" for n in range(6)]
+    assert bot.keep_questions(questions, {}) == questions[:3]
+    assert bot.keep_questions(questions, {}, limit=5) == questions[:5]
+    assert bot.keep_questions(questions, {}, limit=1) == questions[:1]
+
+
+def test_build_messages_asks_for_a_supporting_fact(bot):
+    """The prompt tells the model to ask a product question only with a fact."""
+    assert "supporting fact" in prompt_text(bot).lower()
+
+
+def pr_entry(number: int, *files: str) -> dict:
+    """An open PR as `overlapping_prs` reads it."""
+    return {"number": number, "title": f"PR {number}", "files": list(files)}
+
+
+def test_overlapping_prs_lists_shared_paths_ordered_by_number(lib):
+    """Other PRs sharing a path, with the shared paths, by ascending number."""
+    open_prs = [
+        pr_entry(30, "b.py", "z.py"),
+        pr_entry(10, "a.py", "b.py", "c.py"),
+        pr_entry(20, "unrelated.py"),
+    ]
+    result = lib.overlapping_prs(["a.py", "b.py"], open_prs, 99)
+    assert [item["number"] for item in result] == [10, 30]
+    assert result[0]["title"] == "PR 10"
+    assert sorted(result[0]["shared"]) == ["a.py", "b.py"]
+    assert result[1]["shared"] == ["b.py"]
+
+
+def test_overlapping_prs_excludes_the_own_pr(lib):
+    """The PR under review is never its own overlap."""
+    open_prs = [pr_entry(5, "a.py"), pr_entry(6, "a.py")]
+    result = lib.overlapping_prs(["a.py"], open_prs, 5)
+    assert [item["number"] for item in result] == [6]
+
+
+def test_overlapping_prs_empty_without_overlap(lib):
+    """No shared path, or no open PR, gives an empty list."""
+    assert lib.overlapping_prs(["a.py"], [pr_entry(1, "b.py")], 9) == []
+    assert lib.overlapping_prs(["a.py"], [], 9) == []
+
+
+def test_build_messages_lists_overlapping_prs_only_when_present(bot):
+    """The overlap section appears with its PR and shared path, else not at all."""
+    overlaps = [{"number": 886, "title": "OVERLAP-TITLE", "shared": ["x/shared.py"]}]
+    full = prompt_text(bot, overlaps=overlaps)
+    assert "#886" in full
+    assert "OVERLAP-TITLE" in full
+    assert "x/shared.py" in full
+    assert "OVERLAP-TITLE" not in prompt_text(bot, overlaps=[])
+    assert "overlap" not in prompt_text(bot).lower()
+
+
+# ------------------------------------------------ round 4: outside services (F7)
+
+PYPROJECT_DIFF = """\
+diff --git a/pyproject.toml b/pyproject.toml
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,7 +1,9 @@
+ [project]
+ dependencies = [
+     "flask>=3",
++    "stripe>=1",
+ ]
+
+ [tool.ruff]
++line-length = 88
+ select = []
+"""
+
+
+def outside_services(lib, diff: str, *paths: str) -> list[dict]:
+    """The `new_outside_services` fact for a diff touching the given paths."""
+    files = [file_entry(path) for path in paths]
+    return facts(lib, files=files, diff=diff)["new_outside_services"]
+
+
+def service(path: str, line: int, signal: str) -> dict:
+    """One expected item of `new_outside_services`."""
+    return {"path": path, "line": line, "signal": signal}
+
+
+def test_outside_services_network_imports(lib):
+    """Each network library import under collectives/ is a signal."""
+    path = "collectives/utils/client.py"
+    diff = new_files_diff(
+        {
+            path: [
+                "import json",
+                "import requests",
+                "from zeep import Client",
+                "import urllib.request",
+            ]
+        }
+    )
+    assert outside_services(lib, diff, path) == [
+        service(path, 2, "network library"),
+        service(path, 3, "network library"),
+        service(path, 4, "network library"),
+    ]
+
+
+def test_outside_services_ignores_network_imports_in_tests_and_docs(lib):
+    """Only code under `collectives/` counts, not tests/ or doc/."""
+    diff = new_files_diff(
+        {
+            "tests/unit/test_x.py": ["import requests"],
+            "doc/conf.py": ["import requests"],
+        }
+    )
+    assert outside_services(lib, diff, "tests/unit/test_x.py", "doc/conf.py") == []
+
+
+def test_outside_services_service_settings(lib):
+    """Configuration items named like an account or address are signals."""
+    diff = new_files_diff(
+        {
+            CONFIGURATION_PATH: [
+                "    LOXYA_URL:",
+                "    SMTP_PASSWORD:",
+                "    PAGE_TITLE:",
+            ]
+        }
+    )
+    assert outside_services(lib, diff, CONFIGURATION_PATH) == [
+        service(CONFIGURATION_PATH, 1, "service setting"),
+        service(CONFIGURATION_PATH, 2, "service setting"),
+    ]
+
+
+def test_outside_services_new_dependency_only_inside_the_list(lib):
+    """An added line in `dependencies = [` counts; one elsewhere does not."""
+    assert outside_services(lib, PYPROJECT_DIFF, "pyproject.toml") == [
+        service("pyproject.toml", 4, "new dependency")
+    ]
+
+
+def test_outside_services_ordered_by_path_then_line(lib):
+    """Items from several files come sorted by path, then by line."""
+    diff = (
+        new_files_diff({"collectives/z.py": ["import requests"]})
+        + PYPROJECT_DIFF
+        + new_files_diff(
+            {"collectives/a.py": ["x = 1", "import smtplib", "import socket"]}
+        )
+    )
+    result = outside_services(
+        lib, diff, "collectives/z.py", "pyproject.toml", "collectives/a.py"
+    )
+    assert [(item["path"], item["line"]) for item in result] == [
+        ("collectives/a.py", 2),
+        ("collectives/a.py", 3),
+        ("collectives/z.py", 1),
+        ("pyproject.toml", 4),
+    ]
+
+
+def test_outside_services_empty_when_none(lib):
+    """The key is always present."""
+    diff = new_files_diff({"collectives/x.py": ["import json"]})
+    assert outside_services(lib, diff, "collectives/x.py") == []
+
+
+def test_keep_questions_keeps_generic_ones_with_an_outside_service(bot):
+    """A new outside service justifies the product questions."""
+    questions = [GENERIC, SPECIFIC]
+    facts_ = {
+        "new_outside_services": [service("collectives/x.py", 1, "network library")]
+    }
+    assert bot.keep_questions(questions, facts_) == questions
+    assert bot.keep_questions(questions, {"new_outside_services": []}) == [SPECIFIC]
+
+
+def test_build_messages_mentions_outside_service_only_when_present(bot):
+    """The prompt names the service and its signal when there is one."""
+    item = service("collectives/utils/client.py", 7, "network library")
+    full = prompt_text(bot, {"new_outside_services": [item]})
+    assert "collectives/utils/client.py" in full
+    assert "outside service" in full.lower()
+    assert "collectives/utils/client.py" not in prompt_text(
+        bot, {"new_outside_services": []}
+    )

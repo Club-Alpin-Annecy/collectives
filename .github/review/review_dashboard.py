@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import review_bot  # pylint: disable=wrong-import-position
+import review_lib  # pylint: disable=wrong-import-position
 
 GROUPS = (
     ("needed", "Où on a besoin de vous"),
@@ -406,7 +407,7 @@ def render_issue(groups: dict, dashboard_url: str, now: datetime) -> str:
 
     def pr_line(key: str, pr: dict) -> str:
         return (
-            f"- [#{pr['number']}]({pr['url']}) {pr['title']} ({pr['author']}) — "
+            f"- [#{pr['number']}]({pr['url']}) {review_lib.neutralize(pr['title'])} ({review_lib.neutralize(pr['author'])}) — "
             f"{detail(key, pr, now)}"
         )
 
@@ -446,7 +447,8 @@ def render_html(groups: dict, issue_url: str, now: datetime) -> str:
         return (
             f'<li data-group="{key}" data-pr="{pr["number"]}" data-people="{people}">'
             f'<a href="{escape(pr["url"], quote=True)}">#{pr["number"]}</a> '
-            f"{escape(pr['title'])} ({escape(pr['author'])})<br>"
+            f"{escape(review_lib.neutralize(pr['title']))} "
+            f"({escape(review_lib.neutralize(pr['author']))})<br>"
             f'<span class="detail">{escape(detail(key, pr, now))}</span></li>'
         )
 
