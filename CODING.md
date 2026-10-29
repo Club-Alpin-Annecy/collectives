@@ -223,11 +223,13 @@ Checks run: ruff format ✓/✗ | ruff check ✓/✗ | tests: <files> ✓/✗
 Merge readiness: ready | <what stands in the way: CI, conflicts, migration fork>
 Sensitive areas touched: <list, or none>
 Findings:
-- [BLOCKING] path/to/file.py:42 — DB1 — <problem> — <proposed fix>
-- [SUGGESTION] path/to/other.py:10 — NEW — <problem> — <proposed fix>
+- [BLOCKING] <id> path/to/file.py:42 — DB1 — <problem> — <proposed fix>
+- [SUGGESTION] <id> path/to/other.py:10 — NEW — <problem> — <proposed fix>
 Questions for maintainers:
-- <a product question (PROD rules) the maintainers decide, never the reviewer>
+- <qid> <a product question (PROD rules) the maintainers decide, never the reviewer>
+Set aside by a maintainer: <id> (<login>: <reason>), ...
 Reading order: <files in the order to read them, for PRs over 400 changed lines>
+To set one aside, reply in the PR: <id> skip: <reason>
 ```
 Every finding cites a rule ID, or `NEW` when no rule covers it (a candidate
 for a new rule). The verdict is `CHANGES REQUESTED` as soon as there is one

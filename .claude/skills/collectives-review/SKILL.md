@@ -24,10 +24,12 @@ Checks run: ruff format ✓/✗ | ruff check ✓/✗ | tests: <files> ✓/✗
 Merge readiness: ready | <what stands in the way: CI, conflicts, migration fork>
 Sensitive areas touched: <list, or none>
 Findings:
-- [BLOCKING] path/to/file.py:42 — DB1 — <problem> — <proposed fix>
+- [BLOCKING] <id> path/to/file.py:42 — DB1 — <problem> — <proposed fix>
 Questions for maintainers:
-- <a product question the maintainers decide, never the reviewer>
+- <qid> <a product question the maintainers decide, never the reviewer>
+Set aside by a maintainer: <id> (<login>: <reason>), ...
 Reading order: <files in the order to read them, for PRs over 400 changed lines>
+To set one aside, reply in the PR: <id> skip: <reason>
 ```
 
 The verdict is `CHANGES REQUESTED` as soon as there is one `BLOCKING` finding. The last two blocks appear only when they have content.

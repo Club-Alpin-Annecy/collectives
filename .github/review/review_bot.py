@@ -121,6 +121,16 @@ CHECK_PENDING = "…"
 PASSING_CONCLUSIONS = ("success", "skipped", "neutral")
 ACTION_REQUIRED = "action_required"
 OWN_CHECK_NAME = "Pull request review"
+ID_LENGTH = 4
+QUESTION_ID_LENGTH = 3
+DECISION_RE = re.compile(
+    r"^\s*([0-9a-f]{4}(?:-\d+)?|q[0-9a-f]{3})\s+(skip|keep)\b\s*:?\s*(.*)$",
+    re.IGNORECASE,
+)
+DECISION_SKIP = "skip"
+REASON_LIMIT = 100
+MAINTAINER_PERMISSIONS = ("admin", "maintain", "write")
+REPLY_INSTRUCTION = "To set one aside, reply in the PR: <id> skip: <reason>"
 CI_CLAUSES = {
     "not run": "CI not run on the last commit",
     "failing": "CI failing on the last commit",
@@ -906,6 +916,174 @@ def checks_line(check_runs: list[dict]) -> str:
     return "Checks run: " + " | ".join(parts)
 
 
+def collapse(text: str) -> str:
+    """Collapses whitespace runs to single spaces.
+
+    Args:
+        text: Any text.
+
+    Returns:
+        The trimmed text.
+    """
+    return " ".join(text.split())
+
+
+def finding_id(finding: dict) -> str:
+    """Computes the short ID a maintainer quotes to set a finding aside.
+
+    Args:
+        finding: A finding.
+
+    Returns:
+        4 hex characters: the start of a sha1 over the rule, the path and the
+        evidence quote (the line number when there is no quote). It does not
+        change when the line moves or the model rewords the text.
+    """
+    quote = collapse(str(finding.get("evidence") or ""))
+    parts = [finding["rule"], finding["path"], quote or str(finding["line"])]
+    digest = hashlib.sha1("\0".join(parts).encode("utf-8")).hexdigest()
+    return digest[:ID_LENGTH]
+
+
+def assign_ids(findings: list[dict]) -> list[dict]:
+    """Gives each finding its ID.
+
+    Args:
+        findings: The findings of one review.
+
+    Returns:
+        Copies with an `id`; the second finding with the same ID gets the
+        suffix `-2`, the third `-3`, and so on.
+    """
+    seen: dict[str, int] = {}
+    result = []
+    for finding in findings:
+        base = finding_id(finding)
+        seen[base] = seen.get(base, 0) + 1
+        suffix = "" if seen[base] == 1 else f"-{seen[base]}"
+        result.append({**finding, "id": base + suffix})
+    return result
+
+
+def question_id(question: str) -> str:
+    """Computes the ID of a question for the maintainers.
+
+    Args:
+        question: The question text.
+
+    Returns:
+        `q` and 3 hex characters of a sha1 over the whitespace-collapsed text;
+        stable only while the text is the same.
+    """
+    digest = hashlib.sha1(collapse(question).encode("utf-8")).hexdigest()
+    return "q" + digest[:QUESTION_ID_LENGTH]
+
+
+def maintainer_decisions(
+    comments: list[dict],
+    is_maintainer: Callable[[str], bool],
+    author: str | None = None,
+) -> dict[str, dict]:
+    """Reads which findings and questions maintainers set aside.
+
+    Only lines of the form `<id> skip: <reason>` or `<id> keep` count, written
+    by a maintainer; the bot's own comments are never read.
+
+    Args:
+        comments: Items with `login`, `body` and `created_at`, in any order.
+        is_maintainer: Tells whether a login may set things aside.
+        author: The PR author's login; their comments are ignored (skip and
+            keep alike), whatever their rights, case aside.
+
+    Returns:
+        ID (lower case) to `login` and `reason` for each ID whose latest
+        decision is skip. The reason is neutralised and cut at 100 characters.
+    """
+    skipped: dict[str, dict] = {}
+    for comment in sorted(comments, key=lambda item: item["created_at"]):
+        if MARKER in comment["body"] or (
+            author and comment["login"].lower() == author.lower()
+        ):
+            continue
+        matches = [DECISION_RE.match(line) for line in comment["body"].splitlines()]
+        matches = [match for match in matches if match]
+        if not matches or not is_maintainer(comment["login"]):
+            continue
+        for match in matches:
+            key = match.group(1).lower()
+            if match.group(2).lower() == DECISION_SKIP:
+                reason = review_lib.neutralize(match.group(3), REASON_LIMIT)
+                skipped[key] = {"login": comment["login"], "reason": reason}
+            else:
+                skipped.pop(key, None)
+    return skipped
+
+
+def apply_decisions(
+    findings: list[dict], questions: list[str], decisions: dict[str, dict]
+) -> tuple[list[dict], list[str], dict[str, dict]]:
+    """Removes the findings and questions a maintainer set aside.
+
+    Args:
+        findings: The findings, each with an `id`.
+        questions: The questions for the maintainers.
+        decisions: ID to decision, from `maintainer_decisions`.
+
+    Returns:
+        The remaining findings and questions, and the decisions whose ID occurs
+        in this review.
+    """
+    aside = {}
+    kept_findings = []
+    for finding in findings:
+        if finding["id"] in decisions:
+            aside[finding["id"]] = decisions[finding["id"]]
+        else:
+            kept_findings.append(finding)
+    kept_questions = []
+    for question in questions:
+        qid = question_id(question)
+        if qid in decisions:
+            aside[qid] = decisions[qid]
+        else:
+            kept_questions.append(question)
+    return kept_findings, kept_questions, aside
+
+
+def has_maintainer_permission(permission: str | None) -> bool:
+    """Tells whether a repository permission lets someone set findings aside.
+
+    Args:
+        permission: GitHub's permission word for a collaborator.
+
+    Returns:
+        True for admin, maintain and write.
+    """
+    return permission in MAINTAINER_PERMISSIONS
+
+
+def make_is_maintainer(fetch_permission: Callable[[str], str]) -> Callable[[str], bool]:
+    """Builds the maintainer check, with one lookup per login.
+
+    Args:
+        fetch_permission: Returns a login's permission word; may raise.
+
+    Returns:
+        A function from login to bool; False when the lookup fails.
+    """
+    cache: dict[str, bool] = {}
+
+    def is_maintainer(login: str) -> bool:
+        if login not in cache:
+            try:
+                cache[login] = has_maintainer_permission(fetch_permission(login))
+            except (RuntimeError, ValueError, KeyError, OSError):
+                cache[login] = False
+        return cache[login]
+
+    return is_maintainer
+
+
 def render_comment(
     title: str,
     verdict_text: str,
@@ -915,6 +1093,7 @@ def render_comment(
     kept: list[dict],
     questions: list[str],
     reading_order: list[str],
+    set_aside: dict[str, dict] | None = None,
 ) -> str:
     """Renders the review comment in the CODING.md format.
 
@@ -927,6 +1106,7 @@ def render_comment(
         kept: The findings that passed the filter.
         questions: Product-fit questions for the maintainers.
         reading_order: Files in reading order, for large PRs.
+        set_aside: ID to `login` and `reason` of what maintainers set aside.
 
     Returns:
         The comment text, starting with the marker.
@@ -950,7 +1130,8 @@ def render_comment(
         lines.append("Findings:")
         for item in ordered:
             lines.append(
-                f"- [{item['severity']}] {review_lib.neutralize(item['path'])}:{item['line']}"
+                f"- [{item['severity']}] {item['id']}"
+                f" {review_lib.neutralize(item['path'])}:{item['line']}"
                 f" — {item['rule']} — {review_lib.neutralize(item['problem'])}"
                 f" — {review_lib.neutralize(item['fix'])}"
             )
@@ -958,10 +1139,21 @@ def render_comment(
         lines.append("Findings: none")
     if questions:
         lines.append("Questions for maintainers:")
-        lines.extend(f"- {review_lib.neutralize(question)}" for question in questions)
+        lines.extend(
+            f"- {question_id(question)} {review_lib.neutralize(question)}"
+            for question in questions
+        )
+    if set_aside:
+        items = ", ".join(
+            f"{key} ({value['login']}: {value['reason']})"
+            for key, value in set_aside.items()
+        )
+        lines.append(f"Set aside by a maintainer: {items}")
     if reading_order:
         items = (review_lib.neutralize(item) for item in reading_order)
         lines.append(f"Reading order: {', '.join(items)}")
+    if ordered or questions or set_aside:
+        lines.append(REPLY_INSTRUCTION)
     return "\n".join(lines) + "\n"
 
 
@@ -1804,6 +1996,15 @@ def load_pr(repo: str, number: int, at_first_review: bool) -> dict:
             for item in comments
         ],
         "head_sha": head_sha,
+        "decision_comments": [
+            {
+                "login": item["user"]["login"],
+                "body": item["body"],
+                "created_at": item["created_at"],
+            }
+            for item in [*comments, *inline]
+            if moment is None or item["created_at"] < moment
+        ],
     }
 
 
@@ -2096,9 +2297,22 @@ def run(args: argparse.Namespace) -> None:
         make_verifier(base_url, model, api_key),
     )
     program = program_findings(title, facts, data["files"])
-    kept, capped = cap_findings(
-        merge_findings(program, kept), cap_for_size(facts["size"])
+    questions = keep_questions(answer["questions"], facts)
+    kept, questions, set_aside = apply_decisions(
+        assign_ids(merge_findings(program, kept)),
+        questions,
+        maintainer_decisions(
+            data["decision_comments"],
+            make_is_maintainer(
+                lambda login: gh_json(
+                    f"repos/{args.repo}/collaborators/{urllib.parse.quote(login)}"
+                    "/permission"
+                )["permission"]
+            ),
+            data["pr"]["user"]["login"],
+        ),
     )
+    kept, capped = cap_findings(kept, cap_for_size(facts["size"]))
     check_runs = load_check_runs(args.repo, data["head_sha"])
     merge_line = merge_readiness_line(
         ci_state(check_runs),
@@ -2119,8 +2333,9 @@ def run(args: argparse.Namespace) -> None:
         merge_line,
         facts["sensitive_areas"],
         kept,
-        keep_questions(answer["questions"], facts),
+        questions,
         reading_order(paths, areas, facts["size"]),
+        set_aside,
     )
 
     if args.out:
@@ -2141,6 +2356,7 @@ def run(args: argparse.Namespace) -> None:
             ).hexdigest(),
             "discussion": data["discussion"],
             "merge_readiness": merge_line,
+            "set_aside": set_aside,
             "program_findings": program,
             "model_output": answer,
             "kept": kept,

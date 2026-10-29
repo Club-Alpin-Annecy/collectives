@@ -4,6 +4,7 @@ The modules are not a package: they are imported by adding their folder to
 `sys.path`.
 """
 
+import hashlib
 import importlib
 import io
 import json
@@ -463,6 +464,7 @@ VALID_FINDING = {
     "fix": "f",
     "evidence": "x = compute(value)",
     "relies_on": "",
+    "id": "a3f9",
 }
 RULE_IDS = {"DB1", "PY5"}
 ADDED = {"a.py": {3, 4}}
@@ -599,9 +601,10 @@ def test_render_comment_empty(bot):
 def test_render_comment_full(bot):
     """Findings sorted by severity (stable), then questions and reading order."""
     kept = [
-        finding(severity="SUGGESTION", path="c.py", line=1, rule="NEW"),
-        finding(path="a.py", line=2, rule="DB1", problem="p1", fix="f1"),
+        finding(severity="SUGGESTION", path="c.py", line=1, rule="NEW", id="0003"),
+        finding(path="a.py", line=2, rule="DB1", problem="p1", fix="f1", id="0001"),
         finding(
+            id="0002",
             severity="SHOULD-FIX",
             path="b.py",
             line=3,
@@ -609,7 +612,7 @@ def test_render_comment_full(bot):
             problem="p2",
             fix="f2",
         ),
-        finding(path="a.py", line=9, rule="SEC1", problem="p3", fix="f3"),
+        finding(path="a.py", line=9, rule="SEC1", problem="p3", fix="f3", id="0004"),
     ]
     text = bot.render_comment(
         "My title",
@@ -629,14 +632,15 @@ def test_render_comment_full(bot):
         "Merge readiness: ready\n"
         "Sensitive areas touched: payment, deployment\n"
         "Findings:\n"
-        "- [BLOCKING] a.py:2 — DB1 — p1 — f1\n"
-        "- [BLOCKING] a.py:9 — SEC1 — p3 — f3\n"
-        "- [SHOULD-FIX] b.py:3 — PY5 — p2 — f2\n"
-        "- [SUGGESTION] c.py:1 — NEW — p — f\n"
+        "- [BLOCKING] 0001 a.py:2 — DB1 — p1 — f1\n"
+        "- [BLOCKING] 0004 a.py:9 — SEC1 — p3 — f3\n"
+        "- [SHOULD-FIX] 0002 b.py:3 — PY5 — p2 — f2\n"
+        "- [SUGGESTION] 0003 c.py:1 — NEW — p — f\n"
         "Questions for maintainers:\n"
-        "- Why this?\n"
-        "- And that?\n"
-        "Reading order: a.py, b.py"
+        f"- {bot.question_id('Why this?')} Why this?\n"
+        f"- {bot.question_id('And that?')} And that?\n"
+        "Reading order: a.py, b.py\n"
+        "To set one aside, reply in the PR: <id> skip: <reason>"
     )
 
 
@@ -1566,7 +1570,7 @@ def test_render_comment_keeps_the_path_as_is(bot):
     """The path is not prose: it is posted unchanged."""
     kept = [finding(path="collectives/a.py")]
     text = bot.render_comment("t", "v", "c", MERGE_LINE, [], kept, [], [])
-    assert "- [BLOCKING] collectives/a.py:3 — DB1 — p — f" in text
+    assert "- [BLOCKING] a3f9 collectives/a.py:3 — DB1 — p — f" in text
 
 
 def test_render_issue_neutralizes_title_and_author(dash):
@@ -2901,7 +2905,7 @@ def output_format_labels() -> list[str]:
 
 def test_output_format_labels_are_read_from_coding_md():
     """Guards the helper: the labels of the format, with Merge readiness (F10)."""
-    assert output_format_labels() == [
+    expected = [
         "## Review",
         "Verdict:",
         "Checks run:",
@@ -2911,6 +2915,8 @@ def test_output_format_labels_are_read_from_coding_md():
         "Questions for maintainers:",
         "Reading order:",
     ]
+    labels = output_format_labels()
+    assert [label for label in labels if label in expected] == expected
 
 
 def test_skill_has_frontmatter_name_and_description():
@@ -3331,3 +3337,439 @@ def test_main_still_fails_on_a_bug_without_the_annotation(bot, monkeypatch, caps
     code = run_main(bot, monkeypatch, RuntimeError("boom"))
     assert code == 1
     assert SKIPPED_PREFIX not in capsys.readouterr().out
+
+
+# ------------------------------------------------ round 8: G1 finding IDs
+
+HEX4 = re.compile(r"[0-9a-f]{4}")
+
+
+def sha_start(*parts: str, length: int = 4) -> str:
+    """The start of the sha1 over the parts joined by NUL, as the contract says."""
+    return hashlib.sha1("\0".join(parts).encode("utf-8")).hexdigest()[:length]
+
+
+def id_of(bot, **changes) -> str:
+    """The ID of a valid finding with some fields replaced."""
+    return bot.finding_id(finding(**changes))
+
+
+def test_finding_id_is_four_lowercase_hex_characters(bot):
+    """Format of the ID."""
+    assert HEX4.fullmatch(id_of(bot))
+
+
+def test_finding_id_is_the_start_of_sha1_over_rule_path_and_quote(bot):
+    """Pinned exactly: sha1 of rule, path and collapsed evidence joined by NUL."""
+    item = finding(rule="DB1", path="a.py", evidence="x  =\t1")
+    assert bot.finding_id(item) == sha_start("DB1", "a.py", "x = 1")
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"line": 99},
+        {"problem": "reworded"},
+        {"fix": "other fix"},
+        {"severity": "SUGGESTION"},
+    ],
+    ids=["line", "problem", "fix", "severity"],
+)
+def test_finding_id_is_stable_when_other_fields_change(bot, changes):
+    """Moving the line or rewording the text keeps the ID."""
+    assert id_of(bot, **changes) == id_of(bot)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [{"rule": "PY5"}, {"path": "b.py"}, {"evidence": "y = other()"}],
+    ids=["rule", "path", "evidence"],
+)
+def test_finding_id_changes_with_rule_path_or_evidence(bot, changes):
+    """A different rule, file or quoted line is another finding."""
+    assert id_of(bot, **changes) != id_of(bot)
+
+
+def test_finding_id_ignores_whitespace_in_the_evidence(bot):
+    """Spacing differences in the quote do not change the ID."""
+    spaced = id_of(bot, evidence="  x   =\tcompute(value) \n")
+    assert spaced == id_of(bot, evidence="x = compute(value)")
+
+
+def test_finding_id_without_evidence_uses_the_line(bot):
+    """A program finding has no quote: the line number stands in."""
+    bare = {k: v for k, v in finding().items() if k != "evidence"}
+    assert bot.finding_id({**bare, "line": 3}) == sha_start("DB1", "a.py", "3")
+    assert bot.finding_id({**bare, "line": 3}) == bot.finding_id({**bare, "line": 3})
+    assert bot.finding_id({**bare, "line": 4}) != bot.finding_id({**bare, "line": 3})
+
+
+def test_assign_ids_sets_an_id_on_each_finding(bot):
+    """Each finding gets its own ID."""
+    items = [finding(evidence="one"), finding(evidence="two")]
+    result = bot.assign_ids(items)
+    assert [item["id"] for item in result] == [bot.finding_id(i) for i in items]
+
+
+def test_assign_ids_suffixes_collisions(bot):
+    """Identical findings get -2, -3 after the first."""
+    base = bot.finding_id(finding())
+    result = bot.assign_ids([finding(), finding(), finding()])
+    assert [item["id"] for item in result] == [base, f"{base}-2", f"{base}-3"]
+
+
+def test_question_id_is_q_and_three_hex_and_stable_on_whitespace(bot):
+    """Question IDs follow the text, spacing aside."""
+    qid = bot.question_id("Why this?")
+    assert re.fullmatch(r"q[0-9a-f]{3}", qid)
+    assert bot.question_id("  Why   this?\n") == qid
+    assert bot.question_id("Something else?") != qid
+
+
+# ------------------------------------------------ round 8: G2 rendering
+
+REPLY = "To set one aside, reply in the PR: <id> skip: <reason>"
+
+
+def render_with(bot, kept, questions=(), set_aside=None) -> str:
+    """Renders a comment with the pinned `set_aside` keyword."""
+    return bot.render_comment(
+        "t",
+        "v",
+        "c",
+        MERGE_LINE,
+        [],
+        kept,
+        list(questions),
+        [],
+        set_aside=set_aside,
+    )
+
+
+def test_render_comment_shows_the_id_after_the_severity(bot):
+    """`- [SEVERITY] <id> path:line — RULE — problem — fix`."""
+    text = render_with(bot, [finding(id="beef")])
+    assert "- [BLOCKING] beef a.py:3 — DB1 — p — f" in text
+
+
+def test_render_comment_shows_question_ids(bot):
+    """`- <qid> text`."""
+    text = render_with(bot, [], ["Why this?"])
+    assert f"- {bot.question_id('Why this?')} Why this?" in text
+
+
+def test_render_comment_set_aside_line(bot):
+    """One line, only when something was set aside."""
+    aside = {
+        "beef": {"login": "noe", "reason": "not relevant"},
+        "q123": {"login": "gilles", "reason": "ok"},
+    }
+    text = render_with(bot, [finding(id="cafe")], ["Why?"], aside)
+    assert (
+        "Set aside by a maintainer: beef (noe: not relevant), q123 (gilles: ok)"
+        in text.splitlines()
+    )
+    assert "Set aside" not in render_with(bot, [finding(id="cafe")])
+    assert "Set aside" not in render_with(bot, [finding(id="cafe")], set_aside={})
+
+
+def test_render_comment_set_aside_line_comes_after_the_questions(bot):
+    """After the questions block."""
+    aside = {"beef": {"login": "noe", "reason": "r"}}
+    text = render_with(bot, [finding(id="cafe")], ["Why?"], aside)
+    assert text.index("Why?") < text.index("Set aside by a maintainer")
+
+
+def test_render_comment_reply_instruction_is_last_with_a_finding(bot):
+    """Last line whenever there is a finding."""
+    text = render_with(bot, [finding(id="cafe")])
+    assert text.rstrip("\n").splitlines()[-1] == REPLY
+
+
+def test_render_comment_reply_instruction_is_last_with_a_question_only(bot):
+    """Also with questions and no finding."""
+    text = render_with(bot, [], ["Why?"])
+    assert text.rstrip("\n").splitlines()[-1] == REPLY
+
+
+def test_render_comment_no_reply_instruction_without_finding_or_question(bot):
+    """Nothing to set aside, nothing to explain."""
+    assert "To set one aside" not in render_with(bot, [])
+
+
+# ------------------------------------------------ round 8: G3 maintainer decisions
+
+
+def note(login: str, body: str, at: str) -> dict:
+    """A PR comment as `maintainer_decisions` reads it."""
+    return {"login": login, "body": body, "created_at": at}
+
+
+T1, T2, T3 = (f"2026-10-29T1{n}:00:00Z" for n in (0, 1, 2))
+
+
+def noe_only(login: str) -> bool:
+    """A maintainer test: only `noe` is one."""
+    return login == "noe"
+
+
+def test_decisions_skip_with_login_and_reason(bot):
+    """A maintainer's skip is returned with who and why."""
+    result = bot.maintainer_decisions(
+        [note("noe", "a3f9 skip: not a bug", T1)], noe_only
+    )
+    assert result == {"a3f9": {"login": "noe", "reason": "not a bug"}}
+
+
+def test_decisions_skip_without_reason_and_suffixed_id(bot):
+    """The reason may be empty; `-2` IDs and question IDs are accepted."""
+    comments = [note("noe", "a3f9-2 skip\nq12a skip: no", T1)]
+    result = bot.maintainer_decisions(comments, noe_only)
+    assert result == {
+        "a3f9-2": {"login": "noe", "reason": ""},
+        "q12a": {"login": "noe", "reason": "no"},
+    }
+
+
+def test_decisions_are_processed_oldest_first_whatever_the_input_order(bot):
+    """A later keep cancels an earlier skip even when listed first."""
+    comments = [note("noe", "a3f9 keep", T2), note("noe", "a3f9 skip: r", T1)]
+    assert bot.maintainer_decisions(comments, noe_only) == {}
+
+
+def test_decisions_latest_skip_wins(bot):
+    """The newest decision per ID wins; here a skip after a keep."""
+    comments = [
+        note("noe", "a3f9 skip: first", T3),
+        note("noe", "a3f9 keep", T2),
+        note("noe", "a3f9 skip: old", T1),
+    ]
+    assert bot.maintainer_decisions(comments, noe_only)["a3f9"]["reason"] == "first"
+
+
+def test_decisions_ignore_non_maintainers(bot):
+    """A contributor's skip changes nothing."""
+    comments = [note("outsider", "a3f9 skip: please", T1)]
+    assert bot.maintainer_decisions(comments, noe_only) == {}
+
+
+def test_decisions_ignore_comments_holding_the_bot_marker(bot):
+    """The bot's own text (or a quote of it) is never a decision."""
+    body = f"{bot.MARKER}\na3f9 skip: quoted"
+    assert bot.maintainer_decisions([note("noe", body, T1)], noe_only) == {}
+
+
+def test_decisions_several_in_one_comment(bot):
+    """Each matching line is a decision."""
+    result = bot.maintainer_decisions(
+        [note("noe", "thanks!\na3f9 skip: one\nbeef skip: two\nmore text", T1)],
+        noe_only,
+    )
+    assert set(result) == {"a3f9", "beef"}
+
+
+def test_decisions_are_case_insensitive_and_ids_come_back_lowercase(bot):
+    """`A3F9 SKIP:` works; pinned: the key is lowercased."""
+    result = bot.maintainer_decisions([note("noe", "A3F9 SKIP: Why", T1)], noe_only)
+    assert list(result) == ["a3f9"]
+    assert result["a3f9"]["reason"] == "Why"
+
+
+def test_decisions_reason_is_neutralized_and_cut_at_100(bot):
+    """A mention is backticked; a long reason is cut to 100 characters."""
+    mention = bot.maintainer_decisions(
+        [note("noe", "a3f9 skip: ask @bob", T1)], noe_only
+    )
+    assert mention["a3f9"]["reason"] == "ask `@bob`"
+    long = bot.maintainer_decisions(
+        [note("noe", "a3f9 skip: " + "x" * 150, T1)], noe_only
+    )
+    assert len(long["a3f9"]["reason"]) == 100
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "see a3f9 above",
+        "I would skip a3f9",
+        "a3f9 skipped it",
+        "a3f9: skip",
+        "xa3f9 skip",
+    ],
+)
+def test_decisions_prose_mentioning_an_id_is_not_a_decision(bot, line):
+    """Only a line that starts with the ID and then skip/keep counts."""
+    assert bot.maintainer_decisions([note("noe", line, T1)], noe_only) == {}
+
+
+# ------------------------------------------------ round 8: G4 applying decisions
+
+
+def numbered_findings(count: int, severity="BLOCKING") -> list[dict]:
+    """Findings with distinct evidence and ready IDs."""
+    items = [
+        finding(severity=severity, evidence=f"e{n}", problem=f"f{n}")
+        for n in range(count)
+    ]
+    return bot_assign(items)
+
+
+def bot_assign(items: list[dict]) -> list[dict]:
+    """`assign_ids` of the loaded module."""
+    return load_module("review_bot").assign_ids(items)
+
+
+def decision(login="noe", reason="no") -> dict:
+    """A decision as `maintainer_decisions` returns it."""
+    return {"login": login, "reason": reason}
+
+
+def test_apply_decisions_removes_the_set_aside_finding(bot):
+    """Pinned: `apply_decisions(findings, questions, decisions)`."""
+    items = numbered_findings(3)
+    gone = items[1]["id"]
+    kept, _, aside = bot.apply_decisions(items, [], {gone: decision()})
+    assert [item["id"] for item in kept] == [items[0]["id"], items[2]["id"]]
+    assert aside == {gone: decision()}
+
+
+def test_apply_decisions_removes_a_set_aside_question(bot):
+    """Questions are set aside by their `q` ID."""
+    qid = bot.question_id("Why this?")
+    _, questions, aside = bot.apply_decisions(
+        [], ["Why this?", "And that?"], {qid: decision()}
+    )
+    assert questions == ["And that?"]
+    assert list(aside) == [qid]
+
+
+def test_apply_decisions_does_not_list_an_id_absent_from_this_review(bot):
+    """A skip for something this review no longer says is not shown."""
+    items = numbered_findings(1)
+    kept, _, aside = bot.apply_decisions(items, [], {"dead": decision()})
+    assert kept == items
+    assert aside == {}
+
+
+def test_apply_decisions_can_set_aside_a_program_finding(bot):
+    """Program findings have IDs too."""
+    prog = bot_assign(program(bot, stray_files=[".vscode/launch.json"]))
+    kept, _, aside = bot.apply_decisions(prog, [], {prog[0]["id"]: decision()})
+    assert kept == []
+    assert list(aside) == [prog[0]["id"]]
+
+
+def test_set_aside_happens_before_the_cap_so_another_finding_takes_the_place(bot):
+    """With 6 findings and a cap of 5, setting one aside brings the 6th in."""
+    items = numbered_findings(6)
+    kept, _, _ = bot.apply_decisions(items, [], {items[0]["id"]: decision()})
+    shown, capped = bot.cap_findings(kept, 5)
+    assert items[5]["id"] in [item["id"] for item in shown]
+    assert capped == []
+
+
+def test_set_aside_blocking_no_longer_counts_in_the_verdict(bot):
+    """Only SUGGESTIONs left: the verdict is no longer CHANGES REQUESTED."""
+    blocking = numbered_findings(1)[0]
+    suggestion = bot_assign([finding(severity="SUGGESTION", evidence="s")])[0]
+    kept, _, _ = bot.apply_decisions(
+        [blocking, suggestion], [], {blocking["id"]: decision()}
+    )
+    assert bot.verdict(kept) == "APPROVE WITH COMMENTS"
+
+
+# ------------------------------------------------ round 8: G5 seam (maintainer check)
+
+
+@pytest.mark.parametrize("permission", ["admin", "maintain", "write"])
+def test_maintainer_permissions_are_accepted(bot, permission):
+    """Pinned: `has_maintainer_permission(permission)`."""
+    assert bot.has_maintainer_permission(permission) is True
+
+
+@pytest.mark.parametrize("permission", ["read", "triage", "none", "", None])
+def test_other_permissions_are_refused(bot, permission):
+    """Reading or triaging rights do not let someone set findings aside."""
+    assert bot.has_maintainer_permission(permission) is False
+
+
+def test_make_is_maintainer_caches_per_login_and_refuses_on_error(bot):
+    """Pinned: `make_is_maintainer(fetch_permission)`; one fetch per login."""
+    calls = []
+
+    def fetch(login):
+        calls.append(login)
+        if login == "broken":
+            raise RuntimeError("HTTP 500")
+        return {"noe": "admin", "outsider": "read"}[login]
+
+    is_maintainer = bot.make_is_maintainer(fetch)
+    assert is_maintainer("noe") is True
+    assert is_maintainer("noe") is True
+    assert is_maintainer("outsider") is False
+    assert is_maintainer("broken") is False
+    assert calls == ["noe", "outsider", "broken"]
+
+
+# ------------------------------------------------ round 8: G6 documents
+
+
+def output_block(text: str) -> str:
+    """The first fenced block after '## Output format' in a document."""
+    return text.split("## Output format", 1)[1].split("```")[1]
+
+
+@pytest.mark.parametrize(
+    "needle", ["<id>", "Set aside by a maintainer", "reply in the PR"]
+)
+def test_coding_md_output_format_shows_ids_and_set_aside(needle):
+    """The format block names the ID, the set-aside line and the reply."""
+    assert needle in output_block(CODING_MD)
+
+
+@pytest.mark.parametrize(
+    "needle", ["<id>", "Set aside by a maintainer", "reply in the PR"]
+)
+def test_skill_shows_ids_and_set_aside(needle):
+    """SKILL.md repeats them."""
+    assert needle in SKILL_PATH.read_text(encoding="utf-8")
+
+
+# ------------------------------------------------ round 8: G7 the author cannot decide
+
+
+def everyone(_login: str) -> bool:
+    """All commenters count as maintainers."""
+    return True
+
+
+def test_decisions_ignore_the_pr_author_even_when_a_maintainer(bot):
+    """A maintainer cannot set aside findings on their own PR (case-insensitive)."""
+    comments = [note("Florent", "a3f9 skip: mine", T1)]
+    assert bot.maintainer_decisions(comments, everyone, author="florent") == {}
+    assert bot.maintainer_decisions(comments, everyone, author="FLORENT") == {}
+
+
+def test_decisions_another_maintainer_can_skip_on_that_pr(bot):
+    """Only the author is excluded."""
+    comments = [note("noe", "a3f9 skip: fine", T1)]
+    result = bot.maintainer_decisions(comments, everyone, author="florent")
+    assert result == {"a3f9": {"login": "noe", "reason": "fine"}}
+
+
+def test_decisions_without_author_keep_todays_behaviour(bot):
+    """`author=None`, or omitted, excludes nobody."""
+    comments = [note("florent", "a3f9 skip: ok", T1)]
+    expected = {"a3f9": {"login": "florent", "reason": "ok"}}
+    assert bot.maintainer_decisions(comments, everyone, author=None) == expected
+    assert bot.maintainer_decisions(comments, everyone) == expected
+
+
+def test_decisions_the_authors_keep_is_ignored_too(bot):
+    """The author cannot cancel another maintainer's skip."""
+    comments = [
+        note("noe", "a3f9 skip: no", T1),
+        note("florent", "a3f9 keep", T2),
+    ]
+    result = bot.maintainer_decisions(comments, everyone, author="Florent")
+    assert result == {"a3f9": {"login": "noe", "reason": "no"}}
