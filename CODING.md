@@ -13,6 +13,29 @@ here in the same PR.
    the need. No speculative abstraction, configuration or generalisation
    for cases that do not exist yet; reuse existing helpers before adding
    new ones.
+ * **GEN2** One concern per PR. No IDE, personal or debug files
+   (`launch.json`, `.vscode/`, `console.log`, `breakpoint()`).
+
+## Product
+ * **PROD1** A need specific to one activity is met by configuration (an
+   activity type option or a configuration item), not by code written for
+   that activity.
+ * **PROD2** Collectives is shared by several clubs, and a feature should
+   serve all of them. When only some clubs need it, it is off by default,
+   leaves no trace when off (no menu, route, log or scheduled task), and is
+   tested both off and on.
+ * **PROD3** A new module, data domain or outside integration should name
+   who will maintain it in the PR description.
+ * **PROD4** Prefer an extension point (a setting, a switch, the API, an
+   outside integration) to changing core behaviour. A PR that changes
+   existing behaviour for every user says so in its description and needs a
+   maintainer decision.
+ * **PROD5** Prefer hot configuration to cold. Anything a club may want to
+   change (texts, thresholds, switches, the club's identifiers on other
+   services) is an item in `collectives/configuration.yaml`, editable from
+   the site without a restart. `config.py` and `instance/config.py`, read
+   once at start-up, keep only what the server needs to start (secret key,
+   database, paths) or what must never be editable from the site.
 
 ## Python style
  * **PY1** Always format Python code using [ruff](https://astral.sh/ruff) (`uvx ruff format`).
@@ -51,8 +74,13 @@ here in the same PR.
        return True
    ```
 
-## HTML
+## HTML and user interface
  * **HTML1** Indent with spaces.
+ * **UI1** Text shown to users follows French spelling conventions
+   (`événement`, not `évènement`).
+ * **UI2** Every page works on a phone: no horizontal scrolling, nothing cut
+   off, buttons and fields usable by touch. Check a new or changed page at
+   phone width before asking for a review.
 
 ## All language types
  * **ALL1** Do not add blank spaces at end of line.
@@ -82,6 +110,15 @@ here in the same PR.
    services are added to `SECRET_CONFIGURATION_ITEMS` in
    `collectives/utils/anonymize.py`.
  * **SEC3** Never log or display secrets or personal data that is not needed.
+ * **SEC4** Uploaded documents other than images are served as attachments
+   (`Content-Disposition: attachment`), never rendered by the browser.
+ * **SEC5** A route acting on one event, user or role checks the rights on
+   that object (for instance `event.has_edit_rights`), not only the user's
+   general role.
+
+## Performance
+ * **PERF1** No database query per item inside a loop: load what the loop
+   needs once.
 
 ## External services
  * **EXT1** Every call to an external server (HTTP, SOAP, SMTP...) has a
@@ -131,6 +168,7 @@ whatever the review verdict:
  * deployment: `deployment/`, `Dockerfile`
  * personal data and anonymisation: `collectives/utils/anonymize.py`,
    exports
+ * review bot: `.github/workflows/`, `.github/review/`
 
 # Code review
 
@@ -186,7 +224,10 @@ Sensitive areas touched: <list, or none>
 Findings:
 - [BLOCKING] path/to/file.py:42 — DB1 — <problem> — <proposed fix>
 - [SUGGESTION] path/to/other.py:10 — NEW — <problem> — <proposed fix>
+Questions for maintainers:
+- <a product question (PROD rules) the maintainers decide, never the reviewer>
+Reading order: <files in the order to read them, for PRs over 400 changed lines>
 ```
 Every finding cites a rule ID, or `NEW` when no rule covers it (a candidate
 for a new rule). The verdict is `CHANGES REQUESTED` as soon as there is one
-`BLOCKING` finding.
+`BLOCKING` finding. The two last blocks appear only when they have content.
