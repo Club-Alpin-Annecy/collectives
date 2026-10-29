@@ -32,6 +32,11 @@ REPO_ROOT = REVIEW_DIR.parents[1]
 MAX_DIFF_CHARS = 150_000
 MAX_DISCUSSION_CHARS = 30_000
 MODEL_TIMEOUT = 300
+MODEL_ATTEMPTS = 4
+RETRY_STATUSES = (402, 429, 500, 502, 503, 504)
+RETRY_DELAYS = (15, 45, 90)
+RETRY_AFTER_CAP = 120
+SUMMARY_ENV = "GITHUB_STEP_SUMMARY"
 READING_ORDER_MIN_SIZE = 400
 NEW_RULE = "NEW"
 FINDING_KEYS = (
@@ -681,6 +686,57 @@ def build_messages(
     ]
 
 
+class ModelUnavailable(RuntimeError):
+    """The model could not answer, after the retries or on a final refusal."""
+
+
+def should_retry(status: int | None) -> bool:
+    """Tells whether a failed model call is worth another attempt.
+
+    Args:
+        status: The HTTP status, or None for a network error or a timeout.
+
+    Returns:
+        True for a network error and the transient statuses.
+    """
+    return status is None or status in RETRY_STATUSES
+
+
+def retry_delay(attempt: int, retry_after: str | None) -> float:
+    """Computes the pause before the next model attempt.
+
+    Args:
+        attempt: The number of the attempt that just failed, from 1.
+        retry_after: The `Retry-After` header, if any.
+
+    Returns:
+        The server's number of seconds (at most 120) when it gave one, else
+        15, 45 or 90 seconds by attempt.
+    """
+    try:
+        return min(float(retry_after), RETRY_AFTER_CAP)
+    except (TypeError, ValueError):
+        return RETRY_DELAYS[min(attempt, len(RETRY_DELAYS)) - 1]
+
+
+def unavailable_note(error: str) -> str:
+    """Writes the Markdown note shown when the model could not be reached.
+
+    Args:
+        error: The one-line error.
+
+    Returns:
+        A short note for the job summary.
+    """
+    return (
+        "## Review skipped\n\n"
+        "The model was unavailable after several attempts, so no review was "
+        "posted and any earlier comment is untouched.\n\n"
+        "Re-run it from Actions > Pull request review > Run workflow.\n\n"
+        f"Error: {error}\n"
+    )
+
+
 def call_model(
     messages: list[dict],
     base_url: str,
@@ -701,7 +757,8 @@ def call_model(
         The content of the first choice.
 
     Raises:
-        RuntimeError: When both attempts fail.
+        ModelUnavailable: When the model cannot be reached after the attempts,
+            or refuses the request for good.
     """
     body = json.dumps({"model": model, "messages": messages, "temperature": 0})
     request = urllib.request.Request(
@@ -714,18 +771,21 @@ def call_model(
         method="POST",
     )
     last_error = ""
-    for _ in range(2):
+    for attempt in range(1, MODEL_ATTEMPTS + 1):
+        status, retry_after = None, None
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 data = json.load(response)
             return data["choices"][0]["message"]["content"]
         except urllib.error.HTTPError as error:
-            last_error = f"HTTP {error.code}"
-            if error.code < 500:
-                break
+            status = error.code
+            retry_after = error.headers.get("Retry-After") if error.headers else None
+            last_error = f"HTTP {status}"
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             last_error = type(error).__name__
-    raise RuntimeError(f"model call failed ({last_error})")
+        if not should_retry(status) or attempt == MODEL_ATTEMPTS:
+            raise ModelUnavailable(f"{last_error} after {attempt} attempt(s)")
+        time.sleep(retry_delay(attempt, retry_after))
 
 
 class ModelAnswerError(ValueError):
@@ -1163,6 +1223,20 @@ def post_comment(repo: str, number: int, own_id: int | None, body: str) -> None:
     gh_api(["--method", method, "--input", "-", endpoint], stdin=payload)
 
 
+def write_summary(text: str) -> None:
+    """Appends text to the job summary file, or prints it when there is none.
+
+    Args:
+        text: The Markdown to show.
+    """
+    path = os.environ.get(SUMMARY_ENV)
+    if not path:
+        print(text)
+        return
+    with open(path, "a", encoding="utf-8") as summary:
+        summary.write(text)
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     """Parses the command line.
 
@@ -1180,6 +1254,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--at-first-review",
         action="store_true",
         help="use the PR as it was just before the first human review",
+    )
+    parser.add_argument(
+        "--summary-only",
+        action="store_true",
+        help="write the comment to the job summary (or stdout), never post",
     )
     parser.add_argument("--out", type=Path, help="directory for pr-<n>.md and .json")
     return parser.parse_args(argv)
@@ -1323,6 +1402,9 @@ def run(args: argparse.Namespace) -> None:
     if args.dry_run:
         print(comment)
         return
+    if args.summary_only:
+        write_summary(comment)
+        return
     post_comment(args.repo, args.pr, own_id, comment)
 
 
@@ -1338,6 +1420,11 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
         run(args)
+    except ModelUnavailable as error:
+        print(f"model unavailable, review skipped: {error}", file=sys.stderr)
+        if os.environ.get(SUMMARY_ENV):
+            write_summary(unavailable_note(str(error)))
+        return 0
     except (RuntimeError, ValueError, OSError, KeyError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
