@@ -38,6 +38,11 @@ def app(db_file):
         "../tests/assets/config.test.py", extra_config=extra_config
     )
 
+    # Configuration._cache is process-wide: values cached by a previous test
+    # (e.g. PAYMENT_ENABLED set by enable_payment) would otherwise shadow this
+    # test's fresh database for CONFIGURATION_CACHE_TIME seconds.
+    Configuration._cache.clear()
+
     with fixture_app.app_context():
         db.drop_all()
         db.create_all()
