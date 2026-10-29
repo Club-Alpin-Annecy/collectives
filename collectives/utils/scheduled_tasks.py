@@ -5,6 +5,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from collectives.utils.loxya_sync import sync_all_users
 from collectives.utils.misc import purge_expired_accounts
 
 LOGGER = logging.getLogger(__name__)
@@ -35,8 +36,28 @@ def init_scheduler(app):
         id="purge_expired_accounts",
         replace_existing=True,
     )
+
+    def _loxya_sync_job():
+        """Run :func:`sync_all_users` within the app context."""
+        with app.app_context():
+            sync_all_users()
+
+    # Armed on every deployment, since LOXYA_ENABLED is a hot setting: the job
+    # reads it at each run, and does nothing, silently, while it is off.
+    # Nightly rather than event driven: a licence expiry is a date passing, no
+    # request of ours runs at that moment.
+    scheduler.add_job(
+        _loxya_sync_job,
+        CronTrigger(hour=4, minute=30),
+        id="loxya_sync",
+        replace_existing=True,
+    )
+
     scheduler.start()
     app.extensions["scheduler"] = scheduler
 
-    LOGGER.info("Background scheduler started (purge_expired_accounts: monthly)")
+    LOGGER.info(
+        "Background scheduler started (%s)",
+        ", ".join(job.id for job in scheduler.get_jobs()),
+    )
     return scheduler
