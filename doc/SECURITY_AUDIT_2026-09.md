@@ -288,9 +288,11 @@ client. Un acheteur connaissant son `processor_token` (affiché par
 de production où les paiements sont activés mais Payline mal configuré, les
 inscriptions payantes deviennent gratuites.
 
-**Recommandation** : n'autoriser le mock qu'en `DEBUG`/`TESTING`. **Corrigé.**
-Une instance de démonstration peut le réactiver explicitement avec
-`PAYLINE_ALLOW_MOCK = True` dans `instance/config.py`.
+HelloAsso, ajouté depuis (#943), avait le même défaut quand
+`HELLOASSO_CLIENT_ID` est vide.
+
+**Recommandation** : n'autoriser le mock qu'en `DEBUG`/`TESTING`. **Corrigé**
+pour les deux prestataires (`PaymentProvider.mock_allowed()`).
 
 ### M6 — Export des rôles hors périmètre supervisé
 
@@ -366,8 +368,7 @@ Un commit par correction, dans l'ordre :
 6. M4 — `|tojson` dans `user_list.html`, licence en attribut `data-license`
    dans `login.py`, JSON échappé dans `BadgeIds.js_levels()` et noms de
    niveaux insérés en texte dans `badges_list.js`.
-7. M5 — mock Payline limité à `DEBUG`/`TESTING`, ou à `PAYLINE_ALLOW_MOCK`
-   (instance de démonstration).
+7. M5 — mock Payline et HelloAsso limité à `DEBUG`/`TESTING`.
 8. M6 — périmètre de `export_role`.
 9. M7 — liste blanche des filtres admin.
 10. C3 — avertissement critique au démarrage sur les secrets par défaut.

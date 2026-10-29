@@ -606,15 +606,15 @@ def do_mock_payment(token):
     :param token: The unique string identifying the payment
     :type token: string
     """
-    if not payline.api.mock_allowed():
-        abort(404)
-
     payment = Payment.query.filter_by(processor_token=token).first()
     if payment is None:
         abort(403)
 
-    amount = int((payment.amount_charged * 100).to_integral_exact())
     provider = get_provider_by_name(payment.payment_type)
+    if not provider.mock_allowed():
+        abort(404)
+
+    amount = int((payment.amount_charged * 100).to_integral_exact())
 
     return render_template(
         "payment/mock.html",

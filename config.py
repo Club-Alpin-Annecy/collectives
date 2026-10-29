@@ -178,16 +178,6 @@ Can be set using environment variable.
 :type: string
 """
 
-PAYLINE_ALLOW_MOCK = False
-"""Use the mock payment API when Payline is not configured, outside debug and
-testing modes.
-
-The mock API approves payments from URL parameters: only enable it on a demo
-instance, never on a production one.
-
-:type: boolean
-"""
-
 
 if os.path.exists(".git"):
     # If git is here, version is extracted from git tags

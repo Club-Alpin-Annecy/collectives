@@ -600,23 +600,6 @@ class PaylineApi(PaymentProvider):
 
         return None
 
-    def mock_allowed(self) -> bool:
-        """Check whether the mock payment API may be used.
-
-        The mock API trusts client-provided URL parameters to decide whether a
-        payment is approved. It must never be active on a production instance,
-        so it is only allowed when the application runs in debug or testing mode,
-        or when explicitly enabled with ``PAYLINE_ALLOW_MOCK`` (demo instance).
-
-        :return: True if the API is not configured and the mock API is allowed
-        """
-        self.reload_config()
-        return self.disabled() and (
-            current_app.debug
-            or current_app.testing
-            or current_app.config.get("PAYLINE_ALLOW_MOCK", False)
-        )
-
     def disabled(self) -> bool:
         """Check if Payline merchant Id has been set.
         :return: True if PaylineApi is disabled.

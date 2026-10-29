@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
+from flask import current_app
+
 from collectives.models import User
 from collectives.models.payment import (
     Payment,
@@ -81,6 +83,18 @@ class PaymentProvider(ABC):
         :return: True if this provider is not configured and should
             operate in mock mode.
         """
+
+    def mock_allowed(self) -> bool:
+        """Checks whether this provider may operate in mock mode.
+
+        The mock mode trusts client-provided URL parameters to decide whether a
+        payment is approved. It must never be active on a production instance,
+        so it is only allowed when the application runs in debug or testing mode.
+
+        :return: True if this provider is not configured and mock mode is allowed
+        """
+        self.reload_config()
+        return self.disabled() and (current_app.debug or current_app.testing)
 
     @abstractmethod
     def create_checkout(self, payment: Payment, user: User) -> Optional[CheckoutResult]:

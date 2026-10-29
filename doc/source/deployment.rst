@@ -138,10 +138,9 @@ Session cookies are only sent over HTTPS outside debug mode. An instance
 served over plain HTTP must set ``SESSION_COOKIE_SECURE = False`` and
 ``REMEMBER_COOKIE_SECURE = False`` in `instance/config.py`.
 
-When ``PAYLINE_MERCHANT_ID`` is empty, payments fail outside debug mode. A demo
-instance can use the mock payment API, which approves every payment, by setting
-``PAYLINE_ALLOW_MOCK = True`` in `instance/config.py`. Never set it in
-production.
+When the active payment provider is not configured (``PAYLINE_MERCHANT_ID`` or
+``HELLOASSO_CLIENT_ID`` empty), payments fail outside debug mode, where a mock
+payment API approves every payment.
 
 Database
 .........
