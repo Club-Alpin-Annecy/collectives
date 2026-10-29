@@ -5,9 +5,13 @@ The modules are not a package: they are imported by adding their folder to
 """
 
 import importlib
+import io
+import json
 import re
 import sys
+import urllib.error
 from datetime import datetime, timezone
+from email.message import Message
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -1851,3 +1855,115 @@ def test_build_messages_mentions_outside_service_only_when_present(bot):
     assert "collectives/utils/client.py" not in prompt_text(
         bot, {"new_outside_services": []}
     )
+
+
+# ------------------------------------------------ round 5: model limits (L1-L4)
+
+
+@pytest.mark.parametrize("status", [None, 402, 429, 500, 502, 503, 504])
+def test_should_retry_transient_statuses(bot, status):
+    """Network errors, payment-limit and server errors are worth another try."""
+    assert bot.should_retry(status) is True
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 404, 422])
+def test_should_not_retry_client_errors(bot, status):
+    """A request the server refuses for good is not retried."""
+    assert bot.should_retry(status) is False
+
+
+@pytest.mark.parametrize(
+    "attempt, expected", [(1, 15), (2, 45), (3, 90), (4, 90), (9, 90)]
+)
+def test_retry_delay_defaults_by_attempt(bot, attempt, expected):
+    """15, 45, then 90 seconds; later attempts stay at 90."""
+    assert bot.retry_delay(attempt, None) == expected
+
+
+@pytest.mark.parametrize(
+    "header, expected", [("30", 30), ("1.5", 1.5), ("120", 120), ("500", 120)]
+)
+def test_retry_delay_honours_numeric_retry_after_capped_at_120(bot, header, expected):
+    """A number of seconds from the server wins, up to two minutes."""
+    assert bot.retry_delay(1, header) == expected
+
+
+@pytest.mark.parametrize("header", ["Wed, 21 Oct 2026 07:28:00 GMT", "soon", ""])
+def test_retry_delay_ignores_non_numeric_retry_after(bot, header):
+    """Any other header value falls back to the default for the attempt."""
+    assert bot.retry_delay(2, header) == 45
+
+
+def test_unavailable_note_is_a_short_note_with_the_way_out(bot):
+    """It says the review was skipped, how to re-run, and the error."""
+    note = bot.unavailable_note("HTTP 429 after 4 attempts")
+    assert "skipped" in note.lower()
+    assert "Run workflow" in note
+    assert "Pull request review" in note
+    assert "HTTP 429 after 4 attempts" in note
+    assert len(note) < 800
+    assert bot.MARKER not in note
+
+
+class FakeModel:
+    """Stands in for `urlopen`: replays a list of HTTP statuses, then content."""
+
+    def __init__(self, statuses: list[int]):
+        self.statuses = statuses
+        self.calls = 0
+
+    def __call__(self, request, timeout=None):
+        status = self.statuses[self.calls]
+        self.calls += 1
+        if status != 200:
+            raise urllib.error.HTTPError(
+                request.full_url, status, "error", Message(), None
+            )
+        body = {"choices": [{"message": {"content": "ANSWER"}}]}
+        return io.BytesIO(json.dumps(body).encode("utf-8"))
+
+
+@pytest.fixture(name="model_calls")
+def fixture_model_calls(bot, monkeypatch):
+    """Installs a `FakeModel` and a recording `sleep`; returns a setup function."""
+    sleeps: list[float] = []
+    monkeypatch.setattr(bot.time, "sleep", sleeps.append)
+
+    def install(statuses: list[int]):
+        fake = FakeModel(statuses)
+        monkeypatch.setattr(bot.urllib.request, "urlopen", fake)
+        return fake, sleeps
+
+    return install
+
+
+def ask(bot) -> str:
+    """Calls `call_model` with throwaway arguments."""
+    return bot.call_model([{"role": "user", "content": "hi"}], "http://m", "m", "k")
+
+
+def test_call_model_retries_402_then_succeeds(bot, model_calls):
+    """Two payment-limit answers, then content: three calls, two pauses."""
+    fake, sleeps = model_calls([402, 402, 200])
+    assert ask(bot) == "ANSWER"
+    assert fake.calls == 3
+    assert sleeps == [15, 45]
+
+
+def test_call_model_gives_up_after_four_attempts(bot, model_calls):
+    """Four 429 answers raise ModelUnavailable, with no pause after the last."""
+    fake, sleeps = model_calls([429, 429, 429, 429])
+    with pytest.raises(bot.ModelUnavailable) as raised:
+        ask(bot)
+    assert fake.calls == 4
+    assert sleeps == [15, 45, 90]
+    assert "429" in str(raised.value)
+
+
+def test_call_model_does_not_retry_a_refusal(bot, model_calls):
+    """A 401 raises at once: one call, no pause."""
+    fake, sleeps = model_calls([401])
+    with pytest.raises(bot.ModelUnavailable):
+        ask(bot)
+    assert fake.calls == 1
+    assert sleeps == []
