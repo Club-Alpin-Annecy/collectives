@@ -53,6 +53,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REVIEW_API_BASE: ${{ vars.REVIEW_API_BASE }}
           REVIEW_MODEL: ${{ vars.REVIEW_MODEL }}
+          REVIEW_VERIFY_MODEL: ${{ vars.REVIEW_VERIFY_MODEL }}
           REVIEW_API_KEY: ${{ secrets.REVIEW_API_KEY }}
         run: |
           args=()
