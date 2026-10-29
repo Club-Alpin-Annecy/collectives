@@ -27,10 +27,12 @@ jobs:
   review:
     name: Review the pull request
     runs-on: ubuntu-latest
+    # Off until the maintainers set the two variables (Settings > Variables).
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      vars.REVIEW_API_BASE != '' && vars.REVIEW_MODEL != '' &&
+      (github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.draft == false &&
-      github.event.pull_request.user.login != 'dependabot[bot]')
+      github.event.pull_request.user.login != 'dependabot[bot]'))
     steps:
       - name: Check out the base branch
         uses: actions/checkout@v7

@@ -12,6 +12,8 @@ concurrency:
 jobs:
   build:
     name: Build the dashboard
+    # Off until a maintainer sets the variable REVIEW_DASHBOARD to true.
+    if: vars.REVIEW_DASHBOARD == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,6 +43,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
+    if: vars.REVIEW_DASHBOARD == 'true'
     runs-on: ubuntu-latest
     permissions:
       pages: write
