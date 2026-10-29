@@ -8,6 +8,14 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Schema differences between the models and the migrations that are accepted,
+# so that ``flask db check`` can fail on any new one.
+# Indexes that kept their old name after a column rename (migration 88f73f88cb1b).
+ACCEPTED_INDEXES = {"ix_payments_creditor_id", "ix_payments_buyer_id"}
+# Foreign key declared by the model but never created in production (migration
+# 3ce1483e95a5 has its ``create_foreign_key`` commented out): (table, columns).
+ACCEPTED_FOREIGN_KEYS = {("events", ("main_leader_id",))}
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -33,6 +41,28 @@ target_metadata = current_app.extensions["migrate"].db.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def include_object(obj, name, type_, reflected, compare_to):
+    """Tells Alembic whether to compare a schema object (``include_object`` hook).
+
+    Args:
+        obj: The schema item (table, column, index, constraint).
+        name: The name of the item.
+        type_: The kind of item, e.g. ``"index"`` or ``"foreign_key_constraint"``.
+        reflected: True if the item comes from the database, False if from the models.
+        compare_to: The item it is compared against, if any.
+
+    Returns:
+        False for the accepted differences listed at the top of this file.
+    """
+    if type_ == "index" and name in ACCEPTED_INDEXES:
+        return False
+    if type_ == "foreign_key_constraint":
+        columns = tuple(column.name for column in obj.columns)
+        if (obj.table.name, columns) in ACCEPTED_FOREIGN_KEYS:
+            return False
+    return True
 
 
 def run_migrations_offline():
@@ -83,7 +113,8 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             process_revision_directives=process_revision_directives,
-            **current_app.extensions["migrate"].configure_args
+            include_object=include_object,
+            **current_app.extensions["migrate"].configure_args,
         )
 
         with context.begin_transaction():
