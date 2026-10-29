@@ -26,7 +26,7 @@ function badgeFormatter(cell, formatterParams, onRendered){
 }
 
 // Tabulator inserts formatter output and select labels as HTML: activity names
-// are editable by supervisors, so every value must be escaped (audit M4).
+// are editable by supervisors, so every value must be escaped.
 function escapeValue(value){
     return escapeHTML(String(value ?? ''));
 }

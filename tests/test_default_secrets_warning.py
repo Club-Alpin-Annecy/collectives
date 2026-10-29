@@ -1,4 +1,4 @@
-"""Tests for the startup warning about default secrets (audit C3)."""
+"""Tests for the startup warning about default secrets."""
 
 import logging
 

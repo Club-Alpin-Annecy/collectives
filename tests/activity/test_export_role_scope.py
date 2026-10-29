@@ -1,4 +1,4 @@
-"""Tests that supervisors can only export roles of their own activities (audit M6)."""
+"""Tests that supervisors can only export roles of their own activities."""
 
 from collectives.models import ActivityType
 

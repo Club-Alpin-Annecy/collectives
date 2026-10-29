@@ -1,4 +1,4 @@
-"""Tests that administration user filters only accept whitelisted columns (audit M7)."""
+"""Tests that administration user filters only accept whitelisted columns."""
 
 
 def test_user_filter_on_unknown_field_is_ignored(hotline_client):

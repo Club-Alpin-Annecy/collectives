@@ -1,7 +1,7 @@
 """Non-regression tests for access control on routes and API endpoints.
 
 These tests target routes that were found unprotected (or wrongly protected)
-during the September 2026 security audit. See ``doc/SECURITY_AUDIT_2026-09.md``.
+during the September 2026 security audit.
 """
 
 import json

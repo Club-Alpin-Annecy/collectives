@@ -1,4 +1,4 @@
-"""Tests that the mock payment APIs are only available in debug/testing mode (audit M5)."""
+"""Tests that the mock payment APIs are only available in debug/testing mode."""
 
 # pylint: disable=unused-argument
 import json

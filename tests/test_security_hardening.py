@@ -1,7 +1,4 @@
-"""Non-regression tests for hardening fixes of the September 2026 security audit.
-
-See ``doc/SECURITY_AUDIT_2026-09.md``.
-"""
+"""Non-regression tests for hardening fixes of the September 2026 security audit."""
 
 import json
 
@@ -10,7 +7,7 @@ from tests.fixtures import user
 
 
 def test_admin_user_list_escapes_activity_names(hotline_client):
-    """Activity names are injected as JSON, not as raw Python repr (audit M4)."""
+    """Activity names are injected as JSON, not as raw Python repr."""
     activity = ActivityType.query.first()
     activity.name = "Rando</script><script>alert(1)</script>"
     db.session.add(activity)
@@ -33,7 +30,7 @@ def test_admin_user_list_filters_keep_order(hotline_client):
 
 
 def test_badge_levels_escaped_in_script(app, custom_skill):
-    """Custom level names cannot close the <script> tag they are inserted in (audit M4)."""
+    """Custom level names cannot close the <script> tag they are inserted in."""
     payload = "x</script><script>alert(1)</script>'&"
     custom_skill.name = payload
     db.session.add(custom_skill)
@@ -51,7 +48,7 @@ def test_badge_levels_escaped_in_script(app, custom_skill):
 
 
 def test_login_account_choice_license_not_in_js(client, user1, user101_same_email):
-    """The license is passed as a data attribute, not inside JS code (audit M4)."""
+    """The license is passed as a data attribute, not inside JS code."""
     license_payload = "');alert(1);//"
     user101_same_email.license = license_payload
     db.session.add(user101_same_email)
