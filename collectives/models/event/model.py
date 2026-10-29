@@ -187,7 +187,12 @@ class EventModelMixin:
         :py:class:`collectives.models.event_type.EventType`)
 
         :type: int"""
-        return db.Column(db.Integer, db.ForeignKey("event_types.id"), default=1)
+        return db.Column(
+            db.Integer,
+            db.ForeignKey("event_types.id"),
+            nullable=False,
+            default=1,
+        )
 
     @declared_attr
     def _deprecated_parent_event_id(self):

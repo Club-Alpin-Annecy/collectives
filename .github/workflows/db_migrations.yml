@@ -67,3 +67,9 @@ jobs:
           echo Expected : $EXPECTED
           echo Current : $CURRENT
           [[ "$EXPECTED" == "$CURRENT"* ]]
+      - name: Check models match migrations on MariaDB
+        env:
+          FLASK_APP: collectives:create_app
+          SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
+        run: |
+          uv run flask db check
