@@ -51,6 +51,11 @@ FINDING_KEYS = (
 BLOCKING = "BLOCKING"
 SHOULD_FIX = "SHOULD-FIX"
 FINDING_CAP = 5
+BLOCKING_RULE_PREFIXES = ("SEC", "DB", "EXT")
+CAP_SMALL_SIZE = 300
+CAP_MEDIUM_SIZE = 1000
+CAP_MEDIUM = 8
+CAP_LARGE = 10
 CONTEXT_WIDE = 20
 CONTEXT_NARROW = 3
 MAX_CONTEXT_FILES = 60
@@ -345,6 +350,46 @@ def downgrade(findings: list[dict]) -> list[dict]:
         else dict(finding)
         for finding in findings
     ]
+
+
+def enforce_severity(findings: list[dict], areas: dict) -> list[dict]:
+    """Keeps BLOCKING for bugs, security and sensitive areas only.
+
+    Args:
+        findings: The findings that passed the filter.
+        areas: The sensitive areas of CODING.md.
+
+    Returns:
+        New dicts. A BLOCKING finding stays so when its rule starts with a
+        prefix of `BLOCKING_RULE_PREFIXES`, is `NEW`, or its path is in a
+        sensitive area; otherwise it becomes SHOULD-FIX.
+    """
+    patterns = [pattern for group in areas.values() for pattern in group]
+    result = []
+    for finding in findings:
+        rule = str(finding["rule"])
+        stays = (
+            finding["severity"] != BLOCKING
+            or rule == NEW_RULE
+            or rule.startswith(BLOCKING_RULE_PREFIXES)
+            or any(review_lib.path_matches(finding["path"], p) for p in patterns)
+        )
+        result.append(dict(finding) if stays else {**finding, "severity": SHOULD_FIX})
+    return result
+
+
+def cap_for_size(size: int) -> int:
+    """Chooses how many findings a PR of a given size may show.
+
+    Args:
+        size: The number of changed lines.
+
+    Returns:
+        5 up to 300 lines, 8 up to 1000 lines, else 10.
+    """
+    if size <= CAP_SMALL_SIZE:
+        return FINDING_CAP
+    return CAP_MEDIUM if size <= CAP_MEDIUM_SIZE else CAP_LARGE
 
 
 def cap_findings(findings: list[dict], limit: int = FINDING_CAP) -> tuple[list, list]:
@@ -1362,11 +1407,11 @@ def run(args: argparse.Namespace) -> None:
         )
 
     kept, refuted = verify_blocking(
-        downgrade(kept),
+        downgrade(enforce_severity(kept, areas)),
         read_head,
         lambda msgs: call_model(msgs, base_url, model, api_key),
     )
-    kept, capped = cap_findings(kept)
+    kept, capped = cap_findings(kept, cap_for_size(facts["size"]))
     comment = render_comment(
         title,
         verdict(kept),

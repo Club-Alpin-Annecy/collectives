@@ -1967,3 +1967,87 @@ def test_call_model_does_not_retry_a_refusal(bot, model_calls):
         ask(bot)
     assert fake.calls == 1
     assert sleeps == []
+
+
+# ------------------------------------------------ round 6: severity and cap (S1, S2)
+
+
+def real_areas(lib) -> dict:
+    """The sensitive areas of the real CODING.md."""
+    return lib.parse_sensitive_areas(CODING_MD)
+
+
+@pytest.mark.parametrize(
+    "rule, path",
+    [
+        ("SEC3", "collectives/utils/x.py"),
+        ("DB1", "collectives/utils/x.py"),
+        ("EXT1", "collectives/utils/x.py"),
+        ("NEW", "collectives/utils/x.py"),
+        ("PY5", "collectives/models/payment.py"),
+        ("GEN2", "migrations/versions/a.py"),
+        ("ALL3", "Dockerfile"),
+    ],
+    ids=["sec", "db", "ext", "new", "payment-path", "migrations-path", "dockerfile"],
+)
+def test_enforce_severity_keeps_blocking_where_it_belongs(lib, bot, rule, path):
+    """Security, data, external or uncovered bugs, and sensitive paths stay BLOCKING."""
+    item = finding(rule=rule, path=path)
+    assert bot.enforce_severity([item], real_areas(lib)) == [item]
+
+
+@pytest.mark.parametrize(
+    "rule, path",
+    [
+        ("GEN2", ".vscode/launch.json"),
+        ("ALL3", "collectives/utils/x.py"),
+        ("PY5", "collectives/templates/a.html"),
+        ("TEST1", "tests/unit/test_a.py"),
+    ],
+)
+def test_enforce_severity_downgrades_housekeeping_rules(lib, bot, rule, path):
+    """Any other BLOCKING, outside sensitive paths, becomes SHOULD-FIX."""
+    result = bot.enforce_severity([finding(rule=rule, path=path)], real_areas(lib))
+    assert [item["severity"] for item in result] == ["SHOULD-FIX"]
+
+
+def test_enforce_severity_leaves_other_severities_alone(lib, bot):
+    """SHOULD-FIX and SUGGESTION are never touched, whatever the rule."""
+    items = [
+        finding(severity="SHOULD-FIX", rule="GEN2", path=".vscode/launch.json"),
+        finding(severity="SUGGESTION", rule="PY5", path="a.py"),
+    ]
+    assert bot.enforce_severity(items, real_areas(lib)) == items
+
+
+def test_enforce_severity_copies_and_preserves_order(lib, bot):
+    """The input is not mutated; the output keeps the input order."""
+    items = [
+        finding(rule="GEN2", path="a.py", problem="first"),
+        finding(rule="SEC1", path="b.py", problem="second"),
+        finding(rule="PY5", path="c.py", problem="third"),
+    ]
+    snapshot = [dict(item) for item in items]
+    result = bot.enforce_severity(items, real_areas(lib))
+    assert items == snapshot
+    assert [item["problem"] for item in result] == ["first", "second", "third"]
+    assert [item["severity"] for item in result] == [
+        "SHOULD-FIX",
+        "BLOCKING",
+        "SHOULD-FIX",
+    ]
+    assert result[0] is not items[0]
+
+
+def test_blocking_rule_prefixes_constant(bot):
+    """The prefixes are a module constant."""
+    assert bot.BLOCKING_RULE_PREFIXES == ("SEC", "DB", "EXT")
+
+
+@pytest.mark.parametrize(
+    "size, expected",
+    [(0, 5), (300, 5), (301, 8), (1000, 8), (1001, 10), (5000, 10)],
+)
+def test_cap_for_size(bot, size, expected):
+    """5 findings up to 300 changed lines, 8 up to 1000, 10 above."""
+    assert bot.cap_for_size(size) == expected
