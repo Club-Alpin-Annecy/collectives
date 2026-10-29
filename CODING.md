@@ -220,6 +220,7 @@ A review only reads and reports: it does not edit code or commit.
 ## Review — <PR title>
 Verdict: APPROVE | APPROVE WITH COMMENTS | CHANGES REQUESTED
 Checks run: ruff format ✓/✗ | ruff check ✓/✗ | tests: <files> ✓/✗
+Merge readiness: ready | <what stands in the way: CI, conflicts, migration fork>
 Sensitive areas touched: <list, or none>
 Findings:
 - [BLOCKING] path/to/file.py:42 — DB1 — <problem> — <proposed fix>
