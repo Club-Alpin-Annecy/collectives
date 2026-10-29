@@ -1908,8 +1908,9 @@ def test_unavailable_note_is_a_short_note_with_the_way_out(bot):
 class FakeModel:
     """Stands in for `urlopen`: replays a list of HTTP statuses, then content."""
 
-    def __init__(self, statuses: list[int]):
+    def __init__(self, statuses: list[int], usages: list | None = None):
         self.statuses = statuses
+        self.usages = usages or []
         self.calls = 0
 
     def __call__(self, request, timeout=None):
@@ -1920,6 +1921,9 @@ class FakeModel:
                 request.full_url, status, "error", Message(), None
             )
         body = {"choices": [{"message": {"content": "ANSWER"}}]}
+        usage = self.usages[self.calls - 1] if self.calls <= len(self.usages) else None
+        if usage is not None:
+            body["usage"] = usage
         return io.BytesIO(json.dumps(body).encode("utf-8"))
 
 
@@ -1929,8 +1933,8 @@ def fixture_model_calls(bot, monkeypatch):
     sleeps: list[float] = []
     monkeypatch.setattr(bot.time, "sleep", sleeps.append)
 
-    def install(statuses: list[int]):
-        fake = FakeModel(statuses)
+    def install(statuses: list[int], usages: list | None = None):
+        fake = FakeModel(statuses, usages)
         monkeypatch.setattr(bot.urllib.request, "urlopen", fake)
         return fake, sleeps
 
@@ -2051,3 +2055,50 @@ def test_blocking_rule_prefixes_constant(bot):
 def test_cap_for_size(bot, size, expected):
     """5 findings up to 300 changed lines, 8 up to 1000, 10 above."""
     assert bot.cap_for_size(size) == expected
+
+
+# ------------------------------------------------ round 7a: usage tracking (U1)
+
+
+@pytest.fixture(autouse=False, name="fresh_usage")
+def fixture_fresh_usage(bot):
+    """Zeroes the usage counter before and after a test."""
+    bot.reset_usage()
+    yield bot.USAGE
+    bot.reset_usage()
+
+
+def test_usage_adds_up_successful_calls(bot, model_calls, fresh_usage):
+    """Two answers with usage are summed."""
+    model_calls(
+        [200, 200],
+        [
+            {"prompt_tokens": 100, "completion_tokens": 20},
+            {"prompt_tokens": 300, "completion_tokens": 50},
+        ],
+    )
+    ask(bot)
+    ask(bot)
+    assert dict(fresh_usage) == {"prompt_tokens": 400, "completion_tokens": 70}
+
+
+def test_usage_ignores_a_response_without_usage(bot, model_calls, fresh_usage):
+    """No `usage` field adds nothing."""
+    model_calls([200])
+    ask(bot)
+    assert dict(fresh_usage) == {"prompt_tokens": 0, "completion_tokens": 0}
+
+
+def test_usage_counts_only_the_successful_attempt(bot, model_calls, fresh_usage):
+    """A retried call (402 then success) is counted once."""
+    model_calls([402, 200], [None, {"prompt_tokens": 7, "completion_tokens": 3}])
+    ask(bot)
+    assert dict(fresh_usage) == {"prompt_tokens": 7, "completion_tokens": 3}
+
+
+def test_reset_usage_zeroes_both_counters(bot, model_calls, fresh_usage):
+    """After a call, `reset_usage` brings both counters back to 0."""
+    model_calls([200], [{"prompt_tokens": 5, "completion_tokens": 6}])
+    ask(bot)
+    bot.reset_usage()
+    assert dict(bot.USAGE) == {"prompt_tokens": 0, "completion_tokens": 0}
