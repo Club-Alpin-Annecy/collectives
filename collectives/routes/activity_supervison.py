@@ -46,6 +46,11 @@ from collectives.models.badge import BadgeIds
 from collectives.utils import badges, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
+from collectives.utils.leaders_review import (
+    COMMENT_MAX_LENGTH,
+    INACTIVITY_SEASONS,
+    LeadersReview,
+)
 from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 
@@ -115,19 +120,73 @@ def remove_leader(role_id):
     :type role_id: int
     """
 
+    from_review = bool(request.form.get("from_review"))
+    error_redirect = redirect(
+        url_for(".leaders_review") if from_review else url_for(".leader_list")
+    )
+
     role = db.session.get(Role, role_id)
     if role is None or role.role_id not in RoleIds.all_supervisor_manageable():
         flash("Role invalide", "error")
-        return redirect(url_for(".leader_list"))
+        return error_redirect
 
     if role.activity_type not in current_user.get_supervised_activities():
         flash("Non autorisé", "error")
-        return redirect(url_for(".leader_list"))
+        return error_redirect
+
+    # Read before deletion: the role cannot load its relationships afterwards
+    activity_id = role.activity_id
+    if role.user is not None:
+        message = (
+            f"Rôle {role.name} retiré à {role.user.full_name()} "
+            f"pour l'activité {role.activity_type.name}"
+        )
+    else:
+        message = f"Rôle {role.name} retiré pour l'activité {role.activity_type.name}"
 
     db.session.delete(role)
     db.session.commit()
 
+    if from_review:
+        flash(message, "success")
+        return redirect(url_for(".leaders_review", activity_id=activity_id))
+
     return redirect(url_for(".leader_list"))
+
+
+@blueprint.route("/leader/comment/<int:role_id>", methods=["POST"])
+def comment_leader(role_id):
+    """Route for an activity supervisor to set the comment of an activity role,
+    from the leaders review page.
+
+    :param role_id: Id of the commented role
+    :type role_id: int
+    """
+
+    role = db.session.get(Role, role_id)
+    if role is None or role.role_id not in RoleIds.all_relates_to_activity():
+        flash("Role invalide", "error")
+        return redirect(url_for(".leaders_review"))
+
+    if role.activity_type not in current_user.get_supervised_activities():
+        flash("Non autorisé", "error")
+        return redirect(url_for(".leaders_review"))
+
+    review_url = url_for(".leaders_review", activity_id=role.activity_id)
+
+    comment = request.form.get("comment", "").strip()
+    if len(comment) > COMMENT_MAX_LENGTH:
+        flash(
+            f"Commentaire trop long ({COMMENT_MAX_LENGTH} caractères maximum)",
+            "error",
+        )
+        return redirect(review_url)
+
+    role.comment = comment or None
+    db.session.commit()
+
+    flash("Commentaire enregistré", "success")
+    return redirect(review_url)
 
 
 @blueprint.route("/leader", methods=["GET"])
@@ -145,6 +204,44 @@ def leader_list():
         add_leader_form=add_leader_form,
         export_form=export_form,
         title="Encadrants et Organisateurs",
+    )
+
+
+@blueprint.route("/leader/review", methods=["GET"])
+def leaders_review():
+    """Route for activity supervisors to review the leaders of an activity,
+    with their activity over the last seasons."""
+
+    supervised_activities = sorted(
+        current_user.get_supervised_activities(), key=lambda a: (a.order, a.name)
+    )
+    # The form falls back to all activities when given an empty list
+    if supervised_activities:
+        form = ActivityTypeSelectionForm(
+            formdata=request.args,
+            meta={"csrf": False},
+            activity_list=supervised_activities,
+            submit_label="Afficher",
+        )
+        # The form decides which activities are selectable (eg not deprecated ones)
+        selectable_ids = [activity_id for activity_id, _ in form.activity_id.choices]
+    else:
+        selectable_ids = []
+    if not selectable_ids:
+        flash("Aucune activité supervisée", "error")
+        return redirect(url_for(".activity_supervision"))
+
+    if form.activity_id.data not in selectable_ids:
+        form.activity_id.data = selectable_ids[0]
+    activity = next(a for a in supervised_activities if a.id == form.activity_id.data)
+
+    return render_template(
+        "activity_supervision/leaders_review.html",
+        form=form,
+        review=LeadersReview(activity),
+        inactivity_seasons=INACTIVITY_SEASONS,
+        comment_max_length=COMMENT_MAX_LENGTH,
+        title="Revue des encadrants",
     )
 
 
