@@ -29,6 +29,10 @@ Those mounts are recommended since they contains app generated data that should 
 * ``/app/collectives/static/uploads`` contains user uploads
 * ``/app/collectives/private_assets`` contains data that should not be exposed by ``static`` blueprint.
 
+With a single persistent volume (for instance on `once <https://github.com/basecamp/once>`_),
+set ``STORAGE_DIR`` to its mount point: uploads, private assets and, unless
+:py:attr:`config.SQLALCHEMY_DATABASE_URI` is set, a SQLite database are kept there.
+
 Application configuration
 ...........................
 Cold Configuration is to be done through environment variables. Look for configuration that can be set
@@ -47,6 +51,9 @@ by environment variables in :ref:`configuration` .
 
 Waitress configuration
 ...........................
+
+Waitress listens on port 5000, or on ``PORT`` if set. ``/up`` answers ``OK`` when the
+application and its database are up, for health checks.
 
 Additionnal parameter for waitress (wsgi engine) can be set using ``WAITRESS_OPTS``.
 See `waitress-serve manual <https://docs.pylonsproject.org/projects/waitress/en/stable/runner.html#invocation>`_ .
