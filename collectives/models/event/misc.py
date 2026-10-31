@@ -13,11 +13,24 @@ from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
 from collectives.utils import render_markdown
 from collectives.utils.misc import is_valid_image
+from collectives.utils.render_markdown import html_to_text, markdown_to_html
+from collectives.utils.time import format_date_short
 
 photos = UploadSet("photos", IMAGES)
 """Upload instance for events photos
 
 :type: flask_uploads.UploadSet"""
+
+
+WHATSAPP_GROUP_NAME_MAX_LENGTH = 100
+"""Maximum length of a WhatsApp group name
+
+:type: int"""
+
+WHATSAPP_GROUP_DESCRIPTION_MAX_LENGTH = 2048
+"""Maximum length of a WhatsApp group description
+
+:type: int"""
 
 
 class EventMiscMixin:
@@ -173,6 +186,40 @@ class EventMiscMixin:
             self._user_group.event_conditions[0].event_id = parent_event_id
 
         self._deprecated_parent_event_id = None
+
+    def whatsapp_group_name(self) -> str:
+        """Suggested name for the WhatsApp group of this event.
+
+        The name is made of the event title and its short start date
+        (eg "Dent du Cruet - sam. 18 oct."). The title is truncated so that the
+        name fits in the WhatsApp group name limit.
+
+        :return: The suggested group name.
+        """
+        suffix = f" - {format_date_short(self.start)}"
+        title = self.title.strip()
+        max_title_length = WHATSAPP_GROUP_NAME_MAX_LENGTH - len(suffix)
+        if len(title) > max_title_length:
+            title = title[: max_title_length - 1].rstrip() + "…"
+        return title + suffix
+
+    def whatsapp_group_description(self, url: str) -> str:
+        """Suggested description for the WhatsApp group of this event.
+
+        The description is made of the event page URL and of the event
+        description as plain text, keeping only its line breaks. It is truncated
+        so that it fits in the WhatsApp group description limit.
+
+        :param url: Absolute URL of the event page.
+        :return: The suggested group description.
+        """
+        description = html_to_text(
+            self.rendered_description or markdown_to_html(self.description or "")
+        )
+        text = f"{url}\n\n{description}" if description else url
+        if len(text) > WHATSAPP_GROUP_DESCRIPTION_MAX_LENGTH:
+            text = text[: WHATSAPP_GROUP_DESCRIPTION_MAX_LENGTH - 1].rstrip() + "…"
+        return text
 
     def user_answers(self, user: User) -> List["QuestionAnswer"]:
         """:returns: the list of answers to this event's question by a given user"""

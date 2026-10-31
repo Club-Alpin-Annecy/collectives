@@ -202,6 +202,11 @@ Divers:
         description: Whether to enable the user search page for leaders
         type: Boolean
 
+    WHATSAPP_GROUPS_ENABLED:
+        content: true
+        description: Si activé, les encadrants peuvent associer un groupe WhatsApp à un événement ; le lien d'invitation est affiché aux seuls participants.
+        type: Boolean
+
     MAX_UPLOADS_PER_EVENT:
         content : 5
         description: Maximum number of file uploads per event

@@ -344,6 +344,7 @@
 
     </div>
 
+    {% include 'event/partials/whatsapp.html' %}
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
