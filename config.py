@@ -11,10 +11,51 @@ WARNING: for production, some parameter MUST be modified (ADMINPWD, SECRET_KEY)
 
 import json
 import os
-from os import environ
 import subprocess
+from os import environ
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+_WORKTREE_MARKER = f"{os.sep}.git{os.sep}worktrees{os.sep}"
+
+
+def _get_git_main_dir(path: str) -> str:
+    """Return the main repository directory if ``path`` is inside a git worktree."""
+    git_file = os.path.join(path, ".git")
+    if os.path.isfile(git_path := git_file):
+        try:
+            with open(git_path, "r", encoding="utf-8") as f:
+                line = f.readline().strip()
+            if line.startswith("gitdir:"):
+                gitdir = line[7:].strip()
+                if not os.path.isabs(gitdir):
+                    gitdir = os.path.normpath(os.path.join(path, gitdir))
+                else:
+                    gitdir = os.path.normpath(gitdir)
+                if _WORKTREE_MARKER in gitdir:
+                    return gitdir.split(_WORKTREE_MARKER)[0]
+        except OSError:
+            pass
+    return path
+
+
+def _get_sqlite_db_path(root_dir: str) -> str:
+    """Return the SQLite database path for the application.
+
+    When running inside a git worktree, reuse the main repository's database if no
+    custom, non-empty database exists in the worktree.
+    """
+    local_db = os.path.join(root_dir, "app.db")
+    if os.path.isfile(local_db) and os.path.getsize(local_db) > 0:
+        return local_db
+
+    main_dir = _get_git_main_dir(root_dir)
+    if main_dir != root_dir:
+        main_db = os.path.join(main_dir, "app.db")
+        if os.path.isfile(main_db) and os.path.getsize(main_db) > 0:
+            return main_db
+
+    return local_db
 
 
 FLASK_ENV = environ.get("FLASK_ENV")
@@ -143,7 +184,7 @@ PAYMENTS_MAX_PRICE = 10000
 # Database
 SQLALCHEMY_DATABASE_URI = environ.get(
     "SQLALCHEMY_DATABASE_URI"
-) or "sqlite:///" + os.path.join(basedir, "app.db")
+) or "sqlite:///" + _get_sqlite_db_path(basedir)
 """Database URL
 
 Set URL for SQLAlchemy database.
