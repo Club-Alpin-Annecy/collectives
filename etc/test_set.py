@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import argparse
 import random
+import sys
 from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 from pathlib import Path
-import sys
 
 from sqlalchemy import or_
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -22,7 +21,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from collectives import create_app
 from collectives.models import (
-    ActivityKind,
     ActivityType,
     Event,
     EventStatus,
@@ -39,7 +37,6 @@ from collectives.models import (
     db,
 )
 from collectives.utils.time import current_time
-
 
 RANDOM_SEED = 20260217
 NUM_USERS = 100
@@ -370,11 +367,7 @@ def reset_dataset() -> None:
 def assign_activity_roles(rng: random.Random, users: list[User]) -> dict[int, User]:
     """Assigne un encadrant et un responsable pour chaque activité."""
     leader_by_activity: dict[int, User] = {}
-    activities = [
-        a
-        for a in ActivityType.get_all_types(include_deprecated=False)
-        if a.kind == ActivityKind.Regular
-    ]
+    activities = ActivityType.get_all_types(include_deprecated=False)
 
     for activity in activities:
         leader, supervisor = rng.sample(users, 2)
@@ -484,11 +477,7 @@ def add_random_registrations(
 
 def create_events(rng: random.Random, users: list[User], leader_by_activity: dict[int, User]) -> None:
     """Crée un évènement par jour pendant 2 ans."""
-    activities = [
-        a
-        for a in ActivityType.get_all_types(include_deprecated=False)
-        if a.kind == ActivityKind.Regular
-    ]
+    activities = ActivityType.get_all_types(include_deprecated=False)
     if not activities:
         raise RuntimeError("Aucune activité disponible en base.")
 
