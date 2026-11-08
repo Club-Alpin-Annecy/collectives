@@ -73,3 +73,23 @@ def test_get_sqlite_db_path_prefers_local_non_empty_db(tmp_path):
 
     resolved = _get_sqlite_db_path(str(worktree))
     assert resolved == str(local_db)
+
+
+def test_get_sqlite_db_path_falls_back_when_main_db_empty_or_missing(tmp_path):
+    """Verify that if main repo db is missing or empty, local db path is returned."""
+    main_repo = tmp_path / "main_repo"
+    worktree = tmp_path / "worktree"
+    main_repo.mkdir()
+    worktree.mkdir()
+
+    git_file = worktree / ".git"
+    git_file.write_text(f"gitdir: {main_repo}/.git/worktrees/wt1\n", encoding="utf-8")
+
+    local_db = str(worktree / "app.db")
+    # Case 1: main_db does not exist
+    assert _get_sqlite_db_path(str(worktree)) == local_db
+
+    # Case 2: main_db exists but has size 0
+    main_db = main_repo / "app.db"
+    main_db.write_text("", encoding="utf-8")
+    assert _get_sqlite_db_path(str(worktree)) == local_db

@@ -16,6 +16,8 @@ from os import environ
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+_WORKTREE_MARKER = f"{os.sep}.git{os.sep}worktrees{os.sep}"
+
 
 def _get_git_main_dir(path: str) -> str:
     """Return the main repository directory if ``path`` is inside a git worktree."""
@@ -28,8 +30,10 @@ def _get_git_main_dir(path: str) -> str:
                 gitdir = line[7:].strip()
                 if not os.path.isabs(gitdir):
                     gitdir = os.path.normpath(os.path.join(path, gitdir))
-                if "/.git/worktrees/" in gitdir:
-                    return gitdir.split("/.git/worktrees/")[0]
+                else:
+                    gitdir = os.path.normpath(gitdir)
+                if _WORKTREE_MARKER in gitdir:
+                    return gitdir.split(_WORKTREE_MARKER)[0]
         except OSError:
             pass
     return path
@@ -50,7 +54,6 @@ def _get_sqlite_db_path(root_dir: str) -> str:
         main_db = os.path.join(main_dir, "app.db")
         if os.path.isfile(main_db) and os.path.getsize(main_db) > 0:
             return main_db
-        return main_db
 
     return local_db
 
