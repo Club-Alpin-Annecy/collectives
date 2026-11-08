@@ -22,6 +22,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from collectives import create_app
 from collectives.models import (
+    ActivityKind,
     ActivityType,
     Event,
     EventStatus,
@@ -369,7 +370,11 @@ def reset_dataset() -> None:
 def assign_activity_roles(rng: random.Random, users: list[User]) -> dict[int, User]:
     """Assigne un encadrant et un responsable pour chaque activité."""
     leader_by_activity: dict[int, User] = {}
-    activities = ActivityType.get_all_types(include_deprecated=False, include_services=False)
+    activities = [
+        a
+        for a in ActivityType.get_all_types(include_deprecated=False)
+        if a.kind == ActivityKind.Regular
+    ]
 
     for activity in activities:
         leader, supervisor = rng.sample(users, 2)
@@ -479,7 +484,11 @@ def add_random_registrations(
 
 def create_events(rng: random.Random, users: list[User], leader_by_activity: dict[int, User]) -> None:
     """Crée un évènement par jour pendant 2 ans."""
-    activities = ActivityType.get_all_types(include_deprecated=False, include_services=False)
+    activities = [
+        a
+        for a in ActivityType.get_all_types(include_deprecated=False)
+        if a.kind == ActivityKind.Regular
+    ]
     if not activities:
         raise RuntimeError("Aucune activité disponible en base.")
 
