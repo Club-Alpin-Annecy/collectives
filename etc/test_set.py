@@ -373,14 +373,23 @@ def reset_dataset() -> None:
     db.session.commit()
 
 
-def assign_activity_roles(rng: random.Random, users: list[User]) -> dict[int, User]:
-    """Assigne un encadrant et un responsable pour chaque activité."""
-    leader_by_activity: dict[int, User] = {}
-    activities = [
+def get_event_activities() -> list[ActivityType]:
+    """List the activities the generated events can be attached to.
+
+    Unlike services, regular activities can carry events; deprecated
+    types are excluded.
+    """
+    return [
         activity
         for activity in ActivityType.get_all_types(include_deprecated=False)
         if activity.kind != ActivityKind.Service
     ]
+
+
+def assign_activity_roles(rng: random.Random, users: list[User]) -> dict[int, User]:
+    """Assigne un encadrant et un responsable pour chaque activité."""
+    leader_by_activity: dict[int, User] = {}
+    activities = get_event_activities()
 
     for activity in activities:
         leader, supervisor = rng.sample(users, 2)
@@ -498,11 +507,7 @@ def create_events(
     rng: random.Random, users: list[User], leader_by_activity: dict[int, User]
 ) -> None:
     """Crée un évènement par jour pendant 2 ans."""
-    activities = [
-        activity
-        for activity in ActivityType.get_all_types(include_deprecated=False)
-        if activity.kind != ActivityKind.Service
-    ]
+    activities = get_event_activities()
     if not activities:
         raise RuntimeError("Aucune activité disponible en base.")
 
