@@ -125,6 +125,11 @@ def available_activities(
         choices = list(choices | set(activities))
         choices.sort(key=attrgetter("kind", "order", "name", "id"))
 
+    # Only board members can publish club announcements
+    if not current_user.can_publish_club_announcements():
+        announcement = current_app.config["CLUB_ANNOUNCEMENT_ACTIVITY"]
+        choices = [a for a in choices if a.short != announcement or a in activities]
+
     return choices
 
 

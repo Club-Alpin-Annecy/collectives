@@ -188,6 +188,21 @@ class EventMiscMixin:
             return self.activity_types[0]
         return None
 
+    def volunteer_days(self) -> float:
+        """Volunteer time spent on this event, in "ffcam days".
+
+        The event duration (see :py:meth:`duration_in_ffcam_days`) is counted
+        once per volunteer. Who counts as volunteer depends on the event type,
+        see :py:meth:`collectives.models.event.event_type.EventType.volunteer_roles`.
+        """
+        roles = self.event_type.volunteer_roles()
+        volunteers = 0
+        if "leaders" in roles:
+            volunteers += len(self.leaders)
+        if "participants" in roles:
+            volunteers += len(self.active_registrations())
+        return self.duration_in_ffcam_days() * volunteers
+
     def is_retex_applicable(self) -> bool:
         """Check whether a retex can be written for this event.
 

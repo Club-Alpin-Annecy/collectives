@@ -11,6 +11,7 @@ from typing import List, Set, Tuple
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     jsonify,
     redirect,
@@ -24,6 +25,7 @@ from markupsafe import Markup
 from sqlalchemy.orm import joinedload, selectinload
 from werkzeug.datastructures import CombinedMultiDict
 
+from collectives.api.event import filter_hidden_events
 from collectives.email_templates import (
     send_cancelled_event_notification,
     send_late_unregistration_notification,
@@ -36,6 +38,7 @@ from collectives.forms import EventForm, RegistrationForm, photos
 from collectives.forms.event import PaymentItemChoiceForm
 from collectives.forms.question import QuestionAnswersForm
 from collectives.models import (
+    ActivityKind,
     ActivityType,
     Badge,
     Configuration,
@@ -228,13 +231,43 @@ def index(activity_type_id=None, name=""):
 
     event_types = EventType.get_all_types()
     activity_types = ActivityType.get_all_types()
+    announcements = [
+        {
+            "title": event.title,
+            "url": url_for(".view_event", event_id=event.id, name=slugify(event.title)),
+            "start": event.start.isoformat(),
+            "free_slots": event.free_slots(),
+        }
+        for event in highlighted_club_announcements()
+    ]
     return render_template(
         "index.html",
         activity_types=activity_types,
         event_types=event_types,
         photos=photos,
         filtered_activity=filtered_activity,
+        announcements=announcements,
     )
+
+
+def highlighted_club_announcements(limit: int = 3) -> List[Event]:
+    """Upcoming club announcements which are not full yet.
+
+    Club announcements are the events attached to the service named by the
+    ``CLUB_ANNOUNCEMENT_ACTIVITY`` configuration. They stay in the event list,
+    and are highlighted above it until they are full.
+
+    :param limit: Maximum number of announcements to return
+    :return: Announcements visible to the current user, soonest first
+    """
+    announcement = current_app.config["CLUB_ANNOUNCEMENT_ACTIVITY"]
+    query = Event.query.filter(
+        Event.activity_types.any(ActivityType.short == announcement),
+        Event.status == EventStatus.Confirmed,
+        Event.end >= current_time(),
+    )
+    query = filter_hidden_events(query).order_by(Event.start)
+    return [event for event in query if event.has_free_slots()][:limit]
 
 
 @blueprint.route("/<int:event_id>")
@@ -388,6 +421,15 @@ def _prevalidate_leaders_and_activities(
     if requires_activity and len(tentative_activities) == 0:
         flash(
             f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
+            "error",
+        )
+        return (False, [], [])
+    if requires_activity and all(
+        activity.kind == ActivityKind.Service for activity in tentative_activities
+    ):
+        flash(
+            f"Un événement de type {form.current_event_type().name} doit être rattaché "
+            "à au moins une activité ou une initiative, pas seulement à un service",
             "error",
         )
         return (False, [], [])
