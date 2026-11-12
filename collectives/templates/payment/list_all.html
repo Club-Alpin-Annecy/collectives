@@ -25,6 +25,11 @@
 {% block content %}
 <div class="page-content" style="max-width: 100%">
   <h1 class="heading-1">Liste des paiements</h1>
+  <p>
+      <a class="button button-secondary" href="{{url_for('payment.list_pending')}}">
+            Paiements en attente
+      </a>
+  </p>
   <div id="payments-table"></div>
 
   <p>
