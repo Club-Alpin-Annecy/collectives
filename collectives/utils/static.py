@@ -83,7 +83,7 @@ eg a PDF displayed by the browser.
 
 
 @lru_cache(maxsize=4096)
-def _file_hash(path: str, mtime_ns: int, size: int, inode: int) -> str:  # pylint: disable=unused-argument
+def _file_hash(path: str, mtime_ns: int, size: int, inode: int) -> str:
     """Hash of a file content.
 
     File metadata are part of the cache key, so that a modified file gets a new hash
