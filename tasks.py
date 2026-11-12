@@ -1,25 +1,24 @@
 #! /usr/bin/env python3
-"""Automatisation des tâches de développement du projet.
+"""Development task runner for the project.
 
-    ./tasks.py start        # lance une tâche ; ./tasks.py seul liste les tâches
+    ./tasks.py start        # runs a task; ./tasks.py alone lists the tasks
 
-Outillage de développement uniquement : il n'est pas inclus dans le paquet installé.
+Development tooling only: it is not included in the installed package.
 
-Particularité worktree : les tâches détectent si l'on est dans un git worktree (et non
-dans le clone principal). Dans ce cas elles génèrent automatiquement, avant de démarrer,
-le fichier local (gitignoré) qui isole le worktree :
+Worktrees: tasks detect whether they run in a git worktree (rather than in the main
+clone). In that case, before starting, they generate the local (git-ignored) file that
+isolates the worktree:
 
-  - ``.env`` : décale les ports publiés (application) de façon
-    déterministe à partir du nom de branche, pour cohabiter avec le checkout principal
-    et les autres worktrees, et pointe ``SQLALCHEMY_DATABASE_URI`` vers une base propre
-    au worktree.
+  - ``.env``: shifts the published (application) port deterministically from the branch
+    name, to coexist with the main checkout and the other worktrees, and points
+    ``SQLALCHEMY_DATABASE_URI`` to a database specific to the worktree.
 
-La tâche ``start`` amorce aussi la base par copie de celle du checkout principal, ce qui
-évite de régénérer le jeu de test. Résultat : ``./tasks.py start`` est transparent, que
-l'on soit dans le clone principal ou dans un worktree.
+The ``start`` task also seeds the database by copying the one of the main checkout,
+which avoids regenerating the test data set. As a result, ``./tasks.py start`` works the
+same in the main clone and in a worktree.
 
-Variables d'environnement :
-  WORKTREE_SEED_DB=0    désactive la copie de la base du checkout principal
+Environment variables:
+  WORKTREE_SEED_DB=0    disables copying the database of the main checkout
 """
 
 import argparse
@@ -34,7 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 
 APP_PORT_BASE = 5000
-"""Port de l'application dans le clone principal ; un worktree y ajoute son offset."""
+"""Application port in the main clone; a worktree adds its offset to it."""
 
 ENV_BEGIN = "# >>> tasks.py worktree (généré, ne pas committer) >>>"
 ENV_END = "# <<< tasks.py worktree <<<"
@@ -48,15 +47,15 @@ ENV_HEADER = """# Environnement de développement local — généré par ./task
 
 
 # ——————————————————————————————————————————————————————————————————————————————
-#  Helpers d'exécution
+#  Execution helpers
 # ——————————————————————————————————————————————————————————————————————————————
 
 
 def capture(command: str, on_failure: str = None) -> str:
-    """Exécute une commande et renvoie sa sortie standard, sans l'afficher.
+    """Run a command and return its standard output, without displaying it.
 
-    :param command: commande shell
-    :param on_failure: valeur renvoyée en cas d'échec ; si None, l'échec est propagé
+    :param command: shell command
+    :param on_failure: value returned on failure; if None, the failure is raised
     """
     try:
         done = subprocess.run(
@@ -70,31 +69,31 @@ def capture(command: str, on_failure: str = None) -> str:
 
 
 def run(command: list, env: dict = None, check: bool = True) -> int:
-    """Exécute une commande en laissant sa sortie s'afficher."""
+    """Run a command, letting its output be displayed."""
     merged = {**os.environ, **(env or {})}
     return subprocess.run(command, cwd=ROOT, env=merged, check=check).returncode
 
 
 def info(message: str):
-    """Affiche une ligne d'information."""
+    """Print an information line."""
     print(f"  {message}")
 
 
 def section(title: str):
-    """Affiche un titre de section."""
+    """Print a section title."""
     print(f"\n\033[1m{title}\033[0m")
 
 
 # ——————————————————————————————————————————————————————————————————————————————
-#  Contexte worktree
+#  Worktree context
 # ——————————————————————————————————————————————————————————————————————————————
 
 
 def worktree_context() -> dict:
-    """Contexte d'isolation du worktree courant, ou None si l'on est dans le clone principal.
+    """Isolation context of the current worktree, or None in the main clone.
 
-    L'offset de port est dérivé du nom de branche : deux worktrees distincts obtiennent
-    des ports distincts sans convention à tenir à jour à la main.
+    The port offset is derived from the branch name: two worktrees get distinct ports
+    without any convention to maintain by hand.
     """
     root = Path(capture("git rev-parse --show-toplevel")).resolve()
     common_dir = Path(capture("git rev-parse --git-common-dir"))
@@ -103,7 +102,7 @@ def worktree_context() -> dict:
     main_root = common_dir.parent.resolve()
 
     branch = capture("git rev-parse --abbrev-ref HEAD")
-    # Offset déterministe (5..404), pour ne pas retomber sur le port 5000 du clone principal.
+    # Deterministic offset (5..404), so as not to reuse port 5000 of the main clone.
     offset = zlib.crc32(branch.encode()) % 400 + 5
 
     if root == main_root:
@@ -120,7 +119,7 @@ def worktree_context() -> dict:
 
 
 def ports() -> dict:
-    """Ports et chemins du checkout courant, worktree ou non."""
+    """Ports and paths of the current checkout, worktree or not."""
     ctx = worktree_context()
     if ctx is None:
         return {
@@ -136,15 +135,15 @@ def ports() -> dict:
 
 
 # ——————————————————————————————————————————————————————————————————————————————
-#  Génération des fichiers locaux
+#  Local files generation
 # ——————————————————————————————————————————————————————————————————————————————
 
 
 def upsert_env(path: Path, variables: dict):
-    """Insère ou met à jour un bloc balisé dans un fichier .env, sans toucher au reste.
+    """Insert or update a delimited block in a .env file, leaving the rest untouched.
 
-    Ce qui est écrit hors du bloc (réglages personnels, identifiants réels) survit aux
-    régénérations.
+    What is written outside the block (personal settings, real credentials) survives
+    regenerations.
     """
     block = "\n".join([ENV_BEGIN, *[f"{k}={v}" for k, v in variables.items()], ENV_END])
     existing = path.read_text(encoding="utf-8") if path.is_file() else ENV_HEADER
@@ -160,20 +159,20 @@ def upsert_env(path: Path, variables: dict):
 
 
 def write_worktree_files(state: dict):
-    """Écrit le fichier local (gitignoré) qui isole le checkout courant."""
+    """Write the local (git-ignored) file that isolates the current checkout."""
     db = state["db"]
 
     upsert_env(
         ROOT / ".env",
         {
             "COLLECTIVES_PORT": state["app_port"],
-            # Chemin ABSOLU obligatoire : « flask db upgrade » résout les chemins sqlite
-            # relatifs depuis le répertoire courant, tandis que Flask-SQLAlchemy les
-            # résout depuis instance/ — un chemin relatif crée donc deux bases.
+            # The path MUST be absolute: `flask db upgrade` resolves relative sqlite
+            # paths from the current directory, while Flask-SQLAlchemy resolves them
+            # from instance/, so a relative path creates two databases.
             "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db}",
-            # Sans ceci, l'application interroge le vrai extranet FFCAM au premier login.
+            # Without this, the application queries the real FFCAM extranet at first login.
             "EXTRANET_DISABLE": 1,
-            # Les tâches planifiées ne doivent pas se déclencher seules en développement.
+            # Scheduled tasks must not fire on their own in development.
             "SCHEDULER_ENABLED": "false",
             "FLASK_DEBUG": 1,
             "SECRET_KEY": "dev-only-not-a-real-secret",
@@ -184,7 +183,7 @@ def write_worktree_files(state: dict):
 
 
 def load_env() -> dict:
-    """Lit .env et renvoie les variables, sans dépendre de python-dotenv."""
+    """Read .env and return its variables, without depending on python-dotenv."""
     path = ROOT / ".env"
     if not path.is_file():
         return {}
@@ -200,7 +199,7 @@ def load_env() -> dict:
 
 
 def app_env(**overrides) -> dict:
-    """Environnement d'exécution de l'application : .env plus FLASK_APP."""
+    """Runtime environment of the application: .env plus FLASK_APP."""
     return {
         **load_env(),
         "FLASK_APP": "collectives:create_app",
@@ -209,22 +208,23 @@ def app_env(**overrides) -> dict:
 
 
 # ——————————————————————————————————————————————————————————————————————————————
-#  Amorçage
+#  Bootstrap
 # ——————————————————————————————————————————————————————————————————————————————
 
 
 def ensure_venv():
-    """Installe les dépendances si le virtualenv du checkout est absent."""
+    """Install the dependencies if the virtualenv of the checkout is missing."""
     if not (ROOT / ".venv").is_dir():
         info("Création du virtualenv (uv sync)…")
         run(["uv", "sync"])
 
 
 def seed_database(state: dict):
-    """Amorce la base du worktree par copie de celle du checkout principal.
+    """Seed the worktree database by copying the one of the main checkout.
 
-    Évite de régénérer le jeu de test. Idempotent : ne fait rien si la base existe déjà.
-    Les migrations propres à la branche sont appliquées ensuite par ``flask db upgrade``.
+    Avoids regenerating the test data set. Idempotent: does nothing if the database
+    already exists. Migrations specific to the branch are then applied by
+    ``flask db upgrade``.
     """
     ctx = state["worktree"]
     if ctx is None or state["db"].exists():
@@ -244,14 +244,14 @@ def seed_database(state: dict):
 
 
 # ——————————————————————————————————————————————————————————————————————————————
-#  Tâches
+#  Tasks
 # ——————————————————————————————————————————————————————————————————————————————
 
 TASKS = {}
 
 
 def task(name: str, description: str):
-    """Déclare une tâche exposée en ligne de commande."""
+    """Declare a task exposed on the command line."""
 
     def register(function):
         TASKS[name] = (function, description)
@@ -262,7 +262,7 @@ def task(name: str, description: str):
 
 @task("info", "Affiche les ports, la base et le contexte du checkout courant")
 def task_info(_args):
-    """Affiche le contexte d'isolation."""
+    """Print the isolation context."""
     state = ports()
     ctx = state["worktree"]
 
@@ -281,7 +281,7 @@ def task_info(_args):
 
 @task("start", "Génère l'isolation, amorce et migre la base, démarre l'application")
 def task_start(_args):
-    """Démarre l'application, en isolant automatiquement le worktree."""
+    """Start the application, isolating the worktree automatically."""
     state = ports()
     task_info(None)
 
@@ -300,17 +300,17 @@ def task_start(_args):
 
 @task("fixtures", "Recharge le jeu de données de test dans la base courante")
 def task_fixtures(_args):
-    """Régénère le jeu de données de test."""
+    """Regenerate the test data set."""
     run(["uv", "run", "flask", "db", "upgrade"], env=app_env())
     return run(["uv", "run", "python", "etc/test_set.py"], env=app_env(), check=False)
 
 
 @task("test", "Lance la suite de tests, dans un environnement hermétique")
 def task_test(args):
-    """Lance pytest sans les variables de développement.
+    """Run pytest without the development variables.
 
-    La suite doit tourner comme en CI : ni la base de développement, ni les variables qui
-    neutralisent les services — les tests ont leurs propres mocks dans tests/mock/.
+    The suite must run as in CI: neither the development database nor the variables
+    that disable services; tests have their own mocks in tests/mock/.
     """
     clean = {
         key: value
@@ -324,20 +324,20 @@ def task_test(args):
 
 @task("lint", "Formate le code et lance le linter, comme la CI")
 def task_lint(_args):
-    """Formate puis analyse le code."""
+    """Format then lint the code."""
     run(["uvx", "ruff", "format"], check=False)
     return run(["uvx", "ruff", "check", "--fix"], check=False)
 
 
 @task("shell", "Shell Python avec le contexte applicatif")
 def task_shell(_args):
-    """Ouvre un shell Flask."""
+    """Open a Flask shell."""
     return run(["uv", "run", "flask", "shell"], env=app_env(), check=False)
 
 
 @task("destroy", "Supprime la base du checkout courant")
 def task_destroy(_args):
-    """Supprime la base, après confirmation dans le clone principal."""
+    """Delete the database, after confirmation in the main clone."""
     state = ports()
 
     if state["worktree"] is None:
@@ -355,7 +355,7 @@ def task_destroy(_args):
 
 
 def main() -> int:
-    """Point d'entrée : analyse les arguments et exécute la tâche demandée."""
+    """Entry point: parse the arguments and run the requested task."""
     parser = argparse.ArgumentParser(
         description=__doc__.splitlines()[0],
         formatter_class=argparse.RawDescriptionHelpFormatter,
