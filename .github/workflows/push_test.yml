@@ -8,7 +8,10 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    # ubuntu-latest resolves to Ubuntu 25.10 (resolute), for which the
+    # MariaDB 10.11 apt repository has no Release file; stay on 24.04
+    # until the tested MariaDB version supports it
+    runs-on: ubuntu-24.04
     strategy:
       max-parallel: 4
       matrix:
