@@ -1,6 +1,6 @@
 """Module for event tag classes."""
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from flask import current_app
 
@@ -86,11 +86,19 @@ class EventTag(db.Model):
         return {**tag, "id": self.type}
 
     @classmethod
-    def choices(cls):
-        """Returns all tag types formatted for a wtform multiple selection field.
+    def choices(cls, kept_types: List[int] = ()):
+        """Returns tag types formatted for a wtform multiple selection field.
 
+        Deprecated tag types are excluded, unless listed in ``kept_types``.
+
+        :param kept_types: Tag types to offer even if deprecated, usually the
+            tags already set on the edited event.
         :type: array"""
-        return [(tag[0], tag[1]["name"]) for tag in cls.all().items()]
+        return [
+            (tag_type, tag["name"])
+            for tag_type, tag in cls.all(include_deprecated=True).items()
+            if not tag.get("deprecated", False) or tag_type in kept_types
+        ]
 
     @classmethod
     def all(cls, include_deprecated=False) -> Dict[int, Dict[str, Any]]:
@@ -130,8 +138,8 @@ class EventTag(db.Model):
         csv_code = to_ascii(csv_code.strip().lower())
 
         for i, tag in cls.all(include_deprecated=True).items():
-            tag_csv_code = to_ascii(tag.get("csv_code", tag["name"]).lower())
-            if csv_code == tag_csv_code:
+            codes = {tag["name"], tag.get("csv_code", tag["name"])}
+            if csv_code in {to_ascii(code.lower()) for code in codes}:
                 return i
 
         return None
