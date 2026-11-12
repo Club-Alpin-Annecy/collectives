@@ -165,7 +165,7 @@ def comment_leader(role_id):
 
     role = db.session.get(Role, role_id)
     if role is None or role.role_id not in RoleIds.all_relates_to_activity():
-        flash("Role invalide", "error")
+        flash("Rôle invalide", "error")
         return redirect(url_for(".leaders_review"))
 
     if role.activity_type not in current_user.get_supervised_activities():
