@@ -67,6 +67,7 @@
             <span class="event-status-badge event-status-{{event.status.value}}">{{event.status_string()}}</span>&nbsp;
           {% endif %}
         </h1>
+        <p class="collective-number">Collective n° {{event.id}}</p>
         {% if event.tags %}
         <h2 class="heading-3">
             {% for tag in event.tags %}
