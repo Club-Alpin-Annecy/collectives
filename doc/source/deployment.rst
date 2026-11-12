@@ -149,6 +149,27 @@ pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
 
+Loxya equipment platform (optional)
+....................................
+Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
+instance, so that equipment volunteers can lend them equipment. This is off by
+default, and leaves no trace at all on a site that does not enable it.
+
+To enable it, a technician turns on `LOXYA_ENABLED` in
+`/technician/configuration`, folder Loxya; no restart is needed.
+
+The technician then enters the Loxya address and the credentials of the account
+the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` — in
+the same folder, like those of the FFCAM extranet.
+Nothing is sent to Loxya until they are all set, and the synchronization mode is
+also chosen there; `/technician/actions` previews what a run would do.
+
+The synchronization runs every night at 4:30. A member whose licence looks
+expired is checked on the FFCAM extranet before being withdrawn, since the
+expiry date is otherwise only refreshed at login. A run stops after
+`LOXYA_MAX_DURATION` minutes (an hour by default), leaving the remaining members
+to the next night.
+
 Anonymized export
 ..................
 An anonymized copy of a MariaDB/MySQL database can be exported for

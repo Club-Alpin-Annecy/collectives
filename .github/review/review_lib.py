@@ -51,6 +51,46 @@ NEUTRALIZE_TOKEN_RE = re.compile(
         )
     )
 )
+CONFIG_PY_PATH = "config.py"
+CONFIG_PY_RE = re.compile(r"^[A-Z][A-Z0-9_]*\s*=")
+CONTENT_LINE_RE = re.compile(r"^\s+content:")
+CLIENT_TEST_RE = re.compile(r"def test_\w+\(")
+SIGNATURE_MAX_LINES = 20
+NEW_FILE_MODE = "new file mode"
+NEW_FILE_HEADER = "new file mode 100644"
+CLIENT_SUFFIX = "client"
+MIN_CLIENT_FIXTURES = 2
+DOC_SUFFIXES = (".md", ".rst")
+SECURITY_WORDS = (
+    "vulnérab",
+    "vulnerab",
+    "faille",
+    "xss",
+    "injection",
+    "cve",
+    "exploit",
+)
+DESCRIPTION_PLACE = "(description)"
+INJECTION_RES = tuple(
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in (
+        r"ignore (all |the )?(previous|above) instructions",
+        r"you are (now )?an? (ai|assistant|reviewer)\b",
+        r"system prompt",
+        r"<!-- *(ai|llm|claude|gpt|copilot)",
+        r"approve this (pr|pull request)",
+    )
+)
+MIGRATIONS_PREFIX = "migrations/versions/"
+REVISION_RE = re.compile(r"""^revision\s*=\s*["']([^"']+)["']""", re.MULTILINE)
+DOWN_REVISION_RE = re.compile(
+    r"""^down_revision\s*=\s*["']([^"']+)["']""", re.MULTILINE
+)
+LOCK_PACKAGE_RE = re.compile(
+    r'\[\[package\]\]\s*\nname = "([^"]+)"\s*\nversion = "([^"]+)"'
+)
+IMPORT_NAME_RE = re.compile(r"^\s*(?:import|from)\s+([A-Za-z_]\w*)")
+PACKAGE_ALIASES = {"yaml": "pyyaml", "jwt": "pyjwt", "dateutil": "python-dateutil"}
 CODE_PREFIX = "collectives/"
 PYPROJECT_PATH = "pyproject.toml"
 DEPENDENCIES_OPENER = "dependencies = ["
@@ -242,29 +282,42 @@ def sensitive_areas_touched(paths: list[str], areas: dict) -> list[str]:
     ]
 
 
-def new_side_lines(diff: str) -> list[tuple[str, int, str, bool]]:
+def new_side_lines(diff: str) -> list[tuple[str, int, str, bool, bool]]:
     """Parses a unified diff into the lines of the new side of each file.
 
     Args:
         diff: A unified diff (`diff --git` format).
 
     Returns:
-        A `(path, new line number, text, added)` tuple per context or added
-        line, in diff order. Deleted files have none.
+        A `(path, new line number, text, added, replaces)` tuple per context or
+        added line, in diff order. `replaces` is true for an added line that
+        takes the place of a removed line of the same change. Deleted files
+        have none.
     """
-    result: list[tuple[str, int, str, bool]] = []
+    result: list[tuple[str, int, str, bool, bool]] = []
     path = None
-    old_left = new_left = new_number = 0
+    old_left = new_left = new_number = pending_removed = 0
+    in_additions = False
     for line in diff.splitlines():
         if old_left > 0 or new_left > 0:
             if line.startswith("-"):
                 old_left -= 1
+                if in_additions:
+                    pending_removed, in_additions = 0, False
+                pending_removed += 1
                 continue
             if line.startswith("\\"):
                 continue
             added = line.startswith("+")
+            replaces = added and pending_removed > 0
+            if replaces:
+                pending_removed -= 1
+            if not added:
+                pending_removed, in_additions = 0, False
+            else:
+                in_additions = True
             if path:
-                result.append((path, new_number, line[1:], added))
+                result.append((path, new_number, line[1:], added, replaces))
             new_number += 1
             new_left -= 1
             if not added:
@@ -275,8 +328,9 @@ def new_side_lines(diff: str) -> list[tuple[str, int, str, bool]]:
             old_left = int(hunk.group(1) or 1)
             new_number = int(hunk.group(2))
             new_left = int(hunk.group(3) or 1)
+            pending_removed, in_additions = 0, False
         elif line.startswith(DIFF_HEADER):
-            path = None
+            path = line.rsplit(" b/", 1)[1] if " b/" in line else None
         elif line.startswith(NEW_FILE_B_PREFIX):
             path = line[len(NEW_FILE_B_PREFIX) :]
         elif line.startswith(NEW_FILE_PREFIX):
@@ -296,7 +350,7 @@ def added_line_contents(diff: str) -> list[tuple[str, int, str]]:
     """
     return [
         (path, number, text)
-        for path, number, text, added in new_side_lines(diff)
+        for path, number, text, added, _ in new_side_lines(diff)
         if added
     ]
 
@@ -313,7 +367,7 @@ def new_outside_services(diff: str) -> list[dict]:
     """
     found = []
     in_dependencies = False
-    for path, number, text, added in new_side_lines(diff):
+    for path, number, text, added, _ in new_side_lines(diff):
         signal = None
         if path == PYPROJECT_PATH:
             if text.strip().startswith(DEPENDENCIES_OPENER):
@@ -395,7 +449,10 @@ def extended_diff(files: list[dict], context: int) -> str:
             continue
         old_name = DEV_NULL if base is None else f"a/{path}"
         new_name = DEV_NULL if head is None else f"b/{path}"
-        lines += [f"{DIFF_HEADER}a/{path} b/{path}", f"--- {old_name}"]
+        lines.append(f"{DIFF_HEADER}a/{path} b/{path}")
+        if base is None:
+            lines.append(NEW_FILE_HEADER)
+        lines.append(f"--- {old_name}")
         lines += [f"+++ {new_name}", *body[2:]]
     return "".join(f"{line}\n" for line in lines)
 
@@ -529,7 +586,256 @@ def unanonymised_text_columns(
     ]
 
 
-def pr_facts(title: str, files: list[dict], diff: str, areas: dict) -> dict:
+def signature_parameters(lines: list[str]) -> list[str] | None:
+    """Reads the parameter names of a function signature.
+
+    Args:
+        lines: Consecutive lines, the first holding `def name(`.
+
+    Returns:
+        The parameter names once the list closes within the lines, else None.
+    """
+    text = "\n".join(lines)
+    start = text.index("(") + 1
+    depth, names, current = 1, [], ""
+    for char in text[start:]:
+        depth += char in "([{"
+        depth -= char in ")]}"
+        if depth == 0:
+            names.append(current)
+            return [
+                re.split(r"[:=]", name)[0].strip() for name in names if name.strip()
+            ]
+        if char == "," and depth == 1:
+            names.append(current)
+            current = ""
+        else:
+            current += char
+    return None
+
+
+def combined_client_fixtures(
+    contents: list[tuple[str, int, str]],
+) -> list[tuple[str, int]]:
+    """Finds added tests that take two or more `*client` fixtures.
+
+    A signature may span several consecutive added lines.
+
+    Args:
+        contents: The added lines, as given by `added_line_contents`.
+
+    Returns:
+        A `(path, line)` tuple, at the `def` line, per such test under `tests/`.
+    """
+    found = []
+    for index, (path, number, text) in enumerate(contents):
+        if not path.startswith(TESTS_PREFIX) or not CLIENT_TEST_RE.search(text):
+            continue
+        lines = [text]
+        following = contents[index + 1 : index + SIGNATURE_MAX_LINES]
+        for offset, (next_path, next_number, next_text) in enumerate(following, 1):
+            if next_path != path or next_number != number + offset:
+                break
+            lines.append(next_text)
+        names = signature_parameters(lines) or []
+        if sum(name.endswith(CLIENT_SUFFIX) for name in names) >= MIN_CLIENT_FIXTURES:
+            found.append((path, number))
+    return found
+
+
+def changed_defaults(diff: str) -> list[tuple[str, int]]:
+    """Finds default values that a diff replaces, not adds.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        A `(path, line)` tuple per added `NAME =` line of `config.py` or
+        `content:` line of the configuration file that replaces a removed line.
+    """
+    found = []
+    for path, number, text, _, replaces in new_side_lines(diff):
+        if not replaces:
+            continue
+        if (path == CONFIG_PY_PATH and CONFIG_PY_RE.match(text)) or (
+            path == CONFIGURATION_PATH and CONTENT_LINE_RE.match(text)
+        ):
+            found.append((path, number))
+    return found
+
+
+def security_writeups(contents: list[tuple[str, int, str]]) -> list[str]:
+    """Finds documents whose added lines discuss a weakness.
+
+    Args:
+        contents: The added lines, as given by `added_line_contents`.
+
+    Returns:
+        The `.md` and `.rst` paths with such a line, without duplicates.
+    """
+    found = []
+    for path, _, text in contents:
+        lowered = text.lower()
+        if (
+            path.endswith(DOC_SUFFIXES)
+            and path not in found
+            and any(word in lowered for word in SECURITY_WORDS)
+        ):
+            found.append(path)
+    return found
+
+
+def injection_suspects(
+    contents: list[tuple[str, int, str]], body: str
+) -> list[tuple[str, int]]:
+    """Finds text that addresses an AI reviewer instead of a human.
+
+    Args:
+        contents: The added lines, as given by `added_line_contents`.
+        body: The PR description.
+
+    Returns:
+        `(path, line)` per matching added line (once per line), preceded by
+        `("(description)", 0)` when the description matches.
+    """
+    found = []
+    if any(pattern.search(body) for pattern in INJECTION_RES):
+        found.append((DESCRIPTION_PLACE, 0))
+    found += [
+        (path, number)
+        for path, number, text in contents
+        if any(pattern.search(text) for pattern in INJECTION_RES)
+    ]
+    return found
+
+
+def migration_children(texts: list[str]) -> dict[str, list[str]]:
+    """Maps each migration revision to the revisions that follow it.
+
+    Args:
+        texts: The text of each migration file.
+
+    Returns:
+        Parent revision to its child revisions. Merge migrations (tuple
+        parents) and roots add nothing.
+    """
+    children: dict[str, list[str]] = {}
+    for text in texts:
+        revision, parent = REVISION_RE.search(text), DOWN_REVISION_RE.search(text)
+        if revision and parent:
+            children.setdefault(parent.group(1), []).append(revision.group(1))
+    return children
+
+
+def created_files(diff: str) -> set[str]:
+    """Lists the files a diff creates.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        The paths whose own diff header says `new file mode`.
+    """
+    created: set[str] = set()
+    path = None
+    for line in diff.splitlines():
+        if line.startswith(DIFF_HEADER):
+            path = line.rsplit(" b/", 1)[1] if " b/" in line else None
+        elif line.startswith(NEW_FILE_MODE) and path:
+            created.add(path)
+    return created
+
+
+def added_migrations(diff: str) -> dict[str, str]:
+    """Reads the revisions of the migration files that a diff adds.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        Revision to down revision, for each migration file the diff creates
+        (a modified migration is not a new one) with a single parent.
+    """
+    created = created_files(diff)
+    texts: dict[str, list[str]] = {}
+    for path, _, text in added_line_contents(diff):
+        if path.startswith(MIGRATIONS_PREFIX) and path in created:
+            texts.setdefault(path, []).append(text)
+    result = {}
+    for lines in texts.values():
+        text = "\n".join(lines)
+        revision, parent = REVISION_RE.search(text), DOWN_REVISION_RE.search(text)
+        if revision and parent:
+            result[revision.group(1)] = parent.group(1)
+    return result
+
+
+def migration_forks(
+    added: dict[str, str], base_children: dict[str, list[str]]
+) -> list[dict]:
+    """Finds new migrations that branch the history.
+
+    Args:
+        added: Revision to down revision of the migrations the PR adds.
+        base_children: Parent to children revisions on the base branch.
+
+    Returns:
+        A `revision`, `parent`, `child` dict per added migration whose parent
+        already has a child on the base branch.
+    """
+    forks = []
+    for revision, parent in added.items():
+        existing = [
+            child for child in base_children.get(parent, []) if child not in added
+        ]
+        if existing:
+            forks.append({"revision": revision, "parent": parent, "child": existing[0]})
+    return forks
+
+
+def imported_modules(diff: str) -> list[str]:
+    """Lists the top-level modules imported by added Python lines.
+
+    Args:
+        diff: A unified diff.
+
+    Returns:
+        The module names, without duplicates, in diff order.
+    """
+    names: list[str] = []
+    for path, _, text in added_line_contents(diff):
+        match = IMPORT_NAME_RE.match(text)
+        if path.endswith(".py") and match and match.group(1) not in names:
+            names.append(match.group(1))
+    return names
+
+
+def pinned_versions(import_names: list[str], uv_lock: str) -> dict[str, str]:
+    """Looks up the locked version of imported packages.
+
+    Args:
+        import_names: Top-level module names, e.g. `yaml`.
+        uv_lock: The text of uv.lock.
+
+    Returns:
+        Lower-case lock package name to version; standard library and unknown
+        names are omitted.
+    """
+    locked = {
+        name.lower().replace("_", "-"): version
+        for name, version in LOCK_PACKAGE_RE.findall(uv_lock)
+    }
+    result = {}
+    for name in import_names:
+        package = PACKAGE_ALIASES.get(name, name).lower().replace("_", "-")
+        if package in locked:
+            result[package] = locked[package]
+    return result
+
+
+def pr_facts(
+    title: str, files: list[dict], diff: str, areas: dict, body: str = ""
+) -> dict:
     """Computes the facts about a PR that the model must not guess.
 
     Args:
@@ -537,6 +843,7 @@ def pr_facts(title: str, files: list[dict], diff: str, areas: dict) -> dict:
         files: Items with `path`, `status`, `additions` and `deletions`.
         diff: The unified diff of the PR.
         areas: The sensitive areas of CODING.md.
+        body: The PR description.
 
     Returns:
         The facts, keyed as described in the review tools contract.
@@ -555,7 +862,15 @@ def pr_facts(title: str, files: list[dict], diff: str, areas: dict) -> dict:
         "title_tag": tag,
         "fix_without_test": tag == TAG_FIX
         and not any(path.startswith(TESTS_PREFIX) for path in paths),
-        "stray_files": [path for path in paths if is_stray(path)],
+        "stray_files": [
+            item["path"]
+            for item in files
+            if item["status"] == STATUS_ADDED and is_stray(item["path"])
+        ],
+        "combined_client_fixtures": combined_client_fixtures(contents),
+        "changed_defaults": changed_defaults(diff),
+        "security_writeups": security_writeups(contents),
+        "injection_suspects": injection_suspects(contents, body),
         "debug_leftovers": [
             (path, number)
             for path, number, text in contents

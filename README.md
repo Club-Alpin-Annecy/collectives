@@ -29,9 +29,13 @@ Detailed documentation is available in the ``doc`` folder and can be browsed at 
 
 3. From the root of the cloned repo, run `uv sync`
 
-4. Start the local server: `uv run run.py`
+4. Start the local server: `./tasks.py start` (or `uv run run.py`)
 
 5. Navigate to http://localhost:5000/ to test the app
+
+`./tasks.py` lists the other development tasks (`fixtures`, `test`, `lint`, `shell`,
+`destroy`, `info`). In a git worktree, `./tasks.py start` gives the worktree its own
+port and its own database, seeded from the main clone's `app.db`.
 
 ## Configuration
 Instance specific configuration can be included in `instance/config.py`
