@@ -22,6 +22,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from collectives import create_app
 from collectives.models import (
+    ActivityKind,
     ActivityType,
     Event,
     EventStatus,
@@ -340,8 +341,12 @@ def create_users(rng: random.Random) -> list[User]:
 def reset_dataset() -> None:
     """Supprime les données précédemment générées par ce script."""
     legacy_patterns = (
-        Event.description.like("%Objectif: progression technique, sécurité et plaisir en montagne.%"),
-        Event.description.like("%Moment convivial, échanges d'expérience et préparation des prochaines sorties.%"),
+        Event.description.like(
+            "%Objectif: progression technique, sécurité et plaisir en montagne.%"
+        ),
+        Event.description.like(
+            "%Moment convivial, échanges d'expérience et préparation des prochaines sorties.%"
+        ),
     )
 
     events = Event.query.filter(
@@ -359,17 +364,32 @@ def reset_dataset() -> None:
         Registration.query.filter(Registration.user_id.in_(test_user_ids)).delete(
             synchronize_session=False
         )
-        Role.query.filter(Role.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+        Role.query.filter(Role.user_id.in_(test_user_ids)).delete(
+            synchronize_session=False
+        )
         for user in test_users:
             db.session.delete(user)
 
     db.session.commit()
 
 
+def get_event_activities() -> list[ActivityType]:
+    """List the activities the generated events can be attached to.
+
+    Unlike services, regular activities can carry events; deprecated
+    types are excluded.
+    """
+    return [
+        activity
+        for activity in ActivityType.get_all_types(include_deprecated=False)
+        if activity.kind != ActivityKind.Service
+    ]
+
+
 def assign_activity_roles(rng: random.Random, users: list[User]) -> dict[int, User]:
     """Assigne un encadrant et un responsable pour chaque activité."""
     leader_by_activity: dict[int, User] = {}
-    activities = ActivityType.get_all_types(include_deprecated=False, include_services=False)
+    activities = get_event_activities()
 
     for activity in activities:
         leader, supervisor = rng.sample(users, 2)
@@ -405,7 +425,9 @@ def create_related_title_description(
     activity_label = " / ".join(activity_names)
 
     main_activity = activities[0]
-    outing_candidates = REAL_OUTINGS_BY_ACTIVITY.get(main_activity.short, GENERIC_OUTINGS)
+    outing_candidates = REAL_OUTINGS_BY_ACTIVITY.get(
+        main_activity.short, GENERIC_OUTINGS
+    )
     outing_name = random.choice(outing_candidates)
 
     if is_soiree:
@@ -454,12 +476,16 @@ def add_random_registrations(
     max_registrations: int,
 ) -> None:
     """Inscrit aléatoirement des utilisateurs sur un évènement."""
-    candidates = [user for user in users if user.id not in {leader.id for leader in event.leaders}]
+    candidates = [
+        user for user in users if user.id not in {leader.id for leader in event.leaders}
+    ]
     if not candidates:
         return
 
     registrations_count = rng.randint(0, max_registrations)
-    for participant in rng.sample(candidates, min(registrations_count, len(candidates))):
+    for participant in rng.sample(
+        candidates, min(registrations_count, len(candidates))
+    ):
         registration_time = event.registration_open_time
         if registration_time is None:
             registration_time = current_time()
@@ -477,9 +503,11 @@ def add_random_registrations(
         )
 
 
-def create_events(rng: random.Random, users: list[User], leader_by_activity: dict[int, User]) -> None:
+def create_events(
+    rng: random.Random, users: list[User], leader_by_activity: dict[int, User]
+) -> None:
     """Crée un évènement par jour pendant 2 ans."""
-    activities = ActivityType.get_all_types(include_deprecated=False, include_services=False)
+    activities = get_event_activities()
     if not activities:
         raise RuntimeError("Aucune activité disponible en base.")
 
@@ -500,7 +528,13 @@ def create_events(rng: random.Random, users: list[User], leader_by_activity: dic
 
         selected_activities = [rng.choice(activities)]
         if has_two_activities and len(activities) > 1:
-            second = rng.choice([activity for activity in activities if activity.id != selected_activities[0].id])
+            second = rng.choice(
+                [
+                    activity
+                    for activity in activities
+                    if activity.id != selected_activities[0].id
+                ]
+            )
             selected_activities.append(second)
 
         event_type = event_type_soiree if is_soiree else event_type_collective

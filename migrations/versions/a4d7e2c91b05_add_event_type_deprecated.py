@@ -1,7 +1,7 @@
 """Add deprecated flag to event types
 
 Revision ID: a4d7e2c91b05
-Revises: 3f8a2c71d5e9
+Revises: 7babe0b3cfa2
 Create Date: 2026-10-07 19:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "a4d7e2c91b05"
-down_revision = "3f8a2c71d5e9"
+down_revision = "7babe0b3cfa2"
 branch_labels = None
 depends_on = None
 

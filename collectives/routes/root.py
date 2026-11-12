@@ -5,6 +5,7 @@ This modules contains the root Blueprint
 
 from flask import Blueprint, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import text
 
 from collectives.forms import csrf
 from collectives.forms.auth import LegalAcceptation
@@ -33,6 +34,13 @@ def legal():
 def robots_txt():
     """Robots file to disallow indexing"""
     return Configuration.ROBOTS_TXT, 200, {"content-type": "text/plain"}
+
+
+@blueprint.route("/up")
+def up():
+    """Health check: the application answers and its database is reachable"""
+    db.session.execute(text("SELECT 1"))
+    return "OK", 200, {"content-type": "text/plain"}
 
 
 @blueprint.route("/legal/accept", methods=["POST"])
