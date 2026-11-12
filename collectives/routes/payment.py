@@ -21,6 +21,7 @@ from flask import (
 )
 from flask_login import current_user
 from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 from sqlalchemy import inspect
 from sqlalchemy.orm import selectinload
 
@@ -439,41 +440,41 @@ def export_payments(event_id=None):
     # Create the excel document
     workbook = Workbook()
     worksheet = workbook.active
+    # Exported field: (column title, column width or None for default width)
     fields = {
-        "item.event.event_type.name": "Type d'événement",
-        "item.event.activity_type_names": "Activités",
-        "item.event.main_leader.first_name": "Prénom encadrant",
-        "item.event.main_leader.last_name": "Nom encadrant",
-        "item.event.title": "Collective",
-        "item.event.start": "Date de la collective",
-        "buyer.license": "Licence",
-        "buyer.first_name": "Prénom",
-        "buyer.last_name": "Nom",
-        "buyer.mail": "Email",
-        "buyer.phone": "Téléphone",
-        "item.title": "Objet",
-        "price.title": "Tarif",
-        "amount_paid": "Prix payé",
-        "finalization_time": "Date du paiement",
-        "payment_status_str": "État",
-        "payment_type_str": "Type",
-        "processor_order_ref": "Référence",
+        "item.event.id": ("N° collective", 16),
+        "item.event.event_type.name": ("Type d'événement", 16),
+        "item.event.activity_type_names": ("Activités", 16),
+        "item.event.main_leader.first_name": ("Prénom encadrant", 25),
+        "item.event.main_leader.last_name": ("Nom encadrant", 25),
+        "item.event.title": ("Collective", 25),
+        "item.event.start": ("Date de la collective", 25),
+        "buyer.license": ("Licence", 25),
+        "buyer.first_name": ("Prénom", 25),
+        "buyer.last_name": ("Nom", 16),
+        "buyer.mail": ("Email", 25),
+        "buyer.phone": ("Téléphone", 16),
+        "item.title": ("Objet", 25),
+        "price.title": ("Tarif", 16),
+        "amount_paid": ("Prix payé", 16),
+        "finalization_time": ("Date du paiement", 25),
+        "payment_status_str": ("État", None),
+        "payment_type_str": ("Type", None),
+        "processor_order_ref": ("Référence", 25),
     }
-    worksheet.append(list(fields.values()))
+    worksheet.append([title for title, _ in fields.values()])
 
+    for index, (_, width) in enumerate(fields.values(), 1):
+        if width is not None:
+            worksheet.column_dimensions[get_column_letter(index)].width = width
+
+    amount_column = list(fields).index("amount_paid")
     for payment in payments:
         payment.payment_type_str = payment.payment_type.display_name()
         payment.payment_status_str = payment.status.display_name()
         worksheet.append([deepgetattr(payment, field, "-") for field in fields])
-
-    # set column width
-    for column in "CDEFGHJLOR":
-        worksheet.column_dimensions[column].width = 25
-    for column in "ABIKMN":
-        worksheet.column_dimensions[column].width = 16
-
-    # set "Amount paid" column format
-    worksheet.column_dimensions["N"].number_format = "#,##0.00€"
+        # Column styles do not apply to the cells written by openpyxl
+        worksheet[worksheet.max_row][amount_column].number_format = "#,##0.00€"
 
     out = BytesIO()
     workbook.save(out)

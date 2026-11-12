@@ -2,8 +2,10 @@
 
 # pylint: disable=unused-argument
 from datetime import timedelta
+from io import BytesIO
 
 from flask import url_for
+from openpyxl import load_workbook
 
 from collectives.models import (
     Configuration,
@@ -381,6 +383,38 @@ def _initiate_payline_payment(client, event):
     assert response.status_code == 302
     assert event.registrations[0].status == RegistrationStatus.PaymentPending
     return event.registrations[0].payments[0]
+
+
+def test_export_payments(
+    app, user1_client, admin_user, paying_event, payline_monkeypatch
+):
+    """Test the Excel export of the payments, which starts with the event id"""
+    payment = _initiate_payline_payment(user1_client, paying_event)
+    response = user1_client.post(
+        f"/payment/process?paylinetoken={payment.processor_token}"
+    )
+    assert response.status_code == 302
+    assert payment.status == PaymentStatus.Approved
+
+    client = user1_client
+    login(client, admin_user, app.config["ADMINPWD"])
+
+    for url in ("/payment/export", f"/payment/export/event/{paying_event.id}"):
+        response = client.get(url)
+        assert response.status_code == 200
+        worksheet = load_workbook(BytesIO(response.data)).active
+        rows = list(worksheet.iter_rows(values_only=True))
+        assert len(rows) == 2
+
+        header, row = rows
+        assert header[0] == "N° collective"
+        assert row[0] == paying_event.id
+        assert row[header.index("Collective")] == paying_event.title
+        assert row[header.index("Licence")] == payment.buyer.license
+
+        amount_column = header.index("Prix payé")
+        assert row[amount_column] == float(payment.amount_paid)
+        assert worksheet[2][amount_column].number_format == "#,##0.00€"
 
 
 def _set_payline_status(monkeypatch, short_message, code="00000"):
