@@ -1091,6 +1091,7 @@ def answer_questions(event_id: int):
 
 @blueprint.route("/<int:event_id>/whatsapp_link", methods=["POST"])
 @valid_user()
+@confidentiality_agreement()
 def update_whatsapp_link(event_id):
     """Route for a leader to set or remove the invite link of the event WhatsApp group.
 

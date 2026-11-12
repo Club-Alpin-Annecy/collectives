@@ -6,6 +6,7 @@ import pytest
 
 from collectives.forms import EventForm
 from collectives.models import Registration, RegistrationLevels, RegistrationStatus, db
+from collectives.utils.time import current_time
 
 # pylint: disable=unused-argument
 
@@ -33,7 +34,7 @@ def _set_link(event):
     db.session.commit()
 
 
-def test_leader_sets_and_removes_link(leader_client, event):
+def test_leader_sets_and_removes_link(enable_whatsapp_groups, leader_client, event):
     """A leader saves a valid link, then removes it"""
     response = leader_client.get(f"/collectives/{event.id}", follow_redirects=True)
     assert response.status_code == 200
@@ -67,7 +68,7 @@ def test_leader_sets_and_removes_link(leader_client, event):
         "javascript:alert(1)",
     ],
 )
-def test_invalid_link_is_rejected(leader_client, event, link):
+def test_invalid_link_is_rejected(enable_whatsapp_groups, leader_client, event, link):
     """Only WhatsApp invite links are accepted"""
     response = leader_client.post(
         f"/collectives/{event.id}/whatsapp_link",
@@ -85,7 +86,7 @@ def test_invalid_link_is_rejected(leader_client, event, link):
         "https://chat.whatsapp.com/invite/AbCdEf123456",
     ],
 )
-def test_link_is_normalized(leader_client, event, link):
+def test_link_is_normalized(enable_whatsapp_groups, leader_client, event, link):
     """Links copied from WhatsApp are stored in their canonical form"""
     leader_client.post(
         f"/collectives/{event.id}/whatsapp_link",
@@ -108,7 +109,7 @@ def test_event_form_does_not_expose_link():
     assert not hasattr(EventForm, "whatsapp_invite_link")
 
 
-def test_remove_ignores_invalid_field(leader_client, event):
+def test_remove_ignores_invalid_field(enable_whatsapp_groups, leader_client, event):
     """Removing the link works whatever is typed in the field"""
     _set_link(event)
     response = leader_client.post(
@@ -119,7 +120,7 @@ def test_remove_ignores_invalid_field(leader_client, event):
     assert event.whatsapp_invite_link is None
 
 
-def test_saving_empty_field_without_link(leader_client, event):
+def test_saving_empty_field_without_link(enable_whatsapp_groups, leader_client, event):
     """Saving an empty field when there is no link does not claim a removal"""
     response = leader_client.post(
         f"/collectives/{event.id}/whatsapp_link",
@@ -131,8 +132,12 @@ def test_saving_empty_field_without_link(leader_client, event):
     assert event.whatsapp_invite_link is None
 
 
-def test_non_leader_cannot_set_link(user1_client, event):
+def test_non_leader_cannot_set_link(enable_whatsapp_groups, user1_client, event):
     """A user without edit rights cannot set the link"""
+    # The route requires a signed confidentiality agreement; sign it so that
+    # only the missing edit rights can reject the request.
+    user1_client.user.confidentiality_agreement_signature_date = current_time()
+    db.session.commit()
     _register(event, user1_client.user, RegistrationStatus.Active)
     response = user1_client.post(
         f"/collectives/{event.id}/whatsapp_link",
@@ -155,7 +160,9 @@ def test_non_leader_cannot_set_link(user1_client, event):
         (RegistrationStatus.UnJustifiedAbsentee, False),
     ],
 )
-def test_link_visibility_by_status(user1_client, event, status, visible):
+def test_link_visibility_by_status(
+    enable_whatsapp_groups, user1_client, event, status, visible
+):
     """Only participants with a valid registration see the link"""
     _set_link(event)
     _register(event, user1_client.user, status)
@@ -167,7 +174,7 @@ def test_link_visibility_by_status(user1_client, event, status, visible):
     assert ("Rejoindre le groupe" in response.text) == visible
 
 
-def test_link_hidden_from_non_registered(user1_client, event):
+def test_link_hidden_from_non_registered(enable_whatsapp_groups, user1_client, event):
     """A user who is not registered does not see the link"""
     _set_link(event)
     assert not event.can_see_whatsapp_link(user1_client.user)
@@ -175,7 +182,7 @@ def test_link_hidden_from_non_registered(user1_client, event):
     assert LINK not in response.text
 
 
-def test_leader_sees_link(leader_client, event):
+def test_leader_sees_link(enable_whatsapp_groups, leader_client, event):
     """The leader sees the link in the set-up block"""
     _set_link(event)
     response = leader_client.get(f"/collectives/{event.id}", follow_redirects=True)
@@ -200,7 +207,7 @@ def test_disabled_feature(disable_whatsapp_groups, leader_client, user1, event):
     assert event.whatsapp_invite_link == LINK
 
 
-def test_link_not_in_api(user1_client, event):
+def test_link_not_in_api(enable_whatsapp_groups, user1_client, event):
     """The link is never exposed by the events API"""
     _set_link(event)
     response = user1_client.get(
@@ -245,7 +252,7 @@ def test_whatsapp_group_description(event):
     assert description.endswith("…")
 
 
-def test_leader_page_shows_description(leader_client, event):
+def test_leader_page_shows_description(enable_whatsapp_groups, leader_client, event):
     """The set-up block offers the event description to copy"""
     response = leader_client.get(f"/collectives/{event.id}", follow_redirects=True)
     assert "Lorem ipsum" in response.text

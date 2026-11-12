@@ -81,11 +81,29 @@ def enable_leader_privacy():
 
 @pytest.fixture
 def disable_whatsapp_groups(app):  # pylint: disable=unused-argument
-    """Disable WhatsApp groups in configuration, and enable them back afterwards"""
-    Configuration.get_item("WHATSAPP_GROUPS_ENABLED").content = False
+    """Disable WhatsApp groups in configuration, and restore it afterwards"""
+    item = Configuration.get_item("WHATSAPP_GROUPS_ENABLED")
+    previous = item.content
+    item.content = False
     Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
     yield
-    Configuration.get_item("WHATSAPP_GROUPS_ENABLED").content = True
+    item.content = previous
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+
+
+@pytest.fixture
+def enable_whatsapp_groups(app):  # pylint: disable=unused-argument
+    """Enable WhatsApp groups in configuration, and restore it afterwards.
+
+    WhatsApp groups are disabled by default
+    (``WHATSAPP_GROUPS_ENABLED`` = ``False``);
+    tests exercising the WhatsApp feature need this."""
+    item = Configuration.get_item("WHATSAPP_GROUPS_ENABLED")
+    previous = item.content
+    item.content = True
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+    yield
+    item.content = previous
     Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
 
 
