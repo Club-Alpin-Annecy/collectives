@@ -32,12 +32,13 @@ def test_leader_list(supervisor_client):
     assert response.status_code == 200
 
 
-def test_leader_export(supervisor_client):
-    """Test export of leader of one activity.
+def test_leader_export(supervisor_client, supervisor_user):
+    """Test export of leader of one supervised activity.
 
     See :py:func:`collectives.routes.activity_supervision.export_role`
     """
-    data = {"activity_id": "1"}
+    activity = supervisor_user.get_supervised_activities()[0]
+    data = {"activity_id": str(activity.id)}
     response = supervisor_client.post("/activity_supervision/roles/export/", data=data)
     assert response.status_code == 200
 
@@ -109,6 +110,41 @@ def test_add_service(admin_client):
     activity = ActivityType.query.filter_by(trigram="TS2").first()
     assert activity is not None
     assert activity.short == f"test-service-{activity.id}"
+
+
+def test_add_initiative(admin_client):
+    """Test adding a new initiative, listed apart from activities and services"""
+    form_data = {
+        "kind": ActivityKind.Initiative.value,
+        "name": "Refuge du Parmelan",
+        "trigram": "RPA",
+    }
+    response = admin_client.post(
+        "/activity_supervision/configuration/add",
+        data=form_data,
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "Activité Refuge du Parmelan modifiée avec succès." in response.text
+
+    activity = ActivityType.query.filter_by(trigram="RPA").first()
+    assert activity.kind == ActivityKind.Initiative
+    assert activity.icon == "benevolat"
+
+    response = admin_client.get("/activity_supervision/configuration")
+    initiatives = response.text.split("Initiatives")[1].split("Services")[0]
+    assert "Refuge du Parmelan" in initiatives
+
+
+def test_cannot_add_regular_activity(admin_client):
+    """Regular activities are defined in configuration, not created from the UI"""
+    form_data = {
+        "kind": ActivityKind.Regular.value,
+        "name": "Nouveau sport",
+        "trigram": "NSP",
+    }
+    admin_client.post("/activity_supervision/configuration/add", data=form_data)
+    assert ActivityType.query.filter_by(trigram="NSP").first() is None
 
 
 def test_manage_custom_skills(supervisor_client):

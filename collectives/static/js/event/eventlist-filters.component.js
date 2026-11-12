@@ -1,4 +1,5 @@
 import { searchLeaders } from "../api.js";
+import EventListActivityFilter from "./eventlist-activity-filter.component.js";
 
 const { ref, inject, reactive, computed } = Vue
 
@@ -9,6 +10,7 @@ export default {
 
   props: ["filters"],
   components: {
+    EventListActivityFilter,
   },
 
   setup (props) {
@@ -31,10 +33,6 @@ export default {
       return filterList.filter(id => id !== element);
     }
 
-    const getActivityIcon = (activityId) => {
-      var iconName = activityId == "__services" ? "benevolat" : activityId;
-      return `/static/caf/icon/${iconName}.svg`
-    };
 
     // Les filtres sont conservés en localStorage sans date d'expiration: un critère
     // retiré côté serveur depuis la dernière visite y subsiste. Le rendu de son chip
@@ -42,7 +40,7 @@ export default {
     const pruneUnknown = (selected, options) =>
       (selected || []).filter(id => options.some(option => option.id === id))
 
-    props.filters.activities = pruneUnknown(props.filters.activities, config.activityList)
+    // Les activités sont nettoyées par EventListActivityFilter, qui connaît ses valeurs spéciales.
     props.filters.eventTypes = pruneUnknown(props.filters.eventTypes, config.eventTypes)
     props.filters.eventTags = pruneUnknown(props.filters.eventTags, config.eventTags)
 
@@ -89,40 +87,11 @@ export default {
       fetchLeaders,
       leadersSearch,
       removeFilterElement,
-      getActivityIcon
     }
   },
   template: `
   <search class="collectives-list-filters" role="search" aria-label="Filtrer les collectives">
-    <p-multiselect 
-      class="select-activity w-full sm:w-100>" 
-      v-model="filters.activities" 
-      display="chip" 
-      :options="config.activityList" 
-      optionLabel="name" 
-      optionValue="id"
-      appendTo="self"
-      :showToggleAll="false"
-      scrollHeight="90vh"
-      placeholder="Toutes activités"
-      ariaLabel="Filtrer par activité"
-    >
-      <template #option="slotProps">
-          <div class="flex items-center">
-              <img class="icon" :alt="slotProps.option.name" :src="getActivityIcon(slotProps.option.id)" />
-              <div>{{ slotProps.option.name }}</div>
-          </div>
-      </template>
-      <template #chip="slotProps">
-          <Chip :label="findInConfig(config.activityList, slotProps.value).name" :image="getActivityIcon(slotProps.value)" removable @remove="filters.activities = removeFilterElement(filters.activities, slotProps.value)"/>
-      </template>
-      <template #footer="slotProps">
-        <div class="flex justify-between" v-if="slotProps.value?.length > 0">
-            <div></div>
-            <Button label="Effacer" severity="danger" text size="small" icon="pi pi-times" @click="filters.activities = []" />
-        </div>
-      </template>
-    </p-multiselect>
+    <EventListActivityFilter v-model="filters.activities" />
 
     <button
       type="button"

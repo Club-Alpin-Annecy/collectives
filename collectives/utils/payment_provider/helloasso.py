@@ -145,9 +145,7 @@ class HelloAssoApi(PaymentProvider):
         if current_config != previous_config:
             self._reset_access_token()
             if self.disabled():
-                current_app.logger.warning(
-                    "HelloAsso payment API disabled, using mock API"
-                )
+                current_app.logger.warning("HelloAsso payment API is not configured")
 
     def _reset_access_token(self):
         """Drops the cached OAuth2 access token, so that the next request
@@ -216,6 +214,8 @@ class HelloAssoApi(PaymentProvider):
         token = str(uuid.uuid4())
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, every payment is valid with fake token
             return CheckoutResult(
                 accepted=True,
@@ -288,6 +288,8 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount") or "0"
@@ -339,6 +341,8 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, refund always succeeds
             return RefundResult(
                 accepted=True, raw_metadata=json.dumps({"state": "Refunded"})

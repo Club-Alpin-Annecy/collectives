@@ -14,6 +14,7 @@ import re
 import yaml
 from flask import (
     Blueprint,
+    abort,
     flash,
     redirect,
     render_template,
@@ -36,6 +37,7 @@ from collectives.models import (
     ConfigurationTypeEnum,
     db,
 )
+from collectives.utils import loxya, loxya_sync
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import count_expired_accounts, purge_expired_accounts
 
@@ -82,11 +84,49 @@ def maintenance():
 @blueprint.route("/actions", methods=["GET"])
 def actions():
     """Route to display the maintenance actions page."""
+    loxya_enabled = loxya.feature_enabled()
     return render_template(
         "technician/actions.html",
         title="Actions",
         expired_accounts_count=count_expired_accounts(),
+        loxya_enabled=loxya_enabled,
+        loxya_missing=loxya.missing_settings() if loxya_enabled else [],
+        loxya_mode=loxya_sync.current_mode() if loxya_enabled else None,
+        loxya_simulation=loxya_sync.simulate() if loxya_enabled else None,
+        SyncAction=loxya_sync.SyncAction,
+        SyncMode=loxya_sync.SyncMode,
     )
+
+
+@blueprint.route("/actions/loxya_sync", methods=["POST"])
+def loxya_sync_action():
+    """Endpoint to run the Loxya synchronization now, in the current mode.
+
+    Lets a technician check the effect of a change without waiting for the
+    nightly run. Answers 404 on deployments that do not enable Loxya.
+
+    :return: redirection to the actions page
+    """
+    if not loxya.feature_enabled():
+        abort(404)
+
+    if loxya_sync.current_mode() is loxya_sync.SyncMode.Off:
+        flash("La synchronisation Loxya est éteinte, rien n'a été fait.", "warning")
+        return redirect(url_for("technician.actions"))
+
+    try:
+        report = loxya_sync.sync_all_users()
+    except loxya_sync.SyncInProgress:
+        flash("Une synchronisation Loxya est déjà en cours.", "warning")
+        return redirect(url_for("technician.actions"))
+    summary = ", ".join(
+        f"{action.display_name()} : {count}" for action, count in report.items()
+    )
+    flash(
+        f"Synchronisation Loxya terminée — {summary or 'aucun changement'}.",
+        "error" if report[loxya_sync.SyncAction.Failed] else "success",
+    )
+    return redirect(url_for("technician.actions"))
 
 
 @blueprint.route("/actions/purge_expired_accounts", methods=["POST"])

@@ -117,7 +117,7 @@ This deployment works, but is less modern than a Kubernetes and is the same cost
 
 Installation
 ..............
-For development, you can run `FLASK_APP=collectives:create_app flask run`. 
+For development, you can run `FLASK_APP=collectives:create_app flask run --debug`. 
 However, it is not the recommended method for production environment.
 
 You can choose any production method you like, however, you can use waitress
@@ -134,12 +134,41 @@ Flask and DB related configuration should be in `instance/config.py`. Since
 it might contains secrets, this file should be readable only by flask user 
 (chmod 600). 
 
+Session cookies are only sent over HTTPS outside debug mode. An instance
+served over plain HTTP must set ``SESSION_COOKIE_SECURE = False`` and
+``REMEMBER_COOKIE_SECURE = False`` in `instance/config.py`.
+
+When the active payment provider is not configured (``PAYLINE_MERCHANT_ID`` or
+``HELLOASSO_CLIENT_ID`` empty), payments fail outside debug mode, where a mock
+payment API approves every payment.
+
 Database
 .........
 For production, a more robust database than the default sqlite is recommended.
 pymysql is recommended for its full python compatibility.
 
 ``SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://username:password@localhost/db_name'``
+
+Loxya equipment platform (optional)
+....................................
+Members can be mirrored as beneficiaries of a `Loxya <https://loxya.com>`_
+instance, so that equipment volunteers can lend them equipment. This is off by
+default, and leaves no trace at all on a site that does not enable it.
+
+To enable it, a technician turns on `LOXYA_ENABLED` in
+`/technician/configuration`, folder Loxya; no restart is needed.
+
+The technician then enters the Loxya address and the credentials of the account
+the site uses — `LOXYA_URL`, `LOXYA_API_USERNAME` and `LOXYA_API_PASSWORD` — in
+the same folder, like those of the FFCAM extranet.
+Nothing is sent to Loxya until they are all set, and the synchronization mode is
+also chosen there; `/technician/actions` previews what a run would do.
+
+The synchronization runs every night at 4:30. A member whose licence looks
+expired is checked on the FFCAM extranet before being withdrawn, since the
+expiry date is otherwise only refreshed at login. A run stops after
+`LOXYA_MAX_DURATION` minutes (an hour by default), leaving the remaining members
+to the next night.
 
 Anonymized export
 ..................

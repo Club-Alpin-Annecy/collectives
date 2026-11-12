@@ -7,6 +7,9 @@ from flask import current_app
 from collectives.models.globals import db
 from collectives.utils.misc import to_ascii
 
+UNKNOWN_TAG_SHORT = "tag_evenement"
+"""Short name (and icon) used for tags whose type is not defined in EVENT_TAGS."""
+
 
 class EventTag(db.Model):
     """Class of an event tag.
@@ -68,10 +71,19 @@ class EventTag(db.Model):
     def full(self) -> Dict[str, Any]:
         """All information about the tag type.
 
+        If the tag type is not defined in EVENT_TAGS (e.g. it was removed from
+        the instance configuration), a generic placeholder is returned instead.
+
         :type: dict"""
-        tag = self.all(include_deprecated=True)[self.type]
-        tag["id"] = self.type
-        return tag
+        tag = self.all(include_deprecated=True).get(self.type)
+        if tag is None:
+            return {
+                "id": self.type,
+                "short": UNKNOWN_TAG_SHORT,
+                "name": f"Label inconnu ({self.type})",
+                "deprecated": True,
+            }
+        return {**tag, "id": self.type}
 
     @classmethod
     def choices(cls):

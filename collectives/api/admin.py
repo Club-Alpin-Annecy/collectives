@@ -17,7 +17,28 @@ from collectives.api.schemas import (
 )
 from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeCustomLevel, BadgeIds
+from collectives.utils import loxya
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
+
+FILTERABLE_USER_COLUMNS = ("mail", "first_name", "last_name", "license", "phone")
+"""User columns on which the administration table may filter with a text pattern.
+
+:type: tuple(string)
+"""
+
+SORTABLE_USER_COLUMNS = (
+    "id",
+    "mail",
+    "first_name",
+    "last_name",
+    "license",
+    "enabled",
+    "license_expiry_date",
+)
+"""User columns on which the administration table may sort.
+
+:type: tuple(string)
+"""
 
 
 def apply_user_filters(query, request_args):
@@ -62,8 +83,11 @@ def apply_user_filters(query, request_args):
             filters = list(filters.values())
             query_filter = User.badges.any(and_(*filters))
 
-        else:
+        elif field in FILTERABLE_USER_COLUMNS:
             query_filter = getattr(User, field).ilike(f"%{value}%")
+        else:
+            i += 1
+            continue
 
         query = query.filter(query_filter)
         i += 1
@@ -95,6 +119,13 @@ class AdminUserSchema(UserSchema):
 
     :type: string
     """
+    loxya_sync_uri = fields.Function(
+        lambda user: url_for("administration.sync_user_with_loxya", user_id=user.id)
+    )
+    """ URI to synchronize this user with Loxya
+
+    :type: string
+    """
     manage_uri = fields.Function(
         lambda user: url_for("administration.manage_user", user_id=user.id)
     )
@@ -111,6 +142,9 @@ class AdminUserSchema(UserSchema):
             "mail",
             "is_active",
             "enabled",
+            "loxya_active",
+            "loxya_synced_at",
+            "loxya_sync_uri",
             "roles_uri",
             "badges_uri",
             "avatar_uri",
@@ -124,6 +158,10 @@ class AdminUserSchema(UserSchema):
             "leader_profile_uri",
             "full_name",
         )
+
+
+LOXYA_FIELDS = ("loxya_active", "loxya_synced_at", "loxya_sync_uri")
+""" Fields of :py:class:`AdminUserSchema` only exposed when Loxya is enabled. """
 
 
 @blueprint.route("/users/")
@@ -150,17 +188,20 @@ def users():
     query = apply_user_filters(query, request.args)
 
     # Process first sorter only
-    if "sorters[0][field]" in request.args:
-        sort_field = request.args.get("sorters[0][field]")
+    sort_field = request.args.get("sorters[0][field]")
+    if sort_field in SORTABLE_USER_COLUMNS:
+        sort_column = getattr(User, sort_field)
         sort_dir = request.args.get("sorters[0][dir]")
-        order = desc(sort_field) if sort_dir == "desc" else sort_field
+        order = desc(sort_column) if sort_dir == "desc" else sort_column
         query = query.order_by(order)
 
     # Pagination block
     page = int(request.args.get("page"))
     size = int(request.args.get("size"))
     paginated_users = query.paginate(page=page, per_page=size, error_out=False)
-    data = AdminUserSchema(many=True).dump(paginated_users.items)
+    # Deployments that do not enable Loxya get no trace of it, JSON included.
+    exclude = () if loxya.feature_enabled() else LOXYA_FIELDS
+    data = AdminUserSchema(many=True, exclude=exclude).dump(paginated_users.items)
     response = {"data": data, "last_page": paginated_users.pages}
 
     return response, 200, {"content-type": "application/json"}
