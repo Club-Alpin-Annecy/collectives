@@ -2,7 +2,10 @@
 
 {% if event.has_edit_rights(current_user) %}
     <div class="administration collective-display--administration">
-    <h4 class="heading-4 collective-display--administration-title">Administration</h4>
+    <div class="collective-display--administration-header">
+        <h4 class="heading-4 collective-display--administration-title">Administration</h4>
+        <span class="collective-number">Collective n° {{event.id}}</span>
+    </div>
     <div class="buttons-bar">
         <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
             <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>

@@ -139,14 +139,18 @@ def test_menu_has_the_goto_form(user1_client, event):
     assert "Aller à la collective n°" in text_of(response.text)
 
 
-# ------------------------------------------------------------ N2: event page
+# ------------------------------------------------------ N2: event page (admin)
 
 
-def test_event_page_shows_the_number(user1_client, event):
-    """The page says 'Collective n° <id>'."""
-    response = user1_client.get(f"/collectives/{event.id}", follow_redirects=True)
+def test_event_page_shows_the_number_in_administration(admin_client, event):
+    """The administration section says 'Collective n° <id>'."""
+    response = admin_client.get(f"/collectives/{event.id}", follow_redirects=True)
     assert response.status_code == 200
-    assert f"Collective n° {event.id}" in text_of(response.text)
+    administration = BeautifulSoup(response.text, features="lxml").select_one(
+        ".collective-display--administration"
+    )
+    assert administration is not None
+    assert f"Collective n° {event.id}" in text_of(str(administration))
 
 
 # --------------------------------------------------- N3: payments export
