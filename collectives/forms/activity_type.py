@@ -7,7 +7,7 @@ from wtforms import Field, Label, SelectField, SubmitField
 from wtforms.validators import InputRequired
 from wtforms_alchemy import ModelForm
 
-from collectives.models import ActivityType
+from collectives.models import ActivityKind, ActivityType
 
 
 class ActivityTypeSelectionForm(FlaskForm):
@@ -85,5 +85,17 @@ class ActivityTypeCreationForm(ModelForm, FlaskForm):
 
         model = ActivityType
         exclude = ["short", "kind"]
+
+    kind = SelectField(
+        "Type",
+        choices=[
+            (kind.value, kind.display_name())
+            for kind in (ActivityKind.Service, ActivityKind.Initiative)
+        ],
+        coerce=ActivityKind.coerce,
+        default=ActivityKind.Service,
+        description="Seules les activités régulières (sports) sont définies dans "
+        "la configuration du site ; services et initiatives se créent ici.",
+    )
 
     submit = SubmitField("Ajouter")

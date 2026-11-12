@@ -214,7 +214,7 @@ class ConfigurationItem(db.Model):
 
     :type: datetime"""
 
-    type = db.Column(db.Enum(ConfigurationTypeEnum))
+    type = db.Column(db.Enum(ConfigurationTypeEnum), nullable=False)
     """ Configuration type. See :py:class:`ConfigurationTypeEnum` """
 
     def __init__(self, name):

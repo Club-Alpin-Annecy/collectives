@@ -1,6 +1,8 @@
 """Module to test payment module."""
 
 # pylint: disable=unused-argument
+from datetime import timedelta
+
 from flask import url_for
 
 from collectives.models import (
@@ -11,7 +13,9 @@ from collectives.models import (
     RegistrationStatus,
     db,
 )
+from collectives.utils.payment_provider import payline
 from tests import utils
+from tests.fixtures.client import login
 
 
 def test_list_prices(leader_client, event1, enable_payment):
@@ -361,3 +365,210 @@ def test_payline_registration_unfinalized(
     api_data = response.json
     assert len(api_data) == 1
     assert api_data[0]["item"]["event"]["title"] == paying_event.title
+
+
+def _initiate_payline_payment(client, event):
+    """Registers the client user to a paying event, up to the Payline page
+
+    :return: The payment, still in progress
+    """
+    response = client.get(f"/collectives/{event.id}", follow_redirects=True)
+    data = utils.load_data_from_form(response.text, "select_payment_item")
+    item = event.payment_items[0]
+    data["item_price"] = item.cheapest_price_for_user_now(client.user).id
+    response = client.post(f"/collectives/{event.id}/self_register", data=data)
+    response = client.get(response.location)
+    assert response.status_code == 302
+    assert event.registrations[0].status == RegistrationStatus.PaymentPending
+    return event.registrations[0].payments[0]
+
+
+def _set_payline_status(monkeypatch, short_message, code="00000"):
+    """Makes Payline answer with the given status for any payment"""
+    get_details = payline.api.get_web_payment_details
+
+    def get_details_with_status(token):
+        details = get_details(token)
+        details.result.short_message = short_message
+        details.result.code = code
+        return details
+
+    monkeypatch.setattr(payline.api, "get_web_payment_details", get_details_with_status)
+
+
+def _check_stale_payment(app, client, admin_user, payment):
+    """Ages the payment, then checks it as an accountant
+
+    :return: The listing page after the check
+    """
+    payment.creation_time -= timedelta(hours=2)
+    db.session.commit()
+    login(client, admin_user, app.config["ADMINPWD"])
+    response = client.post(f"/payment/{payment.id}/check")
+    assert response.status_code == 302
+    assert response.location == "/payment/pending"
+    return client.get(response.location)
+
+
+def test_pending_payments(
+    app, user1_client, admin_user, paying_event, payline_monkeypatch, monkeypatch
+):
+    """Test that an accountant may check a payment Payline did not notify"""
+    payment = _initiate_payline_payment(user1_client, paying_event)
+
+    # Only accountants may list pending payments
+    response = user1_client.get("/payment/pending")
+    assert response.status_code == 302
+    response = user1_client.post(f"/payment/{payment.id}/check")
+    assert response.status_code == 302
+    assert payment.status == PaymentStatus.Initiated
+
+    client = user1_client
+    login(client, admin_user, app.config["ADMINPWD"])
+
+    # Recent payments are not listed
+    payment.creation_time -= timedelta(minutes=50)
+    db.session.commit()
+    response = client.get("/payment/pending")
+    assert response.status_code == 200
+    assert f"/payment/{payment.id}/check" not in response.text
+
+    payment.creation_time -= timedelta(minutes=20)
+    db.session.commit()
+    response = client.get("/payment/pending")
+    assert f"/payment/{payment.id}/check" in response.text
+
+    # Payments never sent to Payline are not listed
+    token = payment.processor_token
+    payment.processor_token = ""
+    db.session.commit()
+    response = client.get("/payment/pending")
+    assert f"/payment/{payment.id}/check" not in response.text
+    payment.processor_token = token
+    db.session.commit()
+
+    # Payline does not answer: the payment stays in progress
+    get_details = payline.api.get_web_payment_details
+    monkeypatch.setattr(payline.api, "get_web_payment_details", lambda token: None)
+    response = client.post(f"/payment/{payment.id}/check")
+    assert response.status_code == 302
+    assert response.location == "/payment/pending"
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Initiated
+
+    # Payline accepted the payment
+    monkeypatch.setattr(payline.api, "get_web_payment_details", get_details)
+    response = client.post(f"/payment/{payment.id}/check")
+    assert response.status_code == 302
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Approved
+    assert payment.registration.status == RegistrationStatus.Active
+
+    response = client.get(response.location)
+    assert "mis à jour d&#39;après Payline : Approuvé" in response.text
+    assert f"/payment/{payment.id}/check" not in response.text
+
+    # Checking it again does not change anything
+    response = client.post(f"/payment/{payment.id}/check", follow_redirects=True)
+    assert "est déjà finalisé : Approuvé" in response.text
+
+
+def test_pending_payment_refused(
+    app, user1_client, admin_user, paying_event, payline_monkeypatch, monkeypatch
+):
+    """Test that a refused payment deletes the registration pending payment"""
+    payment = _initiate_payline_payment(user1_client, paying_event)
+    _set_payline_status(monkeypatch, "REFUSED")
+
+    response = _check_stale_payment(app, user1_client, admin_user, payment)
+    assert "mis à jour d&#39;après Payline : Refusé" in response.text
+    assert "a été supprimée" in response.text
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Refused
+    assert len(paying_event.registrations) == 0
+
+
+def test_pending_payment_expired_after_settlement(
+    app, user1_client, admin_user, paying_event, payline_monkeypatch, monkeypatch
+):
+    """Test that an expired payment keeps a registration settled meanwhile"""
+    payment = _initiate_payline_payment(user1_client, paying_event)
+    registration = payment.registration
+    registration.status = RegistrationStatus.Active
+    db.session.commit()
+    _set_payline_status(monkeypatch, "REFUSED", "02324")
+
+    _check_stale_payment(app, user1_client, admin_user, payment)
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Expired
+    assert payment.registration.status == RegistrationStatus.Active
+
+
+def test_pending_payment_accepted_after_rejection(
+    app, user1_client, admin_user, paying_event, payline_monkeypatch
+):
+    """Test that an accepted payment does not revive a rejected registration"""
+    payment = _initiate_payline_payment(user1_client, paying_event)
+    registration = payment.registration
+    registration.status = RegistrationStatus.Rejected
+    db.session.commit()
+
+    response = _check_stale_payment(app, user1_client, admin_user, payment)
+    assert "un remboursement est peut-être nécessaire" in response.text
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Approved
+    assert payment.registration.status == RegistrationStatus.Rejected
+
+
+def test_pending_helloasso_payments(
+    app, user1_client, admin_user, paying_event, helloasso_checkouts
+):
+    """Test that an accountant may check HelloAsso payments, including
+    abandoned ones, which HelloAsso never reports as expired"""
+    _, payment = _start_helloasso_payment(user1_client, paying_event)
+    payment.creation_time -= timedelta(hours=2)
+    db.session.commit()
+    login(user1_client, admin_user, app.config["ADMINPWD"])
+
+    response = user1_client.get("/payment/pending")
+    assert f"/payment/{payment.id}/check" in response.text
+    assert "HelloAsso" in response.text
+
+    # Checkout page still valid: the buyer may still pay
+    response = user1_client.post(f"/payment/{payment.id}/check", follow_redirects=True)
+    assert (
+        f"HelloAsso indique que le paiement n°{payment.id} est toujours"
+        in response.text
+    )
+    assert payment.status == PaymentStatus.Initiated
+
+    # A payment in progress on an expired checkout page is kept as is
+    helloasso_checkouts.expired.add(987654)
+    helloasso_checkouts.payment_states[987654] = "WaitingAuthentication"
+    user1_client.post(f"/payment/{payment.id}/check")
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Initiated
+
+    # An expired checkout page without payment cannot be paid anymore
+    del helloasso_checkouts.payment_states[987654]
+    response = user1_client.post(f"/payment/{payment.id}/check", follow_redirects=True)
+    assert "mis à jour d&#39;après HelloAsso : Inabouti" in response.text
+    assert "a été supprimée" in response.text
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Expired
+    assert len(paying_event.registrations) == 0
+
+
+def test_pending_helloasso_payment_accepted(
+    app, user1_client, admin_user, paying_event, helloasso_checkouts
+):
+    """Test that an accountant may finalize a HelloAsso payment paid without
+    notification"""
+    _, payment = _start_helloasso_payment(user1_client, paying_event)
+    helloasso_checkouts.payment_states[987654] = "Authorized"
+
+    response = _check_stale_payment(app, user1_client, admin_user, payment)
+    assert "mis à jour d&#39;après HelloAsso : Approuvé" in response.text
+    payment = db.session.get(Payment, payment.id)
+    assert payment.status == PaymentStatus.Approved
+    assert payment.registration.status == RegistrationStatus.Active

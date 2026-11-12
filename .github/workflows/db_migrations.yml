@@ -8,7 +8,10 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    # ubuntu-latest resolves to Ubuntu 25.10 (resolute), for which the
+    # MariaDB 10.11 apt repository has no Release file; stay on 24.04
+    # until the tested MariaDB version supports it
+    runs-on: ubuntu-24.04
     strategy:
       max-parallel: 4
     env:
@@ -67,3 +70,13 @@ jobs:
           echo Expected : $EXPECTED
           echo Current : $CURRENT
           [[ "$EXPECTED" == "$CURRENT"* ]]
+      - name: Check models match migrations on MariaDB
+        # Informational until the differences MariaDB reports today are settled
+        # (Boolean and PasswordType reflection, Enum order, a few nullable columns):
+        # see .github/review/SPEC.md, DB2. Remove continue-on-error then.
+        continue-on-error: true
+        env:
+          FLASK_APP: collectives:create_app
+          SQLALCHEMY_DATABASE_URI: mysql+pymysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:3306/${{ env.DB_DATABASE }}?charset=utf8mb4
+        run: |
+          uv run flask db check

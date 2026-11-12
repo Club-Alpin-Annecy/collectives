@@ -8,6 +8,7 @@ from flask import Flask, current_app
 from zeep import Client, Settings
 from zeep.exceptions import Error as ZeepError
 from zeep.proxy import ServiceProxy
+from zeep.transports import Transport
 
 from collectives.models import Configuration, Gender, User, UserType
 from collectives.utils.time import current_time
@@ -150,6 +151,9 @@ class ExtranetApi:
         self._soap_client: ServiceProxy = None
         """Cached soap client for performinfg extranet requests"""
 
+        self._transport: Transport = Transport()
+        """HTTP transport of the soap client, whose timeouts follow hot configuration"""
+
     def init_app(self, app: Flask):
         """Initializes the API for the given Flask app"""
         if app.config["EXTRANET_DISABLE"]:
@@ -160,13 +164,21 @@ class ExtranetApi:
     @property
     def soap_client(self) -> ServiceProxy:
         """Returns the cached SOAP client or initialize a new one"""
+        # Timeout is read on each access so that hot configuration changes
+        # apply to the cached client
+        timeout = Configuration.EXTRANET_TIMEOUT
+        self._transport.load_timeout = timeout
+        self._transport.operation_timeout = timeout
+
         if self._soap_client is None:
             try:
                 # strict=False so unknown/extra elements returned by the FFCAM
                 # server (e.g. 'sexe') do not make zeep raise a parsing error
                 settings = Settings(strict=False)
                 soap_client = Client(
-                    wsdl=current_app.config["EXTRANET_WSDL"], settings=settings
+                    wsdl=current_app.config["EXTRANET_WSDL"],
+                    settings=settings,
+                    transport=self._transport,
                 )
                 self._auth_info = soap_client.service.auth()
             except (IOError, ZeepError) as err:

@@ -39,9 +39,6 @@ SANDBOX_API_BASE = "https://api.helloasso-sandbox.com"
 API_VERSION = "v5"
 """ HelloAsso API version used for all REST calls"""
 
-REQUEST_TIMEOUT = 10
-""" Timeout in seconds for calls to the HelloAsso API"""
-
 
 def _log_api_error(err: requests.RequestException):
     """Logs a HelloAsso API error, including the response body when available
@@ -148,9 +145,7 @@ class HelloAssoApi(PaymentProvider):
         if current_config != previous_config:
             self._reset_access_token()
             if self.disabled():
-                current_app.logger.warning(
-                    "HelloAsso payment API disabled, using mock API"
-                )
+                current_app.logger.warning("HelloAsso payment API is not configured")
 
     def _reset_access_token(self):
         """Drops the cached OAuth2 access token, so that the next request
@@ -194,7 +189,7 @@ class HelloAssoApi(PaymentProvider):
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
             },
-            timeout=REQUEST_TIMEOUT,
+            timeout=Configuration.PAYMENT_PROCESSOR_TIMEOUT,
         )
         response.raise_for_status()
         payload = response.json()
@@ -219,6 +214,8 @@ class HelloAssoApi(PaymentProvider):
         token = str(uuid.uuid4())
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, every payment is valid with fake token
             return CheckoutResult(
                 accepted=True,
@@ -268,7 +265,7 @@ class HelloAssoApi(PaymentProvider):
                 f"{self.organization_slug}/checkout-intents",
                 json=payload,
                 headers=self._headers(),
-                timeout=REQUEST_TIMEOUT,
+                timeout=Configuration.PAYMENT_PROCESSOR_TIMEOUT,
             )
             response.raise_for_status()
         except requests.RequestException as err:
@@ -291,6 +288,8 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount") or "0"
@@ -318,7 +317,7 @@ class HelloAssoApi(PaymentProvider):
                 f"{self._api_base}/{API_VERSION}/organizations/"
                 f"{self.organization_slug}/checkout-intents/{checkout_intent_id}",
                 headers=self._headers(),
-                timeout=REQUEST_TIMEOUT,
+                timeout=Configuration.PAYMENT_PROCESSOR_TIMEOUT,
             )
             response.raise_for_status()
         except requests.RequestException as err:
@@ -342,6 +341,8 @@ class HelloAssoApi(PaymentProvider):
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, refund always succeeds
             return RefundResult(
                 accepted=True, raw_metadata=json.dumps({"state": "Refunded"})
@@ -359,7 +360,7 @@ class HelloAssoApi(PaymentProvider):
                 f"{self._api_base}/{API_VERSION}/payments/{payment_id}/refund",
                 json={"cancelOrder": False},
                 headers=self._headers(),
-                timeout=REQUEST_TIMEOUT,
+                timeout=Configuration.PAYMENT_PROCESSOR_TIMEOUT,
             )
             response.raise_for_status()
         except requests.RequestException as err:
@@ -385,7 +386,9 @@ class HelloAssoApi(PaymentProvider):
             return False
 
         try:
-            response = requests.get(payment.processor_url, timeout=REQUEST_TIMEOUT)
+            response = requests.get(
+                payment.processor_url, timeout=Configuration.PAYMENT_PROCESSOR_TIMEOUT
+            )
         except requests.RequestException as err:
             current_app.logger.warning(
                 f"HelloAsso: could not check checkout page of payment {payment.id}: {err}"

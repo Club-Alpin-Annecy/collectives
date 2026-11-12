@@ -215,7 +215,8 @@ class Registration(db.Model):
 
     registration_time = db.Column(
         db.DateTime,
-        nullable=False,
+        nullable=True,
+        index=True,
         server_default=func.now(),  # pylint: disable=not-callable
     )
     """Date of the registration of a user to an event.

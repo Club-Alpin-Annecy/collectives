@@ -16,6 +16,7 @@ from collectives.models import (
     Configuration,
     ConfigurationItem,
     ConfigurationTypeEnum,
+    Event,
     EventType,
     Role,
     RoleIds,
@@ -76,7 +77,13 @@ def activity_types(app):
             activity_type.short = atype["short"]
 
         # if order is not specified, default to '50'
-        activity_type.kind = ActivityKind.Regular
+        kind = atype.get("kind", ActivityKind.Regular.name)
+        if kind not in ActivityKind.__members__:
+            raise ValueError(
+                f"Invalid kind '{kind}' for activity '{atype['short']}' in "
+                f"ACTIVITY_TYPES, expected one of {list(ActivityKind.__members__)}"
+            )
+        activity_type.kind = ActivityKind[kind]
         db.session.add(activity_type)
 
     # Remove activity not in config
@@ -122,16 +129,29 @@ def event_types(app):
 
         db.session.add(event_type)
 
-    # Remove event trypes not in config
+    # Remove event types not in config, unless some events still use them:
+    # deleting them would leave those events without a type.
     all_keys = app.config["EVENT_TYPES"].keys()
     absent_filter = sqlalchemy.not_(EventType.id.in_(all_keys))
 
-    for item in EventType.query.filter(absent_filter).all():
-        app.logger.warning(f"Obsolete event type {item.name}: deleting")
+    obsolete_types = EventType.query.filter(absent_filter).all()
+    nb_events_by_type = dict(
+        db.session.query(Event.event_type_id, sqlalchemy.func.count(Event.id))
+        .filter(Event.event_type_id.in_([item.id for item in obsolete_types]))
+        .group_by(Event.event_type_id)
+        .all()
+    )
 
-    EventType.query.filter(absent_filter).delete(synchronize_session=False)
-    # due to synchronize_session=False, do not use this session after without
-    # commit it
+    for item in obsolete_types:
+        nb_events = nb_events_by_type.get(item.id, 0)
+        if nb_events > 0:
+            app.logger.error(
+                f"Obsolete event type {item.name} (id {item.id}) is still used "
+                f"by {nb_events} event(s): keeping it"
+            )
+            continue
+        app.logger.warning(f"Obsolete event type {item.name}: deleting")
+        db.session.delete(item)
 
     db.session.commit()
 

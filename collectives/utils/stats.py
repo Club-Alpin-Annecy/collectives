@@ -287,18 +287,21 @@ class StatisticsEngine:
         """Returns relevent events from cache or process it."""
         return self.global_filters(Event.query).all()
 
-    def global_filters(self, query, requires_activity=False):
+    def global_filters(self, query, requires_activity=False, filter_dates=True):
         """Add a filter to the query to look only for relevant events.
 
         :param query: The sqlalchemy query to fix
+        :param requires_activity: If True, keep only events whose type requires
+            an activity
+        :param filter_dates: If False, ignore the engine start and end dates
         :returns: The filtered query
         """
         query_type = query.column_descriptions[0]["type"]
 
         condition = Event.status == EventStatus.Confirmed
-        if self.start:
+        if filter_dates and self.start:
             condition = condition & (Event.start >= self.start)
-        if self.end:
+        if filter_dates and self.end:
             condition = condition & (Event.start <= self.end)
         if self.activity_id:
             condition = condition & (
@@ -315,7 +318,7 @@ class StatisticsEngine:
             query = query.filter(condition)
 
         if requires_activity:
-            query.filter(Event.event_type.has(EventType.requires_activity))
+            query = query.filter(Event.event_type.has(EventType.requires_activity))
 
         return query
 
@@ -545,6 +548,9 @@ class StatisticsEngine:
         """
         Returns the number of unregistrations and unjustifited absentees per week,
         split by registration status.
+
+        If the selected period is over, it covers the whole period. Otherwise, it
+        covers the last 52 weeks.
         """
         if "sqlite" in db.engine.name:
             week_fn = func.strftime("%Y-%W", Event.start)
@@ -565,12 +571,18 @@ class StatisticsEngine:
                         RegistrationStatus.LateSelfUnregistered,
                         RegistrationStatus.UnJustifiedAbsentee,
                     ]
-                ),
+                )
+            )
+        )
+        if self.end is not None and self.end < current_time():
+            query = self.global_filters(query)
+        else:
+            query = query.filter(
                 Event.start < func.now(),
                 Event.start >= current_time() - timedelta(weeks=52),
             )
-            .group_by("event_week", Registration.status)
-        )
+            query = self.global_filters(query, filter_dates=False)
+        query = query.group_by("event_week", Registration.status)
 
         results = query.all()
 
