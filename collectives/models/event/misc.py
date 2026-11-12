@@ -11,7 +11,6 @@ from collectives.models.event.enum import EventStatus, EventVisibility
 from collectives.models.globals import db
 from collectives.models.question import QuestionAnswer
 from collectives.models.user import User
-from collectives.utils import render_markdown
 from collectives.utils.misc import is_valid_image
 from collectives.utils.render_markdown import html_to_text, markdown_to_html
 from collectives.utils.time import format_date_short
@@ -125,7 +124,7 @@ class EventMiscMixin:
         :return: Rendered :py:attr:`description` as HTML
         :rtype: string
         """
-        self.rendered_description = render_markdown.markdown_to_html(description)
+        self.rendered_description = markdown_to_html(description)
         return self.rendered_description
 
     def is_valid(self):
