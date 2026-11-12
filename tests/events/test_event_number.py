@@ -199,7 +199,9 @@ def test_export_money_format_follows_the_paid_amount_column(admin_client, paid_e
     headers = [cell.value for cell in sheet[1]]
     letter = get_column_letter(headers.index("Prix payé") + 1)
     assert sheet.column_dimensions[letter].number_format == MONEY_FORMAT
-    assert sheet.cell(row=2, column=headers.index("Prix payé") + 1).value == 12.5
+    amount_cell = sheet.cell(row=2, column=headers.index("Prix payé") + 1)
+    assert amount_cell.value == 12.5
+    assert amount_cell.number_format == MONEY_FORMAT
 
 
 def test_export_column_widths_follow_their_headers(admin_client, paid_event):

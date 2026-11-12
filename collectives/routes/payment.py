@@ -350,6 +350,10 @@ def export_payments(event_id=None):
         )
         if field == "amount_paid":
             dimension.number_format = EXPORT_MONEY_FORMAT
+            # The column format only applies to empty cells: set it on the
+            # written cells too
+            for (cell,) in worksheet.iter_rows(min_row=2, min_col=index, max_col=index):
+                cell.number_format = EXPORT_MONEY_FORMAT
 
     out = BytesIO()
     workbook.save(out)
