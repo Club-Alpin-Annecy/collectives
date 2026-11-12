@@ -7,13 +7,12 @@
 
 {# Polyfills for importmap #}
 <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+{# Local modules are mapped to their versioned URL, so that browsers may cache them #}
 <script type="importmap">
-{
-    "imports": {
-        "axios": "https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/esm/axios.min.js",
-        "moment": "https://esm.run/moment@2.30.1/min/moment-with-locales.min.js"
-    }
-}
+{{ static_importmap({
+    "axios": "https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/esm/axios.min.js",
+    "moment": "https://esm.run/moment@2.30.1/min/moment-with-locales.min.js",
+}) | tojson }}
 </script>
 <script src="{{ url_for('api.models_to_js') }}"></script>
 
@@ -42,12 +41,23 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
     const { createApp } = Vue
     
     // TODO Move to async endpoint
-    const activityList = [
-        {% for type in activity_types %}
-            { "id": "{{type.short}}", "name": "{{type.name}}"},
+    const activityGroups = [
+        {% for kind, label in [
+            (models.ActivityKind.Regular, "Activités"),
+            (models.ActivityKind.Initiative, "Initiatives"),
+            (models.ActivityKind.Service, "Services"),
+        ] %}
+        {
+            "kind": {{ kind.name | tojson }},
+            "label": {{ label | tojson }},
+            "items": [
+                {% for type in activity_types if type.kind == kind %}
+                    { "id": {{ type.short | tojson }}, "name": {{ type.name | tojson }}, "icon": {{ type.icon | tojson }} },
+                {% endfor %}
+            ]
+        },
         {% endfor %}
-        { "id": "__services", "name": "Services"}
-    ]
+    ].filter(group => group.items.length > 0)
 
     const eventTypes = [
         {% for type in event_types %}
@@ -62,7 +72,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
     ]
     const app = createApp(EventList)
     app.provide('config', {
-        activityList,
+        activityGroups,
         eventTypes,
         eventTags,
         models,
@@ -88,6 +98,7 @@ https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.min.css
     app.component('Button', PrimeVue.Button);
     app.component('DataView', PrimeVue.DataView);
     app.component('Chip', PrimeVue.Chip);
+    app.component('Popover', PrimeVue.Popover);
     app.component('Paginator', PrimeVue.Paginator);
     app.component('Skeleton', PrimeVue.Skeleton);
     app.component('AutoComplete', PrimeVue.AutoComplete);

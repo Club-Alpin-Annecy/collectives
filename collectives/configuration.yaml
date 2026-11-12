@@ -8,8 +8,12 @@
 #    Dictionnary = 7
 #    Boolean = 8
 #    File = 9
+#    Enum = 11
 #
 # A LongString and a ShortString are the same object, but LongString is modifiable by a textarea
+#
+# An Enum stores a plain string, restricted in the admin UI to one of the
+# values listed under its `choices:` key.
 
 Sécurité:
     AUTH_FAILURE_WAIT:
@@ -37,10 +41,11 @@ Sécurité:
         type: LongString
 
 Paiements:
-    PAYMENTS_ENABLED:
-        content: true
-        description: Whether to enable the payment-related functionalities
-        type: Boolean
+    PAYMENT_ENABLED:
+        content: "Aucune"
+        description: "Mode de paiement actif : Aucune (fonctionnalité coupée), Payline ou HelloAsso."
+        type: Enum
+        choices: ["Aucune", "Payline", "HelloAsso"]
 
     PAYMENTS_TERMS_FILE:
         content: caf/doc/CGV.pdf
@@ -52,9 +57,30 @@ Paiements:
         description: Whether to enable refunding payments
         type: Boolean
 
+    HELLOASSO_CLIENT_ID:
+        content: ""
+        description: HelloAsso API client id. If left empty, payments fail, unless in debug mode where the HelloAsso API operates in mock mode.
+        type: ShortString
+
+    HELLOASSO_CLIENT_SECRET:
+        content: ""
+        description: HelloAsso API client secret (to be set in the HelloAsso back office)
+        type: ShortString
+        hidden: true
+
+    HELLOASSO_ORGANIZATION_SLUG:
+        content: ""
+        description: Slug of the HelloAsso organization used to receive payments
+        type: ShortString
+
+    HELLOASSO_SANDBOX:
+        content: false
+        description: Whether to use the HelloAsso sandbox/test environment instead of production
+        type: Boolean
+
     PAYLINE_MERCHANT_ID:
         content: ""
-        description: Payline merchant id, refer to payline account. If left empty the payline API will operate in mock mode.
+        description: Payline merchant id, refer to payline account. If left empty, payments fail, unless in debug mode where the payline API operates in mock mode.
         type: ShortString
 
     PAYLINE_ACCESS_KEY:
@@ -82,6 +108,13 @@ Paiements:
         content: "FR"
         description: Code of the country in which the order are being made. See https://docs.payline.com/display/DT/Codes+-+Country
         type: ShortString
+
+    PAYMENT_PROCESSOR_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers le prestataire
+            de paiement (Payline ou HelloAsso).
+        type: Integer
 
 FFCAM:
 
@@ -113,6 +146,13 @@ FFCAM:
         description: Mot de passe de la connexion à l'extranet FFCAM
         type: ShortString
         hidden: true
+
+    EXTRANET_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers l'extranet FFCAM,
+            pour le chargement du WSDL comme pour les appels SOAP.
+        type: Integer
 
     LICENSE_RENEWAL_MONTH:
         content: 9
@@ -214,6 +254,11 @@ Mail:
     SMTP_PORT:
         content: 25
         description: TCP port for SMTP server
+        type: Integer
+
+    SMTP_TIMEOUT:
+        content: 10
+        description: Délai maximal (en secondes) des échanges avec le serveur SMTP.
         type: Integer
 
     SMTP_ADDRESS:
@@ -596,4 +641,71 @@ Désinscriptions tardives:
     UNREGISTRATION_GRACE_PERIOD:
         content: 18
         description : Durée en heures de la période après inscription pendant laquelle la désinscription est tolérée
+        type: Integer
+
+Loxya:
+    LOXYA_ENABLED:
+        content: false
+        description: |
+            Active l'intégration avec Loxya, la plateforme de gestion du matériel.
+            Désactivé : rien de Loxya n'apparaît sur le site, hors de ce dossier.
+            Activé : une colonne apparaît dans la liste des utilisateurs et une section
+            dans les actions de maintenance. Rien n'est envoyé à Loxya tant que la
+            synchronisation n'est pas activée à son tour.
+        type: Boolean
+
+    LOXYA_URL:
+        content: ""
+        description: |
+            Adresse de l'instance Loxya du club, par exemple https://mon-club.loxya.app.
+            Tant qu'elle et les identifiants ci-dessous ne sont pas renseignés, rien
+            n'est envoyé à Loxya.
+        type: ShortString
+
+    LOXYA_API_USERNAME:
+        content: ""
+        description: Identifiant du compte Loxya utilisé par le site pour synchroniser les adhérents
+        type: ShortString
+
+    LOXYA_API_PASSWORD:
+        content: ""
+        description: Mot de passe du compte Loxya utilisé par le site
+        type: ShortString
+        hidden: true
+
+    LOXYA_TIMEOUT:
+        content: 10
+        description: |
+            Délai maximal (en secondes) des requêtes vers Loxya. S'applique aussi à la
+            connexion des adhérents : un Loxya qui ne répond plus la retarde d'autant.
+        type: Integer
+
+    LOXYA_SYNC_ACTIVE:
+        content: false
+        description: |
+            Active la synchronisation des comptes adhérents avec Loxya.
+            Désactivé : rien n'est envoyé à Loxya, ni automatiquement ni à la main.
+            Activé seul (mode « manuel ») : les comptes ne sont créés sur Loxya qu'à la
+            main, depuis la liste des utilisateurs ; les comptes déjà créés sont ensuite
+            tenus à jour automatiquement (désactivation à l'expiration de la licence,
+            réactivation au renouvellement).
+            Prise en compte en moins d'une minute, sans redémarrage.
+        type: Boolean
+
+    LOXYA_AUTO_CREATE:
+        content: false
+        description: |
+            Crée automatiquement sur Loxya le compte de tout adhérent actif (mode « auto ») :
+            chaque nuit, à l'inscription et à la connexion. Sans effet tant que
+            LOXYA_SYNC_ACTIVE est désactivé.
+            À activer une fois la phase pilote validée : la nuit suivante crée les comptes
+            de tous les adhérents actifs.
+        type: Boolean
+
+    LOXYA_MAX_DURATION:
+        content: 60
+        description: |
+            Durée maximale (en minutes) d'une synchronisation de nuit. Passé ce délai,
+            elle s'arrête et les adhérents restants sont repris la nuit suivante ;
+            le travail déjà fait est conservé.
         type: Integer

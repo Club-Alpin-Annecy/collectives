@@ -2,10 +2,13 @@
 
 from datetime import timedelta
 from decimal import Decimal
+from typing import Optional
 
+from flask import current_app
 from sqlalchemy.orm import make_transient
 from wtforms.validators import NumberRange
 
+from collectives.models.configuration import Configuration
 from collectives.models.event import Event
 from collectives.models.globals import db
 from collectives.models.user_group import (
@@ -459,12 +462,19 @@ class ItemPrice(db.Model):
         self._deprecated_license_types = ""
 
 
+PAYMENT_DISABLED = "Aucune"
+""" Value of ``Configuration.PAYMENT_ENABLED`` meaning online payments are disabled.
+
+Must match the corresponding choice in ``configuration.yaml``.
+"""
+
+
 class PaymentType(ChoiceEnum):
     """Enum describing the type of payment"""
 
     # pylint: disable=invalid-name
-    Online = 0
-    """ Payment has been made through the online payment processor
+    Payline = 0
+    """ Payment has been made through the Payline online payment processor
     """
     Check = 1
     """ Payment has been made by check
@@ -478,6 +488,9 @@ class PaymentType(ChoiceEnum):
     Transfer = 4
     """ Payment has been using a bank transfer
     """
+    HelloAsso = 5
+    """ Payment has been made through the HelloAsso online payment processor
+    """
     # pylint: enable=invalid-name
 
     @classmethod
@@ -487,12 +500,44 @@ class PaymentType(ChoiceEnum):
         :rtype: dict
         """
         return {
-            cls.Online: "En ligne",
+            cls.Payline: "Payline",
             cls.Check: "Chèque",
             cls.Cash: "Espèces",
             cls.Card: "CB",
             cls.Transfer: "Virement",
+            cls.HelloAsso: "HelloAsso",
         }
+
+
+ONLINE_PAYMENT_TYPES = (PaymentType.Payline, PaymentType.HelloAsso)
+""" Payment types corresponding to an online payment processor, as opposed to
+a manually reported offline payment (Check, Cash, Card, Transfer). """
+
+
+def active_payment_type() -> Optional[PaymentType]:
+    """Maps ``Configuration.PAYMENT_ENABLED`` to the corresponding online payment type.
+
+    The match is case-insensitive and restricted to :py:data:`ONLINE_PAYMENT_TYPES`,
+    so that the configuration choices do not need to match enum member names exactly.
+
+    :return: The configured online payment type, or None if payments are disabled
+             or the configured value is not recognized
+    """
+    value = str(Configuration.PAYMENT_ENABLED).strip()
+    if value == PAYMENT_DISABLED:
+        return None
+    for payment_type in ONLINE_PAYMENT_TYPES:
+        if payment_type.name.lower() == value.lower():
+            return payment_type
+    current_app.logger.error(
+        "Unknown PAYMENT_ENABLED value '%s', payments are disabled", value
+    )
+    return None
+
+
+def payments_enabled() -> bool:
+    """:return: True if an online payment processor is currently configured."""
+    return active_payment_type() is not None
 
 
 class PaymentStatus(ChoiceEnum):
@@ -637,7 +682,7 @@ class Payment(db.Model):
     :type: str
     """
 
-    processor_url = db.Column(db.String(255))
+    processor_url = db.Column(db.Text)
     """ Url that the buyer should be redirected to to make the payment
 
     :type: str
@@ -684,7 +729,7 @@ class Payment(db.Model):
     def is_offline(self):
         """:return: whether this is an offline payment (Check, Card, etc)
         :rtype: bool"""
-        return self.payment_type != PaymentType.Online
+        return self.payment_type not in ONLINE_PAYMENT_TYPES
 
     def is_unsettled(self):
         """:return: whether this payment is not finalized yet. Applies mostly to Online payments
@@ -696,18 +741,37 @@ class Payment(db.Model):
         :rtype: bool"""
         return self.status == PaymentStatus.Approved
 
+    def is_submitted_to_processor(self):
+        """:return: whether this online payment has already been registered
+                    with the payment processor (i.e. a checkout url and token exist)
+        :rtype: bool"""
+        return (
+            self.payment_type in ONLINE_PAYMENT_TYPES
+            and bool(self.processor_url)
+            and bool(self.processor_token)
+        )
+
+    def is_mock(self):
+        """:return: whether this online payment went through the mock payment
+                    page (payment processor not configured) instead of a real
+                    processor, i.e. no money has actually been collected
+        :rtype: bool"""
+        return self.payment_type in ONLINE_PAYMENT_TYPES and "/do_mock_payment/" in (
+            self.processor_url or ""
+        )
+
     def has_receipt(self):
         """:return: whether this payment has an associated receipt
                     (i.e. if it is an approved online payment)
         :rtype: bool"""
-        return self.payment_type == PaymentType.Online and self.is_approved()
+        return self.payment_type in ONLINE_PAYMENT_TYPES and self.is_approved()
 
     def has_refund_receipt(self):
         """:return: whether this payment has an associated refund receipt
                     (i.e. if it is a refunded online payment)
         :rtype: bool"""
         return (
-            self.payment_type == PaymentType.Online
+            self.payment_type in ONLINE_PAYMENT_TYPES
             and self.status == PaymentStatus.Refunded
         )
 
@@ -732,7 +796,12 @@ class Payment(db.Model):
             self.payment_item_id = item_price.item.id
             self.amount_charged = item_price.amount
             self.amount_paid = Decimal()
-            self.payment_type = PaymentType.Online
+            payment_type = active_payment_type()
+            if payment_type is None:
+                raise RuntimeError(
+                    "Cannot create a payment while payments are disabled"
+                )
+            self.payment_type = payment_type
             self.status = PaymentStatus.Initiated
             self.processor_token = ""
             self.raw_metadata = ""

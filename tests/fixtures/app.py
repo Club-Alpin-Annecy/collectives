@@ -38,6 +38,11 @@ def app(db_file):
         "../tests/assets/config.test.py", extra_config=extra_config
     )
 
+    # Configuration._cache is process-wide: values cached by a previous test
+    # (e.g. PAYMENT_ENABLED set by enable_payment) would otherwise shadow this
+    # test's fresh database for CONFIGURATION_CACHE_TIME seconds.
+    Configuration._cache.clear()
+
     with fixture_app.app_context():
         db.drop_all()
         db.create_all()
@@ -45,6 +50,14 @@ def app(db_file):
         init.populate_db(fixture_app)
         path = "tests/assets/configuration.test.yaml"
         init.init_config(app=fixture_app, force=True, path=path, clean=False)
+
+        # create_app() already read every configuration item, *before* drop_all():
+        # with a database shared between tests (MariaDB in CI), it cached the values
+        # the previous test left behind, and recreating the items does not refresh
+        # that cache. Start from what the database holds now.
+        # pylint: disable=protected-access
+        with Configuration._lock:
+            Configuration._cache.clear()
 
         yield fixture_app
 
@@ -64,3 +77,14 @@ def enable_leader_privacy():
     """Enable leader privacy in configuration"""
     Configuration.get_item("LEADER_PRIVACY").content = True
     Configuration.uncache("LEADER_PRIVACY")
+
+
+@pytest.fixture
+def enable_payment():
+    """Enable payments (via Payline) in configuration.
+
+    Payments are disabled by default (``PAYMENT_ENABLED`` = ``"Aucune"``);
+    tests exercising payment routes without a specific provider mock (e.g.
+    :py:func:`tests.mock.payline.payline_monkeypatch`) need this."""
+    Configuration.get_item("PAYMENT_ENABLED").content = "Payline"
+    Configuration.uncache("PAYMENT_ENABLED")

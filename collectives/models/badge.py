@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Iterable, NamedTuple
 
+from jinja2.utils import htmlsafe_json_dumps
+from markupsafe import Markup
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import validates
 from sqlalchemy.sql import func
@@ -193,7 +195,7 @@ class BadgeIds(ChoiceEnum):
         badge_ids: Iterable["BadgeIds"] | None = None,
         activity_ids: list[int] | None = None,
         include_deprecated: bool = False,
-    ) -> str:
+    ) -> Markup:
         """Class method to return levels as js dict
 
         :return: levels as js Dictionnary
@@ -216,7 +218,9 @@ class BadgeIds(ChoiceEnum):
             )
             return {key: level.__dict__ for key, level in levels.items()}
 
-        return json.dumps(
+        # The result is inserted inside <script> tags: escape HTML-sensitive
+        # characters so that a level name cannot close the tag
+        return htmlsafe_json_dumps(
             {
                 badge: {
                     activity: get_level_dict(badge, activity_id=activity)
@@ -224,6 +228,7 @@ class BadgeIds(ChoiceEnum):
                 }
                 for badge in badge_ids
             },
+            dumps=json.dumps,
             ensure_ascii=False,
         )
 

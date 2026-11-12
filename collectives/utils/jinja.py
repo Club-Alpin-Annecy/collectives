@@ -7,11 +7,13 @@ import html
 import inspect
 
 from collectives import models
+from collectives.models.payment import payments_enabled
 from collectives.routes.auth import get_bad_phone_message
 from collectives.utils import numbers
 from collectives.utils import time as custom_time
 from collectives.utils.misc import is_mobile_user
 from collectives.utils.render_markdown import markdown_to_html
+from collectives.utils.static import static_importmap
 
 
 def helpers_processor():
@@ -27,9 +29,11 @@ def helpers_processor():
     helper_functions["models"] = models
     helper_functions["get_bad_phone_message"] = get_bad_phone_message
     helper_functions["Configuration"] = models.Configuration
+    helper_functions["payments_enabled"] = payments_enabled
     helper_functions["markdown_to_html"] = markdown_to_html
     helper_functions["map_method"] = map_method
     helper_functions["str"] = str
+    helper_functions["static_importmap"] = static_importmap
 
     return helper_functions
 

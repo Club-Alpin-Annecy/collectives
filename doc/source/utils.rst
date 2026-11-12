@@ -6,6 +6,11 @@ Module ``collectives.utils.access``
 .. automodule:: collectives.utils.access
     :members:
 
+Module ``collectives.utils.anonymize``
+--------------------------------------
+.. automodule:: collectives.utils.anonymize
+    :members:
+
 Module ``collectives.utils.csv``
 ---------------------------------
 .. automodule:: collectives.utils.csv
@@ -46,14 +51,19 @@ Module ``collectives.utils.numbers``
 .. automodule:: collectives.utils.numbers
     :members:
 
-Module ``collectives.utils.payline``
-------------------------------------
-.. automodule:: collectives.utils.payline
+Module ``collectives.utils.payment_provider.payline``
+------------------------------------------------------
+.. automodule:: collectives.utils.payment_provider.payline
     :members:
 
 Module ``collectives.utils.render_markdown``
 ----------------------------------------------
 .. automodule:: collectives.utils.render_markdown
+    :members:
+
+Module ``collectives.utils.static``
+----------------------------------------------
+.. automodule:: collectives.utils.static
     :members:
 
 Module ``collectives.utils.time``

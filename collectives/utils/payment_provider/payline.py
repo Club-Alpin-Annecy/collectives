@@ -4,15 +4,22 @@ import base64
 import decimal
 import json
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pysimplesoap
-from flask import Flask, current_app, request, url_for
+from flask import current_app, request, url_for
 from pysimplesoap.client import SoapClient
 
 from collectives.models import Configuration, User
-from collectives.models.payment import Payment, PaymentStatus
+from collectives.models.payment import Payment, PaymentStatus, PaymentType
 from collectives.utils.misc import to_ascii, truncate
+from collectives.utils.payment_provider import (
+    CheckoutResult,
+    PaymentProvider,
+    PaymentStatusResult,
+    RefundResult,
+    unique_order_ref,
+)
 from collectives.utils.time import format_date
 
 PAYLINE_VERSION = 26
@@ -33,15 +40,6 @@ PAYMENT_MODE = "CPT"
 CPT stands for "Full"
 
 :type: string
-"""
-
-PAYLINE_TIMEOUT = 15
-"""Timeout, in seconds, of calls to the Payline API.
-
-Calls are made while serving a page: without a short timeout, a slow Payline
-holds the server threads, and slows the whole site down.
-
-:type: int
 """
 
 
@@ -238,20 +236,7 @@ class OrderInfo:
         """
         :return: An unique reference for the order
         """
-        if self.payment is None:
-            return str(uuid.uuid4())
-
-        # Date with format YYYYMMDD
-        date_str = self.payment.creation_time.strftime("%Y%m%d")
-        # Activity trigram
-        if self.payment.item.event.activity_types:
-            activity_str = self.payment.item.event.activity_types[0].trigram
-        else:
-            activity_str = "NCL"
-        # Rolling id making sure we can't get the same ref for distinct orders
-        rolling_id = self.payment.id % 10000
-
-        return f"CAF{date_str}{activity_str}{rolling_id:04}"
+        return unique_order_ref(self.payment)
 
     def private_data(self) -> Dict[str, Any]:
         """
@@ -353,8 +338,10 @@ class BuyerInfo:
             self.birth_date = user.date_of_birth.strftime("%Y/%m/%d")
 
 
-class PaylineApi:
+class PaylineApi(PaymentProvider):
     """SOAP Client to process payment with payline, refer to Payline docs"""
+
+    payment_type = PaymentType.Payline
 
     def __init__(self):
         """Constructor"""
@@ -376,18 +363,17 @@ class PaylineApi:
         """ Payline access key (to be set in payline backoffice)"""
         self.payline_country: str = ""
         """ Payline country code"""
-
-    def init_app(self, app: Flask):
-        """Initialize the payline with the app.
-        :param app: Current app.
-        """
-        pass
+        self.payline_timeout: int = None
+        """ Timeout in seconds of requests to Payline"""
 
     def reload_config(self):
         """Reads current configuration, reset client if necessary"""
 
         merchant_id_changed = (
             self.payline_merchant_id != Configuration.PAYLINE_MERCHANT_ID
+        )
+        timeout_changed = (
+            self.payline_timeout != Configuration.PAYMENT_PROCESSOR_TIMEOUT
         )
 
         self.payline_merchant_id = Configuration.PAYLINE_MERCHANT_ID
@@ -396,13 +382,19 @@ class PaylineApi:
         self.payline_contract_number = Configuration.PAYLINE_CONTRACT_NUMBER
         self.payline_merchant_name = Configuration.PAYLINE_MERCHANT_NAME
         self.payline_country = Configuration.PAYLINE_COUNTRY
+        self.payline_timeout = Configuration.PAYMENT_PROCESSOR_TIMEOUT
+
+        if timeout_changed:
+            # Reset clients, as their timeout is set at creation
+            self._webpayment_client = None
+            self._directpayment_client = None
 
         if merchant_id_changed:
             # Reset clients
             self._webpayment_client = None
             self._directpayment_client = None
             if self.disabled():
-                current_app.logger.warning("Payment API disabled, using mock API")
+                current_app.logger.warning("Payment API is not configured")
 
     @property
     def encoded_auth(self):
@@ -420,7 +412,7 @@ class PaylineApi:
         return SoapClient(
             wsdl=wsdl_path,
             wsdl_basedir=".",
-            timeout=PAYLINE_TIMEOUT,
+            timeout=self.payline_timeout,
             http_headers={
                 "Authorization": f"Basic {self.encoded_auth}",
                 "Content-Type": "text/plain",
@@ -462,6 +454,8 @@ class PaylineApi:
         payment_response = PaymentRequest()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, every payment is valid with fake token
             payment_response.result.code = "00000"
             payment_response.result.short_message = "ACCEPTED"
@@ -530,6 +524,8 @@ class PaylineApi:
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, result is read from url parameters
             message = request.args.get("message")
             amount = request.args.get("amount")
@@ -557,7 +553,7 @@ class PaylineApi:
 
         return None
 
-    def do_refund(self, payment_details: PaymentDetails) -> RefundDetails:
+    def _do_refund(self, payment_details: PaymentDetails) -> RefundDetails:
         """Tries to refund a previously approved online payment.
 
         Will first try a 'reset' call (cancel immediately the payment if it has not
@@ -569,6 +565,8 @@ class PaylineApi:
         self.reload_config()
 
         if self.disabled():
+            if self.mock_refused():
+                return None
             # Dev mode, refund always succeeds
             response = {
                 "result": {
@@ -607,6 +605,74 @@ class PaylineApi:
         :return: True if PaylineApi is disabled.
         """
         return not self.payline_merchant_id
+
+    # PaymentProvider interface
+
+    def create_checkout(self, payment: Payment, user: User) -> Optional[CheckoutResult]:
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.create_checkout`"""
+        order_info = OrderInfo(payment)
+        buyer_info = BuyerInfo(user)
+        payment_request = self.do_web_payment(order_info, buyer_info)
+
+        if payment_request is None:
+            return None
+
+        return CheckoutResult(
+            accepted=payment_request.result.is_accepted(),
+            token=payment_request.token,
+            redirect_url=payment_request.redirect_url,
+            error_code=payment_request.result.code,
+            error_message=payment_request.result.long_message,
+        )
+
+    def retrieve_remote_payment_status(
+        self, payment: Payment
+    ) -> Optional[PaymentStatusResult]:
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.retrieve_remote_payment_status`"""
+        details = self.get_web_payment_details(payment.processor_token)
+        if details is None:
+            return None
+
+        return PaymentStatusResult(
+            status=details.result.payment_status(),
+            amount=details.amount(),
+            raw_metadata=details.raw_metadata(),
+        )
+
+    def do_refund(self, payment: Payment) -> Optional[RefundResult]:
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.do_refund`
+
+        :param payment: The database payment entry to refund
+        """
+        details = PaymentDetails.from_metadata(payment.raw_metadata)
+        refund_details = self._do_refund(details)
+        if refund_details is None:
+            return None
+
+        return RefundResult(
+            accepted=refund_details.result.is_accepted(),
+            raw_metadata=refund_details.raw_metadata(),
+            error_code=refund_details.result.code,
+            error_message=refund_details.result.long_message,
+        )
+
+    def parse_callback(self, endpoint, args, form):
+        """See :py:meth:`collectives.utils.payment_provider.PaymentProvider.parse_callback`
+
+        Payline uses a different parameter name for its server-to-server
+        `notify` calls (`token`) than for the user-facing `process`/`cancel`
+        redirects (`paylinetoken`).
+        """
+        param = "token" if "notify" in endpoint else "paylinetoken"
+        token = args.get(param)
+        if token is None:
+            token = form.get(param)
+        return token
+
+    @property
+    def mock_callback_param(self) -> str:
+        """:return: Payline uses ``paylinetoken`` for the mock payment page."""
+        return "paylinetoken"
 
 
 api: PaylineApi = PaylineApi()

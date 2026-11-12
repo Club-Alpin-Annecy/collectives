@@ -121,7 +121,7 @@ def test_event_deletion(leader_client, event, event1_with_reg):
 
 
 def test_supervisor_event_deletion(
-    supervisor_client, event1_with_reg, event2, paying_event
+    supervisor_client, event1_with_reg, event2, paying_event, enable_payment
 ):
     """Test supervisor delete rights"""
 
@@ -207,9 +207,8 @@ def test_crawler(client, event):
         soup.select_one('meta[property="og:url"]')["content"]
         == f"/collectives/{event.id}-new-collective"
     )
-    assert (
-        soup.select_one('meta[property="og:image"]')["content"]
-        == "http://localhost/static/caf/logo.svg"
+    assert soup.select_one('meta[property="og:image"]')["content"].startswith(
+        "http://localhost/static/caf/logo.svg?v="
     )
 
     description = soup.select_one('meta[property="og:description"]')["content"]

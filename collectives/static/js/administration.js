@@ -1,6 +1,7 @@
 
 function actionFormatter(cell, formatterParams, onRendered){
-  return '<form style="display:inline; padding:0" action="'+ cell.getValue() +'" method="'+formatterParams['method']+'" ></form><input type="image" src="/static/img/icon/ionicon/md-'+formatterParams['icon']+'.svg" style="margin: 0;height: 1.2em; width: 1.2em"  alt="'+formatterParams['alt']+'" title="'+formatterParams['alt']+'"/>';
+  const csrf = formatterParams['method'] == 'POST' ? '<input type="hidden" name="csrf_token" value="'+ window.csrfToken +'">' : '';
+  return '<form style="display:inline; padding:0" action="'+ cell.getValue() +'" method="'+formatterParams['method']+'" >'+ csrf +'</form><input type="image" src="/static/img/icon/ionicon/'+formatterParams['icon']+'.svg" style="margin: 0;height: 1.2em; width: 1.2em"  alt="'+formatterParams['alt']+'" title="'+formatterParams['alt']+'"/>';
 }
 
 function onclickTriggerInsideForm(e, cell){
@@ -25,12 +26,24 @@ function badgeFormatter(cell, formatterParams, onRendered){
     return `<ul> ${cell.getValue().map(displayBadge).join(' ')} </ul>`;
 }
 
+// Tabulator inserts formatter output and select labels as HTML: activity names
+// are editable by supervisors, so every value must be escaped.
+function escapeValue(value){
+    return escapeHTML(String(value ?? ''));
+}
+
+// Tabulator also copies the returned label into the filter input once chosen:
+// escaping "<" alone prevents any tag while keeping "&" or "'" readable there.
+function escapeListItem(value, label){
+    return String(label ?? '').replace(/</g, '&lt;');
+}
+
 function displayRole(role){
-    return `<li>${role['name']} ${role.activity_type?.name || ''}</li>`
+    return `<li>${escapeValue(role['name'])} ${escapeValue(role.activity_type?.name)}</li>`
 }
 
 function displayBadge(badge){
-    return `<li>${badge['name']} ${badge.activity_type?.name || ''}</li>`
+    return `<li>${escapeValue(badge['name'])} ${escapeValue(badge.activity_type?.name)}</li>`
 }
 
 var table;
@@ -52,12 +65,17 @@ window.onload = function(){
             {title:"Email", field:"mail", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Prénom", field:"first_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
             {title:"Nom", field:"last_name", headerFilter:"input", widthGrow:3, formatter:"link", formatterParams:{urlField:"profile_uri"}},
-            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: filters, formatter:roleFormatter, headerSort:false,  widthGrow:2},
-            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: filters_badge, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
-            {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
-            {field:"badges_uri",   formatter:actionFormatter, formatterParams:{'icon': 'pricetags-outline', 'method': 'GET', 'alt': 'Badges'},   cellClick: onclickTriggerInsideForm, headerSort:false},
-            {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
-            {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'trash', 'method': 'GET', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
+            {title:"Roles", field:"roles", headerFilter: "select", headerFilterParams: {values: filters, listItemFormatter: escapeListItem}, formatter:roleFormatter, headerSort:false,  widthGrow:2},
+            {title:"Badges", field:"badges", headerFilter: "select", headerFilterParams: {values: filters_badge, listItemFormatter: escapeListItem}, formatter:badgeFormatter, headerSort:false,  widthGrow:4},
+            {field:"roles_uri",   formatter:actionFormatter, formatterParams:{'icon': 'md-ribbon', 'method': 'GET', 'alt': 'Roles'},   cellClick: onclickTriggerInsideForm, headerSort:false},
+            {field:"badges_uri",   formatter:actionFormatter, formatterParams:{'icon': 'md-pricetags-outline', 'method': 'GET', 'alt': 'Badges'},   cellClick: onclickTriggerInsideForm, headerSort:false},
+            // Only on deployments that enable the Loxya integration.
+            ...(window.loxyaEnabled ? [
+              {title:"Loxya", field:"loxya_active", formatter:"tickCross", formatterParams:{allowEmpty:true}, widthGrow:1, tooltip:function(cell){ const d = cell.getRow().getData().loxya_synced_at; return d ? "Synchronisé le " + d : "Jamais synchronisé"; }},
+              {field:"loxya_sync_uri", formatter:actionFormatter, formatterParams:{'icon': 'refresh', 'method': 'POST', 'alt': 'Synchroniser avec Loxya'}, cellClick: onclickTriggerInsideForm, headerSort:false},
+            ] : []),
+            {field:"manage_uri",  formatter:actionFormatter, formatterParams:{'icon': 'md-create', 'method': 'GET', 'alt': 'Edition'}, cellClick: onclickTriggerInsideForm, headerSort:false},
+            {field:"delete_uri",  formatter:actionFormatter, formatterParams:{'icon': 'md-trash', 'method': 'GET', 'alt': 'Delete'},  cellClick: onclickTriggerInsideForm, headerSort:false},
             ],
 
             locale:true,
