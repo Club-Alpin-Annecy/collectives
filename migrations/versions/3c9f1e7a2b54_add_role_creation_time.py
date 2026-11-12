@@ -1,7 +1,7 @@
 """Add role creation time
 
 Revision ID: 3c9f1e7a2b54
-Revises: 420c243a17f8
+Revises: 7babe0b3cfa2
 Create Date: 2026-10-09 16:00:00.000000
 
 """
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "3c9f1e7a2b54"
-down_revision = "420c243a17f8"
+down_revision = "7babe0b3cfa2"
 branch_labels = None
 depends_on = None
 
