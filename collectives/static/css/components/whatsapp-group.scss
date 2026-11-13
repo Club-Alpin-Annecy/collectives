@@ -201,7 +201,15 @@ $whatsapp-green-bg-light: #E7F9EE;
         }
     }
 
+    // Label styled as a link: a click focuses the invite link field and scrolls to it
+    &--shortcut {
+        color: $color-blue-primary-light;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
     &--hint {
+        margin: 0;
         font-size: $font-size-xs;
         color: $color-gray-medium;
     }

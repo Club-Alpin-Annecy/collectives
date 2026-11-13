@@ -20,7 +20,13 @@
             <a href="{{ event.whatsapp_invite_link }}" target="_blank" rel="noopener">{{ event.whatsapp_invite_link }}</a>
           </p>
         {% else %}
-          <p>Créez le groupe dans WhatsApp, puis collez ici son lien d'invitation : seuls les participants inscrits le verront.</p>
+          <p>Seuls les participants inscrits verront le lien d'invitation du groupe.</p>
+          <p>
+            <strong>Groupe déjà créé&nbsp;?</strong>
+            <label for="{{ whatsapp_link_form.whatsapp_invite_link.id }}" class="whatsapp-group--shortcut">Collez directement son lien</label>
+            dans le champ en bas de ce bloc.
+            Sinon, créez-le en suivant ces étapes&nbsp;:
+          </p>
           <ol class="whatsapp-group--steps">
             <li>
               <label for="whatsapp_group_name">Copiez le nom du groupe</label>
@@ -31,6 +37,10 @@
             </li>
             <li>
               <span>Créez un nouveau groupe dans WhatsApp et collez-y le nom</span>
+              <p class="whatsapp-group--hint">
+                Sur téléphone, WhatsApp propose d'abord d'ajouter des membres : passez à l'étape suivante sans en choisir, le groupe est créé quand même.
+                Sur ordinateur, ce n'est pas toujours possible : créez alors le groupe depuis votre téléphone, ou ajoutez dès la création un premier participant.
+              </p>
               <div>
                 <a class="button button-secondary whatsapp-group--open" target="_blank" rel="noopener" href="https://wa.me/">
                   {% include 'event/partials/whatsapp-logo.svg' %} Ouvrir WhatsApp
