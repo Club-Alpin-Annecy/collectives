@@ -28,7 +28,7 @@
 
   {{ generator.form_errors(form) }}
 
-  <form action="{{ url_for('retex.edit_retex', event_id=event.id) }}" method="POST" class="form form-vertical" id="retex_form">
+  <form action="{{ url_for('retex.edit_retex', event_id=event.id) }}" method="POST" class="form form-vertical" id="retex_form" novalidate>
     {{ form.hidden_tag() }}
 
     <div class="controls">

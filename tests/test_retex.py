@@ -51,6 +51,20 @@ def test_edit_retex_shows_all_levels(leader_client, past_event):
     assert "intervention des secours" in response.text
 
 
+def test_edit_retex_requires_level(leader_client, past_event):
+    """Test that a retex without level, or with an unknown one, is refused
+    with a French message."""
+    url = f"/retex/event/{past_event.id}/edit"
+    response = leader_client.post(url, data={"description": "Oubli"})
+    assert response.status_code == 200
+    assert "Choisissez le niveau du RETEX." in response.text
+    assert past_event.retex is None
+
+    response = leader_client.post(url, data={"status": "9", "description": "Faux"})
+    assert response.status_code == 200
+    assert past_event.retex is None
+
+
 def test_retex_level_shown_on_event_page(leader_client, past_event):
     """Test that the event page shows the retex level with its color class."""
     data = {"status": str(int(RetexStatus.Incident)), "description": "Entorse"}

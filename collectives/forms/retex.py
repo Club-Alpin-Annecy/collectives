@@ -12,7 +12,7 @@ from wtforms import (
     StringField,
     SubmitField,
 )
-from wtforms.validators import Optional, ValidationError
+from wtforms.validators import InputRequired, Optional, ValidationError
 from wtforms_alchemy import ModelForm
 
 from collectives.models import ActivityType, Retex, RetexStatus
@@ -27,8 +27,14 @@ class RetexForm(ModelForm, FlaskForm):
         model = Retex
         only = ["status", "description"]
 
+    # No level is preselected, so that leaders choose it. An unknown value is
+    # still refused: RetexStatus.coerce fails on it.
     status = RadioField(
-        "Niveau", choices=RetexStatus.choices(), coerce=RetexStatus.coerce
+        "Niveau",
+        choices=RetexStatus.choices(),
+        coerce=RetexStatus.coerce,
+        validate_choice=False,
+        validators=[InputRequired("Choisissez le niveau du RETEX.")],
     )
 
     submit = SubmitField("Enregistrer")
