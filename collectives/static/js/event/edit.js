@@ -268,9 +268,12 @@ function makeEditorToolbar(options) {
 
 }
 
-// Photos larger than this are shrunk in the browser before upload: phone
-// photos are often bigger than the maximum upload size of the server.
+// Images larger than the editor size limit are shrunk in the browser before
+// upload: phone photos are often bigger than the maximum upload size of the
+// server. JPEG photos are always re-encoded, to drop their EXIF data (GPS
+// position).
 const SHRINK_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALWAYS_REENCODED_TYPES = ["image/jpeg"];
 const SHRUNK_IMAGE_MAX_SIDE = 2000;
 const SHRUNK_IMAGE_QUALITY = 0.85;
 
@@ -300,18 +303,32 @@ async function shrinkImage(file) {
     const blob = await new Promise((resolve) =>
         canvas.toBlob(resolve, "image/jpeg", SHRUNK_IMAGE_QUALITY)
     );
+    if (!blob) {
+        throw new Error("Could not encode the image");
+    }
     const name = file.name.replace(/\.[^.]*$/, "") + ".jpg";
     return new File([blob], name, { type: "image/jpeg" });
 }
 
 /**
- * EasyMDE upload function: shrinks large photos, then uses the default upload.
+ * EasyMDE upload function: checks the file type, re-encodes photos when
+ * needed, then uses the default upload.
  *
  * Called by EasyMDE with the editor as `this`. The default upload reports
- * errors itself, so `onError` is not passed on (it would alert twice).
+ * errors itself, so `onError` is not passed on to it (it would alert twice).
  */
-function shrinkAndUploadImage(file, onSuccess) {
-    if (!SHRINK_IMAGE_TYPES.includes(file.type) || file.size <= this.options.imageMaxSize) {
+function shrinkAndUploadImage(file, onSuccess, onError) {
+    // EasyMDE only applies imageAccept to its file picker, not to dropped or
+    // pasted files. Files without a known type are left to the server check.
+    const accepted = this.options.imageAccept.split(",").map((type) => type.trim());
+    if (file.type && !accepted.includes(file.type)) {
+        onError(this.options.errorMessages.typeNotAllowed);
+        return;
+    }
+
+    const reencode = ALWAYS_REENCODED_TYPES.includes(file.type)
+        || (SHRINK_IMAGE_TYPES.includes(file.type) && file.size > this.options.imageMaxSize);
+    if (!reencode) {
         this.uploadImage(file, onSuccess);
         return;
     }

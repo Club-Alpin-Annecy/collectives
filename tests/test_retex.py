@@ -131,6 +131,22 @@ def test_retex_photo_upload(leader_client, past_event):
             os.remove(upload.full_path())
 
 
+def test_upload_long_file_name(leader_client, past_event):
+    """Test that a file with a very long name can still be uploaded."""
+    response = leader_client.post(
+        f"/api/upload/event/{past_event.id}",
+        data={"image": (_png_file(), "a" * 250 + ".png")},
+        content_type="multipart/form-data",
+    )
+    uploads = UploadedFile.query.filter_by(event_id=past_event.id).all()
+    try:
+        assert response.status_code == 200
+        assert len(os.path.basename(uploads[0].path)) < 255
+    finally:
+        for upload in uploads:
+            os.remove(upload.full_path())
+
+
 def test_retex_photo_upload_quota(leader_client, past_event):
     """Test that the upload quota of the event gives an explicit message."""
     Configuration.get_item("MAX_UPLOADS_PER_EVENT").content = 1

@@ -30,6 +30,14 @@ documents = UploadSet("documents", DOCUMENTS + STATIC_SAFE_IMAGES + ("gpx",))
 """
 
 
+PATH_NAME_MAX_LENGTH = 100
+"""Maximum length of the original name kept in the on-disk name of a file.
+
+Keeps the on-disk name below the 255 bytes allowed by file systems.
+
+:type: int
+"""
+
 PATH_TOKEN_BYTES = 8
 """Number of random bytes in the on-disk name of an uploaded file.
 
@@ -175,6 +183,7 @@ class UploadedFile(db.Model):
         self.name = file.filename
         name, ext = os.path.splitext(self.name)
         token = secrets.token_hex(PATH_TOKEN_BYTES)
+        name = name[:PATH_NAME_MAX_LENGTH]
         self.path = documents.save(
             file, name=f"{self.date.strftime('%y_%m_%d')}_{token}_{name}{ext}"
         )
