@@ -41,6 +41,7 @@ def test_leader_sets_and_removes_link(enable_whatsapp_groups, leader_client, eve
     page = response.text
     assert "Groupe WhatsApp" in page
     assert event.whatsapp_group_name() in page
+    assert "Groupe déjà créé" in page
 
     response = leader_client.post(
         f"/collectives/{event.id}/whatsapp_link",
