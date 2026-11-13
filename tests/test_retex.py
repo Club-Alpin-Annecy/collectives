@@ -152,7 +152,7 @@ def test_retex_visible_on_event_page(client, leader_user, user1, past_event):
 
 
 def test_my_retex_list(leader_client, past_event):
-    """Test the 'Mes Retex' page and its backing API."""
+    """Test the "Mes partages d'expérience" page and its backing API."""
     response = leader_client.get("/retex/mine")
     assert response.status_code == 200
 
