@@ -11,18 +11,22 @@ from collectives.utils import render_markdown
 
 # pylint: disable=invalid-name
 class RetexStatus(ChoiceEnum):
-    """Enumeration listing possible Retex outcome statuses"""
+    """Enumeration listing the club's retex levels.
 
-    Normal = 0
-    """Event went normally"""
-    Cancelled = 1
-    """Event was cancelled"""
-    Shortened = 2
-    """Event was cut short"""
-    NearMissAccident = 3
-    """Near-miss incident during the event"""
+    The value of each item is its level, from 0 to 4. Levels 0 and 1 are
+    learning retex, levels 2 to 4 are event retex.
+    """
+
+    Cancelled = 0
+    """Outing cancelled; explains the reasons and the decision making"""
+    GoodPractice = 1
+    """Everything went well; shares what worked, strong points and advice"""
+    NearMiss = 2
+    """No damage nor injury, but the situation could have gone wrong"""
+    Incident = 3
+    """Minor injury handled by the group, without outside help"""
     Accident = 4
-    """Actual accident occurred"""
+    """Serious event requiring the intervention of rescue services"""
 
     @classmethod
     def display_names(cls) -> Dict["RetexStatus", str]:
@@ -30,12 +34,46 @@ class RetexStatus(ChoiceEnum):
         :return: a dict defining display names for all enum values
         """
         return {
-            cls.Normal: "Normale",
-            cls.Cancelled: "Annulée",
-            cls.Shortened: "Écourtée",
-            cls.NearMissAccident: "Presque accident",
+            cls.Cancelled: "Annulation",
+            cls.GoodPractice: "Bonne pratique",
+            cls.NearMiss: "Presqu'accident",
+            cls.Incident: "Incident",
             cls.Accident: "Accident",
         }
+
+    @classmethod
+    def descriptions(cls) -> Dict["RetexStatus", str]:
+        """
+        :return: a dict defining help texts for all enum values
+        """
+        return {
+            cls.Cancelled: "Sortie annulée. Explication des motifs et analyse de la "
+            "prise de décision.",
+            cls.GoodPractice: "Tout s'est bien déroulé. Partage des réussites, "
+            "points forts et conseils.",
+            cls.NearMiss: "Aucun dommage ni blessé, mais la situation aurait pu "
+            "mal tourner. Par exemple : chute de pierre évitée, erreur de "
+            "matériel, demi-tour tardif.",
+            cls.Incident: "Blessure légère gérée en autonomie par le groupe (sans "
+            "secours extérieurs). Par exemple : entorse, plaie, sortie écourtée, "
+            "retour aidé par le groupe.",
+            cls.Accident: "Événement grave nécessitant l'intervention des secours. "
+            "Par exemple : hélico, secours professionnels, évacuation même par "
+            "précaution.",
+        }
+
+    def description(self) -> str:
+        """
+        :return: the help text of this level
+        """
+        return self.__class__.descriptions()[self]
+
+    def is_event_retex(self) -> bool:
+        """
+        :return: whether this level is an event retex (as opposed to a
+            learning retex)
+        """
+        return self >= RetexStatus.NearMiss
 
 
 class Retex(db.Model):
@@ -63,11 +101,11 @@ class Retex(db.Model):
     status = db.Column(
         db.Enum(RetexStatus),
         nullable=False,
-        default=RetexStatus.Normal,
+        default=RetexStatus.GoodPractice,
         info={
             "choices": RetexStatus.choices(),
             "coerce": RetexStatus.coerce,
-            "label": "Statut",
+            "label": "Niveau",
         },
     )
     """How the outing went

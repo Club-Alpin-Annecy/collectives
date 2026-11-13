@@ -1,10 +1,11 @@
 """Module containing forms related to retex"""
 
-from typing import List
+from typing import List, Tuple
 
 from flask_wtf import FlaskForm
 from wtforms import (
     DateField,
+    Field,
     HiddenField,
     RadioField,
     SelectMultipleField,
@@ -27,10 +28,24 @@ class RetexForm(ModelForm, FlaskForm):
         only = ["status", "description"]
 
     status = RadioField(
-        "Statut", choices=RetexStatus.choices(), coerce=RetexStatus.coerce
+        "Niveau", choices=RetexStatus.choices(), coerce=RetexStatus.coerce
     )
 
     submit = SubmitField("Enregistrer")
+
+    def status_levels(self, event_retex: bool) -> List[Tuple[Field, RetexStatus]]:
+        """Pairs the radio buttons of the status field with their level.
+
+        :param event_retex: whether to return the event retex levels or the
+            learning retex levels.
+        :return: list of (radio button, level) tuples
+        """
+        levels = [(subfield, RetexStatus(subfield.data)) for subfield in self.status]
+        return [
+            (subfield, level)
+            for subfield, level in levels
+            if level.is_event_retex() == event_retex
+        ]
 
 
 class RetexExportForm(FlaskForm):
@@ -38,7 +53,7 @@ class RetexExportForm(FlaskForm):
 
     activity_ids = SelectMultipleField("Activités", coerce=int)
     status_ids = SelectMultipleField(
-        "Statut du retex", choices=RetexStatus.choices(), coerce=RetexStatus.coerce
+        "Niveau du retex", choices=RetexStatus.choices(), coerce=RetexStatus.coerce
     )
     date_from = DateField("Depuis le", validators=[Optional()])
     date_to = DateField("Jusqu'au", validators=[Optional()])
