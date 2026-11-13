@@ -200,7 +200,7 @@ def payments_enabled(api=False):
 
 
 def retex_enabled(api=False):
-    """Decorator which checks whether the retex functionnality is enabled
+    """Decorator which checks whether the retex functionality is enabled
 
     :param api: If True and access is denied, trigger a 403. Otherwise return an error message
     :type api: bool
@@ -213,7 +213,7 @@ def retex_enabled(api=False):
 
         # pylint: disable=unused-argument
         def tester(*args, **kwargs):
-            """Check if the retex functionnality is enabled.
+            """Check if the retex functionality is enabled.
 
             It will also return everything required to display an error message if
             check is failed.
