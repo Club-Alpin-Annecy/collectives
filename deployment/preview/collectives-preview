@@ -84,7 +84,7 @@ EOF
     # Fill the database with the test fixtures, once per instance.
     if ! grep -q '^SEEDED=1$' "$state"; then
         once exec "$host" uv run --no-sync pytest tests/preview_seed.py -q \
-            -p no:cacheprovider </dev/null >&2
+            -p no:cacheprovider --disable-warnings </dev/null >&2
         echo SEEDED=1 >>"$state"
     fi
     echo "url=https://$host"
