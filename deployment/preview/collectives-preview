@@ -5,8 +5,8 @@
 # Forced command of the deploy SSH key used by .github/workflows/preview.yml:
 #   ssh deploy@<server> deploy <pr number>
 #   ssh deploy@<server> remove <pr number>
-# deploy prints the url and admin_password of the instance, as key=value lines
-# on stdout (the format of $GITHUB_OUTPUT); everything else goes to stderr.
+# deploy prints the url, admin_password and fixture accounts of the instance on
+# stdout, in the format of $GITHUB_OUTPUT; everything else goes to stderr.
 # Server setup: see README.md next to this file.
 set -euf
 
@@ -87,8 +87,11 @@ EOF
             -p no:cacheprovider --disable-warnings </dev/null >&2
         echo SEEDED=1 >>"$state"
     fi
+    accounts=$(once exec "$host" uv run --no-sync python -m tests.preview_seed </dev/null)
+    delimiter=$(openssl rand -hex 16)
     echo "url=https://$host"
     echo "admin_password=$ADMINPWD"
+    printf 'accounts<<%s\n%s\n%s\n' "$delimiter" "$accounts" "$delimiter"
 }
 
 remove() {

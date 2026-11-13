@@ -2,12 +2,22 @@
 
 Not part of the test suite: ``deployment/preview/collectives-preview`` runs
 ``pytest tests/preview_seed.py`` in the preview container, once, against the
-database of the instance (``SQLALCHEMY_DATABASE_URI``).
+database of the instance (``SQLALCHEMY_DATABASE_URI``). After each deployment,
+it runs ``python -m tests.preview_seed`` to list the fixture accounts in the
+pull request comment.
 """
 
 import pytest
+from sqlalchemy.orm import selectinload
 
 import collectives
+from collectives.models import User
+from tests.fixtures.user import PASSWORD
+
+FIXTURE_MAIL_DOMAIN = "@example.org"
+"""Domain of the mail addresses of the fixture users.
+
+:type: string"""
 
 # pylint: disable=unused-argument, redefined-outer-name
 # pylint: disable=too-many-arguments, too-many-positional-arguments
@@ -54,3 +64,47 @@ def test_seed(
     service_event,
 ):
     """Creates users of each role and events of each kind, with registrations."""
+
+
+def accounts_table() -> str:
+    """Lists the fixture accounts, with their roles and badges.
+
+    :returns: a Markdown table, in French as it is shown in the pull request.
+    """
+    users = (
+        User.query.filter(User.mail.endswith(FIXTURE_MAIL_DOMAIN))
+        .options(selectinload(User.roles), selectinload(User.badges))
+        .order_by(User.license)
+    )
+    lines = [
+        f"Comptes de test, mot de passe `{PASSWORD}` :",
+        "",
+        "| Identifiant | Nom | Profil |",
+        "|---|---|---|",
+    ]
+    for user in users:
+        profile = [
+            f"{role.name} ({role.activity_type.name})"
+            if role.activity_type
+            else role.name
+            for role in user.roles
+        ]
+        profile += [
+            f"{badge.badge_id.display_name()} (expiré)"
+            if badge.is_expired()
+            else badge.badge_id.display_name()
+            for badge in user.badges
+        ]
+        if user.is_youth():
+            profile.append("Jeune")
+        if user.is_minor():
+            profile.append("Mineur")
+        lines.append(
+            f"| `{user.mail}` | {user.full_name()} | {', '.join(profile) or 'Adhérent'} |"
+        )
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    with collectives.create_app().app_context():
+        print(accounts_table())

@@ -83,13 +83,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           URL: ${{ steps.deploy.outputs.url }}
           ADMIN_PASSWORD: ${{ steps.deploy.outputs.admin_password }}
+          ACCOUNTS: ${{ steps.deploy.outputs.accounts }}
           SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           marker="<!-- collectives-preview -->"
           body="$marker
           Instance de test déployée pour ${SHA::7} : $URL
           Compte administrateur : \`admin\` / \`$ADMIN_PASSWORD\`
-          Comptes de test (tests/fixtures/, liste dans Administration) : mot de passe \`fooBar2+!\`"
+
+          $ACCOUNTS"
           id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
             --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -1)
           if [ -n "$id" ]; then
