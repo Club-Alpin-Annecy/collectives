@@ -210,7 +210,9 @@ def _anonymize_payments(connection):
 
 
 def _anonymize_free_texts(connection):
-    """Scrub texts typed by members: answers, retex, event descriptions."""
+    """Scrub texts typed by members: answers, retex, event descriptions.
+
+    Also drops the WhatsApp invite links, which let anyone join the groups."""
     answers = QuestionAnswer.__table__
     connection.execute(
         answers.update()
@@ -228,7 +230,9 @@ def _anonymize_free_texts(connection):
     events = Event.__table__
     connection.execute(
         events.update().values(
-            description=ANONYMIZED_TEXT, rendered_description=ANONYMIZED_TEXT
+            description=ANONYMIZED_TEXT,
+            rendered_description=ANONYMIZED_TEXT,
+            whatsapp_invite_link=None,
         )
     )
 

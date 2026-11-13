@@ -20,10 +20,12 @@ from wtforms import (
     RadioField,
     SelectField,
     SelectMultipleField,
+    StringField,
     SubmitField,
 )
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, ValidationError
 from wtforms_alchemy import ModelForm
+from wtforms_alchemy.utils import strip_string
 
 from collectives.forms.user_group import UserGroupForm
 from collectives.models import (
@@ -43,6 +45,7 @@ from collectives.models import (
 from collectives.utils.numbers import format_currency
 from collectives.utils.payment import PriceDateInterval, generate_price_intervals
 from collectives.utils.time import current_time
+from collectives.utils.whatsapp import normalize_whatsapp_invite_link
 
 
 def available_event_types(
@@ -159,7 +162,7 @@ class EventForm(ModelForm, FlaskForm):
         """Fields to expose"""
 
         model = Event
-        exclude = ["photo"]
+        exclude = ["photo", "whatsapp_invite_link"]
 
     photo_file = FileField(validators=[FileAllowed(photos, "Image only!")])
     remove_photo = BooleanField("Supprimer la photo existante")
@@ -481,3 +484,30 @@ class PaymentItemChoiceForm(FlaskForm):
             self.submit.label.text = "Valider"
             self.accept_payment_terms.data = True
             self.accept_payment_terms.hidden = True
+
+
+def validate_whatsapp_invite_link(form, field):  # pylint: disable=unused-argument
+    """Validator replacing a WhatsApp invite link by its canonical form.
+
+    :raises ValidationError: If the field is not a WhatsApp group invite link.
+    """
+    try:
+        field.data = normalize_whatsapp_invite_link(field.data)
+    except ValueError as err:
+        raise ValidationError(
+            "Le lien doit être un lien d'invitation WhatsApp, "
+            "de la forme https://chat.whatsapp.com/…"
+        ) from err
+
+
+class WhatsappLinkForm(FlaskForm):
+    """Form for leaders to set or remove the invite link of the event WhatsApp group"""
+
+    whatsapp_invite_link = StringField(
+        "Lien d'invitation au groupe WhatsApp",
+        filters=[strip_string],
+        validators=[validate_whatsapp_invite_link],
+        render_kw={"placeholder": "https://chat.whatsapp.com/…"},
+    )
+    submit = SubmitField("Enregistrer le lien")
+    remove = SubmitField("Retirer le lien")

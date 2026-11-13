@@ -1,0 +1,81 @@
+{# WhatsApp group of the event: set-up for leaders, invite link for participants #}
+
+{% if Configuration.WHATSAPP_GROUPS_ENABLED %}
+  {% if whatsapp_link_form %}
+    <details class="whatsapp-group" id="whatsapp-group">
+      <summary class="whatsapp-group--summary">
+        {% include 'event/partials/whatsapp-logo.svg' %}
+        <span class="whatsapp-group--title">Groupe WhatsApp</span>
+        {% if event.whatsapp_invite_link %}
+          <span class="whatsapp-group--status whatsapp-group--status-shared">Lien partagé aux participants</span>
+        {% else %}
+          <span class="whatsapp-group--status">À créer</span>
+        {% endif %}
+      </summary>
+
+      <div class="whatsapp-group--body">
+        {% if event.whatsapp_invite_link %}
+          <p>
+            Les participants inscrits voient un bouton pour rejoindre le groupe :
+            <a href="{{ event.whatsapp_invite_link }}" target="_blank" rel="noopener">{{ event.whatsapp_invite_link }}</a>
+          </p>
+        {% else %}
+          <p>Créez le groupe dans WhatsApp, puis collez ici son lien d'invitation : seuls les participants inscrits le verront.</p>
+          <ol class="whatsapp-group--steps">
+            <li>
+              <label for="whatsapp_group_name">Copiez le nom du groupe</label>
+              <div class="whatsapp-group--copy">
+                <input type="text" value="{{ event.whatsapp_group_name() }}" id="whatsapp_group_name" readonly/>
+                <button type="button" class="button button-secondary" onclick="copyToClipboard('whatsapp_group_name')">Copier</button>
+              </div>
+            </li>
+            <li>
+              <span>Créez un nouveau groupe dans WhatsApp et collez-y le nom</span>
+              <div>
+                <a class="button button-secondary whatsapp-group--open" target="_blank" rel="noopener" href="https://wa.me/">
+                  {% include 'event/partials/whatsapp-logo.svg' %} Ouvrir WhatsApp
+                </a>
+              </div>
+            </li>
+            <li>
+              <label for="whatsapp_group_description">Copiez la description du groupe (facultatif)</label>
+              <div class="whatsapp-group--copy">
+                <textarea id="whatsapp_group_description" rows="8" readonly>{{ whatsapp_group_description }}</textarea>
+                <button type="button" class="button button-secondary" onclick="copyToClipboard('whatsapp_group_description')">Copier</button>
+              </div>
+            </li>
+            <li>
+              <span>Dans les infos du groupe, choisissez «&nbsp;Inviter via un lien&nbsp;», copiez le lien et collez-le ci-dessous</span>
+            </li>
+          </ol>
+        {% endif %}
+
+        <form class="whatsapp-group--form" action="{{ url_for('event.update_whatsapp_link', event_id=event.id) }}" method="post">
+          {{ whatsapp_link_form.hidden_tag() }}
+          {{ whatsapp_link_form.whatsapp_invite_link.label }}
+          <div class="whatsapp-group--copy">
+            {{ whatsapp_link_form.whatsapp_invite_link() }}
+            {{ whatsapp_link_form.submit(class="button button-primary") }}
+            {% if event.whatsapp_invite_link %}
+              {{ whatsapp_link_form.remove(class="button button-danger") }}
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </details>
+    <script>
+      if (window.location.hash === '#whatsapp-group') {
+        document.getElementById('whatsapp-group').open = true;
+      }
+    </script>
+  {% elif event.can_see_whatsapp_link(current_user) %}
+    <div class="whatsapp-group whatsapp-group--join" id="whatsapp-group">
+      {% include 'event/partials/whatsapp-logo.svg' %}
+      <div>
+        <div class="whatsapp-group--title">Groupe WhatsApp</div>
+        <div class="whatsapp-group--hint">Réservé aux participants inscrits</div>
+      </div>
+      <a class="button button-primary" href="{{ event.whatsapp_invite_link }}" target="_blank" rel="noopener">Rejoindre le groupe</a>
+    </div>
+  {% endif %}
+{% endif %}

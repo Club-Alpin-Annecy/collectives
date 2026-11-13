@@ -218,6 +218,21 @@ class EventRegistrationMixin:
             if registration.user_id == user.id and registration.status in statuses
         )
 
+    def can_see_whatsapp_link(self, user: "collectives.models.user.User") -> bool:
+        """Check if a user may see the invite link of the event WhatsApp group.
+
+        The link is reserved to the people who can edit the event and to the
+        participants whose registration is valid (active or present).
+
+        :param user: User which will be tested.
+        :return: True if the event has a link and the user may see it.
+        """
+        if not self.whatsapp_invite_link or not user.is_active:
+            return False
+        if self.has_edit_rights(user):
+            return True
+        return self.is_registered_with_status(user, RegistrationStatus.valid_status())
+
     def is_rejected(self, user: "collectives.models.user.User") -> bool:
         """Check if a user is rejected on this event.
 
