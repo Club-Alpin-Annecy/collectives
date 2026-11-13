@@ -34,7 +34,7 @@
     <div class="controls">
       {{ form.status.label(class="label-top") }}
       <div class="retex-levels">
-        {% for group_label, is_event_retex in [("RETEX d'apprentissage", false), ("RETEX d'événement", true)] %}
+        {% for group_label, is_event_retex in [("Apprentissage", false), ("Événement", true)] %}
           <fieldset class="retex-levels--group">
             <legend>{{ group_label }}</legend>
             <div class="retex-levels--cards">
@@ -44,6 +44,9 @@
                   <span class="retex-status-badge retex-status-{{ level.value }}">Niveau {{ level.value }}</span>
                   <strong>{{ subfield.label.text }}</strong>
                   <span>{{ level.description() }}</span>
+                  {% if level.example() %}
+                    <em><strong>Par exemple :</strong> {{ level.example() }}</em>
+                  {% endif %}
                 </label>
               {% endfor %}
             </div>

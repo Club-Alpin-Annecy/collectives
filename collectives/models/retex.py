@@ -20,13 +20,15 @@ class RetexStatus(ChoiceEnum):
     Cancelled = 0
     """Outing cancelled; explains the reasons and the decision making"""
     GoodPractice = 1
-    """Everything went well; shares what worked, strong points and advice"""
+    """The outing went well overall; shares a story, good practices or
+    improvements"""
     NearMiss = 2
-    """No damage nor injury, but the situation could have gone wrong"""
+    """No injury nor damage, but a risky situation was avoided"""
     Incident = 3
-    """Minor injury handled by the group, without outside help"""
+    """Broken gear, minor injury handled by the group, or preventive call to
+    rescue services without injury"""
     Accident = 4
-    """Serious event requiring the intervention of rescue services"""
+    """Serious injury requiring the intervention of rescue services"""
 
     @classmethod
     def display_names(cls) -> Dict["RetexStatus", str]:
@@ -35,7 +37,7 @@ class RetexStatus(ChoiceEnum):
         """
         return {
             cls.Cancelled: "Annulation",
-            cls.GoodPractice: "Bonne pratique",
+            cls.GoodPractice: "Bonnes pratiques",
             cls.NearMiss: "Presqu'accident",
             cls.Incident: "Incident",
             cls.Accident: "Accident",
@@ -49,17 +51,29 @@ class RetexStatus(ChoiceEnum):
         return {
             cls.Cancelled: "Sortie annulée. Explication des motifs et analyse de la "
             "prise de décision.",
-            cls.GoodPractice: "Tout s'est bien déroulé. Partage des réussites, "
-            "points forts et conseils.",
-            cls.NearMiss: "Aucun dommage ni blessé, mais la situation aurait pu "
-            "mal tourner. Par exemple : chute de pierre évitée, erreur de "
-            "matériel, demi-tour tardif.",
-            cls.Incident: "Blessure légère gérée en autonomie par le groupe (sans "
-            "secours extérieurs). Par exemple : entorse, plaie, sortie écourtée, "
-            "retour aidé par le groupe.",
-            cls.Accident: "Événement grave nécessitant l'intervention des secours. "
-            "Par exemple : hélico, secours professionnels, évacuation même par "
-            "précaution.",
+            cls.GoodPractice: "La sortie s'est globalement bien déroulée. Partage "
+            "d'un récit, de bonnes pratiques ou de points d'amélioration.",
+            cls.NearMiss: "Aucun dommage corporel ni matériel, mais une situation "
+            "à risque a été évitée.",
+            cls.Incident: "Casse matériel, atteinte physique légère gérée en "
+            "autonomie par le groupe (sans secours extérieurs) ou intervention "
+            "préventive des secours sans dommage corporel.",
+            cls.Accident: "Atteinte physique sérieuse dépassant l'autonomie du "
+            "groupe et nécessitant l'intervention des secours.",
+        }
+
+    @classmethod
+    def examples(cls) -> Dict["RetexStatus", str]:
+        """
+        :return: a dict defining examples for the event retex levels
+        """
+        return {
+            cls.NearMiss: "Chute de pierre évitée, erreur de matériel, demi-tour "
+            "tardif.",
+            cls.Incident: "Entorse, plaie, hypothermie légère, matériel cassé, "
+            "sortie écourtée, retour aidé par le groupe.",
+            cls.Accident: "Fracture, traumatisme, hypothermie sévère, évacuation "
+            "par les secours (terrestre ou héliportée).",
         }
 
     def description(self) -> str:
@@ -67,6 +81,12 @@ class RetexStatus(ChoiceEnum):
         :return: the help text of this level
         """
         return self.__class__.descriptions()[self]
+
+    def example(self) -> str | None:
+        """
+        :return: examples of situations of this level, if any
+        """
+        return self.__class__.examples().get(self)
 
     def is_event_retex(self) -> bool:
         """

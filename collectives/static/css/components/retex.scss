@@ -81,7 +81,7 @@ $retex-levels: (
     }
 
     .retex-status-badge {
-        grid-row: span 2;
+        grid-row: span 3; // name, help text and examples
         justify-self: start;
         white-space: nowrap;
 
@@ -90,7 +90,7 @@ $retex-levels: (
         }
     }
 
-    strong {
+    > strong {
         font-size: $font-size-s;
     }
 

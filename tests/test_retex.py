@@ -42,8 +42,9 @@ def test_edit_retex_shows_all_levels(leader_client, past_event):
     response = leader_client.get(f"/retex/event/{past_event.id}/edit")
     assert response.status_code == 200
 
-    assert "RETEX d&#39;apprentissage" in response.text
-    assert "RETEX d&#39;événement" in response.text
+    assert "Apprentissage" in response.text
+    assert "Par exemple :" in response.text
+    assert "Événement" in response.text
     for level in RetexStatus:
         assert f"Niveau {level.value}" in response.text
         assert f'value="{level.value}"' in response.text
@@ -74,6 +75,7 @@ def test_retex_level_shown_on_event_page(leader_client, past_event):
     assert response.status_code == 200
     assert "retex-status-badge retex-status-3" in response.text
     assert "Incident" in response.text
+    assert "Partage d'expérience" in response.text
 
 
 def test_edit_retex_wrong_user(user1_client, past_event):
@@ -123,7 +125,7 @@ def test_retex_prompt_visible_to_leader_when_missing(
     response = client.get(f"/collectives/{past_event.id}", follow_redirects=True)
     assert response.status_code == 200
     assert "pas encore été rédigé" in response.text
-    assert "Rédiger le retex" in response.text
+    assert "Rédiger le partage d'expérience" in response.text
 
     fixtures.client.login(client, user1)
     response = client.get(f"/collectives/{past_event.id}", follow_redirects=True)
