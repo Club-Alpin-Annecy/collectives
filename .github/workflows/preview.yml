@@ -103,6 +103,8 @@ jobs:
   remove:
     if: github.repository == 'Club-Alpin-Annecy/collectives' && github.event.action == 'closed' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     environment: preview
     steps:
       - name: Remove
@@ -113,3 +115,16 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           ssh "$SSH_TARGET" remove "$PR"
+
+      # Only the version tagged pr-<number>: untagged versions may belong to
+      # the images of other pull requests.
+      - name: Delete image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          versions="orgs/$GITHUB_REPOSITORY_OWNER/packages/container/collectives/versions"
+          ids=$(gh api "$versions" --paginate \
+            --jq ".[] | select(.metadata.container.tags | index(\"pr-$PR\")) | .id")
+          for id in $ids; do
+            gh api -X DELETE "$versions/$id" --silent
+          done

@@ -2,34 +2,38 @@
 
 Not part of the test suite: ``deployment/preview/collectives-preview`` runs
 ``pytest tests/preview_seed.py`` in the preview container, once, against the
-database of the instance (``SQLALCHEMY_DATABASE_URI``). After each deployment,
-it runs ``python -m tests.preview_seed`` to list the fixture accounts in the
-pull request comment.
+database of the instance (``SQLALCHEMY_DATABASE_URI``), then
+``python -m tests.preview_seed`` to list the fixture accounts for the pull
+request comment.
 """
 
 import pytest
 from sqlalchemy.orm import selectinload
 
 import collectives
-from collectives.models import User
-from tests.fixtures.user import PASSWORD
+from collectives.models import Configuration, User, db
+from collectives.utils import init
+from tests.fixtures.user import MAIL_DOMAIN, PASSWORD
 
-FIXTURE_MAIL_DOMAIN = "@example.org"
-"""Domain of the mail addresses of the fixture users.
-
-:type: string"""
-
-# pylint: disable=unused-argument, redefined-outer-name
+# pylint: disable=unused-argument, redefined-outer-name, protected-access
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 
 
 @pytest.fixture
 def app():
-    """The application on the database of the instance, kept as it is.
+    """The application on the database of the instance, emptied first.
 
-    Overrides the test fixture, which recreates the database."""
+    Overrides the test fixture, which uses the test configuration. Like it,
+    recreates the tables and the initial values, so that a seed that failed
+    halfway can be run again."""
     preview_app = collectives.create_app()
     with preview_app.app_context():
+        db.drop_all()
+        db.create_all()
+        init.populate_db(preview_app)
+        # Values cached by create_app() before drop_all().
+        with Configuration._lock:
+            Configuration._cache.clear()
         yield preview_app
 
 
@@ -72,7 +76,7 @@ def accounts_table() -> str:
     :returns: a Markdown table, in French as it is shown in the pull request.
     """
     users = (
-        User.query.filter(User.mail.endswith(FIXTURE_MAIL_DOMAIN))
+        User.query.filter(User.mail.endswith(f"@{MAIL_DOMAIN}"))
         .options(selectinload(User.roles), selectinload(User.badges))
         .order_by(User.license)
     )

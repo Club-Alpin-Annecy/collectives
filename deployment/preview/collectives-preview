@@ -37,6 +37,12 @@ esac
 host="pr-$pr.$DOMAIN"
 database="pr_$pr"
 state="$STATE_DIR/pr-$pr.env"
+accounts="$STATE_DIR/pr-$pr.accounts"
+
+# One operation at a time on a pull request: a run cancelled by GitHub may
+# still be running here when the next one starts.
+exec 9>"$STATE_DIR/pr-$pr.lock"
+flock 9
 
 # Provides MARIADB_ROOT_PASSWORD.
 # shellcheck source=/dev/null
@@ -66,6 +72,7 @@ deploy() {
     sql >&2 <<EOF
 CREATE DATABASE IF NOT EXISTS $database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$database'@'%' IDENTIFIED BY '$DB_PASSWORD';
+ALTER USER '$database'@'%' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON $database.* TO '$database'@'%';
 EOF
 
@@ -81,20 +88,24 @@ EOF
         once deploy "$IMAGE_REPOSITORY:pr-$pr" --host "$host" "$@" >&2
     fi
 
-    # Fill the database with the test fixtures, once per instance.
-    if ! grep -q '^SEEDED=1$' "$state"; then
+    # Fill the database with the test fixtures, once per instance. The seed
+    # starts from an empty database, so it can be run again after a failure.
+    if [ ! -f "$accounts" ]; then
         once exec "$host" uv run --no-sync pytest tests/preview_seed.py -q \
             -p no:cacheprovider --disable-warnings </dev/null >&2
-        echo SEEDED=1 >>"$state"
+        once exec "$host" uv run --no-sync python -m tests.preview_seed \
+            </dev/null >"$accounts.tmp"
+        mv "$accounts.tmp" "$accounts"
     fi
-    accounts=$(once exec "$host" uv run --no-sync python -m tests.preview_seed </dev/null)
     delimiter=$(openssl rand -hex 16)
     echo "url=https://$host"
     echo "admin_password=$ADMINPWD"
-    printf 'accounts<<%s\n%s\n%s\n' "$delimiter" "$accounts" "$delimiter"
+    printf 'accounts<<%s\n%s\n%s\n' "$delimiter" "$(cat "$accounts")" "$delimiter"
 }
 
 remove() {
+    # State first: if this is interrupted, the next deployment starts afresh.
+    rm -f "$state" "$accounts"
     if is_deployed; then
         once remove "$host" --remove-data
     fi
@@ -102,7 +113,6 @@ remove() {
 DROP DATABASE IF EXISTS $database;
 DROP USER IF EXISTS '$database'@'%';
 EOF
-    rm -f "$state"
     echo "Removed $host"
 }
 
