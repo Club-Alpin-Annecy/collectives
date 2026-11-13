@@ -67,11 +67,14 @@ export default {
 
         function setPaginator(pageState) {
             const pageNumber = pageState.page + 1
+            const pageSizeChanged = pageState.rows !== eventParams.pageSize
             eventParams.page = pageNumber
             eventParams.pageSize = pageState.rows
             eventParams.first = pageState.page * pageState.rows + 1
             history.pushState(null, null, '#' + pageNumber);
-            // The paginator is at the bottom of the list: show the new page from its top
+            // The paginator is at the bottom of the list: show the new page from its top.
+            // Changing the number of events per page keeps the view where it is.
+            if (pageSizeChanged) return
             gotoEvents()
         }
 
