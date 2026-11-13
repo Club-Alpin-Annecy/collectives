@@ -71,6 +71,8 @@ export default {
             eventParams.pageSize = pageState.rows
             eventParams.first = pageState.page * pageState.rows + 1
             history.pushState(null, null, '#' + pageNumber);
+            // The paginator is at the bottom of the list: show the new page from its top
+            gotoEvents()
         }
 
         /**
