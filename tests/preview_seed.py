@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy.orm import selectinload
 
 import collectives
-from collectives.models import Configuration, User, UserType, db
+from collectives.models import Configuration, Role, RoleIds, User, UserType, db
 from collectives.utils import init
 from tests.fixtures.user import PASSWORD
 
@@ -76,7 +76,11 @@ def accounts_table() -> str:
     :returns: a Markdown table, in French as it is shown in the pull request.
     """
     users = (
-        User.query.filter(User.type == UserType.Test)
+        # The admin account is created with the Test type too.
+        User.query.filter(
+            User.type == UserType.Test,
+            ~User.roles.any(Role.role_id == RoleIds.Administrator),
+        )
         .options(selectinload(User.roles), selectinload(User.badges))
         .order_by(User.license)
     )
