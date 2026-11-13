@@ -87,7 +87,9 @@ def supervised_retex():
         formdata=None, activity_list=current_user.get_supervised_activities()
     )
     return render_template(
-        "activity_supervision/retex_list.html", title="Retex", export_form=export_form
+        "activity_supervision/retex_list.html",
+        title="Partages d'expérience",
+        export_form=export_form,
     )
 
 
