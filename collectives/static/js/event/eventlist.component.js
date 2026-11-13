@@ -4,7 +4,7 @@ import { getEvents } from '../api.js'
 import moment from 'moment'
 import EventListSkeleton from './eventlist-skeleton.component.js'
 
-const { ref, watch, reactive, inject, onMounted, useTemplateRef } = Vue
+const { ref, watch, reactive, inject, nextTick, onMounted, useTemplateRef } = Vue
 
 export default {
     setup() {
@@ -18,6 +18,8 @@ export default {
         const events = ref([])
         const eventCount = ref(0)
         const eventlistRefEl = useTemplateRef('eventlist')
+        // Event to keep at the same place on screen after the next load: { id, top }
+        let scrollAnchor = null
 
         const eventParams = reactive({
             page: startingPage,
@@ -61,16 +63,53 @@ export default {
             // TODO Improve API
             eventCount.value = data.last_page * params.pageSize
             loading.value = false
+            await nextTick()
+            restoreScrollAnchor()
         }, { immediate: true })
 
 
 
         function setPaginator(pageState) {
             const pageNumber = pageState.page + 1
+            if (pageState.rows !== eventParams.pageSize) {
+                saveScrollAnchor()
+            }
             eventParams.page = pageNumber
             eventParams.pageSize = pageState.rows
             eventParams.first = pageState.page * pageState.rows + 1
             history.pushState(null, null, '#' + pageNumber);
+            // The paginator is at the bottom of the list: show the new page from its top,
+            // unless an event has to stay in place
+            if (scrollAnchor) return
+            gotoEvents()
+        }
+
+        function findEventElement(eventId) {
+            return eventlistRefEl.value.querySelector('[data-event-id="' + eventId + '"]')
+        }
+
+        /**
+         * Remember the position on screen of the last event of the current page, so
+         * that reading can go on from there when the number of events per page changes
+         */
+        function saveScrollAnchor() {
+            const lastEvent = Object.values(events.value).flat().at(-1)
+            const element = lastEvent && findEventElement(lastEvent.id)
+            if (!element) return
+            scrollAnchor = { id: lastEvent.id, top: element.getBoundingClientRect().top }
+        }
+
+        /**
+         * Put the remembered event back where it was on screen. Go to the top of
+         * the list if it is not in the new page.
+         */
+        function restoreScrollAnchor() {
+            if (!scrollAnchor) return
+            const { id, top } = scrollAnchor
+            scrollAnchor = null
+            const element = findEventElement(id)
+            if (!element) return gotoEvents()
+            window.scrollBy(0, element.getBoundingClientRect().top - top)
         }
 
         /**
@@ -135,7 +174,7 @@ export default {
                             {{ date }}
                         </AccordionHeader>
                         <AccordionContent>
-                            <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id"/>
+                            <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id" :data-event-id="eventItem.id"/>
                         </AccordionContent>
                     </AccordionPanel>
                 </Accordion>
