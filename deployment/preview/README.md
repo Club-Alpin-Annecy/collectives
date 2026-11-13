@@ -4,8 +4,11 @@
 it to `ghcr.io/club-alpin-annecy/collectives:pr-<number>`, then runs
 `collectives-preview deploy <number>` on the preview server through SSH. The
 instance is served on `https://pr-<number>.test.collectives.cafannecy.fr` with
-its own MariaDB database `pr_<number>`; both are removed when the pull request
-is closed. Pull requests from forks wait for a maintainer approval. After
+its own MariaDB database `pr_<number>`, filled with the test fixtures on the
+first deployment (`tests/preview_seed.py`); both are removed when the pull
+request is closed. `Dockerfile` adds the test fixtures to the image of the pull
+request; it and `tests/preview_seed.py` are taken from master. A pull request
+must include `4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
 each deployment, a comment on the pull request gives the url and the
 password of the `admin` account, generated for each instance.
 

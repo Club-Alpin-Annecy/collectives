@@ -39,10 +39,25 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
+      # Taken from master, so that pull requests opened before them are
+      # deployed in the same way.
+      - uses: actions/checkout@v4
+        with:
+          path: master
+          sparse-checkout: |
+            deployment/preview/Dockerfile
+            tests/preview_seed.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       # Built before logging in, so that the pull request code never runs
       # next to the registry credentials.
       - name: Build image
-        run: docker build -t "$IMAGE" .
+        run: |
+          cp master/tests/preview_seed.py tests/
+          docker build -t pr-production .
+          docker build -f master/deployment/preview/Dockerfile \
+            --build-arg PR_IMAGE=pr-production -t "$IMAGE" .
 
       - name: Push image
         env:
@@ -73,7 +88,8 @@ jobs:
           marker="<!-- collectives-preview -->"
           body="$marker
           Instance de test déployée pour ${SHA::7} : $URL
-          Compte administrateur : \`admin\` / \`$ADMIN_PASSWORD\`"
+          Compte administrateur : \`admin\` / \`$ADMIN_PASSWORD\`
+          Comptes de test (tests/fixtures/, liste dans Administration) : mot de passe \`fooBar2+!\`"
           id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
             --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -1)
           if [ -n "$id" ]; then
