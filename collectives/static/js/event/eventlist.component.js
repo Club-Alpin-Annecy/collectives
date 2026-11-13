@@ -18,6 +18,7 @@ export default {
         const events = ref([])
         const eventCount = ref(0)
         const eventlistRefEl = useTemplateRef('eventlist')
+        const eventsRefEl = useTemplateRef('eventsTop')
         // Event to keep at the same place on screen after the next load: { id, top }
         let scrollAnchor = null
 
@@ -81,7 +82,7 @@ export default {
             // The paginator is at the bottom of the list: show the new page from its top,
             // unless an event has to stay in place
             if (scrollAnchor) return
-            gotoEvents()
+            gotoFirstEvent()
         }
 
         function findEventElement(eventId) {
@@ -108,8 +109,15 @@ export default {
             const { id, top } = scrollAnchor
             scrollAnchor = null
             const element = findEventElement(id)
-            if (!element) return gotoEvents()
+            if (!element) return gotoFirstEvent()
             window.scrollBy(0, element.getBoundingClientRect().top - top)
+        }
+
+        /**
+         * Smooth scroll to the first event, below the banner message and the filters
+         */
+        function gotoFirstEvent() {
+            eventsRefEl.value.scrollIntoView({ behavior: 'smooth' })
         }
 
         /**
@@ -163,21 +171,23 @@ export default {
 
                 <EventListFilters v-bind:filters="eventFilters"/>
 
-                <template v-if="IsLoading()">
-                    <EventListSkeleton v-for="n in 5" v-bind:eventItem="null" :key="n"/>
-                </template>
+                <div ref="eventsTop" class="collectives-list--events">
+                    <template v-if="IsLoading()">
+                        <EventListSkeleton v-for="n in 5" v-bind:eventItem="null" :key="n"/>
+                    </template>
 
 
-                <Accordion v-if="!IsLoading()" multiple :value="Object.keys(events)">
-                    <AccordionPanel :value="date" header="Header" toggleable v-for="(dateEvents, date) in events">
-                        <AccordionHeader>
-                            {{ date }}
-                        </AccordionHeader>
-                        <AccordionContent>
-                            <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id" :data-event-id="eventItem.id"/>
-                        </AccordionContent>
-                    </AccordionPanel>
-                </Accordion>
+                    <Accordion v-if="!IsLoading()" multiple :value="Object.keys(events)">
+                        <AccordionPanel :value="date" header="Header" toggleable v-for="(dateEvents, date) in events">
+                            <AccordionHeader>
+                                {{ date }}
+                            </AccordionHeader>
+                            <AccordionContent>
+                                <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id" :data-event-id="eventItem.id"/>
+                            </AccordionContent>
+                        </AccordionPanel>
+                    </Accordion>
+                </div>
 
                 <Paginator 
                     @page="setPaginator"

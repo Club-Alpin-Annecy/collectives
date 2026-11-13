@@ -5,7 +5,8 @@ $button-height:40px;
     border-radius: 100px;
 }
 
-#eventlist {
+#eventlist,
+.collectives-list--events {
     // Account for header when auto-scrolling
     scroll-margin: 80px;
 }
