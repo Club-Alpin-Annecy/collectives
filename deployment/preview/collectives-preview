@@ -1,0 +1,103 @@
+#!/bin/sh
+# Deploys or removes the preview instance of a pull request with once
+# (https://github.com/basecamp/once), each one with its own MariaDB database.
+#
+# Forced command of the deploy SSH key used by .github/workflows/preview.yml:
+#   ssh deploy@<server> deploy <pr number>
+#   ssh deploy@<server> remove <pr number>
+# deploy prints the url and admin_password of the instance, as key=value lines
+# on stdout (the format of $GITHUB_OUTPUT); everything else goes to stderr.
+# Server setup: see README.md next to this file.
+set -euf
+
+IMAGE_REPOSITORY=ghcr.io/club-alpin-annecy/collectives
+DOMAIN=test.collectives.cafannecy.fr
+DB_CONTAINER=collectives-mariadb
+CONFIG=/etc/collectives-preview.env
+STATE_DIR=/var/lib/collectives-preview
+
+if [ "$(id -u)" != 0 ]; then
+    # Word splitting is wanted: arguments are validated below, globbing is off.
+    # shellcheck disable=SC2086
+    exec sudo "$0" ${SSH_ORIGINAL_COMMAND:-}
+fi
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+action=${1:-}
+pr=${2:-}
+[ $# -eq 2 ] || die "usage: deploy|remove <pr number>"
+case "$pr" in
+'' | 0* | *[!0-9]*) die "invalid pull request number: $pr" ;;
+esac
+
+host="pr-$pr.$DOMAIN"
+database="pr_$pr"
+state="$STATE_DIR/pr-$pr.env"
+
+# Provides MARIADB_ROOT_PASSWORD.
+# shellcheck source=/dev/null
+. "$CONFIG"
+
+sql() {
+    docker exec -i -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" "$DB_CONTAINER" mariadb -uroot
+}
+
+is_deployed() {
+    once list | grep -qF "$host"
+}
+
+deploy() {
+    if [ ! -f "$state" ]; then
+        (
+            umask 077
+            printf 'SECRET_KEY=%s\nDB_PASSWORD=%s\nADMINPWD=%s\n' \
+                "$(openssl rand -hex 32)" "$(openssl rand -hex 24)" \
+                "$(openssl rand -hex 8)" >"$state"
+        )
+    fi
+    # Provides SECRET_KEY, DB_PASSWORD and ADMINPWD.
+    # shellcheck source=/dev/null
+    . "$state"
+
+    sql >&2 <<EOF
+CREATE DATABASE IF NOT EXISTS $database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '$database'@'%' IDENTIFIED BY '$DB_PASSWORD';
+GRANT ALL PRIVILEGES ON $database.* TO '$database'@'%';
+EOF
+
+    uri="mysql+pymysql://$database:$DB_PASSWORD@$DB_CONTAINER/$database?charset=utf8mb4"
+    set -- --memory 512 --auto-update=false \
+        --env STORAGE_DIR=/storage --env PORT=80 \
+        --env SECRET_KEY="$SECRET_KEY" --env ADMINPWD="$ADMINPWD" \
+        --env SQLALCHEMY_DATABASE_URI="$uri"
+
+    if is_deployed; then
+        once update "$host" --image "$IMAGE_REPOSITORY:pr-$pr" "$@" >&2
+    else
+        once deploy "$IMAGE_REPOSITORY:pr-$pr" --host "$host" "$@" >&2
+    fi
+    echo "url=https://$host"
+    echo "admin_password=$ADMINPWD"
+}
+
+remove() {
+    if is_deployed; then
+        once remove "$host" --remove-data
+    fi
+    sql <<EOF
+DROP DATABASE IF EXISTS $database;
+DROP USER IF EXISTS '$database'@'%';
+EOF
+    rm -f "$state"
+    echo "Removed $host"
+}
+
+case "$action" in
+deploy) deploy ;;
+remove) remove ;;
+*) die "unknown action: $action" ;;
+esac
