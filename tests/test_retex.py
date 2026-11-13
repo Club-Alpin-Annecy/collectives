@@ -20,7 +20,7 @@ def test_edit_retex_as_leader(leader_client, past_event):
     assert response.status_code == 200
 
     data = utils.load_data_from_form(response.text, "retex_form")
-    data["status"] = [str(int(RetexStatus.Normal))]
+    data["status"] = [str(int(RetexStatus.GoodPractice))]
     data["description"] = "Belle sortie, tout s'est bien passé."
 
     response = leader_client.post(
@@ -33,8 +33,49 @@ def test_edit_retex_as_leader(leader_client, past_event):
     db.session.refresh(past_event)
     assert past_event.retex is not None
     assert past_event.retex.author_id == leader_client.user.id
-    assert past_event.retex.status == RetexStatus.Normal
+    assert past_event.retex.status == RetexStatus.GoodPractice
     assert "Belle sortie" in past_event.retex.rendered_description
+
+
+def test_edit_retex_shows_all_levels(leader_client, past_event):
+    """Test that the edition form offers the five club levels with their help."""
+    response = leader_client.get(f"/retex/event/{past_event.id}/edit")
+    assert response.status_code == 200
+
+    assert "Apprentissage" in response.text
+    assert "Par exemple :" in response.text
+    assert "Événement" in response.text
+    for level in RetexStatus:
+        assert f"Niveau {level.value}" in response.text
+        assert f'value="{level.value}"' in response.text
+    assert "Presqu&#39;accident" in response.text
+    assert "intervention des secours" in response.text
+
+
+def test_edit_retex_requires_level(leader_client, past_event):
+    """Test that a retex without level, or with an unknown one, is refused
+    with a French message."""
+    url = f"/retex/event/{past_event.id}/edit"
+    response = leader_client.post(url, data={"description": "Oubli"})
+    assert response.status_code == 200
+    assert "Choisissez le niveau du RETEX." in response.text
+    assert past_event.retex is None
+
+    response = leader_client.post(url, data={"status": "9", "description": "Faux"})
+    assert response.status_code == 200
+    assert past_event.retex is None
+
+
+def test_retex_level_shown_on_event_page(leader_client, past_event):
+    """Test that the event page shows the retex level with its color class."""
+    data = {"status": str(int(RetexStatus.Incident)), "description": "Entorse"}
+    response = leader_client.post(
+        f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert "retex-status-badge retex-status-3" in response.text
+    assert "Incident" in response.text
+    assert "Partage d'expérience" in response.text
 
 
 def test_edit_retex_wrong_user(user1_client, past_event):
@@ -44,7 +85,7 @@ def test_edit_retex_wrong_user(user1_client, past_event):
 
     response = user1_client.post(
         f"/retex/event/{past_event.id}/edit",
-        data={"status": str(int(RetexStatus.Normal)), "description": "Test"},
+        data={"status": str(int(RetexStatus.GoodPractice)), "description": "Test"},
     )
     assert response.status_code == 302
     assert past_event.retex is None
@@ -59,19 +100,19 @@ def test_edit_retex_non_collective_event(leader_client, youth_event):
 
 def test_retex_update_reuses_row(leader_client, past_event):
     """Test that editing twice does not create two Retex rows."""
-    data = {"status": str(int(RetexStatus.Normal)), "description": "Premier jet"}
+    data = {"status": str(int(RetexStatus.GoodPractice)), "description": "Premier jet"}
     leader_client.post(
         f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True
     )
 
-    data = {"status": str(int(RetexStatus.Shortened)), "description": "Version finale"}
+    data = {"status": str(int(RetexStatus.Incident)), "description": "Version finale"}
     leader_client.post(
         f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True
     )
 
     db.session.refresh(past_event)
     assert past_event.retex is not None
-    assert past_event.retex.status == RetexStatus.Shortened
+    assert past_event.retex.status == RetexStatus.Incident
     assert past_event.retex.description == "Version finale"
 
 
@@ -84,7 +125,7 @@ def test_retex_prompt_visible_to_leader_when_missing(
     response = client.get(f"/collectives/{past_event.id}", follow_redirects=True)
     assert response.status_code == 200
     assert "pas encore été rédigé" in response.text
-    assert "Rédiger le retex" in response.text
+    assert "Rédiger le partage d'expérience" in response.text
 
     fixtures.client.login(client, user1)
     response = client.get(f"/collectives/{past_event.id}", follow_redirects=True)
@@ -96,7 +137,7 @@ def test_retex_visible_on_event_page(client, leader_user, user1, past_event):
     """Test that the retex is visible on the event page to any logged-in user."""
     fixtures.client.login(client, leader_user)
     data = {
-        "status": str(int(RetexStatus.NearMissAccident)),
+        "status": str(int(RetexStatus.NearMiss)),
         "description": "Attention au caillou",
     }
     client.post(f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True)
@@ -120,7 +161,7 @@ def test_my_retex_list(leader_client, past_event):
     matching = next(e for e in payload["data"] if e["id"] == past_event.id)
     assert matching["has_retex"] is False
 
-    data = {"status": str(int(RetexStatus.Normal)), "description": "Ok"}
+    data = {"status": str(int(RetexStatus.GoodPractice)), "description": "Ok"}
     leader_client.post(
         f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True
     )
@@ -168,7 +209,7 @@ def test_pending_retex_count(leader_client, past_event):
     leader = leader_client.user
     assert leader.pending_retex_count() == 1
 
-    data = {"status": str(int(RetexStatus.Normal)), "description": "Ok"}
+    data = {"status": str(int(RetexStatus.GoodPractice)), "description": "Ok"}
     leader_client.post(
         f"/retex/event/{past_event.id}/edit", data=data, follow_redirects=True
     )
@@ -268,7 +309,7 @@ def test_export_retex_status_filter(client, supervisor_user, leader2_user, past_
     other_event.activity_types = past_event.activity_types
     other_event.leaders = [leader2_user]
     other_event.retex = Retex(
-        author_id=leader2_user.id, status=RetexStatus.Normal, description="RAS"
+        author_id=leader2_user.id, status=RetexStatus.GoodPractice, description="RAS"
     )
     db.session.commit()
 

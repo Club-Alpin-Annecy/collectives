@@ -1,3 +1,13 @@
+// Retex levels: white text where the contrast allows it, dark text on the
+// lighter oranges (levels 2 and 3).
+$retex-levels: (
+    0: ($color-retex-level-0, $color-white),
+    1: ($color-retex-level-1, $color-white),
+    2: ($color-retex-level-2, $color-gray-dark),
+    3: ($color-retex-level-3, $color-gray-dark),
+    4: ($color-retex-level-4, $color-white),
+);
+
 .retex-status-badge {
     padding: 0.4em 0.9em 0.4em;
     border-radius: 30px;
@@ -5,22 +15,98 @@
     vertical-align: middle;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background-color: $solitude;
+    background-color: $color-gray-light;
     color: $color-gray-dark;
 
-    // Presque accident
-    &.retex-status-3 {
-        background-color: $color-warning-dark;
-    }
-
-    // Accident
-    &.retex-status-4 {
-        background-color: $color-error-dark;
-        color: $color-white;
+    @each $level, $colors in $retex-levels {
+        &.retex-status-#{$level} {
+            background-color: nth($colors, 1);
+            color: nth($colors, 2);
+        }
     }
 }
 
-.retex-status-todo {
-    @extend .retex-status-badge;
-    background-color: $color-warning-dark;
+// Level picker of the retex edition form: one row per level, the level badge
+// on the left, its name and help text on the right.
+.retex-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.retex-levels--group {
+    border: 1px solid $color-gray-light;
+    border-radius: 8px;
+    padding: 0.4em 0.8em 0.8em;
+    margin: 0;
+    min-width: 0; // fieldsets default to their content width
+
+    legend {
+        font-weight: bold;
+        padding: 0 0.4em;
+    }
+}
+
+.retex-levels--cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+// Prefixed to override the label rules of `.form.form-vertical`
+.retex-levels label.retex-level-card {
+    box-sizing: border-box;
+    width: auto;
+    position: relative;
+    display: grid;
+    grid-template-columns: 7.5em 1fr;
+    column-gap: 1em;
+    row-gap: 0.2em;
+    align-items: start;
+    padding: 0.7em 0.9em;
+    border: 2px solid $color-gray-light;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: $font-size-xs;
+    font-weight: normal;
+    line-height: 1.4;
+
+    @media screen and (max-width: 520px) {
+        grid-template-columns: 1fr;
+    }
+
+    input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .retex-status-badge {
+        grid-row: span 3; // name, help text and examples
+        justify-self: start;
+        white-space: nowrap;
+
+        @media screen and (max-width: 520px) {
+            grid-row: auto;
+        }
+    }
+
+    > strong {
+        font-size: $font-size-s;
+    }
+
+    &:hover {
+        border-color: $color-gray-border;
+    }
+
+    @each $level, $colors in $retex-levels {
+        &.retex-level-card-#{$level}:has(input:checked) {
+            border-color: nth($colors, 1);
+            background-color: rgba(nth($colors, 1), 0.08);
+        }
+    }
+
+    &:has(input:focus-visible) {
+        outline: 2px solid $color-blue-primary-dark;
+        outline-offset: 2px;
+    }
 }

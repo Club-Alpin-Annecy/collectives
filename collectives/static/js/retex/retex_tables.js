@@ -15,7 +15,7 @@ var retex_common_options = {
     initialSort: [{ column: "end", dir: "desc" }],
     columns: [
         {
-            title: "Statut", field: "retex_status", formatter: retexStatusFormatter, headerSort: false, minWidth: 100
+            title: "Niveau", field: "retex_status", formatter: retexStatusFormatter, headerSort: false, minWidth: 100
         },
         { title: "Titre", field: "title", sorter: "string", formatter: titleFormatter, widthGrow: 2.5, minWidth: 200 },
         {
@@ -62,7 +62,7 @@ function createRetexTable(elementId, ajaxURL) {
 function retexStatusFormatter(cell, formatterParams, onRendered) {
     var value = cell.getData().retex_status;
     if (value === null || value === undefined) {
-        return '<span class="retex-status-todo">À faire</span>';
+        return '<span class="retex-status-badge">À faire</span>';
     }
     return `<span class="retex-status-badge retex-status-${value}">${EnumRetexStatus[value]}</span>`;
 }

@@ -28,16 +28,29 @@
 
   {{ generator.form_errors(form) }}
 
-  <form action="{{ url_for('retex.edit_retex', event_id=event.id) }}" method="POST" class="form form-vertical" id="retex_form">
+  <form action="{{ url_for('retex.edit_retex', event_id=event.id) }}" method="POST" class="form form-vertical" id="retex_form" novalidate>
     {{ form.hidden_tag() }}
 
     <div class="controls">
       {{ form.status.label(class="label-top") }}
-      <div class="inline_field">
-        {% for subfield in form.status %}
-          <span style="display: inline-block; margin-right: 1em;">
-            {{ subfield }} {{ subfield.label }}
-          </span>
+      <div class="retex-levels">
+        {% for group_label, is_event_retex in [("Apprentissage", false), ("Événement", true)] %}
+          <fieldset class="retex-levels--group">
+            <legend>{{ group_label }}</legend>
+            <div class="retex-levels--cards">
+              {% for subfield, level in form.status_levels(is_event_retex) %}
+                <label class="retex-level-card retex-level-card-{{ level.value }}" for="{{ subfield.id }}">
+                  {{ subfield }}
+                  <span class="retex-status-badge retex-status-{{ level.value }}">Niveau {{ level.value }}</span>
+                  <strong>{{ subfield.label.text }}</strong>
+                  <span>{{ level.description() }}</span>
+                  {% if level.example() %}
+                    <em><strong>Par exemple :</strong> {{ level.example() }}</em>
+                  {% endif %}
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
         {% endfor %}
       </div>
     </div>
