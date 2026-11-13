@@ -50,17 +50,32 @@ export default {
             }, {})
         }
 
-        /**
-         * Watch for changes in eventParams and eventFilters
-         * Set Loaders and request the events for the given parameters and filters
-         */
-        watch([eventParams, eventFilters], async ([params, filters]) => {
-            loading.value = true
+        async function loadEvents(params, filters) {
+            const requestId = ++lastRequestId
             const { data } = await getEvents(params, filters)
+            // Ignore a response that arrives after a more recent request was sent
+            if (requestId !== lastRequestId) return
             events.value = groupByDate(data.data)
             // TODO Improve API
             eventCount.value = data.last_page * params.pageSize
             loading.value = false
+        }
+
+        /**
+         * Watch for changes in eventParams and eventFilters
+         * Set Loaders and request the events for the given parameters and filters.
+         * Changes are debounced, so that typing a title or a leader name sends a
+         * single request once the user pauses.
+         */
+        let lastRequestId = 0
+        let debounceTimer = null
+        let firstLoad = true
+        watch([eventParams, eventFilters], ([params, filters]) => {
+            loading.value = true
+            clearTimeout(debounceTimer)
+            if (firstLoad) loadEvents(params, filters)
+            else debounceTimer = setTimeout(() => loadEvents(params, filters), 300)
+            firstLoad = false
         }, { immediate: true })
 
 
