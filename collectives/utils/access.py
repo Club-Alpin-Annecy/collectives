@@ -12,6 +12,7 @@ from functools import wraps
 import flask_login
 from flask import abort, flash, redirect, url_for
 
+from collectives.models.configuration import Configuration
 from collectives.models.payment import payments_enabled
 
 
@@ -188,6 +189,38 @@ def payments_enabled(api=False):
             return (
                 payments_enabled(),
                 message,
+                url_for("event.index"),
+            )
+
+        # pylint: enable=unused-argument
+
+        return access_requires(function, tester, api)
+
+    return inner_function
+
+
+def retex_enabled(api=False):
+    """Decorator which checks whether the retex functionnality is enabled
+
+    :param api: If True and access is denied, trigger a 403. Otherwise return an error message
+    :type api: bool
+    :return: the protected (decorated) `f` function
+    :rtype: function
+    """
+
+    def inner_function(function):
+        """Function that will wraps `f`."""
+
+        # pylint: disable=unused-argument
+        def tester(*args, **kwargs):
+            """Check if the retex functionnality is enabled.
+
+            It will also return everything required to display an error message if
+            check is failed.
+            """
+            return (
+                Configuration.RETEX_ENABLED,
+                "Fonctionnalité désactivée",
                 url_for("event.index"),
             )
 

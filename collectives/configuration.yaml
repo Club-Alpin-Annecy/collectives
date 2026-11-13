@@ -207,6 +207,11 @@ Divers:
         description: Si activé, les encadrants peuvent associer un groupe WhatsApp à un événement ; le lien d'invitation est affiché aux seuls participants.
         type: Boolean
 
+    RETEX_ENABLED:
+        content: false
+        description: Si activé, les encadrants peuvent rédiger un retex (partage d'expérience) sur leurs collectives passées, et les responsables d'activité les consulter et les exporter.
+        type: Boolean
+
     MAX_UPLOADS_PER_EVENT:
         content : 5
         description: Maximum number of file uploads per event

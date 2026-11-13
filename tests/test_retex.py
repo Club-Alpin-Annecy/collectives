@@ -6,10 +6,13 @@ import json
 from datetime import date, timedelta
 from io import BytesIO
 
+import pytest
 from openpyxl import load_workbook
 
 from collectives.models import ActivityType, Event, Retex, RetexStatus, db
 from tests import fixtures, utils
+
+pytestmark = pytest.mark.usefixtures("enable_retex")
 
 
 def test_edit_retex_as_leader(leader_client, past_event):
