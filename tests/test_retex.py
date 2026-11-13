@@ -3,13 +3,23 @@
 # pylint: disable=unused-argument
 
 import json
+import os
 from datetime import date, timedelta
 from io import BytesIO
 
 import pytest
 from openpyxl import load_workbook
+from PIL import Image
 
-from collectives.models import ActivityType, Event, Retex, RetexStatus, db
+from collectives.models import (
+    ActivityType,
+    Configuration,
+    Event,
+    Retex,
+    RetexStatus,
+    UploadedFile,
+    db,
+)
 from tests import fixtures, utils
 
 pytestmark = pytest.mark.usefixtures("enable_retex")
@@ -79,6 +89,97 @@ def test_retex_level_shown_on_event_page(leader_client, past_event):
     assert "retex-status-badge retex-status-3" in response.text
     assert "Incident" in response.text
     assert "Partage d'expérience" in response.text
+
+
+def _png_file():
+    """:returns: a 1x1 PNG image, as an in-memory file"""
+    png = BytesIO()
+    Image.new("RGB", (1, 1)).save(png, "PNG")
+    png.seek(0)
+    return png
+
+
+def test_retex_photo_upload(leader_client, past_event):
+    """Test that the leader can upload photos from the retex editor, and that
+    their URL cannot be guessed from their name."""
+    response = leader_client.get(f"/retex/event/{past_event.id}/edit")
+    upload_url = f"/api/upload/event/{past_event.id}"
+    assert upload_url in response.text
+
+    for _ in range(2):
+        response = leader_client.post(
+            upload_url,
+            data={"image": (_png_file(), "photo.png")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+
+    uploads = UploadedFile.query.filter_by(event_id=past_event.id).all()
+    try:
+        assert len(uploads) == 2
+        assert {upload.name for upload in uploads} == {"photo.png"}
+        paths = [upload.path for upload in uploads]
+        assert paths[0] != paths[1]
+        date_prefix = uploads[0].date.strftime("%y_%m_%d")
+        assert all(
+            path.startswith(f"{date_prefix}_") and path.endswith("_photo.png")
+            for path in paths
+        )
+        assert f"{date_prefix}_photo.png" not in paths
+    finally:
+        for upload in uploads:
+            os.remove(upload.full_path())
+
+
+def test_upload_long_file_name(leader_client, past_event):
+    """Test that a file with a very long name can still be uploaded."""
+    response = leader_client.post(
+        f"/api/upload/event/{past_event.id}",
+        data={"image": (_png_file(), "a" * 250 + ".png")},
+        content_type="multipart/form-data",
+    )
+    uploads = UploadedFile.query.filter_by(event_id=past_event.id).all()
+    try:
+        assert response.status_code == 200
+        assert len(os.path.basename(uploads[0].path)) < 255
+    finally:
+        for upload in uploads:
+            os.remove(upload.full_path())
+
+
+def test_retex_photo_upload_quota(leader_client, past_event):
+    """Test that the upload quota of the event gives an explicit message."""
+    Configuration.get_item("MAX_UPLOADS_PER_EVENT").content = 1
+    Configuration.uncache("MAX_UPLOADS_PER_EVENT")
+    upload_url = f"/api/upload/event/{past_event.id}"
+    responses = [
+        leader_client.post(
+            upload_url,
+            data={"image": (_png_file(), "photo.png")},
+            content_type="multipart/form-data",
+        )
+        for _ in range(2)
+    ]
+    uploads = UploadedFile.query.filter_by(event_id=past_event.id).all()
+    try:
+        assert responses[0].status_code == 200
+        assert responses[1].status_code == 413
+        assert "nombre maximum de fichiers" in json.loads(responses[1].text)["error"]
+        assert len(uploads) == 1
+    finally:
+        for upload in uploads:
+            os.remove(upload.full_path())
+
+
+def test_retex_photo_upload_wrong_user(user1_client, past_event):
+    """Test that a user who does not lead the event cannot upload photos."""
+    response = user1_client.post(
+        f"/api/upload/event/{past_event.id}",
+        data={"image": (_png_file(), "photo.png")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 403
+    assert UploadedFile.query.filter_by(event_id=past_event.id).count() == 0
 
 
 def test_edit_retex_wrong_user(user1_client, past_event):
