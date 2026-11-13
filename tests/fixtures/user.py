@@ -24,12 +24,6 @@ from tests.fixtures.app import enable_sanctions
 from tests.fixtures.misc import custom_skill
 from tests.mock.extranet import VALID_LICENSE, VALID_USER_DOB, VALID_USER_EMAIL
 
-MAIL_DOMAIN = "example.org"
-""" Domain of the mail addresses of fixture users.
-
-:type: string
-"""
-
 PASSWORD = "fooBar2+!"
 """ Default test password for non admin users.
 
@@ -81,7 +75,7 @@ def generate_user(names):
         user.first_name = names[0]
         user.last_name = names[1]
         user.gender = Gender.Unknown
-        user.mail = f"user{identifier}@{MAIL_DOMAIN}"
+        user.mail = f"user{identifier}@example.org"
         user.type = UserType.Test
         user.license = str(identifier + 990000000000)
         user.license_category = "XX"

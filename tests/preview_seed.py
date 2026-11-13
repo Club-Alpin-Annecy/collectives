@@ -11,9 +11,9 @@ import pytest
 from sqlalchemy.orm import selectinload
 
 import collectives
-from collectives.models import Configuration, User, db
+from collectives.models import Configuration, User, UserType, db
 from collectives.utils import init
-from tests.fixtures.user import MAIL_DOMAIN, PASSWORD
+from tests.fixtures.user import PASSWORD
 
 # pylint: disable=unused-argument, redefined-outer-name, protected-access
 # pylint: disable=too-many-arguments, too-many-positional-arguments
@@ -76,7 +76,7 @@ def accounts_table() -> str:
     :returns: a Markdown table, in French as it is shown in the pull request.
     """
     users = (
-        User.query.filter(User.mail.endswith(f"@{MAIL_DOMAIN}"))
+        User.query.filter(User.type == UserType.Test)
         .options(selectinload(User.roles), selectinload(User.badges))
         .order_by(User.license)
     )
