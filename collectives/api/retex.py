@@ -9,7 +9,7 @@ from marshmallow import fields
 from collectives.api.common import blueprint
 from collectives.api.schemas import EventSchema
 from collectives.models import ActivityType, Event, EventType, db
-from collectives.utils.access import user_is, valid_user
+from collectives.utils.access import retex_enabled, user_is, valid_user
 from collectives.utils.time import current_time
 
 
@@ -33,6 +33,7 @@ class RetexEventSchema(EventSchema):
 
 @blueprint.route("/retex/mine")
 @valid_user(True)
+@retex_enabled(True)
 def mine():
     """API endpoint to list past collective events led by the current user.
 
@@ -67,6 +68,7 @@ def mine():
 
 @blueprint.route("/retex/supervised")
 @valid_user(True)
+@retex_enabled(True)
 @user_is("is_supervisor", True)
 def supervised():
     """API endpoint to list past collective events for the activities supervised

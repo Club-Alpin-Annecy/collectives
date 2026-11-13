@@ -386,7 +386,9 @@
       {{ event.rendered_description | safe  }}
     </div>
 
+    {% if Configuration.RETEX_ENABLED %}
     {% include 'retex/partials/display.html' %}
+    {% endif %}
 
     {% if event.uploaded_files | length %}
     <div id="uploaded_files">

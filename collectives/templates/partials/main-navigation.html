@@ -118,7 +118,7 @@
         </div>
         <div class="main-navigation-container-secondary">
             {% if current_user.is_authenticated %}
-                {% set pending_retex_count = current_user.pending_retex_count() if current_user.can_create_events() else 0 %}
+                {% set pending_retex_count = current_user.pending_retex_count() if Configuration.RETEX_ENABLED and current_user.can_create_events() else 0 %}
                 <div class="menu-dropdown menu-dropdown-right">
                     <div class="menu-dropdown-trigger">
                         {% if current_user.avatar %}
@@ -153,6 +153,7 @@
                                         class="legacy-icon" /> Profil encadrant
                                 </a>
                             </li>
+                            {% if Configuration.RETEX_ENABLED %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('retex.my_retex')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"
@@ -162,6 +163,7 @@
                                     {% endif %}
                                 </a>
                             </li>
+                            {% endif %}
                             {% endif %}
                             {% if payments_enabled() %}
                             <li class="menu-dropdown-item">
