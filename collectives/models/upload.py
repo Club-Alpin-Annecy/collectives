@@ -1,6 +1,7 @@
 """Module for file upload related classes"""
 
 import os
+import secrets
 from datetime import timedelta
 
 from flask import url_for
@@ -28,6 +29,15 @@ documents = UploadSet("documents", DOCUMENTS + STATIC_SAFE_IMAGES + ("gpx",))
 :type: flask_uploads.UploadSet
 """
 
+
+PATH_TOKEN_BYTES = 8
+"""Number of random bytes in the on-disk name of an uploaded file.
+
+Uploaded files are served as static files: the random token makes their URL
+impossible to guess from the original file name.
+
+:type: int
+"""
 
 THUMBNAIL_WIDTH = 640
 """Default width in pixels for image thumbnails """
@@ -164,8 +174,9 @@ class UploadedFile(db.Model):
         """
         self.name = file.filename
         name, ext = os.path.splitext(self.name)
+        token = secrets.token_hex(PATH_TOKEN_BYTES)
         self.path = documents.save(
-            file, name=f"{self.date.strftime('%y_%m_%d')}_{name}{ext}"
+            file, name=f"{self.date.strftime('%y_%m_%d')}_{token}_{name}{ext}"
         )
         file_stats = os.stat(self.full_path())
         self.size = file_stats.st_size

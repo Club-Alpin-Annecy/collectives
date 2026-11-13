@@ -57,7 +57,13 @@ def upload_event_file(event_id=None, edit_session_id=None):
 
     # Check that the storage quota is not exceeded
     if existing_file_count >= Configuration.MAX_UPLOADS_PER_EVENT:
-        response = {"error": "fileTooLarge"}
+        # Not one of the editor's error keys: the editor shows the text as is
+        response = {
+            "error": "Le nombre maximum de fichiers par événement "
+            f"({Configuration.MAX_UPLOADS_PER_EVENT}) est atteint. Supprimez un "
+            "fichier depuis les « Documents téléchargés » de l'édition de "
+            "l'événement."
+        }
         return json.dumps(response), 413, {"content-type": "application/json"}
 
     uploaded_file = UploadedFile()

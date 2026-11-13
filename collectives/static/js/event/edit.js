@@ -1,6 +1,10 @@
 
 var locale = window.navigator.userLanguage || window.navigator.language;
-moment.locale(locale);
+// Some pages using the editor (retex, CSV import) do not load moment: without
+// this check the script would stop here, before the upload constants below.
+if (typeof moment !== "undefined") {
+    moment.locale(locale);
+}
 
 function updateActivity(element) {
     document.getElementById('update_activity').value = 1;
@@ -264,6 +268,58 @@ function makeEditorToolbar(options) {
 
 }
 
+// Photos larger than this are shrunk in the browser before upload: phone
+// photos are often bigger than the maximum upload size of the server.
+const SHRINK_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const SHRUNK_IMAGE_MAX_SIDE = 2000;
+const SHRUNK_IMAGE_QUALITY = 0.85;
+
+/**
+ * Shrinks an image to at most SHRUNK_IMAGE_MAX_SIDE pixels per side, as JPEG.
+ *
+ * The browser applies the EXIF orientation, and the EXIF data (including the
+ * GPS position) is not kept.
+ *
+ * @param {File} file The image to shrink.
+ * @returns {Promise<File>} The shrunk image.
+ */
+async function shrinkImage(file) {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, SHRUNK_IMAGE_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+
+    const context = canvas.getContext("2d");
+    // JPEG has no transparency: paint it white rather than black
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", SHRUNK_IMAGE_QUALITY)
+    );
+    const name = file.name.replace(/\.[^.]*$/, "") + ".jpg";
+    return new File([blob], name, { type: "image/jpeg" });
+}
+
+/**
+ * EasyMDE upload function: shrinks large photos, then uses the default upload.
+ *
+ * Called by EasyMDE with the editor as `this`. The default upload reports
+ * errors itself, so `onError` is not passed on (it would alert twice).
+ */
+function shrinkAndUploadImage(file, onSuccess) {
+    if (!SHRINK_IMAGE_TYPES.includes(file.type) || file.size <= this.options.imageMaxSize) {
+        this.uploadImage(file, onSuccess);
+        return;
+    }
+    shrinkImage(file)
+        .catch(() => file) // the default size check then reports the error
+        .then((uploaded) => this.uploadImage(uploaded, onSuccess));
+}
+
 function getEditorOptions(elementId) {
     return {
         element: document.getElementById(elementId),
@@ -274,6 +330,7 @@ function getEditorOptions(elementId) {
         status: ['upload-image'],
 
         imageAccept: "image/png, image/jpeg, image/gif, application/pdf, application/vnd.oasis.opendocument.spreadsheet, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/xml, application/gpx+xml",
+        imageUploadFunction: shrinkAndUploadImage,
         imageCSRFName: "X-CSRFToken",
         imageCSRFHeader: true,
         imagePathAbsolute: true,
@@ -288,7 +345,7 @@ function getEditorOptions(elementId) {
         errorMessages: {
             noFileGiven: 'Aucun fichier choisi.',
             typeNotAllowed: 'Ce type de document n\'est pas autorisé.',
-            fileTooLarge: 'Le fichier "#image_name#" est trop volumineux (#image_size#) ou le nombre de fichiers maximum par événement a été atteint.\n' +
+            fileTooLarge: 'Le fichier "#image_name#" est trop volumineux (#image_size#).\n' +
                 'La taille maximum autorisée est #image_max_size#.',
             importError: 'Une erreur est survenue lors du téléchargement de "#image_name#".',
         },
@@ -302,6 +359,13 @@ function makeEditor(elementId, options = {}) {
 
     var easymde = new EasyMDE(allOptions);
     easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
+
+    // EasyMDE never clears its hidden file input: choosing the same file again
+    // would not fire "change", and nothing would be uploaded.
+    var imageInput = easymde.gui.toolbar.querySelector(".imageInput");
+    if (imageInput) {
+        imageInput.addEventListener("click", function () { imageInput.value = ""; });
+    }
     return easymde;
 }
 

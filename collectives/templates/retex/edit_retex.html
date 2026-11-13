@@ -9,7 +9,12 @@
   <script>
     var easymde = undefined;
     window.onload = function () {
-      easymde = makeEditor("description", { uploadImage: false, status: [] });
+      {# Photos are stored with the other files of the event #}
+      easymde = makeEditor("description", {
+        imageUploadEndpoint: "{{ url_for('api.upload_event_file', event_id=event.id) }}",
+        imageCSRFToken: "{{ csrf_token() }}",
+        imageAccept: "image/png, image/jpeg, image/gif",
+      });
 
       document.getElementById('retex_form').addEventListener('submit', function () {
         document.querySelector('textarea[name=description]').value = easymde.value();
