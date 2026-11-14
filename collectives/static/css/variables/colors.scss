@@ -10,6 +10,12 @@ $blumine: #1D6989;
 $color-blue-primary-light: $cerulean;
 $color-blue-primary-dark: $blumine;
 
+// $cerulean only reaches 2.9:1 against white: text, and backgrounds carrying
+// white text, use this darker shade, which reaches the 4.5:1 of WCAG 1.4.3
+// on white and on $color-gray-bg-light.
+$blue-lagoon: #007597;
+$color-blue-primary-medium: $blue-lagoon;
+
 // Secondary
 $shakespeare: #4BBEDB;
 $scooter: #39A9DC;

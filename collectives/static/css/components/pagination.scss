@@ -28,7 +28,7 @@
         .tabulator-page {
             font-weight: $font-weight-medium;
             &.active {
-                background: $color-blue-primary-light;
+                background: $color-blue-primary-medium;
                 color: $color-white !important; /* !important necessary to override Tabulator's default active page color */
             }
             &:not(:disabled):hover {

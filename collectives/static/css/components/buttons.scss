@@ -17,8 +17,8 @@
     }
 
     &.button-secondary {
-        color: $color-blue-primary-light;
-        border: 1px solid $color-blue-primary-light;
+        color: $color-blue-primary-medium;
+        border: 1px solid $color-blue-primary-medium;
         background: $color-white;
         &:hover {
             color: $color-blue-primary-dark;
@@ -32,8 +32,8 @@
     }
 
     &.button-primary {
-        background: $color-blue-primary-light;
-        border: 1px solid $color-blue-primary-light;
+        background: $color-blue-primary-medium;
+        border: 1px solid $color-blue-primary-medium;
         color: $color-white;
         &:hover {
             color: $color-white;
@@ -64,9 +64,9 @@
     }
 
     &.button-selected {
-        background: $color-blue-primary-light;
+        background: $color-blue-primary-medium;
         color: $color-white;
-        border: 1px solid $color-blue-primary-light;
+        border: 1px solid $color-blue-primary-medium;
     }
 
 }
