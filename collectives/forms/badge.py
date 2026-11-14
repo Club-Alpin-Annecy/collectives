@@ -21,7 +21,7 @@ from wtforms.validators import (
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.order import OrderedModelForm
+from collectives.forms.order import OrderedForm, OrderedModelForm
 from collectives.forms.utils import coerce_optional
 from collectives.models import (
     ActivityType,
@@ -141,6 +141,41 @@ class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
             raise ValidationError(
                 f"Le choix '{level_desc.name}' est spécifique à l'activité '{level_desc.activity_name()}'"
             )
+
+
+class ExportBadgeForm(OrderedForm, ActivityTypeSelectionForm):
+    """Form for supervisors to export badges of a given type, activity and level"""
+
+    badge_id = SelectField("Badge", coerce=BadgeIds.coerce)
+
+    level = SelectField(
+        "Niveau",
+        choices=[("", "Tous niveaux")],
+        coerce=coerce_optional(int),
+        validate_choice=False,
+    )
+    """ Level of the badges to export, None for all levels"""
+
+    field_order = ["badge_id", "activity_id", "level", "*"]
+
+    def __init__(self, *args, badge_ids: list[BadgeIds], **kwargs):
+        """Overloaded constructor populating badge and activity lists
+
+        :param badge_ids: The types of badge which can be exported
+        """
+        super().__init__(
+            *args,
+            prefix="export",
+            submit_label="Générer Excel",
+            activity_list=current_user.get_supervised_activities(),
+            all_enabled=True,
+            no_enabled=any(not badge_id.requires_activity() for badge_id in badge_ids),
+            **kwargs,
+        )
+
+        self.badge_id.choices = [
+            (badge_id.value, badge_id.display_name()) for badge_id in badge_ids
+        ]
 
 
 class RenewBadgeForm(ModelForm, FlaskForm):

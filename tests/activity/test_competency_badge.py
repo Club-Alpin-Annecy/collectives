@@ -1,8 +1,12 @@
 """Tests for bulk badge import via CSV."""
 
-from datetime import date
+import json
+from datetime import date, datetime
 from io import BytesIO
 
+import openpyxl
+
+from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import ActivityType, Badge, BadgeIds, User, db
 from tests import utils
 from tests.fixtures.misc import (
@@ -126,3 +130,88 @@ def test_competency_bulk_add_latin1_semicolon(supervisor_client, user1):
     assert response.status_code == 302
     assert len(user1.badges) == 1
     assert user1.badges[0].badge_id == BadgeIds.Practitioner
+
+
+def test_export_competency_badges(
+    supervisor_client, user1, user2, user3, custom_skill, custom_skill_with_expiry
+):
+    """Tests the export of competency badges filtered by type, activity and level."""
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    canyon = ActivityType.query.filter_by(name="Canyon").first()
+    for user, badge_id, level, activity_id in (
+        (user1, BadgeIds.Skill, custom_skill.level, None),
+        (user2, BadgeIds.Skill, custom_skill_with_expiry.level, None),
+        (user2, BadgeIds.Practitioner, 2, alpinisme.id),
+        (user3, BadgeIds.Practitioner, 3, alpinisme.id),
+        (user3, BadgeIds.Practitioner, 2, canyon.id),
+    ):
+        db.session.add(
+            Badge(
+                user_id=user.id,
+                badge_id=badge_id,
+                level=level,
+                activity_id=activity_id,
+                creation_time=datetime.now(),
+            )
+        )
+    db.session.commit()
+
+    response = supervisor_client.get("/activity_supervision/competency_badge_holders/")
+    assert response.status_code == 200
+    assert 'id="export-badge_id"' in response.text
+    assert 'id="export-level"' in response.text
+
+    def export(badge_id, activity_id, level=""):
+        response = supervisor_client.post(
+            "/activity_supervision/competency_badge_holders/export",
+            data={
+                "export-badge_id": int(badge_id),
+                "export-activity_id": activity_id,
+                "export-level": level,
+            },
+        )
+        assert response.status_code == 200
+        worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
+        return sorted(
+            row[0] for row in worksheet.iter_rows(min_row=2, values_only=True)
+        )
+
+    no_activity = ActivityTypeSelectionForm.NO_ACTIVITY
+    all_activities = ActivityTypeSelectionForm.ALL_ACTIVITIES
+
+    # Skill badges without activity
+    assert export(BadgeIds.Skill, no_activity) == sorted([user1.license, user2.license])
+    assert export(BadgeIds.Skill, no_activity, custom_skill.level) == [user1.license]
+    assert export(BadgeIds.Skill, all_activities) == sorted(
+        [user1.license, user2.license]
+    )
+
+    # Practitioner badges; Canyon is not supervised by supervisor_client
+    assert export(BadgeIds.Practitioner, alpinisme.id) == sorted(
+        [user2.license, user3.license]
+    )
+    assert export(BadgeIds.Practitioner, alpinisme.id, 3) == [user3.license]
+    assert export(BadgeIds.Practitioner, all_activities, 2) == [user2.license]
+    assert export(BadgeIds.Practitioner, no_activity) == []
+
+
+def test_list_skill_without_activity(supervisor_client, user1, custom_skill):
+    """Tests that supervisors see skill badges without activity in the badge list."""
+    db.session.add(
+        Badge(
+            user_id=user1.id,
+            badge_id=BadgeIds.Skill,
+            level=custom_skill.level,
+            creation_time=datetime.now(),
+        )
+    )
+    db.session.commit()
+
+    response = supervisor_client.get(
+        "/api/badges/",
+        query_string={"badge_ids": [int(BadgeIds.Practitioner), int(BadgeIds.Skill)]},
+    )
+    assert response.status_code == 200
+    data = json.loads(response.text)["data"]
+    assert len(data) == 1
+    assert data[0]["user"]["mail"] == user1.mail

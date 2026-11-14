@@ -389,7 +389,16 @@ def badges():
     if badge_ids:
         query = query.filter(Badge.badge_id.in_(badge_ids))
     if supervised_activities:
-        query = query.filter(Badge.activity_id.in_(a.id for a in supervised_activities))
+        # Badges without activity, when optional, are managed by all supervisors
+        query = query.filter(
+            or_(
+                Badge.activity_id.in_(a.id for a in supervised_activities),
+                and_(
+                    Badge.activity_id.is_(None),
+                    Badge.badge_id.in_(BadgeIds.with_optional_activity()),
+                ),
+            )
+        )
 
     Recipient = aliased(User)
     query = query.join(Recipient, Badge.user)

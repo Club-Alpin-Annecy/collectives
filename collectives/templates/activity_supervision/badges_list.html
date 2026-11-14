@@ -44,6 +44,22 @@
         badgeSelect.addEventListener("change", updateLevels);
         badgeActivityIdSelect.addEventListener("change", updateLevels);
         {% endif %}
+
+        {% if export_form.level %}
+        const exportBadgeSelect = document.getElementById("{{export_form.badge_id.id}}")
+        const exportActivityIdSelect = document.getElementById("{{export_form.activity_id.id}}")
+        const exportLevelSelect = document.getElementById("{{export_form.level.id}}")
+
+        const updateExportLevels = () => {
+            updateBadgeLevels(badgeLevels, exportBadgeSelect, exportActivityIdSelect, exportLevelSelect);
+            // Allow exporting all levels at once
+            exportLevelSelect.add(new Option("Tous niveaux", "", true, true), 0);
+            exportLevelSelect.style.display = "inline-block";
+        };
+        updateExportLevels();
+        exportBadgeSelect.addEventListener("change", updateExportLevels);
+        exportActivityIdSelect.addEventListener("change", updateExportLevels);
+        {% endif %}
       };
   </script>
 {% endblock %}

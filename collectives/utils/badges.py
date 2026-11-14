@@ -8,9 +8,14 @@ from typing import List, Sequence, Union
 from flask import flash, render_template, request, send_file
 from flask_login import current_user
 from markupsafe import Markup
+from sqlalchemy import and_, or_
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
+from collectives.forms.badge import (
+    AddBadgeForm,
+    ExportBadgeForm,
+    compute_default_expiration_date,
+)
 from collectives.models import (
     ActivityType,
     Badge,
@@ -25,20 +30,31 @@ from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
 
 
-def export_badge(badge_types: Sequence[BadgeIds] | None = None):
+def export_badge(
+    badge_types: Sequence[BadgeIds] | None = None,
+    detailed: bool = False,
+):
     """Create an Excel document with the contact information of users with badge.
 
     :param type: The type of badge to export
+    :param detailed: if True, use :py:class:`ExportBadgeForm` to select the badge
+        type, the activity (or no activity) and the level of the exported badges.
+        Exporting all activities then also includes skill badges without activity.
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm(
-        all_enabled=True,
-    )
+    if detailed:
+        form = ExportBadgeForm(badge_ids=badge_types)
+    else:
+        form = ActivityTypeSelectionForm(
+            all_enabled=True,
+        )
 
     if not form.validate_on_submit():
         return False
 
-    if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
+    if form.activity_id.data is None:
+        activity_type = None
+    elif form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
         activity_type = db.session.get(ActivityType, form.activity_id.data)
         if not current_user.is_hotline():
             if activity_type not in current_user.get_supervised_activities():
@@ -52,18 +68,37 @@ def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     query = Badge.query
     # we remove role not linked anymore to a user
     query = query.filter(Badge.user.has(User.id))
-    if activity_type is not None:
+    if activity_type is None:
+        query = query.filter(Badge.activity_id.is_(None))
+    else:
         if isinstance(activity_type, list):
-            query = query.filter(Badge.activity_id.in_([t.id for t in activity_type]))
+            condition = Badge.activity_id.in_([t.id for t in activity_type])
+            if detailed:
+                # Badges without activity, when optional, are managed by all supervisors
+                condition = or_(
+                    condition,
+                    and_(
+                        Badge.activity_id.is_(None),
+                        Badge.badge_id.in_(BadgeIds.with_optional_activity()),
+                    ),
+                )
+            query = query.filter(condition)
         else:
             query = query.filter(Badge.activity_id == activity_type.id)
 
-    if badge_types is not None:
+    if detailed:
+        badge_types = form.badge_id.data
+        query = query.filter(Badge.badge_id == badge_types)
+        if form.level.data is not None:
+            query = query.filter(Badge.level == form.level.data)
+    elif badge_types is not None:
         query = query.filter(Badge.badge_id.in_(badge_types))
 
     badges = query.all()
 
-    if not isinstance(activity_type, list):
+    if activity_type is None:
+        filename = "Sans activité"
+    elif not isinstance(activity_type, list):
         filename = activity_type.name
     else:
         filename = ""
@@ -91,6 +126,7 @@ def list_page(
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
     title: str | None = None,
+    detailed_export: bool = False,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -103,6 +139,9 @@ def list_page(
                 ``add``, ``export``, ``delete``, ``renew``,.
     :param allow_add: Whether to allow adding new badges
     :param title: Title of the page. If None, computed from badge_types
+    :param detailed_export: if True, the export form allows selecting the badge
+        type, the activity (or no activity) and the level of the exported badges.
+        See :py:func:`export_badge`
     """
 
     # convert to list
@@ -127,11 +166,14 @@ def list_page(
     else:
         add_badge_form = None
 
-    export_form = ActivityTypeSelectionForm(
-        submit_label="Générer Excel",
-        activity_list=current_user.get_supervised_activities(),
-        all_enabled=True,
-    )
+    if detailed_export:
+        export_form = ExportBadgeForm(badge_ids=badge_types)
+    else:
+        export_form = ActivityTypeSelectionForm(
+            submit_label="Générer Excel",
+            activity_list=current_user.get_supervised_activities(),
+            all_enabled=True,
+        )
 
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
 
