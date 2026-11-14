@@ -1,0 +1,130 @@
+name: PR preview
+
+# Deploys each pull request on https://pr-<number>.test.collectives.cafannecy.fr
+# and removes it when the pull request is closed. Server side: deployment/preview/.
+#
+# pull_request_target runs this file from master and hands the deploy key to
+# pull requests from forks too: their deployment waits for the approval of a
+# maintainer (environment "preview-fork").
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  PR: ${{ github.event.pull_request.number }}
+  IMAGE: ghcr.io/club-alpin-annecy/collectives:pr-${{ github.event.pull_request.number }}
+  SSH_TARGET: deploy@178.238.238.12
+  SSH_KNOWN_HOSTS: 178.238.238.12 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF2wV9Mub93SEXAWefw77QUSM4bStkGb8tgxjWa9l9tA
+
+jobs:
+  deploy:
+    if: github.repository == 'Club-Alpin-Annecy/collectives' && github.event.action != 'closed' && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    environment:
+      name: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'preview' || 'preview-fork' }}
+      url: https://pr-${{ github.event.pull_request.number }}.test.collectives.cafannecy.fr
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      # Taken from master, so that pull requests opened before them are
+      # deployed in the same way.
+      - uses: actions/checkout@v4
+        with:
+          path: master
+          sparse-checkout: |
+            deployment/preview/Dockerfile
+            tests/preview_seed.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      # Built before logging in, so that the pull request code never runs
+      # next to the registry credentials.
+      - name: Build image
+        run: |
+          cp master/tests/preview_seed.py tests/
+          docker build -t pr-production .
+          docker build -f master/deployment/preview/Dockerfile \
+            --build-arg PR_IMAGE=pr-production -t "$IMAGE" .
+
+      - name: Push image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE"
+          docker logout ghcr.io
+
+      - name: Deploy
+        id: deploy
+        env:
+          SSH_KEY: ${{ secrets.PREVIEW_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh "$SSH_TARGET" deploy "$PR" >> "$GITHUB_OUTPUT"
+
+      # One comment per pull request, updated on each deployment.
+      - name: Comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ steps.deploy.outputs.url }}
+          ADMIN_PASSWORD: ${{ steps.deploy.outputs.admin_password }}
+          ACCOUNTS: ${{ steps.deploy.outputs.accounts }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          marker="<!-- collectives-preview -->"
+          body="$marker
+          Instance de test déployée pour ${SHA::7} : $URL
+          Compte administrateur : \`admin\` / \`$ADMIN_PASSWORD\`
+
+          $ACCOUNTS"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" --silent
+          else
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" --silent
+          fi
+
+  remove:
+    if: github.repository == 'Club-Alpin-Annecy/collectives' && github.event.action == 'closed' && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    environment: preview
+    steps:
+      - name: Remove
+        env:
+          SSH_KEY: ${{ secrets.PREVIEW_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh "$SSH_TARGET" remove "$PR"
+
+      # Only the version tagged pr-<number>: untagged versions may belong to
+      # the images of other pull requests.
+      - name: Delete image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          versions="orgs/$GITHUB_REPOSITORY_OWNER/packages/container/collectives/versions"
+          ids=$(gh api "$versions" --paginate \
+            --jq ".[] | select(.metadata.container.tags | index(\"pr-$PR\")) | .id")
+          for id in $ids; do
+            gh api -X DELETE "$versions/$id" --silent
+          done
