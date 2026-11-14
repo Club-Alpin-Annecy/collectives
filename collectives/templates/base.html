@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
-        <title>Collectives {% block title %}{% endblock %}</title>
+        <title>{% block title %}{% endblock %}Collectives</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% assets "scss_all" %}
             <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
@@ -54,25 +54,24 @@
         {% block additionalhead %}{% endblock %}
     </head>
     <body>
+        <a href="#main-content" class="skip-link">Aller au contenu principal</a>
         {%include 'partials/main-navigation.html' %}
-        <section class="page">
+        <main class="page" id="main-content" tabindex="-1">
             {% block content %}{% endblock %}
-        </section>
+        </main>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="messages">
+            <div class="messages" role="alertdialog" aria-modal="true" aria-labelledby="flash-messages-title">
                 <div class="innermessages">
-                    <img
-                        src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                        class="close"
-                        onclick= "this.parentNode.parentNode.style.display='none'"
-                    />
-                    <h3 class="heading-3">Message</h3>
+                    <button type="button" class="close" aria-label="Fermer le message">
+                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="" />
+                    </button>
+                    <h2 class="heading-3" id="flash-messages-title">Message</h2>
                 {% for category, message in messages %}
                 <div class="{{category}} message">{{ markdown_to_html(message|e) |safe }}</div>
                 {% endfor %}
                 </div>
-                <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+                <div class="veil"></div>
             </div>
         {% endif %}
         {% endwith %}

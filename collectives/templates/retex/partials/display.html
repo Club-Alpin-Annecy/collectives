@@ -2,19 +2,19 @@
 
 {% if event.retex %}
 <div id="retex" class="collective-display--description">
-  <h4 class="heading-3">
+  <h2 class="heading-3">
     Partage d'expérience
     <span class="retex-status-badge retex-status-{{ event.retex.status.value }}">
       {{ event.retex.status.display_name() }}
     </span>
-  </h4>
+  </h2>
   {{ event.retex.rendered_description | safe }}
 </div>
 {% elif event.needs_retex() and event.has_edit_rights(current_user) %}
 <div id="retex" class="collective-display--description">
-  <h4 class="heading-3">
+  <h2 class="heading-3">
     Partage d'expérience
-  </h4>
+  </h2>
   <p>Le partage d'expérience de cette sortie n'a pas encore été rédigé.</p>
   <a class="button button-secondary" href="{{ url_for('retex.edit_retex', event_id=event.id) }}">
     Rédiger le partage d'expérience

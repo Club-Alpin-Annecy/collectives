@@ -7,6 +7,8 @@
     <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
 {% endblock %}
 
+{% block title %}Connexion – {% endblock %}
+
 {% block content %}
 <!-- Logging Windows -->
 <div id="cover"></div>
@@ -24,7 +26,7 @@
             <hr class="separator">
 
             <div>
-                <h5>Pas encore de compte Collectives ?</h5>
+                <h2>Pas encore de compte Collectives ?</h2>
                 <a href="{{url_for('auth.signup')}}" class="button button-secondary input-100">Créer mon compte</a>
             </div>
 

@@ -19,21 +19,17 @@
         >
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <div
-                class="button button-primary"
-                onclick= "this.nextSibling.nextSibling.style.display='block'"
-            >
-            <span class="name" >S'inscrire{% if waiting_list %} à la liste d'attente{% endif %}</span>
-        </div>
+        {% set dialog_id = 'self-register-waiting-dialog' if waiting_list else 'self-register-dialog' %}
+        <button type="button" class="button button-primary" data-dialog-open="{{ dialog_id }}">
+            S'inscrire{% if waiting_list %} à la liste d'attente{% endif %}
+        </button>
 
-        <div class="messages" style="display:none">
+        <div class="messages" style="display:none" id="{{ dialog_id }}" role="dialog" aria-modal="true" aria-labelledby="{{ dialog_id }}-title">
             <div class="innermessages">
-                <img
-                                src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                                class="close"
-                                onclick= "this.parentNode.parentNode.style.display='none'"
-                            />
-                <h1 class="heading-1">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
+                <button type="button" class="close" aria-label="Fermer">
+                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="" />
+                </button>
+                <h2 class="heading-1" id="{{ dialog_id }}-title">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h2>
                 {% if event.event_type.get_terms_file() %}
                 {% if waiting_list %}
                     <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionné(e).</p>
@@ -53,9 +49,9 @@
                     <br/>
                 </p>
                 {% endif %}
-                <h4 class="centeralign">Confirmez-vous l'inscription {% if waiting_list %} à la liste d'attente{% endif %} ? <br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></h4>
+                <p class="centeralign"><strong>Confirmez-vous l'inscription {% if waiting_list %} à la liste d'attente{% endif %} ?</strong><br/> <input type="submit" id="submitSelfRegister" value="Confirmer" class="button button-primary"></p>
             </div>
-            <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+            <div class="veil"></div>
         </div>
 
     </form>

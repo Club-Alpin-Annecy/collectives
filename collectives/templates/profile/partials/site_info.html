@@ -54,15 +54,15 @@
 <div class="card margin-bottom-m">
     <div class="card-info">
         <div>
-            <div class="text-primary bold">Attributer un niveau de pratique :</div>
+            <div class="text-primary bold">Attribuer un niveau de pratique :</div>
             <form 
                 class="form align-center margin-top-s" 
                 id="practitioner_badge_form" 
                 action="{{url_for('.set_competency_badge', badge_id=practitioner_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
                 method="post" >
                     {{practitioner_badge_form.hidden_tag()}}
-                    {{practitioner_badge_form.activity_id(class="input-75 padding-s margin-bottom-xs")}}
-                    {{practitioner_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
+                    {{practitioner_badge_form.activity_id(class="input-75 padding-s margin-bottom-xs", **{"aria-label": practitioner_badge_form.activity_id.label.text})}}
+                    {{practitioner_badge_form.level(class="input-75 padding-s margin-bottom-xs", **{"aria-label": practitioner_badge_form.level.label.text})}}
                     {{practitioner_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
             </form>
         </div>
@@ -74,14 +74,14 @@
 <div class="card margin-bottom-m">
     <div class="card-info">
         <div>
-            <div class="text-primary bold">Attributer une spécialisation :</div>
+            <div class="text-primary bold">Attribuer une spécialisation :</div>
             <form 
                 class="form align-center margin-top-s" 
                 id="skill_badge_form" 
                 action="{{url_for('.set_competency_badge', badge_id=skill_badge_form.badge_id, user_id=user.id, event_id=event_id)}}" 
                 method="post" >
                     {{skill_badge_form.hidden_tag()}}
-                    {{skill_badge_form.level(class="input-75 padding-s margin-bottom-xs")}}
+                    {{skill_badge_form.level(class="input-75 padding-s margin-bottom-xs", **{"aria-label": skill_badge_form.level.label.text})}}
                     {{skill_badge_form.submit(class_="button button-secondary button-small input-75 padding-s")}}
             </form>
         </div>

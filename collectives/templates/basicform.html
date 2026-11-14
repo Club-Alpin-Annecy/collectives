@@ -11,11 +11,13 @@
   {% include 'partials/form-additionalhead.html' %}
 {% endblock %}
 
+{% block title %}{{ title }} – {% endblock %}
+
 {% block page_content %}
 <div class="page-content">
   <!-- Logging Windows -->
   <h1 class="heading-1">{{ title }}</h1>
-  {% if subtitle %}<h4 class="heading-4">{{subtitle}}</h4>{% endif  %}
+  {% if subtitle %}<p class="heading-4">{{subtitle}}</p>{% endif  %}
   {% if description %}<p>{{description}}</p>{% endif  %}
 
   {{ generator.form_generator(form, action=(action or '')) }}

@@ -5,9 +5,9 @@
             else
                     %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%
             endif %}"
-        alt="Avatar de l'utilisateur"
+        alt=""
         class="avatar big" />
-        <div class="heading-2">{{user.full_name()}}</div>
+        <h1 class="heading-2">{{user.full_name()}}</h1>
         <div class="heading-4">{{user.license}} • {{user.license_category}}</div>
         <div>
             {% if user.has_a_valid_benevole_badge() %}

@@ -1,0 +1,34 @@
+// Keyboard focus indicator, shared by every interactive element
+:focus-visible {
+    outline: 3px solid $color-blue-primary-dark;
+    outline-offset: 2px;
+}
+
+// The main content only takes focus through the skip link
+main:focus {
+    outline: none;
+}
+
+// Link shown on keyboard focus only, to jump over the navigation
+.skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: $z-index-max;
+    padding: $padding-default;
+    background: $color-white;
+    color: $color-blue-primary-dark;
+    font-weight: $font-weight-medium;
+    transform: translateY(-100%);
+
+    &:focus {
+        transform: none;
+    }
+}
+
+// Links inside running text must not rely on colour alone
+p, li, label, .flash, .label-help {
+    a:not(.button) {
+        text-decoration: underline;
+    }
+}

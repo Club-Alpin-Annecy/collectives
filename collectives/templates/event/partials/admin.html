@@ -3,32 +3,32 @@
 {% if event.has_edit_rights(current_user) %}
     <div class="administration collective-display--administration">
     <div class="collective-display--administration-header">
-        <h4 class="heading-4 collective-display--administration-title">Administration</h4>
+        <h2 class="heading-4 collective-display--administration-title">Administration</h2>
         <span class="collective-number">Collective n° {{event.id}}</span>
     </div>
     <div class="buttons-bar">
         <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}" alt=""/>
             Editer
         </a>
 
         <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}" alt=""/>
             Dupliquer
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}" alt=""/>
             Fiche collective
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{ url_for('event.export_list_of_registered_users', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}" alt=""/>
             Liste des inscrits
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{url_for('event.qr_attendance', event_id=event.id)}}">
-            <img class="icon" src="{{url_for('static', filename='img/icon/ionicon/qr-code.svg')}}"/>
+            <img class="icon" src="{{url_for('static', filename='img/icon/ionicon/qr-code.svg')}}" alt=""/>
             Scanner QR-code
         </a>
 
@@ -38,7 +38,7 @@
             <form class="inline " action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="button button-danger" style="width: 100%">
-                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
+                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}" alt=""/>
                     Supprimer
                 </button>
 
@@ -48,13 +48,13 @@
         {% if payments_enabled() %}
             
             <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
                 Gestion des tarifs
             </a>
 
             {% if event.requires_payment() and event.has_payments() %}
             <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
                 Liste des paiements
             </a>
             {% endif %}
@@ -63,7 +63,7 @@
                 <form class="inline" action="{{url_for('payment.refund_all', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer le remboursement de tous les inscrits ayant fait un paiment en ligne ? Les inscriptions correspondantes ne seront pas supprimées.')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="button button-danger" style="width: 100%" >
-                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
                         Tout rembourser
                     </button>
                 </form>
@@ -71,26 +71,26 @@
         {% endif %}
             
         <a class="button button-secondary" href="{{ url_for('question.edit_questions', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}" alt=""/>
             Questionnaire
         </a>
 
         {% if Configuration.RETEX_ENABLED and event.event_type.short == "collective" %}
         <a class="button button-secondary" href="{{ url_for('retex.edit_retex', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}" alt=""/>
             Retex
         </a>
         {% endif %}
         
         {% if event.questions %}
         <a class="button button-secondary" href="{{ url_for('question.show_answers', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}" alt=""/>
             Réponses aux questions
         </a>
         {% endif %}
     </div>
 
-    <h5 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h5>
+    <h3 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h3>
     {% if current_user.has_signed_ca() %}
         <form class="contactinfos">
             <div class="inputGrow">
@@ -110,7 +110,7 @@
 
             </div>
             <div class="inputGrow margin-top-m">
-                <label>
+                <label for="maillist">
                     Liste d'email :
                 </label>
                 <input type="text"
@@ -125,7 +125,7 @@
 
             {%if event.num_waiting_registrations() %}
             <div class="inputGrow margin-top-m">
-                <label>
+                <label for="waiting_maillist">
                     Liste d'email des personnes en liste d'attente :
                 </label>
                 <input type="text"
@@ -141,7 +141,7 @@
 
             {%if event.leaders|length > 1 %}
             <div class="inputGrow margin-top-m">
-                <label>
+                <label for="leader_maillist">
                     Liste d'email des encadrants :
                 </label>
                 <input type="text"
@@ -165,11 +165,11 @@
         </p>
     {% endif %}
 
-    <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
+    <h3 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h3>
     <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
         <p class="align-center">
-            <input id = "user-search" size="32" autocomplete="off" class="search-input input-75" placeholder="Nom…" >
+            <input id = "user-search" size="32" autocomplete="off" class="search-input input-75" placeholder="Nom…" aria-label="Nom de l'adhérent à inscrire" >
         </p>
         {{ register_user_form.user_id(id = 'user-search-resultid', type = 'hidden') }}
         {{ register_user_form.hidden_tag() }}
@@ -177,7 +177,7 @@
     </form>
 
 
-    <h5 class="heading-5 collective-display--administration-title">Co-encadrants en formation</h5>
+    <h3 class="heading-5 collective-display--administration-title">Co-encadrants en formation</h3>
     <div class="margin-bottom-m">
         {% for registration in event.potential_coleaders_registrations() %}
                 <div class="align-center margin-bottom-m"> 
@@ -201,7 +201,7 @@
         {% endif %}
     </div>
 
-    <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
+    <h3 class="heading-5 collective-display--administration-title"> Liste des présences</h3>
     <form class="form" action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <thead>
@@ -228,12 +228,12 @@
                             {{ registration.user.full_name() }}
                             {% if registration.is_pending_renewal() %}
                                 {% set ns.license_to_renew = True %}
-                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
+                                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="Licence à renouveler" class="icon" title="Licence à renouveler"/>
                             {% endif %}{{license_to_renew}}
                         </a>
                     </td>
                     <td style="text-align:center">
-                        <select name="reg_{{ registration.id }}" onchange="attendanceUpdate(this, {{registration.status.value}});" class="padding-s">
+                        <select name="reg_{{ registration.id }}" aria-label="Statut de {{ registration.user.full_name() }}" onchange="attendanceUpdate(this, {{registration.status.value}});" class="padding-s">
                             {% for status in registration.valid_transitions() %}
                                 <option
                                         value="{{status.value}}"
@@ -250,7 +250,7 @@
                 <tr>
                     <td>Tous les "Inscrits"</td>
                     <td style="text-align:center">
-                        <select name="none" onchange="attendanceSelectAll(this.value)" class="padding-s">
+                        <select name="none" onchange="attendanceSelectAll(this.value)" class="padding-s" aria-label="Statut de tous les inscrits">
                             <option value="" selected disabled> </option>
                             {% for status in models.RegistrationStatus.Active.valid_transitions(event.requires_payment()) %}
                                 <option value="{{status.value}}">{{status.display_name()}}</option>
@@ -262,13 +262,14 @@
         </table>
             {% if ns.license_to_renew %}
             <div class="text-gray">
-                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
+                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="" class="icon"/>
                 = Licence à renouveler 
             </div>
             {% endif %}
 
         <textarea id="attendance-rejection-explanation" name="rejection-reason" class="input-50 margin-top-s margin-bottom-s" rows="5"
-            placeholder="Explication optionelle pour les personnes nouvellement refusées..."
+            placeholder="Explication optionnelle pour les personnes nouvellement refusées..."
+            aria-label="Explication optionnelle pour les personnes nouvellement refusées"
         ></textarea>
 
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><br/>
@@ -281,12 +282,12 @@
 
 {% if payments_enabled() and current_user.is_active and current_user.is_accountant()  %}
 <div class="administration collective-display--administration">
-    <h4 class="heading-4 collective-display--administration-title">Comptabilité</h4>
+    <h2 class="heading-4 collective-display--administration-title">Comptabilité</h2>
     <br/>
     <div class="buttons">
         {% if event.requires_payment() %}
             <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
                 Liste des paiements
             </a>
         {% else %}

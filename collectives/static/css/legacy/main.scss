@@ -45,7 +45,7 @@
 	width: 100vw;
 	z-index: 2500;
 }
-.messages h3{
+.messages h2{
 	font-size: 30px;
 	font-weight: bold;
 	margin-top: 0;
@@ -54,8 +54,14 @@
 	position: absolute;
 	top: 10px;
 	right: 10px;
+	padding: 0;
+	border: none;
+	background: none;
 	cursor: pointer;
 	height: 30px;
+}
+.messages .close img{
+	height: 100%;
 }
 
 .messages .message::before{
@@ -269,7 +275,7 @@ form input, form select{
 	margin-bottom: 0cm;
 }
 
-#legal h5{
+#legal h3{
 	font-size: 1.1em
 }
 

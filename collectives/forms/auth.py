@@ -29,15 +29,18 @@ class LoginForm(FlaskForm):
     """Form to log a user ."""
 
     login = StringField(
-        "Email ou Licence", validators=[DataRequired()], filters=[strip_string]
+        "Email ou Licence",
+        validators=[DataRequired()],
+        filters=[strip_string],
+        render_kw={"autocomplete": "username"},
     )
     password = PasswordField(
         "Mot de passe",
         validators=[DataRequired()],
-        render_kw={"passsword-reveal": "true"},
+        render_kw={"passsword-reveal": "true", "autocomplete": "current-password"},
     )
     remember_me = BooleanField("Se souvenir de la connexion")
-    submit_button = SubmitField("Login")
+    submit_button = SubmitField("Se connecter")
 
 
 class ExtranetAccountCreationForm(ModelForm, OrderedForm):
@@ -181,6 +184,8 @@ class LocalAccountCreationForm(
         render_kw={
             "class": "hp-input",
             "aria-hidden": "true",
+            "tabindex": "-1",
+            "autocomplete": "off",
         },
     )
 

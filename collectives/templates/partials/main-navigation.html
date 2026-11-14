@@ -2,24 +2,23 @@
     <div class="layout-container main-navigation-container">
         <div class="main-navigation-container-primary">
             <a href="{{ url_for('root.index')}}" class="main-navigation-logo">
-                <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="{{ config['TITLE'] }}"
-                    title="{{ config['TITLE'] }}">
+                <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="Accueil {{ Configuration.CLUB_NAME }}">
             </a>
 
 
             {% if current_user.is_authenticated %}
-                <div class="menu-dropdown menu-dropdown-left">
-                    <div class="menu-dropdown-trigger main-navigation-menu">
-                        <div class="main-navigation-menu-link">
-                            <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton legacy-icon" alt="Bouton du menu" title="Menu"/> Menu
-                        </div>
-                    </div>
-                    <div class="menu-dropdown-container">
+                <nav class="menu-dropdown menu-dropdown-left" aria-label="Menu principal">
+                    <button type="button" class="menu-dropdown-trigger main-navigation-menu" aria-expanded="false" aria-controls="main-menu">
+                        <span class="main-navigation-menu-link">
+                            <img src="{{ url_for('static', filename='img/icon/ionicon/md-menu.svg') }}" class="menubutton legacy-icon" alt=""/> Menu
+                        </span>
+                    </button>
+                    <div class="menu-dropdown-container" id="main-menu">
                         <ul>
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('root.index')}}"  class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"
-                                        class="legacy-icon" /> Liste des événements
+                                        class="legacy-icon" alt="" /> Liste des événements
                                 </a>
                             </li>
                             <li class="menu-dropdown-item menu-dropdown-item-goto">
@@ -31,7 +30,7 @@
                             </li>
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('static', filename=Configuration.GUIDE_FILE) }}"  class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  class="legacy-icon" />
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-document.svg') }}"  class="legacy-icon" alt="" />
                                     {{Configuration.GUIDE_TITLE.capitalize()}}
                                 </a>
                             </li>
@@ -39,7 +38,7 @@
                             {#  Deactivated : awaiting test 
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('root.statistics') }}"  class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"  class="legacy-icon" />
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"  class="legacy-icon" alt="" />
                                     Statistiques
                                 </a>
                             </li> #}
@@ -48,13 +47,13 @@
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('event.manage_event')}}" class="menu-dropdown-item-link"><img
                                         src="{{ url_for('static', filename='img/icon/ionicon/md-add-circle-outline.svg') }}"
-                                        class="legacy-icon" /> Ajouter un événement</a>
-                            </li class="menu-dropdown-item">
+                                        class="legacy-icon" alt="" /> Ajouter un événement</a>
+                            </li>
                             {% if Configuration.USER_SEARCH_ENABLED %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.search_user')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
-                                        class="legacy-icon" /> Rechercher un adhérent
+                                        class="legacy-icon" alt="" /> Rechercher un adhérent
                                 </a>
                             </li>
                             {% endif %}
@@ -64,7 +63,7 @@
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('activity_supervision.activity_supervision')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/options.svg') }}"
-                                        class="legacy-icon" /> Gestion des activités
+                                        class="legacy-icon" alt="" /> Gestion des activités
                                 </a>
                             </li>
                             {% endif %}
@@ -72,14 +71,14 @@
                             {% if current_user.is_hotline() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('administration.administration')}}" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}" class="legacy-icon" />
+                                        src="{{ url_for('static', filename='img/icon/ionicon/people.svg') }}" class="legacy-icon" alt="" />
                                     Gestion des utilisateurs</a>
                             </li>
                             {% endif %}
                             {% if current_user.is_technician() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('technician.maintenance')}}" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}" class="legacy-icon" />
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cog.svg') }}" class="legacy-icon" alt="" />
                                     Maintenance du site</a>
                             </li>
                             {% endif %}
@@ -87,7 +86,7 @@
                             {%  if payments_enabled() and current_user.is_accountant() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('payment.list_all')}}" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" />
+                                        src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" alt="" />
                                     Liste des paiements</a>
                             </li>
                             {% endif %}
@@ -95,7 +94,7 @@
                             {%  if current_user.has_any_role() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('root.statistics')}}" class="menu-dropdown-item-link"><img
-                                        src="{{ url_for('static', filename='img/icon/ionicon/stats-chart.svg') }}" class="legacy-icon" />
+                                        src="{{ url_for('static', filename='img/icon/ionicon/stats-chart.svg') }}" class="legacy-icon" alt="" />
                                     Statistiques</a>
                             </li>
                             {% endif %}
@@ -104,7 +103,7 @@
                                 {% for menu_item in Configuration.MAIN_MENU_LINKS.items() %}
                                         <li class="menu-dropdown-item">
                                             <a href="{{ menu_item[1] }}" class="menu-dropdown-item-link" target="_blank"><img
-                                                    src="{{ url_for('static', filename='img/icon/ionicon/md-link.svg') }}" class="legacy-icon" />
+                                                    src="{{ url_for('static', filename='img/icon/ionicon/md-link.svg') }}" class="legacy-icon" alt="" />
                                                 {{ menu_item[0] }}</a>
                                         </li>
                                 {% endfor %}
@@ -113,36 +112,36 @@
 
                         </ul>
                     </div>
-                </div>
+                </nav>
             {% endif %}
         </div>
         <div class="main-navigation-container-secondary">
             {% if current_user.is_authenticated %}
                 {% set pending_retex_count = current_user.pending_retex_count() if Configuration.RETEX_ENABLED and current_user.can_create_events() else 0 %}
-                <div class="menu-dropdown menu-dropdown-right">
-                    <div class="menu-dropdown-trigger">
+                <nav class="menu-dropdown menu-dropdown-right" aria-label="Menu de mon compte">
+                    <button type="button" class="menu-dropdown-trigger" aria-expanded="false" aria-controls="user-menu">
+                        <span class="visually-hidden">Mon compte, {{ current_user.full_name() }}</span>
                         {% if current_user.avatar %}
-                        <div class="user-image">
-                            <img src="{{ url_for('images.crop', filename=current_user.avatar, width=80, height=80) }}"
-                                alt="{{ current_user.full_name() }} " title="{{ current_user.full_name() }} ">
-                        </div>
+                        <span class="user-image">
+                            <img src="{{ url_for('images.crop', filename=current_user.avatar, width=80, height=80) }}" alt="">
+                        </span>
                         {% else %}
-                        <div class="user-image user-image-default" title="{{ current_user.full_name() }} ">
-                            <svg viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <span class="user-image user-image-default">
+                            <svg viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path fill-rule="evenodd" clip-rule="evenodd"
                                     d="M5.79091 0.000488281C7.71202 0.000488281 9.27879 1.56726 9.27879 3.48837C9.27879 5.40948 7.71202 6.97625 5.79091 6.97625C3.8698 6.97625 2.30303 5.40948 2.30303 3.48837C2.30303 1.56726 3.8698 0.000488281 5.79091 0.000488281ZM5.79091 6.90958C8.98048 6.90958 11.5818 9.51091 11.5485 12.7338L10.3636 12.7005C10.3636 10.1685 8.32293 8.12776 5.79091 8.12776C3.25889 8.12776 1.21818 10.1685 1.18485 12.7338L0 12.7005C0 9.51091 2.60134 6.90958 5.79091 6.90958ZM5.79091 1.21867C4.53186 1.21867 3.52121 2.22931 3.52121 3.48837C3.52121 4.74742 4.53186 5.75806 5.79091 5.75806C7.04996 5.75806 8.06061 4.74742 8.06061 3.48837C8.06061 2.22931 7.04996 1.21867 5.79091 1.21867Z" />
                             </svg>
-                        </div>
+                        </span>
                         {% endif %}
                         {% if pending_retex_count %}
-                        <span class="notification-badge" title="Retex en attente">{{ pending_retex_count }}</span>
+                        <span class="notification-badge" title="Retex en attente">{{ pending_retex_count }}<span class="visually-hidden"> partages d'expérience en attente</span></span>
                         {% endif %}
-                    </div>
-                    <div class="menu-dropdown-container">
+                    </button>
+                    <div class="menu-dropdown-container" id="user-menu">
                         <ul>
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.show_user', user_id=current_user.id)}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" class="legacy-icon" /> Mon Profil
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}" class="legacy-icon" alt="" /> Mon Profil
                                 </a>
                             </li>
                             {% if current_user.can_create_events() %}
@@ -150,14 +149,14 @@
                                 <a href="{{ url_for('profile.show_leader', leader_id = current_user.id)}}"
                                     class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/ionicon/md-person.svg') }}"
-                                        class="legacy-icon" /> Profil encadrant
+                                        class="legacy-icon" alt="" /> Profil encadrant
                                 </a>
                             </li>
                             {% if Configuration.RETEX_ENABLED %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('retex.my_retex')}}" class="menu-dropdown-item-link">
                                     <img src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"
-                                        class="legacy-icon" /> Partage ton expérience
+                                        class="legacy-icon" alt="" /> Partage ton expérience
                                     {% if pending_retex_count %}
                                     <span class="notification-badge" style="position: static; display: inline-block; margin-left: 4px;">{{ pending_retex_count }}</span>
                                     {% endif %}
@@ -168,22 +167,22 @@
                             {% if payments_enabled() %}
                             <li class="menu-dropdown-item">
                                 <a href="{{ url_for('profile.my_payments')}}" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" /> Mes paiements
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" class="legacy-icon" alt="" /> Mes paiements
                                 </a>
                             </li>
                             {% endif %}
                             <li class="menu-dropdown-item">
-                                <a href="{{ url_for('auth.logout') }}" title="Déconnexion" class="menu-dropdown-item-link">
-                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}"  class="legacy-icon" alt="Déconnexion" /> Déconnexion
+                                <a href="{{ url_for('auth.logout') }}" class="menu-dropdown-item-link">
+                                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-log-out.svg') }}"  class="legacy-icon" alt="" /> Déconnexion
                                 </a>
                             </li>
                         </ul>
                     </div>
-                </div>
+                </nav>
             {% else %}
                 <div>
                     <a href="{{ url_for('auth.login') }}" class="button button-secondary">
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="legacy-icon" /> Se connecter
+                        <img src="{{ url_for('static', filename='img/icon/ionicon/md-unlock.svg') }}" class="legacy-icon" alt="" /> Se connecter
                     </a>
                 </div>
             {% endif %}

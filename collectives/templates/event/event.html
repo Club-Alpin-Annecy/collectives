@@ -49,6 +49,8 @@
   </script>
 {% endblock %}
 
+{% block title %}{{ event.title }} – {% endblock %}
+
 {% block content %}
 <div class="page-content" id="eventdetail">
   <div class="collective-display">
@@ -68,15 +70,15 @@
           {% endif %}
         </h1>
         {% if event.tags %}
-        <h2 class="heading-3">
+        <div class="heading-3">
             {% for tag in event.tags %}
                 <span class="aligned-flex">
-                  <img src="/static/caf/icon/{{tag.short}}.svg" width="30px"  title="{{tag.name}}"/>
+                  <img src="/static/caf/icon/{{tag.short}}.svg" width="30px" alt=""/>
                   {{tag.name}}
                 </span>
             {% endfor %}
             <br/><br/>
-        </h2>
+        </div>
         {% endif %}
 
         <span class="collective-display--date">
@@ -100,23 +102,25 @@
         </span>
       </div>
       <div class="collective-display--activity-type">
-        <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px"  title="{{event.event_type.name}}"/> 
+        <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px" alt="{{event.event_type.name}}" title="{{event.event_type.name}}"/>
 
         {% for atype in event.activity_types %}
-          <img src="/static/caf/icon/{{atype.icon}}.svg" title="{{atype.name}}"/>
+          <img src="/static/caf/icon/{{atype.icon}}.svg" alt="{{atype.name}}" title="{{atype.name}}"/>
         {% endfor %}
       </div>
     </div>
 
 
 
-    <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
+    {% if event.photo %}
+    <img class="photo collective-display--photo" src="{{ url_for('images.fit', filename=event.photo, width=1100 ) }}" alt=""/>
+    {% endif %}
 
 
     {# Leaders #}
 
     <div id="encadrement">
-      <h3 class="heading-3">Encadrement</h3>
+      <h2 class="heading-3">Encadrement</h2>
       <div class="userlist">
         {% for user in event.ranked_leaders() %}
           {{ macros.leader_icon(user) }}
@@ -124,7 +128,7 @@
       </div>
       
       {% if event.coleaders() | length %}
-        <h4 class="heading-4">Co-encadrants en formation</h4>
+        <h3 class="heading-4">Co-encadrants en formation</h3>
         <div class="userlist">  
           {% for registration in event.coleaders() %}
               {{ macros.registration_icon(registration) }}
@@ -137,7 +141,7 @@
     {# Active registrations  #}
 
     <div class="subscriptions">
-      <h3 class="heading-3"> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
+      <h2 class="heading-3"> Inscrits {{event.num_taken_slots()}} / {{event.num_slots}}
           {% if event.num_pending_registrations() > 0 %}
             (dont {{event.num_pending_registrations()}} en attente)
           {% endif %}
@@ -150,7 +154,7 @@
             {% endif %}
 
           {% endif %}
-      </h3> 
+      </h2>
  
       {% if event.num_online_slots > 0 or event.num_waiting_list > 0 %}
         <p>Les inscriptions en ligne sont possibles {{format_datetime_range(event.registration_open_time, event.registration_close_time)}}. </p>
@@ -238,7 +242,7 @@
                 Votre licence va expirer avant la fin de l'événement; votre demande d'inscription a été prise en compte, mais ne sera confirmée qu'une fois le renouvellement effectif.
                 Si vous venez de renouveler votre licence, merci de resynchroniser vos informations FFCAM via le bouton ci-dessous. <br />
                 <button type="submit" class="button button-secondary">
-                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}"/> Resynchroniser mes informations FFCAM
+                  <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-ribbon.svg') }}" alt=""/> Resynchroniser mes informations FFCAM
                 </button>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               </p>
@@ -324,11 +328,11 @@
         {% endif %}
 
         {% if (event.num_waiting_list != 0 and not event.has_free_online_slots()) or event.num_waiting_registrations() > 0 %}
-          <h3 class="heading-3"> Liste d'attente {{event.num_waiting_registrations() }} / {{ event.num_waiting_list }}
+          <h2 class="heading-3"> Liste d'attente {{event.num_waiting_registrations() }} / {{ event.num_waiting_list }}
               {% if not event.has_free_waiting_slots() %}
                 <span class="tag red">COMPLET</span>
               {% endif %}
-          </h3>
+          </h2>
           {% if event.can_self_register(current_user, current_time, true) %}
               {{ self_register.button(True) }}
           {% endif %}
@@ -370,7 +374,7 @@
 
     {% if event.requires_payment()  and event.has_edit_rights(current_user) and event.num_pending_registrations() > 0 %}
     <div class="administration">
-      <h4 class="heading-4">Inscriptions en attente de paiement</h4>
+      <h2 class="heading-4">Inscriptions en attente de paiement</h2>
       <ul>
       {% for registration in event.registrations if registration.is_pending_payment() %}
         {{ macros.registration_admin_list_item(registration) }}<br/>
@@ -382,7 +386,7 @@
     {% endif %}
 
     <div id="description" class="collective-display--description">
-      <h4 class="heading-3">Description</h4>
+      <h2 class="heading-3">Description</h2>
       {{ event.rendered_description | safe  }}
     </div>
 
@@ -400,7 +404,7 @@
     {% endif %}
 
     {% if event.user_answers(current_user) %}
-    <h3 class="heading-3">Vos réponses au questionnaire</h3>
+    <h2 class="heading-3">Vos réponses au questionnaire</h2>
     Pour rappel, vous avez fourni les réponses suivantes. Pour les modifier, contactez l'encadrant.
 
     {% for qa in event.user_answers(current_user) %}

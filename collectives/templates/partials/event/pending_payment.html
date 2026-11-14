@@ -10,11 +10,11 @@
 
 {% macro buttons(payment) -%}
   <a class="button button-primary" href="{{ url_for('payment.request_payment', payment_id=payment.id) }}">
-    <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/card-outline.svg') }}"/> Procéder au paiement
+    <img class="icon invert-color" src="{{ url_for('static', filename='img/icon/ionicon/card-outline.svg') }}" alt=""/> Procéder au paiement
   </a>
   {% if payment.is_submitted_to_processor() %}
     <a class="button button-secondary" href="{{ url_for('payment.request_payment', payment_id=payment.id) }}">
-      <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/refresh.svg') }}"/> Vérifier mon paiement
+      <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/refresh.svg') }}" alt=""/> Vérifier mon paiement
     </a>
   {% endif %}
 {%- endmacro %}

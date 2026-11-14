@@ -2,41 +2,35 @@
 
   {{ form_errors(form) }}
 
-  <script  type="text/javascript">
-    function togglePassword( inputId ) {
-        const passwordInput = document.getElementById(inputId);
-        const type = passwordInput.type === "password" ? "text" : "password";
-        passwordInput.type = type;
-    }
-  </script>
-
   <form action="{{action}}" method="POST" enctype="multipart/form-data" class="form form-vertical" id="{{form_id}}">
     {% for field in form %}
-        {% set existing_class = field.render_kw.get('class', '') if field.render_kw else '' %}
+        {% set render_kw = field.render_kw or {} %}
+        {% set existing_class = render_kw.get('class', '') %}
+        {# Accessibility attributes: link the help text to the field and flag invalid values #}
+        {% set a11y = {} %}
+        {% if field.description %}{% set _ = a11y.update({'aria-describedby': field.id ~ '-help'}) %}{% endif %}
+        {% if field.errors %}{% set _ = a11y.update({'aria-invalid': 'true'}) %}{% endif %}
 
         {% if field.type == "HiddenField"%}
             {{ field }}
         {% elif field.type == "BooleanField"%}
             <div class="controls">
-                <div style="display: inline-block;">{{ field }} {{ field.label }}</div><br />
-                <div class="label-help">
+                <div style="display: inline-block;">{{ field(**a11y) }} {{ field.label }}</div><br />
+                <div class="label-help" id="{{ field.id }}-help">
                     {{ field.description }}
                 </div>
             </div>
         {% elif not ( field.type in [ "CSRFTokenField" , "SubmitField" ]) %}
             <div class="controls">
                 {{ field.label(class="label-top") }}
-                <div class="label-help">{{ field.description }}</div>
+                <div class="label-help" id="{{ field.id }}-help">{{ field.description }}</div>
 
                 {% if field.type == "PasswordField" %}
-                    {{ field(autocomplete="new-password", title=field.description, class='input-100 ' ~ existing_class) }}
-                    <div style="display: none" >
-                        <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt="👁️" onclick="togglePassword('{{field.id}}')"/>
-                    </div>
+                    {{ field(autocomplete=render_kw.get('autocomplete', 'new-password'), class='input-100 ' ~ existing_class, **a11y) }}
                 {% elif field.type == "FileField" %}
-                    {{ field(onchange="checkFileFieldSize(this)", title=field.description, class='input-100 ' ~ existing_class) }}
+                    {{ field(onchange="checkFileFieldSize(this)", class='input-100 ' ~ existing_class, **a11y) }}
                 {% else %}
-                    {{ field(title=field.description, class='input-100 ' ~ existing_class) }}
+                    {{ field(class='input-100 ' ~ existing_class, **a11y) }}
                 {% endif %}
             </div>
         {% endif %}
@@ -59,7 +53,7 @@
 {%- endmacro %}
 
 {% macro form_errors(form) -%}
-<div class="form-errors">
+<div class="form-errors" role="alert">
     {% for field in form%}
     {% for error in form.errors[field.name] %}
 

@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">{{user.full_name()}}</h2>
+  <h1 class="heading-2">{{user.full_name()}}</h1>
 
-  <h4 class="heading-4">Renouvellement badge</h4>
+  <h2 class="heading-4">Renouvellement badge</h2>
 
   {%if form.submit.data %}
     {{ generator.form_errors(form) }}

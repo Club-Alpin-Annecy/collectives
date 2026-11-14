@@ -14,7 +14,7 @@
             </ul>
         </div>
         
-        <div id="logo"><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}"></div>
+        <div id="logo"><img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="{{ Configuration.CLUB_NAME }}"></div>
 
         <p>
             Le {{format_date(payment.finalization_time)}}

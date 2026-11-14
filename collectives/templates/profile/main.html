@@ -6,6 +6,8 @@
   {% include 'profile/partials/head.html' %}
 {% endblock %}
 
+{% block title %}Profil de {{ user.full_name() }} – {% endblock %}
+
 {% block content %}
 <div class="page-content" id="profile">
 

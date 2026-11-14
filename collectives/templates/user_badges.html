@@ -23,9 +23,9 @@
 
 {% block content %}
 <div class="page-content" id="administration">
-  <h2 class="heading-2">{{user.full_name()}}</h2>
+  <h1 class="heading-2">{{user.full_name()}}</h1>
 
-  <h4 class="heading-4">Badges existants</h4>
+  <h2 class="heading-4">Badges existants</h2>
   <ul>
   {% for badge in user.badges %}
   <li>{{badge.name}}
@@ -56,7 +56,7 @@
   {% endfor %}
   </ul>
 
-  <h4 class="heading-4">Nouveau badge</h4>
+  <h2 class="heading-4">Nouveau badge</h2>
   {{ generator.form_generator(form, action=url_for('administration.add_user_badge', user_id=user.id)) }}
 </div>
 {% endblock %}

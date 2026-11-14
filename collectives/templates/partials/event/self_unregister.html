@@ -7,21 +7,16 @@
         >
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <div
-                class="button button-secondary"
-                onclick= "this.nextSibling.nextSibling.style.display='block'"
-            >
-            <span class="name" ><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire</span>
-        </div>
+        <button type="button" class="button button-secondary" data-dialog-open="self-unregister-dialog">
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}" alt=""/> Se désinscrire
+        </button>
 
-        <div class="messages" style="display:none">
+        <div class="messages" style="display:none" id="self-unregister-dialog" role="dialog" aria-modal="true" aria-labelledby="self-unregister-dialog-title">
             <div class="innermessages">
-                <img
-                                src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}"
-                                class="close"
-                                onclick= "this.parentNode.parentNode.style.display='none'"
-                            />
-                <h1 class="heading-1">Confirmation de désincription</h1>
+                <button type="button" class="close" aria-label="Fermer">
+                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="" />
+                </button>
+                <h2 class="heading-1" id="self-unregister-dialog-title">Confirmation de désinscription</h2>
                 <p>Nous vous rappelons qu’une inscription vous engage.</p>
                 {% if is_late %}
                     <p><strong>Votre désinscription est tardive</strong> ; n’oubliez pas de prévenir l’encadrant bénévole car celle-ci peut bouleverser le bon déroulement de la collective.</p>
@@ -32,15 +27,16 @@
                     <p>Dans la mesure du possible faites en sorte de vous inscrire, uniquement lorsque vous êtes sûr de pouvoir être présent.</p>
                 {% endif %}
                 <p>Si vous avez payé des frais, ceux-ci ne vous seront pas remboursés conformément aux CGU.</p>
-                <h4 class="centeralign">Confirmez-vous votre désinscription ?<br/> 
+                <p class="centeralign">
+                    <label for="self-unregister-reason">Justification pour les encadrants</label><br/>
+                    <textarea name="reason" id="self-unregister-reason" class="input-75" rows="5" style="min-width:20em; max-width:50em;"></textarea>
+                </p>
+                <p class="centeralign"><strong>Confirmez-vous votre désinscription ?</strong><br/>
                     <input type="submit" id="submitSelfUnregister" value="Confirmer" class="button button-danger">
-                    <input type="button" id="cancelSelfUnregister" value="Annuler" class="button button-secondary" onclick="this.closest('.messages').style.display='none'">
-                </h4>
-                <h4 class="centeralign"> 
-                    <textarea name="reason" class="input-75" placeholder="Justification pour les encadrants..." rows="5" style="min-width:20em; max-width:50em;"></textarea>
-                </h4>
+                    <input type="button" id="cancelSelfUnregister" value="Annuler" class="button button-secondary" data-dialog-close>
+                </p>
             </div>
-            <div class="veil" onclick= "this.parentNode.style.display='none'"></div>
+            <div class="veil"></div>
         </div>
 
     </form>
