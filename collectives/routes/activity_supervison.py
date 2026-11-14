@@ -528,6 +528,7 @@ def competency_badge_holders():
         allow_add=True,
         show_grantor=True,
         title="Pratiquants validés",
+        detailed_export=True,
     )
 
 
@@ -537,7 +538,10 @@ def export_competency_badge_holders():
 
     :return: The Excel file with the roles.
     """
-    response = badges.export_badge(badge_types=(BadgeIds.Practitioner, BadgeIds.Skill))
+    response = badges.export_badge(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill),
+        detailed=True,
+    )
     if response:
         return response
     flash("Impossible de générer le fichier: droit insuffisants", "error")

@@ -120,6 +120,19 @@ class BadgeIds(ChoiceEnum):
         """
         return self in {BadgeIds.Practitioner, BadgeIds.Benevole, BadgeIds.Skill}
 
+    @classmethod
+    def with_optional_activity(cls) -> list["BadgeIds"]:
+        """Returns the badges which may be associated with an activity, but don't
+        have to.
+
+        :return: list of badge ids
+        """
+        return [
+            badge_id
+            for badge_id in cls
+            if badge_id.accepts_activity() and not badge_id.requires_activity()
+        ]
+
     def has_custom_levels(self, activity_id: int | None = None) -> bool:
         """Whether the levels for this badge are user-defined"""
         if self == BadgeIds.Skill:
