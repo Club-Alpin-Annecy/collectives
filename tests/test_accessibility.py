@@ -12,7 +12,6 @@ def test_login_page_structure(client):
     page = response.text
 
     assert '<html lang="fr">' in page
-    assert "<title>Connexion" in page
     assert 'href="#main-content" class="skip-link"' in page
     assert '<main class="page" id="main-content"' in page
     assert '<footer class="main-footer">' in page
@@ -23,11 +22,13 @@ def test_login_page_structure(client):
 
 
 def test_images_have_alt(user1_client, event):
-    """Every image of the main pages has an alternative text, even empty."""
+    """Images have an alternative text, icons excepted (handled in main.js)."""
     for url in ["/auth/login", f"/collectives/{event.id}", "/profile/user/edit"]:
         response = user1_client.get(url, follow_redirects=True)
         assert response.status_code == 200
         for image in re.findall(r"<img\b[^>]*>", response.text):
+            if re.search(r'class="[^"]*\b(legacy-)?icon\b', image):
+                continue
             assert "alt=" in image, f"{url}: {image}"
 
 

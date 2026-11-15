@@ -30,7 +30,7 @@
 {% macro usericon(user, show_info=False, info_url=None, with_license_tags=False, competency_activities=None, show_all_competencies=False) -%}
 <div class="usericon">
       {% if show_info %}<a class="usericon-wrapper" href="{{info_url}}">{% else %}<span class="usericon-wrapper">{% endif %}
-            <img class="usericon-avatar" alt="" src="{% if user.avatar
+            <img class="usericon-avatar" alt="Avatar de {{user.abbrev_name()}}" src="{% if user.avatar
                         %}{{ url_for('images.crop', filename=user.avatar, width=80, height=80) }}{%
                   else
                         %}{{ url_for('static', filename='img/default/users/avatar-0'+ str(user.id % 6 + 1) +'.png')   }}{%

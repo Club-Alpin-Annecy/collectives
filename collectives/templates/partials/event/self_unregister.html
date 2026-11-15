@@ -8,15 +8,15 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <button type="button" class="button button-secondary" data-dialog-open="self-unregister-dialog">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}" alt=""/> Se désinscrire
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/> Se désinscrire
         </button>
 
         <div class="messages" style="display:none" id="self-unregister-dialog" role="dialog" aria-modal="true" aria-labelledby="self-unregister-dialog-title">
             <div class="innermessages">
-                <button type="button" class="close" aria-label="Fermer">
-                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="" />
+                <button type="button" class="close">
+                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="Fermer" />
                 </button>
-                <h2 class="heading-1" id="self-unregister-dialog-title">Confirmation de désinscription</h2>
+                <h1 class="heading-1" id="self-unregister-dialog-title">Confirmation de désincription</h1>
                 <p>Nous vous rappelons qu’une inscription vous engage.</p>
                 {% if is_late %}
                     <p><strong>Votre désinscription est tardive</strong> ; n’oubliez pas de prévenir l’encadrant bénévole car celle-ci peut bouleverser le bon déroulement de la collective.</p>

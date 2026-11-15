@@ -18,24 +18,22 @@
 {% endblock %}
 
 
-{% block title %}Scan des présences – {% endblock %}
-
 {% block content %}
 
 <div class="page-content">
 
     <p><a class="button button-secondary" href="{{ url_for('event.view_event', event_id=event.id) }}">Retour à la collective</a></p>
     
-    <h1 class="heading-3">
+    <p class="heading-3">
       Scanne une licence pour marquer présent
-    </h1>
+    </p>
     
     <div id="scan-result-container"></div>
     
     <div id="qr-reader"></div>
     
     <div class="qr-history">
-      <h2>Historique des scans</h2>
+      <h3>Historique des scans</h3>
       <div id="scan-history-list"></div>
     </div>
 </div>

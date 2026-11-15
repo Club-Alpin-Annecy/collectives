@@ -3,32 +3,32 @@
 {% if event.has_edit_rights(current_user) %}
     <div class="administration collective-display--administration">
     <div class="collective-display--administration-header">
-        <h2 class="heading-4 collective-display--administration-title">Administration</h2>
+        <h4 class="heading-4 collective-display--administration-title">Administration</h4>
         <span class="collective-number">Collective n° {{event.id}}</span>
     </div>
     <div class="buttons-bar">
         <a class="button button-secondary" href="{{ url_for('event.manage_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-create.svg') }}"/>
             Editer
         </a>
 
         <a class="button button-secondary" href="{{ url_for('event.duplicate', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-copy.svg') }}"/>
             Dupliquer
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{ url_for('event.print_event', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-exit.svg') }}"/>
             Fiche collective
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{ url_for('event.export_list_of_registered_users', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-file-document.svg') }}"/>
             Liste des inscrits
         </a>
 
         <a class="button button-secondary" target="_blank" href="{{url_for('event.qr_attendance', event_id=event.id)}}">
-            <img class="icon" src="{{url_for('static', filename='img/icon/ionicon/qr-code.svg')}}" alt=""/>
+            <img class="icon" src="{{url_for('static', filename='img/icon/ionicon/qr-code.svg')}}"/>
             Scanner QR-code
         </a>
 
@@ -38,7 +38,7 @@
             <form class="inline " action="{{url_for('event.delete_event', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmation de la suppression ?')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="button button-danger" style="width: 100%">
-                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}" alt=""/>
+                    <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-trash.svg') }}"/>
                     Supprimer
                 </button>
 
@@ -48,13 +48,13 @@
         {% if payments_enabled() %}
             
             <a class="button button-secondary" href="{{ url_for('payment.edit_prices', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Gestion des tarifs
             </a>
 
             {% if event.requires_payment() and event.has_payments() %}
             <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Liste des paiements
             </a>
             {% endif %}
@@ -63,7 +63,7 @@
                 <form class="inline" action="{{url_for('payment.refund_all', event_id=event.id)}}" method="post" onsubmit="return confirm('Confirmer le remboursement de tous les inscrits ayant fait un paiment en ligne ? Les inscriptions correspondantes ne seront pas supprimées.')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="button button-danger" style="width: 100%" >
-                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
+                        <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                         Tout rembourser
                     </button>
                 </form>
@@ -71,26 +71,26 @@
         {% endif %}
             
         <a class="button button-secondary" href="{{ url_for('question.edit_questions', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-list-box.svg') }}"/>
             Questionnaire
         </a>
 
         {% if Configuration.RETEX_ENABLED and event.event_type.short == "collective" %}
         <a class="button button-secondary" href="{{ url_for('retex.edit_retex', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/material-design/dino.svg') }}"/>
             Retex
         </a>
         {% endif %}
         
         {% if event.questions %}
         <a class="button button-secondary" href="{{ url_for('question.show_answers', event_id=event.id)}}">
-            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}" alt=""/>
+            <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/analytics-sharp.svg') }}"/>
             Réponses aux questions
         </a>
         {% endif %}
     </div>
 
-    <h3 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h3>
+    <h5 class="heading-5 collective-display--administration-title">Coordonnées des inscrits</h5>
     {% if current_user.has_signed_ca() %}
         <form class="contactinfos">
             <div class="inputGrow">
@@ -165,7 +165,7 @@
         </p>
     {% endif %}
 
-    <h3 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h3>
+    <h5 class="heading-5 collective-display--administration-title"> Inscrire un adhérent </h5>
     <form action="{{url_for('event.register_user', event_id=event.id)}}" id="user-search-form" method="POST" class="form form-vertical" >
     <div id="user-search-data" class="form-search search-data">
         <p class="align-center">
@@ -177,7 +177,7 @@
     </form>
 
 
-    <h3 class="heading-5 collective-display--administration-title">Co-encadrants en formation</h3>
+    <h5 class="heading-5 collective-display--administration-title">Co-encadrants en formation</h5>
     <div class="margin-bottom-m">
         {% for registration in event.potential_coleaders_registrations() %}
                 <div class="align-center margin-bottom-m"> 
@@ -201,7 +201,7 @@
         {% endif %}
     </div>
 
-    <h3 class="heading-5 collective-display--administration-title"> Liste des présences</h3>
+    <h5 class="heading-5 collective-display--administration-title"> Liste des présences</h5>
     <form class="form" action="{{url_for('event.update_attendance', event_id=event.id, sort_key=sort_key)}}" method="post" id="attendancelistform" autocomplete="off">
         <table id="attendancelist">
             <thead>
@@ -262,7 +262,7 @@
         </table>
             {% if ns.license_to_renew %}
             <div class="text-gray">
-                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="" class="icon"/>
+                <img src="{{url_for('static', filename='img/icon/ionicon/md-time.svg')}}" alt="&#128337;" class="icon" title="Licence à renouveler"/>
                 = Licence à renouveler 
             </div>
             {% endif %}
@@ -282,12 +282,12 @@
 
 {% if payments_enabled() and current_user.is_active and current_user.is_accountant()  %}
 <div class="administration collective-display--administration">
-    <h2 class="heading-4 collective-display--administration-title">Comptabilité</h2>
+    <h4 class="heading-4 collective-display--administration-title">Comptabilité</h4>
     <br/>
     <div class="buttons">
         {% if event.requires_payment() %}
             <a class="button button-secondary" href="{{ url_for('payment.list_payments', event_id=event.id)}}">
-                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}" alt=""/>
+                <img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/md-cash-outline.svg') }}"/>
                 Liste des paiements
             </a>
         {% else %}

@@ -27,7 +27,7 @@ export default {
       :href="event.view_uri"
     >
       <div class="section collectives-list--item--photo">
-        <img :src="event.photo_uri" alt="" />
+        <img :src="event.photo_uri" :alt="'Photo de ' + event.title" />
       </div>
       <div class="section collectives-list--item--details">
 

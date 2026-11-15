@@ -26,10 +26,10 @@
 
         <div class="messages" style="display:none" id="{{ dialog_id }}" role="dialog" aria-modal="true" aria-labelledby="{{ dialog_id }}-title">
             <div class="innermessages">
-                <button type="button" class="close" aria-label="Fermer">
-                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="" />
+                <button type="button" class="close">
+                    <img src="{{ url_for('static', filename='img/icon/ionicon/md-close-circle-outline.svg') }}" alt="Fermer" />
                 </button>
-                <h2 class="heading-1" id="{{ dialog_id }}-title">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h2>
+                <h1 class="heading-1" id="{{ dialog_id }}-title">Confirmation {% if waiting_list %} d'inscription à la liste d'attente{% endif %}</h1>
                 {% if event.event_type.get_terms_file() %}
                 {% if waiting_list %}
                     <p>L'inscription à la liste d'attente vous engage à y participer si vous êtes sélectionné(e).</p>

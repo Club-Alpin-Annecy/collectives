@@ -105,7 +105,26 @@ var initPasswordReveal = function initPasswordReveal() {
     });
 }
 
+// The tab title is the main heading of the page, followed by the site name
+var initPageTitle = function initPageTitle() {
+    var heading = document.querySelector('main h1');
+    if (heading && heading.textContent.trim()) {
+        document.title = heading.textContent.trim().replace(/\s+/g, ' ') + ' – ' + document.title.trim();
+    }
+}
+
+// An icon without alternative text only illustrates the label next to it:
+// hide it from screen readers, which would otherwise read its file name.
+// Images carrying information have their own alt.
+var initDecorativeIcons = function initDecorativeIcons() {
+    document.querySelectorAll('img.icon:not([alt]), img.legacy-icon:not([alt])').forEach(function(icon) {
+        icon.setAttribute('aria-hidden', 'true');
+    });
+}
+
 var initAll = function initAll() {
+    initPageTitle();
+    initDecorativeIcons();
     initDropdowns();
     initDialogs();
     initPasswordReveal();

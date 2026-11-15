@@ -4,8 +4,6 @@
 
 {% endblock %}
 
-{% block title %}{{ title }} – {% endblock %}
-
 {% block content %}
 <div class="page-content" id="administration">
   <!-- Logging Windows -->
@@ -25,7 +23,7 @@
 
   <form action="" method="POST" enctype="multipart/form-data" class="form">
       <div class="controls">
-          <h2 class="heading-4">Mot de passe</h2>
+          <h4 class="heading-4">Mot de passe</h4>
       </div>
 
       <div class="controls">
@@ -40,7 +38,7 @@
 
       {% if form.legal_accepted is defined %}
       <div class="controls">
-        <h2 class="heading-4">Acceptations des conditions du site</h2>
+        <h4 class="heading-4">Acceptations des conditions du site</h4>
       </div>
       <div class="inline_field">
             {{ form.legal_accepted(title=form.legal_accepted.description) }}
