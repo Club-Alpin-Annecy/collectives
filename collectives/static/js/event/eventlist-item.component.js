@@ -119,6 +119,7 @@ export default {
                 :src="'/static/caf/icon/' + event.event_type.short + '.svg'"
                 width="30px"
                 :title="event.event_type.name"
+                :alt="event.event_type.name"
               />
               <span>{{event.event_type.name}}</span>
             </span>
@@ -129,6 +130,7 @@ export default {
                     :src="'/static/caf/icon/' + tag.short + '.svg'"
                     width="30px"
                     :title="tag.name"
+                    :alt="tag.name"
                 />
                 <span>{{ tag.name }}</span>
             </span>
