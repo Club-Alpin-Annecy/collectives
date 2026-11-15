@@ -107,7 +107,7 @@ var initPasswordReveal = function initPasswordReveal() {
 
 // The tab title is the main heading of the page, followed by the site name
 var initPageTitle = function initPageTitle() {
-    var heading = document.querySelector('main h1');
+    var heading = document.querySelector('main h1') || document.querySelector('main .heading-1, main .heading-2');
     if (heading && heading.textContent.trim()) {
         document.title = heading.textContent.trim().replace(/\s+/g, ' ') + ' – ' + document.title.trim();
     }

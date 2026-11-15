@@ -4,7 +4,7 @@
 <!-- Début Bénévolat régulier -->
     <div class="card">
         <div class="card-info">
-            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}" alt=""/></div>
+            <div class="inverted-icon"><img class="icon" src="{{ url_for('static', filename='img/icon/ionicon/thumbs-up.svg') }}"/></div>
             <div>
                 
                 <div>
@@ -28,9 +28,9 @@
         {% for activity, badges in badges %}
             <div class="card-info margin-bottom-s">
                 {% if not activity %}
-                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/association.svg') }}" alt=""/>
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/association.svg') }}"/>
                 {% else %}
-                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.icon ~ '.svg') }}" alt=""/>
+                    <img class="icon" style="width: 1.6em; height: 1.6em;" src="{{ url_for('static', filename='caf/icon/' ~ activity.icon ~ '.svg') }}"/>
                 {% endif %}
 
                 <div>

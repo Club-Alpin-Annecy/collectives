@@ -69,7 +69,7 @@ function retexStatusFormatter(cell, formatterParams, onRendered) {
 
 function typesFormatter(cell, formatterParams, onRendered) {
     function formatFunc(activity) {
-        return `<img src="/static/caf/icon/${activity['icon']}.svg" width="30px" title="${activity['name']}"/>`;
+        return `<img src="/static/caf/icon/${activity['icon']}.svg" width="30px" title="${activity['name']}" alt="${activity['name']}"/>`;
     }
 
     var val = cell.getValue()
