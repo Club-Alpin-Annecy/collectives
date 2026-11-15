@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass
 from datetime import date
-from typing import Iterable, NamedTuple
+from typing import Iterable
 
 from jinja2.utils import htmlsafe_json_dumps
 from markupsafe import Markup

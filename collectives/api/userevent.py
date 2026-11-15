@@ -8,7 +8,6 @@ import json
 import flask
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import desc
 from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint, marshmallow
@@ -19,7 +18,6 @@ from collectives.models import (
     Event,
     EventStatus,
     EventTag,
-    EventType,
     Registration,
     RegistrationStatus,
     User,
