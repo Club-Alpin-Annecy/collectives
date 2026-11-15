@@ -27,6 +27,13 @@
 
                 {% if field.type == "PasswordField" %}
                     {{ field(autocomplete=render_kw.get('autocomplete', 'new-password'), class='input-100 ' ~ existing_class, **a11y) }}
+                    {% if render_kw.get('passsword-reveal') %}
+                    <div style="display: none">
+                        <button type="button" class="password-reveal" aria-pressed="false" aria-controls="{{ field.id }}" aria-label="Afficher le mot de passe">
+                            <img src="{{ url_for('static', filename='img/icon/ionicon/eye.svg') }}" alt=""/>
+                        </button>
+                    </div>
+                    {% endif %}
                 {% elif field.type == "FileField" %}
                     {{ field(onchange="checkFileFieldSize(this)", class='input-100 ' ~ existing_class, **a11y) }}
                 {% else %}

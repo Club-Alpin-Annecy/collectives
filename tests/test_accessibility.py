@@ -17,6 +17,9 @@ def test_login_page_structure(client):
     assert '<main class="page" id="main-content"' in page
     assert '<footer class="main-footer">' in page
     assert 'autocomplete="current-password"' in page
+    # The password can be shown with a real button
+    assert '<button type="button" class="password-reveal"' in page
+    assert 'aria-controls="password"' in page
 
 
 def test_images_have_alt(user1_client, event):

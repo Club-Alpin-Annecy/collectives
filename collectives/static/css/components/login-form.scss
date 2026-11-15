@@ -24,9 +24,21 @@ input[passsword-reveal=true] {
     opacity: 0.65;
     margin: $padding-input-default !important;
 
-    img{
-      height: 1.5em;
+    button{
+      display: inline-block;
+      padding: 0;
+      border: none;
+      background: none;
       cursor: pointer;
     }
+
+    img{
+      display: block;
+      height: 1.5em;
+    }
   }
+}
+
+.login-form-signup {
+  margin-block: 1.67em;
 }

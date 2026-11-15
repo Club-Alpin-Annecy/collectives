@@ -93,9 +93,22 @@ var initDialogs = function initDialogs() {
     });
 }
 
+// Buttons showing or hiding the content of the password field they control
+var initPasswordReveal = function initPasswordReveal() {
+    document.querySelectorAll('.password-reveal').forEach(function(button) {
+        button.addEventListener('click', function() {
+            var input = document.getElementById(button.getAttribute('aria-controls'));
+            var reveal = input.type === 'password';
+            input.type = reveal ? 'text' : 'password';
+            button.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+        });
+    });
+}
+
 var initAll = function initAll() {
     initDropdowns();
     initDialogs();
+    initPasswordReveal();
 }
 
 Collectives.initAll  = initAll;
