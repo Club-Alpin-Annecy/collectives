@@ -55,6 +55,50 @@ def test_overflow(user1, user2, user3, user4, event: Event):
     assert (event.registrations[1]) == reg3
 
 
+def test_overflow_with_leaders_in_counts(user1, user2, user3, event: Event):
+    """Leaders included in the counts take slots: a registration committed
+    at the same time as another one must not go over the maximum."""
+
+    num_leaders = len(event.leaders)
+    assert num_leaders > 0
+    event.include_leaders_in_counts = True
+    event.num_slots = num_leaders + 1
+    event.num_online_slots = num_leaders + 1
+    event.num_waiting_list = 1
+    db.session.add(event)
+    db.session.commit()
+
+    def registration(user, status):
+        return Registration(
+            user_id=user.id,
+            status=status,
+            level=RegistrationLevels.Normal,
+            is_self=True,
+        )
+
+    reg1 = registration(user1, RegistrationStatus.Active)
+    reg2 = registration(user2, RegistrationStatus.Active)
+    reg3 = registration(user3, RegistrationStatus.Waiting)
+
+    event.add_registration_check_race_conditions(reg1)
+    with pytest.raises(OverbookedRegistrationError):
+        event.add_registration_check_race_conditions(reg2)
+    assert event.num_taken_slots() == event.num_slots
+
+    # The waiting list is not affected by the leaders
+    event.add_registration_check_race_conditions(reg3)
+    assert event.registrations == [reg1, reg3]
+
+    # Leaders left out of the counts: the slot they took is free again
+    event.include_leaders_in_counts = False
+    event.num_slots = 2
+    event.num_online_slots = 2
+    db.session.commit()
+    reg4 = registration(user2, RegistrationStatus.Active)
+    event.add_registration_check_race_conditions(reg4)
+    assert event.num_taken_slots() == 2
+
+
 def test_duplicate(user1, user2, event: Event):
     """Test duplicate resgistration to an event"""
 

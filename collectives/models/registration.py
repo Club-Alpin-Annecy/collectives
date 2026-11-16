@@ -359,12 +359,22 @@ class Registration(db.Model):
         - | a Waiting registration with more previous Waiting registration
           | than Waiting slots
 
+        Leaders take slots too when the event includes them in its counts.
         """
+        leader_slots = self.event.num_leader_slots()
+        holding_index = self.holding_index()
+        online_index = self.online_index()
 
         return (
             self.waiting_index() >= self.event.num_waiting_list
-            or self.holding_index() >= self.event.num_slots
-            or self.online_index() >= self.event.num_online_slots
+            or (
+                holding_index >= 0
+                and holding_index + leader_slots >= self.event.num_slots
+            )
+            or (
+                online_index >= 0
+                and online_index + leader_slots >= self.event.num_online_slots
+            )
         )
 
     def is_in_late_unregistration_period(self, time: Optional[datetime] = None) -> bool:
