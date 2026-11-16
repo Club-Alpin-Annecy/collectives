@@ -67,15 +67,18 @@ jobs:
           docker push "$IMAGE"
           docker logout ghcr.io
 
+      # The package is private: the server pulls the image with the token of
+      # this job, read on its standard input, which expires when the job ends.
       - name: Deploy
         id: deploy
         env:
           SSH_KEY: ${{ secrets.PREVIEW_SSH_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           install -d -m 700 ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh "$SSH_TARGET" deploy "$PR" >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_TOKEN" | ssh "$SSH_TARGET" deploy "$PR" >> "$GITHUB_OUTPUT"
 
       # One comment per pull request, updated on each deployment.
       - name: Comment
