@@ -43,5 +43,6 @@ echo "restrict,command=\"/usr/local/bin/collectives-preview\" $(cat preview_key.
 
 On GitHub, create the environments `preview` and `preview-fork` (the latter
 with required reviewers), store `preview_key` as the secret `PREVIEW_SSH_KEY`
-of both, then delete it. After the first push, make the `collectives` package
-public so that the server can pull it.
+of both, then delete it. The `collectives` package may stay private: the
+workflow gives its own token to `collectives-preview` on standard input, and
+once pulls the image with it.

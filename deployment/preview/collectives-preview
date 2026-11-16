@@ -3,7 +3,7 @@
 # (https://github.com/basecamp/once), each one with its own MariaDB database.
 #
 # Forced command of the deploy SSH key used by .github/workflows/preview.yml:
-#   ssh deploy@<server> deploy <pr number>
+#   ssh deploy@<server> deploy <pr number>   (registry token on stdin)
 #   ssh deploy@<server> remove <pr number>
 # deploy prints the url, admin_password and fixture accounts of the instance on
 # stdout, in the format of $GITHUB_OUTPUT; everything else goes to stderr.
@@ -57,6 +57,11 @@ is_deployed() {
 }
 
 deploy() {
+    # The package is private: once pulls the image with the token given on
+    # stdin (the GITHUB_TOKEN of the workflow run).
+    IFS= read -r registry_token || true
+    [ -n "$registry_token" ] || die "registry token expected on stdin"
+
     if [ ! -f "$state" ]; then
         (
             umask 077
@@ -80,12 +85,15 @@ EOF
     set -- --memory 512 --auto-update=false \
         --env STORAGE_DIR=/storage --env PORT=80 \
         --env SECRET_KEY="$SECRET_KEY" --env ADMINPWD="$ADMINPWD" \
-        --env SQLALCHEMY_DATABASE_URI="$uri"
+        --env SQLALCHEMY_DATABASE_URI="$uri" \
+        --registry-username github-actions --registry-password-stdin
 
     if is_deployed; then
-        once update "$host" --image "$IMAGE_REPOSITORY:pr-$pr" "$@" >&2
+        echo "$registry_token" |
+            once update "$host" --image "$IMAGE_REPOSITORY:pr-$pr" "$@" >&2
     else
-        once deploy "$IMAGE_REPOSITORY:pr-$pr" --host "$host" "$@" >&2
+        echo "$registry_token" |
+            once deploy "$IMAGE_REPOSITORY:pr-$pr" --host "$host" "$@" >&2
     fi
 
     # Fill the database with the test fixtures, once per instance. The seed
