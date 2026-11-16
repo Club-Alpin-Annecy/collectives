@@ -1,0 +1,21 @@
+// Images displayed in the text of the markdown editor, in place of their
+// markdown code.
+.editor-inline-image {
+    display: inline-block;
+    max-width: 100%;
+    max-height: 20em;
+    vertical-align: bottom;
+    border-radius: 4px;
+
+    &.editor-inline-image-uploading {
+        opacity: 0.4;
+    }
+}
+
+// Icon columns of the uploaded files list: without the cell padding, so that
+// the icon is not cut off.
+.tabulator-row .tabulator-cell.uploaded-files-icon {
+    padding-left: 0;
+    padding-right: 0;
+    cursor: pointer;
+}

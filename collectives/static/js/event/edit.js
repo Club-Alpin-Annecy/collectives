@@ -1,6 +1,6 @@
 
 var locale = window.navigator.userLanguage || window.navigator.language;
-// Some pages using the editor (retex, CSV import) do not load moment: without
+// Some pages using the editor (CSV import) do not load moment: without
 // this check the script would stop here, before the upload constants below.
 if (typeof moment !== "undefined") {
     moment.locale(locale);
@@ -117,6 +117,10 @@ function setupDatePickers(newEvent) {
 }
 
 function getActivityIds() {
+    // Pages without an activity choice (retex) only list the files of the event
+    if (!document.getElementById("multi_activities_mode")) {
+        return [];
+    }
     var multiActivity = document.getElementById("multi_activities_mode").checked;
     var ids;
     if (multiActivity) {
@@ -326,15 +330,106 @@ function shrinkAndUploadImage(file, onSuccess, onError) {
         return;
     }
 
+    // With inline images, the photo is shown at once, dimmed, where it will
+    // be inserted
+    var removePlaceholder = () => { };
+    if (this.options.inlineImages && file.type.startsWith("image/")) {
+        removePlaceholder = showUploadPlaceholder(this.codemirror, file);
+    }
+    const onUploaded = (url) => {
+        removePlaceholder();
+        onSuccess(url);
+    };
+
     const reencode = ALWAYS_REENCODED_TYPES.includes(file.type)
         || (SHRINK_IMAGE_TYPES.includes(file.type) && file.size > this.options.imageMaxSize);
     if (!reencode) {
-        this.uploadImage(file, onSuccess);
+        this.uploadImage(file, onUploaded, removePlaceholder);
         return;
     }
     shrinkImage(file)
         .catch(() => file) // the default size check then reports the error
-        .then((uploaded) => this.uploadImage(uploaded, onSuccess));
+        .then((uploaded) => this.uploadImage(uploaded, onUploaded, removePlaceholder));
+}
+
+// Markdown image: ![alt](url) or ![alt](url "title")
+const INLINE_IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g;
+const INLINE_IMAGE_CLASS = "editor-inline-image";
+const UPLOADING_IMAGE_CLASS = "editor-inline-image-uploading";
+
+/**
+ * Shows the image being uploaded at the cursor position.
+ *
+ * @param {CodeMirror} cm The CodeMirror instance of the editor.
+ * @param {File} file The image being uploaded.
+ * @returns {function} Removes the placeholder and moves the cursor to its
+ *     position, where the uploaded image is then inserted.
+ */
+function showUploadPlaceholder(cm, file) {
+    const image = document.createElement("img");
+    image.className = `${INLINE_IMAGE_CLASS} ${UPLOADING_IMAGE_CLASS}`;
+    image.src = URL.createObjectURL(file);
+    const bookmark = cm.setBookmark(cm.getCursor(), { widget: image });
+    image.onload = () => bookmark.changed();
+
+    return function () {
+        const position = bookmark.find();
+        if (!position) {
+            return;
+        }
+        cm.setCursor(position);
+        bookmark.clear();
+        URL.revokeObjectURL(image.src);
+    };
+}
+
+/**
+ * Displays the images of the text in place of their markdown code.
+ *
+ * The text itself is not changed. An image that cannot be loaded keeps its
+ * markdown code, so that its address can still be fixed.
+ *
+ * @param {CodeMirror} cm The CodeMirror instance of the editor.
+ */
+function setupInlineImages(cm) {
+    const brokenUrls = new Set();
+
+    function showImage(from, to, alt, url) {
+        const image = document.createElement("img");
+        image.className = INLINE_IMAGE_CLASS;
+        image.alt = alt;
+        image.title = alt;
+        const mark = cm.markText(from, to, { replacedWith: image, atomic: true });
+        mark.isInlineImage = true;
+        image.onload = () => mark.changed();
+        image.onerror = () => {
+            brokenUrls.add(url);
+            mark.clear();
+        };
+        image.src = url;
+    }
+
+    function showImages() {
+        cm.operation(() => {
+            cm.eachLine((lineHandle) => {
+                const line = cm.getLineNumber(lineHandle);
+                for (const match of lineHandle.text.matchAll(INLINE_IMAGE_PATTERN)) {
+                    const from = { line: line, ch: match.index };
+                    const to = { line: line, ch: match.index + match[0].length };
+                    if (brokenUrls.has(match[2])) {
+                        continue;
+                    }
+                    if (cm.findMarks(from, to).some((mark) => mark.isInlineImage)) {
+                        continue;
+                    }
+                    showImage(from, to, match[1], match[2]);
+                }
+            });
+        });
+    }
+
+    cm.on("change", showImages);
+    showImages();
 }
 
 function getEditorOptions(elementId) {
@@ -382,6 +477,9 @@ function makeEditor(elementId, options = {}) {
     var imageInput = easymde.gui.toolbar.querySelector(".imageInput");
     if (imageInput) {
         imageInput.addEventListener("click", function () { imageInput.value = ""; });
+    }
+    if (allOptions.inlineImages) {
+        setupInlineImages(easymde.codemirror);
     }
     return easymde;
 }
@@ -567,19 +665,24 @@ function createUploadedFilesTable(editor, csrf_token) {
         req.send();
     }
 
+    // Wide enough to be touched
+    const iconColumn = { width: 40, align: "center", formatter: iconFormatter, headerSort: false, cssClass: "uploaded-files-icon" };
+
     return new Tabulator("#uploaded-files-table",
         {
             layout: "fitColumns",
+            // On a phone, the size and the date are hidden: the name stays readable
+            responsiveLayout: "hide",
 
             columns: [
                 {
-                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles
+                    title: "Fichier", widthGrow: 3, minWidth: 110, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles
                 },
-                { title: "Taille", widthGrow: 1, field: "size", formatter: sizeFormatter },
-                { title: "Date", widthGrow: 1, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
-                { field: "url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink, headerSort: false },
-                { field: "thumbnail_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage, headerSort: false },
-                { field: "delete_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile, headerSort: false }
+                { title: "Taille", widthGrow: 1, minWidth: 80, responsive: 3, field: "size", formatter: sizeFormatter },
+                { title: "Date", widthGrow: 1, minWidth: 100, responsive: 2, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
+                { ...iconColumn, field: "url", formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink },
+                { ...iconColumn, field: "thumbnail_url", formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage },
+                { ...iconColumn, field: "delete_url", formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile }
             ],
 
             groupBy: "activity_name",

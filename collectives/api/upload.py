@@ -61,8 +61,7 @@ def upload_event_file(event_id=None, edit_session_id=None):
         response = {
             "error": "Le nombre maximum de fichiers par événement "
             f"({Configuration.MAX_UPLOADS_PER_EVENT}) est atteint. Supprimez un "
-            "fichier depuis les « Documents téléchargés » de l'édition de "
-            "l'événement."
+            "fichier depuis les « Documents téléchargés » de l'éditeur."
         }
         return json.dumps(response), 413, {"content-type": "application/json"}
 
