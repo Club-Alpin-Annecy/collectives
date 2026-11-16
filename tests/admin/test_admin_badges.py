@@ -38,7 +38,9 @@ def test_admin_badges_export(
 
     response = hotline_client.get("/administration/badges/")
     data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Parapente").first().id
+    data["export-activity_id"] = (
+        ActivityType.query.filter_by(name="Parapente").first().id
+    )
 
     response = hotline_client.post("/administration/badges/export/", data=data)
     assert response.status_code == 200
@@ -47,7 +49,7 @@ def test_admin_badges_export(
     assert worksheet.max_row == 1
     assert worksheet.max_column == 9
 
-    data["activity_id"] = ActivityTypeSelectionForm.ALL_ACTIVITIES
+    data["export-activity_id"] = ActivityTypeSelectionForm.ALL_ACTIVITIES
     response = hotline_client.post("/administration/badges/export/", data=data)
     assert response.status_code == 200
     workbook = openpyxl.load_workbook(filename=BytesIO(response.data))

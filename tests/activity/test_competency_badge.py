@@ -169,7 +169,7 @@ def test_supervisor_badge_scope(supervisor_client, user1, user2, user3, custom_s
     # Export of all activities includes the skill badge without activity
     response = supervisor_client.post(
         "/activity_supervision/competency_badge_holders/export",
-        data={"activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
+        data={"export-activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
     )
     assert response.status_code == 200
     worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
@@ -210,7 +210,7 @@ def test_hotline_badge_scope(hotline_client, user1, user2, custom_skill):
 
     response = hotline_client.post(
         "/administration/badges/export/",
-        data={"activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
+        data={"export-activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
     )
     assert response.status_code == 200
     worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
@@ -219,3 +219,29 @@ def test_hotline_badge_scope(hotline_client, user1, user2, custom_skill):
     response = hotline_client.post(f"/administration/badges/delete/{suspension.id}")
     assert response.status_code == 302
     assert db.session.get(Badge, suspension.id) is None
+
+
+def test_export_badge_type_and_level(
+    supervisor_client, user1, user2, user3, custom_skill
+):
+    """Tests exporting competency badges of a given type and level."""
+    _add_badge(user1, BadgeIds.Skill, custom_skill.level)
+    _add_badge(user2, BadgeIds.Practitioner, 2, "Alpinisme")
+    _add_badge(user3, BadgeIds.Practitioner, 3, "Alpinisme")
+
+    def export(badge_id, level=""):
+        response = supervisor_client.post(
+            "/activity_supervision/competency_badge_holders/export",
+            data={
+                "export-badge_id": int(badge_id),
+                "export-activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES,
+                "export-level": level,
+            },
+        )
+        assert response.status_code == 200
+        worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
+        return {row[0] for row in worksheet.iter_rows(min_row=2, values_only=True)}
+
+    assert export(BadgeIds.Skill) == {user1.license}
+    assert export(BadgeIds.Practitioner) == {user2.license, user3.license}
+    assert export(BadgeIds.Practitioner, 3) == {user3.license}

@@ -11,7 +11,11 @@ from markupsafe import Markup
 from sqlalchemy import ColumnElement, and_, or_, true
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
+from collectives.forms.badge import (
+    AddBadgeForm,
+    ExportBadgeForm,
+    compute_default_expiration_date,
+)
 from collectives.models import (
     ActivityType,
     Badge,
@@ -52,9 +56,8 @@ def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     :param type: The type of badge to export
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm(
-        all_enabled=True,
-    )
+    badge_types = badge_types or list(BadgeIds)
+    form = ExportBadgeForm(badge_ids=badge_types)
 
     if not form.validate_on_submit():
         return False
@@ -74,8 +77,11 @@ def export_badge(badge_types: Sequence[BadgeIds] | None = None):
         query = query.filter(Badge.activity_id == activity_type.id)
         filename = activity_type.name
 
-    if badge_types is not None:
-        query = query.filter(Badge.badge_id.in_(badge_types))
+    if "badge_id" in form and form.badge_id.data is not None:
+        badge_types = [form.badge_id.data]
+    if "level" in form and form.level.data is not None:
+        query = query.filter(Badge.level == form.level.data)
+    query = query.filter(Badge.badge_id.in_(badge_types))
 
     badges = query.all()
 
@@ -138,10 +144,10 @@ def list_page(
     else:
         add_badge_form = None
 
-    export_form = ActivityTypeSelectionForm(
+    export_form = ExportBadgeForm(
+        badge_ids=badge_types or list(BadgeIds),
         submit_label="Générer Excel",
         activity_list=current_user.get_supervised_activities(),
-        all_enabled=True,
     )
 
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
