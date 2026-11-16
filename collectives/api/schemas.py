@@ -206,9 +206,7 @@ class EventSchema(marshmallow.SQLAlchemyAutoSchema):
     """ Number of free user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function` """
-    occupied_slots = fields.Function(
-        lambda event: len(event.holding_slot_registrations())
-    )
+    occupied_slots = fields.Function(lambda event: event.num_taken_slots())
     """ Number of occupied user slots for this event.
 
     :type: :py:class:`marshmallow.fields.Function`"""

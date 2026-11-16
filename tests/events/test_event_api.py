@@ -235,3 +235,30 @@ def test_event_title_search(user1_client, event1, event2):
     data = response.json["data"]
     assert len(data) == 1
     assert data[0]["title"] == event2.title
+
+
+def test_event_occupied_slots_match_event_page(user1_client, event1_with_reg):
+    """The event list and the event page must show the same slot count,
+    whether or not leaders are included in the counts."""
+    event = event1_with_reg
+    event.num_slots = 10
+    num_leaders = len(event.leaders)
+    assert num_leaders > 0
+
+    for include_leaders, expected in ((False, 4), (True, 4 + num_leaders)):
+        event.include_leaders_in_counts = include_leaders
+        db.session.commit()
+
+        response = user1_client.get(
+            "/api/events/?page=1&size=25&sorters[0][field]=start&sorters[0][dir]=asc"
+        )
+        assert response.status_code == 200
+        data = response.json["data"]
+        assert len(data) == 1
+        assert data[0]["occupied_slots"] == expected
+        # The progress bar is derived from free_slots: both must agree
+        assert data[0]["occupied_slots"] + data[0]["free_slots"] == 10
+
+        response = user1_client.get(data[0]["view_uri"])
+        assert response.status_code == 200
+        assert f"Inscrits {expected} / 10" in response.text
