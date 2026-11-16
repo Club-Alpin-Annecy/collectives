@@ -171,6 +171,54 @@ def test_retex_photo_upload_quota(leader_client, past_event):
             os.remove(upload.full_path())
 
 
+def test_retex_detaches_removed_photos(leader_client, past_event):
+    """Test that saving a retex detaches the photos that no text uses any more,
+    without deleting their file."""
+    upload_url = f"/api/upload/event/{past_event.id}"
+    for name in ["retex.png", "event.png", "removed.png", "notes.pdf"]:
+        response = leader_client.post(
+            upload_url,
+            data={"image": (_png_file(), name)},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+    uploads = {
+        upload.name: upload
+        for upload in UploadedFile.query.filter_by(event_id=past_event.id).all()
+    }
+    full_paths = [upload.full_path() for upload in uploads.values()]
+    try:
+        past_event.description = f"![](/static/uploads/{uploads['event.png'].path})"
+        db.session.commit()
+
+        response = leader_client.get(f"/retex/event/{past_event.id}/edit")
+        data = utils.load_data_from_form(response.text, "retex_form")
+        data["status"] = [str(int(RetexStatus.GoodPractice))]
+        data["description"] = f"![](/imgsizer/{uploads['retex.png'].path}?w=640)"
+        response = leader_client.post(f"/retex/event/{past_event.id}/edit", data=data)
+        assert response.status_code == 302
+
+        attached = UploadedFile.query.filter_by(event_id=past_event.id).all()
+        assert {upload.name for upload in attached} == {
+            "retex.png",
+            "event.png",
+            "notes.pdf",
+        }
+
+        # The detached photo is kept, even by the purge of abandoned uploads
+        removed = db.session.get(UploadedFile, uploads["removed.png"].id)
+        removed.date = removed.date - timedelta(days=10)
+        db.session.commit()
+        UploadedFile.purge_old_uploads(None)
+        UploadedFile.purge_old_uploads("another-session")
+        db.session.commit()
+        assert db.session.get(UploadedFile, removed.id) is not None
+        assert os.path.exists(removed.full_path())
+    finally:
+        for full_path in full_paths:
+            os.remove(full_path)
+
+
 def test_retex_photo_upload_wrong_user(user1_client, past_event):
     """Test that a user who does not lead the event cannot upload photos."""
     response = user1_client.post(

@@ -12,6 +12,7 @@ from collectives.models import (
     Event,
     EventType,
     Retex,
+    UploadedFile,
     User,
     db,
 )
@@ -66,6 +67,10 @@ def edit_retex(event_id: int):
         retex.author_id = current_user.id
         retex.set_rendered_description(retex.description)
         db.session.add(retex)
+        db.session.commit()
+        # Photos removed from the text no longer count in the upload quota.
+        # Done after the commit, for a new retex to be known by its event.
+        UploadedFile.detach_unused_images(event)
         db.session.commit()
         flash("Retex enregistré", "success")
         return redirect(url_for("event.view_event", event_id=event_id))
