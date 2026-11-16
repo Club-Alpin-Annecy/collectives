@@ -30,31 +30,23 @@ def test_volunteers_export(
 ):
     """Tests the export function for a supervisor."""
 
-    response = supervisor_client.get("/activity_supervision/volunteers/export")
-    assert response.status_code == 405
+    export_url = "/activity_supervision/volunteers/export"
+    activity_filter = "filters[0][field]=activity_type.name&filters[0][value]="
 
-    response = supervisor_client.post("/activity_supervision/volunteers/export")
-    assert response.status_code == 302
-
-    response = supervisor_client.get("/activity_supervision/volunteers/")
-    data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Parapente").first().id
-    response = supervisor_client.post(
-        "/activity_supervision/volunteers/export", data=data
-    )
-    assert response.status_code == 302
-
-    response = supervisor_client.get("/activity_supervision/volunteers/")
-    data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
-    response = supervisor_client.post(
-        "/activity_supervision/volunteers/export", data=data
-    )
+    # An activity that the supervisor does not supervise
+    parapente = ActivityType.query.filter_by(name="Parapente").first()
+    response = supervisor_client.get(f"{export_url}?{activity_filter}{parapente.id}")
     assert response.status_code == 200
-    workbook = openpyxl.load_workbook(filename=BytesIO(response.data))
-    worksheet = workbook.active
-    assert worksheet.max_row == 3
-    assert worksheet.max_column == 9
+    worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
+    assert worksheet.max_row == 1
+
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    for url in (export_url, f"{export_url}?{activity_filter}{alpinisme.id}"):
+        response = supervisor_client.get(url)
+        assert response.status_code == 200
+        worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
+        assert worksheet.max_row == 3
+        assert worksheet.max_column == 9
 
 
 def test_volunteers_add(supervisor_client, user3):

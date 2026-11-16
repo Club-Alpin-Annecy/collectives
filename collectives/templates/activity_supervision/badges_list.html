@@ -52,6 +52,11 @@
 <div class="page-content" id="administration">
   <h2 class="heading-2">{{title}}</h2>
   <div id="badges-table"></div>
+  <p>
+    <a class="button button-primary" id="badges-export" href="{{ url_for(routes['export']) }}">
+      Exporter la liste filtrée (Excel)
+    </a>
+  </p>
 
 {%if add_badge_form%}
   <h4 class="heading-4">Ajout/renouvellement de {{title}}</h4>
@@ -65,10 +70,6 @@
   
   {{ generator.form_generator(add_badge_form, url_for(routes['add'])) }}
 {% endif %}
-
-<h4 class="heading-4">Export de la liste</h4>
-
-{{ generator.form_generator(export_form, url_for(routes['export'])) }}
 
 </div>
 {% endblock %}
