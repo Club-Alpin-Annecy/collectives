@@ -4,6 +4,8 @@ Events starting from 2026-09-01 move from the deprecated event types to the
 five remaining ones (Collective, Soirée & manifestation, Achat groupé,
 Inscription en ligne, Organisation). The information carried by the former type
 is kept as a tag (Cours, Accès libre...). Older events are left untouched.
+Some services of the CAF d'Annecy become initiatives beforehand, so that the
+events attached to them can stay collective events.
 
 The reclassification only runs for instances using the default EVENT_TYPES and
 EVENT_TAGS of config.py: an instance with its own catalogue is skipped, with a
@@ -76,6 +78,11 @@ THEORY_FORMATIONS = {
 d'Annecy (id -> title; both must match). Other formations are considered held
 in the field when they have an activity or an initiative."""
 
+TO_INITIATIVE = ("handicaf", "jeune", "equipement-falaises", "randorientation")
+"""Services of the CAF d'Annecy which are initiatives (list of activities,
+initiatives and services of 2026-10-20), by short name. Nothing changes for an
+activity which is not a service."""
+
 RENAMED = {"benevolat": "organisation"}
 """Former type -> new type, without tag."""
 
@@ -94,6 +101,16 @@ MOVE = sa.text(
     "UPDATE events SET event_type_id = :new "
     "WHERE start >= :cutoff AND event_type_id = :old"
 )
+
+
+SET_KIND = sa.text(
+    "UPDATE activity_types SET kind = :new WHERE kind = :old AND short IN :shorts"
+).bindparams(sa.bindparam("shorts", expanding=True))
+
+
+def kind_params(new: str, old: str) -> dict:
+    """Parameters of SET_KIND for the activities of TO_INITIATIVE."""
+    return {"new": new, "old": old, "shorts": list(TO_INITIATIVE)}
 
 
 def _uses_default_catalogue(event_types: dict, event_tags: dict) -> bool:
@@ -188,6 +205,10 @@ def upgrade():
     def params(**kwargs):
         return {"cutoff": CUTOFF, **kwargs}
 
+    # Before the formations, which are classified according to their activities
+    result = conn.execute(SET_KIND, kind_params("Initiative", "Service"))
+    logger.info("%s services turned into initiatives", result.rowcount)
+
     # Tags first: they identify the events by their former type
     for old, tag in {**TO_COLLECTIVE, FORMATION: FORMATION_TAG}.items():
         if old in shorts:
@@ -247,7 +268,8 @@ def upgrade():
 def downgrade():
     """Best effort: former types are restored from the tags added on upgrade.
 
-    The Éco-Sensibilisation merge cannot be undone."""
+    The Éco-Sensibilisation merge cannot be undone. The activities of
+    TO_INITIATIVE become services again."""
     conn = op.get_bind()
     shorts = {
         row.short: row.id
@@ -288,6 +310,8 @@ def downgrade():
                 ),
                 {"old": shorts[old], "new": shorts[new]},
             )
+
+    conn.execute(SET_KIND, kind_params("Service", "Initiative"))
 
     conn.execute(
         sa.text("DELETE FROM event_types WHERE id IN :ids").bindparams(
