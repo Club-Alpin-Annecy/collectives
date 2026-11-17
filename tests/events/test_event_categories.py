@@ -87,6 +87,20 @@ def test_edit_event_keeps_deprecated_tag(leader_client, tagged_event):
     assert [tag.name for tag in tagged_event.tag_refs] == ["Handicaf"]
 
 
+def test_edit_collective_without_activity(admin_client, event, leader2_user):
+    """A collective left without activity by the reclassification shows an
+    error instead of crashing, whatever its number of leaders"""
+    event.activity_types = []
+    event.leaders.append(leader2_user)
+    db.session.commit()
+
+    response = admin_client.get(f"/collectives/{event.id}/edit")
+    data = utils.load_data_from_form(response.text, "form_edit_event")
+    response = admin_client.post(f"/collectives/{event.id}/edit", data=data)
+    assert response.status_code == 200
+    assert "requiert au moins une activité" in response.text
+
+
 def test_tag_choices(app):
     """Deprecated tags are only offered when kept explicitly"""
     assert (6, "Handicaf") not in EventTag.choices()
