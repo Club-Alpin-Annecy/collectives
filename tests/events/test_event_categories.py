@@ -2,6 +2,7 @@
 
 # pylint: disable=unused-argument
 
+import pytest
 from bs4 import BeautifulSoup
 
 from collectives.models import EventTag, EventType, db
@@ -106,6 +107,7 @@ def test_tag_csv_codes(app):
     assert EventTag.get_type_from_csv_code("Rando Cool") == 10
 
 
+@pytest.mark.usefixtures("enable_retex")
 def test_retex_for_all_collectives(leader_client, past_event):
     """Every collective event gets a retex, whatever its tags"""
     past_event.tag_refs.append(EventTag(COURS_TAG))
