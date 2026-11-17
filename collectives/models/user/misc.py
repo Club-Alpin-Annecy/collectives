@@ -70,6 +70,7 @@ class UserMiscMixin:
         self.emergency_contact_phone = ""
         self.roles.clear()
         self.badges.clear()
+        self.api_tokens.clear()
         self.delete_avatar()
 
     def get_gender_name(self):

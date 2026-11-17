@@ -5,6 +5,8 @@ Example: Account creation tokens. However, User is in module
 """
 
 import enum
+import hashlib
+import secrets
 import uuid
 from datetime import timedelta
 
@@ -115,3 +117,96 @@ class ConfirmationToken(db.Model):
             self.token_type = ConfirmationTokenType.RecoverAccount
         else:
             self.token_type = ConfirmationTokenType.ActivateAccount
+
+
+class ApiToken(db.Model):
+    """Personal token letting a script read the API on behalf of a user.
+
+    Only the SHA-256 digest of the token is stored: the clear value is shown
+    once, at creation. A token gives read access only, see
+    :py:func:`collectives.routes.auth.globals.load_user_from_request`.
+    """
+
+    __tablename__ = "api_tokens"
+
+    id = db.Column(db.Integer, primary_key=True)
+    """Database primary key
+
+    :type: int"""
+
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
+    """Id of the user the token authenticates
+
+    :type: int"""
+
+    name = db.Column(db.String(100), nullable=False)
+    """Label chosen by the user to recognise the token
+
+    :type: string"""
+
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    """Hexadecimal SHA-256 digest of the token
+
+    :type: string"""
+
+    creation_date = db.Column(db.DateTime, nullable=False)
+    """Creation date of the token
+
+    :type: :py:class:`datetime.datetime`"""
+
+    expiry_date = db.Column(db.DateTime, nullable=False)
+    """Date after which the token is refused
+
+    :type: :py:class:`datetime.datetime`"""
+
+    user = db.relationship(
+        "User", backref=db.backref("api_tokens", cascade="all, delete-orphan")
+    )
+    """ The user the token authenticates. """
+
+    @staticmethod
+    def hash_token(token: str) -> str:
+        """Digest under which a token is stored.
+
+        :param token: The clear token
+        :return: Its hexadecimal SHA-256 digest
+        """
+        return hashlib.sha256(token.encode()).hexdigest()
+
+    @classmethod
+    def create(cls, user, name: str) -> tuple["ApiToken", str]:
+        """Build a new token for a user. Does not add it to the session.
+
+        :param user: The user the token will authenticate
+        :type user: :py:class:`collectives.models.user.User`
+        :param name: Label of the token
+        :return: The token object and its clear value, which is not stored
+        """
+        clear_token = secrets.token_urlsafe(32)
+        now = current_time()
+        api_token = cls(
+            user_id=user.id,
+            name=name,
+            token_hash=cls.hash_token(clear_token),
+            creation_date=now,
+            expiry_date=now + timedelta(days=Configuration.API_TOKEN_DURATION),
+        )
+        return api_token, clear_token
+
+    @classmethod
+    def find_valid(cls, token: str) -> "ApiToken | None":
+        """Look for a non expired token.
+
+        :param token: The clear token sent by the client
+        :return: The matching token, or None if unknown or expired
+        """
+        api_token = cls.query.filter_by(token_hash=cls.hash_token(token)).first()
+        if api_token is None or api_token.is_expired():
+            return None
+        return api_token
+
+    def is_expired(self) -> bool:
+        """:return: True if the token has passed its expiry date"""
+        return self.expiry_date < current_time()

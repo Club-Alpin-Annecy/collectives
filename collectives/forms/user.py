@@ -14,6 +14,7 @@ from wtforms import (
 from wtforms.validators import (
     DataRequired,
     EqualTo,
+    Length,
     ValidationError,
 )
 from wtforms_alchemy import ModelForm
@@ -208,6 +209,21 @@ class AddLeaderForm(ActivityTypeSelectionForm):
         super().__init__(
             *args, activity_list=activity_list, submit_label=submit_label, **kwargs
         )
+
+
+class ApiTokenForm(FlaskForm):
+    """Form for creating an API token"""
+
+    name = StringField(
+        "Nom du jeton :",
+        validators=[
+            DataRequired(message="Merci de donner un nom au jeton"),
+            Length(max=100),
+        ],
+        render_kw={"placeholder": "Ex. : script de préparation des sorties"},
+    )
+
+    submit = SubmitField("Créer un jeton")
 
 
 class DeleteUserForm(FlaskForm):

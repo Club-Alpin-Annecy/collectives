@@ -6,7 +6,7 @@ submodules classes by importing them. It also create the ``db`` object
 """
 
 from collectives.models.activity_type import ActivityKind, ActivityType
-from collectives.models.auth import ConfirmationToken, ConfirmationTokenType
+from collectives.models.auth import ApiToken, ConfirmationToken, ConfirmationTokenType
 from collectives.models.badge import Badge, BadgeCustomLevel, BadgeIds
 from collectives.models.configuration import (
     Configuration,

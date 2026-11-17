@@ -115,6 +115,13 @@ class UserRoleMixin:
         """
         return self.has_role(RoleIds.all_event_creator_roles())
 
+    def can_use_api_tokens(self) -> bool:
+        """Check if user is allowed to create and use API tokens.
+
+        :return: True if user can own API tokens.
+        """
+        return self.can_create_events()
+
     def is_leader(self) -> bool:
         """Check if user has a role which allow him to lead at least one activity.
 

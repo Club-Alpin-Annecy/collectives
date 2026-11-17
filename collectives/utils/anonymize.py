@@ -40,6 +40,7 @@ from sqlalchemy.engine import make_url
 
 from collectives.models import (
     ActivityType,
+    ApiToken,
     ConfigurationItem,
     ConfirmationToken,
     Event,
@@ -184,6 +185,7 @@ def _anonymize_users(connection, password):
         .values(mail=_prefixed("user", users.c.id, "@example.org"))
     )
     connection.execute(ConfirmationToken.__table__.delete())
+    connection.execute(ApiToken.__table__.delete())
 
 
 def _anonymize_payments(connection):

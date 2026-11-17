@@ -9,8 +9,11 @@ Typical usage example:
     app.register_blueprint(api.blueprint)
 """
 
-from flask import Blueprint, url_for
+from flask import Blueprint, abort, request, url_for
+from flask_login import current_user
 from flask_marshmallow import Marshmallow
+
+from collectives.utils.access import bearer_token
 
 marshmallow = Marshmallow()
 """ Marshmallow object.
@@ -21,6 +24,17 @@ blueprint = Blueprint("api", __name__, url_prefix="/api")
 """ The blueprint for the API.
 
 :type: :py:class:`flask.Blueprint`"""
+
+
+@blueprint.before_request
+def reject_refused_api_token():
+    """Answer 401 to a request whose API token did not authenticate a user.
+
+    Without it, a script with an expired token would silently get the answer
+    meant for anonymous visitors.
+    """
+    if bearer_token(request) and not current_user.is_authenticated:
+        abort(401, "Jeton d'API invalide, expiré ou non autorisé pour cette requête")
 
 
 def avatar_url(user):

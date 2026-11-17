@@ -10,10 +10,25 @@ See `functools <https://docs.python.org/3.8/library/functools.html>`_
 from functools import wraps
 
 import flask_login
-from flask import abort, flash, redirect, url_for
+from flask import Request, abort, flash, redirect, url_for
 
 from collectives.models.configuration import Configuration
 from collectives.models.payment import payments_enabled
+
+BEARER_PREFIX = "Bearer "
+""" Prefix of the ``Authorization`` header carrying an API token. """
+
+
+def bearer_token(request: Request) -> str | None:
+    """Extract the API token of a request.
+
+    :param request: The current request
+    :return: The token of the ``Authorization: Bearer`` header, None if absent
+    """
+    header = request.headers.get("Authorization", "")
+    if not header.startswith(BEARER_PREFIX):
+        return None
+    return header[len(BEARER_PREFIX) :].strip()
 
 
 def access_requires(function, test, api=False):

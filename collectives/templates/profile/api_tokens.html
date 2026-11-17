@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content" id="api-tokens">
+  <h1 class="heading-1">{{ title }}</h1>
+
+  <p>
+    Un jeton d'API permet à un programme de lire la liste des collectives en votre nom,
+    avec les mêmes droits de consultation que vous, sans connaître votre mot de passe.
+    Il donne un accès en lecture seule et expire au bout de {{ Configuration.API_TOKEN_DURATION }} jours.
+  </p>
+
+  {% if new_token %}
+    <div class="flash flash-success margin-top-m">
+      <strong>Jeton créé.</strong> Copiez-le maintenant : il ne sera plus jamais affiché.
+      <div class="overflow-wrap bold margin-top-s" id="new-api-token">{{ new_token }}</div>
+    </div>
+  {% endif %}
+
+  <h4 class="heading-4 margin-top-l">Mes jetons</h4>
+  {% for api_token in current_user.api_tokens %}
+    <div class="card margin-bottom-s">
+      <div class="card-info">
+        <div>
+          <div class="text-primary bold">{{ api_token.name }}</div>
+          <div>
+            Créé le {{ format_date(api_token.creation_date) }} —
+            {% if api_token.expiry_date < now %}
+              <strong>expiré</strong> depuis le {{ format_date(api_token.expiry_date) }}
+            {% else %}
+              expire le {{ format_date(api_token.expiry_date) }}
+            {% endif %}
+          </div>
+          <form class="margin-top-s" action="{{ url_for('profile.delete_api_token', token_id=api_token.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="submit" value="Supprimer" class="button button-small button-danger"/>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p>Vous n'avez aucun jeton.</p>
+  {% endfor %}
+
+  <h4 class="heading-4 margin-top-l">Créer un jeton</h4>
+  <form method="post" class="form form-vertical">
+    {{ form.hidden_tag() }}
+    {% for error in form.name.errors %}
+      <div class="flash flash-error"><strong>Erreur :</strong> {{ error }}</div>
+    {% endfor %}
+    <div class="controls">
+      {{ form.name.label(class="label-top") }}
+      {{ form.name(class="input-100") }}
+    </div>
+    <div class="controls">
+      {{ form.submit(class="button button-primary") }}
+    </div>
+  </form>
+
+  <h4 class="heading-4 margin-top-l">Utilisation</h4>
+  <p>
+    Envoyez le jeton dans l'en-tête <code>Authorization</code> de vos requêtes
+    vers <code>{{ url_for('api.events') }}</code> ; ajoutez <code>description=1</code>
+    pour recevoir aussi la description des collectives :
+  </p>
+  <pre class="overflow-wrap">curl -H "Authorization: Bearer VOTRE_JETON" "{{ url_for('api.events', _external=True) }}?page=1&amp;size=25&amp;description=1"</pre>
+
+  <p class="margin-top-l">
+    <a class="button button-secondary" href="{{ url_for('profile.show_user', user_id=current_user.id) }}">Retour au profil</a>
+  </p>
+</div>
+{% endblock %}

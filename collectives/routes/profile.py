@@ -26,9 +26,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 from collectives.forms import ExtranetUserForm, LocalUserForm
 from collectives.forms.badge import CompetencyBadgeForm
-from collectives.forms.user import DeleteUserForm
+from collectives.forms.user import ApiTokenForm, DeleteUserForm
 from collectives.models import (
     ActivityType,
+    ApiToken,
     Badge,
     BadgeIds,
     Configuration,
@@ -47,7 +48,7 @@ from collectives.routes.auth import (
     get_changed_email_message,
     sync_user,
 )
-from collectives.utils.access import valid_user
+from collectives.utils.access import user_is, valid_user
 from collectives.utils.extranet import ExtranetError
 from collectives.utils.misc import sanitize_file_name
 from collectives.utils.profile_token import profile_token
@@ -282,6 +283,48 @@ def confidentiality_agreement():
         flash("Merci d'avoir signé la charte RGPD", "success")
 
     return render_template("confidentiality_agreement.html", title="Charte RGPD")
+
+
+@blueprint.route("/api_tokens", methods=["GET", "POST"])
+@user_is("can_use_api_tokens")
+def api_tokens():
+    """Route listing the API tokens of the current user, and creating new ones.
+
+    The clear value of a new token is only shown in the answer to its creation.
+    """
+    form = ApiTokenForm()
+    new_token = None
+
+    if form.validate_on_submit():
+        api_token, new_token = ApiToken.create(current_user, form.name.data)
+        db.session.add(api_token)
+        db.session.commit()
+        form.name.data = ""
+
+    return render_template(
+        "profile/api_tokens.html",
+        title="Jetons d'API",
+        form=form,
+        new_token=new_token,
+        now=current_time(),
+    )
+
+
+@blueprint.route("/api_tokens/<int:token_id>/delete", methods=["POST"])
+@user_is("can_use_api_tokens")
+def delete_api_token(token_id: int):
+    """Route deleting an API token of the current user.
+
+    :param token_id: Primary key of the token.
+    """
+    api_token = db.session.get(ApiToken, token_id)
+    if api_token is None or api_token.user_id != current_user.id:
+        abort(404)
+
+    db.session.delete(api_token)
+    db.session.commit()
+    flash("Le jeton a été supprimé")
+    return redirect(url_for(".api_tokens"))
 
 
 @blueprint.route("/my_payments", methods=["GET"])

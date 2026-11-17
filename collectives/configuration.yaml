@@ -26,6 +26,11 @@ Sécurité:
         description: Duration (in hours) of a token before expiration
         type: Integer
 
+    API_TOKEN_DURATION:
+        content: 90
+        description: Durée de validité (en jours) d'un jeton d'API créé par un encadrant depuis son profil
+        type: Integer
+
     MAX_HISTORY_FOR_ANONYMOUS:
         content: 30
         description: "Max number of days an unauthenticated users can go back in time."

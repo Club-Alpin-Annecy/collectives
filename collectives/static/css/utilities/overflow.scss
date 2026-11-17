@@ -7,3 +7,8 @@
 .overflow-visible {
     overflow: visible;
 }
+
+.overflow-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

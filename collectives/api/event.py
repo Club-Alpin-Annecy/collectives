@@ -94,12 +94,23 @@ def filter_hidden_events(query):
     return query
 
 
+class EventWithDescriptionSchema(EventSchema):
+    """Schema of the event list for authenticated users asking for descriptions"""
+
+    class Meta(EventSchema.Meta):
+        """Fields to expose"""
+
+        fields = (*EventSchema.Meta.fields, "description")
+
+
 @blueprint.route("/events/")
 def events():
     """API endpoint to list events.
 
     It can be filtered using tabulator filter and sorter. It is paginated using
     ``page`` and ``size`` GET parameters. Regular users cannot see `Pending` event.
+    Authenticated users, by session or by API token, get the description of
+    events as well when the ``description=1`` GET parameter is set.
 
     :return: A tuple:
 
@@ -204,7 +215,11 @@ def events():
     query = query.order_by(Event.id)
 
     paginated_events = query.paginate(page=page, per_page=size, error_out=False)
-    data = EventSchema(many=True).dump(paginated_events.items)
+    # The description is not part of the public listing
+    schema = EventSchema
+    if current_user.is_authenticated and request.args.get("description", type=int):
+        schema = EventWithDescriptionSchema
+    data = schema(many=True).dump(paginated_events.items)
 
     return (
         json.dumps(
