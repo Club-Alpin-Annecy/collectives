@@ -258,3 +258,13 @@ def test_leader_page_shows_description(enable_whatsapp_groups, leader_client, ev
     response = leader_client.get(f"/collectives/{event.id}", follow_redirects=True)
     assert "Lorem ipsum" in response.text
     assert f"/collectives/{event.id}" in response.text
+
+
+def test_open_whatsapp_button_uses_app_scheme_on_ios(
+    enable_whatsapp_groups, leader_client, event
+):
+    """On iOS, the button opening WhatsApp is switched to the application scheme"""
+    response = leader_client.get(f"/collectives/{event.id}", follow_redirects=True)
+    assert response.status_code == 200
+    assert "whatsapp-group--open" in response.text
+    assert "link.href = 'whatsapp://'" in response.text
