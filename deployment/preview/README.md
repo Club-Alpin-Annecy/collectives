@@ -11,7 +11,10 @@ request. Everything deployed comes from the pull request — image, `Dockerfile`
 and seed `tests/preview_seed.py` — so that a pull request can adapt the seed to
 the feature it adds; only the workflow file itself runs from master
 (`pull_request_target`), and pull requests are expected to be rebased on master.
-A pull request must include `4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
+The seed also enables the optional modules: every boolean configuration item
+whose name ends with `_ENABLED`, a module added by the pull request included,
+except those needing a third party service (Loxya). A pull request must include
+`4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
 each deployment, a comment on the pull request gives the url and the
 password of the `admin` account, generated for each instance.
 

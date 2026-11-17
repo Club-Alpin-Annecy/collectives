@@ -8,7 +8,9 @@ request comment.
 
 The fixtures come from ``tests/fixtures/`` (one user/event per basic case) and
 from ``tests/fixtures/preview.py`` (a realistic catalogue: more roles, badges,
-events, registrations, payments, groups, uploads).
+events, registrations, payments, groups, uploads). The seed also enables the
+optional modules (:py:func:`enable_modules`), which are disabled by default, so
+that a preview can be used to test them.
 """
 
 from datetime import date
@@ -18,11 +20,27 @@ from sqlalchemy.orm import selectinload
 
 import collectives
 from collectives.models import Configuration, Role, RoleIds, User, UserType, db
+from collectives.models.configuration import ConfigurationItem, ConfigurationTypeEnum
 from collectives.utils import init
 from tests.fixtures.user import PASSWORD
 
 # pylint: disable=unused-argument, redefined-outer-name, protected-access
 # pylint: disable=too-many-arguments, too-many-positional-arguments
+
+
+MODULE_SUFFIX = "_ENABLED"
+"""Suffix of the name of the boolean configuration items that switch a module
+on. A rule on the name, rather than a list, also enables the module that a
+pull request adds."""
+
+EXTRA_SWITCHES = frozenset({"ENABLE_SANCTIONS", "HELLOASSO_SANDBOX"})
+"""Boolean configuration items to set although their name does not end with
+:py:data:`MODULE_SUFFIX`. ``HELLOASSO_SANDBOX`` keeps a preview away from the
+production of HelloAsso, should someone enter credentials."""
+
+EXCLUDED_SWITCHES = frozenset({"LOXYA_ENABLED"})
+"""Modules left disabled: they need a third party service that a preview does
+not have."""
 
 
 @pytest.fixture
@@ -43,30 +61,37 @@ def app():
         yield preview_app
 
 
-def enable_preview_modules() -> None:
-    """Enables the optional modules so that the preview shows them.
+def enable_modules() -> list[str]:
+    """Enables the optional modules in the configuration of the instance.
 
-    ``PAYMENT_ENABLED`` is set to Payline with an empty merchant id: online
-    payments cannot complete without real credentials, but the payment pages
-    and offline payments work.
+    ``PAYMENT_ENABLED`` is an enum, not a boolean, so it is set apart, to
+    Payline with an empty merchant id: online payments cannot complete
+    without real credentials, but the payment pages and offline payments
+    work.
+
+    :returns: the names of the configuration items that have been set to true.
     """
-    values = {
-        "ENABLE_SANCTIONS": True,
-        "RETEX_ENABLED": True,
-        "WHATSAPP_GROUPS_ENABLED": True,
-        "PAYMENT_ENABLED": "Payline",
-    }
-    for name, value in values.items():
-        item = Configuration.get_item(name)
-        item.content = value
-        Configuration.uncache(name)
+    enabled = []
+    for item in ConfigurationItem.query.filter_by(
+        type=ConfigurationTypeEnum.Boolean
+    ).order_by(ConfigurationItem.name):
+        if item.name in EXCLUDED_SWITCHES:
+            continue
+        if item.name.endswith(MODULE_SUFFIX) or item.name in EXTRA_SWITCHES:
+            item.content = True
+            Configuration.uncache(item.name)
+            enabled.append(item.name)
+    payment_item = Configuration.get_item("PAYMENT_ENABLED")
+    payment_item.content = "Payline"
+    Configuration.uncache("PAYMENT_ENABLED")
     db.session.commit()
+    return enabled
 
 
 def test_seed(preview_seed_data):  # pylint: disable=unused-argument
     """Creates users of each role and events of each kind, with registrations,
     then enables the optional modules."""
-    enable_preview_modules()
+    enable_modules()
 
 
 def accounts_table() -> str:
