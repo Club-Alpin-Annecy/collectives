@@ -7,10 +7,11 @@ instance is served on `https://pr-<number>.test.collectives.cafannecy.fr` with
 its own MariaDB database `pr_<number>`, filled with the test fixtures on the
 first deployment (`tests/preview_seed.py`); the instance, its database and
 the `pr-<number>` image are removed when the pull request is closed. `Dockerfile` adds the test fixtures to the image of the pull
-request; it is taken from master, so that a pull request cannot change how its
-preview is deployed, but the seed `tests/preview_seed.py` comes from the pull
-request, so that a pull request can adapt it to the feature it adds. A pull request
-must include `4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
+request. Everything deployed comes from the pull request — image, `Dockerfile`
+and seed `tests/preview_seed.py` — so that a pull request can adapt the seed to
+the feature it adds; only the workflow file itself runs from master
+(`pull_request_target`), and pull requests are expected to be rebased on master.
+A pull request must include `4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
 each deployment, a comment on the pull request gives the url and the
 password of the `admin` account, generated for each instance.
 
