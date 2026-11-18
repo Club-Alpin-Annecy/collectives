@@ -71,19 +71,34 @@ def test_seed(
 
 
 def accounts_table() -> str:
-    """Lists the fixture accounts, with their roles and badges.
+    """Lists the fixture accounts shown in the pull request comment.
+
+    Only the two profiles useful to try the instance are listed: a plain
+    member and a leader. The administrator account is given separately in
+    the comment.
 
     :returns: a Markdown table, in French as it is shown in the pull request.
     """
-    users = (
-        # The admin account is created with the Test type too.
-        User.query.filter(
-            User.type == UserType.Test,
-            ~User.roles.any(Role.role_id == RoleIds.Administrator),
+    users = [
+        user
+        for user in (
+            # A plain member, without any role. The admin account is created
+            # with the Test type too, but it has a role.
+            User.query.filter(User.type == UserType.Test, ~User.roles.any())
+            .options(selectinload(User.roles), selectinload(User.badges))
+            .order_by(User.license)
+            .first(),
+            # A leader, to create and manage events.
+            User.query.filter(
+                User.type == UserType.Test,
+                User.roles.any(Role.role_id == RoleIds.EventLeader),
+            )
+            .options(selectinload(User.roles), selectinload(User.badges))
+            .order_by(User.license)
+            .first(),
         )
-        .options(selectinload(User.roles), selectinload(User.badges))
-        .order_by(User.license)
-    )
+        if user is not None
+    ]
     lines = [
         f"Comptes de test, mot de passe `{PASSWORD}` :",
         "",
