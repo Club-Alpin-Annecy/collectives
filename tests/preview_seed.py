@@ -1,11 +1,17 @@
-"""Fills the database of a pull request preview with the test fixtures.
+"""Fills the database of a pull request preview with realistic demo data.
 
 Not part of the test suite: ``deployment/preview/collectives-preview`` runs
 ``pytest tests/preview_seed.py`` in the preview container, once, against the
 database of the instance (``SQLALCHEMY_DATABASE_URI``), then
 ``python -m tests.preview_seed`` to list the fixture accounts for the pull
 request comment.
+
+The fixtures come from ``tests/fixtures/`` (one user/event per basic case) and
+from ``tests/fixtures/preview.py`` (a realistic catalogue: more roles, badges,
+events, registrations, payments, groups, uploads).
 """
+
+from datetime import date
 
 import pytest
 from sqlalchemy.orm import selectinload
@@ -37,37 +43,30 @@ def app():
         yield preview_app
 
 
-def test_seed(
-    admin_user,
-    user5,
-    user6,
-    user7,
-    user8,
-    user9,
-    user10,
-    leader_user,
-    leader2_user_with_event,
-    president_user,
-    supervisor_user,
-    hotline_user,
-    youth_user,
-    minor_user,
-    user_with_valid_benevole_badge,
-    user_with_expired_benevole_badge,
-    event1_with_answers,
-    event3,
-    event4,
-    past_event,
-    tagged_event,
-    cancelled_event,
-    draft_event,
-    activity_event,
-    paying_event,
-    free_paying_event,
-    youth_event,
-    service_event,
-):
-    """Creates users of each role and events of each kind, with registrations."""
+def enable_preview_modules() -> None:
+    """Enables the optional modules so that the preview shows them.
+
+    ``PAYMENT_ENABLED`` is set to Payline with an empty merchant id: online
+    payments cannot complete without real credentials, but the payment pages
+    and offline payments work.
+    """
+    values = {
+        "ENABLE_SANCTIONS": True,
+        "RETEX_ENABLED": True,
+        "WHATSAPP_GROUPS_ENABLED": True,
+        "PAYMENT_ENABLED": "Payline",
+    }
+    for name, value in values.items():
+        item = Configuration.get_item(name)
+        item.content = value
+        Configuration.uncache(name)
+    db.session.commit()
+
+
+def test_seed(preview_seed_data):  # pylint: disable=unused-argument
+    """Creates users of each role and events of each kind, with registrations,
+    then enables the optional modules."""
+    enable_preview_modules()
 
 
 def accounts_table() -> str:
@@ -112,6 +111,8 @@ def accounts_table() -> str:
             profile.append("Jeune")
         if user.is_minor():
             profile.append("Mineur")
+        if user.license_expiry_date and user.license_expiry_date <= date.today():
+            profile.append("Licence expirée")
         profile_text = ", ".join(profile) or "Adhérent"
         if profile_text in profiles:
             continue
