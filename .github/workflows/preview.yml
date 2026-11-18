@@ -39,14 +39,16 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      # Taken from master, so that pull requests opened before them are
-      # deployed in the same way.
+      # Only the preview Dockerfile is taken from master: a pull request must
+      # not change how its preview is deployed. The seed (tests/preview_seed.py)
+      # comes from the pull request, so that a pull request can adapt it to the
+      # feature it adds. It runs in the preview container, which holds no secret
+      # of the workflow, only the ones of the ephemeral instance.
       - uses: actions/checkout@v4
         with:
           path: master
           sparse-checkout: |
             deployment/preview/Dockerfile
-            tests/preview_seed.py
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
@@ -54,7 +56,6 @@ jobs:
       # next to the registry credentials.
       - name: Build image
         run: |
-          cp master/tests/preview_seed.py tests/
           docker build -t pr-production .
           docker build -f master/deployment/preview/Dockerfile \
             --build-arg PR_IMAGE=pr-production -t "$IMAGE" .

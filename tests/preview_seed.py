@@ -73,38 +73,28 @@ def test_seed(
 def accounts_table() -> str:
     """Lists the fixture accounts shown in the pull request comment.
 
-    Only the two profiles useful to try the instance are listed: a plain
-    member and a leader. The administrator account is given separately in
-    the comment.
+    One account per profile: several fixtures share the same profile (e.g.
+    the ten plain members), listing them all would be noise in the comment.
+    The administrator account is given separately in the comment.
 
     :returns: a Markdown table, in French as it is shown in the pull request.
     """
-    users = [
-        user
-        for user in (
-            # A plain member, without any role. The admin account is created
-            # with the Test type too, but it has a role.
-            User.query.filter(User.type == UserType.Test, ~User.roles.any())
-            .options(selectinload(User.roles), selectinload(User.badges))
-            .order_by(User.license)
-            .first(),
-            # A leader, to create and manage events.
-            User.query.filter(
-                User.type == UserType.Test,
-                User.roles.any(Role.role_id == RoleIds.EventLeader),
-            )
-            .options(selectinload(User.roles), selectinload(User.badges))
-            .order_by(User.license)
-            .first(),
+    # The admin account is created with the Test type too.
+    users = (
+        User.query.filter(
+            User.type == UserType.Test,
+            ~User.roles.any(Role.role_id == RoleIds.Administrator),
         )
-        if user is not None
-    ]
+        .options(selectinload(User.roles), selectinload(User.badges))
+        .order_by(User.license)
+    )
     lines = [
         f"Comptes de test, mot de passe `{PASSWORD}` :",
         "",
         "| Identifiant | Nom | Profil |",
         "|---|---|---|",
     ]
+    profiles = set()
     for user in users:
         profile = [
             f"{role.name} ({role.activity_type.name})"
@@ -122,9 +112,11 @@ def accounts_table() -> str:
             profile.append("Jeune")
         if user.is_minor():
             profile.append("Mineur")
-        lines.append(
-            f"| `{user.mail}` | {user.full_name()} | {', '.join(profile) or 'Adhérent'} |"
-        )
+        profile_text = ", ".join(profile) or "Adhérent"
+        if profile_text in profiles:
+            continue
+        profiles.add(profile_text)
+        lines.append(f"| `{user.mail}` | {user.full_name()} | {profile_text} |")
     return "\n".join(lines)
 
 
