@@ -39,24 +39,17 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      # Taken from master, so that pull requests opened before them are
-      # deployed in the same way.
-      - uses: actions/checkout@v4
-        with:
-          path: master
-          sparse-checkout: |
-            deployment/preview/Dockerfile
-            tests/preview_seed.py
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-
-      # Built before logging in, so that the pull request code never runs
-      # next to the registry credentials.
+      # Everything deployed comes from the pull request: its image, its preview
+      # Dockerfile and its seed (tests/preview_seed.py), so that a pull request
+      # can adapt the seed to the feature it adds. Only this workflow file runs
+      # from master (pull_request_target); pull requests are expected to be
+      # rebased on master.
+      # The image is built before logging in, and this step declares no secret,
+      # so that the pull request code never runs next to a credential.
       - name: Build image
         run: |
-          cp master/tests/preview_seed.py tests/
           docker build -t pr-production .
-          docker build -f master/deployment/preview/Dockerfile \
+          docker build -f deployment/preview/Dockerfile \
             --build-arg PR_IMAGE=pr-production -t "$IMAGE" .
 
       - name: Push image
