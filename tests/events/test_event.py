@@ -654,3 +654,21 @@ def test_update_attendance_upcoming_event(
 
     assert "participation" in confirm_mail["subject"].lower()
     assert "bientôt" in confirm_mail["message"]
+
+
+def test_event_condition_title_is_escaped_in_script(leader_client, event, event2):
+    """An event title cannot break out of the script block of the edit page."""
+    payload = "</script><script>alert(1)</script>"
+    event2.title = payload
+    group = UserGroup()
+    condition = GroupEventCondition(event_id=event2.id)
+    group.event_conditions.append(condition)
+    db.session.add(group)
+    db.session.commit()
+    event.user_group = group
+    db.session.commit()
+
+    response = leader_client.get(f"/collectives/{event.id}/edit")
+    assert response.status_code == 200
+    assert payload not in response.text
+    assert "\\u003c/script\\u003e\\u003cscript\\u003ealert(1)" in response.text
