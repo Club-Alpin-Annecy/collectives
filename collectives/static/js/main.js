@@ -27,3 +27,20 @@ window.addEventListener('load', function(e) {
     // Initialize everything once Content is loaded
     Collectives.initAll();
 });
+
+var bindScrollToTopOnPageChange = function bindScrollToTopOnPageChange(table, targetElement) {
+    var initialLoadPending = true;
+    var initialLoadTimer = null;
+    table.on('pageLoaded', function () {
+        if (!initialLoadPending) {
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+        clearTimeout(initialLoadTimer);
+        initialLoadTimer = setTimeout(function () { initialLoadPending = false; }, 500);
+    });
+};

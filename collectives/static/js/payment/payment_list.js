@@ -2,7 +2,7 @@
 
 function createPaymentsTable(url)
 {
-    return new Tabulator("#payments-table",
+    var table = new Tabulator("#payments-table",
         {
           ajaxURL: url,
           layout:"fitColumns",
@@ -40,6 +40,8 @@ function createPaymentsTable(url)
             }
         },
 });
+    bindScrollToTopOnPageChange(table);
+    return table;
 }
 
 function createAllPaymentsTable(url)

@@ -88,6 +88,8 @@ window.onload = function () {
             initialSort: [{ column: "start", dir: "desc" }],
         })
     );
+    bindScrollToTopOnPageChange(eventstable, eventstable.element);
+    bindScrollToTopOnPageChange(pasteventstable, pasteventstable.element);
 
     if (is_user_profile) {
         eventstable.addFilter("registration.status", "in", [EnumRegistrationStatusKeys["Active"], EnumRegistrationStatusKeys["PaymentPending"], EnumRegistrationStatusKeys["Waiting"]]);
