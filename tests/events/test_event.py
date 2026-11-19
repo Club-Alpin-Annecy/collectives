@@ -656,6 +656,31 @@ def test_update_attendance_upcoming_event(
     assert "bientôt" in confirm_mail["message"]
 
 
+def test_preview_redirects_non_crawlers(client, event):
+    """A regular browser is redirected from the preview to the event page."""
+    event.visibility = EventVisibility.External
+    db.session.commit()
+
+    response = client.get(f"/collectives/{event.id}/preview")
+    assert response.status_code == 302
+    assert "preview" not in response.headers["Location"]
+
+
+def test_preview_hides_non_public_events(client, draft_event, activity_event):
+    """Crawlers cannot preview pending or activity-only events.
+
+    The 404 handler redirects unknown pages to the event list."""
+    headers = {
+        "User-Agent": "facebookexternalhit/1.0 (+http://www.facebook.com/externalhit_uatext.php)"
+    }
+    for hidden_event in (draft_event, activity_event):
+        response = client.get(
+            f"/collectives/{hidden_event.id}/preview", headers=headers
+        )
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/collectives/"
+
+
 def test_event_condition_title_is_escaped_in_script(leader_client, event, event2):
     """An event title cannot break out of the script block of the edit page."""
     payload = "</script><script>alert(1)</script>"

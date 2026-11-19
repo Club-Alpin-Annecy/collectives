@@ -43,6 +43,7 @@ from collectives.models import (
     EventStatus,
     EventTag,
     EventType,
+    EventVisibility,
     PaymentItem,
     Registration,
     RegistrationLevels,
@@ -1375,10 +1376,14 @@ def preview(event_id):
     :param int event_id: Primary key of the event to update.
     """
     if not is_crawler():
-        redirect(url_for("event.view_event", event_id=event_id))
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     event = db.session.get(Event, event_id)
     if event is None:
+        abort(404)
+    if event.status == EventStatus.Pending:
+        abort(404)
+    if event.visibility == EventVisibility.Activity:
         abort(404)
 
     min_date = current_time() - timedelta(days=Configuration.MAX_HISTORY_FOR_ANONYMOUS)
