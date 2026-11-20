@@ -1566,7 +1566,7 @@ wheels = [
 
 [[package]]
 name = "wtforms-alchemy"
-version = "0.19.1"
+version = "0.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sqlalchemy" },
@@ -1574,14 +1574,14 @@ dependencies = [
     { name = "wtforms" },
     { name = "wtforms-components" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b4/b6/b9c2992736f9509205a5b8362c554f3dc2739da021d99048bf48352daa00/wtforms_alchemy-0.19.1.tar.gz", hash = "sha256:2826fc18052991033d3a9cf92fc18d9cdb1fd73ce1ef724c3e76455277bd4434", size = 52422, upload-time = "2025-08-11T10:40:19.077Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/54/20152c328606fe7551434ec12e4408377c025662df35f491e6464c763c40/wtforms_alchemy-0.20.0.tar.gz", hash = "sha256:c0d6a031c9a2905f43fb8ada4b8e98b731d59d4de06d16cb862bd867c0570d28", size = 51810, upload-time = "2026-11-10T21:48:36.568Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/91/0bb83a1920653035433284051b57a43223817537099f54dccd476dfb274f/wtforms_alchemy-0.19.1-py3-none-any.whl", hash = "sha256:8fc08882eba8e152d5062eaefc906d741a2202c206c05f16137430a4aee58618", size = 18182, upload-time = "2025-08-11T10:40:17.853Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/96/43371c253dd008857e91b3bb0fbf2b2fdc733931d73ebcaf4c5b9f3bd250/wtforms_alchemy-0.20.0-py3-none-any.whl", hash = "sha256:a511f3e703584897669ad362ecf6be5e4de541672dd458758c2676c9e10c7746", size = 18093, upload-time = "2026-11-10T21:48:35.112Z" },
 ]
 
 [[package]]
 name = "wtforms-components"
-version = "0.11.0"
+version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "intervals" },
@@ -1589,9 +1589,9 @@ dependencies = [
     { name = "validators" },
     { name = "wtforms" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/2f/9e835c1ec678dcf4c450aabbeb28bc5681a3eab6e1eddcea209aa7970661/wtforms_components-0.11.0.tar.gz", hash = "sha256:ca94d60a6362c0e4b49d3d09d1eb1ddf5b26c99105a57397af313655f4447f7a", size = 25549, upload-time = "2024-11-15T13:43:16.244Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/93/01f0713a85c73f3218738d300430bb6b37b19843abb5b57771a7e3c7253e/wtforms_components-0.12.0.tar.gz", hash = "sha256:88846981f5272662728322ac3b4595fe08cfc24caf992ec1aa97d55d9275cf3a", size = 24893, upload-time = "2026-11-10T17:32:12.692Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ee/1d/f8e8a73257e717e4070b5130105a328b1bc2902bcaca8ff64a1b60ce7380/WTForms_Components-0.11.0-py2.py3-none-any.whl", hash = "sha256:605762c32588a915b6411628d082799c6c741134fb961244a9bd8ed1686aef74", size = 14044, upload-time = "2024-11-15T13:43:14.519Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/67/7bf30cab6043e95a2278d9089b381ad7b140a9f49008774822d7363aea3a/wtforms_components-0.12.0-py3-none-any.whl", hash = "sha256:94e637c6db717850efd7f771529de0cb4afdfbd74f3d6397ba33de6c46ca7b64", size = 14386, upload-time = "2026-11-10T17:32:11.248Z" },
 ]
 
 [[package]]
