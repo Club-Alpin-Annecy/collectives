@@ -148,6 +148,14 @@ def _add_badge(user, badge_id, level=None, activity_name=None) -> Badge:
     return badge
 
 
+def _exported_licenses(client, url: str) -> set[str]:
+    """Exports badges and returns the licenses of their holders."""
+    response = client.get(url)
+    assert response.status_code == 200
+    worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
+    return {row[0] for row in worksheet.iter_rows(min_row=2, values_only=True)}
+
+
 def test_supervisor_badge_scope(supervisor_client, user1, user2, user3, custom_skill):
     """Tests which badges a supervisor may list, export, renew and delete.
 
@@ -166,15 +174,27 @@ def test_supervisor_badge_scope(supervisor_client, user1, user2, user3, custom_s
     data = json.loads(response.text)["data"]
     assert {row["user"]["mail"] for row in data} == {user1.mail, user2.mail}
 
-    # Export of all activities includes the skill badge without activity
-    response = supervisor_client.post(
-        "/activity_supervision/competency_badge_holders/export",
-        data={"activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
-    )
-    assert response.status_code == 200
-    worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
-    licenses = {row[0] for row in worksheet.iter_rows(min_row=2, values_only=True)}
-    assert licenses == {user1.license, user2.license}
+    # Export without filter includes the skill badge without activity
+    export_url = "/activity_supervision/competency_badge_holders/export"
+    assert _exported_licenses(supervisor_client, export_url) == {
+        user1.license,
+        user2.license,
+    }
+
+    # Export follows the filters of the table: activity, no activity, level
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    activity_filter = "filters[0][field]=activity_type.name&filters[0][value]="
+    assert _exported_licenses(
+        supervisor_client, f"{export_url}?{activity_filter}{alpinisme.id}"
+    ) == {user2.license}
+    assert _exported_licenses(
+        supervisor_client,
+        f"{export_url}?{activity_filter}{ActivityTypeSelectionForm.NO_ACTIVITY}",
+    ) == {user1.license}
+    assert _exported_licenses(
+        supervisor_client,
+        f"{export_url}?filters[0][field]=level&filters[0][value]={custom_skill.name}",
+    ) == {user1.license}
 
     # Renewal
     for badge_id in managed_ids | unmanaged_ids:
@@ -208,13 +228,10 @@ def test_hotline_badge_scope(hotline_client, user1, user2, custom_skill):
     data = json.loads(response.text)["data"]
     assert {row["user"]["mail"] for row in data} == {user1.mail, user2.mail}
 
-    response = hotline_client.post(
-        "/administration/badges/export/",
-        data={"activity_id": ActivityTypeSelectionForm.ALL_ACTIVITIES},
-    )
-    assert response.status_code == 200
-    worksheet = openpyxl.load_workbook(filename=BytesIO(response.data)).active
-    assert worksheet.max_row == 3
+    assert _exported_licenses(hotline_client, "/administration/badges/export/") == {
+        user1.license,
+        user2.license,
+    }
 
     response = hotline_client.post(f"/administration/badges/delete/{suspension.id}")
     assert response.status_code == 302

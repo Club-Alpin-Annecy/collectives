@@ -654,17 +654,13 @@ def badges_list():
     )
 
 
-@blueprint.route("/badges/export/", methods=["POST"])
+@blueprint.route("/badges/export/", methods=["GET"])
 def export_badge():
-    """Create an Excel document with the contact information of users with badge.
+    """Create an Excel document with the badges listed in the table.
 
-    :return: The Excel file with the roles.
+    :return: The Excel file with the badges.
     """
-    response = badges.export_badge()
-    if response:
-        return response
-    flash("Impossible de générer le fichier: droit insuffisants", "error")
-    return redirect(url_for(".badges_list"))
+    return badges.export_badge()
 
 
 @blueprint.route("/badges/add", methods=["POST"])

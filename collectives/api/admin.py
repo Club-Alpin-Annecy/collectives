@@ -5,8 +5,8 @@ import json
 from flask import abort, request, url_for
 from flask_login import current_user
 from marshmallow import fields
-from sqlalchemy import and_, desc, or_
-from sqlalchemy.orm import aliased, selectinload
+from sqlalchemy import and_, desc
+from sqlalchemy.orm import selectinload
 
 from collectives.api.common import blueprint
 from collectives.api.schemas import (
@@ -16,10 +16,10 @@ from collectives.api.schemas import (
     UserSchema,
 )
 from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
-from collectives.models.badge import BadgeCustomLevel, BadgeIds
+from collectives.models.badge import BadgeIds
 from collectives.utils import loxya
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
-from collectives.utils.badges import managed_badges_filter
+from collectives.utils.badges import badges_table_query
 
 FILTERABLE_USER_COLUMNS = ("mail", "first_name", "last_name", "license", "phone")
 """User columns on which the administration table may filter with a text pattern.
@@ -381,99 +381,7 @@ def badges():
     badge_ids = request.args.getlist("badge_ids", type=int)
     badge_ids = [BadgeIds(badge_id) for badge_id in badge_ids]
 
-    query = db.session.query(Badge)
-    if badge_ids:
-        query = query.filter(Badge.badge_id.in_(badge_ids))
-    query = query.filter(managed_badges_filter(current_user))
-
-    Recipient = aliased(User)
-    query = query.join(Recipient, Badge.user)
-    query = query.join(Badge.grantor, isouter=True)
-    query = query.join(Badge.activity_type, isouter=True)
-    query = query.join(
-        BadgeCustomLevel,
-        and_(
-            BadgeCustomLevel.badge_id == Badge.badge_id,
-            BadgeCustomLevel.level == Badge.level,
-            BadgeCustomLevel.activity_id.isnot_distinct_from(Badge.activity_id),
-        ),
-        isouter=True,
-    )
-
-    # Process Tabulator filters
-    i = 0
-    while f"filters[{i}][field]" in request.args:
-        value = request.args.get(f"filters[{i}][value]")
-        field = request.args.get(f"filters[{i}][field]")
-        i += 1
-
-        if value is None:
-            continue
-
-        if "." in field:
-            prefix, sub = field.split(".", 1)
-            if prefix == "user":
-                if sub != "full_name":
-                    continue
-                query_filter = Recipient.full_name().ilike(f"%{value}%")
-            elif prefix == "grantor":
-                if sub != "full_name":
-                    continue
-                query_filter = User.full_name().ilike(f"%{value}%")
-            elif prefix == "activity_type":
-                try:
-                    activity_id = int(value)
-                    query_filter = Badge.activity_id == activity_id
-                except ValueError:
-                    continue
-            else:
-                continue
-        elif field == "name":
-            try:
-                badge_id = int(value)
-                query_filter = Badge.badge_id == BadgeIds(badge_id)
-            except ValueError:
-                continue
-        elif field == "level":
-            value = value.lower()
-            default_levels = {
-                badge_id: [
-                    level
-                    for level, desc in badge_id.levels(only_defaults=True).items()
-                    if value in desc.name.lower()
-                ]
-                for badge_id in badge_ids or BadgeIds
-            }
-            default_level_clauses = [
-                and_(Badge.badge_id == badge_id, Badge.level.in_(levels))
-                for badge_id, levels in default_levels.items()
-                if levels
-            ]
-            query_filter = or_(
-                *default_level_clauses,
-                BadgeCustomLevel.name.ilike(f"%{value}%"),
-            )
-        elif field in ("expiration_date",):
-            query_filter = getattr(Badge, field).ilike(f"%{value}%")
-
-        query = query.filter(query_filter)
-
-    # Sorting
-    if "sorters[0][field]" in request.args:
-        sort_field = request.args.get("sorters[0][field]")
-        sort_dir = request.args.get("sorters[0][dir]")
-        if sort_field == "user.full_name":
-            sort_field = Recipient.full_name()
-        elif sort_field == "grantor.full_name":
-            sort_field = User.full_name()
-        elif sort_field == "activity_type.name":
-            sort_field = ActivityType.name
-        elif sort_field == "name":
-            sort_field = Badge.badge_id
-        order = desc(sort_field) if sort_dir == "desc" else sort_field
-        query = query.order_by(order)
-    else:
-        query = query.order_by(Recipient.last_name, Recipient.first_name, Recipient.id)
+    query = badges_table_query(badge_ids, request.args)
 
     # Pagination
     page = int(request.args.get("page", 1))
