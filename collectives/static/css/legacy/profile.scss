@@ -33,6 +33,11 @@
 {
 }
 
+.profile-event-list .tabulator
+{
+    scroll-margin-top: 80px;
+}
+
 .profile-event-list div.tabulator-col-content, .profile-event-list div.tabulator-cell, .profile-event-list div.tabulator-footer
 {
     padding: 5px !important;

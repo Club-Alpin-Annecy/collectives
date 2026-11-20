@@ -23,7 +23,7 @@ function profileUrl(cell) {
 }
 
 function loadLeadersTable(ajaxUrl, csrfToken) {
-    new Tabulator("#leaders-table",
+    var table = new Tabulator("#leaders-table",
         {
             ajaxURL: ajaxUrl,
             ajaxFiltering: true,
@@ -52,6 +52,7 @@ function loadLeadersTable(ajaxUrl, csrfToken) {
             paginationDataSent: {"page": "page", "size": "size"},
             paginationDataReceived: {"last_page": "last_page", "data": "data"},
         });
+    bindScrollToTopOnPageChange(table);
 }
 
 
