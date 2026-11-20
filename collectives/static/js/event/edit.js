@@ -1,6 +1,10 @@
 
 var locale = window.navigator.userLanguage || window.navigator.language;
-moment.locale(locale);
+// Some pages using the editor (CSV import) do not load moment: without
+// this check the script would stop here, before the upload constants below.
+if (typeof moment !== "undefined") {
+    moment.locale(locale);
+}
 
 function updateActivity(element) {
     document.getElementById('update_activity').value = 1;
@@ -113,6 +117,10 @@ function setupDatePickers(newEvent) {
 }
 
 function getActivityIds() {
+    // Pages without an activity choice (retex) only list the files of the event
+    if (!document.getElementById("multi_activities_mode")) {
+        return [];
+    }
     var multiActivity = document.getElementById("multi_activities_mode").checked;
     var ids;
     if (multiActivity) {
@@ -264,6 +272,166 @@ function makeEditorToolbar(options) {
 
 }
 
+// Images larger than the editor size limit are shrunk in the browser before
+// upload: phone photos are often bigger than the maximum upload size of the
+// server. JPEG photos are always re-encoded, to drop their EXIF data (GPS
+// position).
+const SHRINK_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALWAYS_REENCODED_TYPES = ["image/jpeg"];
+const SHRUNK_IMAGE_MAX_SIDE = 2000;
+const SHRUNK_IMAGE_QUALITY = 0.85;
+
+/**
+ * Shrinks an image to at most SHRUNK_IMAGE_MAX_SIDE pixels per side, as JPEG.
+ *
+ * The browser applies the EXIF orientation, and the EXIF data (including the
+ * GPS position) is not kept.
+ *
+ * @param {File} file The image to shrink.
+ * @returns {Promise<File>} The shrunk image.
+ */
+async function shrinkImage(file) {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, SHRUNK_IMAGE_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+
+    const context = canvas.getContext("2d");
+    // JPEG has no transparency: paint it white rather than black
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+
+    const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", SHRUNK_IMAGE_QUALITY)
+    );
+    if (!blob) {
+        throw new Error("Could not encode the image");
+    }
+    const name = file.name.replace(/\.[^.]*$/, "") + ".jpg";
+    return new File([blob], name, { type: "image/jpeg" });
+}
+
+/**
+ * EasyMDE upload function: checks the file type, re-encodes photos when
+ * needed, then uses the default upload.
+ *
+ * Called by EasyMDE with the editor as `this`. The default upload reports
+ * errors itself, so `onError` is not passed on to it (it would alert twice).
+ */
+function shrinkAndUploadImage(file, onSuccess, onError) {
+    // EasyMDE only applies imageAccept to its file picker, not to dropped or
+    // pasted files. Files without a known type are left to the server check.
+    const accepted = this.options.imageAccept.split(",").map((type) => type.trim());
+    if (file.type && !accepted.includes(file.type)) {
+        onError(this.options.errorMessages.typeNotAllowed);
+        return;
+    }
+
+    // With inline images, the photo is shown at once, dimmed, where it will
+    // be inserted
+    var removePlaceholder = () => { };
+    if (this.options.inlineImages && file.type.startsWith("image/")) {
+        removePlaceholder = showUploadPlaceholder(this.codemirror, file);
+    }
+    const onUploaded = (url) => {
+        removePlaceholder();
+        onSuccess(url);
+    };
+
+    const reencode = ALWAYS_REENCODED_TYPES.includes(file.type)
+        || (SHRINK_IMAGE_TYPES.includes(file.type) && file.size > this.options.imageMaxSize);
+    if (!reencode) {
+        this.uploadImage(file, onUploaded, removePlaceholder);
+        return;
+    }
+    shrinkImage(file)
+        .catch(() => file) // the default size check then reports the error
+        .then((uploaded) => this.uploadImage(uploaded, onUploaded, removePlaceholder));
+}
+
+// Markdown image: ![alt](url) or ![alt](url "title")
+const INLINE_IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g;
+const INLINE_IMAGE_CLASS = "editor-inline-image";
+const UPLOADING_IMAGE_CLASS = "editor-inline-image-uploading";
+
+/**
+ * Shows the image being uploaded at the cursor position.
+ *
+ * @param {CodeMirror} cm The CodeMirror instance of the editor.
+ * @param {File} file The image being uploaded.
+ * @returns {function} Removes the placeholder and moves the cursor to its
+ *     position, where the uploaded image is then inserted.
+ */
+function showUploadPlaceholder(cm, file) {
+    const image = document.createElement("img");
+    image.className = `${INLINE_IMAGE_CLASS} ${UPLOADING_IMAGE_CLASS}`;
+    image.src = URL.createObjectURL(file);
+    const bookmark = cm.setBookmark(cm.getCursor(), { widget: image });
+    image.onload = () => bookmark.changed();
+
+    return function () {
+        const position = bookmark.find();
+        if (!position) {
+            return;
+        }
+        cm.setCursor(position);
+        bookmark.clear();
+        URL.revokeObjectURL(image.src);
+    };
+}
+
+/**
+ * Displays the images of the text in place of their markdown code.
+ *
+ * The text itself is not changed. An image that cannot be loaded keeps its
+ * markdown code, so that its address can still be fixed.
+ *
+ * @param {CodeMirror} cm The CodeMirror instance of the editor.
+ */
+function setupInlineImages(cm) {
+    const brokenUrls = new Set();
+
+    function showImage(from, to, alt, url) {
+        const image = document.createElement("img");
+        image.className = INLINE_IMAGE_CLASS;
+        image.alt = alt;
+        image.title = alt;
+        const mark = cm.markText(from, to, { replacedWith: image, atomic: true });
+        mark.isInlineImage = true;
+        image.onload = () => mark.changed();
+        image.onerror = () => {
+            brokenUrls.add(url);
+            mark.clear();
+        };
+        image.src = url;
+    }
+
+    function showImages() {
+        cm.operation(() => {
+            cm.eachLine((lineHandle) => {
+                const line = cm.getLineNumber(lineHandle);
+                for (const match of lineHandle.text.matchAll(INLINE_IMAGE_PATTERN)) {
+                    const from = { line: line, ch: match.index };
+                    const to = { line: line, ch: match.index + match[0].length };
+                    if (brokenUrls.has(match[2])) {
+                        continue;
+                    }
+                    if (cm.findMarks(from, to).some((mark) => mark.isInlineImage)) {
+                        continue;
+                    }
+                    showImage(from, to, match[1], match[2]);
+                }
+            });
+        });
+    }
+
+    cm.on("change", showImages);
+    showImages();
+}
+
 function getEditorOptions(elementId) {
     return {
         element: document.getElementById(elementId),
@@ -274,6 +442,7 @@ function getEditorOptions(elementId) {
         status: ['upload-image'],
 
         imageAccept: "image/png, image/jpeg, image/gif, application/pdf, application/vnd.oasis.opendocument.spreadsheet, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/xml, application/gpx+xml",
+        imageUploadFunction: shrinkAndUploadImage,
         imageCSRFName: "X-CSRFToken",
         imageCSRFHeader: true,
         imagePathAbsolute: true,
@@ -288,7 +457,7 @@ function getEditorOptions(elementId) {
         errorMessages: {
             noFileGiven: 'Aucun fichier choisi.',
             typeNotAllowed: 'Ce type de document n\'est pas autorisé.',
-            fileTooLarge: 'Le fichier "#image_name#" est trop volumineux (#image_size#) ou le nombre de fichiers maximum par événement a été atteint.\n' +
+            fileTooLarge: 'Le fichier "#image_name#" est trop volumineux (#image_size#).\n' +
                 'La taille maximum autorisée est #image_max_size#.',
             importError: 'Une erreur est survenue lors du téléchargement de "#image_name#".',
         },
@@ -302,6 +471,16 @@ function makeEditor(elementId, options = {}) {
 
     var easymde = new EasyMDE(allOptions);
     easymde.options.promptTexts = { "link": "Adresse du lien", "image": "Adresse de l'image" };
+
+    // EasyMDE never clears its hidden file input: choosing the same file again
+    // would not fire "change", and nothing would be uploaded.
+    var imageInput = easymde.gui.toolbar.querySelector(".imageInput");
+    if (imageInput) {
+        imageInput.addEventListener("click", function () { imageInput.value = ""; });
+    }
+    if (allOptions.inlineImages) {
+        setupInlineImages(easymde.codemirror);
+    }
     return easymde;
 }
 
@@ -486,19 +665,24 @@ function createUploadedFilesTable(editor, csrf_token) {
         req.send();
     }
 
+    // Wide enough to be touched
+    const iconColumn = { width: 40, align: "center", formatter: iconFormatter, headerSort: false, cssClass: "uploaded-files-icon" };
+
     return new Tabulator("#uploaded-files-table",
         {
             layout: "fitColumns",
+            // On a phone, the size and the date are hidden: the name stays readable
+            responsiveLayout: "hide",
 
             columns: [
                 {
-                    title: "Fichier", widthGrow: 3, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles
+                    title: "Fichier", widthGrow: 3, minWidth: 110, field: "name", formatter: "link", formatterParams: { urlField: "url" }, sorter: sortFiles
                 },
-                { title: "Taille", widthGrow: 1, field: "size", formatter: sizeFormatter },
-                { title: "Date", widthGrow: 1, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
-                { field: "url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink, headerSort: false },
-                { field: "thumbnail_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage, headerSort: false },
-                { field: "delete_url", width: "24", align: "center", formatter: iconFormatter, formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile, headerSort: false }
+                { title: "Taille", widthGrow: 1, minWidth: 80, responsive: 3, field: "size", formatter: sizeFormatter },
+                { title: "Date", widthGrow: 1, minWidth: 100, responsive: 2, field: "date", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } },
+                { ...iconColumn, field: "url", formatterParams: { 'icon': 'fa-link', 'alt': 'Insérer comme lien' }, cellClick: insertFileAsLink },
+                { ...iconColumn, field: "thumbnail_url", formatterParams: { 'icon': 'fa-image', 'alt': 'Insérer comme image' }, cellClick: insertFileAsImage },
+                { ...iconColumn, field: "delete_url", formatterParams: { 'icon': 'fa-trash link-danger', 'alt': 'Supprimer' }, cellClick: deleteFile }
             ],
 
             groupBy: "activity_name",
