@@ -1,7 +1,7 @@
 """Module containing form widgets for editing user groups"""
 
 import json
-from typing import Callable, Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from flask import url_for
 from markupsafe import Markup

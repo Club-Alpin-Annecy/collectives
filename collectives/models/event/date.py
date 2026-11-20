@@ -65,17 +65,6 @@ class EventDateMixin:
         """
         return self.registration_close_time <= self.start
 
-    def dates_intersect(self, start, end):
-        """Check if a specified timespan and the event timespan intersects
-        :return: True if timespans intersects
-        :rtype: boolean"""
-        return (
-            (self.start <= end)
-            and (self.start <= self.end)
-            and (start <= self.end)
-            and (start <= end)
-        )
-
     def duration_in_ffcam_days(self) -> float:
         """Estimate event duration for ffcam statistics purposes.
 
