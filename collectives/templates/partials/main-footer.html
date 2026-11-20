@@ -1,10 +1,9 @@
-<div class="main-footer">
+<footer class="main-footer">
     <div class="layout-container main-footer-container">
         <div class="columns">
             <div class="column is-3 align-center">
                 <a href="{{ url_for('root.index')}}" class="main-footer-navigation-logo">
-                    <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="{{ config['TITLE'] }}"
-                        title="{{ config['TITLE'] }}" style="height: 90px">
+                    <img src="{{ url_for('static', filename=Configuration.CLUB_LOGO) }}" alt="Accueil {{ Configuration.CLUB_NAME }}" style="height: 90px">
                 </a>
             </div>
             <div class="column">
@@ -23,4 +22,4 @@
 
         </div>
     </div>
-</div>
+</footer>

@@ -153,11 +153,13 @@ export default {
                 <img
                     :src="config.siteParams.coverLogo"
                     class="motto"
+                    alt="L'esprit club alpin"
                 />
                 <br />
                 <img
                     :src="config.siteParams.arrowDown"
                     class="arrow"
+                    alt="Aller à la liste des événements"
                     @click="gotoEvents()"
                 />
             </div>
