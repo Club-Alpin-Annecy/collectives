@@ -38,7 +38,9 @@ def test_volunteers_export(
 
     response = supervisor_client.get("/activity_supervision/volunteers/")
     data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Parapente").first().id
+    data["export-activity_id"] = (
+        ActivityType.query.filter_by(name="Parapente").first().id
+    )
     response = supervisor_client.post(
         "/activity_supervision/volunteers/export", data=data
     )
@@ -46,7 +48,9 @@ def test_volunteers_export(
 
     response = supervisor_client.get("/activity_supervision/volunteers/")
     data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Alpinisme").first().id
+    data["export-activity_id"] = (
+        ActivityType.query.filter_by(name="Alpinisme").first().id
+    )
     response = supervisor_client.post(
         "/activity_supervision/volunteers/export", data=data
     )
