@@ -1,0 +1,203 @@
+{% extends context.extends %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}
+<style>
+  .badge-import table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+  .badge-import th, .badge-import td { border-bottom: 1px solid #ddd; padding: 0.4em; text-align: left; vertical-align: middle; }
+  .badge-import td.count { text-align: right; white-space: nowrap; }
+  .badge-import table.import-groups { table-layout: fixed; }
+  .badge-import table.import-groups th:nth-child(1) { width: 30%; }
+  .badge-import table.import-groups th:nth-child(2) { width: 4.5em; }
+  .badge-import table.import-groups th:nth-child(3),
+  .badge-import table.import-groups th:nth-child(4) { width: 18%; }
+  .badge-import td select { width: 100%; }
+  .badge-import .group-note { display: block; font-size: 0.9em; }
+  .badge-import .group-warning { color: #ef6c00; }
+  .badge-import .group-error { color: #c62828; }
+  .badge-import .status-matched { color: #2e7d32; }
+  .badge-import .status-ambiguous { color: #ef6c00; }
+  .badge-import .status-not_found { color: #c62828; }
+  .badge-import .status-not_a_person { color: grey; }
+  .badge-import details { margin-bottom: 1em; }
+</style>
+
+{% if form %}
+<script src="{{ url_for('static', filename='js/utils/badge.js') }}"></script>
+<script>
+  const badgeLevels = {{ models.BadgeIds.js_levels(badge_ids=badge_ids, activity_ids=activity_ids) | safe }};
+  const acceptsActivity = {{ accepts_activity | tojson }};
+
+  // On each group row, levels depend on the badge type and activity, as in the
+  // badge add form. The pre-filled level is kept when still available.
+  window.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("tr.import-group").forEach(row => {
+      const badgeSelect = row.querySelector("select.import-badge");
+      const activitySelect = row.querySelector("select.import-activity");
+      const levelSelect = row.querySelector("select.import-level");
+      let wantedLevel = levelSelect.dataset.initial;
+
+      const update = () => {
+        const ignored = badgeSelect.value === "";
+        activitySelect.style.visibility =
+          ignored || !acceptsActivity[badgeSelect.value] ? "hidden" : "visible";
+        updateBadgeLevels(badgeLevels, badgeSelect, activitySelect, levelSelect);
+        if ([...levelSelect.options].some(option => option.value === wantedLevel)) {
+          levelSelect.value = wantedLevel;
+        }
+        if (ignored) {
+          levelSelect.style.display = "none";
+        }
+      };
+      update();
+      badgeSelect.addEventListener("change", update);
+      activitySelect.addEventListener("change", update);
+      levelSelect.addEventListener("change", () => { wantedLevel = levelSelect.value; });
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content badge-import" id="administration">
+  <h2 class="heading-2">{{ title }}</h2>
+
+{% if report %}
+  <h4 class="heading-4">Résultat</h4>
+  <ul>
+    <li>{{ report.created }} badge(s) créé(s)</li>
+    <li>{{ report.renewed }} badge(s) renouvelé(s)</li>
+    {% if report.with_grantor %}
+    <li>{{ report.with_grantor }} badge(s) attribué(s) au valideur du fichier, les autres à votre nom</li>
+    {% else %}
+    <li>Badges attribués à votre nom</li>
+    {% endif %}
+    <li>{{ report.ignored }} ligne(s) ignorée(s) à votre demande</li>
+    {% if report.superseded %}
+    <li>{{ report.superseded }} ligne(s) remplacée(s) par un niveau supérieur du même adhérent dans le fichier</li>
+    {% endif %}
+    <li>{{ report.unknown_licenses | length + report.errors | length }} ligne(s) non importée(s)</li>
+  </ul>
+  {% if report.unknown_licenses %}
+  <details>
+    <summary>✘ {{ report.unknown_licenses | length }} ligne(s) d'adhérents sans compte sur le site</summary>
+    <p>{{ report.unknown_licenses | unique | join(', ') }}</p>
+  </details>
+  {% endif %}
+  {% if report.errors %}
+  <details {% if report.errors | length <= 20 %}open{% endif %}>
+    <summary>✘ {{ report.errors | length }} autre(s) ligne(s) non importée(s)</summary>
+    <ul>
+      {% for error in report.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  <a class="button button-primary" href="{{ context.back_url }}">Retour à la liste des badges</a>
+
+{% else %}
+  {{ generator.form_errors(form) }}
+
+  <form action="{{ confirm_url }}" method="POST" id="badge-import-form">
+    {{ form.hidden_tag() }}
+
+    <h4 class="heading-4">1. Badges à attribuer</h4>
+    <p>
+      Les lignes du fichier sont regroupées par « {{ parsed.group_label }} ». Pour chaque groupe, choisissez le badge à attribuer, ou « Ignorer ». Les choix sont pré-remplis d'après le
+      fichier et, à défaut, d'après le formulaire d'ajout. La date du fichier sert de date
+      d'attribution pour calculer la date d'expiration. Pour un même adhérent, seul le plus haut
+      niveau de pratique du fichier est attribué.
+    </p>
+    <table class="import-groups">
+      <thead>
+        <tr><th>{{ parsed.group_label }}</th><th>Lignes</th><th>Badge</th><th>Activité</th><th>Niveau</th></tr>
+      </thead>
+      <tbody>
+      {% for group, badge_field, activity_field, level_field in form.group_fields() %}
+        <tr class="import-group">
+          <td>
+            <label for="{{ badge_field.id }}">{{ group or "(non précisé)" }}</label>
+            {% if warnings[loop.index0] %}
+              <span class="group-note group-warning">⚠ {{ warnings[loop.index0] }}</span>
+            {% endif %}
+            {% if group_errors[loop.index0] %}
+              <span class="group-note group-error">✘ {{ group_errors[loop.index0] }}</span>
+            {% endif %}
+          </td>
+          <td class="count">{{ group_counts[group] }}</td>
+          <td>{{ badge_field(class="import-badge") }}</td>
+          <td>{{ activity_field(class="import-activity") }}</td>
+          <td>{{ level_field(class="import-level") }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h4 class="heading-4">2. Diagnostics</h4>
+
+    {% set matched = grantors | selectattr('status', 'equalto', grantor_status.Matched) | list %}
+    {% if not grantors %}
+    <p>Valideurs : le fichier n'en indique pas, c'est vous qui serez enregistré comme auteur des badges.</p>
+    {% else %}
+    <details open>
+      <summary>
+        Valideurs : {{ matched | length }} identifié(s) sur {{ grantors | length }}
+      </summary>
+      <p>
+        Le valideur est enregistré comme auteur du badge lorsqu'il correspond à un unique adhérent.
+        Sinon, c'est vous qui serez enregistré comme auteur du badge.
+      </p>
+      <table>
+        <thead><tr><th>Validé par</th><th>Lignes</th><th>Adhérent associé</th></tr></thead>
+        <tbody>
+        {% for match in grantors %}
+          <tr>
+            <td>{{ match.name }}</td>
+            <td class="count">{{ match.count }}</td>
+            <td class="status-{{ match.status.value }}">
+              {% if match.status == grantor_status.Matched %}
+                ✔ {{ match.user.full_name() }} ({{ match.user.license }})
+              {% elif match.status == grantor_status.Ambiguous %}
+                ⚠ Ambigu, attribué à votre nom. {{ match.users | length }} adhérents :
+                {% for user in match.users %}{{ user.full_name() }} ({{ user.license }}){% if not loop.last %}, {% endif %}{% endfor %}
+              {% elif match.status == grantor_status.NotFound %}
+                ✘ Aucun adhérent trouvé, attribué à votre nom
+              {% else %}
+                — Attribution automatique, attribué à votre nom
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </details>
+    {% endif %}
+
+    <details>
+      <summary>
+        {% if unknown_licenses %}✘{% else %}✔{% endif %}
+        Adhérents : {{ unknown_licenses | length }} licence(s) inconnue(s) sur
+        {{ parsed.rows | map(attribute='license') | unique | list | length }}
+      </summary>
+      {% if unknown_licenses %}
+        <p>Ces adhérents n'ont pas de compte sur le site ; leurs lignes ne seront pas importées.</p>
+        <p>{{ unknown_licenses | join(', ') }}</p>
+      {% endif %}
+    </details>
+
+    {% if parsed.errors %}
+    <details>
+      <summary>✘ {{ parsed.errors | length }} ligne(s) illisible(s), qui seront ignorées</summary>
+      <ul>
+        {% for error in parsed.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+
+    {{ form.submit(class="button button-primary") }}
+    <a class="button" href="{{ context.back_url }}">Annuler</a>
+  </form>
+{% endif %}
+</div>
+{% endblock %}

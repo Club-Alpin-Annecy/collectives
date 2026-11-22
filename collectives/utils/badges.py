@@ -1,12 +1,10 @@
 """Module for base functions of badge management"""
 
-import codecs
-import csv
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Iterable, List, Sequence, Union
 
-from flask import flash, render_template, request, send_file
+from flask import flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user
 from markupsafe import Markup
 from sqlalchemy import ColumnElement, and_, or_, true
@@ -15,9 +13,7 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.badge import (
     AddBadgeForm,
     ExportBadgeForm,
-    ExtranetImportUploadForm,
     compute_default_expiration_date,
-    is_excel_file,
 )
 from collectives.models import (
     ActivityType,
@@ -120,8 +116,10 @@ def list_page(
     :param level: if True, display level setting
     :param extends: path to the template which extends the page
     :param routes: Lists of urls of others endpoint. This dict should have these keys:
-                ``add``, ``export``, ``delete``, ``renew``, and optionally
-                ``extranet_import`` to offer importing FFCAM extranet exports.
+                ``add``, ``export``, ``delete``, ``renew``. The ``add`` route
+                must handle file imports (see :py:func:`add_badge`), and its
+                blueprint have a ``confirm_badge_import`` route calling
+                :py:func:`collectives.utils.badge_import.confirm_import`.
     :param allow_add: Whether to allow adding new badges
     :param title: Title of the page. If None, computed from badge_types
     """
@@ -154,10 +152,6 @@ def list_page(
         activity_list=current_user.get_supervised_activities(),
     )
 
-    extranet_form = None
-    if allow_add and "extranet_import" in routes:
-        extranet_form = ExtranetImportUploadForm(formdata=None)
-
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
 
     return render_template(
@@ -172,7 +166,6 @@ def list_page(
         extends=extends,
         routes=routes,
         activity_ids=activity_ids,
-        extranet_form=extranet_form,
     )
 
 
@@ -308,20 +301,6 @@ class BulkImportReport:
     errors: list[str] = field(default_factory=list)
     """ Description of other lines which could not be imported."""
 
-    def summary(self) -> str:
-        """:return: a one-paragraph description of the outcome"""
-        text = f"Import terminé: {self.created} créés, {self.renewed} mis à jour."
-        if self.unknown_licenses:
-            text += " Licences introuvables: " + ", ".join(self.unknown_licenses) + "."
-        if self.errors:
-            text += " Erreurs: " + "; ".join(self.errors)
-        return text
-
-    def flash(self) -> None:
-        """Displays :py:meth:`summary` to the user."""
-        failed = self.unknown_licenses or self.errors
-        flash(self.summary(), "warning" if failed else "success")
-
 
 def grant_badge(
     user: User,
@@ -356,11 +335,22 @@ def grant_badge(
 
 
 def add_badge(
-    badge_types: list[BadgeIds] = None, auto_date: bool = False, level: bool = False
-) -> None:
-    """Route for an activity supervisor to add or renew a Badge to a user.
+    badge_types: list[BadgeIds] = None,
+    auto_date: bool = False,
+    level: bool = False,
+    back_endpoint: str = "event.index",
+    extends: str = "activity_supervision/activity_supervision.html",
+):
+    """Route for an activity supervisor to add or renew a Badge to a user, or
+    to import a file of users to add badges to.
 
-    :param type: The type of badge to add"""
+    :param badge_types: The types of badge which may be added
+    :param auto_date: if True, the expiration date is computed from the level
+    :param level: if True, the form has a level field
+    :param back_endpoint: endpoint of the page of the form, to go back to
+    :param extends: template the file import pages extend
+    :return: the response of a file import (see
+        :py:func:`collectives.utils.badge_import.start_import`), or None"""
 
     if isinstance(badge_types, BadgeIds):
         badge_types = [
@@ -373,6 +363,11 @@ def add_badge(
         del add_badge_form.expiration_date
     if not level:
         del add_badge_form.level
+
+    if add_badge_form.is_submitted() and add_badge_form.csv_file.data:
+        return _start_file_import(
+            add_badge_form, badge_types or list(BadgeIds), back_endpoint, extends
+        )
 
     if not add_badge_form.validate_on_submit():
         form_errors = "".join(
@@ -397,23 +392,7 @@ def add_badge(
             badge_id=badge.badge_id, level=badge.level
         )
 
-    csv_file = add_badge_form.csv_file.data
-    if csv_file and is_excel_file(csv_file):
-        flash(
-            "Ce formulaire n'accepte que les fichiers CSV. Les exports Excel de "
-            "l'extranet FFCAM s'importent depuis la page des pratiquants validés.",
-            "error",
-        )
-        return
-    if csv_file:
-        # Process the CSV file
-        try:
-            add_bulk(csv_file, badge_prototype=badge)
-        except RuntimeError as err:
-            flash(Markup(str(err)), "error")
-        return
-
-    # else add badge for a single user
+    # Add the badge to a single user
     user: User = db.session.get(User, badge.user_id)
     if user is None:
         flash("Utilisateur invalide", "error")
@@ -428,146 +407,50 @@ def add_badge(
         flash(str(err), "error")
 
 
-def add_bulk(file_storage, badge_prototype: Badge) -> None:
-    """Process a CSV file containing lines (license, attribution_date) and assign badge.
+def _start_file_import(
+    add_badge_form: AddBadgeForm,
+    badge_types: list[BadgeIds],
+    back_endpoint: str,
+    extends: str,
+):
+    """Starts the import of the file of the add form.
 
-    The CSV may have a header. Date formats accepted: YYYY-MM-DD or DD/MM/YYYY.
+    The badge type, activity and level of the form are only defaults for the
+    groups of lines of the file, so they are not required to be valid.
+
+    :param add_badge_form: the submitted add form
+    :param badge_types: The types of badge which may be added
+    :param back_endpoint: endpoint of the page of the form, to go back to
+    :param extends: template the file import pages extend
+    :return: the response
     """
+    from collectives.utils import badge_import  # Imports this module
 
-    # Read a sample from the uploaded stream to detect encoding and delimiter.
-    file_storage.stream.seek(0)
-    sample = file_storage.stream.read(8192) or b""
+    back_url = url_for(back_endpoint)
+    # Only the CSRF token is checked: other fields are mere defaults
+    csrf_field = getattr(add_badge_form, "csrf_token", None)
+    if csrf_field is not None and not csrf_field.validate(add_badge_form):
+        flash("Formulaire expiré, veuillez réessayer.", "error")
+        return redirect(back_url)
 
-    # Try to decode sample as utf-8, fallback to iso-8859-1
-    encoding = "utf8"
-    try:
-        sample_text = sample.decode(encoding)
-    except Exception:
-        encoding = "iso-8859-1"
-        sample_text = sample.decode(encoding, errors="replace")
+    def data(field_name: str):
+        """Returns the data of a field of the form, if it exists"""
+        field = getattr(add_badge_form, field_name, None)
+        return field.data if field is not None else None
 
-    # Try to detect delimiter with csv.Sniffer (prefer ; or ,). Fallback to simple heuristic.
-    try:
-        dialect = csv.Sniffer().sniff(sample_text, delimiters=";,")
-        delimiter = dialect.delimiter
-    except Exception:
-        delimiter = ";" if sample_text.count(";") > sample_text.count(",") else ","
-
-    # Reset stream and create a text iterator with the chosen encoding, then csv reader with detected delimiter.
-    file_storage.stream.seek(0)
-    stream = codecs.iterdecode(file_storage.stream, encoding)
-    reader = csv.reader(stream, delimiter=delimiter)
-
-    # Read all rows
-    rows = list(reader)
-    if not rows:
-        raise RuntimeError("Fichier vide.")
-
-    # detect header if first row contains 'license' text or non-numeric license
-    start_index = 0
-    first = rows[0]
-    if any(h and h.lower() in ("license", "licence") for h in first) or (
-        first and not first[0].strip().isdigit()
-    ):
-        start_index = 1
-    header_map = None
-    if start_index == 1:
-        # build a header -> index map for named column matching (case-insensitive)
-        header = [h.strip().lower() if h else "" for h in first]
-        header_map = {h: i for i, h in enumerate(header) if h}
-
-    def _col_index(names, default_idx):
-        """Return the column index for the first matching name in names using header_map, or default_idx."""
-        if header_map:
-            for n in names:
-                if n in header_map:
-                    return header_map[n]
-            return None
-        return default_idx
-
-    def _col_value(row, idx):
-        """Return the column value for the first matching name in names using header_map, or default_idx."""
-        if idx is not None and idx < len(row):
-            return row[idx].strip()
-        return None
-
-    activity_names = {a.name: a.id for a in current_user.get_supervised_activities()}
-
-    license_index = _col_index(["license", "licence"], 0)
-    date_index = _col_index(["attribution_date", "date"], 1)
-    activity_index = _col_index(["activity", "activite"], 2)
-    level_index = _col_index(["level", "niveau"], 3)
-
-    rows = [row for row in rows[start_index:] if _col_value(row, license_index)]
-    users = users_by_license(_col_value(row, license_index) for row in rows)
-    report = BulkImportReport()
-
-    for row in rows:
-        license_val = _col_value(row, license_index)
-        date_str = _col_value(row, date_index)
-        activity_name = _col_value(row, activity_index)
-        level_name = _col_value(row, level_index)
-
-        user = users.get(license_val)
-        if user is None:
-            report.unknown_licenses.append(license_val)
-            continue
-
-        user_identifier = f"{user.full_name()} (licence {user.license})"
-
-        # resolve activity by name if provided
-        activity_id = badge_prototype.activity_id
-        if activity_name:
-            activity_id = activity_names.get(activity_name)
-            if activity_id is None:
-                report.errors.append(
-                    f"Activité introuvable pour {user_identifier}: {activity_name}"
-                )
-                continue
-
-        # resolve level name -> level id (practitioner default levels or custom skill levels)
-        level = badge_prototype.level
-        if level_name:
-            levels = badge_prototype.badge_id.levels(activity_id=activity_id)
-            level_names = {desc.name: lvl for lvl, desc in levels.items()}
-
-            level = level_names.get(level_name)
-            if level is None:
-                report.errors.append(
-                    f"Niveau invalide pour {user_identifier}: {level_name}"
-                )
-                continue
-
-        try:
-            attribution_date = parse_date(date_str)
-        except ValueError:
-            report.errors.append(f"Date invalide pour {user_identifier}: {date_str}")
-            continue
-
-        expiration_date = badge_prototype.expiration_date
-        if attribution_date or expiration_date is None:
-            expiration_date = compute_default_expiration_date(
-                badge_id=badge_prototype.badge_id,
-                level=level,
-                attribution_date=attribution_date,
-            )
-
-        badge = Badge(
-            user_id=user.id,
-            badge_id=badge_prototype.badge_id,
-            activity_id=activity_id,
-            level=level,
-            expiration_date=expiration_date,
-            creation_time=time.current_time(),
-        )
-
-        try:
-            grant_badge(user, badge, report)
-        except RuntimeError as err:
-            report.errors.append(f"{user_identifier}: {err}")
-
-    db.session.commit()
-    report.flash()
+    badge_id = data("badge_id")
+    default = badge_import.MappingChoice(
+        badge_id=BadgeIds(int(badge_id)) if badge_id else None,
+        activity_id=data("activity_id") or None,
+        level=data("level") or None,
+    )
+    context = badge_import.ImportContext(
+        badge_types=badge_types,
+        expiration_date=data("expiration_date"),
+        back_url=back_url,
+        extends=extends,
+    )
+    return badge_import.start_import(add_badge_form.csv_file.data, default, context)
 
 
 def renew_badge(

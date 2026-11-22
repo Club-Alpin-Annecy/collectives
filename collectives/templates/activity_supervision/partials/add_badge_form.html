@@ -1,5 +1,6 @@
 {#
-  Form to add a badge to a user, or to the users listed in a file.
+  Form to add a badge to a user, or to import a file of users to add badges to.
+  The badge fields are the defaults of the file import.
 
   Expects `add_badge_form` and `routes` in context, and `generator` to be
   partials/form-fields.html.
@@ -12,13 +13,13 @@
   .add-badge-recipients legend { padding: 0 0.5em; font-weight: bold; }
   .add-badge-or { display: flex; align-items: center; gap: 1em; margin: 0.5em 0; color: grey; text-transform: uppercase; }
   .add-badge-or::before, .add-badge-or::after { content: ""; flex: 1; border-top: 1px solid #ddd; }
-  .add-badge-file-note { margin-top: 0.5em; font-style: italic; }
+  .add-badge-file-formats { margin: 0.3em 0; padding-left: 1.2em; }
 </style>
 
 {{ generator.form_errors(form) }}
 
 <form action="{{ url_for(routes['add']) }}" method="POST" enctype="multipart/form-data"
-      class="form form-vertical" id="basic_form">
+      class="form form-vertical" id="add-badge-form">
 
   <div id="add-badge-fields">
     {% for field in form if field.name not in recipient_fields and field.type not in ("HiddenField", "CSRFTokenField", "SubmitField") %}
@@ -41,20 +42,25 @@
     <div class="add-badge-or">ou</div>
 
     <div class="controls">
-      <label class="label-top" for="{{ form.csv_file.id }}">Plusieurs adhérents, depuis un fichier CSV</label>
+      <label class="label-top" for="{{ form.csv_file.id }}">Plusieurs adhérents, depuis un fichier</label>
       <div class="label-help">
-        Une ligne par adhérent, avec son numéro de licence et, optionnellement, la date
-        d'attribution, l'activité et le niveau du badge. À défaut, les valeurs ci-dessus
-        sont utilisées.
+        Formats acceptés :
+        <ul class="add-badge-file-formats">
+          <li>
+            <strong>CSV</strong> : une ligne par adhérent, avec son numéro de licence et,
+            optionnellement, la date d'attribution, l'activité, le niveau et le valideur
+            (colonnes <code>licence</code>, <code>date</code>, <code>activité</code>,
+            <code>niveau</code>, <code>validé par</code>).
+          </li>
+          <li>
+            <strong>Export Excel de l'extranet FFCAM</strong> : « Groupes de compétences » ou
+            « Niveaux de pratique validés ».
+          </li>
+        </ul>
+        À l'étape suivante, vous choisirez le badge de chaque groupe de lignes du fichier,
+        pré-rempli d'après le fichier et, à défaut, d'après les valeurs ci-dessus.
       </div>
-      {{ form.csv_file(onchange="checkFileFieldSize(this)", class="input-100", accept=".csv,.txt") }}
-      <div class="add-badge-file-note" id="add-badge-file-note" hidden>
-        Ce champ n'accepte que les fichiers CSV.
-        {% if extranet_form %}
-          Pour un export Excel de l'extranet FFCAM, utilisez
-          <a href="#extranet-import">l'import d'un export extranet</a>.
-        {% endif %}
-      </div>
+      {{ form.csv_file(onchange="checkFileFieldSize(this)", class="input-100", accept=".csv,.txt,.xlsx") }}
     </div>
   </fieldset>
 

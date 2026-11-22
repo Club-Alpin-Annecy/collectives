@@ -27,8 +27,6 @@ from collectives.forms.activity_type import (
 from collectives.forms.badge import (
     BadgeCustomLevelForm,
     BadgeCustomPractitionerLevelForm,
-    ExtranetImportMappingForm,
-    ExtranetImportUploadForm,
 )
 from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
@@ -213,9 +211,11 @@ def volunteers_list():
 def add_volunteer():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(badge_types=[BadgeIds.Benevole])
-
-    return redirect(url_for(".volunteers_list"))
+    response = badges.add_badge(
+        badge_types=[BadgeIds.Benevole],
+        back_endpoint="activity_supervision.volunteers_list",
+    )
+    return response or redirect(url_for(".volunteers_list"))
 
 
 @blueprint.route("/volunteers/delete/<badge_id>", methods=["POST"])
@@ -506,11 +506,13 @@ def set_custom_practitioner_levels():
 def add_competency_badge():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(
-        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill), level=True, auto_date=True
+    response = badges.add_badge(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill),
+        level=True,
+        auto_date=True,
+        back_endpoint="activity_supervision.competency_badge_holders",
     )
-
-    return redirect(url_for(".competency_badge_holders"))
+    return response or redirect(url_for(".competency_badge_holders"))
 
 
 @blueprint.route("/competency_badge_holders/", methods=["GET"])
@@ -521,7 +523,6 @@ def competency_badge_holders():
         "delete": "activity_supervision.delete_competency_badge",
         "renew": "activity_supervision.renew_competency_badge",
         "add": "activity_supervision.add_competency_badge",
-        "extranet_import": "activity_supervision.upload_extranet_export",
     }
 
     return badges.list_page(
@@ -535,110 +536,11 @@ def competency_badge_holders():
     )
 
 
-def _extranet_mapping_choices() -> dict[str, list[tuple[str, str]]]:
-    """:return: choices of badges to map competency groups to, by category"""
-    choices = {"Ne pas importer": [(badge_import.IGNORE_CHOICE, "Ignorer")]}
-    for group, targets in badge_import.badge_targets().items():
-        choices[group] = [(target.encode(), label) for target, label in targets]
-    return choices
-
-
-def _render_extranet_mapping(
-    form: ExtranetImportMappingForm, parsed: badge_import.ParsedExport
-):
-    """Renders the page to choose the badge of each competency group of an
-    FFCAM extranet export, along with diagnostics about the export.
-
-    :param form: the mapping form
-    :param parsed: the parsed export
-    """
-    grantors = badge_import.match_grantors(row.grantor for row in parsed.rows)
-    status_order = list(badge_import.GrantorStatus)
-    grantors = sorted(
-        grantors.values(),
-        key=lambda match: (status_order.index(match.status), -match.count, match.name),
-    )
-
-    return render_template(
-        "activity_supervision/extranet_import.html",
-        title="Import d'un export extranet",
-        form=form,
-        export=parsed,
-        group_counts=parsed.group_counts(),
-        grantors=grantors,
-        grantor_status=badge_import.GrantorStatus,
-        unknown_licenses=badge_import.unknown_licenses(parsed.rows),
-    )
-
-
-@blueprint.route("/competency_badge/import/upload", methods=["POST"])
-def upload_extranet_export():
-    """Route to upload an FFCAM extranet export. Parses it, and displays the
-    page to choose the badges to import (see :py:func:`import_competency_badges`).
-    """
-
-    upload_form = ExtranetImportUploadForm()
-    if not upload_form.validate_on_submit():
-        for errors in upload_form.errors.values():
-            for error in errors:
-                flash(error, "error")
-        return redirect(url_for(".competency_badge_holders"))
-
-    try:
-        parsed = badge_import.parse_export(upload_form.export_file.data.stream)
-    except badge_import.BadgeImportError as err:
-        flash(str(err), "error")
-        return redirect(url_for(".competency_badge_holders"))
-
-    groups = parsed.groups()
-    form = ExtranetImportMappingForm.build(
-        groups,
-        choices=_extranet_mapping_choices(),
-        defaults=[badge_import.suggest_target(group) for group in groups],
-        formdata=None,
-    )
-    form.payload.data = badge_import.dump_payload(parsed)
-    return _render_extranet_mapping(form, parsed)
-
-
-@blueprint.route("/competency_badge/import", methods=["POST"])
-def import_competency_badges():
-    """Route to import the badges of an FFCAM extranet export, once the
-    supervisor has chosen the badge of each competency group."""
-
-    try:
-        parsed = badge_import.load_payload(request.form.get("payload", ""))
-    except badge_import.BadgeImportError as err:
-        flash(str(err), "error")
-        return redirect(url_for(".competency_badge_holders"))
-
-    form = ExtranetImportMappingForm.build(
-        parsed.groups(),
-        choices=_extranet_mapping_choices(),
-        defaults=[badge_import.IGNORE_CHOICE] * len(parsed.groups()),
-    )
-    if not form.validate_on_submit():
-        return _render_extranet_mapping(form, parsed)
-
-    try:
-        mapping = {
-            group: badge_import.decode_target(field.data)
-            for group, field in form.group_fields()
-        }
-    except badge_import.BadgeImportError as err:
-        flash(str(err), "error")
-        return _render_extranet_mapping(form, parsed)
-
-    if not any(mapping.values()):
-        flash("Aucun badge sélectionné : rien n'a été importé.", "warning")
-        return _render_extranet_mapping(form, parsed)
-
-    report = badge_import.import_badges(parsed, mapping)
-    return render_template(
-        "activity_supervision/extranet_import.html",
-        title="Import d'un export extranet",
-        report=report,
-    )
+@blueprint.route("/badges/import", methods=["POST"])
+def confirm_badge_import():
+    """Route to import the badges of a file, once the badge of each group of
+    lines is chosen (see :py:mod:`collectives.utils.badge_import`)."""
+    return badge_import.confirm_import()
 
 
 @blueprint.route("/competency_badge_holders/export", methods=["POST"])

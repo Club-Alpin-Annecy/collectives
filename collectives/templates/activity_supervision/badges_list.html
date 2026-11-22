@@ -57,18 +57,6 @@
         exportBadgeSelect.addEventListener?.("change", updateExportLevels);
         exportActivityIdSelect.addEventListener("change", updateExportLevels);
         {% endif %}
-
-        {% if add_badge_form %}
-        // Excel files are rejected by the server: tell it before submitting
-        const fileInput = document.getElementById("{{add_badge_form.csv_file.id}}");
-        const fileNote = document.getElementById("add-badge-file-note");
-        const updateFileNote = () => {
-          const file = fileInput.files[0];
-          fileNote.hidden = file === undefined || !/\.xlsx?$/i.test(file.name);
-        };
-        updateFileNote();
-        fileInput.addEventListener("change", updateFileNote);
-        {% endif %}
       };
   </script>
 {% endblock %}
@@ -91,15 +79,6 @@
   {% include 'activity_supervision/partials/add_badge_form.html' %}
 {% endif %}
 
-{% if extranet_form %}
-  <h4 class="heading-4" id="extranet-import">Import d'un export extranet FFCAM</h4>
-  <p>
-    Attribue les badges des groupes de compétences ou des niveaux de pratique validés sur
-    l'extranet. Après l'envoi du fichier, vous choisirez le badge correspondant à chaque groupe
-    ou niveau, et vérifierez les adhérents et valideurs reconnus avant l'import.
-  </p>
-  {{ generator.form_generator(extranet_form, url_for(routes['extranet_import']), form_id='extranet-import-form') }}
-{% endif %}
 
 <h4 class="heading-4">Export de la liste</h4>
 

@@ -5,7 +5,6 @@ from datetime import date
 from flask import request
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileRequired
 from wtforms import (
     FieldList,
     FileField,
@@ -212,14 +211,14 @@ class AddBadgeForm(BadgeForm):
     csv_file = FileField(
         "Fichier",
         description=(
-            "Fichier CSV avec une ligne par adhérent à qui attribuer le badge. "
-            "Chaque ligne doit au moins contenir le numéro de licence, et optionellement, "
-            "la date d'attribution, l'activité associée au badge, et le niveau du badge. "
-            "Si ceux-ci ne sont pas fournis, les valeurs du formulaire seront utilisées"
+            "Fichier CSV ou export Excel de l'extranet FFCAM, avec une ligne par "
+            "adhérent à qui attribuer un badge. Le badge de chaque groupe de lignes "
+            "sera choisi à l'étape suivante."
         ),
     )
-    """ CSV file of users to add the badge to. Excel files are rejected, see
-    :py:func:`is_excel_file`."""
+    """ File of users to add badges to: a CSV file or an FFCAM extranet export
+    (see :py:mod:`collectives.utils.badge_import`). Its name is kept for
+    compatibility."""
 
     def __init__(self, *args, badge_type: str = "badge", **kwargs):
         """Overloaded constructor populating activity list.
@@ -444,9 +443,8 @@ _ZIP_SIGNATURE = b"PK\x03\x04"
 def is_excel_file(file_storage) -> bool:
     """Whether an uploaded file is an Excel file rather than a CSV file.
 
-    Used to reject Excel files, such as FFCAM extranet exports, uploaded in
-    place of CSV files. Detection relies on the file content, and on the file
-    name for older ``.xls`` files.
+    Excel files are FFCAM extranet exports. Detection relies on the file
+    content, and on the file name for older ``.xls`` files.
 
     :param file_storage: the uploaded file
     :type file_storage: :py:class:`werkzeug.datastructures.FileStorage`
@@ -461,32 +459,12 @@ def is_excel_file(file_storage) -> bool:
     return signature == _ZIP_SIGNATURE
 
 
-class ExtranetImportUploadForm(FlaskForm):
-    """Form for supervisors to upload an FFCAM extranet export of competency
-    groups or practitioner levels, before choosing the badges to grant for each
-    group or level."""
+class BadgeImportMappingForm(FlaskForm):
+    """Form to choose the badge to grant for each group of lines of an imported
+    file (see :py:mod:`collectives.utils.badge_import`).
 
-    export_file = FileField(
-        "Export extranet FFCAM (.xlsx)",
-        description=(
-            "Fichier Excel des « Groupes de compétences » ou des « Niveaux de "
-            "pratique validés » exporté de l'extranet. Le badge à attribuer pour "
-            "chaque groupe ou niveau sera choisi à l'étape suivante."
-        ),
-        validators=[
-            FileRequired("Veuillez sélectionner un fichier."),
-            FileAllowed(["xlsx"], "Le fichier doit être un export Excel (.xlsx)."),
-        ],
-        render_kw={"accept": ".xlsx"},
-    )
-    submit = SubmitField("Analyser le fichier")
-
-
-class ExtranetImportMappingForm(FlaskForm):
-    """Form for supervisors to choose the badge to grant for each group of an
-    FFCAM extranet export (competency group or practitioner level).
-
-    Use :py:meth:`build` to create it, as it has one select field per group."""
+    Use :py:meth:`build` to create it, as it has a badge type, an activity and
+    a level field per group."""
 
     payload = HiddenField(validators=[DataRequired()])
     submit = SubmitField("Importer les badges")
@@ -495,36 +473,59 @@ class ExtranetImportMappingForm(FlaskForm):
     def build(
         cls,
         groups: list[str],
-        choices: dict[str, list[tuple[str, str]]],
-        defaults: list[str],
+        badge_choices: list[tuple[str, str]],
+        activity_choices: list[tuple[str, str]],
+        defaults: list[tuple[str, str, str]],
         **kwargs,
-    ) -> "ExtranetImportMappingForm":
-        """Creates a form with one select field per group.
+    ) -> "BadgeImportMappingForm":
+        """Creates a form with badge type, activity and level fields per group.
 
-        Fields are named ``group_<i>``, ``i`` being the index of the group in
-        ``groups``.
+        Fields are named ``badge_<i>``, ``activity_<i>`` and ``level_<i>``, ``i``
+        being the index of the group in ``groups``. Level choices depend on the
+        badge type and activity: they are filled in the browser, and checked by
+        :py:func:`collectives.utils.badge_import.resolve_target`.
 
-        :param groups: groups of the export
-        :param choices: choices of the select fields, grouped by category
-        :param defaults: default choice for each group
+        :param groups: groups of the file
+        :param badge_choices: choices of the badge type fields, "" to ignore
+        :param activity_choices: choices of the activity fields, "" for none
+        :param defaults: default (badge type, activity, level) of each group
         :param kwargs: passed to the form constructor
         :return: the form instance
         """
 
         class MappingForm(cls):
-            """Form with one select field per group"""
+            """Form with fields per group"""
 
-        for i, group in enumerate(groups):
+        for i, (badge, activity, level) in enumerate(defaults):
             setattr(
                 MappingForm,
-                f"group_{i}",
-                SelectField(group, choices=choices, default=defaults[i]),
+                f"badge_{i}",
+                SelectField("Badge", choices=badge_choices, default=badge),
+            )
+            setattr(
+                MappingForm,
+                f"activity_{i}",
+                SelectField("Activité", choices=activity_choices, default=activity),
+            )
+            setattr(
+                MappingForm,
+                f"level_{i}",
+                SelectField(
+                    "Niveau",
+                    choices=[(level, level)],
+                    default=level,
+                    validate_choice=False,
+                    render_kw={"data-initial": level},
+                ),
             )
 
         form = MappingForm(**kwargs)
         form.group_names = groups
         return form
 
-    def group_fields(self) -> list[tuple[str, SelectField]]:
-        """:return: list of (group, select field)"""
-        return [(group, self[f"group_{i}"]) for i, group in enumerate(self.group_names)]
+    def group_fields(self) -> list[tuple[str, SelectField, SelectField, SelectField]]:
+        """:return: list of (group, badge type field, activity field, level field)"""
+        return [
+            (group, self[f"badge_{i}"], self[f"activity_{i}"], self[f"level_{i}"])
+            for i, group in enumerate(self.group_names)
+        ]
