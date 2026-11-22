@@ -108,6 +108,7 @@ def list_page(
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
     title: str | None = None,
+    extranet_import: bool = False,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -120,6 +121,8 @@ def list_page(
                 ``add``, ``export``, ``delete``, ``renew``,.
     :param allow_add: Whether to allow adding new badges
     :param title: Title of the page. If None, computed from badge_types
+    :param extranet_import: Whether to offer importing FFCAM extranet exports
+        in the add form (submitted to ``routes['add']`` as well)
     """
 
     # convert to list
@@ -141,6 +144,8 @@ def list_page(
             del add_badge_form.expiration_date
         if not level:
             del add_badge_form.level
+        if not extranet_import:
+            del add_badge_form.file_format
     else:
         add_badge_form = None
 

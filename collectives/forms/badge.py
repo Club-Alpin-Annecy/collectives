@@ -5,6 +5,7 @@ from datetime import date
 from flask import request
 from flask_login import current_user
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileRequired
 from wtforms import (
     FieldList,
     FileField,
@@ -55,6 +56,13 @@ def compute_default_expiration_date(
     if attribution_date >= default_date:
         default_date = date(default_date.year + 1, default_date.month, default_date.day)
     return default_date
+
+
+FILE_FORMAT_CSV = "csv"
+""" Value of :py:attr:`AddBadgeForm.file_format` for CSV files."""
+
+FILE_FORMAT_EXTRANET = "extranet"
+""" Value of :py:attr:`AddBadgeForm.file_format` for FFCAM extranet exports."""
 
 
 class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
@@ -206,6 +214,19 @@ class AddBadgeForm(BadgeForm):
             "class": "search-input",
             "placeholder": "Nom...",
         },
+    )
+
+    file_format = SelectField(
+        "Format du fichier",
+        choices=[
+            (FILE_FORMAT_CSV, "CSV"),
+            (FILE_FORMAT_EXTRANET, "Export extranet FFCAM (.xlsx)"),
+        ],
+        default=FILE_FORMAT_CSV,
+        description=(
+            "L'export extranet est le fichier Excel des « Groupes de compétences ». "
+            "Les badges à attribuer pour chaque groupe seront choisis à l'étape suivante."
+        ),
     )
 
     csv_file = FileField(
@@ -429,3 +450,66 @@ class BadgeCustomPractitionerLevelForm(ActivityTypeSelectionForm):
             level_name.name = f"{self.level_names.id}-{level}"
             if not request.form:
                 level_name.data = level_desc.name
+
+
+class ExtranetImportUploadForm(FlaskForm):
+    """Form validating the upload of an FFCAM extranet export.
+
+    Its field has the name of :py:attr:`AddBadgeForm.csv_file`, as the upload
+    is made through that form."""
+
+    csv_file = FileField(
+        "Export extranet",
+        validators=[
+            FileRequired("Veuillez sélectionner un fichier."),
+            FileAllowed(["xlsx"], "Le fichier doit être un export Excel (.xlsx)."),
+        ],
+    )
+
+
+class ExtranetImportMappingForm(FlaskForm):
+    """Form for supervisors to choose the badge to grant for each competency
+    group of an FFCAM extranet export.
+
+    Use :py:meth:`build` to create it, as it has one select field per group."""
+
+    payload = HiddenField(validators=[DataRequired()])
+    submit = SubmitField("Importer les badges")
+
+    @classmethod
+    def build(
+        cls,
+        skills: list[str],
+        choices: dict[str, list[tuple[str, str]]],
+        defaults: list[str],
+        **kwargs,
+    ) -> "ExtranetImportMappingForm":
+        """Creates a form with one select field per competency group.
+
+        Fields are named ``skill_<i>``, ``i`` being the index of the group in
+        ``skills``.
+
+        :param skills: names of the competency groups
+        :param choices: choices of the select fields, grouped by category
+        :param defaults: default choice for each competency group
+        :param kwargs: passed to the form constructor
+        :return: the form instance
+        """
+
+        class MappingForm(cls):
+            """Form with one select field per competency group"""
+
+        for i, skill in enumerate(skills):
+            setattr(
+                MappingForm,
+                f"skill_{i}",
+                SelectField(skill, choices=choices, default=defaults[i]),
+            )
+
+        form = MappingForm(**kwargs)
+        form.skill_names = skills
+        return form
+
+    def skill_fields(self) -> list[tuple[str, SelectField]]:
+        """:return: list of (competency group name, select field)"""
+        return [(skill, self[f"skill_{i}"]) for i, skill in enumerate(self.skill_names)]

@@ -25,8 +25,11 @@ from collectives.forms.activity_type import (
     ActivityTypeSelectionForm,
 )
 from collectives.forms.badge import (
+    FILE_FORMAT_EXTRANET,
     BadgeCustomLevelForm,
     BadgeCustomPractitionerLevelForm,
+    ExtranetImportMappingForm,
+    ExtranetImportUploadForm,
 )
 from collectives.forms.csv import CSVForm
 from collectives.forms.upload import AddActivityDocumentForm
@@ -43,7 +46,7 @@ from collectives.models import (
     db,
 )
 from collectives.models.badge import BadgeIds
-from collectives.utils import badges, export
+from collectives.utils import badge_import, badges, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
@@ -502,7 +505,14 @@ def set_custom_practitioner_levels():
 
 @blueprint.route("/competency_badge/add", methods=["POST"])
 def add_competency_badge():
-    """Route for an activity supervisor to add or renew a Badge to a user" """
+    """Route for an activity supervisor to add or renew a Badge to a user.
+
+    If the submitted file is an FFCAM extranet export, displays the page to
+    choose the badges to import instead (see :py:func:`import_competency_badges`).
+    """
+
+    if request.form.get("file_format") == FILE_FORMAT_EXTRANET:
+        return _start_extranet_import()
 
     badges.add_badge(
         badge_types=(BadgeIds.Practitioner, BadgeIds.Skill), level=True, auto_date=True
@@ -529,6 +539,111 @@ def competency_badge_holders():
         allow_add=True,
         show_grantor=True,
         title="Pratiquants validés",
+        extranet_import=True,
+    )
+
+
+def _extranet_mapping_choices() -> dict[str, list[tuple[str, str]]]:
+    """:return: choices of badges to map competency groups to, by category"""
+    choices = {"Ne pas importer": [(badge_import.IGNORE_CHOICE, "Ignorer")]}
+    for group, targets in badge_import.badge_targets().items():
+        choices[group] = [(target.encode(), label) for target, label in targets]
+    return choices
+
+
+def _render_extranet_mapping(
+    form: ExtranetImportMappingForm, parsed: badge_import.ParsedExport
+):
+    """Renders the page to choose the badge of each competency group of an
+    FFCAM extranet export, along with diagnostics about the export.
+
+    :param form: the mapping form
+    :param parsed: the parsed export
+    """
+    grantors = badge_import.match_grantors(row.grantor for row in parsed.rows)
+    status_order = list(badge_import.GrantorStatus)
+    grantors = sorted(
+        grantors.values(),
+        key=lambda match: (status_order.index(match.status), -match.count, match.name),
+    )
+
+    return render_template(
+        "activity_supervision/extranet_import.html",
+        title="Import d'un export extranet",
+        form=form,
+        export=parsed,
+        skill_counts=parsed.skill_counts(),
+        grantors=grantors,
+        grantor_status=badge_import.GrantorStatus,
+        unknown_licenses=badge_import.unknown_licenses(parsed.rows),
+    )
+
+
+def _start_extranet_import():
+    """Parses an uploaded FFCAM extranet export, and displays the page to
+    choose the badges to import."""
+
+    upload_form = ExtranetImportUploadForm()
+    if not upload_form.validate_on_submit():
+        for errors in upload_form.errors.values():
+            for error in errors:
+                flash(error, "error")
+        return redirect(url_for(".competency_badge_holders"))
+
+    try:
+        parsed = badge_import.parse_export(upload_form.csv_file.data.stream)
+    except badge_import.BadgeImportError as err:
+        flash(str(err), "error")
+        return redirect(url_for(".competency_badge_holders"))
+
+    skills = parsed.skills()
+    form = ExtranetImportMappingForm.build(
+        skills,
+        choices=_extranet_mapping_choices(),
+        defaults=[badge_import.suggest_target(skill) for skill in skills],
+        formdata=None,
+    )
+    form.payload.data = badge_import.dump_payload(parsed)
+    return _render_extranet_mapping(form, parsed)
+
+
+@blueprint.route("/competency_badge/import", methods=["POST"])
+def import_competency_badges():
+    """Route to import the badges of an FFCAM extranet export, once the
+    supervisor has chosen the badge of each competency group."""
+
+    try:
+        parsed = badge_import.load_payload(request.form.get("payload", ""))
+    except badge_import.BadgeImportError as err:
+        flash(str(err), "error")
+        return redirect(url_for(".competency_badge_holders"))
+
+    form = ExtranetImportMappingForm.build(
+        parsed.skills(),
+        choices=_extranet_mapping_choices(),
+        defaults=[badge_import.IGNORE_CHOICE] * len(parsed.skills()),
+    )
+    if not form.validate_on_submit():
+        return _render_extranet_mapping(form, parsed)
+
+    try:
+        mapping = {
+            skill: badge_import.decode_target(field.data)
+            for skill, field in form.skill_fields()
+        }
+    except badge_import.BadgeImportError as err:
+        flash(str(err), "error")
+        return _render_extranet_mapping(form, parsed)
+
+    if not any(mapping.values()):
+        flash("Aucun badge sélectionné : rien n'a été importé.", "warning")
+        return _render_extranet_mapping(form, parsed)
+
+    report = badge_import.import_badges(parsed, mapping)
+    return render_template(
+        "activity_supervision/extranet_import.html",
+        title="Import d'un export extranet",
+        report=report,
     )
 
 

@@ -57,6 +57,35 @@
         exportBadgeSelect.addEventListener?.("change", updateExportLevels);
         exportActivityIdSelect.addEventListener("change", updateExportLevels);
         {% endif %}
+
+        {% if add_badge_form and add_badge_form.file_format %}
+        // An FFCAM extranet export holds its own badges, members and dates:
+        // hide the fields which only apply to single additions and CSV files.
+        const fileFormatSelect = document.getElementById("{{add_badge_form.file_format.id}}");
+        const fileInput = document.getElementById("{{add_badge_form.csv_file.id}}");
+        const fileLabel = document.querySelector('label[for="{{add_badge_form.csv_file.id}}"]');
+        const fileHelp = fileLabel.parentElement.querySelector(".label-help");
+        const csvLabel = fileLabel.textContent;
+        const csvHelp = fileHelp.textContent;
+        const csvOnlyFields = [
+          {% for field in add_badge_form if field.name not in ("file_format", "csv_file") and field.type not in ("HiddenField", "CSRFTokenField", "SubmitField") %}
+          "{{ field.id }}",
+          {% endfor %}
+        ].map(id => document.getElementById(id)).filter(el => el);
+
+        const updateFileFormat = () => {
+          const extranet = fileFormatSelect.value === "{{ add_badge_form.file_format.choices[1][0] }}";
+          csvOnlyFields.forEach(el => { el.closest(".controls").style.display = extranet ? "none" : ""; });
+          fileLabel.textContent = extranet ? "Export extranet (.xlsx)" : csvLabel;
+          fileHelp.textContent = extranet
+            ? "Fichier Excel des « Groupes de compétences » exporté de l'extranet FFCAM."
+            : csvHelp;
+          fileInput.accept = extranet ? ".xlsx" : "";
+          fileInput.required = extranet;
+        };
+        updateFileFormat();
+        fileFormatSelect.addEventListener("change", updateFileFormat);
+        {% endif %}
       };
   </script>
 {% endblock %}

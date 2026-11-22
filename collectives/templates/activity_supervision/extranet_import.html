@@ -1,0 +1,136 @@
+{% extends 'activity_supervision/activity_supervision.html' %}
+
+{% import 'partials/form-fields.html' as generator  %}
+
+{% block additionalhead %}
+<style>
+  .extranet-import table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+  .extranet-import th, .extranet-import td { border-bottom: 1px solid #ddd; padding: 0.4em; text-align: left; vertical-align: middle; }
+  .extranet-import td.count { text-align: right; white-space: nowrap; }
+  .extranet-import .status-matched { color: #2e7d32; }
+  .extranet-import .status-ambiguous { color: #ef6c00; }
+  .extranet-import .status-not_found { color: #c62828; }
+  .extranet-import .status-not_a_person { color: grey; }
+  .extranet-import details { margin-bottom: 1em; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="page-content extranet-import" id="administration">
+  <h2 class="heading-2">{{ title }}</h2>
+
+{% if report %}
+  <h4 class="heading-4">Résultat</h4>
+  <ul>
+    <li>{{ report.created }} badge(s) créé(s)</li>
+    <li>{{ report.renewed }} badge(s) renouvelé(s)</li>
+    <li>{{ report.with_grantor }} badge(s) attribué(s) au valideur du fichier, les autres à votre nom</li>
+    <li>{{ report.ignored }} ligne(s) de groupes ignorés</li>
+    <li>{{ report.unknown_licenses | length + report.errors | length }} ligne(s) non importée(s)</li>
+  </ul>
+  {% if report.unknown_licenses %}
+  <details>
+    <summary>✘ {{ report.unknown_licenses | length }} ligne(s) d'adhérents sans compte sur le site</summary>
+    <p>{{ report.unknown_licenses | unique | join(', ') }}</p>
+  </details>
+  {% endif %}
+  {% if report.errors %}
+  <details {% if report.errors | length <= 20 %}open{% endif %}>
+    <summary>✘ {{ report.errors | length }} autre(s) ligne(s) non importée(s)</summary>
+    <ul>
+      {% for error in report.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  <a class="button button-primary" href="{{ url_for('.competency_badge_holders') }}">Retour aux pratiquants validés</a>
+
+{% else %}
+  {{ generator.form_errors(form) }}
+
+  <form action="{{ url_for('.import_competency_badges') }}" method="POST">
+    {{ form.hidden_tag() }}
+
+    <h4 class="heading-4">1. Badges à attribuer</h4>
+    <p>
+      Pour chaque groupe de compétences du fichier, choisissez le badge à attribuer, ou « Ignorer ».
+      Seuls les badges que vous pouvez attribuer sont proposés. La date de validation du fichier sert
+      de date d'attribution pour calculer la date d'expiration.
+    </p>
+    <table>
+      <thead><tr><th>Groupe de compétences</th><th>Lignes</th><th>Badge</th></tr></thead>
+      <tbody>
+      {% for skill, field in form.skill_fields() %}
+        <tr>
+          <td><label for="{{ field.id }}">{{ skill }}</label></td>
+          <td class="count">{{ skill_counts[skill] }}</td>
+          <td>{{ field(class="input-100") }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h4 class="heading-4">2. Diagnostics</h4>
+
+    {% set matched = grantors | selectattr('status', 'equalto', grantor_status.Matched) | list %}
+    <details {% if grantors %}open{% endif %}>
+      <summary>
+        Valideurs : {{ matched | length }} identifié(s) sur {{ grantors | length }}
+      </summary>
+      <p>
+        Le valideur est enregistré comme auteur du badge lorsqu'il correspond à un unique adhérent.
+        Sinon, c'est vous qui serez enregistré comme auteur du badge.
+      </p>
+      <table>
+        <thead><tr><th>Validé par</th><th>Lignes</th><th>Adhérent associé</th></tr></thead>
+        <tbody>
+        {% for match in grantors %}
+          <tr>
+            <td>{{ match.name }}</td>
+            <td class="count">{{ match.count }}</td>
+            <td class="status-{{ match.status.value }}">
+              {% if match.status == grantor_status.Matched %}
+                ✔ {{ match.user.full_name() }} ({{ match.user.license }})
+              {% elif match.status == grantor_status.Ambiguous %}
+                ⚠ Ambigu, attribué à votre nom. {{ match.users | length }} adhérents :
+                {% for user in match.users %}{{ user.full_name() }} ({{ user.license }}){% if not loop.last %}, {% endif %}{% endfor %}
+              {% elif match.status == grantor_status.NotFound %}
+                ✘ Aucun adhérent trouvé, attribué à votre nom
+              {% else %}
+                — Attribution automatique, attribué à votre nom
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3">Aucun valideur dans le fichier.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </details>
+
+    <details>
+      <summary>
+        {% if unknown_licenses %}✘{% else %}✔{% endif %}
+        Adhérents : {{ unknown_licenses | length }} licence(s) inconnue(s) sur
+        {{ export.rows | map(attribute='license') | unique | list | length }}
+      </summary>
+      {% if unknown_licenses %}
+        <p>Ces adhérents n'ont pas de compte sur le site ; leurs lignes ne seront pas importées.</p>
+        <p>{{ unknown_licenses | join(', ') }}</p>
+      {% endif %}
+    </details>
+
+    {% if export.errors %}
+    <details>
+      <summary>✘ {{ export.errors | length }} ligne(s) illisible(s), qui seront ignorées</summary>
+      <ul>
+        {% for error in export.errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+
+    {{ form.submit(class="button button-primary") }}
+    <a class="button" href="{{ url_for('.competency_badge_holders') }}">Annuler</a>
+  </form>
+{% endif %}
+</div>
+{% endblock %}
