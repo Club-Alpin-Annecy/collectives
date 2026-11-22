@@ -297,6 +297,9 @@ class BulkImportReport:
     """ Number of renewed badges."""
     ignored: int = 0
     """ Number of lines deliberately skipped."""
+    superseded: int = 0
+    """ Number of lines skipped as the same file grants a higher level of the
+    same badge to the same user."""
     with_grantor: int = 0
     """ Number of created or renewed badges whose grantor was read from the
     file (others are attributed to the importing user)."""

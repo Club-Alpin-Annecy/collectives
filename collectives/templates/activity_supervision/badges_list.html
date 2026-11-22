@@ -94,9 +94,9 @@
 {% if extranet_form %}
   <h4 class="heading-4" id="extranet-import">Import d'un export extranet FFCAM</h4>
   <p>
-    Attribue les badges des groupes de compétences validés sur l'extranet. Après l'envoi du
-    fichier, vous choisirez le badge correspondant à chaque groupe, et vérifierez les adhérents
-    et valideurs reconnus avant l'import.
+    Attribue les badges des groupes de compétences ou des niveaux de pratique validés sur
+    l'extranet. Après l'envoi du fichier, vous choisirez le badge correspondant à chaque groupe
+    ou niveau, et vérifierez les adhérents et valideurs reconnus avant l'import.
   </p>
   {{ generator.form_generator(extranet_form, url_for(routes['extranet_import']), form_id='extranet-import-form') }}
 {% endif %}

@@ -463,13 +463,15 @@ def is_excel_file(file_storage) -> bool:
 
 class ExtranetImportUploadForm(FlaskForm):
     """Form for supervisors to upload an FFCAM extranet export of competency
-    groups, before choosing the badges to grant for each group."""
+    groups or practitioner levels, before choosing the badges to grant for each
+    group or level."""
 
     export_file = FileField(
         "Export extranet FFCAM (.xlsx)",
         description=(
-            "Fichier Excel des « Groupes de compétences » exporté de l'extranet. "
-            "Le badge à attribuer pour chaque groupe sera choisi à l'étape suivante."
+            "Fichier Excel des « Groupes de compétences » ou des « Niveaux de "
+            "pratique validés » exporté de l'extranet. Le badge à attribuer pour "
+            "chaque groupe ou niveau sera choisi à l'étape suivante."
         ),
         validators=[
             FileRequired("Veuillez sélectionner un fichier."),
@@ -481,8 +483,8 @@ class ExtranetImportUploadForm(FlaskForm):
 
 
 class ExtranetImportMappingForm(FlaskForm):
-    """Form for supervisors to choose the badge to grant for each competency
-    group of an FFCAM extranet export.
+    """Form for supervisors to choose the badge to grant for each group of an
+    FFCAM extranet export (competency group or practitioner level).
 
     Use :py:meth:`build` to create it, as it has one select field per group."""
 
@@ -492,37 +494,37 @@ class ExtranetImportMappingForm(FlaskForm):
     @classmethod
     def build(
         cls,
-        skills: list[str],
+        groups: list[str],
         choices: dict[str, list[tuple[str, str]]],
         defaults: list[str],
         **kwargs,
     ) -> "ExtranetImportMappingForm":
-        """Creates a form with one select field per competency group.
+        """Creates a form with one select field per group.
 
-        Fields are named ``skill_<i>``, ``i`` being the index of the group in
-        ``skills``.
+        Fields are named ``group_<i>``, ``i`` being the index of the group in
+        ``groups``.
 
-        :param skills: names of the competency groups
+        :param groups: groups of the export
         :param choices: choices of the select fields, grouped by category
-        :param defaults: default choice for each competency group
+        :param defaults: default choice for each group
         :param kwargs: passed to the form constructor
         :return: the form instance
         """
 
         class MappingForm(cls):
-            """Form with one select field per competency group"""
+            """Form with one select field per group"""
 
-        for i, skill in enumerate(skills):
+        for i, group in enumerate(groups):
             setattr(
                 MappingForm,
-                f"skill_{i}",
-                SelectField(skill, choices=choices, default=defaults[i]),
+                f"group_{i}",
+                SelectField(group, choices=choices, default=defaults[i]),
             )
 
         form = MappingForm(**kwargs)
-        form.skill_names = skills
+        form.group_names = groups
         return form
 
-    def skill_fields(self) -> list[tuple[str, SelectField]]:
-        """:return: list of (competency group name, select field)"""
-        return [(skill, self[f"skill_{i}"]) for i, skill in enumerate(self.skill_names)]
+    def group_fields(self) -> list[tuple[str, SelectField]]:
+        """:return: list of (group, select field)"""
+        return [(group, self[f"group_{i}"]) for i, group in enumerate(self.group_names)]

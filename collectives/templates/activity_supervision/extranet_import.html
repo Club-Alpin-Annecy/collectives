@@ -24,8 +24,15 @@
   <ul>
     <li>{{ report.created }} badge(s) créé(s)</li>
     <li>{{ report.renewed }} badge(s) renouvelé(s)</li>
+    {% if report.with_grantor %}
     <li>{{ report.with_grantor }} badge(s) attribué(s) au valideur du fichier, les autres à votre nom</li>
-    <li>{{ report.ignored }} ligne(s) de groupes ignorés</li>
+    {% else %}
+    <li>Badges attribués à votre nom</li>
+    {% endif %}
+    <li>{{ report.ignored }} ligne(s) ignorée(s) à votre demande</li>
+    {% if report.superseded %}
+    <li>{{ report.superseded }} ligne(s) remplacée(s) par un niveau supérieur du même adhérent dans le fichier</li>
+    {% endif %}
     <li>{{ report.unknown_licenses | length + report.errors | length }} ligne(s) non importée(s)</li>
   </ul>
   {% if report.unknown_licenses %}
@@ -52,17 +59,18 @@
 
     <h4 class="heading-4">1. Badges à attribuer</h4>
     <p>
-      Pour chaque groupe de compétences du fichier, choisissez le badge à attribuer, ou « Ignorer ».
-      Seuls les badges que vous pouvez attribuer sont proposés. La date de validation du fichier sert
-      de date d'attribution pour calculer la date d'expiration.
+      Pour chaque valeur de la colonne « {{ export.group_label }} » du fichier, choisissez le badge
+      à attribuer, ou « Ignorer ». Seuls les badges que vous pouvez attribuer sont proposés. La date
+      de validation du fichier sert de date d'attribution pour calculer la date d'expiration.
+      Pour un même adhérent, seul le plus haut niveau de pratique du fichier est attribué.
     </p>
     <table>
-      <thead><tr><th>Groupe de compétences</th><th>Lignes</th><th>Badge</th></tr></thead>
+      <thead><tr><th>{{ export.group_label }}</th><th>Lignes</th><th>Badge</th></tr></thead>
       <tbody>
-      {% for skill, field in form.skill_fields() %}
+      {% for group, field in form.group_fields() %}
         <tr>
-          <td><label for="{{ field.id }}">{{ skill }}</label></td>
-          <td class="count">{{ skill_counts[skill] }}</td>
+          <td><label for="{{ field.id }}">{{ group }}</label></td>
+          <td class="count">{{ group_counts[group] }}</td>
           <td>{{ field(class="input-100") }}</td>
         </tr>
       {% endfor %}
@@ -72,7 +80,10 @@
     <h4 class="heading-4">2. Diagnostics</h4>
 
     {% set matched = grantors | selectattr('status', 'equalto', grantor_status.Matched) | list %}
-    <details {% if grantors %}open{% endif %}>
+    {% if not grantors %}
+    <p>Valideurs : le fichier n'en indique pas, c'est vous qui serez enregistré comme auteur des badges.</p>
+    {% else %}
+    <details open>
       <summary>
         Valideurs : {{ matched | length }} identifié(s) sur {{ grantors | length }}
       </summary>
@@ -100,12 +111,11 @@
               {% endif %}
             </td>
           </tr>
-        {% else %}
-          <tr><td colspan="3">Aucun valideur dans le fichier.</td></tr>
         {% endfor %}
         </tbody>
       </table>
     </details>
+    {% endif %}
 
     <details>
       <summary>

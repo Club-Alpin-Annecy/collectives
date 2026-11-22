@@ -1,13 +1,15 @@
 """Import of competency badges from an FFCAM extranet export.
 
-The FFCAM extranet exports competency groups ("Groupes de compétences") as an
-Excel file with one line per member and competency. Importing it is a
-three-stage process:
+The FFCAM extranet exports validated competencies as Excel files with one line
+per member and validation: "Groupes de compétences" (competency groups) and
+"Niveaux de pratique validés" (practitioner levels). Both are handled the same
+way; the value of the competency group or practitioner level column is called
+the *group* of the line. Importing a file is a three-stage process:
 
 1. the supervisor uploads the file, which is parsed by :py:func:`parse_export`;
-2. the supervisor maps each competency group of the file to a badge they may
-   grant (or ignores it), while reviewing diagnostics such as the matching of
-   validators to users (see :py:func:`match_grantors`);
+2. the supervisor maps each group of the file to a badge they may grant (or
+   ignores it), while reviewing diagnostics such as the matching of validators
+   to users (see :py:func:`match_grantors`);
 3. badges are created or renewed by :py:func:`import_badges`.
 
 Between stages, the parsed rows are carried in a signed form field (see
@@ -44,11 +46,11 @@ PAYLOAD_MAX_AGE = 3600
 """ Validity of the payload carried between import stages, in seconds."""
 
 IGNORE_CHOICE = ""
-""" Value of the mapping choice meaning that a competency group is ignored."""
+""" Value of the mapping choice meaning that a group is ignored."""
 
 _COLUMNS = {
     "license": ("nlicence", "licence", "license"),
-    "skill": ("groupedecompetences", "competence"),
+    "group": ("groupedecompetences", "competence", "niveaudepratique"),
     "date": ("datedevalidation", "date"),
     "grantor": ("validepar",),
 }
@@ -84,8 +86,8 @@ class ImportRow:
     """ Line number in the spreadsheet (1-based, header included)."""
     license: str
     """ License number of the member."""
-    skill: str
-    """ Name of the competency group."""
+    group: str
+    """ Competency group or practitioner level of the line."""
     attribution_date: date | None
     """ Date at which the competency was validated, if known."""
     grantor: str | None
@@ -100,20 +102,22 @@ class ParsedExport:
     """ Valid lines of the export."""
     errors: list[str] = field(default_factory=list)
     """ Description of lines which could not be read."""
+    group_label: str = "Groupe de compétences"
+    """ Header of the group column in the export, for display."""
 
-    def skills(self) -> list[str]:
-        """Returns the competency groups of the export, in order of appearance.
+    def groups(self) -> list[str]:
+        """Returns the groups of the export, in order of appearance.
 
-        :return: list of distinct competency group names
+        :return: list of distinct groups
         """
-        return list(dict.fromkeys(row.skill for row in self.rows))
+        return list(dict.fromkeys(row.group for row in self.rows))
 
-    def skill_counts(self) -> Counter:
-        """Returns the number of lines for each competency group.
+    def group_counts(self) -> Counter:
+        """Returns the number of lines of each group.
 
-        :return: counter of lines by competency group
+        :return: counter of lines by group
         """
-        return Counter(row.skill for row in self.rows)
+        return Counter(row.group for row in self.rows)
 
 
 def _cell_text(value) -> str:
@@ -133,12 +137,12 @@ def _cell_text(value) -> str:
 
 
 def parse_export(stream: IO[bytes]) -> ParsedExport:
-    """Parses an FFCAM competency group export.
+    """Parses an FFCAM export of competency groups or practitioner levels.
 
     The first line must contain the column headers. Required columns are the
-    license number ("N° licence") and the competency group ("Groupe de
-    compétences"); the validation date ("Date de validation") and validator
-    ("Validé par") are optional.
+    license number ("N° licence") and the group: "Groupe de compétences", or
+    else "Niveau de pratique". The validation date ("Date de validation") and
+    validator ("Validé par") are optional.
 
     :param stream: binary stream of the ``.xlsx`` file
     :return: the parsed rows and the description of invalid lines
@@ -153,7 +157,8 @@ def parse_export(stream: IO[bytes]) -> ParsedExport:
 
     try:
         rows = workbook.active.iter_rows(values_only=True)
-        header = [normalize(cell).replace(" ", "").lower() for cell in next(rows, ())]
+        raw_header = next(rows, ())
+        header = [normalize(cell).replace(" ", "").lower() for cell in raw_header]
 
         columns = {}
         for key, prefixes in _COLUMNS.items():
@@ -166,10 +171,10 @@ def parse_export(stream: IO[bytes]) -> ParsedExport:
                     columns[key] = index
                     break
 
-        if "license" not in columns or "skill" not in columns:
+        if "license" not in columns or "group" not in columns:
             raise BadgeImportError(
-                "Colonnes 'N° licence' et 'Groupe de compétences' introuvables "
-                "sur la première ligne du fichier."
+                "Colonnes « N° licence » et « Groupe de compétences » ou « Niveau de "
+                "pratique » introuvables sur la première ligne du fichier."
             )
 
         def cell(row: tuple, key: str):
@@ -179,15 +184,15 @@ def parse_export(stream: IO[bytes]) -> ParsedExport:
                 return None
             return row[index]
 
-        result = ParsedExport()
+        result = ParsedExport(group_label=_cell_text(raw_header[columns["group"]]))
         for line, row in enumerate(rows, start=2):
             license_number = _cell_text(cell(row, "license"))
-            skill = _cell_text(cell(row, "skill"))
-            if not license_number and not skill:
+            group = _cell_text(cell(row, "group"))
+            if not license_number and not group:
                 continue  # Blank line
-            if not license_number or not skill:
+            if not license_number or not group:
                 result.errors.append(
-                    f"Ligne {line} : licence ou groupe de compétences manquant"
+                    f"Ligne {line} : licence ou {result.group_label} manquant"
                 )
                 continue
             try:
@@ -200,7 +205,7 @@ def parse_export(stream: IO[bytes]) -> ParsedExport:
                 ImportRow(
                     line=line,
                     license=license_number,
-                    skill=skill,
+                    group=group,
                     attribution_date=attribution_date,
                     grantor=_cell_text(cell(row, "grantor")) or None,
                 )
@@ -220,17 +225,18 @@ def dump_payload(export: ParsedExport) -> str:
     :param export: the parsed export
     :return: a signed, compressed, URL-safe token
     """
-    skills = export.skills()
-    skill_index = {skill: i for i, skill in enumerate(skills)}
+    groups = export.groups()
+    group_index = {group: i for i, group in enumerate(groups)}
     data = {
         "user": current_user.id,
-        "skills": skills,
+        "groups": groups,
+        "label": export.group_label,
         "errors": export.errors,
         "rows": [
             [
                 row.line,
                 row.license,
-                skill_index[row.skill],
+                group_index[row.group],
                 row.attribution_date.isoformat() if row.attribution_date else None,
                 row.grantor,
             ]
@@ -259,19 +265,20 @@ def load_payload(token: str) -> ParsedExport:
     if data.get("user") != current_user.id:
         raise BadgeImportError("Données d'import invalides.")
 
-    skills = data["skills"]
+    groups = data["groups"]
     return ParsedExport(
         rows=[
             ImportRow(
                 line=line,
                 license=license_number,
-                skill=skills[skill],
+                group=groups[group],
                 attribution_date=date.fromisoformat(day) if day else None,
                 grantor=grantor,
             )
-            for line, license_number, skill, day, grantor in data["rows"]
+            for line, license_number, group, day, grantor in data["rows"]
         ],
         errors=data["errors"],
+        group_label=data["label"],
     )
 
 
@@ -443,19 +450,43 @@ def decode_target(value: str) -> BadgeTarget | None:
     raise BadgeImportError(f"Badge non autorisé : {value}")
 
 
-def suggest_target(skill: str) -> str:
-    """Suggests the badge for a competency group, by exact (normalized) name.
+def suggest_target(group: str) -> str:
+    """Suggests the badge of a group, when a single grantable badge matches it.
 
-    :param skill: name of the competency group
-    :return: encoded target, or :py:data:`IGNORE_CHOICE` if none matches
+    Names are compared once normalized (see :py:func:`normalize`). A skill
+    matches if its name is the group. A practitioner level matches if the group
+    contains both the name of its activity and its custom name, such as
+    "INITIE en ski de randonnée" for a level named "Initié" of "Ski de
+    randonnée"; levels keeping their default name never match.
+
+    :param group: a group of the export
+    :return: encoded target, or :py:data:`IGNORE_CHOICE` if none or several match
     """
-    key = normalize(skill)
-    for level, desc in BadgeIds.Skill.levels().items():
-        if normalize(desc.name) == key:
-            for targets in badge_targets().values():
-                for target, _ in targets:
-                    if target.badge_id == BadgeIds.Skill and target.level == level:
-                        return target.encode()
+    key = normalize(group)
+    padded_key = f" {key} "
+    default_names = BadgeIds.Practitioner.levels(only_defaults=True)
+
+    def matches(target: BadgeTarget) -> bool:
+        """Whether the target matches the group"""
+        desc = target.badge_id.level(target.level, activity_id=target.activity_id)
+        if target.badge_id == BadgeIds.Skill:
+            return normalize(desc.name) == key
+        default = default_names.get(target.level)
+        if default is not None and default.name == desc.name:
+            return False
+        activity = ActivityType.get(target.activity_id)
+        return all(
+            f" {normalize(name)} " in padded_key for name in (activity.name, desc.name)
+        )
+
+    found = {
+        target.encode()
+        for targets in badge_targets().values()
+        for target, _ in targets
+        if matches(target)
+    }
+    if len(found) == 1:
+        return found.pop()
     return IGNORE_CHOICE
 
 
@@ -469,18 +500,41 @@ def import_badges(
     user; otherwise the importing user is.
 
     :param export: the parsed export
-    :param mapping: badge to grant for each competency group (None to ignore)
+    :param mapping: badge to grant for each group (None to ignore)
     :return: the report of the import
     """
     report = BulkImportReport()
-    rows = [row for row in export.rows if mapping.get(row.skill) is not None]
+    rows = [row for row in export.rows if mapping.get(row.group) is not None]
     report.ignored = len(export.rows) - len(rows)
+
+    # For badges with ordered levels, having a level implies having the lower
+    # ones: only grant the highest level of each member, badge and activity
+    def ordered_key(row: ImportRow) -> tuple | None:
+        """Key of rows superseding each other, or None"""
+        target = mapping[row.group]
+        if not target.badge_id.has_ordered_levels():
+            return None
+        return (row.license, target.badge_id, target.activity_id)
+
+    highest = {}
+    for row in rows:
+        key = ordered_key(row)
+        if key is not None and (
+            key not in highest
+            or mapping[highest[key].group].level < mapping[row.group].level
+        ):
+            highest[key] = row
+    kept = [
+        row for row in rows if (key := ordered_key(row)) is None or highest[key] is row
+    ]
+    report.superseded = len(rows) - len(kept)
+    rows = kept
 
     grantors = match_grantors(row.grantor for row in rows)
     users = users_by_license(row.license for row in rows)
 
     for row in rows:
-        target = mapping[row.skill]
+        target = mapping[row.group]
         user = users.get(row.license)
         if user is None:
             report.unknown_licenses.append(row.license)

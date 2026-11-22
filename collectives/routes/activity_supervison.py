@@ -564,7 +564,7 @@ def _render_extranet_mapping(
         title="Import d'un export extranet",
         form=form,
         export=parsed,
-        skill_counts=parsed.skill_counts(),
+        group_counts=parsed.group_counts(),
         grantors=grantors,
         grantor_status=badge_import.GrantorStatus,
         unknown_licenses=badge_import.unknown_licenses(parsed.rows),
@@ -590,11 +590,11 @@ def upload_extranet_export():
         flash(str(err), "error")
         return redirect(url_for(".competency_badge_holders"))
 
-    skills = parsed.skills()
+    groups = parsed.groups()
     form = ExtranetImportMappingForm.build(
-        skills,
+        groups,
         choices=_extranet_mapping_choices(),
-        defaults=[badge_import.suggest_target(skill) for skill in skills],
+        defaults=[badge_import.suggest_target(group) for group in groups],
         formdata=None,
     )
     form.payload.data = badge_import.dump_payload(parsed)
@@ -613,17 +613,17 @@ def import_competency_badges():
         return redirect(url_for(".competency_badge_holders"))
 
     form = ExtranetImportMappingForm.build(
-        parsed.skills(),
+        parsed.groups(),
         choices=_extranet_mapping_choices(),
-        defaults=[badge_import.IGNORE_CHOICE] * len(parsed.skills()),
+        defaults=[badge_import.IGNORE_CHOICE] * len(parsed.groups()),
     )
     if not form.validate_on_submit():
         return _render_extranet_mapping(form, parsed)
 
     try:
         mapping = {
-            skill: badge_import.decode_target(field.data)
-            for skill, field in form.skill_fields()
+            group: badge_import.decode_target(field.data)
+            for group, field in form.group_fields()
         }
     except badge_import.BadgeImportError as err:
         flash(str(err), "error")
