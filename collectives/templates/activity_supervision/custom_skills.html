@@ -4,6 +4,23 @@
 
 {% block additionalhead %}
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+      window.addEventListener('DOMContentLoaded', function () {
+        const supersedesSelect = document.getElementById("{{custom_level_form.supersedes_ids.id}}");
+        if (supersedesSelect) {
+          new Choices(supersedesSelect, {
+            removeItemButton: true,
+            placeholderValue: "Rechercher une spécialisation",
+            noResultsText: "Aucune spécialisation trouvée",
+            noChoicesText: "Aucune autre spécialisation",
+            itemSelectText: "",
+          });
+        }
+      });
+  </script>
+
   <script>
       const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=practitioner_level_form.activity_ids()) | safe}}[{{models.BadgeIds.Practitioner.value}}];
       window.addEventListener('DOMContentLoaded', function () {
