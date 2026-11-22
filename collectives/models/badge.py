@@ -37,6 +37,10 @@ class BadgeLevelDescriptor:
     accepts_activity: bool = True
     """Whether this level accepts being associated with an activity"""
 
+    superseded_levels: tuple[int, ...] = ()
+    """For skills only: levels of the skills transitively superseded by this
+    one. Used to hide superseded skills in registration icons."""
+
     def is_compatible_with_activity(self, activity_id: int | None) -> bool:
         """Check if this level is compatible with the given activity.
 
@@ -233,6 +237,27 @@ class BadgeIds(ChoiceEnum):
         )
 
 
+badge_custom_level_supersedes = db.Table(
+    "badge_custom_level_supersedes",
+    db.Column(
+        "superior_id",
+        db.Integer,
+        db.ForeignKey("badge_custom_levels.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    db.Column(
+        "inferior_id",
+        db.Integer,
+        db.ForeignKey("badge_custom_levels.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+"""Association table defining a partial order between custom skills:
+the skill ``superior_id`` supersedes the skill ``inferior_id``.
+For display purposes only: having a skill does not imply having the
+skills it supersedes."""
+
+
 class BadgeCustomLevel(db.Model):
     """Model representing a custom badge level."""
 
@@ -308,9 +333,60 @@ class BadgeCustomLevel(db.Model):
     )
     """ Whether this custom level is deprecated."""
 
+    supersedes = db.relationship(
+        "BadgeCustomLevel",
+        secondary=badge_custom_level_supersedes,
+        primaryjoin=lambda: (
+            BadgeCustomLevel.id == badge_custom_level_supersedes.c.superior_id
+        ),
+        secondaryjoin=lambda: (
+            BadgeCustomLevel.id == badge_custom_level_supersedes.c.inferior_id
+        ),
+        backref=db.backref("superseded_by", lazy="selectin"),
+        lazy="selectin",
+    )
+    """ Custom levels directly superseded by this one (display purposes only).
+
+    :type: list[:py:class:`BadgeCustomLevel`]"""
+
     __table_args__ = (
         UniqueConstraint(level, badge_id, activity_id, name="_custom_level_uc"),
     )
+
+    @staticmethod
+    def may_supersede(
+        superior_activity_id: int | None, inferior_activity_id: int | None
+    ) -> bool:
+        """Whether a skill of an activity may supersede a skill of another one.
+
+        A skill may not supersede a skill specific to a different activity.
+        Skills not linked to any activity may supersede, or be superseded by,
+        any skill.
+
+        :param superior_activity_id: activity of the superior skill, or None
+        :param inferior_activity_id: activity of the inferior skill, or None
+        :return: True if the relation is allowed
+        """
+        return (
+            superior_activity_id is None
+            or inferior_activity_id is None
+            or superior_activity_id == inferior_activity_id
+        )
+
+    def all_superseded(self) -> set["BadgeCustomLevel"]:
+        """Returns all levels transitively superseded by this one.
+
+        :return: set of levels, not including this one
+        """
+        result = set()
+        stack = list(self.supersedes)
+        while stack:
+            level = stack.pop()
+            if level is self or level in result:
+                continue
+            result.add(level)
+            stack.extend(level.supersedes)
+        return result
 
     @property
     def descriptor(self) -> BadgeLevelDescriptor:
@@ -321,6 +397,9 @@ class BadgeCustomLevel(db.Model):
             self.activity_id,
             self.default_validity,
             accepts_activity=self.activity_id is not None,
+            superseded_levels=tuple(
+                sorted(level.level for level in self.all_superseded())
+            ),
         )
 
     @classmethod
