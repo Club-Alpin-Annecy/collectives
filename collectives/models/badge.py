@@ -342,7 +342,9 @@ class BadgeCustomLevel(db.Model):
         secondaryjoin=lambda: (
             BadgeCustomLevel.id == badge_custom_level_supersedes.c.inferior_id
         ),
-        backref=db.backref("superseded_by", lazy="selectin"),
+        # Only needed when editing a skill: do not load it eagerly
+        backref="superseded_by",
+        # Eagerly loaded as it is walked when computing level descriptors
         lazy="selectin",
     )
     """ Custom levels directly superseded by this one (display purposes only).
