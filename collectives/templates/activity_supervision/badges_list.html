@@ -58,33 +58,16 @@
         exportActivityIdSelect.addEventListener("change", updateExportLevels);
         {% endif %}
 
-        {% if add_badge_form and add_badge_form.file_format %}
-        // An FFCAM extranet export holds its own badges, members and dates:
-        // hide the fields which only apply to single additions and CSV files.
-        const fileFormatSelect = document.getElementById("{{add_badge_form.file_format.id}}");
+        {% if add_badge_form %}
+        // Excel files are rejected by the server: tell it before submitting
         const fileInput = document.getElementById("{{add_badge_form.csv_file.id}}");
-        const fileLabel = document.querySelector('label[for="{{add_badge_form.csv_file.id}}"]');
-        const fileHelp = fileLabel.parentElement.querySelector(".label-help");
-        const csvLabel = fileLabel.textContent;
-        const csvHelp = fileHelp.textContent;
-        const csvOnlyFields = [
-          {% for field in add_badge_form if field.name not in ("file_format", "csv_file") and field.type not in ("HiddenField", "CSRFTokenField", "SubmitField") %}
-          "{{ field.id }}",
-          {% endfor %}
-        ].map(id => document.getElementById(id)).filter(el => el);
-
-        const updateFileFormat = () => {
-          const extranet = fileFormatSelect.value === "{{ add_badge_form.file_format.choices[1][0] }}";
-          csvOnlyFields.forEach(el => { el.closest(".controls").style.display = extranet ? "none" : ""; });
-          fileLabel.textContent = extranet ? "Export extranet (.xlsx)" : csvLabel;
-          fileHelp.textContent = extranet
-            ? "Fichier Excel des « Groupes de compétences » exporté de l'extranet FFCAM."
-            : csvHelp;
-          fileInput.accept = extranet ? ".xlsx" : "";
-          fileInput.required = extranet;
+        const fileNote = document.getElementById("add-badge-file-note");
+        const updateFileNote = () => {
+          const file = fileInput.files[0];
+          fileNote.hidden = file === undefined || !/\.xlsx?$/i.test(file.name);
         };
-        updateFileFormat();
-        fileFormatSelect.addEventListener("change", updateFileFormat);
+        updateFileNote();
+        fileInput.addEventListener("change", updateFileNote);
         {% endif %}
       };
   </script>
@@ -105,7 +88,17 @@
   </p>
   {% endif %}
   
-  {{ generator.form_generator(add_badge_form, url_for(routes['add'])) }}
+  {% include 'activity_supervision/partials/add_badge_form.html' %}
+{% endif %}
+
+{% if extranet_form %}
+  <h4 class="heading-4" id="extranet-import">Import d'un export extranet FFCAM</h4>
+  <p>
+    Attribue les badges des groupes de compétences validés sur l'extranet. Après l'envoi du
+    fichier, vous choisirez le badge correspondant à chaque groupe, et vérifierez les adhérents
+    et valideurs reconnus avant l'import.
+  </p>
+  {{ generator.form_generator(extranet_form, url_for(routes['extranet_import']), form_id='extranet-import-form') }}
 {% endif %}
 
 <h4 class="heading-4">Export de la liste</h4>

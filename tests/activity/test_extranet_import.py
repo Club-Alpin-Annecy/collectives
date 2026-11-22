@@ -56,11 +56,11 @@ def upload_export(client, content: BytesIO):
     :return: the response
     """
     response = client.get("/activity_supervision/competency_badge_holders/")
-    assert "file_format" in response.text
-    data = utils.load_data_from_form(response.text, "basic_form")
-    data["file_format"] = "extranet"
-    data["csv_file"] = (content, "export.xlsx")
-    return client.post("/activity_supervision/competency_badge/add", data=data)
+    data = utils.load_data_from_form(response.text, "extranet-import-form")
+    data["export_file"] = (content, "export.xlsx")
+    return client.post(
+        "/activity_supervision/competency_badge/import/upload", data=data
+    )
 
 
 def mapping_form_data(text: str) -> tuple[dict, dict]:
@@ -145,6 +145,34 @@ def test_upload_invalid_file(supervisor_client):
     """A file which is not an extranet export is rejected"""
     response = upload_export(supervisor_client, BytesIO(b"license;date\n1;2\n"))
     assert response.status_code == 302
+
+
+def test_extranet_form_only_on_competency_page(supervisor_client):
+    """The extranet import is only offered for competency badges"""
+    response = supervisor_client.get("/activity_supervision/competency_badge_holders/")
+    assert 'id="extranet-import-form"' in response.text
+    response = supervisor_client.get("/activity_supervision/volunteers/")
+    assert 'id="extranet-import-form"' not in response.text
+
+
+def test_excel_file_rejected_by_csv_import(supervisor_client, user1, custom_skill):
+    """An extranet export uploaded as a CSV file is rejected, whatever its name"""
+    content = make_export([(user1.license, custom_skill.name, "21/11/2024", None)])
+
+    response = supervisor_client.get("/activity_supervision/competency_badge_holders/")
+    data = utils.load_data_from_form(response.text, "basic_form")
+    data["badge_id"] = str(int(BadgeIds.Skill))
+    data["level"] = custom_skill.level
+    data["activity_id"] = "0"
+    data["csv_file"] = (content, "renamed.csv")
+    response = supervisor_client.post(
+        "/activity_supervision/competency_badge/add",
+        data=data,
+        follow_redirects=True,
+    )
+
+    assert "accepte que les fichiers CSV" in response.text
+    assert len(user1.badges) == 0
 
 
 def test_extranet_import(

@@ -25,7 +25,6 @@ from collectives.forms.activity_type import (
     ActivityTypeSelectionForm,
 )
 from collectives.forms.badge import (
-    FILE_FORMAT_EXTRANET,
     BadgeCustomLevelForm,
     BadgeCustomPractitionerLevelForm,
     ExtranetImportMappingForm,
@@ -505,14 +504,7 @@ def set_custom_practitioner_levels():
 
 @blueprint.route("/competency_badge/add", methods=["POST"])
 def add_competency_badge():
-    """Route for an activity supervisor to add or renew a Badge to a user.
-
-    If the submitted file is an FFCAM extranet export, displays the page to
-    choose the badges to import instead (see :py:func:`import_competency_badges`).
-    """
-
-    if request.form.get("file_format") == FILE_FORMAT_EXTRANET:
-        return _start_extranet_import()
+    """Route for an activity supervisor to add or renew a Badge to a user" """
 
     badges.add_badge(
         badge_types=(BadgeIds.Practitioner, BadgeIds.Skill), level=True, auto_date=True
@@ -529,6 +521,7 @@ def competency_badge_holders():
         "delete": "activity_supervision.delete_competency_badge",
         "renew": "activity_supervision.renew_competency_badge",
         "add": "activity_supervision.add_competency_badge",
+        "extranet_import": "activity_supervision.upload_extranet_export",
     }
 
     return badges.list_page(
@@ -539,7 +532,6 @@ def competency_badge_holders():
         allow_add=True,
         show_grantor=True,
         title="Pratiquants validés",
-        extranet_import=True,
     )
 
 
@@ -579,9 +571,11 @@ def _render_extranet_mapping(
     )
 
 
-def _start_extranet_import():
-    """Parses an uploaded FFCAM extranet export, and displays the page to
-    choose the badges to import."""
+@blueprint.route("/competency_badge/import/upload", methods=["POST"])
+def upload_extranet_export():
+    """Route to upload an FFCAM extranet export. Parses it, and displays the
+    page to choose the badges to import (see :py:func:`import_competency_badges`).
+    """
 
     upload_form = ExtranetImportUploadForm()
     if not upload_form.validate_on_submit():
@@ -591,7 +585,7 @@ def _start_extranet_import():
         return redirect(url_for(".competency_badge_holders"))
 
     try:
-        parsed = badge_import.parse_export(upload_form.csv_file.data.stream)
+        parsed = badge_import.parse_export(upload_form.export_file.data.stream)
     except badge_import.BadgeImportError as err:
         flash(str(err), "error")
         return redirect(url_for(".competency_badge_holders"))

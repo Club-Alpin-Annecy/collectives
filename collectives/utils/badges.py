@@ -15,7 +15,9 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.badge import (
     AddBadgeForm,
     ExportBadgeForm,
+    ExtranetImportUploadForm,
     compute_default_expiration_date,
+    is_excel_file,
 )
 from collectives.models import (
     ActivityType,
@@ -109,7 +111,6 @@ def list_page(
     extends: str = "activity_supervision/activity_supervision.html",
     allow_add: bool = True,
     title: str | None = None,
-    extranet_import: bool = False,
 ):
     """Route for activity supervisors to access badges list and management form.
 
@@ -119,11 +120,10 @@ def list_page(
     :param level: if True, display level setting
     :param extends: path to the template which extends the page
     :param routes: Lists of urls of others endpoint. This dict should have these keys:
-                ``add``, ``export``, ``delete``, ``renew``,.
+                ``add``, ``export``, ``delete``, ``renew``, and optionally
+                ``extranet_import`` to offer importing FFCAM extranet exports.
     :param allow_add: Whether to allow adding new badges
     :param title: Title of the page. If None, computed from badge_types
-    :param extranet_import: Whether to offer importing FFCAM extranet exports
-        in the add form (submitted to ``routes['add']`` as well)
     """
 
     # convert to list
@@ -145,8 +145,6 @@ def list_page(
             del add_badge_form.expiration_date
         if not level:
             del add_badge_form.level
-        if not extranet_import:
-            del add_badge_form.file_format
     else:
         add_badge_form = None
 
@@ -155,6 +153,10 @@ def list_page(
         submit_label="Générer Excel",
         activity_list=current_user.get_supervised_activities(),
     )
+
+    extranet_form = None
+    if allow_add and "extranet_import" in routes:
+        extranet_form = ExtranetImportUploadForm(formdata=None)
 
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
 
@@ -170,6 +172,7 @@ def list_page(
         extends=extends,
         routes=routes,
         activity_ids=activity_ids,
+        extranet_form=extranet_form,
     )
 
 
@@ -392,6 +395,13 @@ def add_badge(
         )
 
     csv_file = add_badge_form.csv_file.data
+    if csv_file and is_excel_file(csv_file):
+        flash(
+            "Ce formulaire n'accepte que les fichiers CSV. Les exports Excel de "
+            "l'extranet FFCAM s'importent depuis la page des pratiquants validés.",
+            "error",
+        )
+        return
     if csv_file:
         # Process the CSV file
         try:

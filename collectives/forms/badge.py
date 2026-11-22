@@ -58,13 +58,6 @@ def compute_default_expiration_date(
     return default_date
 
 
-FILE_FORMAT_CSV = "csv"
-""" Value of :py:attr:`AddBadgeForm.file_format` for CSV files."""
-
-FILE_FORMAT_EXTRANET = "extranet"
-""" Value of :py:attr:`AddBadgeForm.file_format` for FFCAM extranet exports."""
-
-
 class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
     """Form for administrators to add badges to users"""
 
@@ -208,7 +201,7 @@ class AddBadgeForm(BadgeForm):
 
     user_id = HiddenField(id="user-search-resultid")
     user_search = StringField(
-        "Utilisateur",
+        "Adhérent",
         render_kw={
             "autocomplete": "off",
             "class": "search-input",
@@ -216,21 +209,8 @@ class AddBadgeForm(BadgeForm):
         },
     )
 
-    file_format = SelectField(
-        "Format du fichier",
-        choices=[
-            (FILE_FORMAT_CSV, "CSV"),
-            (FILE_FORMAT_EXTRANET, "Export extranet FFCAM (.xlsx)"),
-        ],
-        default=FILE_FORMAT_CSV,
-        description=(
-            "L'export extranet est le fichier Excel des « Groupes de compétences ». "
-            "Les badges à attribuer pour chaque groupe seront choisis à l'étape suivante."
-        ),
-    )
-
     csv_file = FileField(
-        "ou fichier CSV",
+        "Fichier",
         description=(
             "Fichier CSV avec une ligne par adhérent à qui attribuer le badge. "
             "Chaque ligne doit au moins contenir le numéro de licence, et optionellement, "
@@ -238,6 +218,8 @@ class AddBadgeForm(BadgeForm):
             "Si ceux-ci ne sont pas fournis, les valeurs du formulaire seront utilisées"
         ),
     )
+    """ CSV file of users to add the badge to. Excel files are rejected, see
+    :py:func:`is_excel_file`."""
 
     def __init__(self, *args, badge_type: str = "badge", **kwargs):
         """Overloaded constructor populating activity list.
@@ -452,19 +434,50 @@ class BadgeCustomPractitionerLevelForm(ActivityTypeSelectionForm):
                 level_name.data = level_desc.name
 
 
+EXCEL_EXTENSIONS = (".xlsx", ".xls")
+""" Extensions of Excel files."""
+
+_ZIP_SIGNATURE = b"PK\x03\x04"
+""" First bytes of ``.xlsx`` files, which are zip archives."""
+
+
+def is_excel_file(file_storage) -> bool:
+    """Whether an uploaded file is an Excel file rather than a CSV file.
+
+    Used to reject Excel files, such as FFCAM extranet exports, uploaded in
+    place of CSV files. Detection relies on the file content, and on the file
+    name for older ``.xls`` files.
+
+    :param file_storage: the uploaded file
+    :type file_storage: :py:class:`werkzeug.datastructures.FileStorage`
+    :return: True for an Excel file
+    """
+    if (file_storage.filename or "").lower().endswith(EXCEL_EXTENSIONS):
+        return True
+    stream = file_storage.stream
+    position = stream.tell()
+    signature = stream.read(len(_ZIP_SIGNATURE))
+    stream.seek(position)
+    return signature == _ZIP_SIGNATURE
+
+
 class ExtranetImportUploadForm(FlaskForm):
-    """Form validating the upload of an FFCAM extranet export.
+    """Form for supervisors to upload an FFCAM extranet export of competency
+    groups, before choosing the badges to grant for each group."""
 
-    Its field has the name of :py:attr:`AddBadgeForm.csv_file`, as the upload
-    is made through that form."""
-
-    csv_file = FileField(
-        "Export extranet",
+    export_file = FileField(
+        "Export extranet FFCAM (.xlsx)",
+        description=(
+            "Fichier Excel des « Groupes de compétences » exporté de l'extranet. "
+            "Le badge à attribuer pour chaque groupe sera choisi à l'étape suivante."
+        ),
         validators=[
             FileRequired("Veuillez sélectionner un fichier."),
             FileAllowed(["xlsx"], "Le fichier doit être un export Excel (.xlsx)."),
         ],
+        render_kw={"accept": ".xlsx"},
     )
+    submit = SubmitField("Analyser le fichier")
 
 
 class ExtranetImportMappingForm(FlaskForm):
