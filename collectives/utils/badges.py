@@ -2,8 +2,9 @@
 
 import codecs
 import csv
-from datetime import datetime
-from typing import List, Sequence, Union
+from dataclasses import dataclass, field
+from datetime import date, datetime
+from typing import Iterable, List, Sequence, Union
 
 from flask import flash, render_template, request, send_file
 from flask_login import current_user
@@ -244,6 +245,110 @@ def validate_user_badge(
     return badge
 
 
+def parse_date(value) -> date | None:
+    """Parses a date from an imported file.
+
+    :param value: a native date or datetime, or a ``dd/mm/yyyy`` or ``yyyy-mm-dd``
+        string, optionally followed by a time
+    :return: the parsed date, or None if the value is empty
+    :raises ValueError: if the value cannot be parsed
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value).strip()
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d/%m/%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(text, fmt).date()
+        except ValueError:
+            pass
+    raise ValueError(text)
+
+
+def users_by_license(licenses: Iterable[str]) -> dict[str, User]:
+    """Fetches the users having the given license numbers.
+
+    :param licenses: license numbers
+    :return: users by license number; unknown license numbers are absent
+    """
+    licenses = sorted(set(licenses))
+    users = {}
+    chunk_size = 500  # Keep queries under the database parameter limits
+    for start in range(0, len(licenses), chunk_size):
+        chunk = licenses[start : start + chunk_size]
+        for user in User.query.filter(User.license.in_(chunk)):
+            users[user.license] = user
+    return users
+
+
+@dataclass
+class BulkImportReport:
+    """Outcome of a bulk badge import."""
+
+    created: int = 0
+    """ Number of created badges."""
+    renewed: int = 0
+    """ Number of renewed badges."""
+    ignored: int = 0
+    """ Number of lines deliberately skipped."""
+    with_grantor: int = 0
+    """ Number of created or renewed badges whose grantor was read from the
+    file (others are attributed to the importing user)."""
+    unknown_licenses: list[str] = field(default_factory=list)
+    """ License numbers of lines not imported because no user has them."""
+    errors: list[str] = field(default_factory=list)
+    """ Description of other lines which could not be imported."""
+
+    def summary(self) -> str:
+        """:return: a one-paragraph description of the outcome"""
+        text = f"Import terminé: {self.created} créés, {self.renewed} mis à jour."
+        if self.unknown_licenses:
+            text += " Licences introuvables: " + ", ".join(self.unknown_licenses) + "."
+        if self.errors:
+            text += " Erreurs: " + "; ".join(self.errors)
+        return text
+
+    def flash(self) -> None:
+        """Displays :py:meth:`summary` to the user."""
+        failed = self.unknown_licenses or self.errors
+        flash(self.summary(), "warning" if failed else "success")
+
+
+def grant_badge(
+    user: User,
+    badge: Badge,
+    report: BulkImportReport,
+    grantor: User | None = None,
+) -> None:
+    """Grants a badge during a bulk import, possibly renewing an existing one.
+
+    The badge is validated with :py:func:`validate_user_badge`. The session is
+    not committed, but the badge is added to ``user.badges`` so that the next
+    lines of the import take it into account.
+
+    :param user: user to grant the badge to
+    :param badge: the badge to grant
+    :param report: the report in which to count the badge
+    :param grantor: the user who granted the badge. If None, the importing user.
+    :raises RuntimeError: if the badge cannot be granted
+    """
+    resolved = validate_user_badge(user, badge, verbose=False)
+    if grantor is not None:
+        resolved.grantor = grantor
+        report.with_grantor += 1
+    else:
+        resolved.grantor_id = current_user.id
+
+    if resolved is badge:
+        user.badges.append(badge)
+        report.created += 1
+    else:
+        report.renewed += 1
+
+
 def add_badge(
     badge_types: list[BadgeIds] = None, auto_date: bool = False, level: bool = False
 ) -> None:
@@ -340,10 +445,6 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
     stream = codecs.iterdecode(file_storage.stream, encoding)
     reader = csv.reader(stream, delimiter=delimiter)
 
-    created = 0
-    updated = 0
-    failed = []
-
     # Read all rows
     rows = list(reader)
     if not rows:
@@ -384,21 +485,19 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
     activity_index = _col_index(["activity", "activite"], 2)
     level_index = _col_index(["level", "niveau"], 3)
 
-    for row in rows[start_index:]:
-        if not row:
-            continue
+    rows = [row for row in rows[start_index:] if _col_value(row, license_index)]
+    users = users_by_license(_col_value(row, license_index) for row in rows)
+    report = BulkImportReport()
 
+    for row in rows:
         license_val = _col_value(row, license_index)
         date_str = _col_value(row, date_index)
         activity_name = _col_value(row, activity_index)
         level_name = _col_value(row, level_index)
 
-        if not license_val:
-            continue
-
-        user = User.query.filter_by(license=license_val).first()
+        user = users.get(license_val)
         if user is None:
-            failed.append(f"Utilisateur introuvable: {license_val}")
+            report.unknown_licenses.append(license_val)
             continue
 
         user_identifier = f"{user.full_name()} (licence {user.license})"
@@ -408,7 +507,7 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
         if activity_name:
             activity_id = activity_names.get(activity_name)
             if activity_id is None:
-                failed.append(
+                report.errors.append(
                     f"Activité introuvable pour {user_identifier}: {activity_name}"
                 )
                 continue
@@ -421,34 +520,26 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
 
             level = level_names.get(level_name)
             if level is None:
-                failed.append(f"Niveau invalide pour {user_identifier}: {level_name}")
+                report.errors.append(
+                    f"Niveau invalide pour {user_identifier}: {level_name}"
+                )
                 continue
 
-        # parse date
+        try:
+            attribution_date = parse_date(date_str)
+        except ValueError:
+            report.errors.append(f"Date invalide pour {user_identifier}: {date_str}")
+            continue
+
         expiration_date = badge_prototype.expiration_date
-        if date_str:
-            parsed = None
-            for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
-                try:
-                    parsed = datetime.strptime(date_str, fmt).date()
-                    break
-                except Exception:
-                    parsed = None
-            if parsed is None:
-                failed.append(f"Date invalide pour {user_identifier}: {date_str}")
-                continue
+        if attribution_date or expiration_date is None:
             expiration_date = compute_default_expiration_date(
                 badge_id=badge_prototype.badge_id,
                 level=level,
-                attribution_date=parsed,
-            )
-        elif expiration_date is None:
-            expiration_date = compute_default_expiration_date(
-                badge_id=badge_prototype.badge_id,
-                level=level,
+                attribution_date=attribution_date,
             )
 
-        tentative_badge = Badge(
+        badge = Badge(
             user_id=user.id,
             badge_id=badge_prototype.badge_id,
             activity_id=activity_id,
@@ -458,32 +549,12 @@ def add_bulk(file_storage, badge_prototype: Badge) -> None:
         )
 
         try:
-            resolved_badge = validate_user_badge(user, tentative_badge, verbose=False)
+            grant_badge(user, badge, report)
         except RuntimeError as err:
-            failed.append(f"{user_identifier}: {err}")
-            continue
+            report.errors.append(f"{user_identifier}: {err}")
 
-        resolved_badge.grantor_id = current_user.id
-        db.session.add(resolved_badge)
-        try:
-            db.session.commit()
-            if resolved_badge.id == tentative_badge.id:
-                created += 1
-            else:
-                updated += 1
-        except Exception:
-            db.session.rollback()
-            failed.append(f"Erreur en mettant à jour {license_val}")
-
-    # summarize results
-    if failed:
-        flash(
-            f"Import terminé: {created} créés, {updated} mis à jour. Erreurs: "
-            + "; ".join(failed),
-            "warning",
-        )
-    else:
-        flash(f"Import terminé: {created} créés, {updated} mis à jour.", "success")
+    db.session.commit()
+    report.flash()
 
 
 def renew_badge(

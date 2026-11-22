@@ -18,7 +18,7 @@ import re
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date
 from enum import Enum
 from typing import IO, Iterable
 
@@ -30,7 +30,12 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from collectives.forms.badge import compute_default_expiration_date
 from collectives.models import ActivityType, Badge, BadgeIds, User, db
 from collectives.utils import time
-from collectives.utils.badges import validate_user_badge
+from collectives.utils.badges import (
+    BulkImportReport,
+    grant_badge,
+    parse_date,
+    users_by_license,
+)
 
 PAYLOAD_SALT = "competency-badge-import"
 """ Salt of the signature of the payload carried between import stages."""
@@ -111,28 +116,6 @@ class ParsedExport:
         return Counter(row.skill for row in self.rows)
 
 
-def _parse_date(value) -> date | None:
-    """Parses a date cell, which may be a native date or a ``dd/mm/yyyy`` string.
-
-    :param value: cell value
-    :return: the parsed date, or None if the cell is empty
-    :raises ValueError: if the cell cannot be parsed
-    """
-    if value is None or value == "":
-        return None
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
-    text = str(value).strip()
-    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d/%m/%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
-        try:
-            return datetime.strptime(text, fmt).date()
-        except ValueError:
-            pass
-    raise ValueError(text)
-
-
 def _cell_text(value) -> str:
     """Returns the textual content of a cell.
 
@@ -208,7 +191,7 @@ def parse_export(stream: IO[bytes]) -> ParsedExport:
                 )
                 continue
             try:
-                attribution_date = _parse_date(cell(row, "date"))
+                attribution_date = parse_date(cell(row, "date"))
             except ValueError as err:
                 result.errors.append(f"Ligne {line} : date invalide '{err}'")
                 continue
@@ -385,18 +368,7 @@ def unknown_licenses(rows: Iterable[ImportRow]) -> list[str]:
     :return: sorted list of unknown license numbers
     """
     licenses = {row.license for row in rows}
-    known = set()
-    chunk_size = 500
-    sorted_licenses = sorted(licenses)
-    for start in range(0, len(sorted_licenses), chunk_size):
-        chunk = sorted_licenses[start : start + chunk_size]
-        known.update(
-            license_number
-            for (license_number,) in db.session.query(User.license).filter(
-                User.license.in_(chunk)
-            )
-        )
-    return sorted(licenses - known)
+    return sorted(licenses - users_by_license(licenses).keys())
 
 
 @dataclass(frozen=True)
@@ -487,48 +459,25 @@ def suggest_target(skill: str) -> str:
     return IGNORE_CHOICE
 
 
-@dataclass
-class ImportReport:
-    """Outcome of an import."""
-
-    created: int = 0
-    """ Number of created badges."""
-    renewed: int = 0
-    """ Number of renewed badges."""
-    ignored: int = 0
-    """ Number of lines of ignored competency groups."""
-    with_grantor: int = 0
-    """ Number of created or renewed badges whose validator was matched to a
-    user (others are attributed to the importing user)."""
-    unknown_licenses: list[str] = field(default_factory=list)
-    """ License numbers of lines not imported because no user has them."""
-    errors: list[str] = field(default_factory=list)
-    """ Description of other lines which could not be imported."""
-
-
 def import_badges(
     export: ParsedExport, mapping: dict[str, BadgeTarget | None]
-) -> ImportReport:
+) -> BulkImportReport:
     """Creates or renews badges according to the export.
 
-    Existing badges are renewed using :py:func:`validate_user_badge` rules. The
-    validator is recorded as grantor when it matches a single user; otherwise the
-    importing user is, as for other badge additions.
+    Badges are granted with :py:func:`collectives.utils.badges.grant_badge`, as for
+    CSV imports. The validator is recorded as grantor when it matches a single
+    user; otherwise the importing user is.
 
     :param export: the parsed export
     :param mapping: badge to grant for each competency group (None to ignore)
     :return: the report of the import
     """
-    report = ImportReport()
+    report = BulkImportReport()
     rows = [row for row in export.rows if mapping.get(row.skill) is not None]
     report.ignored = len(export.rows) - len(rows)
 
     grantors = match_grantors(row.grantor for row in rows)
-    users = {}
-    licenses = sorted({row.license for row in rows})
-    for start in range(0, len(licenses), 500):
-        for user in User.query.filter(User.license.in_(licenses[start : start + 500])):
-            users[user.license] = user
+    users = users_by_license(row.license for row in rows)
 
     for row in rows:
         target = mapping[row.skill]
@@ -537,7 +486,6 @@ def import_badges(
             report.unknown_licenses.append(row.license)
             continue
 
-        attribution_date = row.attribution_date or date.today()
         badge = Badge(
             badge_id=target.badge_id,
             level=target.level,
@@ -545,29 +493,16 @@ def import_badges(
             expiration_date=compute_default_expiration_date(
                 badge_id=target.badge_id,
                 level=target.level,
-                attribution_date=attribution_date,
+                attribution_date=row.attribution_date,
             ),
             creation_time=time.current_time(),
         )
 
+        match = grantors.get(row.grantor)
         try:
-            resolved = validate_user_badge(user, badge, verbose=False)
+            grant_badge(user, badge, report, grantor=match.user if match else None)
         except RuntimeError as err:
             report.errors.append(f"Ligne {row.line} : {user.full_name()} : {err}")
-            continue
-
-        match = grantors.get(row.grantor)
-        if match is not None and match.user is not None:
-            resolved.grantor = match.user
-            report.with_grantor += 1
-        else:
-            resolved.grantor_id = current_user.id
-
-        if resolved is badge:
-            user.badges.append(badge)
-            report.created += 1
-        else:
-            report.renewed += 1
 
     db.session.commit()
     return report

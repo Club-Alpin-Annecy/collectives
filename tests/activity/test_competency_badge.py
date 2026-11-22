@@ -47,6 +47,7 @@ def test_competency_bulk_add(supervisor_client, user1, user2, user3):
     assert user1.badges[0].badge_id == BadgeIds.Practitioner
     assert user1.badges[0].level == 2
     assert user1.badges[0].activity_name == "Alpinisme"
+    assert user1.badges[0].grantor == supervisor_client.user
     assert len(user2.badges) == 1
     assert user2.badges[0].badge_id == BadgeIds.Practitioner
     assert user2.badges[0].level == 3
