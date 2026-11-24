@@ -54,9 +54,11 @@ var retex_common_options = {
 };
 
 function createRetexTable(elementId, ajaxURL) {
-    return new Tabulator("#" + elementId, Object.assign({}, retex_common_options, {
+    var table = new Tabulator("#" + elementId, Object.assign({}, retex_common_options, {
         ajaxURL: ajaxURL,
     }));
+    bindScrollToTopOnPageChange(table);
+    return table;
 }
 
 function retexStatusFormatter(cell, formatterParams, onRendered) {

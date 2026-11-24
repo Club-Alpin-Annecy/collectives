@@ -27,3 +27,23 @@ window.addEventListener('load', function(e) {
     // Initialize everything once Content is loaded
     Collectives.initAll();
 });
+
+/**
+ * Scroll back to the top of the page, or of targetElement when given, when the
+ * user changes page with the paginator of a Tabulator table.
+ *
+ * Listens to the paginator clicks rather than to Tabulator's pageLoaded, which
+ * also fires on the initial load and on every filter or sort change.
+ */
+var bindScrollToTopOnPageChange = function bindScrollToTopOnPageChange(table, targetElement) {
+    table.element.addEventListener('click', function (e) {
+        if (!e.target.closest('.tabulator-page')) {
+            return;
+        }
+        if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+};

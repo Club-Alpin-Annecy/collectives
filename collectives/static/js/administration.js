@@ -99,6 +99,7 @@ window.onload = function(){
                 }
             },
 });
+    bindScrollToTopOnPageChange(table);
     console.log("Fin du chargement du tableau");
 }
 
