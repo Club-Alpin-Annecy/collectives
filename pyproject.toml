@@ -32,6 +32,7 @@ dependencies = [
     "dkimpy",
     "email_validator",
     "openpyxl",
+    "defusedxml",
     "babel",
     "python-dateutil",
     "phonenumbers",
