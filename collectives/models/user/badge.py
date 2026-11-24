@@ -365,6 +365,7 @@ class UserBadgeMixin:
            but no skill badges are returned unless `show_all` is True.
          - If show_all is True, returns all skill badges for all activity types, as
            well as skill badges not linked to a specific activity.
+         - Skill badges superseded by another returned skill badge are omitted.
         """
 
         if not activity_types:
@@ -396,6 +397,17 @@ class UserBadgeMixin:
                     valid_only=True,
                 )
                 if badge.activity_id in activity_ids
+            ]
+            # Hide skills superseded by another displayed skill
+            superseded_levels = set()
+            for badge in skill_badges:
+                level_desc = badge.badge_id.level(
+                    badge.level, activity_id=badge.activity_id
+                )
+                if level_desc is not None:
+                    superseded_levels.update(level_desc.superseded_levels)
+            skill_badges = [
+                badge for badge in skill_badges if badge.level not in superseded_levels
             ]
             badges.extend(skill_badges)
 

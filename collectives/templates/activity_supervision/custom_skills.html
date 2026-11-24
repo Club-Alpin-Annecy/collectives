@@ -4,6 +4,23 @@
 
 {% block additionalhead %}
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+      window.addEventListener('DOMContentLoaded', function () {
+        const supersedesSelect = document.getElementById("{{custom_level_form.supersedes_ids.id}}");
+        if (supersedesSelect) {
+          new Choices(supersedesSelect, {
+            removeItemButton: true,
+            placeholderValue: "Rechercher une spécialisation",
+            noResultsText: "Aucune spécialisation trouvée",
+            noChoicesText: "Aucune autre spécialisation",
+            itemSelectText: "",
+          });
+        }
+      });
+  </script>
+
   <script>
       const practitionerBadgeLevels = {{models.BadgeIds.js_levels(badge_ids=[models.BadgeIds.Practitioner], activity_ids=practitioner_level_form.activity_ids()) | safe}}[{{models.BadgeIds.Practitioner.value}}];
       window.addEventListener('DOMContentLoaded', function () {
@@ -53,6 +70,9 @@
       <div style="border: 1px solid grey; padding: 10px; margin-bottom: 10px;">
         <strong>{{ level.descriptor.name }}</strong> ({{ level.activity_name() }}) {% if level.deprecated %}<span style="color: red;">(obsolète)</span>{% endif %}
         [<a href="{{ url_for('.manage_custom_skills', custom_level_id=level.id) }}">Modifier</a>]
+        {% if level.supersedes %}
+          <div><small>Supérieure à : {{ level.supersedes | sort(attribute='name') | map(attribute='name') | join(', ') }}</small></div>
+        {% endif %}
       </div>
     {% else %}
       <p>Aucune spécialisation définie.</p>
