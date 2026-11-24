@@ -185,3 +185,30 @@ def test_create_token(admin_client, extranet_monkeypatch):
 
     response = admin_client.post("/administration/generate_token", data=data)
     assert response.status_code == 200
+
+
+# pylint: disable=unused-argument
+def test_hotline_cannot_create_token_for_privileged_user(
+    hotline_client, president_user, extranet_monkeypatch
+):
+    """Hotline cannot reset the account of a user with a privileged role."""
+    president_user.license = "740020780001"
+    db.session.commit()
+
+    data = {"license": "740020780001", "confirm": "y"}
+    response = hotline_client.post("/administration/generate_token", data=data)
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/administration/")
+
+
+# pylint: disable=unused-argument
+def test_hotline_can_create_token_for_regular_user(
+    hotline_client, user1, extranet_monkeypatch
+):
+    """Hotline can still reset the account of a regular user."""
+    user1.license = "740020780001"
+    db.session.commit()
+
+    data = {"license": "740020780001", "confirm": "y"}
+    response = hotline_client.post("/administration/generate_token", data=data)
+    assert response.status_code == 200
