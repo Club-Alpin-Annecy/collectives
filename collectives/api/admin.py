@@ -19,6 +19,7 @@ from collectives.models import ActivityType, Badge, Role, RoleIds, User, db
 from collectives.models.badge import BadgeCustomLevel, BadgeIds
 from collectives.utils import loxya
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
+from collectives.utils.badges import managed_badges_filter
 
 FILTERABLE_USER_COLUMNS = ("mail", "first_name", "last_name", "license", "phone")
 """User columns on which the administration table may filter with a text pattern.
@@ -377,19 +378,13 @@ def badges():
         - additional header (content as JSON)
     :rtype: (string, int, dict)
     """
-    if current_user.is_hotline():
-        supervised_activities = None
-    else:
-        supervised_activities = current_user.get_supervised_activities()
-
     badge_ids = request.args.getlist("badge_ids", type=int)
     badge_ids = [BadgeIds(badge_id) for badge_id in badge_ids]
 
     query = db.session.query(Badge)
     if badge_ids:
         query = query.filter(Badge.badge_id.in_(badge_ids))
-    if supervised_activities:
-        query = query.filter(Badge.activity_id.in_(a.id for a in supervised_activities))
+    query = query.filter(managed_badges_filter(current_user))
 
     Recipient = aliased(User)
     query = query.join(Recipient, Badge.user)
