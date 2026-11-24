@@ -6,7 +6,6 @@ from io import BytesIO
 
 import openpyxl
 
-from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.models import ActivityType, BadgeIds
 from tests import utils
 
@@ -30,25 +29,20 @@ def test_admin_badges_export(
     hotline_client, user_with_valid_benevole_badge, user_with_expired_benevole_badge
 ):
     """Tests the export function for an hotline user."""
-    response = hotline_client.get("/administration/badges/export/")
-    assert response.status_code == 405
+    export_url = "/administration/badges/export/"
+    parapente = ActivityType.query.filter_by(name="Parapente").first()
 
-    response = hotline_client.post("/administration/badges/export/")
-    assert response.status_code == 302
-
-    response = hotline_client.get("/administration/badges/")
-    data = utils.load_data_from_form(response.text, "badges-export-form")
-    data["activity_id"] = ActivityType.query.filter_by(name="Parapente").first().id
-
-    response = hotline_client.post("/administration/badges/export/", data=data)
+    response = hotline_client.get(
+        f"{export_url}?filters[0][field]=activity_type.name"
+        f"&filters[0][value]={parapente.id}"
+    )
     assert response.status_code == 200
     workbook = openpyxl.load_workbook(filename=BytesIO(response.data))
     worksheet = workbook.active
     assert worksheet.max_row == 1
     assert worksheet.max_column == 9
 
-    data["activity_id"] = ActivityTypeSelectionForm.ALL_ACTIVITIES
-    response = hotline_client.post("/administration/badges/export/", data=data)
+    response = hotline_client.get(export_url)
     assert response.status_code == 200
     workbook = openpyxl.load_workbook(filename=BytesIO(response.data))
     worksheet = workbook.active

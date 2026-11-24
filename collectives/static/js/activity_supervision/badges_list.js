@@ -43,6 +43,10 @@ function grantorUrl(cell) {
     return cell.getData().grantor.leader_profile_uri;
 }
 
+// Value of the activity filter selecting badges without activity,
+// see ActivityTypeSelectionForm.NO_ACTIVITY
+const NO_ACTIVITY = 0;
+
 function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, showGrantor, badgeLevels) {
     var table = new Tabulator("#badges-table",
         {
@@ -57,7 +61,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
             columns: [
                 { field: "user.avatar_uri", formatter: 'image', formatterParams: { height: '1em' } },
                 { title: "Nom", field: "user.full_name", headerFilter: "input", widthGrow: 3, formatter: "link", formatterParams: { url: profileUrl } },
-                { title: "Activité", field: "activity_type.name", headerFilter: "select", headerFilterParams: { values: makeOptions(EnumActivityType) }, widthGrow: 3 },
+                { title: "Activité", field: "activity_type.name", headerFilter: "select", headerFilterParams: { values: makeOptions({ [NO_ACTIVITY]: "Pas d'activité", ...EnumActivityType }) }, widthGrow: 3 },
                 { title: "Badge", field: "name", headerFilter: "select", headerFilterParams: { values: makeOptions(EnumBadgeIds) }, widthGrow: 3, visible: showType },
                 { title: "Expiration", field: "expiration_date", headerFilter: "input", widthGrow: 3 },
                 { title: "Niveau", field: "level", headerFilter: "input", widthGrow: 2, visible: showLevel, formatter: levelFormatter(badgeLevels) },
@@ -78,6 +82,13 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
             paginationDataSent: {"page": "page", "size": "size"},
             paginationDataReceived: {"last_page": "last_page", "data": "data"},
         });
+
+    // Export the badges matching the current filters of the table
+    document.getElementById('badges-export').addEventListener('click', function (event) {
+        event.preventDefault();
+        const params = table.modules.ajax.serializeParams({ filters: table.getFilters(true) });
+        document.location = this.href + '?' + params;
+    });
 }
 
 function makeOptions(dict) {

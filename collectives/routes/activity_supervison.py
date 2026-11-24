@@ -179,17 +179,13 @@ def export_role():
     )
 
 
-@blueprint.route("/volunteers/export", methods=["POST"])
+@blueprint.route("/volunteers/export", methods=["GET"])
 def export_volunteer():
-    """Create an Excel document with the contact information of users with badge.
+    """Create an Excel document with the volunteer badges listed in the table.
 
-    :return: The Excel file with the roles.
+    :return: The Excel file with the badges.
     """
-    response = badges.export_badge(badge_types=(BadgeIds.Benevole,))
-    if response:
-        return response
-    flash("Impossible de générer le fichier: droit insuffisants", "error")
-    return redirect(url_for(".volunteers_list"))
+    return badges.export_badge(badge_types=(BadgeIds.Benevole,))
 
 
 @blueprint.route("/volunteers/", methods=["GET"])
@@ -531,17 +527,13 @@ def competency_badge_holders():
     )
 
 
-@blueprint.route("/competency_badge_holders/export", methods=["POST"])
+@blueprint.route("/competency_badge_holders/export", methods=["GET"])
 def export_competency_badge_holders():
-    """Create an Excel document with the contact information of users with badge.
+    """Create an Excel document with the competency badges listed in the table.
 
-    :return: The Excel file with the roles.
+    :return: The Excel file with the badges.
     """
-    response = badges.export_badge(badge_types=(BadgeIds.Practitioner, BadgeIds.Skill))
-    if response:
-        return response
-    flash("Impossible de générer le fichier: droit insuffisants", "error")
-    return redirect(url_for(".competency_badge_holders"))
+    return badges.export_badge(badge_types=(BadgeIds.Practitioner, BadgeIds.Skill))
 
 
 @blueprint.route("/competency_badge_holders/delete/<int:badge_id>", methods=["POST"])

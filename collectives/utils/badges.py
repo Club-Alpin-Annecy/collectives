@@ -8,7 +8,9 @@ from typing import List, Sequence, Union
 from flask import flash, render_template, request, send_file
 from flask_login import current_user
 from markupsafe import Markup
-from sqlalchemy import ColumnElement, and_, or_, true
+from sqlalchemy import ColumnElement, and_, desc, or_, true
+from sqlalchemy.orm import Query, aliased
+from werkzeug.datastructures import MultiDict
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
@@ -46,38 +48,122 @@ def managed_badges_filter(user: User) -> ColumnElement[bool]:
     )
 
 
-def export_badge(badge_types: Sequence[BadgeIds] | None = None):
-    """Create an Excel document with the contact information of users with badge.
+def badges_table_query(badge_types: Sequence[BadgeIds], args: MultiDict) -> Query:
+    """Builds the query of the badges shown in the badge table.
 
-    :param type: The type of badge to export
-    :return: The Excel file with the roles.
+    Only the badges that the current user may manage are selected. They are
+    filtered and sorted as requested by the table.
+
+    :param badge_types: The types of badge to select, all types if empty
+    :param args: The request arguments holding the Tabulator filters and sorters
+    :return: The query selecting the badges
     """
-    form = ActivityTypeSelectionForm(
-        all_enabled=True,
-    )
-
-    if not form.validate_on_submit():
-        return False
-
-    query = Badge.query
-    # we remove role not linked anymore to a user
-    query = query.filter(Badge.user.has(User.id))
+    query = db.session.query(Badge)
+    if badge_types:
+        query = query.filter(Badge.badge_id.in_(badge_types))
     query = query.filter(managed_badges_filter(current_user))
 
-    if form.activity_id.data == ActivityTypeSelectionForm.ALL_ACTIVITIES:
-        filename = ""
+    Recipient = aliased(User)
+    query = query.join(Recipient, Badge.user)
+    query = query.join(Badge.grantor, isouter=True)
+    query = query.join(Badge.activity_type, isouter=True)
+    query = query.join(
+        BadgeCustomLevel,
+        and_(
+            BadgeCustomLevel.badge_id == Badge.badge_id,
+            BadgeCustomLevel.level == Badge.level,
+            BadgeCustomLevel.activity_id.isnot_distinct_from(Badge.activity_id),
+        ),
+        isouter=True,
+    )
+
+    # Process Tabulator filters
+    i = 0
+    while f"filters[{i}][field]" in args:
+        value = args.get(f"filters[{i}][value]")
+        field = args.get(f"filters[{i}][field]")
+        i += 1
+
+        if value is None:
+            continue
+
+        if "." in field:
+            prefix, sub = field.split(".", 1)
+            if prefix == "user":
+                if sub != "full_name":
+                    continue
+                query_filter = Recipient.full_name().ilike(f"%{value}%")
+            elif prefix == "grantor":
+                if sub != "full_name":
+                    continue
+                query_filter = User.full_name().ilike(f"%{value}%")
+            elif prefix == "activity_type":
+                try:
+                    activity_id = int(value)
+                    if activity_id == ActivityTypeSelectionForm.NO_ACTIVITY:
+                        activity_id = None
+                    query_filter = Badge.activity_id == activity_id
+                except ValueError:
+                    continue
+            else:
+                continue
+        elif field == "name":
+            try:
+                badge_id = int(value)
+                query_filter = Badge.badge_id == BadgeIds(badge_id)
+            except ValueError:
+                continue
+        elif field == "level":
+            value = value.lower()
+            default_levels = {
+                badge_id: [
+                    level
+                    for level, desc in badge_id.levels(only_defaults=True).items()
+                    if value in desc.name.lower()
+                ]
+                for badge_id in badge_types or BadgeIds
+            }
+            default_level_clauses = [
+                and_(Badge.badge_id == badge_id, Badge.level.in_(levels))
+                for badge_id, levels in default_levels.items()
+                if levels
+            ]
+            query_filter = or_(
+                *default_level_clauses,
+                BadgeCustomLevel.name.ilike(f"%{value}%"),
+            )
+        elif field in ("expiration_date",):
+            query_filter = getattr(Badge, field).ilike(f"%{value}%")
+
+        query = query.filter(query_filter)
+
+    # Sorting
+    if "sorters[0][field]" in args:
+        sort_field = args.get("sorters[0][field]")
+        sort_dir = args.get("sorters[0][dir]")
+        if sort_field == "user.full_name":
+            sort_field = Recipient.full_name()
+        elif sort_field == "grantor.full_name":
+            sort_field = User.full_name()
+        elif sort_field == "activity_type.name":
+            sort_field = ActivityType.name
+        elif sort_field == "name":
+            sort_field = Badge.badge_id
+        order = desc(sort_field) if sort_dir == "desc" else sort_field
+        query = query.order_by(order)
     else:
-        activity_type = db.session.get(ActivityType, form.activity_id.data)
-        if not current_user.is_hotline():
-            if activity_type not in current_user.get_supervised_activities():
-                return False
-        query = query.filter(Badge.activity_id == activity_type.id)
-        filename = activity_type.name
+        query = query.order_by(Recipient.last_name, Recipient.first_name, Recipient.id)
 
-    if badge_types is not None:
-        query = query.filter(Badge.badge_id.in_(badge_types))
+    return query
 
-    badges = query.all()
+
+def export_badge(badge_types: Sequence[BadgeIds] = ()):
+    """Create an Excel document with the badges currently listed in the badge table.
+
+    :param badge_types: The types of badge to export, all types if empty
+    :return: The Excel file with the badges.
+    """
+    badges = badges_table_query(badge_types, request.args).all()
 
     out = export.export_badges(badges)
 
@@ -86,7 +172,7 @@ def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     return send_file(
         out,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        download_name=f"{club_name} - Export {type_title(badge_types)} {filename}.xlsx",
+        download_name=f"{club_name} - Export {type_title(badge_types)}.xlsx",
         as_attachment=True,
     )
 
@@ -138,18 +224,11 @@ def list_page(
     else:
         add_badge_form = None
 
-    export_form = ActivityTypeSelectionForm(
-        submit_label="Générer Excel",
-        activity_list=current_user.get_supervised_activities(),
-        all_enabled=True,
-    )
-
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
 
     return render_template(
         "activity_supervision/badges_list.html",
         add_badge_form=add_badge_form,
-        export_form=export_form,
         title=title or type_title(badge_types),
         badge_ids=[badge_id.value for badge_id in badge_types],
         auto_date=auto_date,
