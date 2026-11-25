@@ -44,6 +44,19 @@
         badgeSelect.addEventListener("change", updateLevels);
         badgeActivityIdSelect.addEventListener("change", updateLevels);
         {% endif %}
+
+        {% if export_form.level %}
+        // Without badge type selection, the levels are those of the only badge type
+        const exportBadgeSelect = document.getElementById("export-badge_id") ?? { value: "{{ badge_ids[0] }}" };
+        const exportActivityIdSelect = document.getElementById("export-activity_id");
+        const exportLevelSelect = document.getElementById("export-level");
+        const updateExportLevels = () => {
+            updateBadgeLevels(badgeLevels, exportBadgeSelect, exportActivityIdSelect, exportLevelSelect, "Tous niveaux");
+        };
+        updateExportLevels();
+        exportBadgeSelect.addEventListener?.("change", updateExportLevels);
+        exportActivityIdSelect.addEventListener("change", updateExportLevels);
+        {% endif %}
       };
   </script>
 {% endblock %}
