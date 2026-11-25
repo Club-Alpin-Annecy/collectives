@@ -4,13 +4,21 @@ from datetime import date, timedelta
 
 from flask import url_for
 
-from collectives.models import BadgeCustomLevel, BadgeIds, Event, User, db
+from collectives.models import (
+    ActivityType,
+    BadgeCustomLevel,
+    BadgeIds,
+    Event,
+    User,
+    db,
+)
 from collectives.utils.profile_token import profile_token
 from tests import utils
 from tests.fixtures import client
 from tests.fixtures.misc import (
     custom_skill_with_activity_type,
     custom_skill_with_expiry,
+    custom_skill_with_selected_activities,
 )
 from tests.fixtures.user import add_badge_to_user
 
@@ -267,6 +275,44 @@ def test_update_user_practitioner_badge(
         badge_id=BadgeIds.Practitioner, activity_id=activity_id
     )
     assert badge is None
+
+
+def test_set_user_skill_badge_selected_activities(
+    leader_client,
+    event1_with_reg: Event,
+    user1: User,
+    custom_skill_with_selected_activities: BadgeCustomLevel,
+):
+    """A skill meant for a selection of activities can only be granted by
+    the leaders of these activities. leader_client leads Alpinisme only."""
+    skill = custom_skill_with_selected_activities
+    profile_url = url_for(
+        "profile.show_user", user_id=user1.id, event_id=event1_with_reg.id
+    )
+    badge_url = url_for(
+        "profile.set_competency_badge",
+        badge_id=BadgeIds.Skill,
+        user_id=user1.id,
+        event_id=event1_with_reg.id,
+    )
+
+    assert skill.name not in leader_client.get(profile_url).text
+    leader_client.post(badge_url, data={"level": skill.level})
+    assert not user1.matching_badges([BadgeIds.Skill])
+
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    skill.selected_activities.append(alpinisme)
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+
+    response = leader_client.get(profile_url)
+    assert skill.name in response.text
+    data = utils.load_data_from_form(response.text, "skill_badge_form")
+    data["level"] = skill.level
+    leader_client.post(badge_url, data=data)
+    badges = user1.matching_badges([BadgeIds.Skill])
+    assert [badge.level for badge in badges] == [skill.level]
+    assert badges[0].activity_id is None
 
 
 def test_set_user_skill_badge(

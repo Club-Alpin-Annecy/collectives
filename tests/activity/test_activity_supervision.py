@@ -2,7 +2,11 @@
 
 from collectives.models import db
 from collectives.models.activity_type import ActivityKind, ActivityType
-from collectives.models.badge import BadgeCustomLevel, BadgeIds
+from collectives.models.badge import (
+    BadgeCustomLevel,
+    BadgeCustomLevelScope,
+    BadgeIds,
+)
 
 
 def test_index(supervisor_client):
@@ -244,6 +248,7 @@ def test_custom_skills_supersedes_other_activity(supervisor_client):
     data = {
         "name": "Moniteur alpinisme",
         "abbrev": "MA",
+        "scope": BadgeCustomLevelScope.SingleActivity.value,
         "activity_id": alpinisme.id,
         "default_validity": "0",
         "supersedes_ids": [other.id],
@@ -255,6 +260,7 @@ def test_custom_skills_supersedes_other_activity(supervisor_client):
     assert BadgeCustomLevel.query.filter_by(name="Moniteur alpinisme").first() is None
 
     # Allowed for a skill not linked to an activity
+    data["scope"] = BadgeCustomLevelScope.AllActivities.value
     data["activity_id"] = ""
     data["name"] = "Guide"
     supervisor_client.post(
@@ -264,6 +270,7 @@ def test_custom_skills_supersedes_other_activity(supervisor_client):
     assert guide.supersedes == [other]
 
     # ...but then the guide skill cannot be moved to another activity
+    data["scope"] = BadgeCustomLevelScope.SingleActivity.value
     data["activity_id"] = alpinisme.id
     response = supervisor_client.post(
         f"/activity_supervision/custom_skill/{guide.id}",
@@ -273,3 +280,65 @@ def test_custom_skills_supersedes_other_activity(supervisor_client):
     assert "spécifique à une autre activité" in response.text
     db.session.refresh(guide)
     assert guide.activity_id is None
+
+
+def test_custom_skill_activity_scope(supervisor_client):
+    """Test the three ways of linking a custom skill to activities.
+
+    supervisor_client supervises Alpinisme only."""
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    escalade = ActivityType.query.filter_by(name="Escalade").first()
+    canyon = ActivityType.query.filter_by(name="Canyon").first()
+    url = "/activity_supervision/custom_skills"
+
+    data = {
+        "name": "Secouriste",
+        "abbrev": "SEC",
+        "default_validity": "0",
+        "scope": BadgeCustomLevelScope.SelectedActivities.value,
+        "selected_activity_ids": [],
+    }
+
+    # A selection needs at least one activity
+    response = supervisor_client.post(url, data=data, follow_redirects=True)
+    assert "au moins une activité" in response.text
+    assert BadgeCustomLevel.query.filter_by(name="Secouriste").first() is None
+
+    # Activities can be selected without supervising them
+    data["selected_activity_ids"] = [escalade.id, canyon.id]
+    response = supervisor_client.post(url, data=data, follow_redirects=True)
+    skill = BadgeCustomLevel.query.filter_by(name="Secouriste").first()
+    assert skill.activity_scope == BadgeCustomLevelScope.SelectedActivities
+    assert skill.activity_id is None
+    assert set(skill.selected_activities) == {escalade, canyon}
+    assert skill.activity_name() == "Escalade, Canyon"
+    assert "Secouriste</strong> (Escalade, Canyon)" in response.text
+    assert not skill.descriptor.concerns_any_activity({alpinisme.id})
+    assert skill.descriptor.concerns_any_activity({alpinisme.id, canyon.id})
+
+    # The skill can still be edited, here to a single supervised activity
+    edit_url = f"/activity_supervision/custom_skill/{skill.id}"
+    assert supervisor_client.get(edit_url).status_code == 200
+    data["scope"] = BadgeCustomLevelScope.SingleActivity.value
+    response = supervisor_client.post(edit_url, data=data, follow_redirects=True)
+    assert "Merci de sélectionner une activité" in response.text
+
+    data["activity_id"] = escalade.id
+    response = supervisor_client.post(edit_url, data=data, follow_redirects=True)
+    db.session.refresh(skill)
+    assert skill.activity_scope == BadgeCustomLevelScope.SelectedActivities
+
+    data["activity_id"] = alpinisme.id
+    supervisor_client.post(edit_url, data=data, follow_redirects=True)
+    db.session.refresh(skill)
+    assert skill.activity_scope == BadgeCustomLevelScope.SingleActivity
+    assert skill.activity_id == alpinisme.id
+    assert skill.selected_activities == []
+
+    # ... then to all activities: the leftover activity is ignored
+    data["scope"] = BadgeCustomLevelScope.AllActivities.value
+    supervisor_client.post(edit_url, data=data, follow_redirects=True)
+    db.session.refresh(skill)
+    assert skill.activity_scope == BadgeCustomLevelScope.AllActivities
+    assert skill.activity_id is None
+    assert skill.selected_activities == []

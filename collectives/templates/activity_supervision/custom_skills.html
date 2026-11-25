@@ -18,6 +18,34 @@
             itemSelectText: "",
           });
         }
+
+        const activitiesSelect = document.getElementById("{{custom_level_form.selected_activity_ids.id}}");
+        new Choices(activitiesSelect, {
+          removeItemButton: true,
+          placeholderValue: "Rechercher une activité",
+          noResultsText: "Aucune activité trouvée",
+          noChoicesText: "Aucune autre activité",
+          itemSelectText: "",
+        });
+      });
+  </script>
+
+  <script>
+      window.addEventListener('DOMContentLoaded', function () {
+        // Only show the activity field matching the selected scope
+        const scopes = {{ models.BadgeCustomLevelScope.js_keys() | safe }};
+        const scopeSelect = document.getElementById("{{custom_level_form.scope.id}}");
+        const activitiesSelect = document.getElementById("{{custom_level_form.selected_activity_ids.id}}");
+        const activitySelect = document.getElementById("{{custom_level_form.activity_id.id}}");
+        function scopeChanged() {
+          const scope = parseInt(scopeSelect.value);
+          activitySelect.closest(".controls").style.display =
+            scope === scopes.SingleActivity ? "" : "none";
+          activitiesSelect.closest(".controls").style.display =
+            scope === scopes.SelectedActivities ? "" : "none";
+        }
+        scopeSelect.addEventListener("change", scopeChanged);
+        scopeChanged();
       });
   </script>
 

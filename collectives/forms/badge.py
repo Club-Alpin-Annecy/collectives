@@ -25,9 +25,11 @@ from collectives.forms.activity_type import ActivityTypeSelectionForm
 from collectives.forms.order import OrderedForm, OrderedModelForm
 from collectives.forms.utils import coerce_optional
 from collectives.models import (
+    ActivityKind,
     ActivityType,
     Badge,
     BadgeCustomLevel,
+    BadgeCustomLevelScope,
     BadgeIds,
     db,
 )
@@ -270,13 +272,13 @@ class CompetencyBadgeForm(ActivityTypeSelectionForm):
             self.level.choices = [(0, "Aucun")] + [
                 (k, f"{desc.name} ({desc.abbrev})")
                 for k, desc in badge_id.levels().items()
-                if desc.activity_id is None or desc.activity_id in led_activities
+                if desc.concerns_any_activity(led_activities)
             ]
         else:
             self.level.choices = [
                 (k, f"{desc.name} ({desc.activity_name()})")
                 for k, desc in badge_id.levels().items()
-                if desc.activity_id is None or desc.activity_id in led_activities
+                if desc.concerns_any_activity(led_activities)
             ]
             del self.activity_id
 
@@ -315,7 +317,24 @@ class BadgeCustomLevelForm(OrderedModelForm):
         model = BadgeCustomLevel
         exclude = ["badge_id", "level"]
 
+    scope = SelectField(
+        "Activités associées",
+        choices=BadgeCustomLevelScope.choices(),
+        coerce=BadgeCustomLevelScope.coerce,
+        default=BadgeCustomLevelScope.AllActivities,
+        description="Une spécialisation liée à une seule activité n'est visible "
+        "que par les responsables de cette activité.",
+    )
+
     activity_id = SelectField("Activité", choices=[], coerce=coerce_optional(int))
+
+    selected_activity_ids = SelectMultipleField(
+        "Activités et initiatives",
+        choices=[],
+        coerce=int,
+        description="Seuls les encadrants de ces activités peuvent attribuer "
+        "la spécialisation depuis une collective.",
+    )
 
     supersedes_ids = SelectMultipleField(
         "Supérieure à",
@@ -330,7 +349,9 @@ class BadgeCustomLevelForm(OrderedModelForm):
     field_order = [
         "name",
         "abbrev",
+        "scope",
         "activity_id",
+        "selected_activity_ids",
         "supersedes_ids",
         "*",
     ]
@@ -340,9 +361,22 @@ class BadgeCustomLevelForm(OrderedModelForm):
         self.custom_level = obj
 
         supervised_activities = current_user.get_supervised_activities()
-        self.activity_id.choices = [("", "N'importe quelle activité")] + [
+        self.activity_id.choices = [("", "Sélectionner une activité")] + [
             (activity.id, activity.name) for activity in supervised_activities
         ]
+
+        current_activity_ids = (
+            {activity.id for activity in obj.selected_activities} if obj else set()
+        )
+        self.selected_activity_ids.choices = [
+            (activity.id, activity.name)
+            for activity in ActivityType.get_all_types(include_deprecated=True)
+            if activity.kind in (ActivityKind.Regular, ActivityKind.Initiative)
+            and (not activity.deprecated or activity.id in current_activity_ids)
+        ]
+        if obj is not None and not self.is_submitted():
+            self.scope.data = obj.activity_scope
+            self.selected_activity_ids.data = list(current_activity_ids)
 
         current_ids = {level.id for level in obj.supersedes} if obj else set()
         other_skills = [
@@ -361,10 +395,36 @@ class BadgeCustomLevelForm(OrderedModelForm):
         if obj is not None and not self.is_submitted():
             self.supersedes_ids.data = list(current_ids)
 
+    def single_activity_id(self) -> int | None:
+        """Returns the id of the activity to which the level is specific.
+
+        :return: the selected activity if the scope is a single activity,
+            None otherwise
+        """
+        if self.scope.data != BadgeCustomLevelScope.SingleActivity:
+            return None
+        return self.activity_id.data
+
+    def validate_activity_id(self, field: SelectField):
+        """Requires an activity when the scope is a single activity."""
+        if (
+            self.scope.data == BadgeCustomLevelScope.SingleActivity
+            and field.data is None
+        ):
+            raise ValidationError("Merci de sélectionner une activité.")
+
+    def validate_selected_activity_ids(self, field: SelectMultipleField):
+        """Requires activities when the scope is a selection of activities."""
+        if (
+            self.scope.data == BadgeCustomLevelScope.SelectedActivities
+            and not field.data
+        ):
+            raise ValidationError("Merci de sélectionner au moins une activité.")
+
     def validate_supersedes_ids(self, field: SelectMultipleField):
         """Forbids cycles in the "supersedes" partial order, and relations
         between skills of different activities."""
-        activity_id = self.activity_id.data
+        activity_id = self.single_activity_id()
         for level_id in field.data or []:
             level = db.session.get(BadgeCustomLevel, level_id)
             if level is None:
@@ -392,6 +452,20 @@ class BadgeCustomLevelForm(OrderedModelForm):
                         "supérieure à cette spécialisation : impossible de changer "
                         "d'activité."
                     )
+
+    def populate_obj(self, obj: BadgeCustomLevel):
+        """Fills the custom level, linking it to activities according to the
+        selected scope.
+
+        :param obj: the custom level to fill
+        """
+        super().populate_obj(obj)
+        obj.activity_id = self.single_activity_id()
+        obj.selected_activities = []
+        if self.scope.data == BadgeCustomLevelScope.SelectedActivities:
+            obj.selected_activities = ActivityType.query.filter(
+                ActivityType.id.in_(self.selected_activity_ids.data)
+            ).all()
 
     def selected_supersedes(self) -> list[BadgeCustomLevel]:
         """Returns the skills selected in :py:attr:`supersedes_ids`"""

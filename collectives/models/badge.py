@@ -17,6 +17,9 @@ from collectives.models.utils import ChoiceEnum
 from collectives.utils.misc import truncate
 from collectives.utils.time import add_months, ttl_cache
 
+ALL_ACTIVITIES_NAME = "Toutes activités"
+"""Display name of the activity of badges and levels not linked to an activity"""
+
 
 @dataclass
 class BadgeLevelDescriptor:
@@ -30,6 +33,10 @@ class BadgeLevelDescriptor:
 
     activity_id: int | None = None
     """If not None, the level is only valid for this activity"""
+
+    selected_activity_ids: tuple[int, ...] = ()
+    """If not empty, the level is not attached to a single activity but is
+    meant for this selection of activities"""
 
     months_of_validity: int = 0
     """Number of months this level is valid for, 0 if unlimited"""
@@ -52,18 +59,32 @@ class BadgeLevelDescriptor:
 
         return not self.activity_id or self.activity_id == activity_id
 
-    def activity_name(self) -> str:
-        """Returns the name of the corresponding activity
+    def concerns_any_activity(self, activity_ids: Iterable[int]) -> bool:
+        """Check if this level may be used by people in charge of some activities.
 
-        :return: name of the corresponding activity
+        :param activity_ids: ids of the activities to check
+        :return: True if the level is not restricted to some activities, or if
+            it is restricted to at least one of the given activities
         """
-
         if self.activity_id is not None:
-            activity_type = ActivityType.get(self.activity_id)
-            if activity_type is not None:
-                return activity_type.name
+            return self.activity_id in activity_ids
+        if self.selected_activity_ids:
+            return not set(self.selected_activity_ids).isdisjoint(activity_ids)
+        return True
 
-        return "Toutes activités"
+    def activity_name(self) -> str:
+        """Returns the name of the corresponding activities
+
+        :return: name of the corresponding activity, or comma-separated names
+            of the selected activities
+        """
+        activity_ids = self.selected_activity_ids
+        if self.activity_id is not None:
+            activity_ids = (self.activity_id,)
+
+        activity_types = (ActivityType.get(id) for id in activity_ids)
+        names = [activity.name for activity in activity_types if activity is not None]
+        return ", ".join(names) or ALL_ACTIVITIES_NAME
 
     def expiry_date(self, from_date: date | None = None) -> date | None:
         """Computes the expiry date of this level, if it has a limited validity.
@@ -74,6 +95,31 @@ class BadgeLevelDescriptor:
         if self.months_of_validity <= 0:
             return None
         return add_months(self.months_of_validity, from_date)
+
+
+class BadgeCustomLevelScope(ChoiceEnum):
+    """Enum listing how a custom badge level is linked to activities"""
+
+    AllActivities = 0
+    """ The level is not linked to any activity. """
+
+    SingleActivity = 1
+    """ The level is specific to one activity, and managed by its supervisors. """
+
+    SelectedActivities = 2
+    """ The level is meant for a selection of activities. """
+
+    @classmethod
+    def display_names(cls) -> dict["BadgeCustomLevelScope", str]:
+        """Display name for all scopes
+
+        :return: scope names
+        """
+        return {
+            cls.AllActivities: "Toutes les activités",
+            cls.SingleActivity: "Une seule activité (dont je suis responsable)",
+            cls.SelectedActivities: "Activités à sélectionner",
+        }
 
 
 class BadgeIds(ChoiceEnum):
@@ -257,6 +303,24 @@ the skill ``superior_id`` supersedes the skill ``inferior_id``.
 For display purposes only: having a skill does not imply having the
 skills it supersedes."""
 
+badge_custom_level_activities = db.Table(
+    "badge_custom_level_activities",
+    db.Column(
+        "custom_level_id",
+        db.Integer,
+        db.ForeignKey("badge_custom_levels.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    db.Column(
+        "activity_id",
+        db.Integer,
+        db.ForeignKey("activity_types.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+"""Association table listing the activities selected for a custom level which
+is not specific to a single activity."""
+
 
 class BadgeCustomLevel(db.Model):
     """Model representing a custom badge level."""
@@ -291,9 +355,20 @@ class BadgeCustomLevel(db.Model):
     activity_id = db.Column(
         db.Integer, db.ForeignKey("activity_types.id"), nullable=True, index=True
     )
-    """ ID of the activity to which the level is applicable.
+    """ ID of the activity to which the level is specific, if any.
 
     :type: int"""
+
+    selected_activities = db.relationship(
+        "ActivityType",
+        secondary=badge_custom_level_activities,
+        # Eagerly loaded as it is read when computing level descriptors
+        lazy="selectin",
+    )
+    """ Activities for which this level is meant, when it is not specific to a
+    single one (see :py:attr:`activity_id`). Empty for all activities.
+
+    :type: list[:py:class:`collectives.models.activity_type.ActivityType`]"""
 
     name = db.Column(db.String(255), nullable=False, info={"label": "Nom"})
     """ Description of the badge level.
@@ -391,13 +466,25 @@ class BadgeCustomLevel(db.Model):
         return result
 
     @property
+    def activity_scope(self) -> BadgeCustomLevelScope:
+        """Returns how this custom level is linked to activities."""
+        if self.activity_id is not None:
+            return BadgeCustomLevelScope.SingleActivity
+        if self.selected_activities:
+            return BadgeCustomLevelScope.SelectedActivities
+        return BadgeCustomLevelScope.AllActivities
+
+    @property
     def descriptor(self) -> BadgeLevelDescriptor:
         """Returns the descriptor for this custom level."""
         return BadgeLevelDescriptor(
             self.name,
             self.abbrev,
-            self.activity_id,
-            self.default_validity,
+            activity_id=self.activity_id,
+            selected_activity_ids=tuple(
+                sorted(activity.id for activity in self.selected_activities)
+            ),
+            months_of_validity=self.default_validity,
             accepts_activity=self.activity_id is not None,
             superseded_levels=tuple(
                 sorted(level.level for level in self.all_superseded())
@@ -426,15 +513,12 @@ class BadgeCustomLevel(db.Model):
         return query.all()
 
     def activity_name(self) -> str:
-        """Returns the name of the corresponding activity
+        """Returns the name of the corresponding activities
 
-        :return: name of the corresponding activity
+        :return: name of the corresponding activity, or comma-separated names
+            of the selected activities
         """
-
-        if self.activity_type is not None:
-            return self.activity_type.name
-
-        return "Toutes activités"
+        return self.descriptor.activity_name()
 
     @validates("name", "abbrev")
     def truncate_string(self, key: str, value: str) -> str:

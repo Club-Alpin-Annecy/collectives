@@ -46,3 +46,19 @@ def custom_skill_with_activity_type(
     db.session.commit()
     BadgeIds.levels.expire_all()
     return custom_level
+
+
+@pytest.fixture
+def custom_skill_with_selected_activities() -> BadgeCustomLevel:
+    """Create a custom skill level meant for Escalade and Canyon."""
+    custom_level = BadgeCustomLevel(
+        level=4, badge_id=BadgeIds.Skill, name="Custom Skill 4", abbrev="S4"
+    )
+    custom_level.selected_activities = ActivityType.query.filter(
+        ActivityType.name.in_(["Escalade", "Canyon"])
+    ).all()
+
+    db.session.add(custom_level)
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+    return custom_level
