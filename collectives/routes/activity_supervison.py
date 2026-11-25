@@ -423,6 +423,7 @@ def manage_custom_skills(custom_level_id: int | None = None):
                 or 0
             ) + 1
         custom_level_form.populate_obj(custom_level)
+        custom_level.supersedes = custom_level_form.selected_supersedes()
         db.session.add(custom_level)
         db.session.commit()
         BadgeIds.levels.expire_all()

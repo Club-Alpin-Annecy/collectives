@@ -444,6 +444,9 @@ def delete_user(user_id: int):
     if user is None:
         flash("Utilisateur invalide", "error")
         return redirect(url_for(".show_user", user_id=user_id))
+    if user_id != current_user.id and not current_user.can_manage_account_of(user):
+        flash("Opération interdite", "error")
+        return redirect(url_for(".show_user", user_id=user_id))
 
     form = DeleteUserForm(user)
 

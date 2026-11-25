@@ -77,6 +77,14 @@
       if (window.location.hash === '#whatsapp-group') {
         document.getElementById('whatsapp-group').open = true;
       }
+      // On iOS, WhatsApp rejects https://wa.me/ without a phone number
+      // ("Ce lien n'a pas pu être ouvert"): open the app with its own scheme.
+      if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        document.querySelectorAll('.whatsapp-group--open').forEach(function (link) {
+          link.href = 'whatsapp://';
+          link.removeAttribute('target');
+        });
+      }
     </script>
   {% elif event.can_see_whatsapp_link(current_user) %}
     <div class="whatsapp-group whatsapp-group--join" id="whatsapp-group">

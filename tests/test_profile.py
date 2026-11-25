@@ -383,3 +383,17 @@ def test_set_user_skill_badge(
 
     assert len(user1.get_competency_badges()) == 2
     assert badge.expiration_date is None
+
+
+def test_hotline_cannot_delete_privileged_user(hotline_client, president_user):
+    """Hotline cannot delete the account of a user with a privileged role."""
+    response = hotline_client.get(f"/profile/{president_user.id}/delete")
+    assert response.status_code == 302
+    assert response.location == f"/profile/user/{president_user.id}"
+    assert president_user.enabled
+
+
+def test_hotline_can_open_regular_user_deletion(hotline_client, user1):
+    """Hotline can still delete the account of a regular user."""
+    response = hotline_client.get(f"/profile/{user1.id}/delete")
+    assert response.status_code == 200

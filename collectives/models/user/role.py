@@ -144,6 +144,23 @@ class UserRoleMixin:
         """
         return self.has_signed_ca() and self.has_any_role()
 
+    def can_manage_account_of(self, user) -> bool:
+        """Check if this user can reset or delete the account of another user.
+
+        Hotline members can manage regular accounts; accounts holding a
+        privileged role (see :py:meth:`RoleIds.all_admin_managed_roles`) can
+        only be managed by an administrator.
+
+        :param user: The user whose account is to be managed.
+        :type user: :py:class:`collectives.models.user.User`
+        :return: True if this user can manage the account.
+        """
+        if self.is_admin():
+            return True
+        if not self.is_hotline():
+            return False
+        return not user.has_role(RoleIds.all_admin_managed_roles())
+
     def has_any_role(self) -> bool:
         """Check if user has any specific roles.
 

@@ -137,6 +137,21 @@ class RoleIds(ChoiceEnum):
         return (cls.Administrator, cls.Moderator, cls.President)
 
     @classmethod
+    def all_admin_managed_roles(cls) -> List["RoleIds"]:
+        """
+        :return: List of privileged roles whose holders' accounts can only be
+            reset or deleted by an administrator, not by the hotline
+        """
+        return (
+            cls.Administrator,
+            cls.Moderator,
+            cls.President,
+            cls.Technician,
+            cls.Hotline,
+            cls.Accountant,
+        )
+
+    @classmethod
     def all_activity_leader_roles(cls) -> List["RoleIds"]:
         """
         :return: List of all roles that allow users to lead event activities

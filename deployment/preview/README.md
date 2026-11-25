@@ -1,0 +1,54 @@
+# Pull request previews
+
+`.github/workflows/preview.yml` builds the image of each pull request, pushes
+it to `ghcr.io/club-alpin-annecy/collectives:pr-<number>`, then runs
+`collectives-preview deploy <number>` on the preview server through SSH. The
+instance is served on `https://pr-<number>.test.collectives.cafannecy.fr` with
+its own MariaDB database `pr_<number>`, filled with the test fixtures on the
+first deployment (`tests/preview_seed.py`); the instance, its database and
+the `pr-<number>` image are removed when the pull request is closed. `Dockerfile` adds the test fixtures to the image of the pull
+request. Everything deployed comes from the pull request — image, `Dockerfile`
+and seed `tests/preview_seed.py` — so that a pull request can adapt the seed to
+the feature it adds; only the workflow file itself runs from master
+(`pull_request_target`), and pull requests are expected to be rebased on master.
+The seed also enables the optional modules: every boolean configuration item
+whose name ends with `_ENABLED`, a module added by the pull request included,
+except those needing a third party service (Loxya). A pull request must include
+`4f6708b3` (once support of the image). Pull requests from forks wait for a maintainer approval. After
+each deployment, a comment on the pull request gives the url and the
+password of the `admin` account, generated for each instance.
+
+## Server setup
+
+Ubuntu with [once](https://github.com/basecamp/once)
+(`curl https://get.once.com | sh`), and a DNS record
+`*.test.collectives.cafannecy.fr` pointing to the server.
+
+```sh
+# MariaDB root password, and the secrets of each instance (root only)
+echo "MARIADB_ROOT_PASSWORD=$(openssl rand -hex 24)" \
+    | sudo install -m 600 /dev/stdin /etc/collectives-preview.env
+sudo install -d -m 700 /var/lib/collectives-preview
+
+# MariaDB, reachable only from the once network
+sudo sh -c '. /etc/collectives-preview.env; docker run -d --name collectives-mariadb \
+    --restart unless-stopped --network once -v collectives-mariadb:/var/lib/mysql \
+    -e MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" --memory 768m mariadb:10.11 \
+    --innodb-buffer-pool-size=256M \
+    --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci'
+
+# deploy user, whose SSH key can only run collectives-preview
+sudo install -m 755 collectives-preview /usr/local/bin/
+sudo useradd -m -s /bin/sh deploy
+echo 'deploy ALL=(root) NOPASSWD: /usr/local/bin/collectives-preview' \
+    | sudo install -m 440 /dev/stdin /etc/sudoers.d/collectives-preview
+ssh-keygen -t ed25519 -N '' -C github-preview -f preview_key
+echo "restrict,command=\"/usr/local/bin/collectives-preview\" $(cat preview_key.pub)" \
+    | sudo install -D -m 644 /dev/stdin ~deploy/.ssh/authorized_keys  # owned by root
+```
+
+On GitHub, create the environments `preview` and `preview-fork` (the latter
+with required reviewers), store `preview_key` as the secret `PREVIEW_SSH_KEY`
+of both, then delete it. The `collectives` package may stay private: the
+workflow gives its own token to `collectives-preview` on standard input, and
+once pulls the image with it.

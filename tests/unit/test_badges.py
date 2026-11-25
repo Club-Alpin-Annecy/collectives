@@ -283,3 +283,75 @@ def test_custom_skill(
     assert not custom_skill_with_activity_type.descriptor.is_compatible_with_activity(
         9999
     )
+
+
+def test_custom_skill_supersedes(
+    app,
+    user1: User,
+    custom_skill: BadgeCustomLevel,
+    custom_skill_with_activity_type: BadgeCustomLevel,
+    custom_skill_with_expiry: BadgeCustomLevel,
+):
+    """Test the transitive "supersedes" relation between skills"""
+    # S3 > S2 > S1
+    custom_skill_with_expiry.supersedes = [custom_skill_with_activity_type]
+    custom_skill_with_activity_type.supersedes = [custom_skill]
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+
+    assert custom_skill_with_expiry.all_superseded() == {
+        custom_skill,
+        custom_skill_with_activity_type,
+    }
+    assert custom_skill.superseded_by == [custom_skill_with_activity_type]
+    assert BadgeIds.Skill.levels()[3].superseded_levels == (1, 2)
+
+    # Having a superior skill does not imply having the inferior ones
+    user1.badges.append(
+        Badge(badge_id=BadgeIds.Skill, level=custom_skill_with_expiry.level)
+    )
+    db.session.commit()
+    assert user1.matching_badges({BadgeIds.Skill}, level=3)
+    assert not user1.matching_badges({BadgeIds.Skill}, level=1)
+
+
+def test_icon_badges_hide_superseded_skills(
+    app,
+    user1: User,
+    custom_skill: BadgeCustomLevel,
+    custom_skill_with_expiry: BadgeCustomLevel,
+):
+    """Registration icons hide skills superseded by another displayed skill"""
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    user1.badges.append(Badge(badge_id=BadgeIds.Skill, level=custom_skill.level))
+    user1.badges.append(
+        Badge(badge_id=BadgeIds.Skill, level=custom_skill_with_expiry.level)
+    )
+    db.session.commit()
+
+    def icon_levels():
+        return {
+            badge.level
+            for badge in user1.get_icon_competency_badges([alpinisme], show_all=True)
+        }
+
+    assert icon_levels() == {1, 3}
+
+    # S3 > S1: S1 is hidden
+    custom_skill_with_expiry.supersedes = [custom_skill]
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+    assert BadgeIds.Skill.level(3).superseded_levels == (1,)
+    assert icon_levels() == {3}
+
+    # Still listed on the profile
+    assert len(user1.get_competency_badges()) == 2
+
+
+def test_skill_may_supersede():
+    """A skill may not supersede a skill of another activity"""
+    assert BadgeCustomLevel.may_supersede(None, None)
+    assert BadgeCustomLevel.may_supersede(1, None)
+    assert BadgeCustomLevel.may_supersede(None, 1)
+    assert BadgeCustomLevel.may_supersede(1, 1)
+    assert not BadgeCustomLevel.may_supersede(1, 2)

@@ -8,9 +8,14 @@ from typing import List, Sequence, Union
 from flask import flash, render_template, send_file
 from flask_login import current_user
 from markupsafe import Markup
+from sqlalchemy import ColumnElement, and_, or_, true
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.badge import AddBadgeForm, compute_default_expiration_date
+from collectives.forms.badge import (
+    AddBadgeForm,
+    ExportBadgeForm,
+    compute_default_expiration_date,
+)
 from collectives.models import (
     ActivityType,
     Badge,
@@ -24,48 +29,60 @@ from collectives.utils import export, time
 from collectives.utils.misc import sanitize_file_name
 
 
+def managed_badges_filter(user: User) -> ColumnElement[bool]:
+    """Builds the SQL condition selecting the badges that a user may manage.
+
+    Hotline users manage every badge. Activity supervisors manage the badges
+    which may be associated with an activity, for the activities they supervise
+    or without activity.
+
+    :param user: The user managing the badges
+    :return: The condition to apply to a :py:class:`Badge` query
+    """
+    if user.is_hotline():
+        return true()
+
+    activity_ids = [activity.id for activity in user.get_supervised_activities()]
+    return and_(
+        Badge.badge_id.in_([b for b in BadgeIds if b.accepts_activity()]),
+        or_(Badge.activity_id.in_(activity_ids), Badge.activity_id.is_(None)),
+    )
+
+
 def export_badge(badge_types: Sequence[BadgeIds] | None = None):
     """Create an Excel document with the contact information of users with badge.
 
     :param type: The type of badge to export
     :return: The Excel file with the roles.
     """
-    form = ActivityTypeSelectionForm(
-        all_enabled=True,
-    )
+    badge_types = badge_types or list(BadgeIds)
+    form = ExportBadgeForm(badge_ids=badge_types)
 
     if not form.validate_on_submit():
         return False
 
-    if form.activity_id.data != ActivityTypeSelectionForm.ALL_ACTIVITIES:
+    query = Badge.query
+    # we remove role not linked anymore to a user
+    query = query.filter(Badge.user.has(User.id))
+    query = query.filter(managed_badges_filter(current_user))
+
+    if form.activity_id.data == ActivityTypeSelectionForm.ALL_ACTIVITIES:
+        filename = ""
+    else:
         activity_type = db.session.get(ActivityType, form.activity_id.data)
         if not current_user.is_hotline():
             if activity_type not in current_user.get_supervised_activities():
                 return False
-    else:
-        if current_user.is_hotline():
-            activity_type = ActivityType.query.all()
-        else:
-            activity_type = current_user.get_supervised_activities()
+        query = query.filter(Badge.activity_id == activity_type.id)
+        filename = activity_type.name
 
-    query = Badge.query
-    # we remove role not linked anymore to a user
-    query = query.filter(Badge.user.has(User.id))
-    if activity_type is not None:
-        if isinstance(activity_type, list):
-            query = query.filter(Badge.activity_id.in_([t.id for t in activity_type]))
-        else:
-            query = query.filter(Badge.activity_id == activity_type.id)
-
-    if badge_types is not None:
-        query = query.filter(Badge.badge_id.in_(badge_types))
+    if "badge_id" in form and form.badge_id.data is not None:
+        badge_types = [form.badge_id.data]
+    if "level" in form and form.level.data is not None:
+        query = query.filter(Badge.level == form.level.data)
+    query = query.filter(Badge.badge_id.in_(badge_types))
 
     badges = query.all()
-
-    if not isinstance(activity_type, list):
-        filename = activity_type.name
-    else:
-        filename = ""
 
     out = export.export_badges(badges)
 
@@ -126,10 +143,10 @@ def list_page(
     else:
         add_badge_form = None
 
-    export_form = ActivityTypeSelectionForm(
+    export_form = ExportBadgeForm(
+        badge_ids=badge_types or list(BadgeIds),
         submit_label="Générer Excel",
         activity_list=current_user.get_supervised_activities(),
-        all_enabled=True,
     )
 
     activity_ids = [activity.id for activity in ActivityType.get_all_types()]
@@ -525,9 +542,8 @@ def has_rights_to_modify_badge(badge: Badge, badge_type: BadgeIds) -> bool:
     if badge_type is not None and badge_type != badge.badge_id:
         return False
 
-    if badge.activity_type is not None:
-        if badge.activity_type not in current_user.get_supervised_activities():
-            if not current_user.is_hotline():
-                return False
-
-    return True
+    return db.session.query(
+        Badge.query.filter(
+            Badge.id == badge.id, managed_badges_filter(current_user)
+        ).exists()
+    ).scalar()

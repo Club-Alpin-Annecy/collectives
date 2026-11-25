@@ -608,6 +608,12 @@ def generate_token():
         )
         return redirect(url_for(".administration"))
     user = existing_users[0] if existing_users else None
+    if user is not None and not current_user.can_manage_account_of(user):
+        flash(
+            "Seul un administrateur peut générer un jeton pour ce compte",
+            "error",
+        )
+        return redirect(url_for(".administration"))
 
     # If the 'confirm' flag has been checked, create the token
     token_link = None
