@@ -697,3 +697,26 @@ def test_event_condition_title_is_escaped_in_script(leader_client, event, event2
     assert response.status_code == 200
     assert payload not in response.text
     assert "\\u003c/script\\u003e\\u003cscript\\u003ealert(1)" in response.text
+
+
+def test_registration_countdown(user1_client, event):
+    """Test the countdown displayed before registrations open"""
+
+    event.registration_open_time = current_time() + timedelta(minutes=10)
+    db.session.commit()
+
+    response = user1_client.get(f"/collectives/{event.id}-x")
+    assert response.status_code == 200
+    countdown = BeautifulSoup(response.text, "html.parser").find(
+        id="registration-countdown"
+    )
+    assert countdown is not None
+    assert 0 < float(countdown["data-seconds"]) <= 600
+
+    # No countdown, nor reload, when registrations open in several days
+    event.registration_open_time = current_time() + timedelta(days=2)
+    db.session.commit()
+
+    response = user1_client.get(f"/collectives/{event.id}-x")
+    assert response.status_code == 200
+    assert 'id="registration-countdown"' not in response.text
