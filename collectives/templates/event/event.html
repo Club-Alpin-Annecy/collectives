@@ -71,7 +71,7 @@
         <h2 class="heading-3">
             {% for tag in event.tags %}
                 <span class="aligned-flex">
-                  <img src="/static/caf/icon/{{tag.short}}.svg" width="30px"  title="{{tag.name}}"/>
+                  <img src="/static/caf/icon/{{tag.short}}.svg" width="30px"  title="{{tag.name}}" alt="{{tag.name}}"/>
                   {{tag.name}}
                 </span>
             {% endfor %}
@@ -100,17 +100,19 @@
         </span>
       </div>
       <div class="collective-display--activity-type">
-        <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px"  title="{{event.event_type.name}}"/> 
+        <img src="/static/caf/icon/{{event.event_type.short}}.svg" width="90px" alt="{{event.event_type.name}}" title="{{event.event_type.name}}"/>
 
         {% for atype in event.activity_types %}
-          <img src="/static/caf/icon/{{atype.icon}}.svg" title="{{atype.name}}"/>
+          <img src="/static/caf/icon/{{atype.icon}}.svg" alt="{{atype.name}}" title="{{atype.name}}"/>
         {% endfor %}
       </div>
     </div>
 
 
 
-    <img class="photo collective-display--photo" src="{% if event.photo %}{{ url_for('images.fit', filename=event.photo, width=1100 ) }}{% endif %}"/>
+    {% if event.photo %}
+    <img class="photo collective-display--photo" src="{{ url_for('images.fit', filename=event.photo, width=1100 ) }}" alt="Photo de l'événement"/>
+    {% endif %}
 
 
     {# Leaders #}

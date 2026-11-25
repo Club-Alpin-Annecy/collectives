@@ -108,12 +108,12 @@ h1, h2, h3, h4, h5, h6 {
 // Links
 
 a, .link {
-	color: darken($color-blue-secondary-dark, 5%);
+	color: $color-blue-primary-medium;
 	text-decoration: none;
 	transition: all .2s ease-in-out;
 	&:hover {
 		text-decoration: underline;
-		color: darken($color-blue-secondary-dark, 15%);
+		color: $color-blue-primary-dark;
 	}
 }
 

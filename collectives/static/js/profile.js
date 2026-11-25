@@ -126,7 +126,7 @@ function typesFormatter(cell, formatterParams, onRendered) {
     function formatFunc(activity) {
         // Event types have no 'icon' field: their icon is named after their short name
         const icon = activity['icon'] || activity['short'];
-        return `<img src="/static/caf/icon/${icon}.svg" width="30px" title="${activity['name']}"/>`;
+        return `<img src="/static/caf/icon/${icon}.svg" width="30px" title="${activity['name']}" alt="${activity['name']}"/>`;
     }
 
     var val = cell.getValue()
@@ -136,7 +136,7 @@ function typesFormatter(cell, formatterParams, onRendered) {
 }
 
 function tagsFormatter(cell, formatterParams, onRendered) {
-    var names = cell.getValue().map((tag) => `<img src="/static/caf/icon/${tag['short']}.svg" width="30px"/>`);
+    var names = cell.getValue().map((tag) => `<img src="/static/caf/icon/${tag['short']}.svg" width="30px" alt="${tag['name']}"/>`);
     return names.join(' ');
 }
 function enumFormatter(cell, formatterParams, onRendered) {
