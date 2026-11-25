@@ -509,7 +509,8 @@ class PaylineApi(PaymentProvider):
 
             return payment_response
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
@@ -546,7 +547,8 @@ class PaylineApi(PaymentProvider):
             )
             return PaymentDetails(response)
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None
@@ -592,7 +594,8 @@ class PaylineApi(PaymentProvider):
 
             return RefundDetails(response)
 
-        except pysimplesoap.client.SoapFault as err:
+        except (pysimplesoap.client.SoapFault, OSError) as err:
+            # OSError covers network errors and timeouts
             current_app.logger.error(f"Payment API error: {err}")
 
         return None

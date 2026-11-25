@@ -901,11 +901,18 @@ def process():
         return redirect(url_for("event.view_event", event_id=payment.item.event_id))
 
     status = retrieve_remote_status(payment)
-    if status is not None:
-        if status.status != PaymentStatus.Initiated:
-            finalize_payment(payment, status)
+    finalized = status is not None and status.status != PaymentStatus.Initiated
+    if finalized:
+        finalize_payment(payment, status)
 
     if is_notify:
+        if not finalized:
+            # Do not acknowledge a payment we could not finalize, so that
+            # Payline may notify us again
+            current_app.logger.warning(
+                f"Payment {payment.id} not finalized on notification"
+            )
+            return {}, 503
         # Return empty response
         return {}, 200
     return redirect(url_for("event.view_event", event_id=payment.item.event_id))

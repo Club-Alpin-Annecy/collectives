@@ -53,19 +53,37 @@ export default {
             }, {})
         }
 
-        /**
-         * Watch for changes in eventParams and eventFilters
-         * Set Loaders and request the events for the given parameters and filters
-         */
-        watch([eventParams, eventFilters], async ([params, filters]) => {
-            loading.value = true
+        async function loadEvents(params, filters) {
+            const requestId = ++lastRequestId
             const { data } = await getEvents(params, filters)
+            // Ignore a response that arrives after a more recent request was sent
+            if (requestId !== lastRequestId) return
             events.value = groupByDate(data.data)
             // TODO Improve API
             eventCount.value = data.last_page * params.pageSize
             loading.value = false
             await nextTick()
             restoreScrollAnchor()
+        }
+
+        /**
+         * Watch for changes in eventParams and eventFilters
+         * Set Loaders and request the events for the given parameters and filters.
+         * Text criteria are debounced, so that typing a title or a leader name
+         * sends a single request once the user pauses. Other changes (page,
+         * filters) are requested at once.
+         */
+        let lastRequestId = 0
+        let debounceTimer = null
+        let lastText = null
+        watch([eventParams, eventFilters], ([params, filters]) => {
+            loading.value = true
+            clearTimeout(debounceTimer)
+            const text = JSON.stringify([filters.title, filters.leader])
+            const typing = lastText !== null && text !== lastText
+            lastText = text
+            if (typing) debounceTimer = setTimeout(() => loadEvents(params, filters), 300)
+            else loadEvents(params, filters)
         }, { immediate: true })
 
 
