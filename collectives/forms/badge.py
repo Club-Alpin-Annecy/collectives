@@ -10,6 +10,7 @@ from wtforms import (
     FileField,
     HiddenField,
     SelectField,
+    SelectMultipleField,
     StringField,
     SubmitField,
 )
@@ -21,13 +22,14 @@ from wtforms.validators import (
 from wtforms_alchemy import ModelForm
 
 from collectives.forms.activity_type import ActivityTypeSelectionForm
-from collectives.forms.order import OrderedModelForm
+from collectives.forms.order import OrderedForm, OrderedModelForm
 from collectives.forms.utils import coerce_optional
 from collectives.models import (
     ActivityType,
     Badge,
     BadgeCustomLevel,
     BadgeIds,
+    db,
 )
 
 
@@ -141,6 +143,32 @@ class BadgeForm(OrderedModelForm, ActivityTypeSelectionForm):
             raise ValidationError(
                 f"Le choix '{level_desc.name}' est spécifique à l'activité '{level_desc.activity_name()}'"
             )
+
+
+class ExportBadgeForm(OrderedForm, ActivityTypeSelectionForm):
+    """Form to export badges of a given type, activity and level"""
+
+    badge_id = SelectField("Badge", coerce=coerce_optional(BadgeIds.coerce))
+    level = SelectField("Niveau", coerce=coerce_optional(int), validate_choice=False)
+
+    field_order = ["badge_id", "activity_id", "level", "*"]
+
+    def __init__(self, *args, badge_ids: list[BadgeIds], **kwargs):
+        """Overloaded constructor populating badge list
+
+        The badge type can only be selected if there are several, and the level
+        only if at least one of them requires a level.
+
+        :param badge_ids: The types of badge which can be exported
+        """
+        super().__init__(*args, prefix="export", all_enabled=True, **kwargs)
+        self.badge_id.choices = [("", "Tous badges")] + [
+            (badge_id.value, badge_id.display_name()) for badge_id in badge_ids
+        ]
+        if len(badge_ids) == 1:
+            del self.badge_id
+        if not any(badge_id.requires_level() for badge_id in badge_ids):
+            del self.level
 
 
 class RenewBadgeForm(ModelForm, FlaskForm):
@@ -289,22 +317,90 @@ class BadgeCustomLevelForm(OrderedModelForm):
 
     activity_id = SelectField("Activité", choices=[], coerce=coerce_optional(int))
 
+    supersedes_ids = SelectMultipleField(
+        "Supérieure à",
+        choices=[],
+        coerce=int,
+        description="Spécialisations que celle-ci englobe. "
+        "Sert uniquement à l'affichage.",
+    )
+
     submit = SubmitField("Enregistrer")
 
     field_order = [
         "name",
         "abbrev",
         "activity_id",
+        "supersedes_ids",
         "*",
     ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, obj: BadgeCustomLevel | None = None, **kwargs):
+        super().__init__(*args, obj=obj, **kwargs)
+        self.custom_level = obj
 
         supervised_activities = current_user.get_supervised_activities()
         self.activity_id.choices = [("", "N'importe quelle activité")] + [
             (activity.id, activity.name) for activity in supervised_activities
         ]
+
+        current_ids = {level.id for level in obj.supersedes} if obj else set()
+        other_skills = [
+            level
+            for level in BadgeCustomLevel.get_all(
+                BadgeIds.Skill, include_deprecated=True
+            )
+            if (obj is None or level.id != obj.id)
+            and (not level.deprecated or level.id in current_ids)
+        ]
+        other_skills.sort(key=lambda level: level.name.lower())
+        self.supersedes_ids.choices = [
+            (level.id, f"{level.name} ({level.activity_name()})")
+            for level in other_skills
+        ]
+        if obj is not None and not self.is_submitted():
+            self.supersedes_ids.data = list(current_ids)
+
+    def validate_supersedes_ids(self, field: SelectMultipleField):
+        """Forbids cycles in the "supersedes" partial order, and relations
+        between skills of different activities."""
+        activity_id = self.activity_id.data
+        for level_id in field.data or []:
+            level = db.session.get(BadgeCustomLevel, level_id)
+            if level is None:
+                continue
+            if not BadgeCustomLevel.may_supersede(activity_id, level.activity_id):
+                raise ValidationError(
+                    f"'{level.name}' est spécifique à une autre activité "
+                    f"({level.activity_name()})."
+                )
+            if self.custom_level is not None and self.custom_level in (
+                level.all_superseded() | {level}
+            ):
+                raise ValidationError(
+                    f"'{level.name}' est déjà supérieure à cette spécialisation."
+                )
+
+        # Changing the activity must not break existing relations
+        if self.custom_level is not None:
+            for superior in self.custom_level.superseded_by:
+                if not BadgeCustomLevel.may_supersede(
+                    superior.activity_id, activity_id
+                ):
+                    raise ValidationError(
+                        f"'{superior.name}' ({superior.activity_name()}) est "
+                        "supérieure à cette spécialisation : impossible de changer "
+                        "d'activité."
+                    )
+
+    def selected_supersedes(self) -> list[BadgeCustomLevel]:
+        """Returns the skills selected in :py:attr:`supersedes_ids`"""
+        if not self.supersedes_ids.data:
+            return []
+        return BadgeCustomLevel.query.filter(
+            BadgeCustomLevel.id.in_(self.supersedes_ids.data),
+            BadgeCustomLevel.badge_id == BadgeIds.Skill,
+        ).all()
 
 
 class BadgeCustomPractitionerLevelForm(ActivityTypeSelectionForm):

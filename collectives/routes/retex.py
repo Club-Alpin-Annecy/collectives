@@ -16,7 +16,7 @@ from collectives.models import (
     db,
 )
 from collectives.utils import export
-from collectives.utils.access import user_is, valid_user
+from collectives.utils.access import retex_enabled, user_is, valid_user
 from collectives.utils.misc import sanitize_file_name
 from collectives.utils.time import current_time
 
@@ -29,10 +29,13 @@ This blueprint contains all routes for creating, viewing and listing event retex
 
 @blueprint.before_request
 @valid_user()
+@retex_enabled()
 def before_request():
     """Protect all of the retex endpoints.
 
-    Protection is done by the decorator :py:func:`collectives.utils.access.valid_user`
+    Protection is done by the decorators:
+    - :py:func:`collectives.utils.access.valid_user`
+    - :py:func:`collectives.utils.access.retex_enabled`
     """
 
 
@@ -84,7 +87,9 @@ def supervised_retex():
         formdata=None, activity_list=current_user.get_supervised_activities()
     )
     return render_template(
-        "activity_supervision/retex_list.html", title="Retex", export_form=export_form
+        "activity_supervision/retex_list.html",
+        title="Partages d'expérience",
+        export_form=export_form,
     )
 
 

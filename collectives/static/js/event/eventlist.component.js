@@ -4,7 +4,7 @@ import { getEvents } from '../api.js'
 import moment from 'moment'
 import EventListSkeleton from './eventlist-skeleton.component.js'
 
-const { ref, watch, reactive, inject, onMounted, useTemplateRef } = Vue
+const { ref, watch, reactive, inject, nextTick, onMounted, useTemplateRef } = Vue
 
 export default {
     setup() {
@@ -18,6 +18,9 @@ export default {
         const events = ref([])
         const eventCount = ref(0)
         const eventlistRefEl = useTemplateRef('eventlist')
+        const eventsRefEl = useTemplateRef('eventsTop')
+        // Event to keep at the same place on screen after the next load: { id, top }
+        let scrollAnchor = null
 
         const eventParams = reactive({
             page: startingPage,
@@ -59,33 +62,80 @@ export default {
             // TODO Improve API
             eventCount.value = data.last_page * params.pageSize
             loading.value = false
+            await nextTick()
+            restoreScrollAnchor()
         }
 
         /**
          * Watch for changes in eventParams and eventFilters
          * Set Loaders and request the events for the given parameters and filters.
-         * Changes are debounced, so that typing a title or a leader name sends a
-         * single request once the user pauses.
+         * Text criteria are debounced, so that typing a title or a leader name
+         * sends a single request once the user pauses. Other changes (page,
+         * filters) are requested at once.
          */
         let lastRequestId = 0
         let debounceTimer = null
-        let firstLoad = true
+        let lastText = null
         watch([eventParams, eventFilters], ([params, filters]) => {
             loading.value = true
             clearTimeout(debounceTimer)
-            if (firstLoad) loadEvents(params, filters)
-            else debounceTimer = setTimeout(() => loadEvents(params, filters), 300)
-            firstLoad = false
+            const text = JSON.stringify([filters.title, filters.leader])
+            const typing = lastText !== null && text !== lastText
+            lastText = text
+            if (typing) debounceTimer = setTimeout(() => loadEvents(params, filters), 300)
+            else loadEvents(params, filters)
         }, { immediate: true })
 
 
 
         function setPaginator(pageState) {
             const pageNumber = pageState.page + 1
+            if (pageState.rows !== eventParams.pageSize) {
+                saveScrollAnchor()
+            }
             eventParams.page = pageNumber
             eventParams.pageSize = pageState.rows
             eventParams.first = pageState.page * pageState.rows + 1
             history.pushState(null, null, '#' + pageNumber);
+            // The paginator is at the bottom of the list: show the new page from its top,
+            // unless an event has to stay in place
+            if (scrollAnchor) return
+            gotoFirstEvent()
+        }
+
+        function findEventElement(eventId) {
+            return eventlistRefEl.value.querySelector('[data-event-id="' + eventId + '"]')
+        }
+
+        /**
+         * Remember the position on screen of the last event of the current page, so
+         * that reading can go on from there when the number of events per page changes
+         */
+        function saveScrollAnchor() {
+            const lastEvent = Object.values(events.value).flat().at(-1)
+            const element = lastEvent && findEventElement(lastEvent.id)
+            if (!element) return
+            scrollAnchor = { id: lastEvent.id, top: element.getBoundingClientRect().top }
+        }
+
+        /**
+         * Put the remembered event back where it was on screen. Go to the top of
+         * the list if it is not in the new page.
+         */
+        function restoreScrollAnchor() {
+            if (!scrollAnchor) return
+            const { id, top } = scrollAnchor
+            scrollAnchor = null
+            const element = findEventElement(id)
+            if (!element) return gotoFirstEvent()
+            window.scrollBy(0, element.getBoundingClientRect().top - top)
+        }
+
+        /**
+         * Smooth scroll to the first event, below the banner message and the filters
+         */
+        function gotoFirstEvent() {
+            eventsRefEl.value.scrollIntoView({ behavior: 'smooth' })
         }
 
         /**
@@ -139,21 +189,23 @@ export default {
 
                 <EventListFilters v-bind:filters="eventFilters"/>
 
-                <template v-if="IsLoading()">
-                    <EventListSkeleton v-for="n in 5" v-bind:eventItem="null" :key="n"/>
-                </template>
+                <div ref="eventsTop" class="collectives-list--events">
+                    <template v-if="IsLoading()">
+                        <EventListSkeleton v-for="n in 5" v-bind:eventItem="null" :key="n"/>
+                    </template>
 
 
-                <Accordion v-if="!IsLoading()" multiple :value="Object.keys(events)">
-                    <AccordionPanel :value="date" header="Header" toggleable v-for="(dateEvents, date) in events">
-                        <AccordionHeader>
-                            {{ date }}
-                        </AccordionHeader>
-                        <AccordionContent>
-                            <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id"/>
-                        </AccordionContent>
-                    </AccordionPanel>
-                </Accordion>
+                    <Accordion v-if="!IsLoading()" multiple :value="Object.keys(events)">
+                        <AccordionPanel :value="date" header="Header" toggleable v-for="(dateEvents, date) in events">
+                            <AccordionHeader>
+                                {{ date }}
+                            </AccordionHeader>
+                            <AccordionContent>
+                                <EventListItem v-for="eventItem in dateEvents" v-bind:eventItem="eventItem" :key="eventItem.id" :data-event-id="eventItem.id"/>
+                            </AccordionContent>
+                        </AccordionPanel>
+                    </Accordion>
+                </div>
 
                 <Paginator 
                     @page="setPaginator"

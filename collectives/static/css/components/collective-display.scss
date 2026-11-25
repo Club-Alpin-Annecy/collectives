@@ -64,6 +64,14 @@
        color: $color-blue-primary-dark;
     }
 
+    &--administration-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: $padding-vertical-xs $padding-horizontal-s;
+    }
+
     .contactinfos {
         .inputGrow {
             display: flex;
@@ -150,4 +158,12 @@
             display: block;
         }
     }
+}
+
+.collective-number {
+    margin: 0;
+    color: $color-blue-primary-dark;
+    font-size: $font-size-s;
+    font-weight: $font-weight-bold;
+    white-space: nowrap;
 }

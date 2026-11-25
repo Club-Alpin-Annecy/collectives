@@ -2,7 +2,7 @@
 
 from collectives.models import db
 from collectives.models.activity_type import ActivityKind, ActivityType
-from collectives.models.badge import BadgeCustomLevel
+from collectives.models.badge import BadgeCustomLevel, BadgeIds
 
 
 def test_index(supervisor_client):
@@ -189,3 +189,87 @@ def test_manage_custom_skills(supervisor_client):
     assert updated_skill.name == "Updated Test Skill"
     assert updated_skill.abbrev == "UTS"
     assert updated_skill.default_validity == 12
+
+
+def test_custom_skills_supersedes(supervisor_client):
+    """Test setting the "supersedes" relation between custom skills"""
+
+    def add_skill(name: str, supersedes: list[int] | None = None, skill_id=None):
+        data = {
+            "name": name,
+            "abbrev": name[:3],
+            "activity_id": "",
+            "default_validity": "0",
+            "supersedes_ids": supersedes or [],
+        }
+        url = "/activity_supervision/custom_skills"
+        if skill_id is not None:
+            url = f"/activity_supervision/custom_skill/{skill_id}"
+        return supervisor_client.post(url, data=data, follow_redirects=True)
+
+    add_skill("Initiateur")
+    initiateur = BadgeCustomLevel.query.filter_by(name="Initiateur").first()
+    add_skill("Moniteur", [initiateur.id])
+    moniteur = BadgeCustomLevel.query.filter_by(name="Moniteur").first()
+
+    assert moniteur.supersedes == [initiateur]
+    assert "Supérieure à : Initiateur" in add_skill("Guide").text
+
+    # Cycles are refused
+    response = add_skill("Initiateur", [moniteur.id], skill_id=initiateur.id)
+    assert "est déjà supérieure" in response.text
+    db.session.refresh(initiateur)
+    assert initiateur.supersedes == []
+
+    # The relation can be removed
+    add_skill("Moniteur", [], skill_id=moniteur.id)
+    db.session.refresh(moniteur)
+    assert moniteur.supersedes == []
+
+
+def test_custom_skills_supersedes_other_activity(supervisor_client):
+    """A skill may not supersede a skill specific to another activity"""
+    alpinisme = ActivityType.query.filter_by(name="Alpinisme").first()
+    escalade = ActivityType.query.filter_by(name="Escalade").first()
+    other = BadgeCustomLevel(
+        badge_id=BadgeIds.Skill,
+        level=100,
+        name="Initiateur escalade",
+        abbrev="IE",
+        activity_id=escalade.id,
+    )
+    db.session.add(other)
+    db.session.commit()
+
+    data = {
+        "name": "Moniteur alpinisme",
+        "abbrev": "MA",
+        "activity_id": alpinisme.id,
+        "default_validity": "0",
+        "supersedes_ids": [other.id],
+    }
+    response = supervisor_client.post(
+        "/activity_supervision/custom_skills", data=data, follow_redirects=True
+    )
+    assert "spécifique à une autre activité" in response.text
+    assert BadgeCustomLevel.query.filter_by(name="Moniteur alpinisme").first() is None
+
+    # Allowed for a skill not linked to an activity
+    data["activity_id"] = ""
+    data["name"] = "Guide"
+    supervisor_client.post(
+        "/activity_supervision/custom_skills", data=data, follow_redirects=True
+    )
+    guide = BadgeCustomLevel.query.filter_by(name="Guide").first()
+    assert guide.supersedes == [other]
+
+    # ...but then the guide skill cannot be moved to another activity
+    data["activity_id"] = alpinisme.id
+    response = supervisor_client.post(
+        f"/activity_supervision/custom_skill/{guide.id}",
+        data=data,
+        follow_redirects=True,
+    )
+    assert "spécifique à une autre activité" in response.text
+    db.session.refresh(guide)
+    assert guide.activity_id is None

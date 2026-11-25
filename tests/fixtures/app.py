@@ -80,6 +80,61 @@ def enable_leader_privacy():
 
 
 @pytest.fixture
+def disable_whatsapp_groups(app):  # pylint: disable=unused-argument
+    """Disable WhatsApp groups in configuration, and restore it afterwards"""
+    item = Configuration.get_item("WHATSAPP_GROUPS_ENABLED")
+    previous = item.content
+    item.content = False
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+    yield
+    item.content = previous
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+
+
+@pytest.fixture
+def enable_whatsapp_groups(app):  # pylint: disable=unused-argument
+    """Enable WhatsApp groups in configuration, and restore it afterwards.
+
+    WhatsApp groups are disabled by default
+    (``WHATSAPP_GROUPS_ENABLED`` = ``False``);
+    tests exercising the WhatsApp feature need this."""
+    item = Configuration.get_item("WHATSAPP_GROUPS_ENABLED")
+    previous = item.content
+    item.content = True
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+    yield
+    item.content = previous
+    Configuration.uncache("WHATSAPP_GROUPS_ENABLED")
+
+
+@pytest.fixture
+def disable_retex(app):  # pylint: disable=unused-argument
+    """Disable retex in configuration, and restore it afterwards"""
+    item = Configuration.get_item("RETEX_ENABLED")
+    previous = item.content
+    item.content = False
+    Configuration.uncache("RETEX_ENABLED")
+    yield
+    item.content = previous
+    Configuration.uncache("RETEX_ENABLED")
+
+
+@pytest.fixture
+def enable_retex(app):  # pylint: disable=unused-argument
+    """Enable retex in configuration, and restore it afterwards.
+
+    Retex are disabled by default (``RETEX_ENABLED`` = ``False``);
+    tests exercising the retex feature need this."""
+    item = Configuration.get_item("RETEX_ENABLED")
+    previous = item.content
+    item.content = True
+    Configuration.uncache("RETEX_ENABLED")
+    yield
+    item.content = previous
+    Configuration.uncache("RETEX_ENABLED")
+
+
+@pytest.fixture
 def enable_payment():
     """Enable payments (via Payline) in configuration.
 

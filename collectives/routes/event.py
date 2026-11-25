@@ -33,7 +33,7 @@ from collectives.email_templates import (
     send_update_waiting_list_notification,
 )
 from collectives.forms import EventForm, RegistrationForm, photos
-from collectives.forms.event import PaymentItemChoiceForm
+from collectives.forms.event import PaymentItemChoiceForm, WhatsappLinkForm
 from collectives.forms.question import QuestionAnswersForm
 from collectives.models import (
     ActivityType,
@@ -43,6 +43,7 @@ from collectives.models import (
     EventStatus,
     EventTag,
     EventType,
+    EventVisibility,
     PaymentItem,
     Registration,
     RegistrationLevels,
@@ -237,6 +238,30 @@ def index(activity_type_id=None, name=""):
     )
 
 
+# Longer numbers cannot be an event id and would overflow the database integer
+MAX_EVENT_NUMBER_DIGITS = 9
+
+
+@blueprint.route("/goto")
+@valid_user()
+def goto():
+    """Redirects to the event whose number is given in the `numero` argument.
+
+    Only redirects: the event page applies its own access rules.
+    """
+    raw_number = request.args.get("numero", "").strip()
+    if not raw_number.isdecimal() or len(raw_number) > MAX_EVENT_NUMBER_DIGITS:
+        flash("Numéro de collective invalide.", "error")
+        return redirect(url_for("event.index"))
+
+    event_id = int(raw_number)
+    if db.session.get(Event, event_id) is None:
+        flash(f"Aucune collective ne porte le numéro {event_id}.", "error")
+        return redirect(url_for("event.index"))
+
+    return redirect(url_for("event.view_event", event_id=event_id))
+
+
 @blueprint.route("/<int:event_id>")
 @blueprint.route("/<int:event_id>-<name>")
 @blueprint.route("/<int:event_id>-")
@@ -303,6 +328,21 @@ def view_event(event_id, name=""):
 
     question_form = QuestionAnswersForm(event, current_user)
 
+    whatsapp_link_form = None
+    whatsapp_group_description = None
+    if Configuration.WHATSAPP_GROUPS_ENABLED and event.has_edit_rights(current_user):
+        whatsapp_link_form = WhatsappLinkForm(obj=event)
+        if not event.whatsapp_invite_link:
+            # Only displayed by the group creation steps
+            whatsapp_group_description = event.whatsapp_group_description(
+                url_for(
+                    "event.view_event",
+                    event_id=event.id,
+                    name=slugify(event.title),
+                    _external=True,
+                )
+            )
+
     return render_template(
         "event/event.html",
         event=event,
@@ -312,6 +352,8 @@ def view_event(event_id, name=""):
         register_user_form=register_user_form,
         payment_item_choice_form=payment_item_choice_form,
         question_form=question_form,
+        whatsapp_link_form=whatsapp_link_form,
+        whatsapp_group_description=whatsapp_group_description,
         sort_key=request.args.get("sort_key", "id"),
         possible_sort_keys={
             "user.last_name,user.first_name": "nom",
@@ -1081,6 +1123,65 @@ def answer_questions(event_id: int):
     return redirect(url_for("event.view_event", event_id=event_id))
 
 
+@blueprint.route("/<int:event_id>/whatsapp_link", methods=["POST"])
+@valid_user()
+@confidentiality_agreement()
+def update_whatsapp_link(event_id):
+    """Route for a leader to set or remove the invite link of the event WhatsApp group.
+
+    :param int event_id: Primary key of the event.
+    """
+    event = db.session.get(Event, event_id)
+    if event is None:
+        flash("Événement inexistant", "error")
+        return redirect(url_for("event.index"))
+
+    if not Configuration.WHATSAPP_GROUPS_ENABLED or not event.has_edit_rights(
+        current_user
+    ):
+        flash("Non autorisé", "error")
+        return redirect(url_for("event.index"))
+
+    event_url = url_for(
+        "event.view_event",
+        event_id=event.id,
+        name=slugify(event.title),
+        _anchor="whatsapp-group",
+    )
+
+    form = WhatsappLinkForm()
+    if not form.is_submitted():
+        return redirect(event_url)
+    form.validate()
+    errors = dict(form.errors)
+    if form.remove.data:
+        # Removing the link must not depend on what is typed in the field
+        errors.pop("whatsapp_invite_link", None)
+    if errors:
+        for field_errors in errors.values():
+            for error in field_errors:
+                flash(error, "error")
+        return redirect(event_url)
+
+    if form.remove.data or not form.whatsapp_invite_link.data:
+        if event.whatsapp_invite_link is None:
+            flash("Aucun lien de groupe WhatsApp à enregistrer.", "warning")
+            return redirect(event_url)
+        event.whatsapp_invite_link = None
+        flash("Le lien du groupe WhatsApp a été retiré.", "success")
+    else:
+        event.whatsapp_invite_link = form.whatsapp_invite_link.data
+        flash(
+            "Le lien du groupe WhatsApp a été enregistré ; "
+            "il est visible des participants.",
+            "success",
+        )
+    db.session.add(event)
+    db.session.commit()
+
+    return redirect(event_url)
+
+
 @blueprint.route("/registrations/<reg_id>/level/<int:reg_level>", methods=["POST"])
 @valid_user()
 def change_registration_level(reg_id, reg_level):
@@ -1284,10 +1385,14 @@ def preview(event_id):
     :param int event_id: Primary key of the event to update.
     """
     if not is_crawler():
-        redirect(url_for("event.view_event", event_id=event_id))
+        return redirect(url_for("event.view_event", event_id=event_id))
 
     event = db.session.get(Event, event_id)
     if event is None:
+        abort(404)
+    if event.status == EventStatus.Pending:
+        abort(404)
+    if event.visibility == EventVisibility.Activity:
         abort(404)
 
     min_date = current_time() - timedelta(days=Configuration.MAX_HISTORY_FOR_ANONYMOUS)

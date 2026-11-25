@@ -3,7 +3,8 @@ function updateBadgeLevels(
     badgeLevels,
     badgeSelect,
     badgeActivityIdSelect,
-    levelSelect
+    levelSelect,
+    allLabel = null // If set, label of a first option selecting all levels
 ) {
     while (levelSelect.options.length > 0) {
         levelSelect.remove(0);
@@ -39,7 +40,10 @@ function updateBadgeLevels(
 
     }
 
-    if (Object.entries(levels).length == 0) {
+    if (allLabel) {
+        levelSelect.add(new Option(allLabel, ""));
+        hidden = false;
+    } else if (Object.entries(levels).length == 0) {
         levels = {"": {name: "Aucun"}};
     }
     for (const [key, level] of Object.entries(levels)) {

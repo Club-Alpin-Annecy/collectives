@@ -351,6 +351,7 @@
 
     </div>
 
+    {% include 'event/partials/whatsapp.html' %}
 
     {# Leader payment #}
     {% if event.requires_payment() and event.is_leader(current_user) %}
@@ -392,7 +393,9 @@
       {{ event.rendered_description | safe  }}
     </div>
 
+    {% if Configuration.RETEX_ENABLED %}
     {% include 'retex/partials/display.html' %}
+    {% endif %}
 
     {% if event.uploaded_files | length %}
     <div id="uploaded_files">

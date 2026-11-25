@@ -1,9 +1,9 @@
 """Module containing form widgets for editing user groups"""
 
-import json
 from typing import Callable, Optional, TypeVar, Union
 
 from flask import url_for
+from jinja2.utils import htmlsafe_json_dumps
 from markupsafe import Markup
 from wtforms import (
     BooleanField,
@@ -331,16 +331,16 @@ class UserGroupForm(ModelForm):
                 for cat in field.data
             ]
 
-    def event_conditions_as_json(self) -> str:
-        """:returns: the current event condition form values as a JSON string
-        for creating JS entries"""
+    def event_conditions_as_json(self) -> Markup:
+        """:returns: the current event condition form values as a JSON string,
+        safe to embed in a script block, for creating JS entries"""
 
         event_conditions = [
             {
                 "id": id,
                 "condition_id": _empty_string_if_none(condition_form.condition_id.data),
                 "event_id": _empty_string_if_none(condition_form.event_id.data),
-                "event_name": Markup(condition_form.event().title),
+                "event_name": condition_form.event().title,
                 "event_url": url_for(
                     "event.view_event",
                     event_id=condition_form.event_id.data,
@@ -350,42 +350,42 @@ class UserGroupForm(ModelForm):
             }
             for id, condition_form in enumerate(self.event_conditions)
         ]
-        return json.dumps(event_conditions)
+        return htmlsafe_json_dumps(event_conditions)
 
-    def role_conditions_as_json(self) -> str:
-        """:returns: the current role condition form values as a JSON string
-        for creating JS entries"""
+    def role_conditions_as_json(self) -> Markup:
+        """:returns: the current role condition form values as a JSON string,
+        safe to embed in a script block, for creating JS entries"""
 
         role_conditions = [
             {
                 "id": id,
                 "condition_id": _empty_string_if_none(condition_form.condition_id.data),
                 "role_id": _empty_string_if_none(condition_form.role_id.data),
-                "role_name": Markup(condition_form.role_name()),
+                "role_name": condition_form.role_name(),
                 "activity_id": _empty_string_if_none(condition_form.activity_id.data),
-                "activity_name": Markup(condition_form.activity_name()),
+                "activity_name": condition_form.activity_name(),
                 "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.role_conditions)
         ]
-        return json.dumps(role_conditions)
+        return htmlsafe_json_dumps(role_conditions)
 
-    def badge_conditions_as_json(self) -> str:
-        """:returns: the current badge condition form values as a JSON string
-        for creating JS entries"""
+    def badge_conditions_as_json(self) -> Markup:
+        """:returns: the current badge condition form values as a JSON string,
+        safe to embed in a script block, for creating JS entries"""
 
         badge_conditions = [
             {
                 "id": id,
                 "condition_id": _empty_string_if_none(condition_form.condition_id.data),
                 "badge_id": _empty_string_if_none(condition_form.badge_id.data),
-                "badge_name": Markup(condition_form.badge_name()),
+                "badge_name": condition_form.badge_name(),
                 "activity_id": _empty_string_if_none(condition_form.activity_id.data),
-                "activity_name": Markup(condition_form.activity_name()),
+                "activity_name": condition_form.activity_name(),
                 "level": _empty_string_if_none(condition_form.level.data),
-                "level_name": Markup(condition_form.level_name()),
+                "level_name": condition_form.level_name(),
                 "invert": condition_form.invert.data,
             }
             for id, condition_form in enumerate(self.badge_conditions)
         ]
-        return json.dumps(badge_conditions)
+        return htmlsafe_json_dumps(badge_conditions)

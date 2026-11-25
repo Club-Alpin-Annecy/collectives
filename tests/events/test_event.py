@@ -656,24 +656,44 @@ def test_update_attendance_upcoming_event(
     assert "bientôt" in confirm_mail["message"]
 
 
-def test_registration_countdown(user1_client, event):
-    """Test the countdown displayed before registrations open"""
-
-    event.registration_open_time = current_time() + timedelta(minutes=10)
+def test_preview_redirects_non_crawlers(client, event):
+    """A regular browser is redirected from the preview to the event page."""
+    event.visibility = EventVisibility.External
     db.session.commit()
 
-    response = user1_client.get(f"/collectives/{event.id}-x")
-    assert response.status_code == 200
-    countdown = BeautifulSoup(response.text, "html.parser").find(
-        id="registration-countdown"
-    )
-    assert countdown is not None
-    assert 0 < float(countdown["data-seconds"]) <= 600
+    response = client.get(f"/collectives/{event.id}/preview")
+    assert response.status_code == 302
+    assert "preview" not in response.headers["Location"]
 
-    # No countdown, nor reload, when registrations open in several days
-    event.registration_open_time = current_time() + timedelta(days=2)
+
+def test_preview_hides_non_public_events(client, draft_event, activity_event):
+    """Crawlers cannot preview pending or activity-only events.
+
+    The 404 handler redirects unknown pages to the event list."""
+    headers = {
+        "User-Agent": "facebookexternalhit/1.0 (+http://www.facebook.com/externalhit_uatext.php)"
+    }
+    for hidden_event in (draft_event, activity_event):
+        response = client.get(
+            f"/collectives/{hidden_event.id}/preview", headers=headers
+        )
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/collectives/"
+
+
+def test_event_condition_title_is_escaped_in_script(leader_client, event, event2):
+    """An event title cannot break out of the script block of the edit page."""
+    payload = "</script><script>alert(1)</script>"
+    event2.title = payload
+    group = UserGroup()
+    condition = GroupEventCondition(event_id=event2.id)
+    group.event_conditions.append(condition)
+    db.session.add(group)
+    db.session.commit()
+    event.user_group = group
     db.session.commit()
 
-    response = user1_client.get(f"/collectives/{event.id}-x")
+    response = leader_client.get(f"/collectives/{event.id}/edit")
     assert response.status_code == 200
-    assert 'id="registration-countdown"' not in response.text
+    assert payload not in response.text
+    assert "\\u003c/script\\u003e\\u003cscript\\u003ealert(1)" in response.text

@@ -21,6 +21,7 @@ from flask import (
 )
 from flask_login import current_user
 from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 from sqlalchemy import inspect
 from sqlalchemy.orm import selectinload
 
@@ -63,6 +64,7 @@ from collectives.utils.time import current_time
 from collectives.utils.url import slugify
 
 blueprint = Blueprint("payment", __name__, url_prefix="/payment")
+
 """ Event blueprint
 
 This blueprint contains all routes for event display and management
@@ -73,6 +75,23 @@ PENDING_PAYMENT_DELAY = timedelta(hours=1)
 
 :type: :py:class:`datetime.timedelta`
 """
+
+# Layout of the payments Excel export
+EXPORT_WIDE_COLUMN_WIDTH = 25
+EXPORT_NARROW_COLUMN_WIDTH = 16
+EXPORT_MONEY_FORMAT = "#,##0.00€"
+EXPORT_WIDE_FIELDS = (
+    "item.event.main_leader.first_name",
+    "item.event.main_leader.last_name",
+    "item.event.title",
+    "item.event.start",
+    "buyer.license",
+    "buyer.first_name",
+    "buyer.mail",
+    "item.title",
+    "finalization_time",
+    "processor_order_ref",
+)
 
 
 @blueprint.before_request
@@ -440,6 +459,7 @@ def export_payments(event_id=None):
     workbook = Workbook()
     worksheet = workbook.active
     fields = {
+        "item.event.id": "Numéro de collective",
         "item.event.event_type.name": "Type d'événement",
         "item.event.activity_type_names": "Activités",
         "item.event.main_leader.first_name": "Prénom encadrant",
@@ -466,14 +486,20 @@ def export_payments(event_id=None):
         payment.payment_status_str = payment.status.display_name()
         worksheet.append([deepgetattr(payment, field, "-") for field in fields])
 
-    # set column width
-    for column in "CDEFGHJLOR":
-        worksheet.column_dimensions[column].width = 25
-    for column in "ABIKMN":
-        worksheet.column_dimensions[column].width = 16
-
-    # set "Amount paid" column format
-    worksheet.column_dimensions["N"].number_format = "#,##0.00€"
+    # set column widths and formats from the field names, not from letters
+    for index, field in enumerate(fields, start=1):
+        dimension = worksheet.column_dimensions[get_column_letter(index)]
+        dimension.width = (
+            EXPORT_WIDE_COLUMN_WIDTH
+            if field in EXPORT_WIDE_FIELDS
+            else EXPORT_NARROW_COLUMN_WIDTH
+        )
+        if field == "amount_paid":
+            dimension.number_format = EXPORT_MONEY_FORMAT
+            # The column format only applies to empty cells: set it on the
+            # written cells too
+            for (cell,) in worksheet.iter_rows(min_row=2, min_col=index, max_col=index):
+                cell.number_format = EXPORT_MONEY_FORMAT
 
     out = BytesIO()
     workbook.save(out)

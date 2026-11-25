@@ -78,6 +78,7 @@ function loadBadgesTable(ajaxUrl, ajaxParams, csrfToken, showType, showLevel, sh
             paginationDataSent: {"page": "page", "size": "size"},
             paginationDataReceived: {"last_page": "last_page", "data": "data"},
         });
+    bindScrollToTopOnPageChange(table);
 }
 
 function makeOptions(dict) {

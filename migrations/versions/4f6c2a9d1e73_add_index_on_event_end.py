@@ -4,7 +4,7 @@ The event list filters on the end date to hide past events. Without an index,
 the database scans the whole table from the very first event.
 
 Revision ID: 4f6c2a9d1e73
-Revises: 7babe0b3cfa2
+Revises: c81d4e5f2a90
 Create Date: 2026-10-11 21:20:00.000000
 
 """
@@ -14,7 +14,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "4f6c2a9d1e73"
-down_revision = "7babe0b3cfa2"
+down_revision = "c81d4e5f2a90"
 branch_labels = None
 depends_on = None
 
