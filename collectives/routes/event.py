@@ -426,14 +426,6 @@ def _prevalidate_leaders_and_activities(
     # Get current activites from form
     tentative_activities = form.current_activities()
 
-    requires_activity = form.current_event_type().requires_activity
-    if requires_activity and len(tentative_activities) == 0:
-        flash(
-            f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
-            "error",
-        )
-        return (False, [], [])
-
     # Fetch existing readers leaders minus removed ones
     previous_leaders = []
     tentative_leaders = []
@@ -455,6 +447,15 @@ def _prevalidate_leaders_and_activities(
     # Set current leaders from submitted form
     form.set_current_leaders(previous_leaders)
     form.update_choices()
+
+    # Checked once the leaders are set, since the form is displayed again on failure
+    requires_activity = form.current_event_type().requires_activity
+    if requires_activity and len(tentative_activities) == 0:
+        flash(
+            f"Un événement de type {form.current_event_type().name} requiert au moins une activité",
+            "error",
+        )
+        return (False, [], [])
 
     # Update activities only
     # Do not process the remainder of the form
