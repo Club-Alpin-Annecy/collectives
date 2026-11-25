@@ -86,8 +86,9 @@ def test_volunteers_bulk_add(supervisor_client, user1, user2, user3):
     data["csv_file"] = (BytesIO(csv.encode("utf8")), "import.csv")
 
     response = supervisor_client.post("/activity_supervision/volunteers/add", data=data)
+    response = utils.confirm_badge_import(supervisor_client, response)
 
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     assert len(user1.badges) == 1
     assert user1.badges[0].expiration_date > date.today()

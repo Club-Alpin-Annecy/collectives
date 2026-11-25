@@ -43,7 +43,7 @@ from collectives.models import (
     db,
 )
 from collectives.models.badge import BadgeIds
-from collectives.utils import badges, export
+from collectives.utils import badge_import, badges, export
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.csv import process_stream
 from collectives.utils.time import current_time
@@ -211,9 +211,11 @@ def volunteers_list():
 def add_volunteer():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(badge_types=[BadgeIds.Benevole])
-
-    return redirect(url_for(".volunteers_list"))
+    response = badges.add_badge(
+        badge_types=[BadgeIds.Benevole],
+        back_endpoint="activity_supervision.volunteers_list",
+    )
+    return response or redirect(url_for(".volunteers_list"))
 
 
 @blueprint.route("/volunteers/delete/<badge_id>", methods=["POST"])
@@ -504,11 +506,13 @@ def set_custom_practitioner_levels():
 def add_competency_badge():
     """Route for an activity supervisor to add or renew a Badge to a user" """
 
-    badges.add_badge(
-        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill), level=True, auto_date=True
+    response = badges.add_badge(
+        badge_types=(BadgeIds.Practitioner, BadgeIds.Skill),
+        level=True,
+        auto_date=True,
+        back_endpoint="activity_supervision.competency_badge_holders",
     )
-
-    return redirect(url_for(".competency_badge_holders"))
+    return response or redirect(url_for(".competency_badge_holders"))
 
 
 @blueprint.route("/competency_badge_holders/", methods=["GET"])
@@ -530,6 +534,13 @@ def competency_badge_holders():
         show_grantor=True,
         title="Pratiquants validés",
     )
+
+
+@blueprint.route("/badges/import", methods=["POST"])
+def confirm_badge_import():
+    """Route to import the badges of a file, once the badge of each group of
+    lines is chosen (see :py:mod:`collectives.utils.badge_import`)."""
+    return badge_import.confirm_import()
 
 
 @blueprint.route("/competency_badge_holders/export", methods=["POST"])

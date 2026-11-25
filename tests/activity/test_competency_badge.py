@@ -40,13 +40,15 @@ def test_competency_bulk_add(supervisor_client, user1, user2, user3):
     response = supervisor_client.post(
         "/activity_supervision/competency_badge/add", data=data
     )
+    response = utils.confirm_badge_import(supervisor_client, response)
 
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     assert len(user1.badges) == 1
     assert user1.badges[0].badge_id == BadgeIds.Practitioner
     assert user1.badges[0].level == 2
     assert user1.badges[0].activity_name == "Alpinisme"
+    assert user1.badges[0].grantor == supervisor_client.user
     assert len(user2.badges) == 1
     assert user2.badges[0].badge_id == BadgeIds.Practitioner
     assert user2.badges[0].level == 3
@@ -90,8 +92,9 @@ def test_skill_bulk_add(
     response = supervisor_client.post(
         "/activity_supervision/competency_badge/add", data=data
     )
+    response = utils.confirm_badge_import(supervisor_client, response)
 
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     assert len(user1.badges) == 1
     assert user1.badges[0].badge_id == BadgeIds.Skill
@@ -126,8 +129,9 @@ def test_competency_bulk_add_latin1_semicolon(supervisor_client, user1):
     response = supervisor_client.post(
         "/activity_supervision/competency_badge/add", data=data
     )
+    response = utils.confirm_badge_import(supervisor_client, response)
 
-    assert response.status_code == 302
+    assert response.status_code == 200
     assert len(user1.badges) == 1
     assert user1.badges[0].badge_id == BadgeIds.Practitioner
 

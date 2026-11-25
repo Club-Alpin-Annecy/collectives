@@ -76,8 +76,9 @@
   </p>
   {% endif %}
   
-  {{ generator.form_generator(add_badge_form, url_for(routes['add'])) }}
+  {% include 'activity_supervision/partials/add_badge_form.html' %}
 {% endif %}
+
 
 <h4 class="heading-4">Export de la liste</h4>
 

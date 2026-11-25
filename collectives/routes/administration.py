@@ -38,7 +38,15 @@ from collectives.models import (
 )
 from collectives.models.auth import ConfirmationToken
 from collectives.models.badge import BadgeIds
-from collectives.utils import badges, export, extranet, loxya, loxya_sync, time
+from collectives.utils import (
+    badge_import,
+    badges,
+    export,
+    extranet,
+    loxya,
+    loxya_sync,
+    time,
+)
 from collectives.utils.access import confidentiality_agreement, user_is, valid_user
 from collectives.utils.misc import sanitize_file_name
 
@@ -677,8 +685,18 @@ def export_badge():
 def add_badge():
     """Route for an admin to add or renew a Badge to a user" """
 
-    badges.add_badge()
-    return redirect(url_for(".badges_list"))
+    response = badges.add_badge(
+        back_endpoint="administration.badges_list",
+        extends="administration/index.html",
+    )
+    return response or redirect(url_for(".badges_list"))
+
+
+@blueprint.route("/badges/import", methods=["POST"])
+def confirm_badge_import():
+    """Route to import the badges of a file, once the badge of each group of
+    lines is chosen (see :py:mod:`collectives.utils.badge_import`)."""
+    return badge_import.confirm_import()
 
 
 @blueprint.route("/badges/delete/<badge_id>", methods=["POST"])

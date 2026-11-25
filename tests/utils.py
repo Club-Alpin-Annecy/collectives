@@ -63,3 +63,40 @@ def get_form_errors(text: str) -> list:
     errors = soup.select(".form-errors .flash-error")
 
     return [error.text for error in errors]
+
+
+def load_badge_import_form(text: str) -> tuple[str, dict, dict]:
+    """From a badge file import page, return its mapping form.
+
+    :param string text: Raw page HTML
+    :returns: the form action, the form data with the pre-filled choices, and
+        for each group of lines the names of its badge, activity and level fields
+    """
+    soup = BeautifulSoup(text, features="lxml")
+    form = soup.select_one("#badge-import-form")
+    data = {
+        i.attrs["name"]: i.attrs.get("value", "")
+        for i in form.select("input")
+        if "name" in i.attrs
+    }
+    for select in form.select("select"):
+        selected = select.select_one("option[selected]") or select.select_one("option")
+        data[select.attrs["name"]] = selected.attrs.get("value", "") if selected else ""
+
+    groups = {}
+    for row in form.select("tr.import-group"):
+        names = [select.attrs["name"] for select in row.select("select")]
+        groups[row.select_one("label").text.strip()] = tuple(names)
+    return form.attrs["action"], data, groups
+
+
+def confirm_badge_import(client, response):
+    """Confirms a badge file import with the pre-filled choices.
+
+    :param client: the test client
+    :param response: the response displaying the badge file import page
+    :returns: the response of the import
+    """
+    assert response.status_code == 200, response.text
+    action, data, _ = load_badge_import_form(response.text)
+    return client.post(action, data=data)
