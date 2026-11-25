@@ -99,6 +99,37 @@ def test_overflow_with_leaders_in_counts(user1, user2, user3, event: Event):
     assert event.num_taken_slots() == 2
 
 
+def test_overflow_online_slots_count_leader_registrations(
+    user1, user2, user3, event: Event
+):
+    """Registrations made by a leader take online slots too: a self-registration
+    committed once they fill the online slots must be refused, as
+    Event.has_free_online_slots() would have refused it beforehand."""
+
+    event.num_slots = 3
+    event.num_online_slots = 1
+    db.session.add(event)
+    db.session.commit()
+
+    def registration(user, is_self):
+        return Registration(
+            user_id=user.id,
+            status=RegistrationStatus.Active,
+            level=RegistrationLevels.Normal,
+            is_self=is_self,
+        )
+
+    event.add_registration_check_race_conditions(registration(user1, False))
+    assert not event.has_free_online_slots()
+
+    with pytest.raises(OverbookedRegistrationError):
+        event.add_registration_check_race_conditions(registration(user2, True))
+
+    # A leader can still register someone up to the total number of slots
+    event.add_registration_check_race_conditions(registration(user3, False))
+    assert event.num_taken_slots() == 2
+
+
 def test_duplicate(user1, user2, event: Event):
     """Test duplicate resgistration to an event"""
 
