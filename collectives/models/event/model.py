@@ -90,7 +90,9 @@ class EventModelMixin:
         default="0",
         info={"min": 0, "validators": InputRequired()},
     )
-    """Maximum number of user that can self-register to this event.
+    """Number of taken slots above which users can no longer self-register.
+
+    All taken slots count, including the registrations made by a leader.
 
     :type: int"""
 

@@ -319,13 +319,6 @@ class Registration(db.Model):
             [r for r in self.event.registrations if r.is_holding_slot()]
         )
 
-    def online_index(self) -> int:
-        """Returns the chronological place this registration has in all online and holding slot
-        registrations. -1 if not holding slot and online. Starts at 0."""
-        return self._index_in_list(
-            [r for r in self.event.registrations if r.is_self and r.is_holding_slot()]
-        )
-
     def waiting_index(self) -> int:
         """Returns the chronological place this registration has in waiting registrations.
         -1 if not waiting. Starts at 0."""
@@ -352,20 +345,28 @@ class Registration(db.Model):
 
         An overbooked registration is:
 
-        - | an online registration with more previous Waiting registration
-          | than online slots
-        - | or an holding place registration with more previous holding place registration
+        - | a holding place registration with more previous holding place registrations
           | than total slots
-        - | a Waiting registration with more previous Waiting registration
+        - | or a holding place self-registration with more previous holding place
+          | registrations, whoever made them, than online slots
+        - | or a Waiting registration with more previous Waiting registrations
           | than Waiting slots
 
+        Leaders take slots too when the event includes them in its counts. This is
+        the same count as :py:meth:`Event.has_free_slots` and
+        :py:meth:`Event.has_free_online_slots`, which are checked before registering.
         """
+        if self.waiting_index() >= self.event.num_waiting_list:
+            return True
 
-        return (
-            self.waiting_index() >= self.event.num_waiting_list
-            or self.holding_index() >= self.event.num_slots
-            or self.online_index() >= self.event.num_online_slots
-        )
+        holding_index = self.holding_index()
+        if holding_index < 0:
+            return False
+
+        previously_taken_slots = holding_index + self.event.num_leader_slots()
+        if previously_taken_slots >= self.event.num_slots:
+            return True
+        return self.is_self and previously_taken_slots >= self.event.num_online_slots
 
     def is_in_late_unregistration_period(self, time: Optional[datetime] = None) -> bool:
         """
