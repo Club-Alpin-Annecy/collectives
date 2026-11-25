@@ -30,8 +30,10 @@ from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
 from typing import IO, Iterable
+from xml.etree.ElementTree import ParseError
 
 import openpyxl
+from defusedxml import DefusedXmlException
 from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
@@ -267,6 +269,12 @@ def parse_excel(stream: IO[bytes]) -> ParsedFile:
                     grantor=_cell_text(cell(row, "grantor")) or None,
                 )
             )
+    except (DefusedXmlException, ParseError) as err:
+        # Sheets are parsed lazily; defusedxml rejects entity declarations,
+        # which could otherwise expand to exhaust memory ("billion laughs").
+        raise BadgeImportError(
+            "Le fichier n'est pas un fichier Excel (.xlsx) valide."
+        ) from err
     finally:
         workbook.close()
 

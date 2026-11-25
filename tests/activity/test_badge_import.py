@@ -2,8 +2,10 @@
 
 from datetime import date
 from io import BytesIO
+from zipfile import ZipFile
 
 import openpyxl
+import pytest
 from bs4 import BeautifulSoup
 from flask_login import login_user
 
@@ -247,6 +249,26 @@ def test_upload_invalid_excel_file(supervisor_client):
     """An unreadable Excel file is rejected"""
     response = upload_file(supervisor_client, BytesIO(b"PK\x03\x04 not a workbook"))
     assert response.status_code == 302
+
+
+def test_parse_excel_rejects_xml_entities():
+    """Sheets declaring XML entities are rejected, preventing entity expansion"""
+    content = make_export([("740020149132", "Skill A", None, None)])
+    patched = BytesIO()
+    with ZipFile(content) as source, ZipFile(patched, "w") as target:
+        for item in source.infolist():
+            data = source.read(item)
+            if item.filename == "xl/worksheets/sheet1.xml":
+                data = data.replace(
+                    b"<worksheet",
+                    b'<!DOCTYPE worksheet [<!ENTITY lol "lol">]><worksheet',
+                    1,
+                )
+            target.writestr(item, data)
+    patched.seek(0)
+
+    with pytest.raises(badge_import.BadgeImportError):
+        badge_import.parse_excel(patched)
 
 
 def test_extranet_import(
