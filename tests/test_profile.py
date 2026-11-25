@@ -245,7 +245,7 @@ def test_update_user_practitioner_badge(
     assert badge.level_name() in response.text
     assert badge.activity_id == activity_id
 
-    # a renamed level keeps the colour of the level on the profile
+    # a renamed level whose name lacks its emoji shows the short tag
     db.session.add(
         BadgeCustomLevel(
             name="Découverte",
