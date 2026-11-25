@@ -22,18 +22,6 @@ class UserRoleMixin:
         """
         return [role for role in self.roles if role.role_id in role_ids]
 
-    def matching_roles_for_activity(
-        self, role_ids: List[RoleIds], activity_id: int
-    ) -> List[Role]:
-        """Returns filtered user roles against a role types list and an activity.
-
-        :param role_ids: Role types that will be extracted.
-        :param activity_id: Activity which will be used as a filter.
-        :return: Filtered User roles.
-        """
-        matching_roles = self.matching_roles(role_ids)
-        return [role for role in matching_roles if role.activity_id == activity_id]
-
     def has_role(self, role_ids: List[RoleIds]) -> bool:
         """Check if user has at least one of the roles types.
 

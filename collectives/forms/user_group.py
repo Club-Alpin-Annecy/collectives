@@ -1,6 +1,6 @@
 """Module containing form widgets for editing user groups"""
 
-from typing import Callable, Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from flask import url_for
 from jinja2.utils import htmlsafe_json_dumps

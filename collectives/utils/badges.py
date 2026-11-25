@@ -5,7 +5,7 @@ import csv
 from datetime import datetime
 from typing import List, Sequence, Union
 
-from flask import flash, render_template, request, send_file
+from flask import flash, render_template, send_file
 from flask_login import current_user
 from markupsafe import Markup
 from sqlalchemy import ColumnElement, and_, or_, true
@@ -19,7 +19,6 @@ from collectives.forms.badge import (
 from collectives.models import (
     ActivityType,
     Badge,
-    BadgeCustomLevel,
     BadgeIds,
     Configuration,
     User,

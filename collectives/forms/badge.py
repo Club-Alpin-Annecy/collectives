@@ -15,7 +15,6 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.validators import (
-    DataRequired,
     InputRequired,
     ValidationError,
 )

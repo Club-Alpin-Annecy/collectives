@@ -108,31 +108,6 @@ class UserBadgeMixin:
             self.matching_badges({BadgeIds.UnjustifiedAbsenceWarning}, valid_only=True)
         )
 
-    def has_badge_for_activity(
-        self, badge_ids: Set[BadgeIds], activity_id: Optional[int], level: int = 0
-    ) -> bool:
-        """Check if user has at least one of the badge types for an activity.
-
-        :param badge_ids: Badges that will be tested.
-        :param activity_id: Activity onto which role should applied.
-        :param level: Minimum level of the badge (if applicable)
-        :return: True if user has at least one of the listed roles type for the activity.
-        """
-        badges = self.matching_badges(badge_ids, activity_id=activity_id, level=level)
-        return any(badges)
-
-    def has_this_badge_for_activity(
-        self, badge_id: BadgeIds, activity_id: Optional[int]
-    ) -> bool:
-        """Check if user has a specific badge for an activity.
-
-        :param badge_id: Badge that will be tested.
-        :param activity_id: Activity onto which role should applied.
-        :return: True if user has the corresponding badge type for the activity.
-        """
-        badges = self.matching_badges({badge_id}, activity_id=activity_id)
-        return any(badges)
-
     def activities_with_valid_badge(
         self, badge_ids: Set[BadgeIds]
     ) -> Set[ActivityType]:
@@ -146,13 +121,6 @@ class UserBadgeMixin:
         return {
             badge.activity_type for badge in badges if badge.activity_type is not None
         }
-
-    def has_a_valid_competency_badge(self) -> bool:
-        """Check if user has a competency badge.
-
-        :return: True if user has a benevole badge.
-        """
-        return self.has_a_valid_badge({BadgeIds.Practitioner, BadgeIds.Skill})
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments

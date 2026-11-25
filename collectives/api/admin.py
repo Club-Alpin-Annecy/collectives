@@ -1,8 +1,6 @@
 """API for user list in administration page."""
 
-import json
-
-from flask import abort, request, url_for
+from flask import request, url_for
 from flask_login import current_user
 from marshmallow import fields
 from sqlalchemy import and_, desc, or_

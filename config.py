@@ -417,12 +417,6 @@ UPLOADED_PRIVATE_DEST = os.path.join(basedir, "collectives/private_assets")
 :type: string
 """
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
-""" Allowed extension for uploaded images
-
-:type: array
-"""
-
 IMAGES_CACHE = os.path.join(basedir, "collectives/static/uploads/cache")
 IMAGES_PATH = [
     "static/uploads/tech",
@@ -599,10 +593,4 @@ Key is the column name. And for each column:
 - *default*: default value
 
 :type: dict
-"""
-
-XLSX_TEMPLATE = os.path.join(basedir, "collectives/templates/exported_event.xlsx")
-"""Path to Excel template.
-
-:type: string
 """
