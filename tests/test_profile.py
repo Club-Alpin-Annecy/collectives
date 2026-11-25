@@ -245,6 +245,27 @@ def test_update_user_practitioner_badge(
     assert badge.level_name() in response.text
     assert badge.activity_id == activity_id
 
+    # a renamed level keeps the colour of the level on the profile
+    db.session.add(
+        BadgeCustomLevel(
+            name="Découverte",
+            badge_id=BadgeIds.Practitioner,
+            activity_id=activity_id,
+            level=4,
+            abbrev="⚫",
+        )
+    )
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert 'competency-tag">⚫</span>' in response.text
+    assert "Découverte" in response.text
+    db.session.query(BadgeCustomLevel).delete()
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+
     # post badge deletion
 
     data = utils.load_data_from_form(response.text, "practitioner_badge_form")
