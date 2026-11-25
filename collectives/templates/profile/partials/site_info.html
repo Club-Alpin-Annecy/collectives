@@ -37,7 +37,10 @@
                     <div class="text-primary bold">{{ activity.name }}</div>
                     {% for badge in badges %}
                         <div>
-                            {{ badge.level_name() }}
+                            {% set short_name = badge.level_name(short=True) | string %}
+                            {% set full_name = badge.level_name() | string %}
+                            {% if short_name not in full_name %}<span class="tag competency-tag">{{ short_name }}</span>{% endif %}
+                            {{ full_name }}
                             <em> {{ '(' ~format_date(badge.expiration_date) ~ ')' if badge.expiration_date else '' }}</em>
                             {% if badge.grantor %}<small class="text-gray"> — par {{ badge.grantor.full_name() }}</small>{% endif %}
                         </div>

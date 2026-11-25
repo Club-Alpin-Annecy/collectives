@@ -195,6 +195,8 @@ def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: 
     assert response.status_code == 200
 
     assert badge.level_name() in response.text
+    # The default level names already contain their emoji: no extra tag
+    assert "competency-tag" not in response.text
 
 
 def test_update_user_practitioner_badge(
@@ -320,6 +322,8 @@ def test_set_user_skill_badge(
     assert response.status_code == 200
     assert "Spécialisation" in response.text
     assert badge.level_name() in response.text
+    # Same short tag as on the event registration icons
+    assert f'competency-tag">{badge.level_name(short=True)}</span>' in response.text
 
     # badge with activity
 

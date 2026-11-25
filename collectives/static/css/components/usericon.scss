@@ -93,3 +93,11 @@
         }
     }
 }
+
+// Competency tag shown outside of a .usericon, with the same look
+.tag.competency-tag {
+    border-radius: 5px;
+    padding: 0px 2px;
+    border: 1px solid $color-gray-light;
+    margin: 0;
+}
