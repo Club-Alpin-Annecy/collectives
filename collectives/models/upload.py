@@ -1,6 +1,7 @@
 """Module for file upload related classes"""
 
 import os
+import secrets
 from datetime import timedelta
 
 from flask import url_for
@@ -28,6 +29,23 @@ documents = UploadSet("documents", DOCUMENTS + STATIC_SAFE_IMAGES + ("gpx",))
 :type: flask_uploads.UploadSet
 """
 
+
+PATH_NAME_MAX_LENGTH = 100
+"""Maximum length of the original name kept in the on-disk name of a file.
+
+Keeps the on-disk name below the 255 bytes allowed by file systems.
+
+:type: int
+"""
+
+PATH_TOKEN_BYTES = 8
+"""Number of random bytes in the on-disk name of an uploaded file.
+
+Uploaded files are served as static files: the random token makes their URL
+impossible to guess from the original file name.
+
+:type: int
+"""
 
 THUMBNAIL_WIDTH = 640
 """Default width in pixels for image thumbnails """
@@ -164,8 +182,10 @@ class UploadedFile(db.Model):
         """
         self.name = file.filename
         name, ext = os.path.splitext(self.name)
+        token = secrets.token_hex(PATH_TOKEN_BYTES)
+        name = name[:PATH_NAME_MAX_LENGTH]
         self.path = documents.save(
-            file, name=f"{self.date.strftime('%y_%m_%d')}_{name}{ext}"
+            file, name=f"{self.date.strftime('%y_%m_%d')}_{token}_{name}{ext}"
         )
         file_stats = os.stat(self.full_path())
         self.size = file_stats.st_size
@@ -229,6 +249,9 @@ class UploadedFile(db.Model):
         """
         to_delete = UploadedFile.query.filter(UploadedFile.event_id.is_(None))
         to_delete = to_delete.filter(UploadedFile.activity_id.is_(None))
+        # Files without an editing session were detached from their event, see
+        # detach_unused_images(): they are kept
+        to_delete = to_delete.filter(UploadedFile.session_id.isnot(None))
         to_delete = to_delete.filter(UploadedFile.session_id != current_session_id)
         to_delete = to_delete.filter(
             UploadedFile.date <= current_time() - timedelta(days=days)
@@ -236,6 +259,31 @@ class UploadedFile(db.Model):
         for file_to_delete in to_delete.all():
             file_to_delete.delete_file()
             db.session.delete(file_to_delete)
+
+    @staticmethod
+    def detach_unused_images(event: "Event"):
+        """Detaches from an event its images that its texts no longer use.
+
+        An image is used when its path appears in the description of the event
+        or of its retex. A detached image no longer counts in the upload quota
+        of the event, and is no longer listed with its files. Its file is kept:
+        another event (a duplicate, for instance) may still display it.
+
+        Does not commit.
+
+        :param event: The event whose images are checked
+        """
+        texts = [event.description or ""]
+        if event.retex is not None:
+            texts.append(event.retex.description or "")
+
+        for uploaded_file in event.uploaded_files:
+            if not uploaded_file.is_image():
+                continue
+            if any(uploaded_file.path in text for text in texts):
+                continue
+            uploaded_file.event_id = None
+            uploaded_file.session_id = None
 
     def has_edit_rights(self, user: User):
         """Checks whether an user has edit rights on this file

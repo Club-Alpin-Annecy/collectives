@@ -42,6 +42,12 @@
        padding-bottom: $padding-vertical-l;
        overflow-wrap: break-word;
 
+       // Uploaded photos are 640px wide: keep them inside the page on phones
+       img:not(.icon) {
+            max-width: 100%;
+            height: auto;
+       }
+
        table{
             border-collapse: collapse;
        }
