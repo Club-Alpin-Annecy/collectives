@@ -23,7 +23,7 @@ function levelFormatter(badgeLevels) {
             for (const activityId of [cell.getData().activity_type?.id, null]) {
                 if (activityId in thisBadgeLevels && level in thisBadgeLevels[activityId]) {
                     // Level names are user-defined: insert them as text, not HTML
-                    return document.createTextNode(thisBadgeLevels[activityId][level].name);
+                    return document.createTextNode(thisBadgeLevels[activityId][level].tagged_name);
                 }
             }
         }

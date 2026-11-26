@@ -344,7 +344,10 @@ def test_set_user_skill_badge(
     assert "Spécialisation" in response.text
     assert badge.level_name() in response.text
     # Same short tag as on the event registration icons
-    assert f'competency-tag">{badge.level_name(short=True)}</span>' in response.text
+    assert f'competency-tag">{badge.level_tag()}</span>' in response.text
+    # The level choices show the same tag
+    level_desc = BadgeIds.Skill.level(custom_skill_with_expiry.level)
+    assert f"{level_desc.tagged_name()} (" in response.text
 
     # badge with activity
 
