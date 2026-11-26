@@ -268,13 +268,13 @@ class CompetencyBadgeForm(ActivityTypeSelectionForm):
 
         if badge_id == BadgeIds.Practitioner:
             self.level.choices = [(0, "Aucun")] + [
-                (k, f"{desc.name} ({desc.abbrev})")
+                (k, desc.tagged_name())
                 for k, desc in badge_id.levels().items()
                 if desc.activity_id is None or desc.activity_id in led_activities
             ]
         else:
             self.level.choices = [
-                (k, f"{desc.name} ({desc.activity_name()})")
+                (k, f"{desc.tagged_name()} ({desc.activity_name()})")
                 for k, desc in badge_id.levels().items()
                 if desc.activity_id is None or desc.activity_id in led_activities
             ]

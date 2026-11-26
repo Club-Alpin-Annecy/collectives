@@ -195,6 +195,8 @@ def test_show_user_profile_badges(leader_client, event1_with_reg: Event, user1: 
     assert response.status_code == 200
 
     assert badge.level_name() in response.text
+    # The default level names already contain their emoji: no extra tag
+    assert "competency-tag" not in response.text
 
 
 def test_update_user_practitioner_badge(
@@ -242,6 +244,27 @@ def test_update_user_practitioner_badge(
     assert "Niveau de pratique" in response.text
     assert badge.level_name() in response.text
     assert badge.activity_id == activity_id
+
+    # a renamed level whose name lacks its emoji shows the short tag
+    db.session.add(
+        BadgeCustomLevel(
+            name="Découverte",
+            badge_id=BadgeIds.Practitioner,
+            activity_id=activity_id,
+            level=4,
+            abbrev="⚫",
+        )
+    )
+    db.session.commit()
+    BadgeIds.levels.expire_all()
+    response = leader_client.get(
+        url_for("profile.show_user", user_id=user1.id, event_id=event1_with_reg.id)
+    )
+    assert 'competency-tag">⚫</span>' in response.text
+    assert "Découverte" in response.text
+    db.session.query(BadgeCustomLevel).delete()
+    db.session.commit()
+    BadgeIds.levels.expire_all()
 
     # post badge deletion
 
@@ -320,6 +343,11 @@ def test_set_user_skill_badge(
     assert response.status_code == 200
     assert "Spécialisation" in response.text
     assert badge.level_name() in response.text
+    # Same short tag as on the event registration icons
+    assert f'competency-tag">{badge.level_tag()}</span>' in response.text
+    # The level choices show the same tag
+    level_desc = BadgeIds.Skill.level(custom_skill_with_expiry.level)
+    assert f"{level_desc.tagged_name()} (" in response.text
 
     # badge with activity
 

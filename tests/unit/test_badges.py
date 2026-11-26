@@ -1,5 +1,6 @@
 """Unit tests for Badge class"""
 
+import json
 from datetime import date, timedelta
 
 from collectives.models import (
@@ -10,7 +11,12 @@ from collectives.models import (
     db,
 )
 from collectives.models.activity_type import ActivityType
-from collectives.models.badge import Badge, BadgeCustomLevel, BadgeIds
+from collectives.models.badge import (
+    Badge,
+    BadgeCustomLevel,
+    BadgeIds,
+    BadgeLevelDescriptor,
+)
 from collectives.models.user import User
 from tests.fixtures.app import app
 from tests.fixtures.misc import (
@@ -355,3 +361,21 @@ def test_skill_may_supersede():
     assert BadgeCustomLevel.may_supersede(None, 1)
     assert BadgeCustomLevel.may_supersede(1, 1)
     assert not BadgeCustomLevel.may_supersede(1, 2)
+
+
+def test_level_tag():
+    """The short tag is shown only when the level name does not contain it"""
+    level = BadgeLevelDescriptor("Niveau 🟢", "🟢")
+    assert level.tag() is None
+    assert level.tagged_name() == "Niveau 🟢"
+
+    level = BadgeLevelDescriptor("Découverte", "🟢")
+    assert level.tag() == "🟢"
+    assert level.tagged_name() == "🟢 Découverte"
+
+
+def test_js_levels_tagged_name(app, custom_skill):
+    """Badge level lists get the tagged name of each level"""
+    levels = json.loads(BadgeIds.js_levels(badge_ids=[BadgeIds.Skill]))
+    level = levels[str(BadgeIds.Skill.value)]["null"][str(custom_skill.level)]
+    assert level["tagged_name"] == f"{custom_skill.abbrev} {custom_skill.name}"

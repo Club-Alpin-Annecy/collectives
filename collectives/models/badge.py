@@ -41,6 +41,25 @@ class BadgeLevelDescriptor:
     """For skills only: levels of the skills transitively superseded by this
     one. Used to hide superseded skills in registration icons."""
 
+    def tag(self) -> str | None:
+        """Returns the short tag to show next to the level name.
+
+        :return: the abbreviation, or None if the name already contains it
+        """
+        if self.abbrev in self.name:
+            return None
+        return self.abbrev
+
+    def tagged_name(self) -> str:
+        """Returns the level name, prefixed with its short tag when the name
+        does not already contain it, so that it can be matched with the tags
+        shown on registration icons.
+
+        :return: tagged name of the level
+        """
+        tag = self.tag()
+        return f"{tag} {self.name}" if tag else self.name
+
     def is_compatible_with_activity(self, activity_id: int | None) -> bool:
         """Check if this level is compatible with the given activity.
 
@@ -220,7 +239,10 @@ class BadgeIds(ChoiceEnum):
                 include_deprecated=include_deprecated,
                 include_defaults=False,
             )
-            return {key: level.__dict__ for key, level in levels.items()}
+            return {
+                key: {**level.__dict__, "tagged_name": level.tagged_name()}
+                for key, level in levels.items()
+            }
 
         # The result is inserted inside <script> tags: escape HTML-sensitive
         # characters so that a level name cannot close the tag
@@ -565,6 +587,16 @@ class Badge(db.Model):
         if with_activity and self.activity_type is not None:
             name += f" - {self.activity_name}"
         return name
+
+    def level_tag(self) -> str | None:
+        """Returns the short tag to show next to the level name, if any.
+
+        :return: the tag, or None if the level name already contains it
+        """
+        level_desc = self.badge_id.level(self.level, activity_id=self.activity_id)
+        if level_desc is None:
+            return None
+        return level_desc.tag()
 
     @property
     def activity_name(self):
